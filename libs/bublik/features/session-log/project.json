@@ -1,0 +1,26 @@
+{
+	"name": "bublik-features-session-log",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/session-log/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": [
+					"libs/bublik/features/session-log/**/*.{ts,tsx,js,jsx}"
+				]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/bublik/features/session-log"],
+			"options": {
+				"passWithNoTests": true,
+				"reportsDirectory": "../../../../coverage/libs/bublik/features/session-log"
+			}
+		}
+	}
+}

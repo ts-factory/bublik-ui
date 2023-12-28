@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Radio > should match snapshot 1`] = `
+<div
+  data-testid="radio-field"
+>
+  <label
+    className="flex items-center w-full h-full gap-2 transition-all cursor-pointer text-[0.75rem] font-medium px-3 py-2 border border-border-primary rounded focus-within:shadow-[0_0_0_2px_rgba(98,126,251,0.1)]"
+    data-testid="tw-radio"
+  >
+    <svg
+      className="text-text-menu"
+      fill="none"
+      height="12"
+      viewBox="0 0 12 12"
+      width="12"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        fill="white"
+        height="12"
+        width="12"
+      />
+      <circle
+        cx="6"
+        cy="6"
+        r="5.5"
+        stroke="currentColor"
+      />
+    </svg>
+    <input
+      className="absolute w-0 h-0 opacity-0 appearance-none"
+      type="radio"
+    />
+    <span
+      className="text-[0.75rem] leading-[0.875rem]"
+    >
+      Test label
+    </span>
+  </label>
+</div>
+`;
+
+exports[`Radio > should render checked styles 1`] = `
+<div
+  data-testid="radio-field"
+>
+  <label
+    aria-checked={true}
+    className="flex items-center w-full h-full gap-2 transition-all cursor-pointer text-[0.75rem] font-medium px-3 py-2 border rounded focus-within:shadow-[0_0_0_2px_rgba(98,126,251,0.1)] border-primary"
+    data-testid="tw-radio"
+  >
+    <svg
+      className="text-primary"
+      fill="none"
+      height="12"
+      viewBox="0 0 12 12"
+      width="12"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        fill="white"
+        height="12"
+        width="12"
+      />
+      <circle
+        cx="6"
+        cy="6"
+        fill="currentColor"
+        r="5.5"
+        stroke="currentColor"
+      />
+      <circle
+        cx="6"
+        cy="6"
+        fill="white"
+        r="3"
+      />
+    </svg>
+    <input
+      checked={true}
+      className="absolute w-0 h-0 opacity-0 appearance-none"
+      type="radio"
+    />
+    <span
+      className="text-[0.75rem] leading-[0.875rem]"
+    >
+      Test label
+    </span>
+  </label>
+</div>
+`;

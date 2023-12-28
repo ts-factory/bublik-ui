@@ -1,0 +1,26 @@
+{
+	"name": "bublik-features-dashboard-v2",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/dashboard-v2/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"lint": {
+			"executor": "@nx/linter:eslint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": [
+					"libs/bublik/features/dashboard-v2/**/*.{ts,tsx,js,jsx}"
+				]
+			}
+		},
+		"test": {
+			"executor": "@nrwl/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/bublik/features/dashboard-v2"],
+			"options": {
+				"passWithNoTests": true,
+				"reportsDirectory": "../../../../coverage/libs/bublik/features/dashboard-v2"
+			}
+		}
+	}
+}

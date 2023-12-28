@@ -1,0 +1,57 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TextArea > should render default variant 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-col gap-2"
+  >
+    <label
+      class="block mb-1 text-sm font-medium text-text-primary"
+    >
+      Text area
+    </label>
+    <textarea
+      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+    />
+  </div>
+</DocumentFragment>
+`;
+
+exports[`TextArea > should render primary variant 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-col gap-2"
+  >
+    <label
+      class="block mb-1 text-sm font-medium text-text-primary"
+    >
+      Text area
+    </label>
+    <textarea
+      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+    />
+  </div>
+</DocumentFragment>
+`;
+
+exports[`TextArea > should render with error 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-col gap-2"
+  >
+    <label
+      class="block mb-1 text-sm font-medium text-text-primary"
+    >
+      Text area
+    </label>
+    <textarea
+      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-bg-error focus:shadow-text-field-error focus:border-bg-error hover:border-bg-error"
+    />
+    <p
+      class="text-[0.75rem] font-normal text-bg-error"
+    >
+      Error message
+    </p>
+  </div>
+</DocumentFragment>
+`;

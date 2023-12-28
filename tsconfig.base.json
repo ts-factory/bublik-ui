@@ -1,0 +1,93 @@
+{
+	"compileOnSave": false,
+	"compilerOptions": {
+		"rootDir": ".",
+		"sourceMap": true,
+		"declaration": false,
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "es2015",
+		"module": "esnext",
+		"lib": ["es2019", "dom"],
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"forceConsistentCasingInFileNames": false,
+		"baseUrl": ".",
+		"paths": {
+			"@/bublik/+state": ["libs/bublik/+state/src/index.ts"],
+			"@/bublik/config": ["libs/bublik/config/src/index.ts"],
+			"@/bublik/features/admin-users": [
+				"libs/bublik/features/admin-users/src/index.ts"
+			],
+			"@/bublik/features/auth": [
+				"libs/bublik/features/auth/src/index.ts"
+			],
+			"@/bublik/features/compromised-form": [
+				"libs/bublik/features/compromised-form/src/index.ts"
+			],
+			"@/bublik/features/dashboard-v2": [
+				"libs/bublik/features/dashboard-v2/src/index.ts"
+			],
+			"@/bublik/features/deploy-info": [
+				"libs/bublik/features/deploy-info/src/index.ts"
+			],
+			"@/bublik/features/faq": [
+				"libs/bublik/features/faq/src/index.ts"
+			],
+			"@/bublik/features/history": [
+				"libs/bublik/features/history/src/index.ts"
+			],
+			"@/bublik/features/link-to-source": [
+				"libs/bublik/features/link-to-source/src/index.ts"
+			],
+			"@/bublik/features/log": [
+				"libs/bublik/features/log/src/index.ts"
+			],
+			"@/bublik/features/measurements": [
+				"libs/bublik/features/measurements/src/index.ts"
+			],
+			"@/bublik/features/result-links": [
+				"libs/bublik/features/result-links/src/index.ts"
+			],
+			"@/bublik/features/run": [
+				"libs/bublik/features/run/src/index.ts"
+			],
+			"@/bublik/features/run-details": [
+				"libs/bublik/features/run-details/src/index.ts"
+			],
+			"@/bublik/features/run-diff": [
+				"libs/bublik/features/run-diff/src/index.ts"
+			],
+			"@/bublik/features/run-import": [
+				"libs/bublik/features/run-import/src/index.ts"
+			],
+			"@/bublik/features/runs": [
+				"libs/bublik/features/runs/src/index.ts"
+			],
+			"@/bublik/features/session-log": [
+				"libs/bublik/features/session-log/src/index.ts"
+			],
+			"@/bublik/features/sidebar": [
+				"libs/bublik/features/sidebar/src/index.ts"
+			],
+			"@/bublik/features/user-preferences": [
+				"libs/bublik/features/user-preferences/src/index.ts"
+			],
+			"@/bublik/run-utils": ["libs/bublik/run-utils/src/index.ts"],
+			"@/icons": ["libs/shared/icons/src/index.ts"],
+			"@/router": ["libs/bublik/router/src/index.ts"],
+			"@/services/bublik-api": [
+				"libs/services/bublik-api/src/index.ts"
+			],
+			"@/shared/charts": ["libs/shared/charts/src/index.ts"],
+			"@/shared/hooks": ["libs/shared/hooks/src/index.ts"],
+			"@/shared/tailwind-ui": ["libs/shared/tailwind-ui/src/index.ts"],
+			"@/shared/types": ["libs/shared/types/src/index.ts"],
+			"@/shared/utils": ["libs/shared/utils/src/index.ts"]
+		}
+	},
+	"exclude": ["node_modules", "tmp"]
+}

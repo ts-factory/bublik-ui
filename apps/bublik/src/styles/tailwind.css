@@ -1,0 +1,151 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+	font-family: var(--fonts-body);
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+:root {
+	/* SIDEBAR */
+	--sidebar-width-open: 252px;
+	--sidebar-padding-open: 24px 26px;
+	--sidebar-width-closed: 56px;
+	--sidebar-padding-closed: 24px 7px;
+
+	/* FONTS */
+	--fonts-body: Inter, ui-sans-serif, system-ui, -apple-system,
+		BlinkMacSystemFont, Segoe UI, Roboto Helvetica Neue, Arial, Noto Sans,
+		sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
+		Noto Color Emoji;
+	--fonts-serif: ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
+	--fonts-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		Liberation Mono, Courier New monospace;
+
+	--colors-primary: 229 95% 68%;
+	--colors-primary-wash: 218 100% 98%;
+	--colors-white: 0 0% 100%;
+
+	/* TEXT */
+	--colors-text-primary: 217 23% 19%;
+	--colors-text-secondary: 218 12% 31%;
+	--colors-text-expected: 155 29% 48%;
+	--colors-text-unexpected: 0 89% 64%;
+	--colors-text-menu: 216 15% 62%;
+
+	/* BACKGROUND */
+	--colors-bg-primary: 0 0% 100%;
+	--colors-bg-body: 0 0% 96%;
+	--colors-bg-fillError: 0 100% 88%;
+	--colors-bg-error: 349 93% 67%;
+	--colors-bg-warning: 32 100% 55%;
+	--colors-bg-fillWarning: 32 100% 80%;
+	--colors-bg-ok: 138 51% 60%;
+	--colors-bg-running: 231 66% 67%;
+	--colors-bg-compromised: 240 7% 70%;
+	--colors-bg-stopped: 0 74% 93%;
+	--colors-bg-busy: 47 100% 64%;
+	--colors-border-primary: 214 26% 89%;
+
+	/* BADGES */
+	--colors-badge-0: 0 0% 94%;
+	--colors-badge-1: 208 42% 91%;
+	--colors-badge-2: 256 60% 95%;
+	--colors-badge-3: 96 75% 92%;
+	--colors-badge-4: 34 74% 93%;
+	--colors-badge-5: 0 74% 93%;
+	--colors-badge-6: 234 75% 92%;
+	--colors-badge-7: 185 58% 96%;
+	--colors-badge-8: 135 100% 95%;
+	--colors-badge-9: 218 100% 98%;
+	--colors-badge-10: 196 33% 94%;
+	--colors-badge-11: 0 0% 96%;
+	--colors-badge-12: 349 93% 67%;
+	--colors-badge-13: 0 100% 88%;
+	--colors-badge-14: 34 100% 90%;
+	--colors-badge-15: 353 100% 81%;
+	--colors-badge-16: 120 33% 94%;
+
+	/* DIFF */
+	--diff-added: 134 100% 95%;
+	--diff-removed: 5 100% 96%;
+	--diff-changed: 48 97% 77;
+
+	/* LOG */
+	--log-gray-200: 220 13% 91%;
+	--log-row-error: 349 93% 67%;
+	--log-row-warn: 32 100% 55%;
+	--log-row-info: var(--log-gray-200);
+	--log-row-verb: 231 66% 67%;
+	--log-row-packet: var(--log-gray-200);
+
+	/* SHADOWS */
+	--shadow-popover: 0px 5px 15px rgba(0, 0, 0, 0.2);
+	--shadow-tooltip: 0px 5px 15px rgba(0, 0, 0, 0.2);
+	--shadow-text-field: 0 0 0 3px rgba(98, 126, 251, 0.1);
+	--shadow-dialog-sheet: -15px 0px 15px 0px rgba(34, 60, 80, 0.05);
+	--shadow-text-field-error: 0 0 0 3px rgba(247, 29, 69, 0.1);
+	--shadow-sticky: 0 0 15px 0 rgb(0 0 0 / 10%);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+	}
+}
+
+html .no-bg-scrollbar {
+	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+	scrollbar-width: thin;
+}
+
+html .no-bg-scrollbar::-webkit-scrollbar,
+html .no-bg-scrollbar::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+html .no-bg-scrollbar:active::-webkit-scrollbar-thumb,
+html .no-bg-scrollbar:focus-within::-webkit-scrollbar-thumb,
+html .no-bg-scrollbar:focus::-webkit-scrollbar-thumb,
+html .no-bg-scrollbar:hover::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, 0.2);
+	border: 4px solid transparent;
+	background-clip: content-box;
+	border-radius: 10px;
+}
+
+html .no-bg-scrollbar::-webkit-scrollbar-thumb:active,
+html .no-bg-scrollbar::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+/* FIREFOX */
+.styled-scrollbar {
+	scrollbar-color: hsl(var(--colors-text-menu)) hsl(var(--colors-bg-body));
+}
+
+/* CHROME */
+.styled-scrollbar::-webkit-scrollbar,
+.styled-scrollbar scrollbar {
+	--width: 8px;
+	width: var(--width);
+	height: var(--width);
+}
+
+.styled-scrollbar::-webkit-scrollbar-track,
+.styled-scrollbar scrollbar-track {
+	background: transparent;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb,
+.styled-scrollbar scrollbar-thumb {
+	background: hsl(var(--colors-text-menu));
+	border-radius: 0.5rem;
+}

@@ -1,0 +1,22 @@
+{
+	"name": "bublik-features-run",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/run/src",
+	"projectType": "library",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["libs/bublik/features/run/**/*.{ts,tsx,js,jsx}"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/bublik/features/run"],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	},
+	"tags": []
+}

@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/Badge > should display passed background color 1`] = `
+<DocumentFragment>
+  <div
+    class="inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-16"
+    data-testid="tw-badge"
+  />
+</DocumentFragment>
+`;
+
+exports[`components/Badge > should display passed background color and override it when selected 1`] = `
+<DocumentFragment>
+  <div
+    class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-primary-wash border-primary"
+    data-testid="tw-badge"
+  />
+</DocumentFragment>
+`;
+
+exports[`components/Badge > should display selected variant 1`] = `
+<DocumentFragment>
+  <div
+    class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-primary-wash border-primary"
+    data-testid="tw-badge"
+  />
+</DocumentFragment>
+`;
+
+exports[`components/Badge > should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0"
+    data-testid="tw-badge"
+  />
+</DocumentFragment>
+`;

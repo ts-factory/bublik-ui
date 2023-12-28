@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InputLabel > should match snapshot 1`] = `
+<label
+  className="font-normal text-text-secondary text-[0.875rem]"
+  data-testid="input-label"
+/>
+`;

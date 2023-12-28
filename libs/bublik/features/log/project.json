@@ -1,0 +1,22 @@
+{
+	"name": "bublik-features-log",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/log/src",
+	"projectType": "library",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["libs/bublik/features/log/**/*.{ts,tsx,js,jsx}"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/bublik/features/log"],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	},
+	"tags": []
+}

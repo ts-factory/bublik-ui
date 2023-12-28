@@ -1,0 +1,39 @@
+{
+	"git": {
+		"requireBranch": "main",
+		"commitMessage": "chore(release): v${version}",
+		"tagName": "v${version}",
+		"addUntrackedFiles": true
+	},
+	"github": { "release": true, "releaseName": "v${version}" },
+	"hooks": {
+		"before:init": [],
+		"after:bump": ["pnpm run git-info", "pnpm run bublik:ci:build"],
+		"after:@release-it/conventional-changelog:bump": "pnpm run create-mdx-changelog \"${changelog}\"",
+		"after:release": "echo Successfully released ${name} v${version} to ${repo.repository}."
+	},
+	"plugins": {
+		"@release-it/conventional-changelog": {
+			"infile": "CHANGELOG.md",
+			"preset": {
+				"name": "conventionalcommits",
+				"header": "# Changelog",
+				"commitUrlFormat": "https://github.com/{{owner}}/{{repository}}/commit/{{hash}}",
+				"tagPrefix": "v",
+				"types": [
+					{ "type": "feat", "section": "🚀 New Feature" },
+					{ "type": "fix", "section": "🐛 Bug Fix" },
+					{ "type": "style", "section": "💅 Polish" },
+					{ "type": "chore", "section": "📦 Chores" },
+					{ "type": "perf", "section": "⚡ Performance Improvements" },
+					{ "type": "revert", "section": "⏪ Reverts" },
+					{ "type": "docs", "section": "📝 Documentation" },
+					{ "type": "refactor", "section": "♻ Code Refactoring" },
+					{ "type": "test", "section": "✅ Tests" },
+					{ "type": "build", "section": "👷‍ Build System" },
+					{ "type": "ci", "section": "🔧 Continuous Integration | CI" }
+				]
+			}
+		}
+	}
+}

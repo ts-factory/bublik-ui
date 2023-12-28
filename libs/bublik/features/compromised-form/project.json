@@ -1,0 +1,27 @@
+{
+	"name": "bublik-features-compromised-form",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/compromised-form/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": [
+					"libs/bublik/features/compromised-form/**/*.{ts,tsx,js,jsx}"
+				]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": [
+				"{workspaceRoot}/coverage/libs/bublik/features/compromised-form"
+			],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	}
+}

@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AppShell > should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="relative flex h-full"
+    data-testid="tw-app-shell"
+  >
+    <div
+      class="sticky top-0 z-20 h-screen"
+      id="sidebar"
+    >
+      <div>
+        sidebar
+      </div>
+    </div>
+    <div
+      class="flex-grow overflow-auto"
+      id="page-container"
+    />
+  </div>
+</DocumentFragment>
+`;

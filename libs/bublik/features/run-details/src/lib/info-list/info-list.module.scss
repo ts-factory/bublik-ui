@@ -1,0 +1,16 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+.grid-list {
+	display: grid;
+	grid-template-columns: minmax(80px, max-content) 48px 1fr;
+	align-items: center;
+}
+
+.label {
+	padding-top: 0.25rem;
+	align-self: start;
+}
+
+.list {
+	grid-column-start: 3;
+}

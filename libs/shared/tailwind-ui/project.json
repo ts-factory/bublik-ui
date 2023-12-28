@@ -1,0 +1,22 @@
+{
+	"name": "shared-tailwind-ui",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/shared/tailwind-ui/src",
+	"projectType": "library",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["libs/shared/tailwind-ui/**/*.{ts,tsx,js,jsx}"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/shared/tailwind-ui"],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	},
+	"tags": []
+}

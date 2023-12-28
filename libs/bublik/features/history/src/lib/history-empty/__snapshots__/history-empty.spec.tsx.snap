@@ -1,0 +1,140 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HistoryEmpty > should render no results warning 1`] = `
+<DocumentFragment>
+  <div
+    class="grid place-items-center h-[calc(100vh-256px)]"
+  >
+    <div
+      class="flex flex-col items-center text-center"
+    >
+      <svg
+        class="text-primary"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          clip-rule="evenodd"
+          d="M2 12C2 6.485 6.486 2 12 2s10 4.485 10 10c0 5.514-4.486 10-10 10a9.94 9.94 0 0 1-7.927-3.902.727.727 0 1 1 1.152-.888A8.493 8.493 0 0 0 12 20.546c4.712 0 8.546-3.833 8.546-8.546 0-4.712-3.834-8.546-8.546-8.546S3.454 7.288 3.454 12c0 .438.033.873.098 1.299a.728.728 0 0 1-1.437.22A10.1 10.1 0 0 1 2 11.999Zm10-4.546a.75.75 0 0 0-.75.75v4.42a.75.75 0 0 0 1.5 0v-4.42a.75.75 0 0 0-.75-.75Zm.01 7.592H12a.746.746 0 0 0-.745.75c0 .414.341.75.755.75a.75.75 0 0 0 0-1.5Z"
+          fill="currentColor"
+          fill-rule="evenodd"
+        />
+      </svg>
+      <h3
+        class="mt-2 text-sm font-medium text-gray-900"
+      >
+        No results
+      </h3>
+      <p
+        class="mt-1 text-sm text-gray-500"
+      >
+        No results found. Do you want to edit global search?
+      </p>
+      <div
+        class="mt-6"
+      >
+        <button
+          class="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none bg-primary text-white disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu px-2.5 text-xs font-medium rounded-lg hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[7px]"
+          type="button"
+        >
+          <svg
+            class="mr-2"
+            fill="none"
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              clip-rule="evenodd"
+              d="M8.73 17.823c0 .442.346.803.772.803.426 0 .772-.36.772-.803v-3.984a.82.82 0 0 0-.21-.55L3.703 6.216a.623.623 0 0 1-.158-.416V4.217c0-.335.263-.608.585-.608h3.089c.426 0 .772-.36.772-.804C7.99 2.36 7.644 2 7.218 2H4.129C2.955 2 2 2.994 2 4.217v1.582c0 .566.204 1.103.575 1.516l6.155 6.842v3.666Zm.16 3.718c.13.289.41.459.7.459.11 0 .22-.024.325-.074l4.321-2.07c.271-.13.446-.41.446-.72v-5.09l6.679-6.756c.406-.41.639-.98.639-1.565V4.193C22 2.983 21.044 2 19.87 2h-8.899a.785.785 0 0 0-.772.795c0 .44.346.797.772.797h8.899c.323 0 .585.27.585.601v1.532a.61.61 0 0 1-.175.428l-6.91 6.993a.808.808 0 0 0-.233.567v4.915l-3.873 1.855a.807.807 0 0 0-.375 1.058Z"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          Open Search
+        </button>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`HistoryEmpty > should render no test name warning 1`] = `
+<DocumentFragment>
+  <div
+    class="grid place-items-center h-[calc(100vh-256px)]"
+  >
+    <div
+      class="flex flex-col items-center text-center"
+    >
+      <svg
+        class="text-text-unexpected"
+        fill="none"
+        height="24"
+        viewBox="0 0 17 16"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          clip-rule="evenodd"
+          d="M15.4346 11.4571C15.4459 11.4765 15.4553 11.4971 15.4639 11.5178C15.5433 11.7131 15.5886 11.9191 15.5999 12.1298C15.6259 12.6331 15.4546 13.1158 15.1166 13.4905C14.7793 13.8651 14.3159 14.0858 13.8126 14.1111L6.64126 14.1118C6.36526 14.1118 6.14126 13.8878 6.14126 13.6118C6.14126 13.3358 6.36526 13.1118 6.64126 13.1118H13.7873C13.9979 13.0998 14.2153 12.9971 14.3746 12.8205C14.5333 12.6445 14.6133 12.4185 14.6013 12.1818C14.5966 12.0925 14.5786 12.0045 14.5473 11.9205L9.7146 3.46313C9.47526 3.03046 8.9346 2.87446 8.5066 3.11113C8.3606 3.19179 8.24126 3.31113 8.1606 3.45713L3.32393 11.9211C3.24593 12.1331 3.25126 12.3631 3.33926 12.5718C3.43126 12.7898 3.6026 12.9591 3.82193 13.0478C3.9146 13.0858 4.0106 13.1071 4.10993 13.1125C4.38526 13.1258 4.59793 13.3611 4.58393 13.6371C4.5706 13.9038 4.34926 14.1118 4.0846 14.1118H4.08456C4.07591 14.1118 4.06792 14.1118 4.05926 14.1111C3.84726 14.1005 3.6406 14.0545 3.4446 13.9745C2.97926 13.7851 2.6146 13.4251 2.4186 12.9611C2.22193 12.4971 2.2186 11.9838 2.4086 11.5171C2.4166 11.4965 2.42593 11.4765 2.43726 11.4571L7.2886 2.96713C7.4566 2.66313 7.71193 2.40846 8.02193 2.23579C8.93326 1.73179 10.0833 2.06246 10.5866 2.97313L15.4346 11.4571ZM8.93594 9.06532C9.21194 9.06532 9.43594 8.84132 9.43594 8.56532V6.68066C9.43594 6.40466 9.21194 6.18066 8.93594 6.18066C8.65994 6.18066 8.43594 6.40466 8.43594 6.68066V8.56532C8.43594 8.84132 8.65994 9.06532 8.93594 9.06532ZM8.93594 11.346C9.21194 11.346 9.43594 11.122 9.43594 10.846V10.8393C9.43594 10.5633 9.21194 10.3427 8.93594 10.3427C8.65994 10.3427 8.43594 10.57 8.43594 10.846C8.43594 11.122 8.65994 11.346 8.93594 11.346Z"
+          fill="currentColor"
+          fill-rule="evenodd"
+        />
+      </svg>
+      <h3
+        class="mt-2 text-sm font-medium text-gray-900"
+      >
+        No test name
+      </h3>
+      <p
+        class="mt-1 text-sm text-gray-500"
+      >
+        No test name found. Please, add test name to filter
+      </p>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`HistoryEmpty > should render without onOpenFormClick 1`] = `
+<DocumentFragment>
+  <div
+    class="grid place-items-center h-[calc(100vh-256px)]"
+  >
+    <div
+      class="flex flex-col items-center text-center"
+    >
+      <svg
+        class="text-primary"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          clip-rule="evenodd"
+          d="M2 12C2 6.485 6.486 2 12 2s10 4.485 10 10c0 5.514-4.486 10-10 10a9.94 9.94 0 0 1-7.927-3.902.727.727 0 1 1 1.152-.888A8.493 8.493 0 0 0 12 20.546c4.712 0 8.546-3.833 8.546-8.546 0-4.712-3.834-8.546-8.546-8.546S3.454 7.288 3.454 12c0 .438.033.873.098 1.299a.728.728 0 0 1-1.437.22A10.1 10.1 0 0 1 2 11.999Zm10-4.546a.75.75 0 0 0-.75.75v4.42a.75.75 0 0 0 1.5 0v-4.42a.75.75 0 0 0-.75-.75Zm.01 7.592H12a.746.746 0 0 0-.745.75c0 .414.341.75.755.75a.75.75 0 0 0 0-1.5Z"
+          fill="currentColor"
+          fill-rule="evenodd"
+        />
+      </svg>
+      <h3
+        class="mt-2 text-sm font-medium text-gray-900"
+      >
+        No results
+      </h3>
+      <p
+        class="mt-1 text-sm text-gray-500"
+      >
+        No results found. Do you want to edit global search?
+      </p>
+    </div>
+  </div>
+</DocumentFragment>
+`;

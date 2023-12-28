@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InfoCard > should match snapshot 1`] = `
+<div
+  className="flex items-center justify-center w-full h-screen"
+  data-testid="info-card"
+>
+  <div
+    className="bg-white min-w-[600px] max-w-[768px] flex flex-col rounded-2xl shadow-2xl"
+  >
+    <div
+      className="p-4 border-b border-border-primary"
+    >
+      <h2>
+        Info card
+      </h2>
+    </div>
+    <div
+      className="flex-1 p-4"
+    >
+      <p>
+        Info card message
+      </p>
+    </div>
+  </div>
+</div>
+`;

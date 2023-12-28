@@ -1,0 +1,22 @@
+{
+	"name": "services-bublik-api",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/services/bublik-api/src",
+	"projectType": "library",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["libs/services/bublik-api/**/*.{ts,tsx,js,jsx}"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/services/bublik-api"],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	},
+	"tags": []
+}

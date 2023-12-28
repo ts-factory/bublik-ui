@@ -1,0 +1,22 @@
+{
+	"name": "shared-hooks",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/shared/hooks/src",
+	"projectType": "library",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["libs/shared/hooks/**/*.{ts,tsx,js,jsx}"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{workspaceRoot}/coverage/libs/shared/hooks"],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	},
+	"tags": []
+}

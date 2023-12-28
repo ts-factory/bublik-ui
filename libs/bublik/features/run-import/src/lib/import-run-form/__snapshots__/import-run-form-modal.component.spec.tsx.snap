@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ImportRunFormModalComponent > should render successfully 1`] = `
+<DocumentFragment>
+  <button
+    aria-controls="radix-:r0:"
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none bg-primary text-white disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu px-3 text-[0.875rem] leading-[1.5rem] rounded-lg hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2"
+    data-state="closed"
+    type="button"
+  >
+    Import
+  </button>
+</DocumentFragment>
+`;

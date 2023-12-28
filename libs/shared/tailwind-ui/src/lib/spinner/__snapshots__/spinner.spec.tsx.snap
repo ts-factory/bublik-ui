@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Spinner > should match snapshot 1`] = `
+<div
+  className="grid place-items-center w-full text-primary"
+  data-testid="tw-spinner"
+>
+  <div
+    className="_spinner-wrapper_cbea93"
+  >
+    <svg
+      fill="none"
+      height="16"
+      viewBox="0 0 16 16"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="8"
+        cy="8"
+        r="7"
+        strokeWidth="2"
+      />
+    </svg>
+  </div>
+</div>
+`;

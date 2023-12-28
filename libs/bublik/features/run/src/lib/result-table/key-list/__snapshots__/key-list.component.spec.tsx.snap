@@ -1,0 +1,72 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`KeyList > should render button when no url 1`] = `
+<DocumentFragment>
+  <ul
+    class="flex flex-wrap gap-1"
+  >
+    <li>
+      <div
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary"
+      >
+        Item 1
+      </div>
+    </li>
+  </ul>
+</DocumentFragment>
+`;
+
+exports[`KeyList > should render correctly anchor with url 1`] = `
+<DocumentFragment>
+  <ul
+    class="flex flex-wrap gap-1"
+  >
+    <li>
+      <a
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary underline text-primary"
+        href="https://example.com/1"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Item 1
+      </a>
+    </li>
+  </ul>
+</DocumentFragment>
+`;
+
+exports[`KeyList > should render multiple items with url and without 1`] = `
+<DocumentFragment>
+  <ul
+    class="flex flex-wrap gap-1"
+  >
+    <li>
+      <a
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary underline text-primary"
+        href="https://example.com/1"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Item 1
+      </a>
+    </li>
+    <li>
+      <div
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary"
+      >
+        Item 2
+      </div>
+    </li>
+    <li>
+      <a
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary underline text-primary"
+        href="https://example.com/3"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Item 3
+      </a>
+    </li>
+  </ul>
+</DocumentFragment>
+`;

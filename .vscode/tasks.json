@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "serve",
+			"type": "shell",
+			"command": "pnpm start",
+			"problemMatcher": []
+		},
+		{
+			"label": "storybook",
+			"type": "shell",
+			"command": "pnpm bublik:storybook",
+			"problemMatcher": []
+		},
+		{
+			"label": "dev",
+			"dependsOn": ["serve", "storybook"],
+			"problemMatcher": []
+		}
+	]
+}

@@ -1,0 +1,73 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { FC, memo, useMemo } from 'react';
+
+import { RunDataResults } from '@/shared/types';
+import { TwTable, TableClassNames, cn, Skeleton } from '@/shared/tailwind-ui';
+
+import { getColumns } from './result-table.columns';
+export interface SkeletonProps {
+	rowCount?: number;
+}
+
+export const ResultTableLoading: FC<SkeletonProps> = ({ rowCount = 25 }) => {
+	return (
+		<div className="flex flex-col gap-1 mt-1 mb-1">
+			<Skeleton className="rounded-b h-[38px]" />
+			{Array(rowCount)
+				.fill(1)
+				.map((_, idx) => (
+					<Skeleton key={idx} className="h-[110px] rounded" />
+				))}
+		</div>
+	);
+};
+
+export const ResultTableError = () => <div>Error...</div>;
+
+export const ResultTableEmpty = () => <div>Empty...</div>;
+
+const gridClassName = 'grid grid-cols-[120px,0.6fr,0.6fr,1fr]';
+
+const getBodyRowClassName = () => {
+	return cn(
+		gridClassName,
+		'py-2 px-1 transition-colors',
+		'border border-transparent hover:border-primary',
+		'bg-primary-wash rounded-md'
+	);
+};
+
+const classNames: TableClassNames<RunDataResults> = {
+	header: 'sticky top-[68px]',
+	headerRow: `h-[38px] bg-primary-wash rounded-b ${gridClassName} px-4`,
+	headerCell:
+		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center',
+	body: 'space-y-1 [&>:first-of-type]:mt-1',
+	bodyRow: getBodyRowClassName,
+	bodyCell: 'px-2'
+};
+
+export interface ResultTableProps {
+	runId: string;
+	data: RunDataResults[];
+}
+
+export const ResultTable: FC<ResultTableProps> = memo(
+	({ runId, data = [] }) => {
+		const columns = useMemo(() => getColumns(runId), [runId]);
+
+		return (
+			<div className="px-4 py-2">
+				<TwTable<RunDataResults>
+					data={data}
+					columns={columns}
+					classNames={classNames}
+					stickyOffset={-69}
+					manualPagination
+					enableSorting={false}
+				/>
+			</div>
+		);
+	}
+);
