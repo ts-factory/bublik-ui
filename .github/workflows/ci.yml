@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
 env:
-  - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 jobs:
   test:
     runs-on: ubuntu-latest
