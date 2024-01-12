@@ -174,7 +174,7 @@ exports[`ImportEventTableComponent > should render successfully 1`] = `
       class="border-separate border-spacing-y-1 w-full"
     >
       <thead
-        class="bg-white"
+        class="bg-white sticky top-0 z-10"
       >
         <tr
           class="h-8.5"
