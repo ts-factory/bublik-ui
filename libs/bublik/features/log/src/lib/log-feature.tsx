@@ -75,7 +75,7 @@ export const LogFeature: FC<LogFeatureProps> = ({
 			)}
 			<div className="flex flex-col flex-grow h-full gap-1">
 				{children}
-				<main className="flex-grow bg-white rounded-md">
+				<main className="flex-grow bg-white rounded-md overflow-hidden">
 					<CardHeader label="Log">
 						<div className="flex items-center gap-2">
 							<ButtonTw
