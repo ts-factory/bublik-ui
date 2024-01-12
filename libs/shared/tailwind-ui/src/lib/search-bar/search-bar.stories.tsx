@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { StoryFn, Meta } from '@storybook/react';
+import { Meta } from '@storybook/react';
 import { SearchBar } from './search-bar';
 
 export default {

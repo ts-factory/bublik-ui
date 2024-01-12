@@ -118,8 +118,6 @@ export const DeleteButton = forwardRef<
 	HTMLButtonElement,
 	ComponentProps<'button'>
 >(({ children, onClick, ...props }, ref) => {
-	const api = useTagContext();
-
 	const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
 		onClick?.(e);
 		// api.removeTag(tag)

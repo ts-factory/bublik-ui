@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { writeFileSync, readFileSync } from 'fs';
+// @ts-ignore
 import path from 'path';
 
 const CHANGELOG_OUTPUT_LOCATION = `libs/bublik/features/deploy-info/src/lib/changelog.mdx`;

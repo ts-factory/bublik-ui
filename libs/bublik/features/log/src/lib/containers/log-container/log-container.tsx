@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import {
@@ -9,11 +8,11 @@ import {
 	useGetLogUrlByResultIdQuery
 } from '@/services/bublik-api';
 import {
-	SessionRoot,
+	LogTableContext,
 	LogTableContextProvider,
-	LogTableContext
+	SessionRoot
 } from '@/bublik/features/session-log';
-import { Skeleton, cn, Icon } from '@/shared/tailwind-ui';
+import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
 
 import { useIsLogExperimental, useLogPage } from '../../hooks';
 

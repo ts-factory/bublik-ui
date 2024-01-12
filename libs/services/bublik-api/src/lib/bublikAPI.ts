@@ -10,8 +10,6 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 
-import { config } from '@/bublik/config';
-
 import { tagTypes } from './tags';
 import { BUBLIK_API_REDUCER_PATH } from './constants';
 import { getAPIConfig } from './config';
@@ -59,22 +57,22 @@ const baseQueryWithAuth: BaseQueryFn<
 
 	if (isAuthErrorRequest(result)) {
 		// 1. Try to get a new token
-		const refreshResult = await baseQuery(
-			{ url: '/auth/refresh/', method: 'POST' },
-			api,
-			extraOptions
-		);
+		// const refreshResult = await baseQuery(
+		// 	{ url: '/auth/refresh/', method: 'POST' },
+		// 	api,
+		// 	extraOptions
+		// );
 
 		// 2. If failed to refresh redirect to login page with redirect_url query param to return back on re-auth
-		if (!refreshResult.data) {
-			const loginUrl = new URL(
-				`${window.location.origin}${config.baseUrl}/auth/login`
-			);
+		// if (!refreshResult.data) {
+		// 	const loginUrl = new URL(
+		// 		`${window.location.origin}${config.baseUrl}/auth/login`
+		// 	);
 
-			loginUrl.searchParams.set('redirect_url', window.location.href);
+		// 	loginUrl.searchParams.set('redirect_url', window.location.href);
 
-			window.location.replace(loginUrl);
-		}
+		// 	window.location.replace(loginUrl);
+		// }
 
 		// 3. Retry the initial query
 		result = await baseQuery(args, api, extraOptions);

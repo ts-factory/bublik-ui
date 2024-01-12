@@ -5,6 +5,7 @@ import { ImportEventResponse } from '@/shared/types';
 import { DialogDescription, DialogTitle, Icon } from '@/shared/tailwind-ui';
 
 import { statusBadgeStyles } from '../import-events-table/import-event-table.columns';
+import { JsonLogContainer } from '../import-events-table/import-log.component';
 
 export interface RunImportResultProps {
 	results: ImportEventResponse[];
@@ -27,15 +28,7 @@ export const RunImportResult = (props: RunImportResultProps) => {
 							<div className="flex flex-col w-24 gap-1">
 								{taskId && (
 									<>
-										<a
-											href={`${config.oldBaseUrl}/v1/logs/${taskId}`}
-											target="_blank"
-											rel="noreferrer"
-											className="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
-										>
-											<Icon name="BoxArrowRight" />
-											<span>Logs</span>
-										</a>
+										<JsonLogContainer taskId={taskId} enablePolling />
 										<a
 											href={`${config.oldBaseUrl}/flower/task/${taskId}`}
 											target="_blank"

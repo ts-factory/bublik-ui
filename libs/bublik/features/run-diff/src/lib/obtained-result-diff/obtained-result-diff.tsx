@@ -29,9 +29,9 @@ export const ObtainedResultDiff: FC<ObtainedResultDiffProps> = (props) => {
 	const resultType = side === 'left' ? leftResultType : rightResultType;
 	const isNotExpected =
 		side === 'left' ? leftIsNotExpected : rightIsNotExpected;
-	const isResultTypeChanged =
-		leftIsNotExpected !== rightIsNotExpected ||
-		leftResultType !== rightResultType;
+	// const isResultTypeChanged =
+	// 	leftIsNotExpected !== rightIsNotExpected ||
+	// 	leftResultType !== rightResultType;
 	const badgeVariant = isNotExpected
 		? BadgeVariants.Unexpected
 		: BadgeVariants.Expected;

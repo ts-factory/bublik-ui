@@ -5,7 +5,6 @@ import type { Meta } from '@storybook/react';
 import {
 	ToolbarButton,
 	Toolbar,
-	ToolbarSeparator,
 	ToolbarToggleGroup,
 	ToolbarToggleItem,
 	toolbarToggleGroupStyles

@@ -58,9 +58,7 @@ const getNavSections = (isAdmin: boolean) => {
 		}
 	];
 
-	if (isAdmin) return [devSection, ...bottomNav];
-
-	return bottomNav;
+	return [devSection, ...bottomNav];
 };
 
 export const BottomNavigation = () => {

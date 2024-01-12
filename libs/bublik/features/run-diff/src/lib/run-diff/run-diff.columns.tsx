@@ -63,6 +63,7 @@ declare module '@tanstack/react-table' {
 		className?: string;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface TableMeta<TData extends RowData> {
 		id?: string;
 	}

@@ -18,7 +18,7 @@ import {
 import { RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { getErrorMessage } from '@/services/bublik-api';
-import { Icon, Skeleton } from '@/shared/tailwind-ui';
+import { Icon, Skeleton, Tooltip } from '@/shared/tailwind-ui';
 
 import { globalFilterFn } from './filter';
 import {
@@ -161,6 +161,11 @@ export const RunTable = (props: RunTableProps) => {
 				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 					Toolbar
 				</span>
+				<Tooltip content="You can `ctrl+click` to open filtered results in subtree">
+					<div className="mr-auto ml-2 text-primary">
+						<Icon name="InformationCircleQuestionMark" size={16} />
+					</div>
+				</Tooltip>
 				<Toolbar table={table} />
 			</div>
 			<div className="bg-white rounded" data-testid="run-table">

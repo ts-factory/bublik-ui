@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import type { StoryFn, Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { left, right } from './result-diff.component.mock';
 import {
 	ResultDiff,
 	ResultDiffEmpty,
@@ -28,8 +27,8 @@ export const Primary: Story = {
 	args: {
 		leftRunId: '1',
 		rightRunId: '2',
-		left: left,
-		right: right
+		left: [],
+		right: []
 	}
 };
 

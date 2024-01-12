@@ -10,8 +10,8 @@ export const ImportPage = () => {
 	useDocumentTitle('Import - Bublik');
 
 	return (
-		<div className="p-2">
-			<div className="flex flex-col h-full gap-1">
+		<div className="p-2 overflow-hidden h-full">
+			<div className="flex flex-col gap-1 h-full">
 				<ImportEventsTableContainer>
 					<ImportRunFormContainer />
 				</ImportEventsTableContainer>

@@ -75,7 +75,10 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 				</div>
 			</div>
 			<div
-				className={cn('flex flex-col', isFetching && 'opacity-40 select-none')}
+				className={cn(
+					'flex flex-col overflow-auto flex-grow',
+					isFetching && 'opacity-40 select-none'
+				)}
 			>
 				{isLoading ? (
 					<ImportEventTableLoading />

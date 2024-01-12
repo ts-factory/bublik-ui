@@ -3,20 +3,18 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "libs/shared/tailwind-ui/src",
 	"projectType": "library",
+	"tags": [],
 	"targets": {
 		"lint": {
 			"executor": "@nx/eslint:lint",
-			"options": {
-				"lintFilePatterns": ["libs/shared/tailwind-ui/**/*.{ts,tsx,js,jsx}"]
-			}
+			"outputs": ["{options.outputFile}"]
 		},
 		"test": {
 			"executor": "@nx/vite:test",
-			"outputs": ["{workspaceRoot}/coverage/libs/shared/tailwind-ui"],
+			"outputs": ["{options.reportsDirectory}"],
 			"options": {
-				"passWithNoTests": true
+				"reportsDirectory": "../../../coverage/libs/shared/tailwind-ui"
 			}
 		}
-	},
-	"tags": []
+	}
 }

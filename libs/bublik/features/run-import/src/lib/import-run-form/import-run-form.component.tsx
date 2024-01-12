@@ -37,13 +37,9 @@ export interface ImportRunFormProps {
 }
 
 const defaultValues: ImportRunsFormValues = {
-	runs: [
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null }
-	]
+	runs: [{ url: '', force: null, range: null }]
 };
+
 export const ImportRunForm = ({ onImportRunsSubmit }: ImportRunFormProps) => {
 	const formControl = useForm<ImportRunsFormValues>({
 		defaultValues,

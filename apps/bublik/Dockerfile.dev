@@ -1,19 +1,22 @@
-FROM node:17.9.0
+FROM node:20-slim AS base
 
-ENV PNPM_HOME="/root/.local/share/pnpm"
-ENV PATH="${PATH}:${PNPM_HOME}"
+ARG PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
-RUN npm install --global pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
-RUN pnpm add -g nx
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=${PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD}
+ENV BASE_URL="/v2"
 
+RUN corepack enable
+
+COPY . /app
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+FROM base as runner
 
-COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
 
 EXPOSE 4200
 
-CMD ["pnpm", "run", "nx", "serve", "--host=0.0.0.0"]
+CMD ["pnpm", "run", "nx", "serve", "--host=0.0.0.0", "--base=${BASE_URL}"]

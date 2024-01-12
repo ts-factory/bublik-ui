@@ -1,16 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
-	useReactTable,
-	getCoreRowModel,
 	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
 	getPaginationRowModel,
-	getFilteredRowModel
+	useReactTable
 } from '@tanstack/react-table';
 
 import { LogEvent } from '@/shared/types';
 import { getErrorMessage } from '@/services/bublik-api';
-import { Icon, Pagination, Skeleton, cn } from '@/shared/tailwind-ui';
+import { cn, Icon, Pagination, Skeleton } from '@/shared/tailwind-ui';
 
 import { columns } from './import-event-table.columns';
 
@@ -90,7 +90,7 @@ export const ImportEventTable = (props: ImportEventTableProps) => {
 	return (
 		<div>
 			<table className="border-separate border-spacing-y-1 w-full">
-				<thead className={cn('bg-white')}>
+				<thead className={cn('bg-white sticky top-0 z-10')}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id} className="h-8.5">
 							{headerGroup.headers.map((header) => (

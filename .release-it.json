@@ -3,12 +3,12 @@
 		"requireBranch": "main",
 		"commitMessage": "chore(release): v${version}",
 		"tagName": "v${version}",
-		"addUntrackedFiles": true
+    "addUntrackedFiles": true
 	},
 	"github": { "release": true, "releaseName": "v${version}" },
 	"hooks": {
 		"before:init": [],
-		"after:bump": ["pnpm run git-info", "pnpm run bublik:ci:build"],
+		"after:bump": ["pnpm run git-info"],
 		"after:@release-it/conventional-changelog:bump": "pnpm run create-mdx-changelog \"${changelog}\"",
 		"after:release": "echo Successfully released ${name} v${version} to ${repo.repository}."
 	},

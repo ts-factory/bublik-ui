@@ -6,8 +6,7 @@
 				"runtime": "automatic",
 				"useBuiltIns": "usage"
 			}
-		],
-		"@emotion/babel-preset-css-prop"
+		]
 	],
 	"plugins": []
 }

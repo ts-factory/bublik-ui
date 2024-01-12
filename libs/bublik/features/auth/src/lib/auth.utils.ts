@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { config } from '@/bublik/config';
-import { z } from 'zod';
 
 /**
  * Pass absolute URL and get url for use in react-router-dom

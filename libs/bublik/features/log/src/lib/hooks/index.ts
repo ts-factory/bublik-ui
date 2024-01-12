@@ -58,7 +58,9 @@ export const useLogPage = () => {
 				return params;
 			});
 
-			toast.success(`Saved location at line ${lineNumber.split('_')[1]}`);
+			toast.success(`Saved location at line ${lineNumber.split('_')[1]}`, {
+				description: 'You can now bookmark or share link.'
+			});
 		},
 		[setSearchParams]
 	);
