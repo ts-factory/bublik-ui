@@ -3,18 +3,17 @@
 import { z } from 'zod';
 
 export const ImportRunsFormSchema = z.object({
-	runs: z.array(
-		z.object({
-			url: z.string().url(),
-			range: z
-				.object({
-					startDate: z.date(),
-					endDate: z.date()
-				})
-				.or(z.null()),
-			force: z.boolean().or(z.null())
-		})
-	)
+	runs: z
+		.array(
+			z.object({
+				url: z.string().url().or(z.string()),
+				range: z
+					.object({ startDate: z.date(), endDate: z.date() })
+					.or(z.null()),
+				force: z.boolean().or(z.null())
+			})
+		)
+		.min(1)
 });
 
 export type ImportRunsFormValues = z.infer<typeof ImportRunsFormSchema>;

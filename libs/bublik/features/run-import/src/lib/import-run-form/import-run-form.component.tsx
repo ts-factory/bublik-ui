@@ -2,9 +2,11 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
 	ComponentPropsWithoutRef,
+	forwardRef,
 	Fragment,
 	useCallback,
-	useEffect
+	useEffect,
+	useImperativeHandle
 } from 'react';
 import { z } from 'zod';
 import {
@@ -23,6 +25,7 @@ import {
 	cn,
 	DialogDescription,
 	DialogTitle,
+	FormAlertError,
 	Icon,
 	TextField,
 	toast,
@@ -44,11 +47,21 @@ const defaultValues: ImportRunsFormValues = {
 		{ url: '', force: null, range: null }
 	]
 };
-export const ImportRunForm = ({ onImportRunsSubmit }: ImportRunFormProps) => {
+
+export type ImportRunFormHandle = {
+	form: UseFormReturn<ImportRunsFormValues>;
+};
+
+export const ImportRunForm = forwardRef<
+	ImportRunFormHandle,
+	ImportRunFormProps
+>(({ onImportRunsSubmit }, ref) => {
 	const formControl = useForm<ImportRunsFormValues>({
 		defaultValues,
 		resolver: zodResolver(ImportRunsFormSchema)
 	});
+
+	useImperativeHandle(ref, () => ({ form: formControl }), [formControl]);
 
 	const { fields, append, remove } = useFieldArray({
 		name: 'runs',
@@ -107,16 +120,21 @@ export const ImportRunForm = ({ onImportRunsSubmit }: ImportRunFormProps) => {
 
 	const HEADER = ['URL', 'RANGE', 'FORCE', ''];
 
+	const rootError = formControl.formState.errors.root?.message;
 	return (
 		<div>
 			<DialogTitle className="text-lg font-medium leading-6 text-gray-900">
 				Import runs
 			</DialogTitle>
+
 			<DialogDescription className="mt-2 mb-6 text-sm font-normal text-gray-700">
 				You can <strong>paste</strong> URLs of runs you want to import. <br />
 				URLs should be separated by a <strong>new line</strong> or{' '}
 				<strong>space</strong>.
 			</DialogDescription>
+			{rootError ? (
+				<FormAlertError title={'Error'} description={rootError} />
+			) : null}
 			<form
 				className="flex flex-col gap-4 mt-2"
 				onSubmit={formControl.handleSubmit((form) =>
@@ -171,7 +189,7 @@ export const ImportRunForm = ({ onImportRunsSubmit }: ImportRunFormProps) => {
 			</form>
 		</div>
 	);
-};
+});
 
 const HeaderCell = ({
 	className,
