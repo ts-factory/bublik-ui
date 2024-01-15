@@ -36,11 +36,13 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <div
               class="flex flex-col w-24 gap-1"
             >
-              <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
-                href="http://localhost:3000/v1/logs/1"
-                rel="noreferrer"
-                target="_blank"
+              <button
+                aria-controls="radix-:r3:"
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
+                data-state="closed"
+                type="button"
               >
                 <svg
                   fill="none"
@@ -59,7 +61,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 <span>
                   Logs
                 </span>
-              </a>
+              </button>
               <a
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
                 href="http://localhost:3000/flower/task/1"
@@ -115,11 +117,13 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <div
               class="flex flex-col w-24 gap-1"
             >
-              <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
-                href="http://localhost:3000/v1/logs/2"
-                rel="noreferrer"
-                target="_blank"
+              <button
+                aria-controls="radix-:r6:"
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
+                data-state="closed"
+                type="button"
               >
                 <svg
                   fill="none"
@@ -138,7 +142,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 <span>
                   Logs
                 </span>
-              </a>
+              </button>
               <a
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
                 href="http://localhost:3000/flower/task/2"
@@ -194,11 +198,13 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <div
               class="flex flex-col w-24 gap-1"
             >
-              <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
-                href="http://localhost:3000/v1/logs/3"
-                rel="noreferrer"
-                target="_blank"
+              <button
+                aria-controls="radix-:r9:"
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
+                data-state="closed"
+                type="button"
               >
                 <svg
                   fill="none"
@@ -217,7 +223,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 <span>
                   Logs
                 </span>
-              </a>
+              </button>
               <a
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
                 href="http://localhost:3000/flower/task/3"
