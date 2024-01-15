@@ -19,7 +19,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
 					actionButton:
 						'group-[.toast]:bg-primary group-[.toast]:text-white group-[.toast]:rounded-md',
 					cancelButton:
-						'group-[.toast]:bg-bg-error group-[.toast]:text-white group-[.toast]:rounded-md'
+						'group-[.toast]:bg-bg-error group-[.toast]:text-white group-[.toast]:rounded-md',
+					success: 'group-[.toaster_[data-icon]]:text-bg-ok',
+					error: 'group-[.toaster_[data-icon]]:text-bg-error',
+					warning: 'group-[.toaster_[data-icon]]:text-bg-warning',
+					info: 'group-[.toaster_[data-icon]]:text-primary'
 				}
 			}}
 			{...props}
