@@ -19,6 +19,8 @@ on:
         type: boolean
         description: Dry release
         default: false
+env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -37,7 +39,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install
+        run: pnpm install
       - name: Code Testing
         run: pnpm run test
   lint:
@@ -57,7 +59,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install
+        run: pnpm install
       - name: Code Linting
         run: pnpm run lint
   release:
@@ -83,7 +85,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install
+        run: pnpm install
       - name: Create release
         run: pnpm run release --ci --verbose $TYPE_ARG $BETA_ARG $DRY_ARG
         env:

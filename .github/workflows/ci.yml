@@ -1,45 +1,29 @@
-  name: CI
-  on:
-    pull_request:
-      branches: [main]
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          node-version: [20]
-      steps:
-        - name: Code Checkout
-          uses: actions/checkout@v4
-        - uses: pnpm/action-setup@v2
-          with:
-            version: 8
-        - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ matrix.node-version }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install
-        - name: Code Testing
-          run: pnpm run test
-    lint:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          node-version: [20]
-      steps:
-        - name: Code Checkout
-          uses: actions/checkout@v4
-        - uses: pnpm/action-setup@v2
-          with:
-            version: 8
-        - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ matrix.node-version }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install
-        - name: Code Linting
-          run: pnpm run lint
+name: CI
+on:
+  pull_request:
+    branches: [main]
+env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Code Linting
+        run: pnpm run lint
+      - name: Code Testing
+        run: pnpm run test
