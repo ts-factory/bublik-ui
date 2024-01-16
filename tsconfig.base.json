@@ -22,9 +22,7 @@
 			"@/bublik/features/admin-users": [
 				"libs/bublik/features/admin-users/src/index.ts"
 			],
-			"@/bublik/features/auth": [
-				"libs/bublik/features/auth/src/index.ts"
-			],
+			"@/bublik/features/auth": ["libs/bublik/features/auth/src/index.ts"],
 			"@/bublik/features/compromised-form": [
 				"libs/bublik/features/compromised-form/src/index.ts"
 			],
@@ -34,27 +32,21 @@
 			"@/bublik/features/deploy-info": [
 				"libs/bublik/features/deploy-info/src/index.ts"
 			],
-			"@/bublik/features/faq": [
-				"libs/bublik/features/faq/src/index.ts"
-			],
+			"@/bublik/features/faq": ["libs/bublik/features/faq/src/index.ts"],
 			"@/bublik/features/history": [
 				"libs/bublik/features/history/src/index.ts"
 			],
 			"@/bublik/features/link-to-source": [
 				"libs/bublik/features/link-to-source/src/index.ts"
 			],
-			"@/bublik/features/log": [
-				"libs/bublik/features/log/src/index.ts"
-			],
+			"@/bublik/features/log": ["libs/bublik/features/log/src/index.ts"],
 			"@/bublik/features/measurements": [
 				"libs/bublik/features/measurements/src/index.ts"
 			],
 			"@/bublik/features/result-links": [
 				"libs/bublik/features/result-links/src/index.ts"
 			],
-			"@/bublik/features/run": [
-				"libs/bublik/features/run/src/index.ts"
-			],
+			"@/bublik/features/run": ["libs/bublik/features/run/src/index.ts"],
 			"@/bublik/features/run-details": [
 				"libs/bublik/features/run-details/src/index.ts"
 			],
@@ -64,9 +56,7 @@
 			"@/bublik/features/run-import": [
 				"libs/bublik/features/run-import/src/index.ts"
 			],
-			"@/bublik/features/runs": [
-				"libs/bublik/features/runs/src/index.ts"
-			],
+			"@/bublik/features/runs": ["libs/bublik/features/runs/src/index.ts"],
 			"@/bublik/features/session-log": [
 				"libs/bublik/features/session-log/src/index.ts"
 			],
@@ -79,9 +69,7 @@
 			"@/bublik/run-utils": ["libs/bublik/run-utils/src/index.ts"],
 			"@/icons": ["libs/shared/icons/src/index.ts"],
 			"@/router": ["libs/bublik/router/src/index.ts"],
-			"@/services/bublik-api": [
-				"libs/services/bublik-api/src/index.ts"
-			],
+			"@/services/bublik-api": ["libs/services/bublik-api/src/index.ts"],
 			"@/shared/charts": ["libs/shared/charts/src/index.ts"],
 			"@/shared/hooks": ["libs/shared/hooks/src/index.ts"],
 			"@/shared/tailwind-ui": ["libs/shared/tailwind-ui/src/index.ts"],
