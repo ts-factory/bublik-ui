@@ -4,7 +4,6 @@ import { MutableRefObject, useCallback, useEffect, useState } from 'react';
 import { ECElementEvent } from 'echarts';
 import type { EChartsInstance } from 'echarts-for-react';
 
-import { ReactECharts } from '../echart';
 import { ChartMode } from '../chart-control-panel';
 import { createDataZoom, getOptions } from '../plot/utils';
 import { resetZoom, toggleGlobalZoom } from '../utils';

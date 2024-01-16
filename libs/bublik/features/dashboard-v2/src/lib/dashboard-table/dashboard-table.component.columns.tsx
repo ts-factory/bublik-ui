@@ -16,6 +16,7 @@ import { ExpandButtonContainer } from '../expand-button';
 import { CellNotesContainer } from '../cell-notes';
 
 declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface ColumnMeta<TData extends RowData, TValue> {
 		style?: CSSProperties;
 	}

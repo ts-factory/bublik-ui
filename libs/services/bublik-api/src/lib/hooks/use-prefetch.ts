@@ -18,6 +18,7 @@ export const usePrefetchImmediately = <T extends EndpointNames>(
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		dispatch(bublikAPI.util.prefetch(endpoint, arg as any, options));
 	}, []);
 };

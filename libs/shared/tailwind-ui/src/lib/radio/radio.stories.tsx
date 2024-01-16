@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { StoryFn, Meta } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
 import { withBackground } from '../storybook-bg';
-import { Radio, RadioProps } from './radio';
+import { Radio } from './radio';
 
 export default {
 	component: Radio,

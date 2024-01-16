@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import type { StoryFn, Meta } from '@storybook/react';
+import type { Meta } from '@storybook/react';
 
 import { withBackground } from '@/shared/tailwind-ui';
 
