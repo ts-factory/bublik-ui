@@ -30,7 +30,14 @@ const exec = promisify(child.exec);
 	// const totalCommitCount = (await exec('git rev-list --count HEAD')).stdout
 	//   .toString()
 	//   .trim();
-	const latestTag = (await exec('git describe --tags --abbrev=0')).stdout
+
+	// In case of error, we don't want to fail the build
+	const latestTag = (
+		await exec('git describe --tags --abbrev=0').catch((e) => {
+			console.error(e);
+			return { stdout: '' };
+		})
+	).stdout
 		.toString()
 		.trim();
 
