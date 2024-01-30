@@ -19,6 +19,7 @@ import {
 	BublikHttpError,
 	isBublikParsableError
 } from '../error-handling';
+import { config } from '@/bublik/config';
 
 type GetLogJsonInputs = {
 	id: string | number;
@@ -63,7 +64,9 @@ export const logEndpoints = {
 
 					const options: RequestInit = { credentials: 'include' };
 
-					const response = await fetch(externalUrl, options);
+					const response = config.isDev
+						? await fetch(`${config.rootUrl}/external?url=${externalUrl}`)
+						: await fetch(externalUrl, options);
 
 					if (!response.ok) throw getBublikFromStatusCode(response);
 
