@@ -30,7 +30,14 @@ const exec = promisify(child.exec);
 	// const totalCommitCount = (await exec('git rev-list --count HEAD')).stdout
 	//   .toString()
 	//   .trim();
-	const latestTag = (await exec('git describe --tags --abbrev=0')).stdout
+
+	// In case if we don't have any tags yet. We don't want to fail release process
+	const latestTag = (
+		await exec('git describe --tags --abbrev=0').catch((e) => {
+			console.error(e);
+			return { stdout: '' };
+		})
+	).stdout
 		.toString()
 		.trim();
 
