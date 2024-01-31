@@ -1,1 +1,1 @@
-{"date":"2023.12.26","summary":"fix(preferences): allow current password less than 8 chars","revision":"ec948668","branch":"main","latestTag":"v0.37.1"}
+{"date":"2024.01.31","summary":"fix(build): adjust release config to allow releases from branches other than `main`","revision":"22a6f6b","branch":"release/v0.38.0","latestTag":"v0.38.0"}
