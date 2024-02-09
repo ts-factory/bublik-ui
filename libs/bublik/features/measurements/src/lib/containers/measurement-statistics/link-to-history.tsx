@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { stringifySearch } from '@/router';
 
@@ -10,24 +10,28 @@ import {
 } from '@/services/bublik-api';
 import { buildQuery } from '@/shared/utils';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
+import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 export interface LinkToHistoryProps {
 	runId: string;
 	resultId: string;
 }
 
-export const LinkToHistory: FC<LinkToHistoryProps> = ({ runId, resultId }) => {
+export const LinkToHistory = ({ runId, resultId }: LinkToHistoryProps) => {
 	const { data, isFetching, isError } =
 		useGetHistoryLinkDefaultsQuery(resultId);
 	const { data: runDetails } = useGetRunDetailsQuery(runId);
+	const { userPreferences } = useUserPreferences();
 
 	const query = useMemo<string>(() => {
 		if (!data || !runDetails) return '';
 
 		const query = buildQuery({ result: data, runDetails });
+		const search = new URLSearchParams(stringifySearch(query));
+		search.set('mode', userPreferences.history.defaultMode);
 
-		return stringifySearch(query);
-	}, [data, runDetails]);
+		return search.toString();
+	}, [data, runDetails, userPreferences.history.defaultMode]);
 
 	const to = { pathname: `/history`, search: query };
 

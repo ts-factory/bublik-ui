@@ -3,10 +3,15 @@
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
 
-import { DetailsAPIResponse, RunDataResults } from '@/shared/types';
+import {
+	DetailsAPIResponse,
+	HistoryMode,
+	RunDataResults
+} from '@/shared/types';
 import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { Icon } from '@/shared/tailwind-ui';
+import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 import { LinkToHistory } from './link-to-history';
 
@@ -15,6 +20,7 @@ export interface ResultLinksProps {
 	resultId: number;
 	result: RunDataResults;
 	runInfo: DetailsAPIResponse;
+	userPreferredHistoryMode?: HistoryMode;
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;
 	onLogLinkMouseEnter?: () => void;
@@ -27,6 +33,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		hasMeasurements,
 		result,
 		runInfo,
+		userPreferredHistoryMode = 'linear',
 		onLogLinkMouseEnter,
 		onMeasurementLinkMouseEnter
 	} = props;
@@ -45,7 +52,11 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					</Link>
 				</li>
 				<li className="pl-2">
-					<LinkToHistory result={result} runDetails={runInfo} />
+					<LinkToHistory
+						result={result}
+						runDetails={runInfo}
+						userPreferredHistoryMode={userPreferredHistoryMode}
+					/>
 				</li>
 				{hasMeasurements && (
 					<li className="pl-2">
@@ -77,6 +88,7 @@ export const ResultLinksContainer: FC<ActionLinksProps> = ({
 }) => {
 	const { has_measurements: hasMeasurements } = result;
 	const { data: runInfo } = useGetRunDetailsQuery(runId);
+	const { userPreferences } = useUserPreferences();
 
 	const prefetchLogURL = usePrefetch('getLogUrlByResultId');
 	const prefetchHistory = usePrefetch('getHistoryLinkDefaults');
@@ -101,6 +113,7 @@ export const ResultLinksContainer: FC<ActionLinksProps> = ({
 			runId={runId}
 			runInfo={runInfo}
 			result={result}
+			userPreferredHistoryMode={userPreferences.history.defaultMode}
 			hasMeasurements={hasMeasurements}
 			onLogLinkMouseEnter={handleLogLinkMouseEnter}
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}

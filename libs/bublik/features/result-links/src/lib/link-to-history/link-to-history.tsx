@@ -4,17 +4,22 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { getHistorySearch } from '@/shared/utils';
-import { DetailsAPIResponse, RunDataResults } from '@/shared/types';
+import {
+	DetailsAPIResponse,
+	HistoryMode,
+	RunDataResults
+} from '@/shared/types';
 import { ContextLinks, ContextLinksSection, Icon } from '@/shared/tailwind-ui';
 
 export interface LinkToHistoryProps {
 	result: RunDataResults;
 	runDetails: DetailsAPIResponse;
+	userPreferredHistoryMode?: HistoryMode;
 }
 
 export const LinkToHistory = (props: LinkToHistoryProps) => {
-	const { runDetails, result } = props;
-	const search = getHistorySearch(runDetails, result);
+	const { runDetails, result, userPreferredHistoryMode = 'linear' } = props;
+	const search = getHistorySearch(runDetails, result, userPreferredHistoryMode);
 	const prefilled = { pathname: '/history', search: search.prefilled };
 
 	const sections = useMemo<ContextLinksSection[]>(

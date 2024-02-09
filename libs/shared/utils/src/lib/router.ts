@@ -6,6 +6,7 @@ import {
 	DetailsAPIResponse,
 	HistoryAPIQuery,
 	HistoryDefaultResultAPIResponse,
+	HistoryMode,
 	HistorySearchParams,
 	RESULT_PROPERTIES,
 	RUN_PROPERTIES,
@@ -170,7 +171,8 @@ const byIterationWithAllTags = (
 
 export const getHistorySearch = (
 	runDetails: DetailsAPIResponse,
-	resultInfo: RunDataResults
+	resultInfo: RunDataResults,
+	userPreferredHistoryMode: HistoryMode
 ): HistorySearch => {
 	const { relevant_tags, important_tags } = runDetails;
 	const important = important_tags;
@@ -192,11 +194,20 @@ export const getHistorySearch = (
 		runDetails.finish
 	);
 
-	return {
+	const searchObj = {
 		prefilled: stringifySearch(prefilled).concat('&fromRun=true'),
 		byTestName: stringifySearch(testName),
 		byIteration: stringifySearch(iteration),
 		byIterationWithImportant: stringifySearch(iterationWithImportant),
 		byIterationWithAllTags: stringifySearch(iterationWithAllTags)
 	};
+
+	return Object.fromEntries(
+		Object.entries(searchObj).map(([key, search]) => {
+			const searchParams = new URLSearchParams(search);
+			searchParams.set('mode', userPreferredHistoryMode);
+
+			return [key, searchParams.toString()];
+		})
+	) as unknown as HistorySearch;
 };

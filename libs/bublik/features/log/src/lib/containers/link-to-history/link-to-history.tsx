@@ -10,6 +10,7 @@ import {
 	useGetHistoryLinkDefaultsQuery,
 	useGetRunDetailsQuery
 } from '@/services/bublik-api';
+import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 import { LinkToHistory } from '../../components';
 
@@ -27,6 +28,7 @@ export const LinkToHistoryContainer: FC<LinkToHistoryContainerProps> = ({
 			node: !state.data || !focusId ? undefined : state.data.tree[focusId]
 		})
 	});
+	const { userPreferences } = useUserPreferences();
 
 	const isTest = node?.entity === 'test';
 	const nodeId = node?.id;
@@ -41,8 +43,11 @@ export const LinkToHistoryContainer: FC<LinkToHistoryContainerProps> = ({
 
 		const query = buildQuery({ result: data, runDetails });
 
-		return `/history${stringifySearch(query)}`;
-	}, [data, runDetails]);
+		const search = new URLSearchParams(stringifySearch(query));
+		search.set('mode', userPreferences.history.defaultMode);
+
+		return `/history?${search.toString()}`;
+	}, [data, runDetails, userPreferences.history.defaultMode]);
 
 	return (
 		<LinkToHistory to={to} isError={isError || !data} isLoading={isFetching} />
