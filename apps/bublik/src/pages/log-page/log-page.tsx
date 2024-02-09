@@ -1,12 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 
 import { LogPageMode } from '@/shared/types';
 import { usePrefetchLogPage, usePrefetchRun } from '@/services/bublik-api';
 import { CardHeader, RunModeToggle } from '@/shared/tailwind-ui';
 import { LogFeature, useLogPage } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
+import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 export interface LogHeaderProps {
 	runId: string;
@@ -30,8 +32,31 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	);
 };
 
+export const useExperimentalLogRedirect = () => {
+	const [searchParams] = useSearchParams();
+	const { userPreferences } = useUserPreferences();
+
+	const shouldRedirect =
+		searchParams.get('experimental') === 'true'
+			? false
+			: userPreferences.log.makeExperimentalModeDefault &&
+			  !searchParams.get('experimental')
+			? true
+			: false;
+
+	const redirectLocation = useMemo(() => {
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set('experimental', 'true');
+
+		return { search: nextParams.toString() };
+	}, [searchParams]);
+
+	return { shouldRedirect, location: redirectLocation };
+};
+
 export const LogPage = () => {
 	const { runId, mode } = useLogPage();
+	const { location, shouldRedirect } = useExperimentalLogRedirect();
 
 	usePrefetchLogPage({ runId });
 	usePrefetchRun({ runId });
@@ -43,6 +68,8 @@ export const LogPage = () => {
 		mode === LogPageMode.InfoAndLog || mode === LogPageMode.TreeAndInfoAndLog;
 
 	if (!runId) return <div>No Run ID!</div>;
+
+	if (shouldRedirect) return <Navigate to={location} />;
 
 	return (
 		<div className="flex h-screen gap-1 p-2 overflow-y-hidden">
