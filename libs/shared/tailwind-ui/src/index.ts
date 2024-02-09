@@ -62,3 +62,4 @@ export * from './lib/form-alert';
 export * from './lib/alert-dialog';
 export * from './lib/avatar';
 export * from './lib/sonner-toaster';
+export * from './lib/radio-group';
