@@ -3,3 +3,4 @@
 export * from './lib/edit-user-profile';
 export * from './lib/user-profile-header';
 export * from './lib/change-password-form';
+export * from './lib/user-preferences-form';

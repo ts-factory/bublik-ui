@@ -4,7 +4,8 @@ import { PropsWithChildren } from 'react';
 
 import {
 	ChangePasswordFormContainer,
-	EditUserProfileContainer
+	EditUserProfileContainer,
+	UserPreferencesFormContainer
 } from '@/bublik/features/user-preferences';
 
 interface SettingsSectionProps {
@@ -30,6 +31,9 @@ export const SettingsProfilePage = () => {
 				<div className="flex items-center gap-4">
 					<ChangePasswordFormContainer />
 				</div>
+			</SettingsSection>
+			<SettingsSection label="User Preferences">
+				<UserPreferencesFormContainer />
 			</SettingsSection>
 		</div>
 	);
