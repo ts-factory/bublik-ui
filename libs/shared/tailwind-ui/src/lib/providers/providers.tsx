@@ -9,7 +9,7 @@ import { TooltipProvider } from '../tooltip';
 
 export const Providers = ({ children }: PropsWithChildren) => {
 	return (
-		<TooltipProvider>
+		<TooltipProvider disableHoverableContent={true}>
 			<ConnectionStatusProvider />
 			<SonnerToaster />
 			{children}
