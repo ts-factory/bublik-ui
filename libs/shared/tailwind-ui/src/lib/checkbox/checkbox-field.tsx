@@ -38,6 +38,7 @@ export const CheckboxField = <T extends FieldValues>({
 	return (
 		<Checkbox
 			{...props}
+			id={field.name}
 			checked={isChecked}
 			onCheckedChange={handleChange}
 			ref={field.ref}
