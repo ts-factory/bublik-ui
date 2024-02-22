@@ -39,6 +39,7 @@ import {
 } from '../pages';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
+import { PerformancePage } from '../pages/performance-page';
 
 const router = createBrowserRouter(
 	[
@@ -102,6 +103,7 @@ const router = createBrowserRouter(
 							element: <DevelopersLayout />,
 							children: [
 								{ path: 'import', element: <ImportPage /> },
+								{ path: 'performance', element: <PerformancePage /> },
 								{ path: 'flower', element: <FlowerFeature /> },
 								{ path: 'users', element: <AdminUsersPage /> },
 								{ element: <NoMatchFeature /> }

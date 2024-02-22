@@ -21,6 +21,12 @@ const getNavSections = (isAdmin: boolean) => {
 				pattern: { path: '/admin/users' }
 			},
 			{
+				label: 'Performance',
+				icon: <Icon name="TimeCircle" size={24} />,
+				to: '/admin/performance',
+				pattern: { path: '/admin/performance' }
+			},
+			{
 				label: 'Import',
 				icon: <Icon name="Import" size={24} />,
 				to: '/admin/import',

@@ -152,6 +152,7 @@ export const {
 	useAdminCreateUserMutation,
 	useAdminDeleteUserMutation,
 	useAdminUpdateUserMutation,
+	useGetPerformanceTimeoutsQuery,
 	// Utils
 	usePrefetch
 } = bublikAPI;

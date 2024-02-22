@@ -35,6 +35,7 @@ export default defineConfig(async ({ mode }) => {
 	// Derived
 	const API_PATHNAME = `${URL_PREFIX}/api/v2`;
 	const AUTH_PATHNAME = `${URL_PREFIX}/auth`;
+	const PERFORMANCE_CHECK_PATHNAME = `${URL_PREFIX}/performance_check`;
 	const EXTERNAL_PATHNAME = `${URL_PREFIX}/external`;
 
 	return {
@@ -54,6 +55,12 @@ export default defineConfig(async ({ mode }) => {
 					changeOrigin: true,
 					secure: false,
 					configure: createRequestLogger('AUTH')
+				},
+				[PERFORMANCE_CHECK_PATHNAME]: {
+					target: DJANGO_TARGET,
+					changeOrigin: true,
+					secure: false,
+					configure: createRequestLogger('PERFORMANCE')
 				},
 				[EXTERNAL_PATHNAME]: {
 					target: LOGS_TARGET,

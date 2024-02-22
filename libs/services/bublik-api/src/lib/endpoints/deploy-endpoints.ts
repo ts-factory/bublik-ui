@@ -9,7 +9,8 @@ import {
 	DeployProjectAPIResponse,
 	DeployGitInfoAPIResponse,
 	DeployInfo,
-	DeployGitInfo
+	DeployGitInfo,
+	PerformanceResponse
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -47,6 +48,9 @@ export const deployEndpoints = {
 					}
 				};
 			}
+		}),
+		getPerformanceTimeouts: build.query<PerformanceResponse, void>({
+			query: () => ({ url: '/performance_check/' })
 		})
 	})
 };
