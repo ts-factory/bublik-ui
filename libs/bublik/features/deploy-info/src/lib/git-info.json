@@ -1,1 +1,1 @@
-{"date":"2024.01.31","summary":"fix(build): adjust release config to allow releases from branches other than `main`","revision":"22a6f6b","branch":"release/v0.38.0","latestTag":"v0.38.0"}
+{"date":"2024.02.22","summary":"refactor(log,history,measurements): make history links respect preferences","revision":"2d3cfff","branch":"release/v0.39.0","latestTag":"v0.39.0"}

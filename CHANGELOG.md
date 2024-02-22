@@ -1,5 +1,32 @@
 
 
+## [0.39.0](https://github.com/ts-factory/bublik-ui/compare/v0.38.0...v0.39.0) (2024-02-22)
+
+
+### 👷‍ Build System
+
+* **docker:** add docker for easily bootstrapping dev env ([f0da04d](https://github.com/ts-factory/bublik-ui/commit/f0da04db315506a64d04e8932f265fc0be6d250f))
+
+
+### 🐛 Bug Fix
+
+* **providers:** [tooltip] disable hoverable content ([dc6baf5](https://github.com/ts-factory/bublik-ui/commit/dc6baf5ee560c7ed9881802efde702607def69b4))
+* **ui:** [checkbox] not updating on label click ([3475b01](https://github.com/ts-factory/bublik-ui/commit/3475b01081281b6766da0cd691df52d2c5aa1efc))
+
+
+### 🚀 New Feature
+
+* **log:** make log page respect user preferences ([ef5ebe3](https://github.com/ts-factory/bublik-ui/commit/ef5ebe34c5c9954252dc0d3cebfe09af2a273c45))
+* **performance:** add view for bublik performance self-testing ([2a3619b](https://github.com/ts-factory/bublik-ui/commit/2a3619b4dc8f3258459d84e3816fb5c5bd3060b9))
+* **run:** add ability to highlight param difference ([b75d295](https://github.com/ts-factory/bublik-ui/commit/b75d2956820c99673e4516d7ffa9522cdcb7a205))
+* **ui:** add radio group component ([aa27baa](https://github.com/ts-factory/bublik-ui/commit/aa27baa741f637dcdb39235b5233f1506c0653f8))
+* **user:** [preferences] add user preferences form ([2ce58ce](https://github.com/ts-factory/bublik-ui/commit/2ce58cebce2e08bf884f2669e0fbb3aa57fa5ba3))
+
+
+### ♻ Code Refactoring
+
+* **log,history,measurements:** make history links respect preferences ([2d3cfff](https://github.com/ts-factory/bublik-ui/commit/2d3cfff076211d8adb2a2b272119d7ad7556efd1))
+
 ## 0.38.0 (2024-01-31)
 
 
