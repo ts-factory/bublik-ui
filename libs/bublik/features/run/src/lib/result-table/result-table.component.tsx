@@ -1,16 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { RunDataResults } from '@/shared/types';
-import { TwTable, TableClassNames, cn, Skeleton } from '@/shared/tailwind-ui';
+import {
+	TwTable,
+	TableClassNames,
+	cn,
+	Skeleton,
+	TwTableProps
+} from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
 export interface SkeletonProps {
 	rowCount?: number;
 }
 
-export const ResultTableLoading: FC<SkeletonProps> = ({ rowCount = 25 }) => {
+export const ResultTableLoading = ({ rowCount = 25 }: SkeletonProps) => {
 	return (
 		<div className="flex flex-col gap-1 mt-1 mb-1">
 			<Skeleton className="rounded-b h-[38px]" />
@@ -51,21 +57,28 @@ const classNames: TableClassNames<RunDataResults> = {
 export interface ResultTableProps {
 	runId: string;
 	data: RunDataResults[];
+	rowId: string;
+	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
 }
 
-export const ResultTable: FC<ResultTableProps> = memo(
-	({ runId, data = [] }) => {
-		const columns = useMemo(() => getColumns(runId), [runId]);
+export const ResultTable = memo(
+	({ runId, data = [], rowId, getRowProps }: ResultTableProps) => {
+		const columns = useMemo(
+			() => getColumns(runId, rowId, data),
+			[data, rowId, runId]
+		);
 
 		return (
 			<div className="px-4 py-2">
 				<TwTable<RunDataResults>
 					data={data}
+					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
 					stickyOffset={-69}
 					manualPagination
 					enableSorting={false}
+					getRowProps={getRowProps}
 				/>
 			</div>
 		);

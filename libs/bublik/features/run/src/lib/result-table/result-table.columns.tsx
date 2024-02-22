@@ -1,13 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 
 import { RunDataResults, RESULT_TYPE } from '@/shared/types';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import { VerdictList, BadgeList } from '@/shared/tailwind-ui';
+import { VerdictList, cn } from '@/shared/tailwind-ui';
 
 import { KeyList } from './key-list';
+import { highlightDifferences } from './matcher';
+import { useRunTableRowState } from '../hooks';
 
 export interface ResultLinksProps {
 	runId: string;
@@ -15,13 +16,21 @@ export interface ResultLinksProps {
 	result: RunDataResults;
 }
 
-const ResultLinks: FC<ResultLinksProps> = ({ runId, resultId, result }) => {
+const ResultLinks = ({ runId, resultId, result }: ResultLinksProps) => {
 	return (
 		<ResultLinksContainer runId={runId} resultId={resultId} result={result} />
 	);
 };
 
-export const getColumns = (runId: string): ColumnDef<RunDataResults>[] => {
+export const getColumns = (
+	runId: string,
+	rowId: string,
+	data: RunDataResults[]
+): ColumnDef<RunDataResults>[] => {
+	const parametersDataset = Object.fromEntries(
+		data.map((item) => [String(item.result_id), item.parameters])
+	);
+
 	return [
 		{
 			header: 'Actions',
@@ -85,11 +94,37 @@ export const getColumns = (runId: string): ColumnDef<RunDataResults>[] => {
 		},
 		{
 			header: 'Parameters',
-			accessorFn: (data) => data.parameters.map((payload) => ({ payload })),
+			accessorFn: (data) => data.parameters,
 			cell: (cell) => {
-				const value = cell.getValue<{ payload: string }[]>();
+				const value = cell.getValue<string[]>();
+				const referenceDiffRowId =
+					// eslint-disable-next-line react-hooks/rules-of-hooks
+					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
 
-				return <BadgeList badges={value} className="bg-badge-1" />;
+				const referenceSet = referenceDiffRowId
+					? parametersDataset[referenceDiffRowId]
+					: value;
+
+				return (
+					<ul className="flex gap-1 flex-wrap">
+						{highlightDifferences(
+							Object.values(parametersDataset),
+							referenceSet
+						)[cell.row.index].map((item, index) => (
+							<div
+								key={index}
+								className={cn(
+									'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
+									item.isDifferent
+										? 'bg-primary-wash border-primary'
+										: 'bg-badge-1'
+								)}
+							>
+								{item.value}
+							</div>
+						))}
+					</ul>
+				);
 			}
 		}
 	];

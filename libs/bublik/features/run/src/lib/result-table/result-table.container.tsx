@@ -1,15 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
+import { TwTableProps } from '@/shared/tailwind-ui';
 
 import { useRunTableRowState } from '../hooks';
 import { ColumnId } from '../run-table/types';
 import { ResultTableLoading, ResultTable } from './result-table.component';
-import { getRowValues } from '../run-table/utils';
+import { getRowValues } from '../run-table';
 
 const DEFAULT_REQUEST = {
 	[ColumnId.Total]: { results: [], resultProperties: [] }
@@ -20,12 +21,14 @@ export interface ResultTableContainerProps {
 	row: Row<RunData>;
 }
 
-export const ResultTableContainer: FC<ResultTableContainerProps> = ({
+export const ResultTableContainer = ({
 	runId,
 	row
-}) => {
+}: ResultTableContainerProps) => {
 	const { id: rowId } = row;
 	const rowState = useRunTableRowState().rowState[rowId];
+	const { updateRowState } = useRunTableRowState();
+
 	const requests = rowState?.requests
 		? Object.keys(rowState.requests).length
 			? rowState.requests
@@ -49,11 +52,46 @@ export const ResultTableContainer: FC<ResultTableContainerProps> = ({
 		);
 	}, [requests, values]);
 
-	if (isError) return <div>Something went wrong...</div>;
+	const getRowProps = useCallback<
+		NonNullable<TwTableProps<RunDataResults>['getRowProps']>
+	>(
+		(_, row) => {
+			const className =
+				rowState?.referenceDiffRowId === row.id ? 'border-primary' : '';
+			return {
+				className,
+				onClick: (e) => {
+					if (rowState?.referenceDiffRowId === row.id) {
+						updateRowState({
+							rowId,
+							referenceDiffRowId: undefined,
+							requests: rowState?.requests
+						});
+					} else {
+						updateRowState({
+							rowId,
+							referenceDiffRowId: row.id,
+							requests: rowState?.requests
+						});
+					}
+				}
+			};
+		},
+		[rowId, rowState?.referenceDiffRowId, rowState?.requests, updateRowState]
+	);
+
+	if (isError) return <div className="">Something went wrong...</div>;
 
 	if (isFetching) return <ResultTableLoading rowCount={skeletonCount} />;
 
 	if (!data) return <div>No data...</div>;
 
-	return <ResultTable data={data} runId={runId} />;
+	return (
+		<ResultTable
+			data={data}
+			runId={runId}
+			rowId={rowId}
+			getRowProps={getRowProps}
+		/>
+	);
 };

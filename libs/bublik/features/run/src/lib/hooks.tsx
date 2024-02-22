@@ -42,6 +42,7 @@ export const useRunRowStateContext = () => {
 export interface RowState {
 	rowId: string;
 	requests?: Record<string, ResultTableFilter>;
+	referenceDiffRowId?: string;
 }
 
 export const useRunTableRowState = () => {
