@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ColumnSort } from '@tanstack/react-table';
 
+import { RunData } from '@/shared/types';
+
 import { GlobalFilterValue, ColumnId } from '../types';
 import {
 	getUnexpectedResultForColumnId,
@@ -9,7 +11,6 @@ import {
 	UnexpectedColumns
 } from '../constants';
 import { RowState } from '../../hooks';
-import { RunData } from '@/shared/types';
 
 export const getUnexpectedGlobalFilter = (
 	rowValues: Record<string, number>
@@ -28,6 +29,8 @@ export const globalFilterToSort = (
 	desc: true
 });
 
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export const getExpandedUnexpectedState = (
 	testIds: string[],
 	rowsValues: Record<string, Record<string, unknown>>
@@ -36,7 +39,10 @@ export const getExpandedUnexpectedState = (
 
 	testIds.forEach((id) => {
 		const rowValues = rowsValues[id];
-		const rowState: Required<RowState> = { rowId: id, requests: {} };
+		const rowState: WithRequired<RowState, 'requests'> = {
+			rowId: id,
+			requests: {}
+		};
 
 		Object.entries(rowValues).forEach(([column, value]) => {
 			if (!isUnexpectedColumn(column) || !value) return;
