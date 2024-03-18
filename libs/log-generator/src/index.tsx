@@ -4,7 +4,7 @@
 import { Command } from 'commander';
 import { renderToString } from 'react-dom/server';
 import postcss from 'postcss';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState } from 'react';
 
 const tailwind = require('tailwindcss');
 const fs = require('fs');
@@ -26,7 +26,13 @@ async function getCss({ html }: GenerateCSSConfig) {
 }
 
 function App() {
-	return <div className="bg-red-500">Hello world</div>;
+	const [count, setCount] = useState(0);
+
+	return (
+		<div className="w-screen h-screen flex items-center justify-center">
+			<button onClick={() => setCount(count + 1)}>{count}</button>
+		</div>
+	);
 }
 
 function Root(props: PropsWithChildren<{ css: string }>) {
@@ -36,10 +42,31 @@ function Root(props: PropsWithChildren<{ css: string }>) {
 				<meta charSet="utf-8" />
 				<title>Log Page</title>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+				<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+				<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 				<style>{props.css}</style>
 			</head>
 			<body className="overflow-hidden antialiased font-medium selection:text-white selection:bg-primary text-text-primary bg-bg-body">
 				<div id="root">{props.children}</div>
+				<script
+					type="text/babel"
+					dangerouslySetInnerHTML={{
+						__html: `
+            function App() {
+              const [count, setCount] = React.useState(0);
+
+              return (
+                <div className="w-screen h-screen flex items-center justify-center">
+                  <button onClick={() => setCount(count + 1)}>{count}</button>
+                </div>
+              );
+            }
+
+            ReactDOM.hydrateRoot(document.getElementById('root'), <App/>);
+`
+					}}
+				></script>
 			</body>
 		</html>
 	);
