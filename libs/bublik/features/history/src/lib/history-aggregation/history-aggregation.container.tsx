@@ -13,17 +13,19 @@ import { useAggregationGlobalFilter } from './history-aggregation.hooks';
 import { HistoryEmpty } from '../history-empty';
 import { useHistoryActions } from '../slice';
 import { HistoryError } from '../history-error';
+import { useLocation } from 'react-router-dom';
 
 export const HistoryAggregationContainer = () => {
 	const actions = useHistoryActions();
 	const { pagination, handlePaginationChange } = useHistoryPagination();
 	const { globalFilter, handleGlobalFilterChange } =
 		useAggregationGlobalFilter();
+	const state = useLocation().state as { fromRun?: boolean };
 	const { query } = useHistoryQuery();
 
 	const { data, isLoading, isFetching, error } = useGetHistoryAggregationQuery(
 		query,
-		{ skip: !query.testName }
+		{ skip: state?.fromRun || !query.testName }
 	);
 
 	const handleOpenFormClick = useCallback(
