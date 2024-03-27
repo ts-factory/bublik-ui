@@ -73,7 +73,7 @@ export const LogFeature: FC<LogFeatureProps> = ({
 					<TreeContainer runId={runId} />
 				</Resizable>
 			)}
-			<div className="flex flex-col flex-grow h-full gap-1">
+			<div className="flex flex-col flex-grow h-full gap-1 overflow-hidden">
 				{children}
 				<main className="flex-grow bg-white rounded-md overflow-hidden">
 					<CardHeader label="Log">
