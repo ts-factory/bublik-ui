@@ -3,7 +3,7 @@
 import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 
 import {
-	HistoryAPIQuery,
+	HistoryAPIBackendQuery,
 	HistoryDataAggregationAPIResponse,
 	HistoryLinearAPIResponse
 } from '@/shared/types';
@@ -17,7 +17,10 @@ export const historyEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getHistoryLinear: build.query<HistoryLinearAPIResponse, HistoryAPIQuery>({
+		getHistoryLinear: build.query<
+			HistoryLinearAPIResponse,
+			HistoryAPIBackendQuery
+		>({
 			query: (query) => {
 				return { url: withApiV2('/history'), params: prepareForSend(query) };
 			},
@@ -25,7 +28,7 @@ export const historyEndpoints = {
 		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
-			HistoryAPIQuery
+			HistoryAPIBackendQuery
 		>({
 			query: (query) => {
 				return {

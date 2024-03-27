@@ -7,7 +7,11 @@ import {
 	DEFAULT_HISTORY_END_DATE,
 	DEFAULT_HISTORY_START_DATE
 } from '@/bublik/config';
-import { HistoryAPIQuery, VERDICT_TYPE } from '@/shared/types';
+import {
+	HistoryAPIBackendQuery,
+	HistoryAPIQuery,
+	VERDICT_TYPE
+} from '@/shared/types';
 import { BadgeItem } from '@/shared/tailwind-ui';
 import { formatTimeToAPI } from '@/shared/utils';
 
@@ -109,6 +113,37 @@ export const historySearchStateToForm = (
 		verdict: arrayToBadgeItem(state.verdict)
 	};
 };
+
+export function searchQueryToBackendQuery(
+	query: HistoryAPIQuery
+): HistoryAPIBackendQuery {
+	return {
+		testName: query.testName,
+		hash: query.hash,
+		testArgs: query.parameters,
+		revisions: query.revisions,
+		branches: query.branches,
+		/* Run section */
+		tags: query.runData,
+		tagExpr: query.tagExpr,
+		branchExpr: query.branchExpr,
+		labelExpr: query.labelExpr,
+		testArgExpr: query.testArgExpr,
+		revExpr: query.revisionExpr,
+		verdictExpr: query.verdictExpr,
+		fromDate: query.startDate,
+		toDate: query.finishDate,
+		/* Result section */
+		resultTypes: query.resultProperties,
+		runProperties: query.runProperties,
+		resultStatuses: query.results,
+		/* Verdict section */
+		verdictLookup: query.verdictLookup,
+		verdict: query.verdict,
+		page: query.page,
+		pageSize: query.pageSize
+	};
+}
 
 export const historySearchStateToQuery = (
 	state: HistorySearchFormState
