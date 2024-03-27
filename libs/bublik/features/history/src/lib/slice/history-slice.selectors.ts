@@ -15,6 +15,11 @@ import {
 	historySearchStateToForm
 } from './history-slice.utils';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
+import {
+	DEFAULT_RESULT_PROPERTIES,
+	DEFAULT_RESULT_TYPES,
+	DEFAULT_RUN_PROPERTIES
+} from '@/bublik/config';
 
 const selectHistorySliceState = (state: AppStateWithHistorySlice) => {
 	return state[HISTORY_SLICE_NAME];
@@ -99,14 +104,22 @@ const getCombinedForm = (
 
 	const results = globalFilter.resultType
 		? [globalFilter.resultType]
-		: formFromSearchState.results;
+		: formFromSearchState.results.length
+		? formFromSearchState.results
+		: DEFAULT_RESULT_TYPES;
 
 	const resultProperties =
 		globalFilter.isNotExpected !== null
 			? globalFilter.isNotExpected
 				? [RESULT_PROPERTIES.Unexpected]
 				: [RESULT_PROPERTIES.Expected]
-			: formFromSearchState.resultProperties;
+			: formFromSearchState.resultProperties.length
+			? formFromSearchState.resultProperties
+			: DEFAULT_RESULT_PROPERTIES;
+
+	const runProperties = formFromSearchState.runProperties.length
+		? formFromSearchState.runProperties
+		: DEFAULT_RUN_PROPERTIES;
 
 	return {
 		...formFromSearchState,
@@ -114,6 +127,7 @@ const getCombinedForm = (
 		verdict,
 		runData,
 		results,
-		resultProperties
+		resultProperties,
+		runProperties
 	};
 };
