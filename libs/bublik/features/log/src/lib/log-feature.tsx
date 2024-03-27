@@ -24,7 +24,7 @@ import {
 	TreeContainer
 } from './containers';
 import { LinkToRun } from './components';
-import { useIsLogExperimental, useLogPage } from './hooks';
+import { useIsLogLegacy, useLogPage } from './hooks';
 
 export interface LogFeatureProps {
 	runId?: string;
@@ -39,7 +39,7 @@ export const LogFeature: FC<LogFeatureProps> = ({
 }) => {
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
 	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
-	const [isExperimentalLog, toggleExperimentalLog] = useIsLogExperimental();
+	const { isLegacyLog, toggleLog } = useIsLogLegacy();
 	const { focusId } = useLogPage();
 
 	useEffect(() => {
@@ -58,6 +58,8 @@ export const LogFeature: FC<LogFeatureProps> = ({
 	}, [details, runId, focusId, tree?.tree]);
 
 	if (!runId) return null;
+
+	console.log(isLegacyLog);
 
 	return (
 		<>
@@ -80,11 +82,11 @@ export const LogFeature: FC<LogFeatureProps> = ({
 						<div className="flex items-center gap-2">
 							<ButtonTw
 								variant="secondary"
-								state={isExperimentalLog && 'active'}
+								state={isLegacyLog && 'active'}
 								size="xss"
-								onClick={toggleExperimentalLog}
+								onClick={toggleLog}
 							>
-								Experimental
+								Legacy
 							</ButtonTw>
 							<LinkToRun runId={runId} />
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
@@ -95,7 +97,7 @@ export const LogFeature: FC<LogFeatureProps> = ({
 					<div
 						className={cn(
 							'overflow-auto relative h-full',
-							isExperimentalLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
+							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
 					>
 						<LogPickerContainer />

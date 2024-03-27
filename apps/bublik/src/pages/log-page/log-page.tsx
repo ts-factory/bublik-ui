@@ -32,21 +32,19 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	);
 };
 
-export const useExperimentalLogRedirect = () => {
+export const useLegacyLogRedirect = () => {
 	const [searchParams] = useSearchParams();
 	const { userPreferences } = useUserPreferences();
 
 	const shouldRedirect =
-		searchParams.get('experimental') === 'true'
-			? false
-			: userPreferences.log.makeExperimentalModeDefault &&
-			  !searchParams.get('experimental')
+		userPreferences.log.preferLegacyLog && !searchParams.get('legacy')
 			? true
 			: false;
 
 	const redirectLocation = useMemo(() => {
 		const nextParams = new URLSearchParams(searchParams);
-		nextParams.set('experimental', 'true');
+		nextParams.set('legacy', 'true');
+		nextParams.delete('experimental');
 
 		return { search: nextParams.toString() };
 	}, [searchParams]);
@@ -56,7 +54,7 @@ export const useExperimentalLogRedirect = () => {
 
 export const LogPage = () => {
 	const { runId, mode } = useLogPage();
-	const { location, shouldRedirect } = useExperimentalLogRedirect();
+	const { location, shouldRedirect } = useLegacyLogRedirect();
 
 	usePrefetchLogPage({ runId });
 	usePrefetchRun({ runId });

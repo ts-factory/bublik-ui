@@ -12,12 +12,16 @@ export const UserPreferencesSchema = z
 			})
 			.default({ defaultMode: 'linear' }),
 		log: z
-			.object({ makeExperimentalModeDefault: z.boolean().default(false) })
-			.default({ makeExperimentalModeDefault: false })
+			.object({ preferLegacyLog: z.boolean().default(false) })
+			.default({ preferLegacyLog: false })
 	})
 	.default({
 		history: { defaultMode: 'linear' },
-		log: { makeExperimentalModeDefault: false }
+		log: { preferLegacyLog: false }
+	})
+	.catch({
+		history: { defaultMode: 'linear' },
+		log: { preferLegacyLog: false }
 	});
 
 export const USER_PREFERENCES_DEFAULTS = UserPreferencesSchema.parse({});

@@ -7,27 +7,37 @@ import { toast } from '@/shared/tailwind-ui';
 import { LogPageParams } from '@/shared/types';
 
 const EXPERIMENTAL_KEY = 'experimental';
+const LEGACY_KEY = 'legacy';
 const FOCUS_ID_KEY = 'focusId';
 const LINE_NUMBER_KEY = 'lineNumber';
 const MODE_KEY = 'mode';
 const PAGE_KEY = 'page';
 
-export const useIsLogExperimental = () => {
+export const useIsLogLegacy = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 
-	const isExperimentalLog = searchParams.get(EXPERIMENTAL_KEY) === 'true';
+	const isLegacyLog =
+		searchParams.get(LEGACY_KEY) === 'true' ||
+		searchParams.get(EXPERIMENTAL_KEY) === 'false';
 
 	const toggleLog = () => {
 		const params = new URLSearchParams(searchParams);
 
-		isExperimentalLog
-			? params.set(EXPERIMENTAL_KEY, 'false')
-			: params.set(EXPERIMENTAL_KEY, 'true');
+		if (
+			searchParams.get(LEGACY_KEY) === 'true' ||
+			searchParams.get(EXPERIMENTAL_KEY) === 'false'
+		) {
+			params.delete(EXPERIMENTAL_KEY);
+			params.set(LEGACY_KEY, 'false');
+		} else {
+			params.delete(EXPERIMENTAL_KEY);
+			params.set(LEGACY_KEY, 'true');
+		}
 
 		setSearchParams(params);
 	};
 
-	return [isExperimentalLog, toggleLog] as const;
+	return { isLegacyLog, toggleLog } as const;
 };
 
 export const useLogPage = () => {

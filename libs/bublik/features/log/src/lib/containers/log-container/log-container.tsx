@@ -14,7 +14,7 @@ import {
 } from '@/bublik/features/session-log';
 import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
 
-import { useIsLogExperimental, useLogPage } from '../../hooks';
+import { useIsLogLegacy, useLogPage } from '../../hooks';
 
 const highlightRow = (el: HTMLElement) => {
 	el.classList.add('animate-highlight-row');
@@ -55,7 +55,7 @@ export const LogFrameEmpty = () => {
 };
 
 export const LogPickerContainer = () => {
-	const [isExperimentalLog] = useIsLogExperimental();
+	const { isLegacyLog } = useIsLogLegacy();
 	const {
 		isShowingRunLog,
 		focusId,
@@ -111,7 +111,7 @@ export const LogPickerContainer = () => {
 		}, 0);
 	};
 
-	return isExperimentalLog ? (
+	return !isLegacyLog ? (
 		<LogTableContextProvider
 			onLineNumberClick={handleLineNumberClick}
 			onLogTableMount={handleLogTableMount}
