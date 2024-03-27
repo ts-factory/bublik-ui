@@ -77,12 +77,12 @@ function UserPreferencesForm(props: UserPreferencesFormProps) {
 			></Controller>
 			<div>
 				<CheckboxField
-					name="log.makeExperimentalModeDefault"
-					label="Experimental Logs"
+					name="log.preferLegacyLog"
+					label="Legacy Logs"
 					control={control}
 				/>
 				<p className="text-sm text-text-menu ml-6 mt-1.5">
-					Make experimental logs your default choice
+					Make legacy logs your default choice
 				</p>
 			</div>
 			<div className="self-start">
