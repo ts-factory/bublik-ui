@@ -89,7 +89,7 @@ export const LogPickerContainer = () => {
 		if (!lineNumber) return;
 
 		// 1. Expand parent rows before we can scroll to row
-		const row = table.getRow(lineNumber);
+		const row = table.getRowModel().rowsById[lineNumber];
 
 		if (!row) return console.log('No row found with id', lineNumber);
 
