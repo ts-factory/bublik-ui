@@ -12,6 +12,35 @@ import { Pagination } from './utils';
 /** History page mode */
 export type HistoryMode = 'linear' | 'aggregation' | 'measurements';
 
+export type HistoryAPIBackendQuery = {
+	testName?: string;
+	hash?: string;
+	testArgs?: string;
+	revisions?: string;
+	branches?: string;
+
+	fromDate?: string;
+	toDate?: string;
+	tags?: string;
+	tagExpr?: string;
+
+	labelExpr?: string;
+	revExpr?: string;
+	branchExpr?: string;
+	verdictExpr?: string;
+	testArgExpr?: string;
+
+	runProperties?: string;
+	resultTypes?: string;
+	resultStatuses?: string;
+
+	verdictLookup?: VERDICT_TYPE;
+	verdict?: string;
+
+	page?: string;
+	pageSize?: string;
+};
+
 export type HistoryAPIQuery = {
 	page?: string;
 	pageSize?: string;
