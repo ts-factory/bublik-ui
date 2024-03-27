@@ -8,9 +8,10 @@ import { queryToHistorySearchState } from '../slice/history-slice.utils';
 
 export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 	const state = queryToHistorySearchState(search);
+
 	const formattedDate = `${formatTimeToDot(
-		search.startDate
-	)} — ${formatTimeToDot(search.finishDate)}`;
+		state.startDate.toISOString()
+	)} — ${formatTimeToDot(state.finishDate.toISOString())}`;
 
 	return [
 		{
