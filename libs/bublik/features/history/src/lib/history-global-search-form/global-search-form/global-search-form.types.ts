@@ -4,6 +4,11 @@ import { z } from 'zod';
 
 import { BadgeItem } from '@/shared/tailwind-ui';
 import { VERDICT_TYPE } from '@/shared/types';
+import {
+	DEFAULT_RESULT_PROPERTIES,
+	DEFAULT_RESULT_TYPES,
+	DEFAULT_RUN_PROPERTIES
+} from '@/bublik/config';
 
 export const ValidationSchema = z
 	.object({
@@ -43,7 +48,7 @@ export interface HistoryGlobalSearchFormValues {
 
 export const defaultValues: HistoryGlobalSearchFormValues = {
 	testName: '',
-	results: [],
+	results: DEFAULT_RESULT_TYPES,
 	runData: [],
 	parameters: [],
 	hash: '',
@@ -51,10 +56,10 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	revisions: [],
 	tagExpr: '',
 	branches: [],
-	runProperties: [],
+	runProperties: DEFAULT_RUN_PROPERTIES,
 	verdictLookup: VERDICT_TYPE.String,
 	verdict: [],
-	resultProperties: [],
+	resultProperties: DEFAULT_RESULT_PROPERTIES,
 	branchExpr: '',
 	verdictExpr: '',
 	revisionExpr: '',
