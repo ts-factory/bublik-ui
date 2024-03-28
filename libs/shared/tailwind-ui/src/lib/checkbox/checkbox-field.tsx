@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { CheckedState } from '@radix-ui/react-checkbox';
 import { Control, FieldValues, Path, useController } from 'react-hook-form';
+import { useId } from 'react';
 
 import { Checkbox, CheckboxProps } from './checkbox';
 
@@ -14,10 +15,8 @@ export const CheckboxField = <T extends FieldValues>({
 	control,
 	...props
 }: CheckboxFieldProps<T>) => {
-	const { field } = useController({
-		name: props.name,
-		control: control
-	});
+	const { field } = useController({ name: props.name, control: control });
+	const checkId = useId();
 
 	const isChecked = Array.isArray(field.value)
 		? field.value.includes(props.value)
@@ -30,15 +29,22 @@ export const CheckboxField = <T extends FieldValues>({
 		}
 
 		const set = new Set(field.value);
-		set.has(props.value) ? set.delete(props.value) : set.add(props.value);
+
+		if (set.has(props.value)) {
+			set.delete(props.value);
+		} else {
+			set.add(props.value);
+		}
 
 		field.onChange(Array.from(set));
 	};
 
+	const id = `${checkId}_${field.name}`;
+
 	return (
 		<Checkbox
 			{...props}
-			id={field.name}
+			id={id}
 			checked={isChecked}
 			onCheckedChange={handleChange}
 			ref={field.ref}
