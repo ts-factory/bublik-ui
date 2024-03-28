@@ -125,7 +125,7 @@ const BoxedCheckbox = forwardRef<HTMLButtonElement, BoxedCheckboxProps>(
 					<Icon name={iconName} size={iconSize} />
 				</RadixCheckbox.CheckboxIndicator>
 				<label
-					htmlFor={props.name}
+					htmlFor={props.id}
 					className="text-[0.75rem] font-medium leading-[0.875rem]"
 				>
 					{label}
