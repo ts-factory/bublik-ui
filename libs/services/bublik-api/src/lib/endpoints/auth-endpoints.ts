@@ -65,7 +65,7 @@ export const authEndpoints = {
 			})
 		}),
 		resetPassword: build.mutation<
-			string,
+			{ message: string },
 			ResetPasswordParamsInputs & ResetUserPasswordFormInputs
 		>({
 			query: (form) => ({
@@ -84,7 +84,7 @@ export const authEndpoints = {
 				body: form
 			})
 		}),
-		activateEmail: build.mutation<string, VerifyEmailInputs>({
+		activateEmail: build.mutation<{ message: string }, VerifyEmailInputs>({
 			query: ({ userId, token }) => ({
 				url: `/auth/register/activate/${userId}/${token}/`,
 				method: 'GET'

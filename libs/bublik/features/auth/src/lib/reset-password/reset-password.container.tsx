@@ -29,12 +29,9 @@ export const ResetPasswordFormContainer = () => {
 		try {
 			const parsedParams = ResetPasswordParamsSchema.parse(params);
 
-			const message = await resetPassword({
-				...parsedParams,
-				...form
-			}).unwrap();
+			await resetPassword({ ...parsedParams, ...form }).unwrap();
 
-			toast.success(message);
+			toast.success('A verification link has been sent to your email address');
 			navigate('/auth/login');
 		} catch (error: unknown) {
 			setErrorsOnForm(error, {

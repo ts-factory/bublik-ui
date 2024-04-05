@@ -16,8 +16,8 @@ export const EmailActivationPage = () => {
 		try {
 			const inputs = VerifyEmailSchemaInputs.parse(params);
 
-			const message = await verifyEmail(inputs).unwrap();
-			toast.success(message);
+			await verifyEmail(inputs).unwrap();
+			toast.success('The email is verified. You are registered.');
 			navigate('/auth/login');
 		} catch (e) {
 			toast.error('Failed to verify email!');
