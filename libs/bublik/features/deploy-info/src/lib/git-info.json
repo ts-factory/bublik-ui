@@ -1,1 +1,1 @@
-{"date":"2024.02.22","summary":"refactor(log,history,measurements): make history links respect preferences","revision":"2d3cfff","branch":"release/v0.39.0","latestTag":"v0.39.0"}
+{"date":"2024.04.05","summary":"fix(auth): prevent app crash caused by toast messages","revision":"ce1211f","branch":"release-0.39.1","latestTag":"v0.39.1"}
