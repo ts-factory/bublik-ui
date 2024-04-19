@@ -38,7 +38,7 @@ function Router() {
 
 function Root() {
 	return (
-		<div className="flex h-screen gap-1 p-2 overflow-y-hidden">
+		<div className="flex h-full gap-1 p-2 overflow-y-hidden">
 			<aside className="w-96 bg-white rounded-md shrink-0">
 				<TreeContainer />
 			</aside>
@@ -97,7 +97,7 @@ function TreeContainer() {
 	if (!data || !treeWithOnlyErrors) return;
 
 	return (
-		<>
+		<div className="h-full flex flex-col">
 			<TreeHeader
 				hasErrors={treeWithOnlyErrors !== null}
 				isNokMode={showOnlyErrors}
@@ -106,13 +106,15 @@ function TreeContainer() {
 				onRunButtonClick={showRunLog}
 				onNokClick={handleNokClick}
 			/>
-			<TreeView
-				data={showOnlyErrors ? treeWithOnlyErrors : data}
-				itemSize={28}
-				focusId={id ?? null}
-				ref={scrollToFocusRef}
-			/>
-		</>
+			<div className="flex-1">
+				<TreeView
+					data={showOnlyErrors ? treeWithOnlyErrors : data}
+					itemSize={28}
+					focusId={id ?? null}
+					ref={scrollToFocusRef}
+				/>
+			</div>
+		</div>
 	);
 }
 
@@ -140,7 +142,7 @@ function LogContainer() {
 
 	return (
 		<div className="p-2">
-			<SessionRoot root={data} />;
+			<SessionRoot root={data} />
 		</div>
 	);
 }

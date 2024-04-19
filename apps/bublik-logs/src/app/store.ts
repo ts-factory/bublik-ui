@@ -27,9 +27,14 @@ const jsonAPI = createApi({
 			transformErrorResponse: (error) => {
 				if (
 					'originalStatus' in error &&
-					typeof error.originalStatus === 'number'
+					typeof error.originalStatus === 'number' &&
+					error.originalStatus === 404
 				) {
-					return {};
+					return {
+						status: 404,
+						title: 'Not Found',
+						description: 'Log not found!'
+					};
 				}
 
 				return error;
