@@ -16,6 +16,8 @@
 		"bublik:ci:build": "nx run bublik:ci-build",
 		"bublik:e2e": "nx run bublik:e2e",
 		"bublik:e2e-ui": "nx run bublik:e2e --ui=true",
+		"bublik-json:build": "nx run bublik-logs:build",
+		"bublik-json:start": "nx run bublik-logs:serve",
 		"test": "nx run-many --all --target=test",
 		"lint": "nx run-many --target=lint",
 		"git-info": "ts-node ./tools/get-git-info.ts",

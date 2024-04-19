@@ -96,11 +96,6 @@ body,
 	--shadow-sticky: 0 0 15px 0 rgb(0 0 0 / 10%);
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-	}
-}
-
 html .no-bg-scrollbar {
 	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 	scrollbar-width: thin;

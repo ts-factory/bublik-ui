@@ -38,6 +38,11 @@ export type TreeData = Record<string, NodeData>;
 |--------------------------------------------------
 */
 
+export type GetLogJsonInputs = {
+	id?: string | number | null;
+	page?: string | number | null;
+};
+
 export interface TreeDataAPIResponse {
 	mainPackage: string;
 	tree: TreeData;

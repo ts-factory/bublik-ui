@@ -50,6 +50,14 @@ export const LogFrameError = ({ error = {} }: LogFrameErrorProps) => {
 	);
 };
 
+export function LogFrameLoading() {
+	return (
+		<div className="h-full p-4">
+			<Skeleton className="h-full rounded" />
+		</div>
+	);
+}
+
 export const LogFrameEmpty = () => {
 	return <div>No log found!</div>;
 };
@@ -187,11 +195,7 @@ const JsonLog = (props: JsonLogProps) => {
 	const { data, isLoading, isFetching, error } = useGetLogJsonQuery(idToFetch);
 
 	if (isLoading) {
-		return (
-			<div className="h-full p-4">
-				<Skeleton className="h-full rounded" />
-			</div>
-		);
+		return <LogFrameLoading />;
 	}
 
 	if (error) {

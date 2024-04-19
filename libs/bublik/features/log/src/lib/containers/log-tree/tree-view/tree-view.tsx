@@ -67,7 +67,7 @@ export interface TreeViewProps {
 	focusId: string | null;
 	itemSize: number;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	ref: any;
+	ref?: any;
 }
 
 export const TreeView: FC<TreeViewProps> = forwardRef<

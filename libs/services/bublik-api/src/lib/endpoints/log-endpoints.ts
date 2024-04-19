@@ -4,13 +4,15 @@ import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions
 import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 
 import {
+	GetLogJsonInputs,
 	HistoryDefaultResultAPIResponse,
 	ResultLogAPIResponse,
 	RootBlock,
 	TreeDataAPIResponse
 } from '@/shared/types';
+import { config } from '@/bublik/config';
+import { transformLogTree } from '@/shared/utils';
 
-import { transformLogTree } from '../transform';
 import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
@@ -19,12 +21,6 @@ import {
 	BublikHttpError,
 	isBublikParsableError
 } from '../error-handling';
-import { config } from '@/bublik/config';
-
-type GetLogJsonInputs = {
-	id: string | number;
-	page?: string | number | null;
-};
 
 export const constructJsonUrl = (input: GetLogJsonInputs): string => {
 	const PREFIX = '/api/v2';
