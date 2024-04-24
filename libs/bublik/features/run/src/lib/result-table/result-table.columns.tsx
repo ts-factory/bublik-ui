@@ -96,21 +96,18 @@ export const getColumns = (
 			header: 'Parameters',
 			accessorFn: (data) => data.parameters,
 			cell: (cell) => {
-				const value = cell.getValue<string[]>();
+				const parameters = cell.getValue<string[]>();
 				const referenceDiffRowId =
 					// eslint-disable-next-line react-hooks/rules-of-hooks
 					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
 
-				const referenceSet = referenceDiffRowId
+				const reference = referenceDiffRowId
 					? parametersDataset[referenceDiffRowId]
-					: value;
+					: parameters;
 
 				return (
 					<ul className="flex gap-1 flex-wrap">
-						{highlightDifferences(
-							Object.values(parametersDataset),
-							referenceSet
-						)[cell.row.index].map((item, index) => (
+						{highlightDifferences(parameters, reference).map((item, index) => (
 							<div
 								key={index}
 								className={cn(

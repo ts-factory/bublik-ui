@@ -31,52 +31,28 @@ export function calculateGroupSize(
 	return groupSize;
 }
 
-type DiffValue = {
+export type DiffValue = {
 	value: string;
 	isDifferent?: boolean;
 };
 
 export function highlightDifferences(
-	dataset: string[][],
-	referenceSet: string[]
-): DiffValue[][] {
-	const PARAMETER_DELIMITER = '=';
-
-	const highlightedDataset = [];
-
+	current: string[],
+	reference: string[],
+	delimeter = '='
+): DiffValue[] {
 	const referenceMap = new Map<string, string>(
-		Array.from(referenceSet, (item) => item.split(PARAMETER_DELIMITER)) as [
-			string,
-			string
-		][]
+		Array.from(reference, (item) => item.split(delimeter)) as [string, string][]
 	);
 
-	for (let i = 0; i < dataset.length; i++) {
-		const currentSet = dataset[i];
-		const currentSetMap = new Map<string, string>(
-			Array.from(currentSet, (item) => item.split(PARAMETER_DELIMITER)) as [
-				string,
-				string
-			][]
-		);
-		const highlightedSet: DiffValue[] = [];
-
-		for (let j = 0; j < referenceSet.length; j++) {
-			const referenceKeyValue = referenceSet[j].split(PARAMETER_DELIMITER);
-			const currentKeyValue = currentSet[j].split(PARAMETER_DELIMITER);
-
-			if (
-				referenceMap.get(referenceKeyValue[0]) !==
-				currentSetMap.get(currentKeyValue[0])
-			) {
-				highlightedSet.push({ value: currentSet[j], isDifferent: true });
-			} else {
-				highlightedSet.push({ value: currentSet[j] });
-			}
+	return current.map((item) => {
+		const currentKey = item.split(delimeter)?.[0];
+		const currentValue = item.split(delimeter)?.[1];
+		const referenceValue = referenceMap.get(currentKey);
+		if (!referenceValue) return { value: item };
+		if (currentValue !== referenceValue) {
+			return { value: item, isDifferent: true };
 		}
-
-		highlightedDataset.push(highlightedSet);
-	}
-
-	return highlightedDataset;
+		return { value: item };
+	});
 }
