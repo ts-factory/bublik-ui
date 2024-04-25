@@ -43,7 +43,8 @@ export const routes = {
 	}),
 	measurements: buildRoute<MeasurementsConfig>({
 		getPathname: ({ runId, resultId }) =>
-			`/runs/${runId}/results/${resultId}/measurements`
+			`/runs/${runId}/results/${resultId}/measurements`,
+		getSearch: () => 'mode=default'
 	}),
 	runs: buildRoute<never>('/runs'),
 	flower: buildRoute('/flower'),

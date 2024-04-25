@@ -89,12 +89,12 @@ const mainMenu: SidebarItem[] = [
 		},
 		subitems: [
 			{
-				label: 'Charts',
+				label: 'Charts + Tables',
 				icon: <Icon name="LineChart" />,
 				to: '/runs',
 				pattern: {
 					path: '/runs/:runId/results/:resultId/measurements',
-					search: { mode: MeasurementsMode.Charts }
+					search: { mode: MeasurementsMode.Default }
 				}
 			},
 			{
@@ -104,6 +104,24 @@ const mainMenu: SidebarItem[] = [
 				pattern: {
 					path: '/runs/:runId/results/:resultId/measurements',
 					search: { mode: MeasurementsMode.Split }
+				}
+			},
+			{
+				label: 'Tables',
+				icon: <Icon name="PaperListText" />,
+				to: '/runs',
+				pattern: {
+					path: '/runs/:runId/results/:resultId/measurements',
+					search: { mode: MeasurementsMode.Tables }
+				}
+			},
+			{
+				label: 'Stacked',
+				icon: <Icon name="LineChartMultiple" />,
+				to: '/runs',
+				pattern: {
+					path: '/runs/:runId/results/:resultId/measurements',
+					search: { mode: MeasurementsMode.Overlay }
 				}
 			}
 		]

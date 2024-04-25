@@ -6,6 +6,7 @@ import { ModeDefault } from './mode-default';
 import { ModeCharts } from './mode-charts';
 import { ModeTables } from './mode-tables';
 import { ModeSplit } from './mode-split';
+import { ModeOverlay } from './mode-overlay';
 
 export interface ModePickerProps {
 	mode?: MeasurementsMode;
@@ -19,6 +20,8 @@ export const ModePicker = ({ mode }: ModePickerProps) => {
 			return <ModeSplit />;
 		case MeasurementsMode.Tables:
 			return <ModeTables />;
+		case MeasurementsMode.Overlay:
+			return <ModeOverlay />;
 		case MeasurementsMode.Default:
 			return <ModeDefault />;
 		default:

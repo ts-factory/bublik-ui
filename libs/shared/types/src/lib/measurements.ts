@@ -10,7 +10,8 @@ export const enum MeasurementsMode {
 	Default = 'default',
 	Charts = 'charts',
 	Tables = 'tables',
-	Split = 'split'
+	Split = 'split',
+	Overlay = 'overlay'
 }
 
 export type MeasurementsRouterParams = {

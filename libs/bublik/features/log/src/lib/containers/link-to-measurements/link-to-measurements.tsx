@@ -9,6 +9,8 @@ import {
 	usePrefetchMeasurementsPage
 } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
+import { routes } from '@/router';
+import { MeasurementsMode } from '@/shared/types';
 
 export interface LinkToMeasurementsProps {
 	focusId?: string | number | null;
@@ -27,7 +29,7 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 
 	usePrefetchMeasurementsPage({ resultId });
 
-	const to = `/runs/${runId}/results/${resultId}/measurements`;
+	if (!resultId || !runId) return;
 
 	return (
 		<ButtonTw
@@ -42,7 +44,13 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 					: 'default'
 			}
 		>
-			<Link to={to}>
+			<Link
+				to={routes.measurements({
+					resultId,
+					runId,
+					mode: MeasurementsMode.Default
+				})}
+			>
 				{isFetching ? (
 					<Icon name="ProgressIndicator" className="mr-1.5 animate-spin" />
 				) : (
