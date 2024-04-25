@@ -81,7 +81,7 @@ export const ChartControlPanel = ({
 						iconSize={18}
 						state={isSlidersShown ? 'active' : 'default'}
 						onClick={() => onSlidersShownChange?.(!isSlidersShown)}
-						tooltip={isSlidersShown ? 'Show sliders' : 'Hide sliders'}
+						tooltip={isSlidersShown ? 'Hide sliders' : 'Show sliders'}
 					/>
 				) : null}
 			</div>
