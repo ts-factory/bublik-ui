@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import { formatTimeToDot } from '@/shared/utils';
@@ -32,15 +32,13 @@ export interface LogFeatureProps {
 	children?: ReactNode;
 }
 
-export const LogFeature: FC<LogFeatureProps> = ({
-	runId,
-	children,
-	isTreeShown
-}) => {
+export const LogFeature = (props: LogFeatureProps) => {
+	const { runId, children, isTreeShown } = props;
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
 	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
 	const { focusId } = useLogPage();
+	const scrollRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		if (!details) {
@@ -57,9 +55,11 @@ export const LogFeature: FC<LogFeatureProps> = ({
 		}${name} | ${formattedTime} | ${runId} | Log - Bublik`;
 	}, [details, runId, focusId, tree?.tree]);
 
-	if (!runId) return null;
+	useEffect(() => {
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}, [focusId]);
 
-	console.log(isLegacyLog);
+	if (!runId) return null;
 
 	return (
 		<>
@@ -99,6 +99,7 @@ export const LogFeature: FC<LogFeatureProps> = ({
 							'overflow-auto relative h-full',
 							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
+						ref={scrollRef}
 					>
 						<LogPickerContainer />
 					</div>
