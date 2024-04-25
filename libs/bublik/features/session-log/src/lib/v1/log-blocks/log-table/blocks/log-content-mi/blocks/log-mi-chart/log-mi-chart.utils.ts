@@ -112,6 +112,9 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 							name: result.name,
 							position: 'left',
 							alignTicks: true,
+							min: (value) => value.min * 0.9,
+							max: (value) => value.max * 1.1,
+							nameTextStyle: { opacity: 0 },
 							axisLine: { show: true, lineStyle: {} },
 							axisLabel: { formatter: `{value} ${units}` }
 						}
@@ -123,7 +126,6 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 			const units = results.find(
 				(result) => result.type === axis.type && result.name === axis.name
 			)?.entries[0]?.base_units;
-
 			return {
 				type: axis.type,
 				axis: {
