@@ -7,7 +7,7 @@
 		"release": "release-it",
 		"nx": "nx",
 		"start": "nx serve",
-		"build": "nx build",
+		"build": "nx build --sourcemap=true",
 		"docker:build": "docker build -f apps/bublik/Dockerfile.dev . -t bublik-ui",
 		"docker:start": "docker run -it --rm -p 4200:4200 -v $(pwd):/app -v /app/node_modules --env-file apps/bublik/.env.local bublik-ui",
 		"bublik:build-all": "nx run bublik:build-all",
