@@ -1,1 +1,1 @@
-{"date":"2024.04.05","summary":"fix(auth): prevent app crash caused by toast messages","revision":"ce1211f","branch":"release-0.39.1","latestTag":"v0.39.1"}
+{"date":"2024.04.29","summary":"feat(measurements): add stacked chart mode","revision":"5ad0f20e","branch":"release-0.40.0","latestTag":"v0.40.0"}
