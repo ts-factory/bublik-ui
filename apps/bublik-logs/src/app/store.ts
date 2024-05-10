@@ -14,7 +14,7 @@ const jsonAPI = createApi({
 	baseQuery: fetchBaseQuery({}),
 	endpoints: (builder) => ({
 		getJsonTree: builder.query<TreeDataAPIResponse | null, void>({
-			query: (s) => '/tree.json',
+			query: (s) => '/json/tree.json',
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			transformResponse: (d) => transformLogTree(d as any)
 		}),
