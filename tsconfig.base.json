@@ -43,6 +43,9 @@
 			"@/bublik/features/measurements": [
 				"libs/bublik/features/measurements/src/index.ts"
 			],
+			"@/bublik/features/performance-check": [
+				"libs/bublik/features/performance-check/src/index.ts"
+			],
 			"@/bublik/features/result-links": [
 				"libs/bublik/features/result-links/src/index.ts"
 			],
@@ -66,6 +69,9 @@
 			"@/bublik/features/user-preferences": [
 				"libs/bublik/features/user-preferences/src/index.ts"
 			],
+			"@/bublik/features/run-report": [
+				"libs/bublik/features/run-report/src/index.ts"
+			],
 			"@/bublik/run-utils": ["libs/bublik/run-utils/src/index.ts"],
 			"@/icons": ["libs/shared/icons/src/index.ts"],
 			"@/router": ["libs/bublik/router/src/index.ts"],
@@ -74,10 +80,7 @@
 			"@/shared/hooks": ["libs/shared/hooks/src/index.ts"],
 			"@/shared/tailwind-ui": ["libs/shared/tailwind-ui/src/index.ts"],
 			"@/shared/types": ["libs/shared/types/src/index.ts"],
-			"@/shared/utils": ["libs/shared/utils/src/index.ts"],
-			"@/bublik/features/performance-check": [
-				"libs/bublik/features/performance-check/src/index.ts"
-			]
+			"@/shared/utils": ["libs/shared/utils/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]
