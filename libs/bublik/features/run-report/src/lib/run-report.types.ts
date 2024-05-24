@@ -46,7 +46,7 @@ export type RecordEntityBlock = {
 	type: 'record-entity';
 	id: string;
 	label: string;
-	warnings: string[];
+	warnings?: string[];
 	args_vals: Record<string, string | number>;
 	sequence_group_arg: string;
 	axis_x_key: string;

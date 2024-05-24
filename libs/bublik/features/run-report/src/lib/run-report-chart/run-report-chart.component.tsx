@@ -7,11 +7,12 @@ interface RunReportChartProps {
 	data: Array<Array<string | number>>;
 	xKey: string;
 	xAxisLabel: string;
+	yAxisLabel: string;
 	label: string;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const { data, xKey, xAxisLabel, label } = props;
+	const { data, xKey, xAxisLabel, label, yAxisLabel } = props;
 
 	const series = useMemo(
 		() =>
@@ -42,7 +43,7 @@ function RunReportChart(props: RunReportChartProps) {
 					// dataZoom: [{}, { type: 'inside' }],
 					dataset: { source: data },
 					xAxis: { type: 'category', name: xAxisLabel },
-					yAxis: { type: 'value' },
+					yAxis: { type: 'value', name: yAxisLabel },
 					series: series
 				}}
 			/>

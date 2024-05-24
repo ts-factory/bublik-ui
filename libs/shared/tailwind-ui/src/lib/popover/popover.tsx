@@ -6,7 +6,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { cva, cn } from '../utils';
 
-const popoverContentStyles = cva({
+export const popoverContentStyles = cva({
 	base: [
 		'z-50',
 		'will-change-[transform,opacity]',

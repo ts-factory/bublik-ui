@@ -56,7 +56,7 @@ interface ListProps {
 function List(props: ListProps) {
 	return (
 		<div className="grid items-center grid-cols-[minmax(80px,_max-content)_48px_1fr]">
-			<span className="text-text-menu text-[0.6875rem] font-medium leading-[0.875rem] col-end-2 col-start-1 self-start">
+			<span className="text-text-menu text-[0.6875rem] font-medium leading-[0.875rem] col-end-2 col-start-1">
 				{props.label}
 			</span>
 			<ul className="col-start-3 flex items-center gap-2 flex-wrap">
@@ -119,4 +119,4 @@ function RevisionsBlockItem(props: RevisionsBlockItemProps) {
 	);
 }
 
-export { RunReportHeader };
+export { RunReportHeader, List };
