@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { RunReport } from './run-report.component';
 
 import testData from './test.json';

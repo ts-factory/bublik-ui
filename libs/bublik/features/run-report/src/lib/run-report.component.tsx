@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+
+import { CardHeader, cn } from '@/shared/tailwind-ui';
+import { useIsSticky } from '@/shared/hooks';
 
 import {
 	BranchBlock,
@@ -10,7 +13,8 @@ import {
 	TestBlock
 } from './run-report.types';
 import { RunReportHeader } from './run-report-header';
-import { CardHeader } from '@/shared/tailwind-ui';
+import { RunReportChart } from './run-report-chart';
+import { RunReportTable } from './run-report-table';
 
 interface RunReportProps {
 	blocks: ReportRoot;
@@ -85,18 +89,40 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 		measurements
 	} = props;
 
+	const ref = useRef<HTMLDivElement>(null);
+	const { isSticky } = useIsSticky(ref);
+
 	return (
 		<div id={id} className="flex flex-col bg-white rounded">
-			<CardHeader label={label} />
-			{measurements.map((measurement) => (
-				<RunReportEntityBlock
-					key={measurement.id}
-					chart={measurement.dataset_chart}
-					table={measurement.dataset_table}
-					enableChartView={enableChartView}
-					enableTableView={enableTableView}
-				/>
-			))}
+			<CardHeader
+				label={label}
+				className={cn('sticky top-0 bg-white z-10 rounded-t')}
+				style={
+					isSticky
+						? {
+								boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px',
+								borderColor: 'transparent',
+								borderRadius: 0
+						  }
+						: undefined
+				}
+				ref={ref}
+			/>
+			<ul className="flex flex-col">
+				{measurements.map((measurement) => (
+					<li key={measurement.id} className="border-b">
+						<RunReportEntityBlock
+							label={measurement.label}
+							chart={measurement.dataset_chart}
+							table={measurement.dataset_table}
+							enableChartView={enableChartView}
+							enableTableView={enableTableView}
+							xKey={measurement.axis_x_key}
+							xAxisLabel={measurement.axis_x_label}
+						/>
+					</li>
+				))}
+			</ul>
 		</div>
 	);
 }
@@ -105,12 +131,41 @@ interface RunReportEntityBlockProps
 	extends Pick<RunReportTestBlockProps, 'enableChartView' | 'enableTableView'> {
 	table: Array<string | number>[];
 	chart: Array<string | number>[];
+	xKey: string;
+	xAxisLabel: string;
+	label: string;
 }
 
 function RunReportEntityBlock(props: RunReportEntityBlockProps) {
-	const { chart, table, enableChartView, enableTableView } = props;
+	const {
+		chart,
+		table,
+		enableChartView,
+		enableTableView,
+		xKey,
+		xAxisLabel,
+		label
+	} = props;
 
-	return null;
+	return (
+		<div className="flex items-start gap-2">
+			{enableChartView ? (
+				<div className="border-r border-border-primary w-full p-4 h-full">
+					<RunReportChart
+						data={chart}
+						xKey={xKey}
+						xAxisLabel={xAxisLabel}
+						label={label}
+					/>
+				</div>
+			) : null}
+			{enableTableView ? (
+				<div className="w-full p-4 h-full">
+					<RunReportTable data={table} />
+				</div>
+			) : null}
+		</div>
+	);
 }
 
 export { RunReport };

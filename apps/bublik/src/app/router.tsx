@@ -35,7 +35,8 @@ import {
 	ResetPasswordPage,
 	AdminUsersPage,
 	DashboardPageV2,
-	EmailActivationPage
+	EmailActivationPage,
+	RunReportPage
 } from '../pages';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
@@ -88,6 +89,10 @@ const router = createBrowserRouter(
 						{ path: '/history/v2', element: <HistoryPageV2 /> },
 						{ path: '/log/:runId/:old', element: <RedirectToLogPage /> },
 						{ path: '/log/:runId', element: <LogPage /> },
+						{
+							path: '/runs/:runId/report',
+							element: <RunReportPage />
+						},
 						{
 							path: '/runs/:runId/results/:resultId/measurements',
 							element: <MeasurementsPage />

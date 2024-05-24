@@ -15,3 +15,4 @@ export * from './changelog-page';
 export * from './auth';
 export * from './settings';
 export * from './admin-users';
+export * from './run-report';

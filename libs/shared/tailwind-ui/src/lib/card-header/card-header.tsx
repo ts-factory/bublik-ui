@@ -26,6 +26,7 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 					className
 				)}
 				ref={mergeRefs(ref, headerRef)}
+				style={props.style}
 			>
 				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 					{label}
