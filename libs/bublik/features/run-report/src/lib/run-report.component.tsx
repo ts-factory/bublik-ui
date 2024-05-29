@@ -42,7 +42,7 @@ function RunReport(props: RunReportProps) {
 	useMount(() => {
 		try {
 			const id = location.hash;
-			const elem = document.querySelector(id);
+			const elem = document.getElementById(id.slice(1));
 			const scroller = document.getElementById('page-container');
 
 			if (!scroller || !elem) return;
