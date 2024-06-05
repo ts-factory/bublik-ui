@@ -23,7 +23,7 @@ function RunReportChart(props: RunReportChartProps) {
 					encode: { x: xKey, y: name }
 				} as const;
 			}),
-		[data]
+		[data, xKey]
 	);
 
 	return (
