@@ -21,6 +21,7 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
+import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 
 export interface RunHeaderProps {
 	runId: string;
@@ -52,6 +53,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						</ButtonTw>
 					</Tooltip>
 					<DiffFormContainer defaultValues={{ leftRunId: Number(runId) }} />
+					<RunReportConfigsContainer runId={runId} />
 					<DefineCompromiseContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
 					<ButtonTw asChild variant="secondary" size="xss">
