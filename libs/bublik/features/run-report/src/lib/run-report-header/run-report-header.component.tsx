@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Link } from 'react-router-dom';
-import { Badge, ButtonTw, CardHeader, Icon } from '@/shared/tailwind-ui';
-import { BranchBlock, RevisionBlock } from '../run-report.types';
+import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
+import { BranchBlock, RevisionBlock } from '@/shared/types';
 
 interface RunReportHeaderProps {
 	label: string;
@@ -60,13 +60,33 @@ function List(props: ListProps) {
 				{props.label}
 			</span>
 			<ul className="col-start-3 flex items-center gap-2 flex-wrap">
-				{props.items.map((item) => (
-					<Badge key={`${item.name}_${item.value}`} className={item.className}>
-						<span className="text-[0.625rem] font-medium leading-[1.125rem]">
-							{item.name}: {item.value}
-						</span>
-					</Badge>
-				))}
+				{props.items.map((item) => {
+					if (item.url) {
+						return (
+							<a href={item.url} target="_blank">
+								<Badge
+									key={`${item.name}_${item.value}`}
+									className={cn(item.className, "hover:underline")}
+								>
+									<span className="text-[0.625rem] font-medium leading-[1.125rem]">
+										{item.name}: {item.value}
+									</span>
+								</Badge>
+							</a>
+						);
+					}
+
+					return (
+						<Badge
+							key={`${item.name}_${item.value}`}
+							className={item.className}
+						>
+							<span className="text-[0.625rem] font-medium leading-[1.125rem]">
+								{item.name}: {item.value}
+							</span>
+						</Badge>
+					);
+				})}
 			</ul>
 		</div>
 	);
