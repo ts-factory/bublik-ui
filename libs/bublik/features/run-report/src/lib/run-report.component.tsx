@@ -106,7 +106,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 				value: value.toString(),
 				className: 'bg-badge-1'
 			})),
-		[]
+		[block.common_args]
 	);
 
 	const style = isSticky
