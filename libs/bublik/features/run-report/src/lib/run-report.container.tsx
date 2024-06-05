@@ -10,17 +10,19 @@ import {
 	RunReportError,
 	RunReportLoading
 } from './run-report.component';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 function RunReportContainer() {
 	const { runId } = useParams<{ runId: string }>();
 	const [searchParams] = useSearchParams();
-
 	const configId = searchParams.get('config');
+
+	const { data, isLoading, error } = useGetRunReportQuery(
+		configId && runId ? { configId, runId } : skipToken
+	);
 
 	if (!configId) return;
 	if (!runId) return;
-
-	const { data, isLoading, error } = useGetRunReportQuery({ configId, runId });
 
 	if (isLoading) return <RunReportLoading />;
 
