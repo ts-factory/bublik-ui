@@ -89,7 +89,11 @@ export const bublikAPI = createApi({
 	baseQuery: baseQueryWithAuth,
 	tagTypes,
 	keepUnusedDataFor: getMinutes(15),
-	endpoints: () => ({})
+	endpoints: (builder) => ({
+		getShortUrl: builder.query<{ short_url: string }, { url: string }>({
+			query: ({ url }) => `/url_shortner/?url=${encodeURIComponent(url)}`
+		})
+	})
 })
 	.injectEndpoints(dashboardEndpoints)
 	.injectEndpoints(deployEndpoints)
@@ -158,5 +162,6 @@ export const {
 	useGetRunReportQuery,
 	useGetRunReportConfigsQuery,
 	// Utils
-	usePrefetch
+	usePrefetch,
+	useLazyGetShortUrlQuery
 } = bublikAPI;
