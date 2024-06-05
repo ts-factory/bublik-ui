@@ -27,7 +27,7 @@
 				"libs/bublik/features/compromised-form/src/index.ts"
 			],
 			"@/bublik/features/copy-url": [
-				"libs/bublik/features/copy-url/src/index.ts"
+				"libs/bublik/features/copy-url/src/index.tsx"
 			],
 			"@/bublik/features/dashboard-v2": [
 				"libs/bublik/features/dashboard-v2/src/index.ts"
