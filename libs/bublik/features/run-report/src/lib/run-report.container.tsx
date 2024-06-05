@@ -1,12 +1,34 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { RunReport } from './run-report.component';
+import { useSearchParams, useParams } from 'react-router-dom';
 
-import testData from './test.json';
+import { useGetRunReportQuery } from '@/services/bublik-api';
+
+import {
+	RunReport,
+	RunReportEmpty,
+	RunReportError,
+	RunReportLoading
+} from './run-report.component';
 
 function RunReportContainer() {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return <RunReport blocks={testData as unknown as any} />;
+	const { runId } = useParams<{ runId: string }>();
+	const [searchParams] = useSearchParams();
+
+	const configId = searchParams.get('config');
+
+	if (!configId) return;
+	if (!runId) return;
+
+	const { data, isLoading, error } = useGetRunReportQuery({ configId, runId });
+
+	if (isLoading) return <RunReportLoading />;
+
+	if (error) return <RunReportError error={error} />;
+
+	if (!data) return <RunReportEmpty />;
+
+	return <RunReport blocks={data} />;
 }
 
 export { RunReportContainer };

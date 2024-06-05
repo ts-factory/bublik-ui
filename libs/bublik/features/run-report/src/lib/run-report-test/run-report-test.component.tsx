@@ -2,9 +2,9 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Link } from 'react-router-dom';
 
+import { RecordEntityBlock } from '@/shared/types';
 import { Icon, cn, popoverContentStyles, toast } from '@/shared/tailwind-ui';
 
-import { RecordEntityBlock } from '../run-report.types';
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report.component';
@@ -120,7 +120,7 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 					</HoverCard>
 				) : null}
 			</div>
-			<div className="flex">
+			<div className="flex max-h-96">
 				{enableChartView ? (
 					<div className="flex-1">
 						<div className="px-4 py-1.5 border-b border-border-primary">

@@ -27,7 +27,8 @@ import {
 	logEndpoints,
 	measurementsEndpoints,
 	runEndpoints,
-	runsEndpoints
+	runsEndpoints,
+	reportEndpoints
 } from './endpoints';
 
 const baseQuery = fetchBaseQuery(getAPIConfig());
@@ -99,7 +100,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(measurementsEndpoints)
 	.injectEndpoints(importLogEventsEndpoint)
 	.injectEndpoints(authEndpoints)
-	.injectEndpoints(adminUsersEndpoints);
+	.injectEndpoints(adminUsersEndpoints)
+	.injectEndpoints(reportEndpoints);
 
 export const {
 	// Dashboard
@@ -153,6 +155,8 @@ export const {
 	useAdminDeleteUserMutation,
 	useAdminUpdateUserMutation,
 	useGetPerformanceTimeoutsQuery,
+	useGetRunReportQuery,
+	useGetRunReportConfigsQuery,
 	// Utils
 	usePrefetch
 } = bublikAPI;

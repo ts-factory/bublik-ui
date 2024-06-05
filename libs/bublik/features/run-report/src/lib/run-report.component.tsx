@@ -1,16 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ComponentProps, useEffect, useMemo, useRef } from 'react';
+import { ComponentProps, useMemo, useRef } from 'react';
 
 import { useIsSticky, useMount } from '@/shared/hooks';
-import { CardHeader, cn, toast } from '@/shared/tailwind-ui';
+import { CardHeader, Skeleton, cn, toast } from '@/shared/tailwind-ui';
 
 import {
 	BranchBlock,
 	ReportRoot,
 	RevisionBlock,
 	TestBlock
-} from './run-report.types';
+} from '@/shared/types';
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
 import { useLocation } from 'react-router';
@@ -67,6 +67,18 @@ function RunReport(props: RunReportProps) {
 			<RunReportContentList blocks={other} />
 		</>
 	);
+}
+
+function RunReportLoading() {
+	return <Skeleton className="rounded h-screen" />;
+}
+
+function RunReportError({ error }: { error: unknown }) {
+	return <div>Error...</div>;
+}
+
+function RunReportEmpty() {
+	return <div>Empty...</div>;
 }
 
 interface RunReportContentListProps {
@@ -134,4 +146,10 @@ function RunReportArgs(props: RunReportCommonArgsProps) {
 	return <List label={props.label} items={props.items} />;
 }
 
-export { RunReport, RunReportArgs };
+export {
+	RunReport,
+	RunReportArgs,
+	RunReportError,
+	RunReportEmpty,
+	RunReportLoading
+};

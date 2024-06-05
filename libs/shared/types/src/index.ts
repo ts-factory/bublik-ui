@@ -13,3 +13,4 @@ export * from './lib/log-json-schema';
 export * from './lib/auth';
 export * from './lib/import';
 export * from './lib/performance';
+export * from './lib/report';
