@@ -20,7 +20,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 			<CardHeader label={label}>
 				<div className="flex items-center gap-2">
 					<ButtonTw asChild variant="secondary" size="xss">
-						<a href={sourceUrl} target="_blank">
+						<a href={sourceUrl} target="_blank" rel="noreferrer">
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Source
 						</a>
@@ -63,7 +63,7 @@ function List(props: ListProps) {
 				{props.items.map((item) => {
 					if (item.url) {
 						return (
-							<a href={item.url} target="_blank">
+							<a href={item.url} target="_blank" rel="noreferrer">
 								<Badge
 									key={`${item.name}_${item.value}`}
 									className={cn(item.className, "hover:underline")}
