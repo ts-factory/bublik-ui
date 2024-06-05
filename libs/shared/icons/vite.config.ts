@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
 import dts from 'vite-plugin-dts';
 import { join } from 'path';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
 	plugins: [
@@ -16,7 +17,8 @@ export default defineConfig({
 		react(),
 		viteTsConfigPaths({
 			root: '../../../'
-		})
+		}),
+		svgr({ svgrOptions: { ref: true } })
 	],
 
 	// Uncomment this if you are using workers.
