@@ -66,7 +66,7 @@ function List(props: ListProps) {
 							<a href={item.url} target="_blank" rel="noreferrer">
 								<Badge
 									key={`${item.name}_${item.value}`}
-									className={cn(item.className, "hover:underline")}
+									className={cn(item.className, 'hover:underline')}
 								>
 									<span className="text-[0.625rem] font-medium leading-[1.125rem]">
 										{item.name}: {item.value}
