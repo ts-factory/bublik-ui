@@ -8,6 +8,7 @@ import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { RunTableContainer } from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
 import { usePrefetchLogPage } from '@/services/bublik-api';
 import { useCopyToClipboard } from '@/shared/hooks';
@@ -46,6 +47,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						isFullMode={isModeFull}
 						onToggleClick={() => setIsModeFull(!isModeFull)}
 					/>
+					<CopyShortUrlButtonContainer />
 					<Tooltip content="Copy identifier for comparison">
 						<ButtonTw variant="secondary" size="xss" onClick={handleCopyRunId}>
 							<Icon name="PaperStack" size={16} className="mr-1 text-primary" />
