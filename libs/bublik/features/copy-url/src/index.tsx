@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { useLazyGetShortUrlQuery } from '@/services/bublik-api';
-import { ButtonTw, Icon, Tooltip } from '@/shared/tailwind-ui';
+import { ButtonTw, CommandItem, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { useCopyToClipboard } from '@/shared/hooks';
 
 interface UseCopyShortUrlConfig {
@@ -59,4 +59,26 @@ function CopyShortUrlButtonContainer({
 	);
 }
 
-export { CopyShortUrlButtonContainer };
+interface CopyShortUrlCommandItemContainerProps {
+	onComplete?: () => void;
+}
+
+function CopyShortUrlCommandItemContainer(
+	props: CopyShortUrlCommandItemContainerProps
+) {
+	const { copyShortUrl } = useCopyShortUrl({ url: window.location.href });
+
+	return (
+		<CommandItem
+			onSelect={() => {
+				copyShortUrl();
+				props?.onComplete?.();
+			}}
+		>
+			<Icon name="Upload" className="w-4 h-4 mr-2" />
+			<span>Copy Short URL</span>
+		</CommandItem>
+	);
+}
+
+export { CopyShortUrlButtonContainer, CopyShortUrlCommandItemContainer };
