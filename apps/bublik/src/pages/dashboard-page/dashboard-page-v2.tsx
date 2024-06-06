@@ -14,6 +14,7 @@ import {
 	useDashboardTitle
 } from '@/bublik/features/dashboard-v2';
 import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export const DashboardPageV2 = () => {
 	useDashboardTitle();
@@ -84,6 +85,7 @@ export const DashboardPageV2 = () => {
 						<TvModeContainer />
 						<AutoReloadContainer />
 						<ClockContainer />
+						<CopyShortUrlButtonContainer variant="header" />
 					</div>
 				</div>
 			</header>
