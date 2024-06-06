@@ -10,6 +10,7 @@ export { ReactComponent as BoxArrowRight } from './box-arrow-right.svg';
 export { ReactComponent as BoxCheckmark } from './box-checkmark.svg';
 export { ReactComponent as BoxCrossMark } from './box-crossmark.svg';
 export { ReactComponent as BoxExclamationMark } from './box-exclamation-mark.svg';
+export { ReactComponent as Upload } from './upload.svg';
 export { ReactComponent as BoxQuestionMark } from './box-question-mark.svg';
 export { ReactComponent as Bulb } from './bulb.svg';
 export { ReactComponent as Calendar } from './calendar.svg';
