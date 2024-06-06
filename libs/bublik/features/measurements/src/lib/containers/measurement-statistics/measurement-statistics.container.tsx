@@ -13,6 +13,7 @@ import { CardHeader, Icon, Skeleton } from '@/shared/tailwind-ui';
 import { LinkToHistory } from './link-to-history';
 import { LinkToRun } from './link-to-run';
 import { LinkToLog } from './link-to-log';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export interface MeasurementStatisticsLoadingProps {
 	runId: string;
@@ -107,6 +108,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 					<LinkToRun runId={runId} />
 					<LinkToHistory runId={runId} resultId={resultId} />
 					<LinkToLog runId={runId} resultId={resultId} />
+					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>
 			<div className="py-2.5 px-4">
