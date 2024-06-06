@@ -7,6 +7,7 @@ import {
 	RunsModePickerContainer,
 	SelectionPopoverContainer
 } from '@/bublik/features/runs';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export const RunsPage = () => {
 	useDocumentTitle('Runs - Bublik');
@@ -14,8 +15,9 @@ export const RunsPage = () => {
 	return (
 		<>
 			<div className="flex flex-col gap-1 p-2">
-				<header className="flex items-center justify-start gap-4 px-6 py-4 bg-white rounded-t-xl">
+				<header className="flex items-center justify-between gap-4 px-6 py-4 bg-white rounded-t-xl">
 					<RunsFormContainer />
+					<CopyShortUrlButtonContainer variant="header" />
 				</header>
 				<RunsModePickerContainer />
 				<ScrollToTopPage />
