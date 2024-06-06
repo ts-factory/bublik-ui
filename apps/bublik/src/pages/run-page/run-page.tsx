@@ -47,7 +47,6 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						isFullMode={isModeFull}
 						onToggleClick={() => setIsModeFull(!isModeFull)}
 					/>
-					<CopyShortUrlButtonContainer />
 					<Tooltip content="Copy identifier for comparison">
 						<ButtonTw variant="secondary" size="xss" onClick={handleCopyRunId}>
 							<Icon name="PaperStack" size={16} className="mr-1 text-primary" />
@@ -64,6 +63,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 							Log
 						</Link>
 					</ButtonTw>
+					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>
 			<RunDetailsContainer runId={runId} isFullMode={isModeFull} />
