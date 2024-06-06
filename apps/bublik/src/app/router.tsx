@@ -4,7 +4,8 @@ import {
 	Navigate,
 	Outlet,
 	createBrowserRouter,
-	RouterProvider
+	RouterProvider,
+	useNavigate
 } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
@@ -42,6 +43,98 @@ import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
 import { PerformancePage } from '../pages/performance-page';
 
+import { useEffect, useState } from 'react';
+import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
+import {
+	Command,
+	CommandDialog,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator,
+	Icon
+} from '@/shared/tailwind-ui';
+
+function BublikCommand() {
+	const [open, setOpen] = useState(false);
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		const down = (e: KeyboardEvent) => {
+			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				setOpen((open) => !open);
+			}
+		};
+
+		document.addEventListener('keydown', down);
+		return () => document.removeEventListener('keydown', down);
+	}, []);
+
+	function handleSelect(action: () => void) {
+		return (_value: string) => {
+			action();
+			setOpen(false);
+		};
+	}
+
+	return (
+		<CommandDialog open={open} onOpenChange={setOpen}>
+			<Command className="border rounded-lg shadow-xl">
+				<CommandInput
+					startIcon={
+						<Icon name="MagnifyingGlass" className="size-5 text-text-menu" />
+					}
+					placeholder="Type a command or search..."
+				/>
+				<CommandList>
+					<CommandEmpty>No results found.</CommandEmpty>
+					<CommandGroup heading="Navigation">
+						<CommandItem onSelect={handleSelect(() => navigate('/dashboard'))}>
+							<Icon name="Category" className="w-4 h-4 mr-2" />
+							<span>Dashboard</span>
+						</CommandItem>
+						<CommandItem onSelect={handleSelect(() => navigate('/history'))}>
+							<Icon name="TimeCircle" className="w-4 h-4 mr-2" />
+							<span>History</span>
+						</CommandItem>
+						<CommandItem onSelect={handleSelect(() => navigate('/runs'))}>
+							<Icon name="Play" className="w-4 h-4 mr-2" />
+							<span>Runs</span>
+						</CommandItem>
+					</CommandGroup>
+					<CommandSeparator />
+					<CommandGroup heading="Settings">
+						<CommandItem
+							onSelect={handleSelect(() => navigate('/settings/profile'))}
+						>
+							<Icon name="Profile" className="w-4 h-4 mr-2" />
+							<span>Profile</span>
+						</CommandItem>
+						<CommandItem onSelect={handleSelect(() => navigate('/help/faq'))}>
+							<Icon name="Bulb" className="w-4 h-4 mr-2" />
+							<span>Help</span>
+						</CommandItem>
+						<CommandItem
+							onSelect={handleSelect(() => navigate('/help/changelog'))}
+						>
+							<Icon name="PaperChangelog" className="w-4 h-4 mr-2" />
+							<span>Changelog</span>
+						</CommandItem>
+					</CommandGroup>
+					<CommandGroup heading="Utils">
+						<CopyShortUrlCommandItemContainer
+							onComplete={() => setOpen(false)}
+						/>
+					</CommandGroup>
+				</CommandList>
+			</Command>
+		</CommandDialog>
+	);
+}
+
 const router = createBrowserRouter(
 	[
 		{
@@ -50,6 +143,7 @@ const router = createBrowserRouter(
 					adapter={ReactRouter6Adapter}
 					options={{ updateType: 'replaceIn' }}
 				>
+					<BublikCommand />
 					<Outlet />
 				</QueryParamProvider>
 			),

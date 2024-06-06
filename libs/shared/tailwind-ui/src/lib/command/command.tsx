@@ -6,7 +6,6 @@ import { Command as CommandPrimitive } from 'cmdk';
 
 import { cn } from '../utils';
 import { Dialog, DialogContent, dialogContentStyles } from '../dialog';
-import { MagnifyingGlass } from '@/icons';
 
 const Command = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive>,
