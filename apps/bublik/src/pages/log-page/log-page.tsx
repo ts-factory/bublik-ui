@@ -9,6 +9,7 @@ import { CardHeader, RunModeToggle } from '@/shared/tailwind-ui';
 import { LogFeature, useLogPage } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export interface LogHeaderProps {
 	runId: string;
@@ -20,10 +21,13 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	return (
 		<div className="flex flex-col bg-white rounded-md">
 			<CardHeader label="Info">
-				<RunModeToggle
-					isFullMode={isFullMode}
-					onToggleClick={() => setIsFullMode(!isFullMode)}
-				/>
+				<div className="flex gap-2 items-center">
+					<RunModeToggle
+						isFullMode={isFullMode}
+						onToggleClick={() => setIsFullMode(!isFullMode)}
+					/>
+					<CopyShortUrlButtonContainer />
+				</div>
 			</CardHeader>
 			<div className="flex-grow min-h-[200px]">
 				<RunDetailsContainer runId={runId} isFullMode={isFullMode} />
