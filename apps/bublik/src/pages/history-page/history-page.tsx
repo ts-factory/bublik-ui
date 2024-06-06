@@ -10,6 +10,7 @@ import {
 	HistoryResetGlobalFilterContainer,
 	HistorySubstringFilterContainer
 } from '@/bublik/features/history';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export const HistoryPageV2 = () => {
 	return (
@@ -22,6 +23,7 @@ export const HistoryPageV2 = () => {
 						<HistoryGlobalSearchFormContainer />
 						<HistoryRefreshContainer />
 						<HistoryResetGlobalFilterContainer />
+						<CopyShortUrlButtonContainer variant="header" />
 					</div>
 				</div>
 				<HistoryFilterLegendContainer />
