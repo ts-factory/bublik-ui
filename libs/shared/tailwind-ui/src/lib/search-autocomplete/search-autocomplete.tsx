@@ -65,7 +65,9 @@ export const SearchAutocomplete = <T extends Record<string, unknown>>(
 	const listBoxRef = useRef(null);
 	const popoverRef = useRef(null);
 
-	const handleSelectionChange = (key: Key) => {
+	const handleSelectionChange = (key: Key | null) => {
+		if (!key) return;
+
 		const item = state.collection.getItem(key);
 		const currentKeys = tags.map((tag) => tag.key);
 		const isAlreadyPresent = currentKeys.includes(item?.key as Key);
