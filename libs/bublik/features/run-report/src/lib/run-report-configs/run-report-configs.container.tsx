@@ -64,7 +64,7 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 								side="right"
 								sideOffset={8}
 							>
-								<DropdownMenuItem asChild className="pl-2">
+								<DropdownMenuItem asChild className="pl-2 gap-4">
 									<Link to={`/runs/${runId}/report/?config=${config.id}`}>
 										{config.name}
 										<Icon
