@@ -5,7 +5,13 @@ import { type DialogProps } from '@radix-ui/react-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 
 import { cn } from '../utils';
-import { Dialog, DialogContent, dialogContentStyles } from '../dialog';
+import {
+	Dialog,
+	DialogContent,
+	DialogOverlay,
+	dialogContentStyles,
+	dialogOverlayStyles
+} from '../dialog';
 
 const Command = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive>,
@@ -14,7 +20,7 @@ const Command = React.forwardRef<
 	<CommandPrimitive
 		ref={ref}
 		className={cn(
-			'flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
+			'flex h-full w-full flex-col bg-white rounded-md text-popover-foreground',
 			className
 		)}
 		{...props}
@@ -27,7 +33,8 @@ interface CommandDialogProps extends DialogProps {}
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 	return (
 		<Dialog {...props}>
-			<DialogContent className="overflow-hidden p-0" asChild>
+			<DialogOverlay className={dialogOverlayStyles()} />
+			<DialogContent className="bg-transparent" asChild>
 				<Command
 					className={cn(
 						'[&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 ',
@@ -35,7 +42,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 						'[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
 						'[&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5',
 						dialogContentStyles(),
-						'max-w-2xl bg-white max-h-[350px]'
+						'max-w-2xl max-h-[350px]'
 					)}
 				>
 					{children}
