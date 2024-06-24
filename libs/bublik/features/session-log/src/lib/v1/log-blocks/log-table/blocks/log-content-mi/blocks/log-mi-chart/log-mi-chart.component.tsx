@@ -115,6 +115,7 @@ export const Chart = (props: ChartProps) => {
 						{ type: 'inside', show: true },
 						{ show: true, type: 'slider', height: 20 }
 					],
+					grid: { containLabel: true },
 					tooltip: { trigger: 'axis' },
 					legend: { data: legends },
 					xAxis,
