@@ -12,7 +12,7 @@ export const FormSectionHeader: FC<FormSectionHeaderProps> = forwardRef(
 		return (
 			<div className="mb-4" {...props}>
 				<div className="flex items-center justify-between" ref={ref}>
-					<legend className="text-[0.75rem] font-semibold leading-[0.875rem]">
+					<legend className="text-lg font-semibold leading-[0.875rem]">
 						{name}
 					</legend>
 					<div className="flex items-center gap-2">{children}</div>

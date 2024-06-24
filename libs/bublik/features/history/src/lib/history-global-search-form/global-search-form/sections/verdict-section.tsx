@@ -5,8 +5,9 @@ import { useFormContext } from 'react-hook-form';
 import { VERDICT_TYPE } from '@/shared/types';
 import { RadioField, BadgeField, TextField } from '@/shared/tailwind-ui';
 
-import { FormSectionHeader } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { FormSection } from '../components/form-section';
+import { FormSectionSubheader } from '../components';
 
 export const VerdictSection = () => {
 	const { control, watch } = useFormContext<HistoryGlobalSearchFormValues>();
@@ -14,8 +15,8 @@ export const VerdictSection = () => {
 	const verdictLookup = watch('verdictLookup');
 
 	return (
-		<fieldset>
-			<FormSectionHeader name="Verdict" />
+		<FormSection label="Verdict" resetTooltipMessage="Reset verdict section">
+			<FormSectionSubheader name="Verdict Type" />
 			<div className="mb-6 grid grid-cols-4 gap-4">
 				<div className="span-1">
 					<RadioField
@@ -44,7 +45,7 @@ export const VerdictSection = () => {
 			</div>
 			<div className="flex flex-col gap-4">
 				<BadgeField
-					label="String verdict"
+					label="String Verdict"
 					name="verdict"
 					placeholder={
 						verdictLookup === VERDICT_TYPE.String
@@ -57,12 +58,12 @@ export const VerdictSection = () => {
 					control={control}
 				/>
 				<TextField
-					name={'verdictExpr'}
-					label="Verdict expressions"
+					name="verdictExpr"
+					label="Verdict Expression"
 					placeholder={'None | "Verdict"'}
 					control={control}
 				/>
 			</div>
-		</fieldset>
+		</FormSection>
 	);
 };

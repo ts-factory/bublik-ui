@@ -4,8 +4,8 @@ import { useFormContext } from 'react-hook-form';
 
 import { TextField, BadgeField } from '@/shared/tailwind-ui';
 
-import { FormSectionHeader, IconButton } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { FormSection } from '../components/form-section';
 
 export type TestSectionProps = {
 	onResetTestSectionResetClick: () => void;
@@ -15,15 +15,11 @@ export const TestSection = (props: TestSectionProps) => {
 	const { control } = useFormContext<HistoryGlobalSearchFormValues>();
 
 	return (
-		<fieldset className="flex flex-col">
-			<FormSectionHeader name="Test">
-				<IconButton
-					name="Bin"
-					size={18}
-					helpMessage="Reset test section"
-					onClick={props.onResetTestSectionResetClick}
-				/>
-			</FormSectionHeader>
+		<FormSection
+			label="Test"
+			onResetClick={props.onResetTestSectionResetClick}
+			resetTooltipMessage="Reset test section"
+		>
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-4">
 					<div className="flex-1">
@@ -53,11 +49,11 @@ export const TestSection = (props: TestSectionProps) => {
 				/>
 				<TextField
 					name={'testArgExpr'}
-					label="Parameters expression"
+					label="Parameter Expression"
 					placeholder={'argument1 != 5 & argument2 >= 10'}
 					control={control}
 				/>
 			</div>
-		</fieldset>
+		</FormSection>
 	);
 };

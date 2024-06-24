@@ -5,12 +5,9 @@ import { useFormContext } from 'react-hook-form';
 import { CheckboxField } from '@/shared/tailwind-ui';
 import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 
-import {
-	FormSectionHeader,
-	IconButton,
-	FormSectionSubheader
-} from '../components';
+import { FormSectionSubheader } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { FormSection } from '../components/form-section';
 
 export type ResultSectionProps = {
 	onResultSectionClick: () => void;
@@ -36,20 +33,13 @@ export const ResultSection = (props: ResultSectionProps) => {
 		| undefined;
 
 	return (
-		<fieldset>
+		<FormSection
+			label="Result"
+			error={resultSectionError}
+			onResetClick={props.onResultSectionClick}
+			resetTooltipMessage="Reset result section"
+		>
 			<div className="mb-4">
-				<FormSectionHeader
-					name="Result"
-					error={resultSectionError}
-					style={{ marginBottom: 0 }}
-				>
-					<IconButton
-						name="Bin"
-						size={18}
-						helpMessage="Reset verdict section"
-						onClick={props.onResultSectionClick}
-					/>
-				</FormSectionHeader>
 				<FormSectionSubheader name="Result type classification" />
 				<div className="grid grid-cols-4 gap-4 items-center">
 					<div className="span-1">
@@ -145,6 +135,6 @@ export const ResultSection = (props: ResultSectionProps) => {
 					/>
 				</div>
 			</div>
-		</fieldset>
+		</FormSection>
 	);
 };

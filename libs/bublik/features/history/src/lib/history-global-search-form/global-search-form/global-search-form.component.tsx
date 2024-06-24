@@ -12,7 +12,6 @@ import {
 	useCtrlEnterSubmit,
 	useHistoryGlobalSearchForm
 } from './global-search-form.hooks';
-import { FormHeader } from './components';
 import {
 	TestSection,
 	RunSection,
@@ -51,9 +50,20 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 				<form
 					onSubmit={form.methods.handleSubmit(onSubmit)}
 					onKeyDown={form.handleKeyDown}
-					className="flex flex-col justify-between h-full gap-2 [&>*]:px-6"
+					className="flex flex-col justify-between h-full gap-6 px-4 py-2"
 				>
-					<MainFormHeader onCloseButtonClick={onCloseButtonClick} />
+					<div className="mb-2 mt-7">
+						<div className="flex items-center justify-between">
+							<h2 className="text-2xl font-semibold px-4">Global Search</h2>
+							<button
+								className="p-1.5 bg-transparent hover:bg-primary-wash hover:text-primary text-text-menu rounded transition-colors mr-3"
+								aria-label="Close"
+								onClick={onCloseButtonClick}
+							>
+								<Icon name="Cross" size={16} />
+							</button>
+						</div>
+					</div>
 					<TestSection onResetTestSectionResetClick={form.resetTestSection} />
 					<RunSection onResetRunSectionClick={form.resetRunSection} />
 					<ResultSection onResultSectionClick={form.resetVerdictSection} />
@@ -68,26 +78,6 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 	);
 };
 
-type MainFormHeaderProps = {
-	onCloseButtonClick: () => void;
-};
-
-const MainFormHeader = (props: MainFormHeaderProps) => {
-	return (
-		<div className="mb-2 mt-7">
-			<FormHeader name="Global Search">
-				<button
-					className="p-[5.5px] bg-transparent hover:bg-primary-wash hover:text-primary text-text-menu rounded transition-colors"
-					aria-label="Close"
-					onClick={props.onCloseButtonClick}
-				>
-					<Icon name="Cross" size={11} />
-				</button>
-			</FormHeader>
-		</div>
-	);
-};
-
 type StickySubmitProps = {
 	onResetClick: () => void;
 	isScrollable: boolean;
@@ -96,7 +86,7 @@ type StickySubmitProps = {
 const StickySubmit = (props: StickySubmitProps) => {
 	return (
 		<div
-			className="sticky bottom-0 flex items-center w-full gap-4 py-4 mt-2 bg-white"
+			className="sticky bottom-0 flex items-center w-full gap-4 py-4 mt-2 bg-white z-40"
 			style={
 				props.isScrollable
 					? { boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px' }
