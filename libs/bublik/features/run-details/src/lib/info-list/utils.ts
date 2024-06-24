@@ -15,13 +15,13 @@ const createRawString = (name?: string, value?: string) => {
 };
 
 export const getDisplayText = (name?: string, value?: string) => {
-	const [rawString, key, rawValue] = createRawString(name, value);
-	const isRevisionValue = isRevision(rawString);
+	const [rawStr, key, rawValue] = createRawString(name, value);
+	const isRevisionValue = isRevision(rawStr);
 
-	const copyValue = isRevisionValue ? rawValue : rawString.replace(': ', '=');
+	const copyValue = rawStr.replace(': ', '=');
 	const displayValue = isRevisionValue
 		? `${key.replace(REVISION_POSTFIX, '')}: ${rawValue.slice(0, 8)}`
-		: rawString;
+		: rawStr;
 
 	return {
 		displayValue,
