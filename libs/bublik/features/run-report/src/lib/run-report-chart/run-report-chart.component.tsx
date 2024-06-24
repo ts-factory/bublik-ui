@@ -35,6 +35,7 @@ function RunReportChart(props: RunReportChartProps) {
 						text: label,
 						textStyle: { fontFamily: 'Inter', fontSize: 12, fontWeight: 600 }
 					},
+					grid: { containLabel: true },
 					tooltip: {
 						textStyle: chartStyles.text,
 						extraCssText: 'shadow-popover rounded-lg',
