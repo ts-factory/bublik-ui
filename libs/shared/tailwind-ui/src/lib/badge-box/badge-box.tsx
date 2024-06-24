@@ -16,7 +16,7 @@ import { throttle } from '@/shared/utils';
 
 import { cn } from '../utils';
 import { Badge } from '../badge';
-import { Command, CommandGroup, CommandItem } from '../command';
+import { Command, CommandGroup, CommandItem, CommandList } from '../command';
 import { Popover, PopoverContent, PopoverTrigger } from '../popover';
 import { ButtonTw } from '../button';
 import { Icon } from '../icon';
@@ -59,7 +59,7 @@ const useTagsCombobox = <T extends BoxValue>(
 		const nextState = !current.isSelected
 			? check(passedBox)
 			: uncheck(passedBox);
-		console.log(nextState);
+
 		onChange?.(nextState);
 	};
 
@@ -238,54 +238,56 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 							onValueChange={setInputValue}
 						/>
 					</div>
-					<CommandGroup
-						className={cn(
-							'overflow-auto p-0',
-							'[&_[cmdk-group-heading]]:min-h-[38px] [&_[cmdk-group-heading]]:grid [&_[cmdk-group-heading]]:items-center [&_[cmdk-group-heading]]:border-b',
-							'[&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:bg-white [&_[cmdk-group-heading]]:z-10',
-							isScrolled &&
-								'[&_[cmdk-group-heading]]:shadow-[0_0_8px_0_rgb(0_0_0/10%)]'
-						)}
-						heading="Select an option or create one"
-						style={{
-							maxHeight: `calc(var(--radix-popover-content-available-height) - ${Math.round(
-								tagsHeight + 24
-							)}px)`
-						}}
-						onScroll={handleScroll}
-						ref={groupRef}
-					>
-						{values.map((box) => {
-							return (
-								<CommandItem
-									key={box.value}
-									value={box.value}
-									onSelect={() => toggle(box)}
-									className="m-1"
-								>
-									<div
-										className={cn(
-											'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-text-menu',
-											box.isSelected
-												? 'bg-primary text-white border-primary'
-												: 'opacity-50 [&_svg]:invisible'
-										)}
+					<CommandList>
+						<CommandGroup
+							className={cn(
+								'overflow-auto p-0',
+								'[&_[cmdk-group-heading]]:min-h-[38px] [&_[cmdk-group-heading]]:grid [&_[cmdk-group-heading]]:items-center [&_[cmdk-group-heading]]:border-b',
+								'[&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:bg-white [&_[cmdk-group-heading]]:z-10',
+								isScrolled &&
+									'[&_[cmdk-group-heading]]:shadow-[0_0_8px_0_rgb(0_0_0/10%)]'
+							)}
+							heading="Select an option or create one"
+							style={{
+								maxHeight: `calc(var(--radix-popover-content-available-height) - ${Math.round(
+									tagsHeight + 24
+								)}px)`
+							}}
+							onScroll={handleScroll}
+							ref={groupRef}
+						>
+							{values.map((box) => {
+								return (
+									<CommandItem
+										key={box.value}
+										value={box.value}
+										onSelect={() => toggle(box)}
+										className="m-1"
 									>
-										<CheckIcon className={cn('h-4 w-4')} />
-									</div>
-									<Badge className={cn('bg-badge-10', box.className)}>
-										{box.label}
-									</Badge>
-								</CommandItem>
-							);
-						})}
-						<CommandItemCreate
-							inputValue={inputValue}
-							values={values}
-							onSelect={() => create(inputValue)}
-							valueLabel={valueLabel || label}
-						/>
-					</CommandGroup>
+										<div
+											className={cn(
+												'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-text-menu',
+												box.isSelected
+													? 'bg-primary text-white border-primary'
+													: 'opacity-50 [&_svg]:invisible'
+											)}
+										>
+											<CheckIcon className={cn('h-4 w-4')} />
+										</div>
+										<Badge className={cn('bg-badge-10', box.className)}>
+											{box.label}
+										</Badge>
+									</CommandItem>
+								);
+							})}
+							<CommandItemCreate
+								inputValue={inputValue}
+								values={values}
+								onSelect={() => create(inputValue)}
+								valueLabel={valueLabel || label}
+							/>
+						</CommandGroup>
+					</CommandList>
 				</Command>
 			</PopoverContent>
 		</Popover>
