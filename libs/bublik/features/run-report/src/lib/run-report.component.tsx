@@ -3,7 +3,7 @@
 import { ComponentProps, useMemo, useRef } from 'react';
 
 import { useIsSticky, useMount } from '@/shared/hooks';
-import { CardHeader, Skeleton, cn, toast } from '@/shared/tailwind-ui';
+import { CardHeader, Icon, Skeleton, cn, toast } from '@/shared/tailwind-ui';
 
 import {
 	BranchBlock,
@@ -14,6 +14,7 @@ import {
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
 import { useLocation } from 'react-router';
+import { getErrorMessage } from '@/services/bublik-api';
 
 interface RunReportProps {
 	blocks: ReportRoot;
@@ -73,8 +74,25 @@ function RunReportLoading() {
 	return <Skeleton className="rounded h-screen" />;
 }
 
-function RunReportError({ error }: { error: unknown }) {
-	return <div>Error...</div>;
+function RunReportError(props: { error: unknown }) {
+	const { error = {} } = props;
+	const { title, description, status } = getErrorMessage(error);
+
+	return (
+		<div className="grid place-items-center h-[calc(100vh-256px)]">
+			<div className="flex flex-col items-center text-center">
+				<Icon
+					name="TriangleExclamationMark"
+					size={24}
+					className="text-text-unexpected"
+				/>
+				<h3 className="mt-2 text-sm font-medium text-gray-900">
+					{status} {title}
+				</h3>
+				<p className="mt-1 text-sm text-gray-500">{description}</p>
+			</div>
+		</div>
+	);
 }
 
 function RunReportEmpty() {
