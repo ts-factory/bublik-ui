@@ -121,7 +121,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 		<div id={block.id} className="flex flex-col bg-white rounded">
 			<CardHeader
 				label={block.label}
-				className={cn('sticky top-0 bg-white z-10 rounded-t')}
+				className={cn('sticky top-0 bg-white z-30 rounded-t')}
 				style={style}
 				ref={ref}
 			/>
