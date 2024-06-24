@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { HistoryAPIBackendQuery, HistoryAPIQuery } from '@/shared/types';
+import { HistoryAPIBackendQuery } from '@/shared/types';
 import { searchQueryToBackendQuery } from '../slice/history-slice.utils';
 
 export const useHistoryQuery = () => {
@@ -12,7 +12,7 @@ export const useHistoryQuery = () => {
 	const query = useMemo<HistoryAPIBackendQuery>(() => {
 		const rawQuery = Object.fromEntries(
 			searchParams.entries()
-		) as HistoryAPIQuery;
+		) as HistoryAPIBackendQuery;
 
 		return searchQueryToBackendQuery(rawQuery);
 	}, [searchParams]);

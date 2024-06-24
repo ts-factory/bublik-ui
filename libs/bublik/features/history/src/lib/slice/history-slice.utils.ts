@@ -48,14 +48,14 @@ const withDefault = <T>(
 };
 
 export const queryToHistorySearchState = (
-	query: HistoryAPIQuery
+	query: HistoryAPIBackendQuery
 ): HistorySearchFormState => {
-	const startDate = query.startDate
-		? parse(query.startDate, API_DATE_FORMAT, new Date())
+	const startDate = query.fromDate
+		? parse(query.fromDate, API_DATE_FORMAT, new Date())
 		: DEFAULT_HISTORY_START_DATE;
 
-	const finishDate = query.finishDate
-		? parse(query.finishDate, API_DATE_FORMAT, new Date())
+	const finishDate = query.toDate
+		? parse(query.toDate, API_DATE_FORMAT, new Date())
 		: DEFAULT_HISTORY_END_DATE;
 
 	return {
@@ -63,22 +63,22 @@ export const queryToHistorySearchState = (
 		/* Test section */
 		testName: withDefault(query.testName, ''),
 		hash: withDefault(query.hash, ''),
-		parameters: withDefault(parseArray(query.parameters), []),
+		parameters: withDefault(parseArray(query.testArgs), []),
 		revisions: withDefault(parseArray(query.revisions), []),
 		branches: withDefault(parseArray(query.branches), []),
 		/* Run section */
 		startDate,
 		finishDate,
-		runData: withDefault(parseArray(query.runData), []),
+		runData: withDefault(parseArray(query.tags), []),
 		tagExpr: withDefault(query.tagExpr, ''),
 		branchExpr: withDefault(query.branchExpr, ''),
 		verdictExpr: withDefault(query.verdictExpr, ''),
-		revisionExpr: withDefault(query.revisionExpr, ''),
+		revisionExpr: withDefault(query.revExpr, ''),
 		labelExpr: withDefault(query.labelExpr, ''),
 		/* Result section */
 		runProperties: withDefault(parseArray(query.runProperties), []),
-		resultProperties: withDefault(parseArray(query.resultProperties), []),
-		results: withDefault(parseArray(query.results), []),
+		resultProperties: withDefault(parseArray(query.resultTypes), []),
+		results: withDefault(parseArray(query.resultStatuses), []),
 		/* Verdict section */
 		verdictLookup: withDefault(query.verdictLookup, VERDICT_TYPE.String),
 		verdict: withDefault(parseArray(query.verdict), [])
