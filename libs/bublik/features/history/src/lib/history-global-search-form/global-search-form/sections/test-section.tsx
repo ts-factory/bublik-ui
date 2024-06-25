@@ -53,7 +53,7 @@ export const TestSection = (props: TestSectionProps) => {
 				/>
 				<TextField
 					name={'testArgExpr'}
-					label="Parameters expression"
+					label="Parameter Expression"
 					placeholder={'argument1 != 5 & argument2 >= 10'}
 					control={control}
 				/>

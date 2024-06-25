@@ -44,7 +44,7 @@ export const VerdictSection = () => {
 			</div>
 			<div className="flex flex-col gap-4">
 				<BadgeField
-					label="String verdict"
+					label="String Verdict"
 					name="verdict"
 					placeholder={
 						verdictLookup === VERDICT_TYPE.String
@@ -58,7 +58,7 @@ export const VerdictSection = () => {
 				/>
 				<TextField
 					name={'verdictExpr'}
-					label="Verdict expressions"
+					label="Verdict Expression"
 					placeholder={'None | "Verdict"'}
 					control={control}
 				/>

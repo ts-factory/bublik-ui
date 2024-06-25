@@ -42,20 +42,20 @@ export const RunSection = (props: RunSectionProps) => {
 					<AriaDateRangeField label="Dates" name="dates" control={control} />
 				</div>
 				<TextField
-					name={'labelExpr'}
+					name="labelExpr"
 					label="Label expressions"
 					placeholder={'label1 & label2'}
 					control={control}
 				/>
 				<BadgeField
 					name="branches"
-					label="Branch"
+					label="Branches"
 					placeholder="master"
 					control={control}
 				/>
 				<TextField
 					name={'branchExpr'}
-					label="Branch expressions"
+					label="Branch Expression"
 					placeholder="branch1 | branch2"
 					control={control}
 				/>
@@ -67,7 +67,7 @@ export const RunSection = (props: RunSectionProps) => {
 				/>
 				<TextField
 					name={'revisionExpr'}
-					label="Revision expressions"
+					label="Revision Expression"
 					placeholder="meta_name1 & meta_name2=32"
 					control={control}
 				/>
@@ -79,7 +79,7 @@ export const RunSection = (props: RunSectionProps) => {
 				/>
 				<TextField
 					name="tagExpr"
-					label="Tags expression"
+					label="Tag Expression"
 					placeholder="pci-15b3 | pci-sub-15b3"
 					control={control}
 				/>
