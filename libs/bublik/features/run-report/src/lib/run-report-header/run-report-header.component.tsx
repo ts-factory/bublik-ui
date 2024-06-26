@@ -63,11 +63,13 @@ function List(props: ListProps) {
 				{props.items.map((item) => {
 					if (item.url) {
 						return (
-							<a href={item.url} target="_blank" rel="noreferrer">
-								<Badge
-									key={`${item.name}_${item.value}`}
-									className={cn(item.className, 'hover:underline')}
-								>
+							<a
+								key={`${item.name}_${item.value}`}
+								href={item.url}
+								target="_blank"
+								rel="noreferrer"
+							>
+								<Badge className={cn(item.className, 'hover:underline')}>
 									<span className="text-[0.625rem] font-medium leading-[1.125rem]">
 										{item.name}: {item.value}
 									</span>
