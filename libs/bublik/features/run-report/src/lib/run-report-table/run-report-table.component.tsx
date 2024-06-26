@@ -3,60 +3,56 @@
 import { cn } from '@/shared/tailwind-ui';
 
 interface RunReportTableProps {
-	title: string;
 	data: Array<Array<string | number>>;
 	formatters?: Record<string, string>;
 }
 
-function RunReportTable({ data, title, formatters }: RunReportTableProps) {
+function RunReportTable({ data, formatters }: RunReportTableProps) {
 	const header = data?.[0] ?? [];
 	const rows = data.slice(1);
 
 	return (
-		<div className="w-full self-start overflow-auto relative flex h-full">
-			<div className="before:absolute before:z-20 before:left-0 before:top-0 before:h-full before:bg-primary/20 before:w-1" />
-			<table className="w-full relative h-max">
-				<thead className="pl-1">
-					<tr>
-						{header.map((column, idx, arr) => (
-							<th
-								key={idx}
-								className={cn(
-									'border-b bg-primary-wash border-b-border-primary text-right text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 h-9',
-									idx !== arr.length - 1 && 'border-r',
-									'sticky top-0'
-								)}
-							>
-								{column}
-							</th>
-						))}
-					</tr>
-				</thead>
-				<tbody className="pl-1">
-					{rows.map((row, rowIdx) => (
-						<tr key={rowIdx}>
-							{row.map((v, idx, cells) => {
-								const formatter = formatters?.[header?.[idx]] ?? '';
-
-								return (
-									<td
-										key={idx}
-										className={cn(
-											'border-border-primary text-right text-[0.625rem] font-semibold leading-[1.125rem] px-2 py-1 h-9',
-											'border-b',
-											idx !== cells.length - 1 && 'border-r'
-										)}
-									>
-										{v}
-										{formatter}
-									</td>
-								);
-							})}
-						</tr>
+		<table className="w-full relative">
+			<thead className="pl-1">
+				<tr>
+					{header.map((column, idx, arr) => (
+						<th
+							key={idx}
+							className={cn(
+								'border-b bg-primary-wash border-b-border-primary text-right text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 h-9',
+								idx !== arr.length - 1 && 'border-r',
+								'sticky top-0'
+							)}
+						>
+							{column}
+						</th>
 					))}
-				</tbody>
-			</table>
-		</div>
+				</tr>
+			</thead>
+			<tbody className="pl-1">
+				{rows.map((row, rowIdx) => (
+					<tr key={rowIdx}>
+						{row.map((v, idx, cells) => {
+							const formatter = formatters?.[header?.[idx]] ?? '';
+
+							return (
+								<td
+									key={idx}
+									className={cn(
+										'border-border-primary text-right text-[0.625rem] font-semibold leading-[1.125rem] px-2 py-1 h-9',
+										'border-b',
+										idx !== cells.length - 1 && 'border-r'
+									)}
+								>
+									{v}
+									{formatter}
+								</td>
+							);
+						})}
+					</tr>
+				))}
+			</tbody>
+		</table>
 	);
 }
 
