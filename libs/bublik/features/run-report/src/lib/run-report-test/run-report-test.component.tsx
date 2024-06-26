@@ -44,6 +44,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 							yAxisLabel={measurement.axis_y_label}
 							args={measurement.args_vals}
 							warnings={measurement.warnings}
+							formatters={measurement.formatters}
 						/>
 					</li>
 				);
@@ -63,6 +64,7 @@ interface RunReportEntityBlockProps
 	args: Record<string, string | number>;
 	id: string;
 	warnings?: string[];
+	formatters?: Record<string, string>;
 }
 
 function RunReportEntityBlock(props: RunReportEntityBlockProps) {
@@ -77,7 +79,8 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 		label,
 		args,
 		id,
-		warnings
+		warnings,
+		formatters
 	} = props;
 
 	const params = Object.entries(args).map(([name, value]) => ({
@@ -139,7 +142,11 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 				) : null}
 				{enableTableView ? (
 					<div className="flex-1">
-						<RunReportTable data={table} />
+						<RunReportTable
+							title={yAxisLabel}
+							data={table}
+							formatters={formatters}
+						/>
 					</div>
 				) : null}
 			</div>
