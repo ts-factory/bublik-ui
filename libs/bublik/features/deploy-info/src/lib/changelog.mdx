@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.42.0](https://github.com/ts-factory/bublik-ui/compare/v0.3.0...v0.42.0) (2024-06-26)
+
+
+### 🚀 New Feature
+
+* **history:** added labels field to history global search form ([5fc9e7b](https://github.com/ts-factory/bublik-ui/commit/5fc9e7b0418843fefa78ae7c744d1fb341b8f441))
+* **history:** added scroll to top of the page on page change ([634934f](https://github.com/ts-factory/bublik-ui/commit/634934fce95fc155a0955056f984fe15ba67945f))
+* **reports:** added formatters support to show % sign ([5e55703](https://github.com/ts-factory/bublik-ui/commit/5e55703929e931e864c5ac0806770bf8c77cef3f))
+* **reports:** added handling for API errors for report page ([323d7ba](https://github.com/ts-factory/bublik-ui/commit/323d7bafbdcde44a074132dbc27034b5dc356b70))
+* **reports:** added table title from Y axis label ([c5d3498](https://github.com/ts-factory/bublik-ui/commit/c5d3498f51f1d5b2184eaef231af3bf27a71bed2))
+
+
+### 🐛 Bug Fix
+
+* **history:** fixed missing default values for history global search form ([f096099](https://github.com/ts-factory/bublik-ui/commit/f09609984044c74193441d909ef6334aff83b385))
+* **history:** made field names consistent in search form ([6f569af](https://github.com/ts-factory/bublik-ui/commit/6f569afd25428e4640b2d13b37790fa131def6d6))
+* **log:** added option to contain label inside canvas container ([5c07946](https://github.com/ts-factory/bublik-ui/commit/5c079461bb1a8c04168f19b7bab6009f96197ccc))
+* **reports:** fixed axis label overflow inside canvas container ([79b5416](https://github.com/ts-factory/bublik-ui/commit/79b541646f429c2d14bfb7b62e3854a0180643bb))
+* **reports:** fixed unstable key for report header list item ([a6ac058](https://github.com/ts-factory/bublik-ui/commit/a6ac058b7e85caf3f7704027a895b74c0a425289))
+* **run:** fixed copying revision metadata without key ([eefdf45](https://github.com/ts-factory/bublik-ui/commit/eefdf45f9d8eeb2b206a1678048db72d835b5482))
+* **runs:** [form] fixed crash when opening tags input ([90e3df6](https://github.com/ts-factory/bublik-ui/commit/90e3df62602eb510344649eb9e8f0f0bd0e101c9))
+* **ui:** [combobox] fixed selection change callback type ([9d16f19](https://github.com/ts-factory/bublik-ui/commit/9d16f197c3078560c944739fef630646fd551773))
+
+
+### 💅 Polish
+
+* **command:** added background overlay to command menu ([08bf23e](https://github.com/ts-factory/bublik-ui/commit/08bf23e6b43d0c1c45d7cf2921c852eabd9b9767))
+* **run:** [reports] added gap between exit icon and report label ([de2dd4d](https://github.com/ts-factory/bublik-ui/commit/de2dd4dd698e8864bc250a7ea0ec6ca60668ecf5))
+
 ## [0.41.0](https://github.com/okt-limonikas/bublik-ui/compare/v0.2.6...v0.41.0) (2024-06-06)
 
 
@@ -7,7 +36,7 @@
 
 * **reports:** added missing dependency to useMemo hook for args calculation ([b67f56b](https://github.com/okt-limonikas/bublik-ui/commit/b67f56bf8378c5556eaedce4553f0f40cb99e7bb))
 * **reports:** added missing dependency to useMemo hook for chart series calculation ([38b7682](https://github.com/okt-limonikas/bublik-ui/commit/38b7682b700d5ad82430219adfce7858d0009b40))
-* **reports:** added rel=noreferrer to external links ([8670993](https://github.com/okt-limonikas/bublik-ui/commit/867099344a49554f29899729860d032969e20aa7))
+* **reports:** added rel="noreferrer" to external links ([8670993](https://github.com/okt-limonikas/bublik-ui/commit/867099344a49554f29899729860d032969e20aa7))
 * **reports:** fixed build issues with tests ([d965e1b](https://github.com/okt-limonikas/bublik-ui/commit/d965e1b6692939c2b92775659cbb208df7c4d425))
 * **reports:** fixed scroll to element id containing only numbers ([960d826](https://github.com/okt-limonikas/bublik-ui/commit/960d826842271495710927543bf0d46f2c0b948c))
 * **reports:** prevent conditional calling of API query hook ([976998b](https://github.com/okt-limonikas/bublik-ui/commit/976998be71777a01290482fd0ffd50aca09d1ce1))
@@ -29,7 +58,25 @@
 
 ### 🚀 New Feature
 
-* **copy-short-url:** added copy
+* **copy-short-url:** added "copy short url" button to dashboard page ([5794f1b](https://github.com/okt-limonikas/bublik-ui/commit/5794f1bd990b99029ade8224ecdf6bdaf54f2be9))
+* **copy-short-url:** added "copy short url" button to history page ([4f5aa78](https://github.com/okt-limonikas/bublik-ui/commit/4f5aa785eeb8d9268fba4757d2c80192fc2ea0c6))
+* **copy-short-url:** added "copy short url" button to run page ([a661fed](https://github.com/okt-limonikas/bublik-ui/commit/a661fed0888727398fc44a304cdddd52f9baa501))
+* **copy-short-url:** added "copy short url" to runs page ([6afdd3a](https://github.com/okt-limonikas/bublik-ui/commit/6afdd3a5bcf0896a00e0acab3b3be29438586f93))
+* **copy-short-url:** added "copy-short-url" button to log page ([19b6ce1](https://github.com/okt-limonikas/bublik-ui/commit/19b6ce1316de6cf3c7aedcb3425602e4ab4af4bc))
+* **copy-short-url:** added "copy-short-url" button to measurements page ([3aa5b5e](https://github.com/okt-limonikas/bublik-ui/commit/3aa5b5e7e89acbbb4ab90f8484da9ed1d11c521a))
+* **copy-short-url:** added "copy-short-url" button to run page ([ba2ff97](https://github.com/okt-limonikas/bublik-ui/commit/ba2ff97a93a8961b02c36c9ef92d7f591a5f6105))
+* **copy-short-url:** added button for copying short url to current page ([02af6f8](https://github.com/okt-limonikas/bublik-ui/commit/02af6f8ef0cacd95fef206a4cdba60f5106b08db))
+* **copy-short-url:** added command component ([8c416c1](https://github.com/okt-limonikas/bublik-ui/commit/8c416c1e023585ec6c93d01c205b0489d4373caa))
+* **copy-short-url:** added component for command to copy short url ([a5459d3](https://github.com/okt-limonikas/bublik-ui/commit/a5459d301a0b63059462b824633842e2043bde1a))
+* **copy-short-url:** added endpoint for creating short url ([2fd89dd](https://github.com/okt-limonikas/bublik-ui/commit/2fd89ddf9f379861c29d4e15a45ceff101b1f923))
+* **copy-short-url:** generated library for "copy short url button" ([04a0931](https://github.com/okt-limonikas/bublik-ui/commit/04a093141098c9f6c1cb856656aa81e699f5a3bd))
+* **reports:** added dropdown for run configs links ([c5fb281](https://github.com/okt-limonikas/bublik-ui/commit/c5fb2811ffe8656714d499ef090df4ccd5e09fc6))
+* **reports:** added initial report header ([dc1195c](https://github.com/okt-limonikas/bublik-ui/commit/dc1195c2471d0dbfc1c70d4fc07199d3187947eb))
+* **reports:** added run report container component ([48591fc](https://github.com/okt-limonikas/bublik-ui/commit/48591fc4d874ddceb0bf614efa6c9de6e72d1ce4))
+* **reports:** added sidebar link for run report ([bdc2f1c](https://github.com/okt-limonikas/bublik-ui/commit/bdc2f1c9aadd5892b65ea7c1ae614c341027bc68))
+* **reports:** added table and chart components ([4e4d3a7](https://github.com/okt-limonikas/bublik-ui/commit/4e4d3a75d17c8c03f6b898265b65d4d4333fc42a))
+* **reports:** added warnings popover ([46d983d](https://github.com/okt-limonikas/bublik-ui/commit/46d983dad714768c6f6676d1b4d1dba4c22c8dcd))
+* **reports:** made revision links clickable ([41d50d8](https://github.com/okt-limonikas/bublik-ui/commit/41d50d8dbb44d47e1daf735d64ad0beedfe264e9))
 
 ## [0.40.0](https://github.com/ts-factory/bublik-ui/compare/v0.39.1...v0.40.0) (2024-04-29)
 
