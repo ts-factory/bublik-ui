@@ -32,6 +32,10 @@ export const useHistoryPagination = () => {
 				search.set('pageSize', String(updaterOrValue.pageSize));
 				setSearchParams(search);
 			}
+
+			document
+				.getElementById('page-container')
+				?.scrollTo({ top: 0, behavior: 'smooth' });
 		},
 		[pagination, searchParams, setSearchParams]
 	);
