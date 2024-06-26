@@ -18,6 +18,7 @@ export type HistoryAPIBackendQuery = {
 	testArgs?: string;
 	revisions?: string;
 	branches?: string;
+	labels?: string;
 
 	fromDate?: string;
 	toDate?: string;
@@ -50,6 +51,7 @@ export type HistoryAPIQuery = {
 	parameters?: string;
 	revisions?: string;
 	branches?: string;
+	labels?: string;
 
 	startDate?: string;
 	finishDate?: string;

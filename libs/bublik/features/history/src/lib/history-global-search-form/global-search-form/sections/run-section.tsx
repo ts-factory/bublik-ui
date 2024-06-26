@@ -41,6 +41,12 @@ export const RunSection = (props: RunSectionProps) => {
 				<div className={'w-1/2'}>
 					<AriaDateRangeField label="Dates" name="dates" control={control} />
 				</div>
+				<BadgeField
+					name="labels"
+					label="Labels"
+					placeholder="label"
+					control={control}
+				/>
 				<TextField
 					name="labelExpr"
 					label="Label expressions"

@@ -45,6 +45,7 @@ export const useHistoryGlobalSearchForm = (
 			revisionExpr: '',
 			runData: [],
 			branchExpr: '',
+			labels: [],
 			branches: [],
 			tagExpr: '',
 			runProperties: HISTORY_CONSTANTS.runProperties

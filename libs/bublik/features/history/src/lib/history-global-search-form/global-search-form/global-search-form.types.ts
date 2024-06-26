@@ -42,6 +42,7 @@ export interface HistoryGlobalSearchFormValues {
 	verdictExpr: string;
 	revisionExpr: string;
 	testArgExpr: string;
+	labels: BadgeItem[];
 	labelExpr: string;
 	verdictLookup: VERDICT_TYPE;
 }
@@ -51,6 +52,7 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	results: DEFAULT_RESULT_TYPES,
 	runData: [],
 	parameters: [],
+	labels: [],
 	hash: '',
 	dates: { startDate: new Date(), endDate: new Date() },
 	revisions: [],

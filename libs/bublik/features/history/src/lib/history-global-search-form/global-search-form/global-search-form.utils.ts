@@ -49,21 +49,22 @@ export const convertHistoryFormToQuery = (
 		verdictLookup,
 		verdict,
 		branches,
-		revisions
+		revisions,
+		branchExpr,
+		labelExpr,
+		labels,
+		revisionExpr,
+		tagExpr,
+		testArgExpr,
+		verdictExpr
 	} = values;
 
-	const [simpleParams, expressionsParams] = badgesToValues(parameters);
-	const [simpleRunData, expressionsRunData] = badgesToValues(runData);
-	const [simpleBranches, expressionsBranches] = badgesToValues(branches);
-	const [simpleRevisions, expressionsRevisions] = badgesToValues(revisions);
-	const [simpleVerdicts, expressionsVerdicts] = badgesToValues(verdict);
-
-	const allExpressions = expressionsParams
-		.concat(expressionsRunData)
-		.concat(expressionsBranches)
-		.concat(expressionsRevisions)
-		.concat(expressionsVerdicts)
-		.join('&');
+	const [simpleParams] = badgesToValues(parameters);
+	const [simpleRunData] = badgesToValues(runData);
+	const [simpleBranches] = badgesToValues(branches);
+	const [simpleRevisions] = badgesToValues(revisions);
+	const [simpleVerdicts] = badgesToValues(verdict);
+	const [simpleLabels] = badgesToValues(labels);
 
 	const startDate = dates.startDate
 		? format(dates.startDate, API_DATE_FORMAT)
@@ -72,25 +73,30 @@ export const convertHistoryFormToQuery = (
 		? format(dates.endDate, API_DATE_FORMAT)
 		: '';
 
-	return decamelizeKeys(
-		{
-			testName,
-			hash,
-			startDate,
-			finishDate,
-			parameters: join(simpleParams),
-			runData: join(simpleRunData),
-			runDataExpr: allExpressions,
-			branches: join(simpleBranches),
-			revisions: join(simpleRevisions),
-			runProperties: join(runProperties),
-			resultProperties: join(resultProperties),
-			results: join(results),
-			verdict: join(simpleVerdicts),
-			verdictLookup
-		},
-		{ separator: '_' }
-	) as HistoryAPIQuery;
+	const query: HistoryAPIQuery = {
+		testName,
+		hash,
+		startDate,
+		finishDate,
+		parameters: join(simpleParams),
+		runData: join(simpleRunData),
+		branches: join(simpleBranches),
+		revisions: join(simpleRevisions),
+		runProperties: join(runProperties),
+		resultProperties: join(resultProperties),
+		results: join(results),
+		verdict: join(simpleVerdicts),
+		labels: join(simpleLabels),
+		verdictLookup,
+		branchExpr,
+		labelExpr,
+		revisionExpr,
+		tagExpr,
+		testArgExpr,
+		verdictExpr
+	};
+
+	return decamelizeKeys(query, { separator: '_' }) as HistoryAPIQuery;
 };
 
 export const getInitialGlobalSearch = (
@@ -110,7 +116,13 @@ export const getInitialGlobalSearch = (
 		verdict: queryVerdict,
 		branches: queryBranches,
 		revisions: queryRevisons,
-		tagExpr: queryRunDataExpr
+		tagExpr: queryRunDataExpr,
+		labels: queryLabels,
+		branchExpr = '',
+		labelExpr = '',
+		revisionExpr = '',
+		testArgExpr = '',
+		verdictExpr = ''
 	} = historyQuery;
 
 	const runData: BadgeItem[] = split(queryRunData).map((value) => ({
@@ -132,6 +144,12 @@ export const getInitialGlobalSearch = (
 		parameters: valuesToBadges(queryParameters, []),
 		revisions: valuesToBadges(queryRevisons, []),
 		branches: valuesToBadges(queryBranches, []),
+		labels: valuesToBadges(queryLabels, []),
+		branchExpr,
+		labelExpr,
+		revisionExpr,
+		testArgExpr,
+		verdictExpr,
 		runData,
 		dates: { startDate, endDate },
 		tagExpr: queryRunDataExpr ?? '',

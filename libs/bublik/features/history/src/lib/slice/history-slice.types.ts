@@ -38,6 +38,7 @@ export type HistoryStateSearch = {
 	hash: string;
 	parameters: string[];
 	revisions: string[];
+	labels: string[];
 	branches: string[];
 	/* Run section */
 	startDate: Date;

@@ -35,6 +35,7 @@ export const DEFAULT_GLOBAL_FILTER: HistorySliceState['globalFilter'] = {
 export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	/* Test section */
 	testName: '',
+	labels: [],
 	labelExpr: '',
 	hash: '',
 	parameters: [],

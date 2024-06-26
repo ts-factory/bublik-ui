@@ -59,6 +59,7 @@ export const queryToHistorySearchState = (
 		: DEFAULT_HISTORY_END_DATE;
 
 	return {
+		labels: withDefault(parseArray(query.labels), []),
 		testArgExpr: withDefault(query.testArgExpr, ''),
 		/* Test section */
 		testName: withDefault(query.testName, ''),
@@ -100,6 +101,7 @@ export const historySearchStateToForm = (
 		parameters: arrayToBadgeItem(state.parameters),
 		revisions: arrayToBadgeItem(state.revisions),
 		branches: arrayToBadgeItem(state.branches),
+		labels: arrayToBadgeItem(state.labels),
 		/* Run section */
 		runData: arrayToBadgeItem(state.runData),
 		tagExpr: state.tagExpr,
@@ -123,6 +125,7 @@ export function searchQueryToBackendQuery(
 		testArgs: query.parameters,
 		revisions: query.revisions,
 		branches: query.branches,
+		labels: query.labels,
 		/* Run section */
 		tags: query.runData,
 		tagExpr: query.tagExpr,
@@ -152,6 +155,7 @@ export const historySearchStateToQuery = (
 		/* Test section */
 		testName: state.testName,
 		hash: state.hash,
+		labels: withDefault(arrayToString(state.labels), ''),
 		parameters: withDefault(arrayToString(state.parameters), ''),
 		revisions: withDefault(arrayToString(state.revisions), ''),
 		branches: withDefault(arrayToString(state.branches), ''),
@@ -179,6 +183,7 @@ export const formToSearchState = (
 	form: HistoryGlobalSearchFormValues
 ): Omit<HistorySearchFormState, 'page' | 'pageSize'> => {
 	return {
+		labels: badgeItemToArray(form.labels),
 		labelExpr: form.labelExpr,
 		/* Test section */
 		testName: form.testName,
