@@ -53,6 +53,6 @@ export type RecordEntityBlock = {
 	axis_x_label: string;
 	axis_y_label: string;
 	formatters: Record<string, string>;
-	dataset_table: Array<Array<string | number>>;
-	dataset_chart: Array<Array<string | number>>;
+	dataset_table?: Array<Array<string | number>>;
+	dataset_chart?: Array<Array<string | number>>;
 };

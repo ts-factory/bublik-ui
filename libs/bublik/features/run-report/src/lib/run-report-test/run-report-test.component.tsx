@@ -55,8 +55,8 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 
 interface RunReportEntityBlockProps
 	extends Pick<RunReportTestBlockProps, 'enableChartView' | 'enableTableView'> {
-	table: Array<string | number>[];
-	chart: Array<string | number>[];
+	table?: Array<string | number>[];
+	chart?: Array<string | number>[];
 	xKey: string;
 	xAxisLabel: string;
 	yAxisLabel: string;
@@ -92,7 +92,7 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 	return (
 		<div className="flex flex-col">
 			<div className="flex max-h-96">
-				{enableChartView ? (
+				{enableChartView && chart ? (
 					<div className="flex-1">
 						<div className="px-4 h-9 border-b border-border-primary flex items-center bg-white gap-2">
 							<Link
@@ -143,8 +143,13 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 						</div>
 					</div>
 				) : null}
-				{enableTableView ? (
-					<div className="flex-1 border-l border-border-primary flex flex-col">
+				{enableTableView && table ? (
+					<div
+						className={cn(
+							'flex-1 flex flex-col',
+							enableChartView && chart && 'border-l border-border-primary'
+						)}
+					>
 						<div className="px-4 h-9 flex-shrink-0 border-b border-border-primary flex items-center bg-white gap-2">
 							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 								{yAxisLabel}

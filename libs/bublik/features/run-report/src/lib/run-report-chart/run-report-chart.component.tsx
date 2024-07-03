@@ -16,13 +16,15 @@ function RunReportChart(props: RunReportChartProps) {
 
 	const series = useMemo(
 		() =>
-			data[0].slice(1).map((name) => {
-				return {
-					type: 'line',
-					name: name,
-					encode: { x: xKey, y: name }
-				} as const;
-			}),
+			(data?.[0] ?? [])
+				.filter((name) => name !== xKey)
+				.map((name) => {
+					return {
+						type: 'line',
+						name: name,
+						encode: { x: xKey, y: name }
+					} as const;
+				}),
 		[data, xKey]
 	);
 
