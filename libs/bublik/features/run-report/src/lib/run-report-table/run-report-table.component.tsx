@@ -34,6 +34,8 @@ function RunReportTable({ data, formatters }: RunReportTableProps) {
 					<tr key={rowIdx}>
 						{row.map((v, idx, cells) => {
 							const formatter = formatters?.[header?.[idx]] ?? '';
+							const formattedData =
+								v !== '-' && v !== 'na' ? `${v}${formatter}` : `${v}`;
 
 							return (
 								<td
@@ -44,8 +46,7 @@ function RunReportTable({ data, formatters }: RunReportTableProps) {
 										idx !== cells.length - 1 && 'border-r'
 									)}
 								>
-									{v}
-									{formatter}
+									{formattedData}
 								</td>
 							);
 						})}
