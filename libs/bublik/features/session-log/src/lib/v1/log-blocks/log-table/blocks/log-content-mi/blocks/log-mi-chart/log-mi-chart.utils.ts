@@ -18,14 +18,29 @@ import { ResultDescriptionItem } from './log-mi-chart.types';
 export const convertResults = (
 	values: LogContentMiChart['results']
 ): ResultDescriptionItem[] => {
-	return values.map((result) => ({
-		parameterName: result.description,
-		values: result.entries.map((entry) => ({
-			units: entry.base_units,
-			value: entry.value,
-			multiplier: entry.multiplier
-		}))
-	}));
+	return values.map((result) => {
+		const statistics = result.entries
+			.filter((entry) => entry.aggr !== 'single')
+			.map((entry) => ({
+				units: entry.base_units,
+				value: entry.value,
+				multiplier: entry.multiplier,
+				aggr: entry.aggr
+			}));
+
+		return {
+			parameterName: result.description,
+			values: result.entries
+				.filter((entry) => entry.aggr === 'single')
+				.map((entry) => ({
+					units: entry.base_units,
+					value: entry.value,
+					multiplier: entry.multiplier,
+					aggr: entry.aggr
+				})),
+			statistics
+		};
+	});
 };
 
 export interface Config {

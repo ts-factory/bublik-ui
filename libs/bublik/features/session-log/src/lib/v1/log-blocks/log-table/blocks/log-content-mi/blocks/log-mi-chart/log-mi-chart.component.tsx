@@ -29,6 +29,7 @@ export const ResultDescriptionList = (props: ResultDescriptionListProps) => {
 					<ResultDescription
 						parameterName={item.parameterName}
 						values={item.values}
+						statistics={item.statistics}
 					/>
 				</li>
 			))}
@@ -39,21 +40,34 @@ export const ResultDescriptionList = (props: ResultDescriptionListProps) => {
 export interface ResultDescriptionProps {
 	parameterName: string;
 	values: ResultDescriptionValue[];
+	statistics?: ResultDescriptionValue[];
 }
 
 export const ResultDescription = (props: ResultDescriptionProps) => {
-	const { parameterName, values } = props;
+	const { parameterName, values, statistics } = props;
 	const [isOpen, toggle] = useToggle();
 
 	return (
 		<div>
 			<h2 className="font-bold">Measured parameter: "{parameterName}"</h2>
+			{statistics && statistics.length ? (
+				<div className="pl-10">
+					<span className="block font-bold">Statistics:</span>
+					<ul className="pl-4">
+						{statistics.map((stat, idx) => (
+							<li key={idx}>
+								{stat.aggr}: {stat.value} * {stat.multiplier} {stat.units}
+							</li>
+						))}
+					</ul>
+				</div>
+			) : null}
 			<div className="pl-10">
 				<span className="block font-bold">Values:</span>
 				<button
 					onClick={toggle}
 					className={cn(
-						'hover:underline',
+						'hover:underline pl-4',
 						isOpen && 'text-text-unexpected',
 						!isOpen && 'text-primary'
 					)}
