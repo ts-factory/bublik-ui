@@ -153,7 +153,8 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 						(result) =>
 							result.type === yAxis.type && result.name === yAxis.axis.name
 					)
-					?.entries.map((entry) =>
+					?.entries.filter((entry) => entry.aggr === 'single')
+					.map((entry) =>
 						(Number(entry.value) * Number(entry.multiplier)).toFixed(3)
 					) || [];
 
