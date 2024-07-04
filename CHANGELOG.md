@@ -1,5 +1,25 @@
 
 
+## [0.43.0](https://github.com/ts-factory/bublik-ui/compare/v0.3.1...v0.43.0) (2024-07-04)
+
+
+### 📦 Chores
+
+* **build:** upgraded pnpm setup action to latest version ([290ad77](https://github.com/ts-factory/bublik-ui/commit/290ad7757b9f588412c24138a45fd2d38d695ae0))
+* **run:** [details] changed order of buttons and links ([fe9b024](https://github.com/ts-factory/bublik-ui/commit/fe9b0244ccf323f1278fac908e7bbe11f0724553))
+
+
+### 🚀 New Feature
+
+* **log:** [mi] added display for aggregated values min/max ([f476678](https://github.com/ts-factory/bublik-ui/commit/f476678ca34370d6a39e2b84f099e84eb22fb138))
+
+
+### 🐛 Bug Fix
+
+* **log:** [mi] display only entries with `aggr` of "single" on chart ([e391d2a](https://github.com/ts-factory/bublik-ui/commit/e391d2aa6a78dfed7139e6d48783641eb8b6be84))
+* **reports:** made datasets for chart/table optional ([ff7d724](https://github.com/ts-factory/bublik-ui/commit/ff7d724b37885c0f1fe00c2026c7dccf2f302027))
+* **reports:** removed `%` for values that are "-" or "na" ([88e7416](https://github.com/ts-factory/bublik-ui/commit/88e74167b337f2518bab036c2a0882d5cb9a9318))
+
 ## [0.42.0](https://github.com/ts-factory/bublik-ui/compare/v0.3.0...v0.42.0) (2024-06-26)
 
 
