@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, ComponentPropsWithRef, forwardRef, SVGProps } from 'react';
+import { ComponentPropsWithRef, forwardRef, SVGProps } from 'react';
 
 import { cn } from '../utils';
 
@@ -53,7 +53,7 @@ export interface RadioProps extends ComponentPropsWithRef<'input'> {
 	label: string;
 }
 
-export const Radio: FC<RadioProps> = forwardRef((props, ref) => {
+export const Radio = forwardRef<HTMLInputElement, RadioProps>((props, ref) => {
 	const { label, ...rest } = props;
 
 	return (

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, FC, forwardRef } from 'react';
+import { ComponentPropsWithRef, forwardRef } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import { useScrollToTopPage } from '@/shared/hooks';
@@ -16,7 +16,7 @@ export interface ScrollToTopProps extends ComponentPropsWithRef<'button'> {
 	offset?: number;
 }
 
-export const ScrollToTopPage: FC<ScrollToTopProps> = forwardRef(
+export const ScrollToTopPage = forwardRef<HTMLButtonElement, ScrollToTopProps>(
 	({ offset = 0 }, ref) => {
 		const { isVisible, scrollToTop } = useScrollToTopPage(offset);
 

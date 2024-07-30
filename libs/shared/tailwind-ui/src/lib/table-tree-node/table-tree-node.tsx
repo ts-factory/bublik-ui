@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, CSSProperties, FC, forwardRef } from 'react';
+import { ComponentPropsWithRef, CSSProperties, forwardRef } from 'react';
 
 import { NodeEntity } from '@/shared/types';
 
@@ -34,7 +34,7 @@ export interface TableNodeProps extends ComponentPropsWithRef<'button'> {
 	depth: number;
 }
 
-export const TableNode: FC<TableNodeProps> = forwardRef(
+export const TableNode = forwardRef<HTMLButtonElement, TableNodeProps>(
 	({ nodeName, nodeType, isExpanded, depth, ...props }, ref) => {
 		return (
 			<button

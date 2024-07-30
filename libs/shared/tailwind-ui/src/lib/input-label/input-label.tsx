@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, FC, forwardRef } from 'react';
+import { ComponentPropsWithRef, forwardRef } from 'react';
 
 import { cn } from '../utils';
 
 export type InputLabelProps = ComponentPropsWithRef<'label'>;
 
-export const InputLabel: FC<InputLabelProps> = forwardRef(
+export const InputLabel = forwardRef<HTMLLabelElement, InputLabelProps>(
 	({ children, className, ...props }, ref) => {
 		return (
 			<label
