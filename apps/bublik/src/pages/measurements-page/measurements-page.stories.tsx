@@ -5,11 +5,6 @@ import { withRouter } from 'storybook-addon-react-router-v6';
 
 import { MeasurementsMode } from '@/shared/types';
 
-import {
-	measurementDetauks,
-	measurementsHandler,
-	measurementsHandlerGet
-} from './measurements-page.mock';
 import { MeasurementsPage } from './measurements-page';
 import { withSidebar } from '@/shared/tailwind-ui';
 
@@ -25,11 +20,7 @@ export default {
 			searchParams: { mode: MeasurementsMode.Default }
 		},
 		msw: {
-			handlers: [
-				measurementsHandler,
-				measurementDetauks,
-				measurementsHandlerGet
-			]
+			handlers: []
 		}
 	}
 } as Meta<typeof MeasurementsPage>;

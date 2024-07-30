@@ -62,6 +62,9 @@
 			"@/bublik/features/run-import": [
 				"libs/bublik/features/run-import/src/index.ts"
 			],
+			"@/bublik/features/run-report": [
+				"libs/bublik/features/run-report/src/index.ts"
+			],
 			"@/bublik/features/runs": ["libs/bublik/features/runs/src/index.ts"],
 			"@/bublik/features/session-log": [
 				"libs/bublik/features/session-log/src/index.ts"
@@ -71,9 +74,6 @@
 			],
 			"@/bublik/features/user-preferences": [
 				"libs/bublik/features/user-preferences/src/index.ts"
-			],
-			"@/bublik/features/run-report": [
-				"libs/bublik/features/run-report/src/index.ts"
 			],
 			"@/bublik/run-utils": ["libs/bublik/run-utils/src/index.ts"],
 			"@/icons": ["libs/shared/icons/src/index.ts"],

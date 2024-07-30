@@ -47,3 +47,4 @@ requests.http
 **/playwright/.cache
 
 .nx/cache
+.nx/workspace-data

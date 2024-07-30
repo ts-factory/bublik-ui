@@ -3,8 +3,6 @@
 import { Meta } from '@storybook/react';
 import { withRouter } from 'storybook-addon-react-router-v6';
 
-import { runResultsHandler, runsHandler } from './runs-page.mock';
-
 import { RunsPage } from './runs-page';
 
 export default {
@@ -14,7 +12,7 @@ export default {
 	parameters: {
 		layout: 'fullscreen',
 		reactRouter: { routePath: '/runs' },
-		msw: { handlers: [runResultsHandler, runsHandler] }
+		msw: { handlers: [] }
 	}
 } as Meta<typeof RunsPage>;
 

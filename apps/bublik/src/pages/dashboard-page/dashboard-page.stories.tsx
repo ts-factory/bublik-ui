@@ -4,11 +4,6 @@ import { Meta } from '@storybook/react';
 import { withRouter } from 'storybook-addon-react-router-v6';
 
 import { DashboardPageV2 } from './dashboard-page-v2';
-import {
-	dashboardHandler,
-	defaultModeHandler,
-	nokDistribHandler
-} from './dashboard-page.mock';
 
 export default {
 	component: DashboardPageV2,
@@ -21,8 +16,6 @@ export default {
 export const Primary = {
 	args: {},
 	parameters: {
-		msw: {
-			handlers: [dashboardHandler, defaultModeHandler, nokDistribHandler]
-		}
+		msw: { handlers: [] }
 	}
 };

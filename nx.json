@@ -1,7 +1,4 @@
 {
-	"affected": {
-		"defaultBase": "main"
-	},
 	"generators": {
 		"@nx/react": {
 			"application": {
@@ -66,6 +63,10 @@
 					"codeCoverage": true
 				}
 			}
+		},
+		"@nx/eslint:lint": {
+			"inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
+			"cache": true
 		}
 	},
 	"namedInputs": {
@@ -81,5 +82,7 @@
 			"!{projectRoot}/tsconfig.spec.json"
 		]
 	},
-	"parallel": 3
+	"parallel": 3,
+	"useInferencePlugins": false,
+	"defaultBase": "main"
 }

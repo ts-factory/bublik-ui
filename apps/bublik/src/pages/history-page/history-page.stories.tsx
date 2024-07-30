@@ -5,11 +5,6 @@ import { withRouter } from 'storybook-addon-react-router-v6';
 
 import { withSidebar } from '@/shared/tailwind-ui';
 
-import {
-	historyAggregationHandler,
-	historyLinearHandler,
-	historyMeasurementsHandler
-} from './history-page.mock';
 import { HistoryPageV2 } from './history-page';
 
 export default {
@@ -22,11 +17,7 @@ export default {
 			searchParams: { testName: 'hello' }
 		},
 		msw: {
-			handlers: [
-				historyAggregationHandler,
-				historyLinearHandler,
-				historyMeasurementsHandler
-			]
+			handlers: []
 		}
 	},
 	decorators: [withRouter, withSidebar()]

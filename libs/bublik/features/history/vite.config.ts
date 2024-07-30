@@ -49,6 +49,7 @@ export default defineConfig({
 	},
 
 	test: {
+		reporters: ['default'],
 		globals: true,
 		setupFiles: [],
 		cache: {
