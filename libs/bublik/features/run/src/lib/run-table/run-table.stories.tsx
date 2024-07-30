@@ -10,8 +10,6 @@ import {
 	RunTableLoading
 } from './run-table.component';
 
-import { Primary as ResultTablePrimary } from '../result-table/result-table.stories';
-import { runTableMock } from './run-table.mock';
 import { RunRowStateContextProvider } from '../hooks';
 import { ExpandedState, SortingState } from '@tanstack/react-table';
 
@@ -48,10 +46,8 @@ export const Primary = {
 	render: Template,
 
 	args: {
-		data: runTableMock,
-		renderSubRow: (row) => (
-			<ResultTablePrimary runId="1" data={[]} {...ResultTablePrimary.args} />
-		)
+		data: [],
+		renderSubRow: () => null
 	}
 };
 

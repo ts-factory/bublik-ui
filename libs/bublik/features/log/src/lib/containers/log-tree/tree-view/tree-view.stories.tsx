@@ -3,7 +3,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { withRouter } from 'storybook-addon-react-router-v6';
 import { TreeView } from './tree-view';
-import { props } from './tree-view.mock';
 
 import { LogPageMode } from '@/shared/types';
 
@@ -29,5 +28,5 @@ export default Story;
 
 type Story = StoryObj<typeof TreeView>;
 export const Primary: Story = {
-	args: props
+	args: {}
 };

@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Meta } from '@storybook/react';
 
-import { mockRunDetails } from './compromise-form.mock';
 import { CompromiseStatus } from './compromise-form';
 
 export default {
@@ -16,7 +15,7 @@ export default {
 
 export const Primary = {
 	args: {
-		runDetails: mockRunDetails,
+		runDetails: {},
 		tags: [
 			{ value: 'L5', displayValue: 'Test bugzilla' },
 			{ value: 'LOGS_BASE', displayValue: 'Sapi-TS logs' },
@@ -35,7 +34,7 @@ export const Primary = {
 
 export const Compromised = {
 	args: {
-		runDetails: mockRunDetails,
+		runDetails: {},
 		tags: [
 			{ value: 'L5', displayValue: 'Test bugzilla' },
 			{ value: 'LOGS_BASE', displayValue: 'Test logs' },

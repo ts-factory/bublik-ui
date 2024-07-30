@@ -5,7 +5,6 @@ import type { StoryFn, Meta } from '@storybook/react';
 import { ExpandedState, Row } from '@tanstack/react-table';
 
 import { Primary as ResultDiffPrimary } from '../result-diff/result-diff.component.stories';
-import { leftData, rightData } from './run-diff.mock';
 import {
 	RunDiff,
 	RunDiffEmpty,
@@ -39,8 +38,8 @@ export const Primary = {
 	render: Template,
 
 	args: {
-		leftRoot: leftData[0],
-		rightRoot: rightData[0],
+		leftRoot: {},
+		rightRoot: {},
 		renderSubComponent: ({ row }: { row: Row<MergedRunDataWithDiff> }) => (
 			<ResultDiff
 				{...ResultDiffPrimary.args}

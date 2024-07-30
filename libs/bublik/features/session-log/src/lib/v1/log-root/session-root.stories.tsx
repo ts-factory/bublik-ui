@@ -4,7 +4,6 @@ import { withBackground } from '@/shared/tailwind-ui';
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { SessionRoot } from './session-root';
-import { mockSession } from './session-root.mock';
 
 const Story: Meta<typeof SessionRoot> = {
 	component: SessionRoot,
@@ -17,5 +16,5 @@ export default Story;
 type Story = StoryObj<typeof SessionRoot>;
 
 export const Primary = {
-	args: { root: mockSession }
+	args: { root: { root: [], version: 'v1' } }
 } satisfies Story;

@@ -10,7 +10,6 @@ import {
 	HistoryLinearTable
 } from './history-linear.component';
 import { HistoryEmpty } from '../history-empty';
-import { historyLinearMock } from './history-linear.component.mock';
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { HistoryError } from '../history-error';
 
@@ -51,7 +50,7 @@ export const Primary = {
 	render: Template,
 
 	args: {
-		data: historyLinearMock,
+		data: [],
 		pageCount: 300,
 		pagination: { pageSize: 25, pageIndex: 0 }
 	}

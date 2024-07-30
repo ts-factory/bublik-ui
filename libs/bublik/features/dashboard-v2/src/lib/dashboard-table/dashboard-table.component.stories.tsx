@@ -4,7 +4,6 @@ import { StoryObj, Meta } from '@storybook/react';
 import { withRouter } from 'storybook-addon-react-router-v6';
 
 import { DashboardTable } from './dashboard-table.component';
-import { dashboardData } from './dashboard-table.component.mock';
 
 export default {
 	component: DashboardTable,
@@ -17,9 +16,9 @@ type Story = StoryObj<typeof DashboardTable>;
 
 export const Row = {
 	args: {
-		rows: dashboardData.rows,
-		headers: dashboardData.header,
-		context: dashboardData.payload,
+		rows: [],
+		headers: [],
+		context: {},
 		layout: 'row',
 		date: new Date(),
 		isFetching: false,

@@ -6,11 +6,6 @@ import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
 import { RunPage } from './run-page';
-import {
-	runStatsHandler,
-	runDetailsHandler,
-	runStatsNoUnexpectedHandler
-} from '../log-page/log-page.mock';
 
 export default {
 	component: RunPage,
@@ -39,13 +34,13 @@ type Story = StoryObj<typeof RunPage>;
 export const Primary = {
 	args: {},
 	parameters: {
-		msw: { handlers: [runStatsHandler, runDetailsHandler] }
+		msw: { handlers: [] }
 	}
 } satisfies Story;
 
 export const NoUnexpected = {
 	args: {},
 	parameters: {
-		msw: { handlers: [runStatsNoUnexpectedHandler, runDetailsHandler] }
+		msw: { handlers: [] }
 	}
 } satisfies Story;

@@ -9,7 +9,6 @@ import {
 	ResultTableError,
 	ResultTableLoading
 } from './result-table.component';
-import { resultTableMock } from './result-table.mock';
 
 const Story: Meta<typeof ResultTable> = {
 	component: ResultTable,
@@ -22,7 +21,7 @@ export default Story;
 export const Primary = {
 	args: {
 		runId: '1',
-		data: resultTableMock
+		data: {}
 	}
 };
 

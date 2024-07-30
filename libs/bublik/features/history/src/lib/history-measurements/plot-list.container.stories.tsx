@@ -6,7 +6,6 @@ import { withSidebar } from '@/shared/tailwind-ui';
 
 import { HistoryError } from '../history-error';
 import { PlotList, PlotListLoading } from './plot-list.component';
-import { mockPlots } from './plot-list.mock';
 
 const Story: Meta<typeof PlotList> = {
 	title: 'history/Plot List',
@@ -22,7 +21,7 @@ type Story = StoryObj<typeof PlotList>;
 
 export const Primary: Story = {
 	render: Template,
-	args: { plots: mockPlots }
+	args: { plots: [] }
 };
 
 export const Loading = () => <PlotListLoading />;

@@ -9,7 +9,6 @@ import {
 	HistoryAggregation,
 	HistoryLoadingAggregation
 } from './history-aggregation.component';
-import { historyAggregationMock } from './history-aggregation.component.mock';
 import { HistoryAggregationGlobalFilter } from './history-aggregation.types';
 import { HistoryEmpty } from '../history-empty';
 import { HistoryError } from '../history-error';
@@ -51,9 +50,8 @@ const Template: StoryFn<typeof HistoryAggregation> = (args) => {
 
 export const Primary = {
 	render: Template,
-
 	args: {
-		data: historyAggregationMock
+		data: []
 	}
 };
 

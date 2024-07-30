@@ -11,7 +11,6 @@ import {
 	RunsTableEmpty,
 	RunsTableLoading
 } from './runs-table.component';
-import { runsPage } from './runs-table.mock';
 
 const Story: Meta<typeof RunsTable> = {
 	component: RunsTable,
@@ -46,7 +45,7 @@ const Template: StoryFn<typeof RunsTable> = (args) => {
 
 export const Primary = {
 	render: Template,
-	args: { data: runsPage }
+	args: { data: [] }
 };
 
 export const Loading = () => <RunsTableLoading count={25} />;

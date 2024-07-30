@@ -206,7 +206,7 @@
     "prettier": "2.8.7",
     "release-it": "^15.10.1",
     "sass": "^1.55.0",
-    "storybook": "7.0.12",
+    "storybook": "^7.5.3",
     "storybook-addon-react-router-v6": "^1.0.0",
     "tailwindcss": "3.4.3",
     "ts-jest": "29.1.0",

@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Meta } from '@storybook/react';
 
-import { mockExportChart } from './export-chart.mock';
 import { ExportChart } from './export-chart';
 
 export default {
@@ -15,7 +14,7 @@ export default {
 
 export const Primary = {
 	args: {
-		plots: mockExportChart,
+		plots: [],
 		isLoading: false,
 		disabled: false
 	}

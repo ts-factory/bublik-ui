@@ -37,23 +37,27 @@
 			}
 		},
 		"storybook": {
-			"executor": "@nx/storybook:storybook",
 			"options": {
 				"port": 4400,
-				"configDir": "apps/bublik/.storybook"
+				"config-dir": ".storybook"
 			},
 			"configurations": {
 				"ci": {
-					"quiet": true
+					"args": ["--quiet"]
 				}
 			}
 		},
 		"build-storybook": {
-			"executor": "@nx/storybook:build",
-			"outputs": ["{options.outputDir}"],
+			"outputs": [
+				"{projectRoot}/{options.output-dir}",
+				"{workspaceRoot}/{projectRoot}/storybook-static",
+				"{options.output-dir}",
+				"{options.outputDir}",
+				"{options.o}"
+			],
 			"options": {
-				"outputDir": "dist/storybook/bublik",
-				"configDir": "apps/bublik/.storybook"
+				"config-dir": ".storybook",
+				"output-dir": "../../dist/storybook/bublik"
 			},
 			"configurations": {
 				"ci": {
