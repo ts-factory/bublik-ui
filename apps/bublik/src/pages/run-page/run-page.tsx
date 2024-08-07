@@ -29,7 +29,7 @@ export interface RunHeaderProps {
 }
 
 const RunHeader = ({ runId }: RunHeaderProps) => {
-	const [isModeFull, setIsModeFull] = useState(false);
+	const [isModeFull, setIsModeFull] = useState(true);
 	const [, copy] = useCopyToClipboard({
 		onSuccess: () =>
 			toast.success('Copied run ID to clipboard', { position: 'top-center' }),

@@ -16,7 +16,7 @@ export interface LogHeaderProps {
 }
 
 const LogHeader = ({ runId }: LogHeaderProps) => {
-	const [isFullMode, setIsFullMode] = useState(false);
+	const [isFullMode, setIsFullMode] = useState(true);
 
 	return (
 		<div className="flex flex-col bg-white rounded-md">
