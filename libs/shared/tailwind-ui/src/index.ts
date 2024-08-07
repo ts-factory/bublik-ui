@@ -63,3 +63,5 @@ export * from './lib/alert-dialog';
 export * from './lib/avatar';
 export * from './lib/sonner-toaster';
 export * from './lib/radio-group';
+export * from './lib/conclusion-hover-card';
+export * from './lib/conclusion-badge';
