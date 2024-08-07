@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import {
 	DefineCompromisedFormValues,
-	DetailsAPIResponse
+	RunDetailsAPIResponse
 } from '@/shared/types';
 import {
 	BUBLIK_TAG,
@@ -275,7 +275,7 @@ export interface CompromiseStatusProps {
 	addCompromiseStatus: (values: DefineCompromisedFormValues) => void;
 	initialValues: DefineCompromisedFormValues;
 	tags?: SelectValue[];
-	runDetails?: DetailsAPIResponse;
+	runDetails?: RunDetailsAPIResponse;
 	isLoading: boolean;
 	isError: boolean;
 	isCompromised?: boolean;

@@ -10,7 +10,7 @@ import {
 	ResultTableAPIQueryWithFilter,
 	ResultDetailsAPIResponse,
 	CompromisedTagsResponse,
-	DetailsAPIResponse,
+	RunDetailsAPIResponse,
 	CompromisedDeleteResponse,
 	CompromisedPostResponse,
 	CompromisedBody
@@ -95,7 +95,7 @@ export const runEndpoints = {
 		getCompromisedTags: build.query<CompromisedTagsResponse, void>({
 			query: () => withApiV2('/outside_domains/logs')
 		}),
-		getRunDetails: build.query<DetailsAPIResponse, string | number>({
+		getRunDetails: build.query<RunDetailsAPIResponse, string | number>({
 			query: (runId) => ({
 				url: withApiV2(`/runs/${runId}/details`),
 				cache: 'reload'

@@ -75,6 +75,7 @@ export type DashboardRowContext = {
 	conclusion: RUN_STATUS;
 	status: string;
 	status_by_nok: string;
+	conclusion_reason?: string | null;
 };
 
 /** Dashboard row data */

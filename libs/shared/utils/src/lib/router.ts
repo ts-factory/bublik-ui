@@ -3,7 +3,7 @@
 import { addDays, addMonths, isBefore, isValid, parseISO } from 'date-fns';
 
 import {
-	DetailsAPIResponse,
+	RunDetailsAPIResponse,
 	HistoryAPIQuery,
 	HistoryDefaultResultAPIResponse,
 	HistoryMode,
@@ -50,7 +50,7 @@ const getToDate = (maybeDate: string) => {
 
 export const buildQuery = (config: {
 	result: HistoryDefaultResultAPIResponse;
-	runDetails: DetailsAPIResponse;
+	runDetails: RunDetailsAPIResponse;
 }): HistorySearchParams => {
 	const {
 		result: { result },
@@ -170,7 +170,7 @@ const byIterationWithAllTags = (
 });
 
 export const getHistorySearch = (
-	runDetails: DetailsAPIResponse,
+	runDetails: RunDetailsAPIResponse,
 	resultInfo: RunDataResults,
 	userPreferredHistoryMode: HistoryMode
 ): HistorySearch => {

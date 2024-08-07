@@ -225,7 +225,7 @@ export type CompromisedStatusDetails = {
 	bug_url?: string;
 };
 
-export type DetailsAPIResponse = {
+export type RunDetailsAPIResponse = {
 	id: number;
 	main_package: string;
 	start: string;
@@ -242,4 +242,5 @@ export type DetailsAPIResponse = {
 	status: string;
 	status_by_nok: string;
 	conclusion: RUN_STATUS;
+	conclusion_reason?: string | null;
 };

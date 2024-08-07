@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 import { getHistorySearch } from '@/shared/utils';
 import {
-	DetailsAPIResponse,
+	RunDetailsAPIResponse,
 	HistoryMode,
 	RunDataResults
 } from '@/shared/types';
@@ -13,7 +13,7 @@ import { ContextLinks, ContextLinksSection, Icon } from '@/shared/tailwind-ui';
 
 export interface LinkToHistoryProps {
 	result: RunDataResults;
-	runDetails: DetailsAPIResponse;
+	runDetails: RunDetailsAPIResponse;
 	userPreferredHistoryMode?: HistoryMode;
 }
 

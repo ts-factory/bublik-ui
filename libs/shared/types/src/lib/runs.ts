@@ -44,6 +44,7 @@ export type RunsData = {
 	status: string;
 	status_by_nok: string;
 	conclusion: RUN_STATUS;
+	conclusion_reason?: string | null;
 };
 
 export type RunsAPIResponse = {

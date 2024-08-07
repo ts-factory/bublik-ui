@@ -4,7 +4,7 @@ import { FC, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-	DetailsAPIResponse,
+	RunDetailsAPIResponse,
 	HistoryMode,
 	RunDataResults
 } from '@/shared/types';
@@ -42,7 +42,7 @@ export interface ResultLinksProps {
 	runId: string;
 	resultId: number;
 	result: RunDataResults;
-	runInfo: DetailsAPIResponse;
+	runInfo: RunDetailsAPIResponse;
 	userPreferredHistoryMode?: HistoryMode;
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;

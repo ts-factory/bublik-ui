@@ -2,14 +2,14 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { RunDetailsDiffProps } from './run-details-diff';
 
-import { DetailsAPIResponse } from '@/shared/types';
+import { RunDetailsAPIResponse } from '@/shared/types';
 
 export const getDiffProps = ({
 	leftData,
 	rightData
 }: {
-	leftData?: DetailsAPIResponse;
-	rightData?: DetailsAPIResponse;
+	leftData?: RunDetailsAPIResponse;
+	rightData?: RunDetailsAPIResponse;
 }): RunDetailsDiffProps => {
 	if (!leftData || !rightData) {
 		return {
