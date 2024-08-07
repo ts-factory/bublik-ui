@@ -5,7 +5,7 @@ import { FC, useMemo } from 'react';
 import { DetailsItem, RUN_STATUS } from '@/shared/types';
 import { parseDetailDate, trimBranch } from '@/shared/utils';
 import { getErrorMessage } from '@/services/bublik-api';
-import { Skeleton, Icon } from '@/shared/tailwind-ui';
+import { Skeleton, Icon, ConclusionBadge } from '@/shared/tailwind-ui';
 
 import {
 	prepareRevisions,
@@ -15,7 +15,6 @@ import {
 } from './utils';
 import { DetailItem } from './detail-item';
 import { InfoList } from './info-list';
-import { Conclusion } from './conclusion';
 
 import { InfoListItem } from './info-list/list-item';
 import styles from './run-details.module.scss';
@@ -89,7 +88,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 				<DetailItem label="Start" value={runStartDate} />
 				<DetailItem
 					label="Conclusion"
-					value={<Conclusion status={runStatus} />}
+					value={<ConclusionBadge status={runStatus} />}
 				/>
 			</>
 		);
@@ -106,7 +105,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 			<DetailItem label="Status by NOK" value={statusByNok} />
 			<DetailItem
 				label="Conclusion"
-				value={<Conclusion status={runStatus} />}
+				value={<ConclusionBadge status={runStatus} />}
 			/>
 		</>
 	);

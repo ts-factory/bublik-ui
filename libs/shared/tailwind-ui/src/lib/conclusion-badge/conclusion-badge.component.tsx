@@ -1,15 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
+import React from 'react';
 
 import { RUN_STATUS } from '@/shared/types';
-import { getRunStatusInfo } from '@/shared/tailwind-ui';
+
+import { getRunStatusInfo } from '../utils';
 
 export interface ConclusionProps {
 	status: RUN_STATUS;
 }
 
-export const Conclusion: FC<ConclusionProps> = ({ status }) => {
+export const ConclusionBadge = ({ status }: ConclusionProps) => {
 	const { bg, color, icon, label } = getRunStatusInfo(status);
 
 	return (
