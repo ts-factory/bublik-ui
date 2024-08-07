@@ -42,7 +42,7 @@ function RunReportTable({ data, formatters }: RunReportTableProps) {
 									key={idx}
 									className={cn(
 										'border-border-primary text-right text-[0.625rem] font-semibold leading-[1.125rem] px-2 py-1 h-9',
-										'border-b',
+										'border-b w-[1%]',
 										idx !== cells.length - 1 && 'border-r'
 									)}
 								>
