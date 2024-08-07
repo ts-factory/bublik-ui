@@ -21,8 +21,8 @@ function RunReportContainer() {
 		configId && runId ? { configId, runId } : skipToken
 	);
 
-	if (!configId) return;
-	if (!runId) return;
+	if (!configId) return <div>No config id found!</div>;
+	if (!runId) return <div>No run id found!</div>;
 
 	if (isLoading) return <RunReportLoading />;
 
