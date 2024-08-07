@@ -4,15 +4,8 @@ import { forwardRef, useImperativeHandle } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import {
-	ButtonTw,
-	FormAlertError,
-	TextField
-} from '@/shared/tailwind-ui';
-import {
-	ForgotPasswordInputs,
-	ForgotPasswordSchema
-} from '@/shared/types';
+import { ButtonTw, FormAlertError, TextField } from '@/shared/tailwind-ui';
+import { ForgotPasswordInputs, ForgotPasswordSchema } from '@/shared/types';
 
 import { AuthFormLayout } from '../auth-form-layout';
 

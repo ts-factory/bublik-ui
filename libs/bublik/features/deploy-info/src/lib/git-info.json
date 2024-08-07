@@ -1,1 +1,7 @@
-{"date":"2024.07.04","summary":"fix(reports): made datasets for chart/table optional","revision":"ff7d724b","branch":"release-0.43.0","latestTag":"v0.43.0"}
+{
+	"date": "2024.07.04",
+	"summary": "fix(reports): made datasets for chart/table optional",
+	"revision": "ff7d724b",
+	"branch": "release-0.43.0",
+	"latestTag": "v0.43.0"
+}
