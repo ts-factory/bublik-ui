@@ -5,7 +5,8 @@ import { CellContext, ColumnDef } from '@tanstack/react-table';
 import {
 	getRunStatusInfo,
 	BadgeList,
-	BadgeListItem
+	BadgeListItem,
+	ConclusionHoverCard
 } from '@/shared/tailwind-ui';
 import { RunsData, RunsStatisticData, RUN_STATUS } from '@/shared/types';
 import { Tooltip } from '@/shared/tailwind-ui';
@@ -34,23 +35,21 @@ export const columns: ColumnDef<RunsData>[] = [
 		header: () => null,
 		accessorKey: 'conclusion',
 		cell: (cell) => {
-			const { icon, bg, color, label } = getRunStatusInfo(
-				cell.getValue<RUN_STATUS>()
-			);
+			const { icon, bg, color } = getRunStatusInfo(cell.getValue<RUN_STATUS>());
 
 			return (
-				<Tooltip
-					content={`Conclusion: ${label}`}
+				<ConclusionHoverCard
+					conclusion={cell.getValue<RUN_STATUS>()}
+					conclusionReason={cell.row.original.conclusion_reason}
 					side="right"
 					align="start"
-					sideOffset={10}
 				>
 					<div
 						className={`flex flex-col items-center justify-start w-calc(100%+1px) h-[calc(100%+2px)] pt-3 -translate-y-px -translate-x-px rounded-l ${bg} ${color}`}
 					>
 						{icon}
 					</div>
-				</Tooltip>
+				</ConclusionHoverCard>
 			);
 		},
 		enableSorting: false

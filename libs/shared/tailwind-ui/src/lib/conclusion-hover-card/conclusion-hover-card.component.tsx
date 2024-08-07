@@ -21,7 +21,7 @@ function ConclusionHoverCard(
 		<HoverCard
 			content={
 				<div className="bg-white p-4 shadow-lg rounded-lg border border-border-primary">
-					<dl className="grid grid-cols-[max-content,max-content] gap-x-6 gap-y-2">
+					<dl className="grid items-center grid-cols-[max-content,max-content] gap-x-6 gap-y-2">
 						<dt className="text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
 							Conclusion:
 						</dt>
