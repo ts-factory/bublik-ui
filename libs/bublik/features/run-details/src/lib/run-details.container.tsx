@@ -32,6 +32,7 @@ export const RunDetailsContainer: FC<InfoContainerProps> = ({
 		<RunDetails
 			isFullMode={isFullMode}
 			runId={data.id}
+			conclusionReason={data.conclusion_reason}
 			mainPackage={data.main_package}
 			start={data.start}
 			finish={data.finish}

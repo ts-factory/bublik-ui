@@ -67,6 +67,7 @@ export interface RunDetailsMainInfoProps {
 	runDuration: string | null;
 	statusByNok: string | null;
 	status: string | null;
+	conclusionReason?: string | null;
 }
 
 const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
@@ -79,7 +80,8 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 		runFinishDate,
 		runDuration,
 		statusByNok,
-		status
+		status,
+		conclusionReason
 	} = props;
 
 	if (!isFullMode) {
@@ -90,6 +92,9 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 					label="Conclusion"
 					value={<ConclusionBadge status={runStatus} />}
 				/>
+				{conclusionReason ? (
+					<DetailItem label="Reason" value={conclusionReason} />
+				) : null}
 			</>
 		);
 	}
@@ -107,6 +112,9 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 				label="Conclusion"
 				value={<ConclusionBadge status={runStatus} />}
 			/>
+			{conclusionReason ? (
+				<DetailItem label="Reason" value={conclusionReason} />
+			) : null}
 		</>
 	);
 };
@@ -167,6 +175,7 @@ export interface RunDetailsProps {
 	status: string;
 	statusByNok: string;
 	isFetching?: boolean;
+	conclusionReason?: string | null;
 }
 
 export const RunDetails: FC<RunDetailsProps> = (props) => {
@@ -186,7 +195,8 @@ export const RunDetails: FC<RunDetailsProps> = (props) => {
 		specialCategories,
 		status,
 		statusByNok,
-		isFetching
+		isFetching,
+		conclusionReason
 	} = props;
 
 	const data = useMemo(() => {
@@ -235,6 +245,7 @@ export const RunDetails: FC<RunDetailsProps> = (props) => {
 							isFullMode={isFullMode}
 							runStartDate={data.runStartDate}
 							runStatus={runStatus}
+							conclusionReason={conclusionReason}
 							runId={runId}
 							mainPackage={mainPackage}
 							runFinishDate={data.runFinishDate}
