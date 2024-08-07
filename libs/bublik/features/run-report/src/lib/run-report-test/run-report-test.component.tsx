@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { RecordEntityBlock } from '@/shared/types';
+import { ArgsValBlock } from '@/shared/types';
 import { Icon, cn, popoverContentStyles, toast } from '@/shared/tailwind-ui';
 
 import { RunReportChart } from '../run-report-chart';
@@ -17,35 +17,55 @@ import {
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
 	enableTableView: boolean;
-	measurements: RecordEntityBlock[];
+	argsValBlocks: ArgsValBlock[];
 }
 
 function RunReportTestBlock(props: RunReportTestBlockProps) {
-	const { enableChartView, enableTableView, measurements } = props;
+	const { enableChartView, enableTableView, argsValBlocks } = props;
 
 	return (
 		<ul className="flex flex-col">
-			{measurements.map((measurement) => {
+			{argsValBlocks.map((argsValBlock) => {
+				const params = Object.entries(argsValBlock.args_vals).map(
+					([name, value]) => ({
+						name,
+						value: value.toString(),
+						className: 'bg-badge-1'
+					})
+				);
+
 				return (
-					<li
-						id={measurement.id}
-						key={measurement.id}
-						className="border-b border-border-primary"
-					>
-						<RunReportEntityBlock
-							id={measurement.id}
-							label={measurement.label}
-							chart={measurement.dataset_chart}
-							table={measurement.dataset_table}
-							enableChartView={enableChartView}
-							enableTableView={enableTableView}
-							xKey={measurement.axis_x_key}
-							xAxisLabel={measurement.axis_x_label}
-							yAxisLabel={measurement.axis_y_label}
-							args={measurement.args_vals}
-							warnings={measurement.warnings}
-							formatters={measurement.formatters}
-						/>
+					<li id={argsValBlock.id} key={argsValBlock.id}>
+						<div className="border-y border-border-primary">
+							<div className="border-b border-border-primary py-1.5 px-4 sticky top-9 bg-white">
+								<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+									{argsValBlock.label}
+								</span>
+							</div>
+							<div className="p-4">
+								<RunReportArgs label="Args Val" items={params} />
+							</div>
+						</div>
+						<ul>
+							{argsValBlock.content.map((measurement) => {
+								return (
+									<li key={measurement.id}>
+										<MeasurementBlock
+											id={measurement.id}
+											chart={measurement.dataset_chart}
+											table={measurement.dataset_table}
+											enableChartView={enableChartView}
+											enableTableView={enableTableView}
+											xKey={measurement.axis_x_key}
+											xAxisLabel={measurement.axis_x_label}
+											yAxisLabel={measurement.axis_y_label}
+											warnings={measurement.warnings}
+											formatters={measurement.formatters}
+										/>
+									</li>
+								);
+							})}
+						</ul>
 					</li>
 				);
 			})}
@@ -60,14 +80,12 @@ interface RunReportEntityBlockProps
 	xKey: string;
 	xAxisLabel: string;
 	yAxisLabel: string;
-	label: string;
-	args: Record<string, string | number>;
 	id: string;
 	warnings?: string[];
 	formatters?: Record<string, string>;
 }
 
-function RunReportEntityBlock(props: RunReportEntityBlockProps) {
+function MeasurementBlock(props: RunReportEntityBlockProps) {
 	const {
 		chart,
 		table,
@@ -76,18 +94,11 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 		xKey,
 		yAxisLabel,
 		xAxisLabel,
-		label,
-		args,
-		id,
 		warnings,
-		formatters
+		formatters,
+		id
 	} = props;
 
-	const params = Object.entries(args).map(([name, value]) => ({
-		name,
-		value: value.toString(),
-		className: 'bg-badge-1'
-	}));
 	const [searchParams] = useSearchParams();
 
 	return (
@@ -130,9 +141,6 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 								</HoverCard>
 							) : null}
 						</div>
-						<div className="px-4 py-1.5 border-b border-border-primary">
-							<RunReportArgs label="Args" items={params} />
-						</div>
 						<div className="px-4 py-2">
 							<RunReportChart
 								data={chart}
@@ -147,7 +155,7 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 				{enableTableView && table ? (
 					<div
 						className={cn(
-							'flex-1 flex flex-col',
+							'flex-1 flex flex-col shrink-0',
 							enableChartView && chart && 'border-l border-border-primary'
 						)}
 					>

@@ -6,6 +6,16 @@ export interface ReportRoot {
 	run_source_link: string;
 	run_stats_link: string;
 	content: Block[];
+	// TODO: Handle points
+	not_processed_points: unknown[];
+}
+
+export interface ArgsValBlock {
+	id: string;
+	type: 'arg-val-block';
+	label: string;
+	args_vals: Record<string, string | number>;
+	content: MeasurementBlock[];
 }
 
 type Block = BranchBlock | RevisionBlock | TestBlock;
@@ -39,15 +49,13 @@ export type TestBlock = {
 	enable_table_view: boolean;
 	enable_chart_view: boolean;
 	common_args: Record<string, string | number>;
-	content: RecordEntityBlock[];
+	content: ArgsValBlock[];
 };
 
-export type RecordEntityBlock = {
-	type: 'record-entity';
+export type MeasurementBlock = {
+	type: 'measurement-block';
 	id: string;
-	label: string;
 	warnings?: string[];
-	args_vals: Record<string, string | number>;
 	sequence_group_arg: string;
 	axis_x_key: string;
 	axis_x_label: string;

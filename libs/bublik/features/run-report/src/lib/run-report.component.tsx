@@ -2,8 +2,8 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ComponentProps, useMemo, useRef } from 'react';
 
-import { useIsSticky, useMount } from '@/shared/hooks';
-import { CardHeader, Icon, Skeleton, cn, toast } from '@/shared/tailwind-ui';
+import { useMount } from '@/shared/hooks';
+import { CardHeader, Icon, Skeleton, toast } from '@/shared/tailwind-ui';
 
 import {
 	BranchBlock,
@@ -104,9 +104,15 @@ interface RunReportContentListProps {
 }
 
 function RunReportContentList(props: RunReportContentListProps) {
-	return props.blocks.map((block) => (
-		<RunReportContentItem key={block.id} block={block} />
-	));
+	return (
+		<ul className="">
+			{props.blocks.map((block) => (
+				<li key={block.id}>
+					<RunReportContentItem key={block.id} block={block} />
+				</li>
+			))}
+		</ul>
+	);
 }
 
 interface RunReportContentItemProps {
@@ -115,7 +121,6 @@ interface RunReportContentItemProps {
 
 function RunReportContentItem({ block }: RunReportContentItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
-	const { isSticky } = useIsSticky(ref);
 
 	const args = useMemo(
 		() =>
@@ -127,29 +132,20 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 		[block.common_args]
 	);
 
-	const style = isSticky
-		? {
-				boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px',
-				borderColor: 'transparent',
-				borderRadius: 0
-		  }
-		: undefined;
-
 	return (
 		<div id={block.id} className="flex flex-col bg-white rounded">
 			<CardHeader
 				label={block.label}
-				className={cn('sticky top-0 bg-white z-10 rounded-t')}
-				style={style}
+				className="sticky top-0 bg-white z-10 rounded-t border-t"
 				ref={ref}
 			/>
-			<div className="p-4 border-b border-border-primary">
+			<div className="p-4">
 				<RunReportArgs label="Common Args" items={args} />
 			</div>
 			<RunReportTestBlock
 				enableChartView={block.enable_chart_view}
 				enableTableView={block.enable_table_view}
-				measurements={block.content}
+				argsValBlocks={block.content}
 			/>
 		</div>
 	);
