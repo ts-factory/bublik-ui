@@ -95,7 +95,12 @@ export const createColumns = (
 	const statusColumn: ColumnDef<DashboardData> = {
 		id: 'status-col',
 		header: () => null,
-		cell: ({ row }) => <RunIcon runStatus={row.original.context.conclusion} />,
+		cell: ({ row }) => (
+			<RunIcon
+				runStatus={row.original.context.conclusion}
+				conclusionReason={row.original.context.conclusion_reason}
+			/>
+		),
 		meta: { style: { width: 24, position: 'relative' } }
 	};
 
