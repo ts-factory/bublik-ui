@@ -15,7 +15,7 @@ const config: StorybookConfig = {
 	],
 	framework: {
 		name: '@storybook/react-vite',
-		options: { builder: { viteConfigPath: 'apps/bublik/vite.config.ts' } }
+		options: { builder: { viteConfigPath: './vite.config.ts' } }
 	},
 	staticDirs: ['./public'],
 	docs: { autodocs: 'tag' }
