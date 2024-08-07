@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { RecordEntityBlock } from '@/shared/types';
 import { Icon, cn, popoverContentStyles, toast } from '@/shared/tailwind-ui';
@@ -88,6 +88,7 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 		value: value.toString(),
 		className: 'bg-badge-1'
 	}));
+	const [searchParams] = useSearchParams();
 
 	return (
 		<div className="flex flex-col">
@@ -96,11 +97,11 @@ function RunReportEntityBlock(props: RunReportEntityBlockProps) {
 					<div className="flex-1">
 						<div className="px-4 h-9 border-b border-border-primary flex items-center bg-white gap-2">
 							<Link
-								to={{ hash: id }}
+								to={{ hash: id, search: searchParams.toString() }}
 								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 								onClick={() => toast.success('Saved location')}
 							>
-								{label}
+								{yAxisLabel}
 							</Link>
 							{warnings?.length ? (
 								<HoverCard openDelay={100}>
