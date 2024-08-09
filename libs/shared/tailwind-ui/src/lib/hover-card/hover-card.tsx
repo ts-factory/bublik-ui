@@ -27,6 +27,7 @@ export interface HoverCardProps extends RadixHoverCard.HoverCardProps {
 	sideOffset?: RadixHoverCard.HoverCardContentProps['sideOffset'];
 	container?: RadixHoverCard.HoverCardPortalProps['container'];
 	disabled?: boolean;
+	align?: RadixHoverCard.HoverCardContentProps['align'];
 }
 
 export const HoverCard: FC<HoverCardProps> = (props) => {
@@ -39,6 +40,7 @@ export const HoverCard: FC<HoverCardProps> = (props) => {
 		container,
 		disabled,
 		open,
+		align,
 		...restProps
 	} = props;
 
@@ -51,6 +53,7 @@ export const HoverCard: FC<HoverCardProps> = (props) => {
 					className={hoverCardContentStyles()}
 					side={side}
 					sideOffset={sideOffset}
+					align={align}
 					collisionPadding={8}
 				>
 					{content}
