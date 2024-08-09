@@ -6,8 +6,7 @@ export interface ReportRoot {
 	run_source_link: string;
 	run_stats_link: string;
 	content: Block[];
-	// TODO: Handle points
-	not_processed_points: unknown[];
+	not_processed_points: NotProcessedPoint[];
 }
 
 export interface ArgsValBlock {
@@ -19,6 +18,12 @@ export interface ArgsValBlock {
 }
 
 type Block = BranchBlock | RevisionBlock | TestBlock;
+
+export interface NotProcessedPoint {
+	test_name: string;
+	args_vals: Record<string, string | number>;
+	reasons: string[];
+}
 
 type BranchItem = { name: string; value: string };
 
