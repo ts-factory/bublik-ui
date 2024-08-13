@@ -43,7 +43,7 @@ function RunReportChart(props: RunReportChartProps) {
 						extraCssText: 'shadow-popover rounded-lg',
 						trigger: 'axis'
 					},
-					// dataZoom: [{}, { type: 'inside' }],
+					dataZoom: [{}, { type: 'inside' }],
 					dataset: { source: data },
 					xAxis: { type: 'category', name: xAxisLabel },
 					yAxis: { type: 'value', name: yAxisLabel },
