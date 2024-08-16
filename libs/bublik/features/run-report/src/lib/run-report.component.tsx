@@ -92,6 +92,25 @@ const columns = [
 		header: 'Test Name',
 		meta: { className: 'text-xs' }
 	}),
+	helper.accessor('common_args', {
+		header: 'Common Args',
+		cell: ({ cell }) => {
+			const commonArgs = cell.getValue();
+			if (!commonArgs || !Object.keys(commonArgs).length) return;
+
+			return (
+				<ul className="flex flex-wrap gap-1">
+					{Object.entries(commonArgs).map(([name, value]) => (
+						<li key={`${name}_${value}`}>
+							<Badge className="bg-badge-1">
+								{name}: {value}
+							</Badge>
+						</li>
+					))}
+				</ul>
+			);
+		}
+	}),
 	helper.accessor('args_vals', {
 		header: 'Args',
 		cell: ({ cell }) => {
@@ -147,7 +166,7 @@ function NotProcessedPointsTable({ points }: NotProcessedPointsTableProps) {
 					className="min-w-full"
 					style={{
 						display: 'grid',
-						gridTemplateColumns: `max-content 2fr 3fr`
+						gridTemplateColumns: `max-content 1fr 1fr 3fr`
 					}}
 				>
 					{table.getHeaderGroups().map((headerGroup) =>

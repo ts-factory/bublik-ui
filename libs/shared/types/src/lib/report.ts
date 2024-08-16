@@ -22,6 +22,7 @@ type Block = BranchBlock | RevisionBlock | TestBlock;
 export interface NotProcessedPoint {
 	test_name: string;
 	args_vals: Record<string, string | number>;
+	common_args: Record<string, string | number> | undefined | null;
 	reasons: string[];
 }
 
