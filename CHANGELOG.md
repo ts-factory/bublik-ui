@@ -1,5 +1,8 @@
+## [0.3.4](https://github.com/ts-factory/bublik-ui/compare/v0.3.2...v0.3.4) (2024-08-16)
 
+### 🐛 Bug Fix
 
+* **report:** ensure all test blocks are displayed in the report ([658540b](https://github.com/ts-factory/bublik-ui/commit/658540b28cd65d25c7cfa90d5003831905ec467e))
 ### [0.3.3](https://github.com/ts-factory/bublik-ui/compare/v0.3.2...v0.3.3) (2024-08-13)
 
 
