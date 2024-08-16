@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ComponentProps, Fragment, useMemo, useRef } from 'react';
+import { ComponentProps, useMemo, useRef } from 'react';
 
 import { useMount } from '@/shared/hooks';
 import {
@@ -12,13 +12,7 @@ import {
 	toast
 } from '@/shared/tailwind-ui';
 
-import {
-	BranchBlock,
-	ReportRoot,
-	RevisionBlock,
-	TestBlock,
-	NotProcessedPoint
-} from '@/shared/types';
+import { ReportRoot, TestBlock, NotProcessedPoint } from '@/shared/types';
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
 import { useLocation } from 'react-router';
@@ -46,17 +40,17 @@ function RunReport(props: RunReportProps) {
 	} = props;
 
 	const branchBlocks = useMemo(
-		() => content.filter((b) => b.type === 'branch-block') as BranchBlock[],
+		() => content.filter((b) => b.type === 'branch-block'),
 		[content]
 	);
 	const revisionsBlocks = useMemo(
-		() => content.filter((b) => b.type === 'rev-block') as RevisionBlock[],
+		() => content.filter((b) => b.type === 'rev-block'),
 		[content]
 	);
-	const other = useMemo(
+	const testBlocks = useMemo(
 		() => content.filter((b) => b.type === 'test-block'),
 		[content]
-	) as TestBlock[];
+	);
 
 	const location = useLocation();
 
@@ -85,7 +79,7 @@ function RunReport(props: RunReportProps) {
 				branches={branchBlocks}
 				revisions={revisionsBlocks}
 			/>
-			<RunReportContentList blocks={other.slice(0, 1)} />
+			<RunReportContentList blocks={testBlocks} />
 			<NotProcessedPointsTable points={not_processed_points} />
 		</>
 	);
