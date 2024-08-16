@@ -1,7 +1,1 @@
-{
-	"date": "2024.08.14",
-	"summary": "feat(report): added report data zoom to plot",
-	"revision": "716a7ac74",
-	"branch": "release-0.3.3",
-	"latestTag": "v0.3.3"
-}
+{"date":"2024.08.16","summary":"fix(report): ensure all test blocks are displayed in the report","revision":"658540b28","branch":"release-0.3.4","latestTag":"v0.3.4"}
