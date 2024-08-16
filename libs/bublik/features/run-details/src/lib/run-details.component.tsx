@@ -86,18 +86,18 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 
 	if (!isFullMode) {
 		return (
-			<>
+			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
 				<DetailItem label="Start" value={runStartDate} />
 				<DetailItem
 					label="Conclusion"
 					value={<ConclusionBadge status={runStatus} />}
 				/>
-			</>
+			</dl>
 		);
 	}
 
 	return (
-		<>
+		<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
 			<DetailItem label="Identifier" value={runId} />
 			<DetailItem label="Main package" value={mainPackage} />
 			<DetailItem label="Start" value={runStartDate} />
@@ -112,7 +112,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 			{conclusionReason ? (
 				<DetailItem label="Conclusion Reason" value={conclusionReason} />
 			) : null}
-		</>
+		</dl>
 	);
 };
 
@@ -237,20 +237,18 @@ export const RunDetails: FC<RunDetailsProps> = (props) => {
 						isFullMode ? styles['grid-item-full'] : styles['grid-item-collapse']
 					}`}
 				>
-					<ul className="flex flex-col gap-4 whitespace-nowrap">
-						<RunDetailsMainInfo
-							isFullMode={isFullMode}
-							runStartDate={data.runStartDate}
-							runStatus={runStatus}
-							conclusionReason={conclusionReason}
-							runId={runId}
-							mainPackage={mainPackage}
-							runFinishDate={data.runFinishDate}
-							runDuration={data.runDuration}
-							statusByNok={statusByNok}
-							status={status}
-						/>
-					</ul>
+					<RunDetailsMainInfo
+						isFullMode={isFullMode}
+						runStartDate={data.runStartDate}
+						runStatus={runStatus}
+						conclusionReason={conclusionReason}
+						runId={runId}
+						mainPackage={mainPackage}
+						runFinishDate={data.runFinishDate}
+						runDuration={data.runDuration}
+						statusByNok={statusByNok}
+						status={status}
+					/>
 				</div>
 				<div className={styles['grid-tags']}>
 					<div className="flex flex-col gap-2">
