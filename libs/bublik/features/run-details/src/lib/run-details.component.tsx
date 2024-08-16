@@ -92,9 +92,6 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 					label="Conclusion"
 					value={<ConclusionBadge status={runStatus} />}
 				/>
-				{conclusionReason ? (
-					<DetailItem label="Reason" value={conclusionReason} />
-				) : null}
 			</>
 		);
 	}
