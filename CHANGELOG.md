@@ -1,3 +1,28 @@
+
+
+### [0.3.5](https://github.com/ts-factory/bublik-ui/compare/v0.3.2...v0.3.5) (2024-08-17)
+
+### 🚀 New Feature
+
+* **report:** added common args for not processed points table ([720da5f](https://github.com/ts-factory/bublik-ui/commit/720da5fe217372c117fff70ca8629c2d2b7a8e48))
+* **report:** added data zoom to report plots ([8999ee3](https://github.com/ts-factory/bublik-ui/commit/8999ee375b6d1b33f57dc8a01c1d10b1c3d7ce2f))
+
+
+### ♻ Code Refactoring
+
+* **run,log:** omit conclusion reason from run details in short mode ([fd2817d](https://github.com/ts-factory/bublik-ui/commit/fd2817d603b01c81a24f14aa08e8515dc9c91559))
+
+
+### 📦 Chores
+
+* **run,log:** renamed label from "Reason" to "Conclusion Reason" ([b106bb3](https://github.com/ts-factory/bublik-ui/commit/b106bb3009db56e54db40ee7ef80c35b0950c901))
+* **storybook:** remove all mocked modules ([2f4ab3d](https://github.com/ts-factory/bublik-ui/commit/2f4ab3d3fa78532488ca10224d5a7bbb9c580c09))
+
+
+### 💅 Polish
+
+* **run,log:** [details] fixed column alignment between term and description ([8a4780c](https://github.com/ts-factory/bublik-ui/commit/8a4780c93c675a07cc22142edf2bee814f8e310c))
+
 ## [0.3.4](https://github.com/ts-factory/bublik-ui/compare/v0.3.2...v0.3.4) (2024-08-16)
 
 ### 🐛 Bug Fix
