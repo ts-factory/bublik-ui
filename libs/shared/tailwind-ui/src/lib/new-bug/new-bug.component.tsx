@@ -144,10 +144,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			([label, values]) => {
 				if (!values.length) return;
 				markdown += `## ${label}\n\n`;
-				markdown += `${generateMarkdownTable(
-					parseKeyValuePairs(values),
-					NAME_VALUE_KEYS
-				)}`;
+				markdown += values.join(', ');
 			}
 		);
 	}
