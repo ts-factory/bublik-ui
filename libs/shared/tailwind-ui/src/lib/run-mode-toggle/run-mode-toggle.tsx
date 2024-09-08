@@ -18,15 +18,22 @@ export const RunModeToggle: FC<ToggleInfoButtonProps> = ({
 }) => {
 	return (
 		<Tooltip content="Toggle mode">
-			<ButtonTw size="xss" variant="secondary" onClick={onToggleClick}>
+			<ButtonTw
+				size="xss"
+				variant={isFullMode ? 'primary' : 'secondary'}
+				onClick={onToggleClick}
+			>
 				<div
 					className={cn(
-						'flex items-center justify-center transition-all',
+						'flex items-center justify-center mr-1.5',
 						isFullMode ? '' : 'rotate-180'
 					)}
 				>
 					<Icon name="ArrowLeanUp" />
 				</div>
+				<span className="w-[6ch] text-left">
+					{isFullMode ? 'Hide' : 'Expose'}
+				</span>
 			</ButtonTw>
 		</Tooltip>
 	);
