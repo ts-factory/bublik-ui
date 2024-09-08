@@ -18,7 +18,8 @@ export const enum ColumnId {
 	FailedUnexpected = 'FAILED_UNEXPECTED',
 	SkippedExpected = 'SKIPPED_EXPECTED',
 	SkippedUnexpected = 'SKIPPED_UNEXPECTED',
-	Abnormal = 'ABNORMAL'
+	Abnormal = 'ABNORMAL',
+	Objective = 'Objective'
 }
 
 export type GlobalFilterValue = {

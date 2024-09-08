@@ -116,6 +116,7 @@ export type RunData = {
 	path: string[];
 	stats: RunStats;
 	children: RunData[];
+	objective?: string;
 };
 
 export type RunDataResults = {

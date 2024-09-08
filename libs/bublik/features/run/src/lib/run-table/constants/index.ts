@@ -51,7 +51,8 @@ export const isUnexpectedColumn =
 	createUnexpectedColumnGetter(UnexpectedColumns);
 
 export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
-	[ColumnId.Total]: false
+	[ColumnId.Total]: false,
+	[ColumnId.Objective]: false
 };
 
 export const COLUMN_GROUPS: ColumnId[][] = [

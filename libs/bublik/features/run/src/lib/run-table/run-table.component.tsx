@@ -7,7 +7,6 @@ import {
 	getSortedRowModel,
 	getFilteredRowModel,
 	useReactTable,
-	ColumnDef,
 	SortingState,
 	ExpandedState,
 	Row,
@@ -26,11 +25,11 @@ import {
 	getRowsValuesById,
 	getRowsDescriptionById
 } from './utils';
-import { badgeColumns, treeColumn } from './columns';
 import { AllRowsContext, RowValuesContextProvider } from './context';
 import { RunHeader, RunRow } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
+import { columns } from './columns';
 
 export const RunTableLoading = () => {
 	return <Skeleton className="rounded h-[30vh] w-full" />;
@@ -110,11 +109,6 @@ export const RunTable = (props: RunTableProps) => {
 		columnVisibility,
 		onColumnVisibilityChange
 	} = props;
-
-	const columns = useMemo<ColumnDef<RunData>[]>(
-		() => [treeColumn, ...badgeColumns],
-		[]
-	);
 
 	const table = useReactTable<RunData>({
 		data,
