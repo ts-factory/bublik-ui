@@ -7,6 +7,7 @@ export * from './lib/input';
 export * from './lib/badge';
 export * from './lib/info-card';
 export * from './lib/pagination';
+export * from './lib/new-bug';
 export * from './lib/spinner';
 export * from './lib/badges-header-input';
 export * from './lib/scroll-to-top';
