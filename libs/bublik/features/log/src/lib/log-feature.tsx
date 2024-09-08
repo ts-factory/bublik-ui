@@ -127,7 +127,7 @@ export const LogFeature = (props: LogFeatureProps) => {
 							<LinkToSourceContainer runId={runId} />
 							<NewBugButton
 								link={window.location.href}
-								path={[]}
+								path={path}
 								name={name}
 								verdicts={verdicts}
 								tags={{

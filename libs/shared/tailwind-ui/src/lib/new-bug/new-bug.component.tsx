@@ -90,7 +90,10 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 
 	let markdown = '';
 	// 1. Link and path
-	markdown += `# [${options.name}](${options.link})\n\n`;
+	markdown += `Name: [${options.name}](${options.link})\n`;
+	if (options.path) {
+		markdown += `Path: ${options.path}\n\n`;
+	}
 	// 2. Branches
 	if (options.tags.branches.length) {
 		markdown += `## Branches\n\n`;
@@ -161,7 +164,7 @@ type BugTags = {
 
 interface NewBugButtonProps {
 	link: string;
-	path: string[];
+	path?: string;
 	name: string;
 	verdicts?: string[];
 	tags: BugTags;
