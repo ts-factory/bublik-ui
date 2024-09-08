@@ -10,12 +10,16 @@ import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
-import { usePrefetchLogPage } from '@/services/bublik-api';
+import {
+	useGetRunDetailsQuery,
+	usePrefetchLogPage
+} from '@/services/bublik-api';
 import { useCopyToClipboard } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
 	Icon,
+	NewBugButton,
 	RunModeToggle,
 	ScrollToTopPage,
 	toast,
@@ -38,6 +42,8 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 	});
 
 	const handleCopyRunId = () => copy(runId);
+
+	const { data, isLoading, error } = useGetRunDetailsQuery(runId);
 
 	return (
 		<header className="flex flex-col bg-white rounded min-h-[260px]">
@@ -62,6 +68,18 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					<RunModeToggle
 						isFullMode={isModeFull}
 						onToggleClick={() => setIsModeFull(!isModeFull)}
+					/>
+					<NewBugButton
+						name={data?.main_package ?? ''}
+						link={window.location.href}
+						path={`/${data?.main_package}`}
+						tags={{
+							branches: data?.branches ?? [],
+							important: data?.important_tags ?? [],
+							specialCategories: data?.special_categories ?? {},
+							revisions: data?.revisions ?? []
+						}}
+						isDisabled={isLoading || Boolean(error)}
 					/>
 					<CopyShortUrlButtonContainer />
 				</div>
