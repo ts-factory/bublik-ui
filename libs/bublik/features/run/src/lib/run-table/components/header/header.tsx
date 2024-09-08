@@ -37,7 +37,7 @@ export const RunHeader: FC<RunHeaderProps> = ({ instance }) => {
 								key={header.id}
 								colSpan={header.colSpan}
 								className={cn(
-									'px-2 border-b sticky top-0 z-20 bg-white uppercase',
+									'px-2 border-b sticky top-0 z-20 bg-white',
 									isBorderGroup && 'border-r border-border-primary'
 								)}
 							>

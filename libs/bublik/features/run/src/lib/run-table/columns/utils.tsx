@@ -14,7 +14,9 @@ export const createRunColumn = (
 	return {
 		accessorFn: config.accessor,
 		id: config.id,
-		header: () => <TableHeader header={config.header} icon={config.icon} />,
+		header: () => (
+			<TableHeader header={config.header.toUpperCase()} icon={config.icon} />
+		),
 		cell: ({ getValue, row, table }) => {
 			const value = getValue<string | number>();
 
