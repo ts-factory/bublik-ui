@@ -1,7 +1,7 @@
 {
 	"date": "2024.09.09",
-	"summary": "fix(run): remove redundant rowState query param",
-	"revision": "69ae6cfca",
-	"branch": "main",
-	"latestTag": "v0.3.6"
+	"summary": "feat(log): added new field to markdown from te-log-meta",
+	"revision": "cb3692f3c",
+	"branch": "release-0.3.7",
+	"latestTag": "v0.3.7"
 }
