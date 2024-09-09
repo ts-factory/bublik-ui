@@ -193,7 +193,7 @@ function NewBugButton(props: NewBugButtonProps) {
 			<DialogOverlay className={dialogOverlayStyles()} />
 			<DialogContent
 				className={cn(
-					'p-4 bg-white rounded-xl shadow-popover min-w-[40vw] overflow-auto',
+					'p-4 bg-white rounded-xl shadow-popover min-w-[40vw] overflow-auto max-w-[80vw]',
 					dialogContentStyles()
 				)}
 			>
@@ -203,7 +203,7 @@ function NewBugButton(props: NewBugButtonProps) {
 					</h2>
 					<pre
 						className={cn(
-							'transition-all border border-border-primary rounded-md hover:border-primary',
+							'transition-all border border-border-primary rounded-md hover:border-primary whitespace-break-spaces overflow-wrap-anywhere',
 							'text-xs p-2'
 						)}
 					>
