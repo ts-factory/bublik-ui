@@ -1,7 +1,7 @@
 {
-	"date": "2024.08.17",
-	"summary": "style(run,log): [details] fixed column alignment between term and description",
-	"revision": "8a4780c93",
-	"branch": "release-0.3.5",
-	"latestTag": "v0.3.5"
+	"date": "2024.09.09",
+	"summary": "fix(run): remove redundant rowState query param",
+	"revision": "69ae6cfca",
+	"branch": "main",
+	"latestTag": "v0.3.6"
 }
