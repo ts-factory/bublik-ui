@@ -92,8 +92,25 @@ export const LogFeature = (props: LogFeatureProps) => {
 			.flat()
 			.map((v) => v.verdict) ?? [];
 
-	const link = new URL(window.location.href);
-	link.searchParams.delete('rowState');
+	const objectives = (data?.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((m) => m.meta.objective)
+		.filter((v) => !!v)
+		.flat() ?? []) as string[];
+
+	const hashes = (data?.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((m) => m.entity_model.extended_properties?.['hash'])
+		.filter((v) => !!v)
+		.flat() ?? []) as string[];
+
+	const testLink = new URL(window.location.href);
+	testLink.searchParams.delete('rowState');
+	testLink.searchParams.delete('lineNumber');
+	const errorLink = new URL(window.location.href);
+	testLink.searchParams.delete('rowState');
 
 	if (!runId) return null;
 
@@ -129,10 +146,17 @@ export const LogFeature = (props: LogFeatureProps) => {
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<LinkToSourceContainer runId={runId} />
 							<NewBugButton
-								link={link.href}
+								link={testLink.href}
 								path={path}
 								name={name}
 								verdicts={verdicts}
+								hashes={hashes}
+								objectives={objectives}
+								lineLink={
+									errorLink.searchParams.get('lineNumber')
+										? errorLink.href
+										: undefined
+								}
 								tags={{
 									branches: details?.branches ?? [],
 									parameters,

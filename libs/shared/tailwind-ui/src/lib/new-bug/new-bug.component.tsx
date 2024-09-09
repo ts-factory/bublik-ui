@@ -88,70 +88,123 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 		});
 	}
 
-	let markdown = '';
-	// 1. Link and path
-	markdown += `Name: [${options.name}](${options.link})\n`;
-	if (options.path) {
-		markdown += `Path: ${options.path}\n\n`;
-	}
-	// 2. Branches
-	if (options.tags.branches.length) {
-		markdown += `## Branches\n\n`;
-		markdown += `${generateMarkdownTable(
-			parseKeyValuePairs(options.tags.branches),
-			NAME_VALUE_KEYS
-		)}\n\n`;
-	}
-	// 3. Revisions
-	if (options.tags?.revisions?.length) {
-		markdown += '## Revisions\n\n';
-		markdown += `${generateMarkdownTable(options.tags.revisions, [
-			{ accessor: 'name', header: 'Name' },
-			{
-				accessor: 'value',
-				header: 'Value',
-				linkAccessor: 'url',
-				linkTextKey: 'value'
+	function findAllMatches<T, U>(arr1: T[], arr2: U[]): [T, U][] {
+		const matches: [T, U][] = [];
+
+		for (const item1 of arr1) {
+			for (const item2 of arr2) {
+				matches.push([item1, item2]);
 			}
-		])}\n\n`;
+		}
+
+		return matches;
 	}
-	// 4. Parameters
-	if (options.tags?.parameters?.length) {
-		markdown += '## Parameters\n\n';
-		markdown += `${generateMarkdownTable(
-			parseKeyValuePairs(options.tags.parameters),
-			NAME_VALUE_KEYS
-		)}\n\n`;
-	}
-	// 5. Important Tags
-	if (options.tags.important.length) {
-		markdown += '## Important Tags\n\n';
-		markdown += `${generateMarkdownTable(
-			parseKeyValuePairs(options.tags.important),
-			NAME_VALUE_KEYS
-		)}\n\n`;
-	}
-	// 6. Verdicts
-	if (options.verdicts?.length) {
-		markdown += '## Verdicts\n\n';
-		markdown += `${generateMarkdownTable(
-			options.verdicts.map((v) => ({ value: v })),
-			[{ accessor: 'value', header: 'Value' }]
-		)}\n\n`;
-	}
-	// 7. Configuration
-	if (
-		Object.entries(options.tags.specialCategories).some(([_, v]) => v.length)
-	) {
-		Object.entries(options.tags.specialCategories).forEach(
-			([label, values]) => {
+	try {
+		let markdown = '';
+		// 1. Link and path
+		markdown += `Test Name: ${options.name}\n`;
+
+		if (options.objectives?.length) {
+			options.objectives.forEach(
+				(ob) => (markdown += `Test Objective: ${ob}\n`)
+			);
+		}
+
+		if (options?.hashes?.length) {
+			options.hashes.forEach((ob) => (markdown += `Hash: ${ob}\n`));
+		}
+
+		if (options.path) {
+			markdown += `Path: ${options.path}\n`;
+		}
+
+		if (
+			Object.entries(options.tags.specialCategories).some(
+				([_, v]) => v.length
+			) &&
+			options.hashes &&
+			options.hashes.length
+		) {
+			Object.entries(options.tags.specialCategories).forEach(([_, values]) => {
 				if (!values.length) return;
-				markdown += `## ${label}\n\n`;
-				markdown += values.join(', ');
-			}
-		);
+				const matches = findAllMatches(values, options.hashes as string[]);
+				matches.forEach((match) => {
+					markdown += `CMD: \`./run.sh --cfg=${match[0]} --tester-run=${match[1]} -n\`\n`;
+				});
+			});
+		}
+
+		markdown += `\n-----------------------------------\n\n`;
+		markdown += `[Go To Full Log](${options.link})\n`;
+		if (options.lineLink) {
+			markdown += `[Go To Log Line ${
+				new URL(options.lineLink).searchParams.get('lineNumber')?.split('_')[1]
+			}](${options.lineLink})\n`;
+		}
+
+		// 6. Verdicts
+		if (options.verdicts?.length) {
+			markdown += '\n## Verdicts\n\n';
+			markdown += `${generateMarkdownTable(
+				options.verdicts.map((v) => ({ value: v })),
+				[{ accessor: 'value', header: 'Value' }]
+			)}\n\n`;
+		}
+
+		// 2. Branches
+		if (options.tags.branches.length) {
+			markdown += `\n## Branches\n\n`;
+			markdown += `${generateMarkdownTable(
+				parseKeyValuePairs(options.tags.branches),
+				NAME_VALUE_KEYS
+			)}\n\n`;
+		}
+		// 3. Revisions
+		if (options.tags?.revisions?.length) {
+			markdown += '## Revisions\n\n';
+			markdown += `${generateMarkdownTable(options.tags.revisions, [
+				{ accessor: 'name', header: 'Name' },
+				{
+					accessor: 'value',
+					header: 'Value',
+					linkAccessor: 'url',
+					linkTextKey: 'value'
+				}
+			])}\n\n`;
+		}
+		// 4. Parameters
+		if (options.tags?.parameters?.length) {
+			markdown += '## Parameters\n\n';
+			markdown += `${generateMarkdownTable(
+				parseKeyValuePairs(options.tags.parameters),
+				NAME_VALUE_KEYS
+			)}\n\n`;
+		}
+		// 5. Important Tags
+		if (options.tags.important.length) {
+			markdown += '## Important Tags\n\n';
+			markdown += `${generateMarkdownTable(
+				parseKeyValuePairs(options.tags.important),
+				NAME_VALUE_KEYS
+			)}\n\n`;
+		}
+		// 7. Configuration
+		if (
+			Object.entries(options.tags.specialCategories).some(([_, v]) => v.length)
+		) {
+			Object.entries(options.tags.specialCategories).forEach(
+				([label, values]) => {
+					if (!values.length) return;
+					markdown += `## ${label}\n\n`;
+					markdown += values.join(', ');
+				}
+			);
+		}
+		return markdown;
+	} catch (e) {
+		console.error(e);
+		return 'Failed to prepare markdown.\n Please report.';
 	}
-	return markdown;
 }
 
 type BugTags = {
@@ -167,8 +220,11 @@ interface NewBugButtonProps {
 	path?: string;
 	name: string;
 	verdicts?: string[];
+	hashes?: string[];
 	tags: BugTags;
 	isDisabled?: boolean;
+	objectives?: string[];
+	lineLink?: string;
 }
 
 function NewBugButton(props: NewBugButtonProps) {
