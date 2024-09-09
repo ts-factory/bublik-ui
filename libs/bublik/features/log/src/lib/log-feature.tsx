@@ -92,6 +92,9 @@ export const LogFeature = (props: LogFeatureProps) => {
 			.flat()
 			.map((v) => v.verdict) ?? [];
 
+	const link = new URL(window.location.href);
+	link.searchParams.delete('rowState');
+
 	if (!runId) return null;
 
 	return (
@@ -126,7 +129,7 @@ export const LogFeature = (props: LogFeatureProps) => {
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<LinkToSourceContainer runId={runId} />
 							<NewBugButton
-								link={window.location.href}
+								link={link.href}
 								path={path}
 								name={name}
 								verdicts={verdicts}
