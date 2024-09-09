@@ -45,6 +45,9 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 
 	const { data, isLoading, error } = useGetRunDetailsQuery(runId);
 
+	const link = new URL(window.location.href);
+	link.searchParams.delete('rowState');
+
 	return (
 		<header className="flex flex-col bg-white rounded min-h-[260px]">
 			<CardHeader label="Info">
@@ -71,7 +74,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					/>
 					<NewBugButton
 						name={data?.main_package ?? ''}
-						link={window.location.href}
+						link={link.href}
 						path={`/${data?.main_package}`}
 						tags={{
 							branches: data?.branches ?? [],
