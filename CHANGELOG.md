@@ -1,5 +1,22 @@
 
 
+### [0.3.8](https://github.com/ts-factory/bublik-ui/compare/v0.3.7...v0.3.8) (2024-09-10)
+
+
+### 💅 Polish
+
+* **log,run:** [new-bug] wrapped path to test with backticks ([0f3ca9e](https://github.com/ts-factory/bublik-ui/commit/0f3ca9efe17ec9077d6be7610b46b4f380b92369))
+
+
+### 🚀 New Feature
+
+* **log,run:** [new-bug] added ability to display cells as code block ([94e7b59](https://github.com/ts-factory/bublik-ui/commit/94e7b59b48a6322195ccda521c23762f531baafe))
+
+
+### 🐛 Bug Fix
+
+* **run,log:** [new-bug] fixed env breaking markdown table ([7f9acee](https://github.com/ts-factory/bublik-ui/commit/7f9acee3fcef6e5bbee4e7642a24b7a8c146e270))
+
 ### [0.3.7](https://github.com/ts-factory/bublik-ui/compare/v0.3.6...v0.3.7) (2024-09-09)
 
 

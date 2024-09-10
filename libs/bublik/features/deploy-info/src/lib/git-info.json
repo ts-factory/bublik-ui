@@ -1,7 +1,7 @@
 {
-	"date": "2024.09.09",
-	"summary": "feat(log): added new field to markdown from te-log-meta",
-	"revision": "cb3692f3c",
-	"branch": "release-0.3.7",
-	"latestTag": "v0.3.7"
+	"date": "2024.09.10",
+	"summary": "fix(run,log): [new-bug] fixed env breaking markdown table",
+	"revision": "7f9acee3f",
+	"branch": "main",
+	"latestTag": "v0.3.8"
 }
