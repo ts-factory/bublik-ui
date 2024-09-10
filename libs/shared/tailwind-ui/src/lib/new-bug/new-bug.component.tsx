@@ -189,7 +189,10 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			markdown += '## Parameters\n\n';
 			markdown += `${generateMarkdownTable(
 				parseKeyValuePairs(options.tags.parameters),
-				NAME_VALUE_KEYS
+				[
+					{ accessor: 'name', header: 'Name' },
+					{ accessor: 'value', header: 'Value', preformat: true }
+				]
 			)}\n\n`;
 		}
 		// 5. Important Tags
