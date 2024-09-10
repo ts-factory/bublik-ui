@@ -14,14 +14,17 @@ import {
 import { ButtonTw } from '../button';
 import { Icon } from '../icon';
 
+type KeyOption<T> = {
+	accessor: keyof T;
+	header: string;
+	linkAccessor?: keyof T;
+	linkTextKey?: keyof T;
+	preformat?: boolean;
+};
+
 function generateMarkdownTable<T extends Record<string, unknown>>(
 	objects: Array<T>,
-	keys: readonly {
-		accessor: keyof T;
-		header: string;
-		linkAccessor?: keyof T;
-		linkTextKey?: keyof T;
-	}[]
+	keys: readonly KeyOption<T>[]
 ): string {
 	const columnWidths = keys.map((key) => {
 		return Math.max(
@@ -42,6 +45,10 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 		return str.padEnd(length, ' ');
 	};
 
+	const escapeMarkdown = (str: string) => {
+		return str.replace(/\|/g, '\\|').replace(/\n/g, ' '); // Escape '|' and replace newlines
+	};
+
 	const header = `| ${keys
 		.map((key, i) => padString(key.header, columnWidths[i]))
 		.join(' | ')} |`;
@@ -52,8 +59,10 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 
 	const rows = objects.map((obj) => {
 		const row = keys.map((key, i) => {
-			const value =
+			let value =
 				obj[key.accessor] !== undefined ? String(obj[key.accessor]) : '';
+
+			value = escapeMarkdown(value);
 
 			if (key.linkAccessor && key.linkTextKey) {
 				const link = obj[key.linkAccessor];
@@ -62,6 +71,9 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 					return padString(`[${linkText}](${link})`, columnWidths[i]);
 				}
 			}
+
+			// Wrap in backticks if the preformat option is set to true for this key
+			if (key.preformat) value = `\`\`\`${value}\`\`\``;
 
 			return padString(value, columnWidths[i]);
 		});
