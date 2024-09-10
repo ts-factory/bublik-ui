@@ -115,7 +115,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 		}
 
 		if (options.path) {
-			markdown += `Path: ${options.path}\n`;
+			markdown += `Path: \`${options.path}\`\n`;
 		}
 
 		if (
