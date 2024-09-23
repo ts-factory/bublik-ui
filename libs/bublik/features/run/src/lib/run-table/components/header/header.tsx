@@ -41,7 +41,7 @@ export const RunHeader: FC<RunHeaderProps> = ({ instance }) => {
 									isBorderGroup && 'border-r border-border-primary'
 								)}
 							>
-								{header.isPlaceholder ? null : (
+								{header.isPlaceholder ? null : header.column.getCanSort() ? (
 									<div
 										{...(header.column.getCanSort()
 											? {
@@ -57,12 +57,13 @@ export const RunHeader: FC<RunHeaderProps> = ({ instance }) => {
 											header.column.columnDef.header,
 											header.getContext()
 										)}
-										{header.column.getCanSort() && (
-											<TableSort
-												sortDescription={header.column.getIsSorted()}
-											/>
-										)}
+										<TableSort sortDescription={header.column.getIsSorted()} />
 									</div>
+								) : (
+									flexRender(
+										header.column.columnDef.header,
+										header.getContext()
+									)
 								)}
 							</th>
 						);
