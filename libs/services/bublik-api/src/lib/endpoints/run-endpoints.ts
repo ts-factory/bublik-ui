@@ -13,7 +13,11 @@ import {
 	RunDetailsAPIResponse,
 	CompromisedDeleteResponse,
 	CompromisedPostResponse,
-	CompromisedBody
+	CompromisedBody,
+	CreateTestCommentResponse,
+	CreateTestCommentParams,
+	EditTestCommentParams,
+	DeleteTestCommentParams
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -24,16 +28,24 @@ import { BublikBaseQueryFn, withApiV2 } from '../config';
 
 export const runEndpoints = {
 	endpoints: (
-		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
+		build: EndpointBuilder<
+			BublikBaseQueryFn,
+			BUBLIK_TAG | string,
+			API_REDUCER_PATH
+		>
 	) => ({
 		getRunSource: build.query<RunSourceAPIRResponse, string>({
 			query: (runId) => ({ url: withApiV2(`/runs/${runId}/source`) }),
 			keepUnusedDataFor: getMinutes(15)
 		}),
 		getRunTableByRunId: build.query<RunData[] | null, string>({
-			query: (runId) => ({ url: withApiV2(`/runs/${runId}/stats`) }),
+			query: (runId) => ({
+				url: withApiV2(`/runs/${runId}/stats`),
+				cache: 'no-cache'
+			}),
 			keepUnusedDataFor: getMinutes(5),
-			transformResponse: transformRunTable
+			transformResponse: transformRunTable,
+			providesTags: [{ type: BUBLIK_TAG.Run }]
 		}),
 		getResultsTable: build.query<
 			RunDataResults[],
@@ -127,6 +139,38 @@ export const runEndpoints = {
 					{ type: BUBLIK_TAG.RunDetails, id: runId }
 				]
 			}
-		)
+		),
+		createTestComment: build.mutation<
+			CreateTestCommentResponse,
+			CreateTestCommentParams
+		>({
+			query: (params) => ({
+				url: withApiV2(`/tests/${params.testId}/comments`),
+				method: 'POST',
+				body: { comment: params.comment }
+			}),
+			invalidatesTags: [BUBLIK_TAG.Run]
+		}),
+		editTestComment: build.mutation<
+			CreateTestCommentResponse,
+			EditTestCommentParams
+		>({
+			query: (params) => ({
+				url: withApiV2(`/tests/${params.testId}/comments/${params.commentId}`),
+				method: 'PATCH',
+				body: { comment: params.comment }
+			}),
+			invalidatesTags: [BUBLIK_TAG.Run]
+		}),
+		deleteTestComment: build.mutation<
+			CreateTestCommentResponse,
+			DeleteTestCommentParams
+		>({
+			query: (params) => ({
+				url: withApiV2(`/tests/${params.testId}/comments/${params.commentId}`),
+				method: 'DELETE'
+			}),
+			invalidatesTags: [BUBLIK_TAG.Run]
+		})
 	})
 };

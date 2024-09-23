@@ -10,5 +10,6 @@ export const enum BUBLIK_TAG {
 	RunExternalRefs = 'RunExternalRefs',
 	RunDetails = 'RunDetails',
 	User = 'user',
+	Run = 'run',
 	AdminUsersTable = 'admin-users-table'
 }

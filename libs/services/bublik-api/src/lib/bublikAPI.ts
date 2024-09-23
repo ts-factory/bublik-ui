@@ -161,6 +161,9 @@ export const {
 	useGetPerformanceTimeoutsQuery,
 	useGetRunReportQuery,
 	useGetRunReportConfigsQuery,
+	useCreateTestCommentMutation,
+	useEditTestCommentMutation,
+	useDeleteTestCommentMutation,
 	// Utils
 	usePrefetch,
 	useLazyGetShortUrlQuery

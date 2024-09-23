@@ -117,6 +117,13 @@ export type RunData = {
 	stats: RunStats;
 	children: RunData[];
 	objective?: string;
+	comments?: Array<RunDataComment>;
+};
+
+export type RunDataComment = {
+	comment_id: string;
+	updated: string;
+	comment: string;
 };
 
 export type RunDataResults = {
@@ -162,6 +169,30 @@ export interface CompromisedBody {
 	bugId: number;
 	referenceKey: string;
 }
+
+export type CreateTestCommentParams = {
+	testId: number;
+	comment: string;
+};
+
+export type EditTestCommentParams = {
+	testId: number;
+	commentId: number;
+	comment: string;
+};
+
+export type DeleteTestCommentParams = {
+	testId: number;
+	commentId: number;
+};
+
+export type CreateTestCommentResponse = {
+	id: number;
+	updated: string;
+	meta: { name?: unknown; type: 'comment'; value: string; comment?: unknown };
+	test: number;
+	serial: number;
+};
 
 /** When run is marked as compromised successfully */
 export interface CompromisedPostResponse {
