@@ -21,7 +21,8 @@ export interface RunTableContainerProps {
 }
 
 export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
-	const { data, isLoading, error } = useGetRunTableByRunIdQuery(runId);
+	const { data, isLoading, error, isFetching } =
+		useGetRunTableByRunIdQuery(runId);
 
 	useRunPageName({ runId });
 
@@ -70,6 +71,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				onSortingChange={setSorting}
 				columnVisibility={columnVisibility}
 				onColumnVisibilityChange={setColumnVisibility}
+				isFetching={isFetching}
 			/>
 		</RunRowStateContextProvider>
 	);

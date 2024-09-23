@@ -17,7 +17,7 @@ import {
 import { RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { getErrorMessage } from '@/services/bublik-api';
-import { Icon, Skeleton, Tooltip } from '@/shared/tailwind-ui';
+import { cn, Icon, Skeleton, Tooltip } from '@/shared/tailwind-ui';
 
 import { globalFilterFn } from './filter';
 import {
@@ -92,6 +92,7 @@ export interface RunTableProps {
 	onSortingChange: OnChangeFn<SortingState>;
 	onGlobalFilterChange: OnChangeFn<string[]>;
 	openUnexpectedResults?: boolean;
+	isFetching?: boolean;
 }
 
 export const RunTable = (props: RunTableProps) => {
@@ -107,7 +108,8 @@ export const RunTable = (props: RunTableProps) => {
 		onGlobalFilterChange,
 		onSortingChange,
 		columnVisibility,
-		onColumnVisibilityChange
+		onColumnVisibilityChange,
+		isFetching
 	} = props;
 
 	const table = useReactTable<RunData>({
@@ -162,7 +164,10 @@ export const RunTable = (props: RunTableProps) => {
 				</Tooltip>
 				<Toolbar table={table} />
 			</div>
-			<div className="bg-white rounded" data-testid="run-table">
+			<div
+				className={cn('bg-white rounded', isFetching && 'opacity-40')}
+				data-testid="run-table"
+			>
 				<table className="w-full p-0 m-0 border-separate border-spacing-0">
 					<RunHeader instance={table} />
 					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
