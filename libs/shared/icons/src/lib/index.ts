@@ -78,3 +78,4 @@ export { ReactComponent as ScatterChartMode } from './scatter-chart-mode.svg';
 export { ReactComponent as Image } from './image.svg';
 export { ReactComponent as TwoUsers } from './two-users.svg';
 export { ReactComponent as IssueIcon } from './issue.svg';
+export { ReactComponent as FilePlus } from './file-plus.svg';
