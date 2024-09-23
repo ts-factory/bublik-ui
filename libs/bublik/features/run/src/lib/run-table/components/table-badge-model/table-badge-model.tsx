@@ -216,8 +216,7 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 		);
 	}
 
-	// eslint-disable-next-line react/jsx-no-useless-fragment
-	if (!value) return <>{0}</>;
+	if (!value) return <span className="pl-2.5">{0}</span>;
 
 	return (
 		<Badge
