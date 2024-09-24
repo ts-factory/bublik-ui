@@ -9,7 +9,6 @@ import {
 	ConclusionHoverCard
 } from '@/shared/tailwind-ui';
 import { RunsData, RunsStatisticData, RUN_STATUS } from '@/shared/types';
-import { Tooltip } from '@/shared/tailwind-ui';
 
 import { DatesHeader, ColumnDates, RunLinks, ColumnSummary } from './columns';
 
