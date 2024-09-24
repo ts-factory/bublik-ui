@@ -1,7 +1,7 @@
 {
-	"date": "2024.09.10",
-	"summary": "fix(run,log): [new-bug] fixed env breaking markdown table",
-	"revision": "7f9acee3f",
-	"branch": "main",
-	"latestTag": "v0.3.8"
+	"date": "2024.09.24",
+	"summary": "style(run): [table] added borders for `Notes` and `Objective` columns",
+	"revision": "f5d94ee07",
+	"branch": "release-0.3.9",
+	"latestTag": "v0.3.9"
 }
