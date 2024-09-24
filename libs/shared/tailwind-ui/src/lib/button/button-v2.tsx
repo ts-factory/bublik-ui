@@ -21,6 +21,10 @@ export const twButtonStyles = cva({
 				'bg-bg-error text-white',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
 			],
+			'destruction-secondary': [
+				'text-text-unexpected hover:bg-red-100',
+				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+			],
 			secondary: [
 				'text-primary bg-primary-wash',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary'
