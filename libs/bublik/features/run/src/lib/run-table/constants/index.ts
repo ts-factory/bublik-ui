@@ -58,6 +58,8 @@ export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 
 export const COLUMN_GROUPS: ColumnId[][] = [
 	[ColumnId.Tree],
+	[ColumnId.Comments],
+	[ColumnId.Objective],
 	[ColumnId.Total, ColumnId.Run],
 	[ColumnId.PassedExpected, ColumnId.FailedExpected],
 	[ColumnId.PassedUnexpected, ColumnId.FailedUnexpected],
