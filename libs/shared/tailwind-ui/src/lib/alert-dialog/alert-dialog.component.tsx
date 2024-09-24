@@ -162,6 +162,7 @@ export const ConfirmDialog = (props: ConfirmDialogProps) => {
 	return (
 		<AlertDialog {...restProps}>
 			{props.children}
+			<AlertDialogOverlay className={dialogOverlayStyles()} />
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
