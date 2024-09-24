@@ -52,7 +52,8 @@ export const isUnexpectedColumn =
 
 export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	[ColumnId.Total]: false,
-	[ColumnId.Objective]: false
+	[ColumnId.Objective]: false,
+	[ColumnId.Comments]: false
 };
 
 export const COLUMN_GROUPS: ColumnId[][] = [
