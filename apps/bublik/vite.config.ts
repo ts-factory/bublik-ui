@@ -28,7 +28,7 @@ export default defineConfig(async ({ mode }) => {
 		env = loadEnv(mode, process.cwd(), '');
 	}
 
-	const URL_PREFIX = env.BASE_URL?.replace('/v2', '');
+	const URL_PREFIX = env.URL_PREFIX?.replace('/v2', '') ?? '';
 	const DJANGO_TARGET = env.BUBLIK_UI_DEV_BACKEND_TARGET;
 	const LOGS_TARGET = env.BUBLIK_UI_DEV_LOGS_TARGET;
 
