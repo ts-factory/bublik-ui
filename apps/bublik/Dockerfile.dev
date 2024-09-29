@@ -15,7 +15,7 @@ WORKDIR /app
 
 FROM base as runner
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
 EXPOSE 4200
 
