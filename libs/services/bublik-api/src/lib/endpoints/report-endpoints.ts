@@ -16,6 +16,8 @@ export interface RunReportConfig {
 	id: number;
 	name: string;
 	description: string;
+	created: string;
+	version: number;
 }
 
 export interface InvalidReportConfigFile {

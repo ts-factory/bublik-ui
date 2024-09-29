@@ -75,31 +75,6 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 								</DropdownMenuItem>
 							</Tooltip>
 						))}
-						{data.invalid_report_config_files.length ? (
-							<>
-								<DropdownMenuSeparator />
-								<DropdownMenuLabel className="flex justify-between place-items-center">
-									<span>Invalid</span>
-									<Icon
-										name="TriangleExclamationMark"
-										className="text-text-unexpected w-5 h-5"
-									/>
-								</DropdownMenuLabel>
-								<DropdownMenuSeparator />
-								{data.invalid_report_config_files.map((config) => (
-									<Tooltip
-										key={config.file}
-										content={config.reason}
-										side="right"
-										sideOffset={8}
-									>
-										<DropdownMenuItem className="pl-2">
-											<span>{config.file}</span>
-										</DropdownMenuItem>
-									</Tooltip>
-								))}
-							</>
-						) : null}
 					</>
 				) : null}
 			</DropdownMenuContent>
