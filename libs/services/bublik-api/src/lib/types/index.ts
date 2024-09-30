@@ -11,5 +11,6 @@ export const enum BUBLIK_TAG {
 	RunDetails = 'RunDetails',
 	User = 'user',
 	Run = 'run',
-	AdminUsersTable = 'admin-users-table'
+	AdminUsersTable = 'admin-users-table',
+	Config = 'config'
 }
