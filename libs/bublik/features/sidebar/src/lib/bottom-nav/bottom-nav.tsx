@@ -15,6 +15,12 @@ const getNavSections = (isAdmin: boolean) => {
 		pattern: [{ path: '/admin/*' }],
 		subitems: [
 			{
+				label: 'Configs',
+				icon: <Icon name="SettingsSliders" size={20} />,
+				to: '/admin/config',
+				pattern: { path: '/admin/config' }
+			},
+			{
 				label: 'Users',
 				icon: <Icon name="TwoUsers" size={24} />,
 				to: '/admin/users',

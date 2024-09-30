@@ -37,7 +37,8 @@ import {
 	AdminUsersPage,
 	DashboardPageV2,
 	EmailActivationPage,
-	RunReportPage
+	RunReportPage,
+	ConfigsPage
 } from '../pages';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
@@ -205,6 +206,7 @@ const router = createBrowserRouter(
 								{ path: 'performance', element: <PerformancePage /> },
 								{ path: 'flower', element: <FlowerFeature /> },
 								{ path: 'users', element: <AdminUsersPage /> },
+								{ path: 'config', element: <ConfigsPage /> },
 								{ element: <NoMatchFeature /> }
 							]
 						},
