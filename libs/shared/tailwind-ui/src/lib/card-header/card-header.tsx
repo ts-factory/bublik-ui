@@ -7,7 +7,7 @@ import { cn } from '../utils';
 import { useIsSticky } from '@/shared/hooks';
 
 export interface CardHeaderProps extends ComponentPropsWithRef<'div'> {
-	label: string;
+	label: string | ReactNode;
 	enableStickyShadow?: boolean;
 	children?: ReactNode;
 }
@@ -28,9 +28,13 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 				ref={mergeRefs(ref, headerRef)}
 				style={props.style}
 			>
-				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
-					{label}
-				</span>
+				{typeof label === 'string' ? (
+					<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+						{label}
+					</span>
+				) : (
+					label
+				)}
 				{children}
 			</div>
 		);
