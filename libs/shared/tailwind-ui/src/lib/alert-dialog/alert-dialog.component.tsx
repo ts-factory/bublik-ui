@@ -163,12 +163,16 @@ export const ConfirmDialog = (props: ConfirmDialogProps) => {
 		<AlertDialog {...restProps}>
 			{props.children}
 			<AlertDialogOverlay className={dialogOverlayStyles()} />
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription>{description}</AlertDialogDescription>
+			<AlertDialogContent className="p-0">
+				<AlertDialogHeader className="space-y-0">
+					<AlertDialogTitle className="border-b border-border-primary px-4 py-3">
+						{title}
+					</AlertDialogTitle>
+					<AlertDialogDescription className="px-4 py-4">
+						{description}
+					</AlertDialogDescription>
 				</AlertDialogHeader>
-				<AlertDialogFooter>
+				<AlertDialogFooter className="border-t border-border-primary px-4 py-2">
 					<AlertDialogCancel onClick={onCancelClick}>
 						{cancelLabel ?? 'Cancel'}
 					</AlertDialogCancel>
