@@ -6,7 +6,8 @@ export interface ReportRoot {
 	run_source_link: string;
 	run_stats_link: string;
 	content: Block[];
-	not_processed_points: NotProcessedPoint[];
+	unprocessed_iters: NotProcessedPoint[];
+	warnings: string[];
 }
 
 export interface ArgsValBlock {
@@ -58,15 +59,22 @@ export type TestBlock = {
 	content: ArgsValBlock[];
 };
 
-export type MeasurementBlock = {
-	type: 'measurement-block';
+export type RecordBlock = {
 	id: string;
-	warnings?: string[];
-	sequence_group_arg: string;
+	type: 'record-block';
+	warnings: string[];
+	multiple_sequences: true;
 	axis_x_key: string;
 	axis_x_label: string;
 	axis_y_label: string;
 	formatters: Record<string, string>;
 	dataset_table?: Array<Array<string | number>>;
 	dataset_chart?: Array<Array<string | number>>;
+};
+
+export type MeasurementBlock = {
+	type: 'measurement-block';
+	id: string;
+	label: string;
+	content: RecordBlock[];
 };

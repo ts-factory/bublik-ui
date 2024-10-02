@@ -10,7 +10,6 @@ import { API_REDUCER_PATH } from '../constants';
 
 export interface RunReportConfigResponse {
 	run_report_configs: RunReportConfig[];
-	invalid_report_config_files: InvalidReportConfigFile[];
 }
 
 export interface RunReportConfig {
