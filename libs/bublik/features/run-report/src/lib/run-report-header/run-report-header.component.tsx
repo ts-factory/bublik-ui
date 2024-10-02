@@ -4,20 +4,32 @@ import { Link } from 'react-router-dom';
 import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
 import { BranchBlock, RevisionBlock } from '@/shared/types';
 
+import { WarningsHoverCard } from '../run-report-test';
+
 interface RunReportHeaderProps {
 	label: string;
 	runUrl: string;
 	sourceUrl: string;
 	branches: BranchBlock[];
 	revisions: RevisionBlock[];
+	warnings: string[];
 }
 
 function RunReportHeader(props: RunReportHeaderProps) {
-	const { label, runUrl, sourceUrl, branches, revisions } = props;
+	const { label, runUrl, sourceUrl, branches, revisions, warnings } = props;
 
 	return (
 		<div className="flex flex-col bg-white rounded">
-			<CardHeader label={label}>
+			<CardHeader
+				label={
+					<div className="flex items-center gap-2">
+						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+							{label}
+						</span>
+						<WarningsHoverCard warnings={warnings} />
+					</div>
+				}
+			>
 				<div className="flex items-center gap-2">
 					<ButtonTw asChild variant="secondary" size="xss">
 						<a href={sourceUrl} target="_blank" rel="noreferrer">

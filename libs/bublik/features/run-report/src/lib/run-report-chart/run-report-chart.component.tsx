@@ -9,10 +9,18 @@ interface RunReportChartProps {
 	xAxisLabel: string;
 	yAxisLabel: string;
 	label: string;
+	enableLegend?: boolean;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const { data, xKey, xAxisLabel, label, yAxisLabel } = props;
+	const {
+		data,
+		xKey,
+		xAxisLabel,
+		label,
+		yAxisLabel,
+		enableLegend = true
+	} = props;
 
 	const series = useMemo(
 		() =>
@@ -32,7 +40,7 @@ function RunReportChart(props: RunReportChartProps) {
 		<div className="w-full">
 			<Plot
 				options={{
-					legend: {},
+					legend: enableLegend ? {} : undefined,
 					title: {
 						text: label,
 						textStyle: { fontFamily: 'Inter', fontSize: 12, fontWeight: 600 }

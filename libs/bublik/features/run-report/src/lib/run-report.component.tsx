@@ -35,7 +35,8 @@ function RunReport(props: RunReportProps) {
 			run_source_link,
 			run_stats_link,
 			content,
-			not_processed_points
+			unprocessed_iters,
+			warnings
 		}
 	} = props;
 
@@ -78,9 +79,10 @@ function RunReport(props: RunReportProps) {
 				sourceUrl={run_source_link}
 				branches={branchBlocks}
 				revisions={revisionsBlocks}
+				warnings={warnings}
 			/>
 			<RunReportContentList blocks={testBlocks} />
-			<NotProcessedPointsTable points={not_processed_points} />
+			<NotProcessedPointsTable points={unprocessed_iters} />
 		</>
 	);
 }

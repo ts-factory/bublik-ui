@@ -1,18 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Link, useSearchParams } from 'react-router-dom';
-
-import { ArgsValBlock } from '@/shared/types';
-import { Icon, cn, popoverContentStyles, toast } from '@/shared/tailwind-ui';
-
-import { RunReportChart } from '../run-report-chart';
-import { RunReportTable } from '../run-report-table';
-import { RunReportArgs } from '../run-report.component';
 import {
 	HoverCard,
 	HoverCardContent,
 	HoverCardTrigger
 } from '@radix-ui/react-hover-card';
+
+import { ArgsValBlock, RecordBlock } from '@/shared/types';
+import {
+	CardHeader,
+	Icon,
+	cn,
+	popoverContentStyles,
+	toast
+} from '@/shared/tailwind-ui';
+
+import { RunReportChart } from '../run-report-chart';
+import { RunReportTable } from '../run-report-table';
+import { RunReportArgs } from '../run-report.component';
 
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
@@ -50,18 +56,20 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 							{argsValBlock.content.map((measurement) => {
 								return (
 									<li key={measurement.id}>
-										<MeasurementBlock
-											id={measurement.id}
-											chart={measurement.dataset_chart}
-											table={measurement.dataset_table}
-											enableChartView={enableChartView}
-											enableTableView={enableTableView}
-											xKey={measurement.axis_x_key}
-											xAxisLabel={measurement.axis_x_label}
-											yAxisLabel={measurement.axis_y_label}
-											warnings={measurement.warnings}
-											formatters={measurement.formatters}
+										<CardHeader
+											label={measurement.label}
+											className="border-t border-border-primary"
 										/>
+										<ul>
+											{measurement.content.map((record) => (
+												<MeasurementBlock
+													key={record.id}
+													enableChartView={enableChartView}
+													enableTableView={enableTableView}
+													block={record}
+												/>
+											))}
+										</ul>
 									</li>
 								);
 							})}
@@ -73,99 +81,73 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 	);
 }
 
-interface RunReportEntityBlockProps
-	extends Pick<RunReportTestBlockProps, 'enableChartView' | 'enableTableView'> {
-	table?: Array<string | number>[];
-	chart?: Array<string | number>[];
-	xKey: string;
-	xAxisLabel: string;
-	yAxisLabel: string;
-	id: string;
-	warnings?: string[];
-	formatters?: Record<string, string>;
-}
+type RunReportEntityBlockProps = Pick<
+	RunReportTestBlockProps,
+	'enableChartView' | 'enableTableView'
+> & { block: RecordBlock };
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
+	const { enableChartView, enableTableView, block } = props;
 	const {
-		chart,
-		table,
-		enableChartView,
-		enableTableView,
-		xKey,
-		yAxisLabel,
-		xAxisLabel,
-		warnings,
+		id,
+		dataset_chart,
+		dataset_table,
+		axis_x_key,
+		axis_x_label,
+		axis_y_label,
 		formatters,
-		id
-	} = props;
-
+		warnings,
+		multiple_sequences
+	} = block;
 	const [searchParams] = useSearchParams();
 
 	return (
 		<div className="flex flex-col">
 			<div className="flex max-h-96">
-				{enableChartView && chart ? (
+				{enableChartView && dataset_chart ? (
 					<div className="flex-1">
-						<div className="px-4 h-9 border-b border-border-primary flex items-center bg-white gap-2">
-							<Link
-								to={{ hash: id, search: searchParams.toString() }}
-								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-								onClick={() => toast.success('Saved location')}
-							>
-								{yAxisLabel}
-							</Link>
-							{warnings?.length ? (
-								<HoverCard openDelay={100}>
-									<HoverCardTrigger asChild>
-										<div className="text-text-unexpected rounded-md hover:bg-red-100 p-0.5 grid place-items-center">
-											<Icon name="TriangleExclamationMark" size={20} />
-										</div>
-									</HoverCardTrigger>
-									<HoverCardContent asChild sideOffset={4}>
-										<ul
-											className={cn(
-												'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
-												popoverContentStyles
-											)}
-										>
-											{warnings.map((w) => (
-												<li
-													key={w}
-													className="text-[0.875rem] leading-[1.125rem]"
-												>
-													{w}
-												</li>
-											))}
-										</ul>
-									</HoverCardContent>
-								</HoverCard>
-							) : null}
-						</div>
+						{multiple_sequences ? (
+							<div className="px-4 h-9 border-b border-border-primary flex items-center bg-white gap-2">
+								<Link
+									to={{ hash: id, search: searchParams.toString() }}
+									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+									onClick={() => toast.success('Saved location')}
+								>
+									{axis_y_label}
+								</Link>
+								<WarningsHoverCard warnings={warnings} />
+							</div>
+						) : null}
 						<div className="px-4 py-2">
 							<RunReportChart
-								data={chart}
-								xKey={xKey}
-								xAxisLabel={xAxisLabel}
-								yAxisLabel={yAxisLabel}
+								data={dataset_chart}
+								xKey={axis_x_key}
+								xAxisLabel={axis_x_label}
+								yAxisLabel={axis_y_label}
 								label={''}
+								enableLegend={multiple_sequences}
 							/>
 						</div>
 					</div>
 				) : null}
-				{enableTableView && table ? (
+				{enableTableView && dataset_table ? (
 					<div
 						className={cn(
 							'flex-1 flex flex-col shrink-0',
-							enableChartView && chart && 'border-l border-border-primary'
+							enableChartView &&
+								dataset_chart &&
+								'border-l border-border-primary'
 						)}
 					>
-						<div className="px-4 h-9 flex-shrink-0 border-b border-border-primary flex items-center bg-white gap-2">
-							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
-								{yAxisLabel}
-							</span>
-						</div>
+						{multiple_sequences ? (
+							<div className="px-4 h-9 flex-shrink-0 border-b border-border-primary flex items-center bg-white gap-2">
+								<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+									{axis_y_label}
+								</span>
+							</div>
+						) : null}
 						<div className="flex-1 overflow-auto">
-							<RunReportTable data={table} formatters={formatters} />
+							<RunReportTable data={dataset_table} formatters={formatters} />
 						</div>
 					</div>
 				) : null}
@@ -174,4 +156,36 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 	);
 }
 
-export { RunReportTestBlock };
+interface WarningsHoverCardProps {
+	warnings?: string[];
+}
+
+function WarningsHoverCard({ warnings = [] }: WarningsHoverCardProps) {
+	if (!warnings.length) return;
+
+	return (
+		<HoverCard openDelay={100}>
+			<HoverCardTrigger asChild>
+				<div className="text-text-unexpected rounded-md hover:bg-red-100 p-0.5 grid place-items-center">
+					<Icon name="TriangleExclamationMark" size={20} />
+				</div>
+			</HoverCardTrigger>
+			<HoverCardContent asChild sideOffset={4}>
+				<ul
+					className={cn(
+						'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
+						popoverContentStyles
+					)}
+				>
+					{warnings.map((w) => (
+						<li key={w} className="text-[0.875rem] leading-[1.125rem]">
+							{w}
+						</li>
+					))}
+				</ul>
+			</HoverCardContent>
+		</HoverCard>
+	);
+}
+
+export { RunReportTestBlock, WarningsHoverCard };
