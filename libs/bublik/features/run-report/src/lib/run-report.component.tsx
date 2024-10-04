@@ -367,9 +367,13 @@ interface RunReportContentListProps {
 function RunReportContentList(props: RunReportContentListProps) {
 	return (
 		<ul className="">
-			{props.blocks.map((block) => (
+			{props.blocks.map((block, idx) => (
 				<li key={block.id}>
-					<RunReportContentItem key={block.id} block={block} />
+					<RunReportContentItem
+						key={block.id}
+						block={block}
+						border={idx !== 0}
+					/>
 				</li>
 			))}
 		</ul>
@@ -378,9 +382,10 @@ function RunReportContentList(props: RunReportContentListProps) {
 
 interface RunReportContentItemProps {
 	block: TestBlock;
+	border: boolean;
 }
 
-function RunReportContentItem({ block }: RunReportContentItemProps) {
+function RunReportContentItem({ block, border }: RunReportContentItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
 
 	const args = useMemo(
@@ -412,7 +417,10 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 						{block.label}
 					</Link>
 				}
-				className="sticky top-0 bg-white z-10 rounded-t border-t"
+				className={cn(
+					'sticky top-0 bg-white z-10 rounded-t',
+					border && 'border-t border-border-primary'
+				)}
 				ref={ref}
 			/>
 			<div className="p-4">

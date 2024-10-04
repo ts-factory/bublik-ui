@@ -32,7 +32,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 
 	return (
 		<ul className="flex flex-col">
-			{argsValBlocks.map((argsValBlock) => {
+			{argsValBlocks.map((argsValBlock, idx) => {
 				const params = Object.entries(argsValBlock.args_vals).map(
 					([name, value]) => ({
 						name,
@@ -60,7 +60,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 							</div>
 						</div>
 						<ul>
-							{argsValBlock.content.map((measurement) => {
+							{argsValBlock.content.map((measurement, idx) => {
 								return (
 									<li
 										id={encodeURIComponent(measurement.id)}
@@ -78,7 +78,10 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 													{measurement.label}
 												</Link>
 											}
-											className="border-t border-border-primary"
+											className={cn(
+												'border-border-primary',
+												idx !== 0 && 'border-t'
+											)}
 										/>
 										<ul>
 											{measurement.content.map((record) => (
