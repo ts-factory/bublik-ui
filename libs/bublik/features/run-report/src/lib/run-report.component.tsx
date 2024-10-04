@@ -393,10 +393,25 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 		[block.common_args]
 	);
 
+	const [params] = useSearchParams();
+
 	return (
-		<div id={block.id} className="flex flex-col bg-white rounded">
+		<div
+			id={encodeURIComponent(block.id)}
+			className="flex flex-col bg-white rounded"
+		>
 			<CardHeader
-				label={block.label}
+				label={
+					<Link
+						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+						to={{
+							search: params.toString(),
+							hash: encodeURIComponent(block.id)
+						}}
+					>
+						{block.label}
+					</Link>
+				}
 				className="sticky top-0 bg-white z-10 rounded-t border-t"
 				ref={ref}
 			/>

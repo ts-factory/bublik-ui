@@ -28,6 +28,7 @@ interface RunReportTestBlockProps {
 
 function RunReportTestBlock(props: RunReportTestBlockProps) {
 	const { enableChartView, enableTableView, argsValBlocks } = props;
+	const [searchParams] = useSearchParams();
 
 	return (
 		<ul className="flex flex-col">
@@ -41,12 +42,18 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 				);
 
 				return (
-					<li id={argsValBlock.id} key={argsValBlock.id}>
+					<li id={encodeURIComponent(argsValBlock.id)} key={argsValBlock.id}>
 						<div className="border-y border-border-primary">
 							<div className="border-b border-border-primary py-1.5 px-4 sticky top-9 bg-white">
-								<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+								<Link
+									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+									to={{
+										search: searchParams.toString(),
+										hash: encodeURIComponent(argsValBlock.id)
+									}}
+								>
 									{argsValBlock.label}
-								</span>
+								</Link>
 							</div>
 							<div className="p-4">
 								<RunReportArgs label="Args Val" items={params} />
@@ -55,9 +62,22 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 						<ul>
 							{argsValBlock.content.map((measurement) => {
 								return (
-									<li key={measurement.id}>
+									<li
+										id={encodeURIComponent(measurement.id)}
+										key={measurement.id}
+									>
 										<CardHeader
-											label={measurement.label}
+											label={
+												<Link
+													className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+													to={{
+														search: searchParams.toString(),
+														hash: encodeURIComponent(measurement.id)
+													}}
+												>
+													{measurement.label}
+												</Link>
+											}
 											className="border-t border-border-primary"
 										/>
 										<ul>
@@ -103,13 +123,16 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 
 	return (
 		<div className="flex flex-col">
-			<div className="flex max-h-96">
+			<div className="flex max-h-96" id={encodeURIComponent(id)}>
 				{enableChartView && dataset_chart ? (
 					<div className="flex-1">
 						{multiple_sequences ? (
 							<div className="px-4 h-9 border-b border-border-primary flex items-center bg-white gap-2">
 								<Link
-									to={{ hash: id, search: searchParams.toString() }}
+									to={{
+										hash: encodeURIComponent(id),
+										search: searchParams.toString()
+									}}
 									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 									onClick={() => toast.success('Saved location')}
 								>
