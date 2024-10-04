@@ -1,12 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ComponentProps, useMemo, useRef } from 'react';
+import { ComponentProps, useMemo, useRef, useState } from 'react';
 
 import { useMount } from '@/shared/hooks';
 import {
 	Badge,
 	CardHeader,
 	cn,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
 	Icon,
 	Skeleton,
 	toast
@@ -23,34 +26,147 @@ import {
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
+import { Link, useSearchParams } from 'react-router-dom';
+
+interface TableOfContentsItem {
+	type: string;
+	id: string;
+	label: string;
+	children?: TableOfContentsItem[];
+}
+
+function generateTableOfContents(data: ReportRoot): TableOfContentsItem[] {
+	const result = data.content
+		.filter((b) => b.type === 'test-block')
+		.map((t) => ({
+			id: t.id,
+			type: t.type,
+			label: t.label,
+			children: t.content.map((a) => ({
+				id: a.id,
+				label: a.label,
+				type: a.type,
+				children: a.content.map((c) => ({
+					id: c.id,
+					type: c.type,
+					label: c.label,
+					children: c.content.map((r) => ({
+						id: r.id,
+						label: r.axis_y_label,
+						type: r.type
+					}))
+				}))
+			}))
+		}));
+
+	return result;
+}
+
+interface RunReportTableOfContentsProps {
+	contents: TableOfContentsItem[];
+}
+
+function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
+	return (
+		<div className="bg-white flex flex-col rounded">
+			<CardHeader label="Table Of Contents" />
+			<ul className="flex flex-col gap-2 overflow-auto">
+				{contents.map((item) => (
+					<li key={item.id}>
+						<TableOfContentsItem item={item} />
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+interface TableOfContentsItemProps {
+	item: TableOfContentsItem;
+	depth?: number;
+}
+
+function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
+	const isOpenByDefault =
+		item.type === 'arg-val-block' || item.type === 'test-block';
+	const [open, setOpen] = useState(isOpenByDefault);
+	const [params] = useSearchParams();
+	const configid = params.get('config');
+
+	function scrollToItem() {
+		const elem = document.getElementById(encodeURIComponent(item.id));
+		const scroller = document.getElementById('page-container');
+
+		if (!scroller || !elem) return;
+
+		const y = elem.getBoundingClientRect().top + scroller.clientTop - 70;
+
+		scroller.scrollTo({ top: y, behavior: 'smooth' });
+	}
+
+	return (
+		<Collapsible open={open} onOpenChange={setOpen} className="">
+			<div
+				className="px-4 py-1 flex items-center gap-1 text-sm"
+				style={{ paddingLeft: `${depth * 12 + 16}px` }}
+			>
+				{item.children ? (
+					<CollapsibleTrigger className="grid place-items-center p-0.5 hover:bg-primary-wash hover:text-text-primary">
+						<Icon
+							name="ChevronDown"
+							className={cn('size-4', open ? '' : '-rotate-90')}
+						/>
+					</CollapsibleTrigger>
+				) : (
+					<div className="size-5 rounded-full" />
+				)}
+				<Link
+					to={{
+						search: `?config=${configid}`,
+						hash: encodeURIComponent(item.id)
+					}}
+					className={cn(
+						(item.type === 'test-block' || item.type === 'arg-val-block') &&
+							'font-semibold'
+					)}
+					onClick={scrollToItem}
+				>
+					{item.label}
+				</Link>
+			</div>
+			{item.children && item.children.length ? (
+				<CollapsibleContent asChild>
+					<ul>
+						{item.children.map((child) => (
+							<li key={child.id}>
+								<TableOfContentsItem item={child} depth={depth + 1} />
+							</li>
+						))}
+					</ul>
+				</CollapsibleContent>
+			) : null}
+		</Collapsible>
+	);
+}
 
 interface RunReportProps {
 	blocks: ReportRoot;
 }
 
 function RunReport(props: RunReportProps) {
-	const {
-		blocks: {
-			title,
-			run_source_link,
-			run_stats_link,
-			content,
-			unprocessed_iters,
-			warnings
-		}
-	} = props;
+	const { blocks } = props;
 
 	const branchBlocks = useMemo(
-		() => content.filter((b) => b.type === 'branch-block'),
-		[content]
+		() => blocks.content.filter((b) => b.type === 'branch-block'),
+		[blocks.content]
 	);
 	const revisionsBlocks = useMemo(
-		() => content.filter((b) => b.type === 'rev-block'),
-		[content]
+		() => blocks.content.filter((b) => b.type === 'rev-block'),
+		[blocks.content]
 	);
 	const testBlocks = useMemo(
-		() => content.filter((b) => b.type === 'test-block'),
-		[content]
+		() => blocks.content.filter((b) => b.type === 'test-block'),
+		[blocks.content]
 	);
 
 	const location = useLocation();
@@ -72,18 +188,19 @@ function RunReport(props: RunReportProps) {
 	});
 
 	return (
-		<>
+		<div className="flex flex-col gap-1">
 			<RunReportHeader
-				label={title}
-				runUrl={run_stats_link}
-				sourceUrl={run_source_link}
+				label={blocks.title}
+				runUrl={blocks.run_stats_link}
+				sourceUrl={blocks.run_source_link}
 				branches={branchBlocks}
 				revisions={revisionsBlocks}
-				warnings={warnings}
+				warnings={blocks.warnings}
 			/>
+			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />
 			<RunReportContentList blocks={testBlocks} />
-			<NotProcessedPointsTable points={unprocessed_iters} />
-		</>
+			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
+		</div>
 	);
 }
 
