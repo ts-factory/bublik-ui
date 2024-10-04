@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.0.0](https://github.com/okt-limonikas/bublik/compare/v0.3.9...v1.0.0) (2024-10-04)
+
+
+### 🚀 New Feature
+
+* **configs:** added API endpoints for config management ([1aa6673](https://github.com/okt-limonikas/bublik/commit/1aa6673326283f6dfebd28d11fecf29364829db8)), closes [#141](https://github.com/okt-limonikas/bublik/issues/141)
+* **configs:** added config management page ([613ce46](https://github.com/okt-limonikas/bublik/commit/613ce4638dd1a096a8266881f801dab56218ed9e)), closes [#141](https://github.com/okt-limonikas/bublik/issues/141)
+* **report:** added table of contents to report ([7667a0e](https://github.com/okt-limonikas/bublik/commit/7667a0ec0066fc300b48aae20b4041199f4a5667)), closes [#143](https://github.com/okt-limonikas/bublik/issues/143)
+
+
+### 💅 Polish
+
+* **report:** fixed double borders for report labels ([d4fd924](https://github.com/okt-limonikas/bublik/commit/d4fd924860e87fd7d946de0d4185abc2b8d3be5d))
+* **ui:** [alert-dialog] improve readability for dialog ([ce9f12f](https://github.com/okt-limonikas/bublik/commit/ce9f12f0e70271a45e7e5810025a8d8560a1c20e)), closes [#141](https://github.com/okt-limonikas/bublik/issues/141)
+
+
+### 🐛 Bug Fix
+
+* **build:** correct proxying to derive API path from URL_PREFIX ([1f62c82](https://github.com/okt-limonikas/bublik/commit/1f62c82bf36ca1d058b63b940782da39ae2b5759))
+* **build:** skip package scripts to optimize dev build ([0f12745](https://github.com/okt-limonikas/bublik/commit/0f1274563c1742f27f3e870e5c251b9fd5e92a71))
+* **report:** fixed incorrect scrolling on mount ([f4b284b](https://github.com/okt-limonikas/bublik/commit/f4b284b25300e5fb9cfd896efe2cea9b9774b2b3)), closes [#143](https://github.com/okt-limonikas/bublik/issues/143)
+
+
+### 📦 Chores
+
+* added react-monaco-editor dependency ([b5e858a](https://github.com/okt-limonikas/bublik/commit/b5e858a7e462b1ad75c51825f06549d914c02321)), closes [#141](https://github.com/okt-limonikas/bublik/issues/141)
+* **report:** updated components for new type changes ([f05977c](https://github.com/okt-limonikas/bublik/commit/f05977c327ebd97801310f581dd9ac43785d875f)), closes [#143](https://github.com/okt-limonikas/bublik/issues/143)
+* **types:** updated report types to API changes ([34ed7e9](https://github.com/okt-limonikas/bublik/commit/34ed7e99defa4e7472e6f6fa2732dc828c33f45b)), closes [#143](https://github.com/okt-limonikas/bublik/issues/143)
+
+
+### ♻ Code Refactoring
+
+* **run:** [reports] adjusted types and components for config changes ([b3eb33a](https://github.com/okt-limonikas/bublik/commit/b3eb33a4f87f238c0aa79016b3b4b951f85e4c85)), closes [#141](https://github.com/okt-limonikas/bublik/issues/141)
+* **ui:** [card-header] allow passing react node as label ([5aac339](https://github.com/okt-limonikas/bublik/commit/5aac3390e0b519189b7bf2757721979730892f58))
+
+
 ### [0.3.9](https://github.com/ts-factory/bublik-ui/compare/v0.3.8...v0.3.9) (2024-09-24)
 
 
@@ -23,8 +59,8 @@
 
 ### 💅 Polish
 
-* **run:** [table] added borders for  and  columns ([f5d94ee](https://github.com/ts-factory/bublik-ui/commit/f5d94ee075784bf55eb3a506573935c6321de29b))
-* **run:** [table] fixed number alignment for 0 ([23023e6](https://github.com/ts-factory/bublik-ui/commit/23023e640533952a85ec703df8a670f3cdd848ca)), closes [#130](https://github.com/ts-factory/bublik-ui/issues/130)
+* **run:** [table] added borders for `Notes` and `Objective` columns ([f5d94ee](https://github.com/ts-factory/bublik-ui/commit/f5d94ee075784bf55eb3a506573935c6321de29b))
+* **run:** [table] fixed number alignment for "0" ([23023e6](https://github.com/ts-factory/bublik-ui/commit/23023e640533952a85ec703df8a670f3cdd848ca)), closes [#130](https://github.com/ts-factory/bublik-ui/issues/130)
 * **run:** [table] lower opacity to indicate pending state ([dfa74f9](https://github.com/ts-factory/bublik-ui/commit/dfa74f923d9bfc41af8bc5308c6607de93db2a2e))
 * **ui:** [alert] added dialog overlay by default to alert dialog ([e7e860e](https://github.com/ts-factory/bublik-ui/commit/e7e860e6a3ec6399c25d235225aad563fd84050e))
 
