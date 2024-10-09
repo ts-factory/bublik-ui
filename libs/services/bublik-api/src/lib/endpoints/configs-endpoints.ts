@@ -157,7 +157,7 @@ export const configsEndpoints = {
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
-		migrateGlobalConfig: build.mutation<Record<string, unknown>, void>({
+		migrateGlobalConfig: build.mutation<Config, void>({
 			query: () => ({
 				url: withApiV2(`/config/create_by_per_conf`),
 				method: 'POST'
