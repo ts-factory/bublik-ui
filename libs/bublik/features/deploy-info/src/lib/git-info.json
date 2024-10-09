@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.04",
-	"summary": "feat(configs): added config management page",
-	"revision": "613ce46",
-	"branch": "release-1.0.0",
-	"latestTag": "v1.0.0"
+	"date": "2024.10.09",
+	"summary": "feat(configs): handle initial global config migration",
+	"revision": "8e29d66",
+	"branch": "release-0.4.2",
+	"latestTag": "v0.4.2"
 }

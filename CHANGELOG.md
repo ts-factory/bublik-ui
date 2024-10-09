@@ -1,3 +1,12 @@
+
+
+### [0.4.2](https://github.com/okt-limonikas/bublik/compare/v0.4.1...v0.4.2) (2024-10-09)
+
+
+### 🚀 New Feature
+
+* **configs:** handle initial global config migration ([8e29d66](https://github.com/okt-limonikas/bublik/commit/8e29d66be462340304565fa252710038481bcd8b))
+
 ## [1.0.0](https://github.com/okt-limonikas/bublik/compare/v0.3.9...v1.0.0) (2024-10-04)
 
 
