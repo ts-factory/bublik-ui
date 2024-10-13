@@ -3,6 +3,7 @@
 import { Link } from 'react-router-dom';
 import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
 import { BranchBlock, RevisionBlock } from '@/shared/types';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 import { WarningsHoverCard } from '../run-report-test';
 
@@ -43,6 +44,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 							Run
 						</Link>
 					</ButtonTw>
+					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>
 			<div className="p-4 flex flex-col gap-2">
