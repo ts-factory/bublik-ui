@@ -1,11 +1,16 @@
 import { useParams } from 'react-router-dom';
 
-import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
+import {
+	SingleMeasurementChart,
+	useGetSingleMeasurementQuery
+} from '@/services/bublik-api';
 import { MeasurementsRouterParams } from '@/shared/types';
-import { Chart } from '@/shared/charts';
+import { Plot } from '@/shared/charts';
+import { EChartsOption } from 'echarts-for-react';
 import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 
 import { MeasurementStatisticsContainer } from '../../containers';
+import { useMemo } from 'react';
 
 export function ModeOverlay() {
 	const { runId, resultId } = useParams<MeasurementsRouterParams>();
@@ -27,6 +32,7 @@ export function ModeOverlay() {
 	);
 }
 
+// TODO: Add overlay container
 interface OverlayContainerProps {
 	resultId: string;
 }
@@ -46,12 +52,37 @@ function OverlayContainer({ resultId }: OverlayContainerProps) {
 
 	if (!data) return <div>No Data!</div>;
 
+	return <StackedCharts charts={data.charts} />;
+}
+
+interface StackedChartsProps {
+	charts: SingleMeasurementChart[];
+}
+function StackedCharts({ charts }: StackedChartsProps) {
+	const option = useMemo<EChartsOption>(() => {
+		const xAxisData = charts[0]?.dataset.slice(1).map(([x]) => x) || [];
+		const series = charts.map((chart) => ({
+			name: chart.axis_y_label,
+			type: 'line' as const,
+			stack: 'Total',
+			emphasis: { focus: 'series' },
+			data: chart.dataset.slice(1).map(([, y]) => y)
+		}));
+
+		return {
+			title: { text: 'Stacked Chart' },
+			tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+			legend: { data: charts.map((chart) => chart.axis_y_label) },
+			grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+			xAxis: [{ type: 'category', boundaryGap: false, data: xAxisData }],
+			yAxis: [{ type: 'value' }],
+			series: series
+		};
+	}, [charts]);
+
 	return (
-		<Chart
-			id="Combined"
-			plots={data}
-			style={{ height: '95%' }}
-			disableFullScreenToggle
-		/>
+		<div className="h-full">
+			<Plot options={option} style={{ height: '100%' }} />
+		</div>
 	);
 }

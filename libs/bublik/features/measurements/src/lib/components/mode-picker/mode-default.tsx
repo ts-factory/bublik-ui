@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { MeasurementsRouterParams } from '@/shared/types';
@@ -30,7 +30,7 @@ const getStickyClass = (
 	return notStickyClass;
 };
 
-export const ModeDefault: FC = () => {
+const ModeDefault = () => {
 	const { runId, resultId } = useParams<MeasurementsRouterParams>();
 	const chartsRef = useRef<HTMLDivElement>(null);
 	const { isSticky } = useIsSticky(chartsRef, { offset: 34 });
@@ -56,11 +56,7 @@ export const ModeDefault: FC = () => {
 					<CardHeader label="Charts">
 						<LockButton isLockedMode={isLockedMode} onClick={toggleMode} />
 					</CardHeader>
-					<ChartsContainer
-						layout="mosaic"
-						resultId={resultId}
-						isLockedMode={isLockedMode}
-					/>
+					<ChartsContainer layout="mosaic" resultId={resultId} />
 				</div>
 				<div className="bg-white rounded-md">
 					<TableHeader>
@@ -76,3 +72,5 @@ export const ModeDefault: FC = () => {
 		</div>
 	);
 };
+
+export { ModeDefault };
