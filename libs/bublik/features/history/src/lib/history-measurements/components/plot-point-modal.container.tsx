@@ -29,13 +29,45 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 			<DialogPortal>
 				<ModalContent className="rounded-md bg-white overflow-auto min-w-[90vw]">
-					<div className="flex justify-between px-4 py-2 sticky top-0 bg-white z-10 border-b border-border-primary">
+					<div className="flex items-center justify-between px-4 py-2 sticky top-0 bg-white z-10 border-b border-border-primary">
 						<DialogTitle className="text-[0.875rem] font-semibold leading-[1.125rem]">
 							Run Info
 						</DialogTitle>
-						<DialogClose className="rounded text-bg-compromised bg-transparent hover:bg-primary-wash hover:text-primary p-[5.5px]">
-							<Icon name="Cross" />
-						</DialogClose>
+						<div className="flex items-center gap-1">
+							<ButtonTw variant="secondary" size="xss" asChild>
+								<Link
+									to={routes.log({
+										runId: point.run_id,
+										focusId: point.result_id
+									})}
+									target="_blank"
+								>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Log
+								</Link>
+							</ButtonTw>
+							<ButtonTw variant="secondary" size="xss" asChild>
+								<Link to={routes.run({ runId: point.run_id })} target="_blank">
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Run
+								</Link>
+							</ButtonTw>
+							<ButtonTw variant="secondary" size="xss" asChild>
+								<Link
+									to={routes.measurements({
+										runId: point.run_id,
+										resultId: point.result_id
+									})}
+									target="_blank"
+								>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Measurement
+								</Link>
+							</ButtonTw>
+							<DialogClose className="rounded text-bg-compromised bg-transparent hover:bg-primary-wash hover:text-primary p-[5.5px]">
+								<Icon name="Cross" />
+							</DialogClose>
+						</div>
 					</div>
 					<div className="min-h-[320px] flex h-full flex-col border-b border-border-primary">
 						{children}
@@ -62,48 +94,6 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 									);
 								})}
 							</ul>
-						</div>
-						<div className="p-4">
-							<h2 className="text-[0.875rem] font-semibold leading-[1.125rem] mb-4">
-								Links
-							</h2>
-							<div className="flex gap-1">
-								<ButtonTw variant="secondary" size="xss" asChild>
-									<Link
-										to={routes.log({
-											runId: point.run_id,
-											focusId: point.result_id
-										})}
-										target="_blank"
-									>
-										<Icon name="BoxArrowRight" className="mr-1.5" />
-										Log
-									</Link>
-								</ButtonTw>
-								<ButtonTw variant="secondary" size="xss" asChild>
-									<Link
-										to={routes.run({
-											runId: point.run_id
-										})}
-										target="_blank"
-									>
-										<Icon name="BoxArrowRight" className="mr-1.5" />
-										Run
-									</Link>
-								</ButtonTw>
-								<ButtonTw variant="secondary" size="xss" asChild>
-									<Link
-										to={routes.measurements({
-											runId: point.run_id,
-											resultId: point.result_id
-										})}
-										target="_blank"
-									>
-										<Icon name="BoxArrowRight" className="mr-1.5" />
-										Measurement
-									</Link>
-								</ButtonTw>
-							</div>
 						</div>
 					</div>
 				</ModalContent>
