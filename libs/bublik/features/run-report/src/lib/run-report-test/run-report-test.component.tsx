@@ -119,8 +119,15 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 											style={{ zIndex: 6 }}
 										/>
 										<ul className="pl-1">
-											{measurement.content.map((record) => (
-												<li key={record.id} className="relative">
+											{measurement.content.map((record, idx, arr) => (
+												<li
+													key={record.id}
+													className={cn(
+														'relative',
+														idx !== arr.length - 1 &&
+															'border-b border-border-primary'
+													)}
+												>
 													<div
 														className="absolute left-0 top-0 w-1 h-full bg-indigo-600"
 														style={{ zIndex: 4 }}
