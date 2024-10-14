@@ -7,7 +7,7 @@ import {
 	ConfigSchemaParamsSchema,
 	ConfigVersionResponse
 } from '@/services/bublik-api';
-import MonacoEditor, { Monaco } from '@monaco-editor/react';
+import MonacoEditor, { Monaco, OnMount } from '@monaco-editor/react';
 import {
 	ComponentProps,
 	ComponentPropsWithoutRef,
@@ -1128,6 +1128,7 @@ interface ConfigEditorProps extends ComponentProps<typeof MonacoEditor> {
 const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 	({ schema, label, className, ...props }, ref) => {
 		const [monaco, setMonaco] = useState<Monaco>();
+		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
 		useImperativeHandle(ref, () => monaco, [monaco]);
 
@@ -1139,6 +1140,17 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 			monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true);
 			setMonaco(monaco);
 		}
+
+		const handleEditorDidMount: OnMount = (editor, monaco) => {
+			editorRef.current = editor;
+
+			editor.addCommand(
+				monaco.KeyMod.CtrlCmd | monaco.KeyCode.Backslash,
+				() => {
+					editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
+				}
+			);
+		};
 
 		function handleFormatClick() {
 			const URI = monaco?.Uri.parse(DEFAULT_URI);
@@ -1185,6 +1197,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 						language="json"
 						path={DEFAULT_URI}
 						beforeMount={handleEditorWillMount}
+						onMount={handleEditorDidMount}
 						options={{ fontSize: 14 }}
 						loading={null}
 						{...props}
