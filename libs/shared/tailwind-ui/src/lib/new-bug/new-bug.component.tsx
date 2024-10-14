@@ -96,6 +96,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 	): Array<{ name: string; value: string }> {
 		return inputArray.map((item) => {
 			const [name, value] = item.split(delimeter, 2);
+
 			return { name, value };
 		});
 	}
@@ -187,13 +188,10 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 		// 4. Parameters
 		if (options.tags?.parameters?.length) {
 			markdown += '## Parameters\n\n';
-			markdown += `${generateMarkdownTable(
-				parseKeyValuePairs(options.tags.parameters),
-				[
-					{ accessor: 'name', header: 'Name' },
-					{ accessor: 'value', header: 'Value', preformat: true }
-				]
-			)}\n\n`;
+			markdown += `${generateMarkdownTable(options.tags.parameters, [
+				{ accessor: 'name', header: 'Name' },
+				{ accessor: 'value', header: 'Value', preformat: true }
+			])}\n\n`;
 		}
 		// 5. Important Tags
 		if (options.tags.important.length) {
@@ -226,7 +224,7 @@ type BugTags = {
 	branches: string[];
 	important: string[];
 	revisions?: { name?: string; value: string; url?: string }[];
-	parameters?: string[];
+	parameters?: { name: string; value: string }[];
 	specialCategories: Record<string, string[]>;
 };
 

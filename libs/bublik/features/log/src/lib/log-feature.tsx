@@ -75,14 +75,13 @@ export const LogFeature = (props: LogFeatureProps) => {
 	const { data } = useGetLogJsonQuery(idToFetch);
 	const path = `/${tree?.tree[focusId ?? tree.mainPackage].path}` ?? '';
 
-	const parameters =
-		data?.root
-			.flatMap((b) => b.content)
-			.filter((b) => b.type === 'te-log-meta')
-			.map((meta) => meta.meta.parameters)
-			.filter((v) => !!v)
-			.flat()
-			.map((p) => `${p.name}=${p.value}`) ?? [];
+	const parameters = data?.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((meta) => meta.meta.parameters)
+		.filter((v) => !!v)
+		.flat();
+
 	const verdicts =
 		data?.root
 			.flatMap((b) => b.content)
