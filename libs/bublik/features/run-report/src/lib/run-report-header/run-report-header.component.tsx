@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
 import { BranchBlock, RevisionBlock } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -18,6 +18,8 @@ interface RunReportHeaderProps {
 
 function RunReportHeader(props: RunReportHeaderProps) {
 	const { label, runUrl, sourceUrl, branches, revisions, warnings } = props;
+	const [searchParams] = useSearchParams();
+	const configId = searchParams.get('config');
 
 	return (
 		<div className="flex flex-col bg-white rounded">
@@ -32,6 +34,14 @@ function RunReportHeader(props: RunReportHeaderProps) {
 				}
 			>
 				<div className="flex items-center gap-2">
+					{configId ? (
+						<ButtonTw asChild variant="secondary" size="xss">
+							<Link to={`/admin/config?configId=${configId}`}>
+								<Icon name="BoxArrowRight" className="mr-1.5" />
+								Config
+							</Link>
+						</ButtonTw>
+					) : null}
 					<ButtonTw asChild variant="secondary" size="xss">
 						<a href={sourceUrl} target="_blank" rel="noreferrer">
 							<Icon name="BoxArrowRight" className="mr-1.5" />
