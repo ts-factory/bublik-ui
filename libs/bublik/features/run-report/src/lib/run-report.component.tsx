@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ComponentProps, useMemo, useRef, useState } from 'react';
+import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useMount } from '@/shared/hooks';
 import {
@@ -188,7 +188,7 @@ function RunReport(props: RunReportProps) {
 	});
 
 	return (
-		<div className="flex flex-col gap-1">
+		<div className="flex flex-col gap-1 relative">
 			<RunReportHeader
 				label={blocks.title}
 				runUrl={blocks.run_stats_link}
@@ -366,14 +366,12 @@ interface RunReportContentListProps {
 
 function RunReportContentList(props: RunReportContentListProps) {
 	return (
-		<ul className="">
-			{props.blocks.map((block, idx) => (
-				<li key={block.id}>
-					<RunReportContentItem
-						key={block.id}
-						block={block}
-						border={idx !== 0}
-					/>
+		<ul className="flex flex-col gap-8">
+			{props.blocks.map((block) => (
+				<li key={block.id} className="relative">
+					{/* LEVEL 1 */}
+					<div className="absolute left-0 top-0 w-1 h-full bg-indigo-300 rounded-tl-md" />
+					<RunReportContentItem key={block.id} block={block} />
 				</li>
 			))}
 		</ul>
@@ -382,10 +380,9 @@ function RunReportContentList(props: RunReportContentListProps) {
 
 interface RunReportContentItemProps {
 	block: TestBlock;
-	border: boolean;
 }
 
-function RunReportContentItem({ block, border }: RunReportContentItemProps) {
+function RunReportContentItem({ block }: RunReportContentItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
 
 	const args = useMemo(
@@ -399,37 +396,45 @@ function RunReportContentItem({ block, border }: RunReportContentItemProps) {
 	);
 
 	const [params] = useSearchParams();
+	const [offsetTop, setOffsetTop] = useState(0);
+
+	const handleRef = useCallback((node: HTMLDivElement) => {
+		setOffsetTop(node?.clientHeight ?? 0);
+	}, []);
 
 	return (
 		<div
 			id={encodeURIComponent(block.id)}
-			className="flex flex-col bg-white rounded"
+			className="flex flex-col bg-white rounded pl-1"
 		>
-			<CardHeader
-				label={
-					<Link
-						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-						to={{
-							search: params.toString(),
-							hash: encodeURIComponent(block.id)
-						}}
-					>
-						{block.label}
-					</Link>
-				}
-				className={cn(
-					'sticky top-0 bg-white z-10 rounded-t',
-					border && 'border-t border-border-primary'
-				)}
-				ref={ref}
-			/>
-			<div className="p-4">
-				<RunReportArgs label="Common Args" items={args} />
+			<div
+				className={cn('sticky top-0 bg-white z-[10] rounded-t')}
+				ref={handleRef}
+			>
+				{/* LEVEL 1 */}
+				<CardHeader
+					label={
+						<Link
+							className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+							to={{
+								search: params.toString(),
+								hash: encodeURIComponent(block.id)
+							}}
+						>
+							{block.label}
+						</Link>
+					}
+					ref={ref}
+				/>
+				<div className="p-4">
+					<RunReportArgs label="Common Args" items={args} />
+				</div>
 			</div>
 			<RunReportTestBlock
 				enableChartView={block.enable_chart_view}
 				enableTableView={block.enable_table_view}
 				argsValBlocks={block.content}
+				offsetTop={offsetTop}
 			/>
 		</div>
 	);
