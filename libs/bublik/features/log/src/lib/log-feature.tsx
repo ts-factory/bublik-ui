@@ -169,7 +169,7 @@ export const LogFeature = (props: LogFeatureProps) => {
 					</CardHeader>
 					<div
 						className={cn(
-							'overflow-auto relative h-full',
+							'overflow-auto relative h-full isolate',
 							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
 						ref={scrollRef}
