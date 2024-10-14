@@ -39,6 +39,67 @@ const mainMenu: SidebarItem[] = [
 		]
 	},
 	{
+		label: 'Run',
+		to: '/runs',
+		icon: <Icon name="PieChart" />,
+		pattern: { path: '/runs/:runId/*' },
+		subitems: [
+			{
+				label: 'Details',
+				icon: <Icon name="Paper" className="w-6 h-6" />,
+				to: '/runs',
+				pattern: { path: '/runs/:runId' }
+			},
+			{
+				label: 'Report',
+				icon: <Icon name="LineChart" />,
+				to: '/runs',
+				pattern: { path: '/runs/:runId/report' }
+			}
+		]
+	},
+	{
+		label: 'Log',
+		icon: <Icon name="Paper" size={28} />,
+		to: '/log',
+		pattern: { path: '/log/:runId' },
+		subitems: [
+			{
+				label: 'Tree+info+log',
+				icon: <Icon name="LayoutLogHeaderSidebar" />,
+				to: '/log',
+				pattern: {
+					path: '/log/:runId',
+					search: { mode: LogPageMode.TreeAndInfoAndLog }
+				}
+			},
+			{
+				label: 'Tree+log',
+				icon: <Icon name="LayoutLogSidebar" />,
+				to: '/log',
+				pattern: {
+					path: '/log/:runId',
+					search: { mode: LogPageMode.TreeAndLog }
+				}
+			},
+			{
+				label: 'Info+log',
+				icon: <Icon name="LayoutLogHeader" />,
+				to: '/log',
+				pattern: {
+					path: '/log/:runId',
+					search: { mode: LogPageMode.InfoAndLog }
+				}
+			},
+			{
+				label: 'Log',
+				icon: <Icon name="LayoutLogSingle" />,
+				to: '/log',
+				pattern: { path: '/log/:runId', search: { mode: LogPageMode.Log } }
+			}
+		]
+	},
+	{
 		label: 'History',
 		to: '/history',
 		icon: <Icon name="TimeCircle" />,
@@ -70,26 +131,6 @@ const mainMenu: SidebarItem[] = [
 				to: '/history',
 				icon: <Icon name="LineChartMultiple" />,
 				pattern: { path: '/history', search: { mode: 'measurements-combined' } }
-			}
-		]
-	},
-	{
-		label: 'Run',
-		to: '/runs',
-		icon: <Icon name="PieChart" />,
-		pattern: { path: '/runs/:runId/*' },
-		subitems: [
-			{
-				label: 'Details',
-				icon: <Icon name="Paper" className="w-6 h-6" />,
-				to: '/runs',
-				pattern: { path: '/runs/:runId' }
-			},
-			{
-				label: 'Report',
-				icon: <Icon name="LineChart" />,
-				to: '/runs',
-				pattern: { path: '/runs/:runId/report' }
 			}
 		]
 	},
@@ -137,47 +178,6 @@ const mainMenu: SidebarItem[] = [
 					path: '/runs/:runId/results/:resultId/measurements',
 					search: { mode: MeasurementsMode.Overlay }
 				}
-			}
-		]
-	},
-	{
-		label: 'Log',
-		icon: <Icon name="Paper" size={28} />,
-		to: '/log',
-		pattern: { path: '/log/:runId' },
-		subitems: [
-			{
-				label: 'Tree+info+log',
-				icon: <Icon name="LayoutLogHeaderSidebar" />,
-				to: '/log',
-				pattern: {
-					path: '/log/:runId',
-					search: { mode: LogPageMode.TreeAndInfoAndLog }
-				}
-			},
-			{
-				label: 'Tree+log',
-				icon: <Icon name="LayoutLogSidebar" />,
-				to: '/log',
-				pattern: {
-					path: '/log/:runId',
-					search: { mode: LogPageMode.TreeAndLog }
-				}
-			},
-			{
-				label: 'Info+log',
-				icon: <Icon name="LayoutLogHeader" />,
-				to: '/log',
-				pattern: {
-					path: '/log/:runId',
-					search: { mode: LogPageMode.InfoAndLog }
-				}
-			},
-			{
-				label: 'Log',
-				icon: <Icon name="LayoutLogSingle" />,
-				to: '/log',
-				pattern: { path: '/log/:runId', search: { mode: LogPageMode.Log } }
 			}
 		]
 	}
