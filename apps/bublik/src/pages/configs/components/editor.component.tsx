@@ -17,10 +17,18 @@ import {
 	cn,
 	Icon,
 	toast,
-	Tooltip
+	Tooltip,
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuItem,
+	Input
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
+import { useLocalStorage } from '@/shared/hooks';
 
 function formatJson(value: string) {
 	return format(value, { parser: 'json', plugins: [parserJson] });
@@ -36,6 +44,8 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 	({ schema, label, className, ...props }, ref) => {
 		const [monaco, setMonaco] = useState<Monaco>();
 		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
+		const [fontSize, setFontSize] = useLocalStorage('editor-font-size', 14);
+		const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
 		useImperativeHandle(ref, () => monaco, [monaco]);
 
@@ -97,6 +107,39 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 								<span>Format</span>
 							</ButtonTw>
 						</Tooltip>
+						<DropdownMenu modal open={isSettingsOpen}>
+							<DropdownMenuTrigger asChild>
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									onClick={() => setIsSettingsOpen(true)}
+								>
+									<Icon name="SettingsSliders" className="size-5 mr-1.5" />
+									<span>Settings</span>
+								</ButtonTw>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								className="w-56"
+								onPointerDownOutside={() => setIsSettingsOpen(false)}
+								onEscapeKeyDown={() => setIsSettingsOpen(false)}
+							>
+								<DropdownMenuLabel>Appearance</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem>
+									<div className="flex items-center justify-between w-full">
+										<span>Font Size</span>
+										<Input
+											type="number"
+											className="w-16 h-8"
+											min={8}
+											max={32}
+											value={fontSize}
+											onChange={(e) => setFontSize(Number(e.target.value))}
+										/>
+									</div>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 				</CardHeader>
 				<div className={cn('flex-1', className)}>
@@ -105,7 +148,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 						path={DEFAULT_URI}
 						beforeMount={handleEditorWillMount}
 						onMount={handleEditorDidMount}
-						options={{ fontSize: 14 }}
+						options={{ fontSize }}
 						loading={null}
 						{...props}
 					/>
