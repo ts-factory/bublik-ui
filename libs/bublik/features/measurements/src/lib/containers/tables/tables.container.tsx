@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
 import {
 	getErrorMessage,
 	useGetSingleMeasurementQuery
@@ -41,17 +39,17 @@ export const TableError = ({ error }: TableErrorProps) => {
 	);
 };
 
-export interface TablesProps {
+interface TablesProps {
 	resultId: string;
 	isLockedMode?: boolean;
 	chartsHeight?: number;
 }
 
-export const TablesContainer: FC<TablesProps> = ({
+const TablesContainer = ({
 	resultId,
 	isLockedMode,
 	chartsHeight
-}) => {
+}: TablesProps) => {
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
 
 	if (isLoading) return <TableLoading />;
@@ -62,9 +60,11 @@ export const TablesContainer: FC<TablesProps> = ({
 
 	return (
 		<MeasurementsTable
-			data={data}
+			data={data.tables}
 			isLockedMode={isLockedMode}
 			chartsHeight={chartsHeight}
 		/>
 	);
 };
+
+export { TablesContainer, type TablesProps };

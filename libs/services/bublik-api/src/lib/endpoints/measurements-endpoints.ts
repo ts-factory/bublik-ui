@@ -40,17 +40,13 @@ export const measurementsEndpoints = {
 		getResultInfo: build.query<ResultInfoAPIResponse, string | number>({
 			query: (resultId) => withApiV2(`/results/${resultId}`)
 		}),
-		getSingleMeasurement: build.query<MeasurementPlot[], string | number>({
+		getSingleMeasurement: build.query<
+			SingleMeasurementResponse,
+			string | number
+		>({
 			query: (resultId) => ({
-				url: withApiV2('/measurements/by_results_ids'),
-				method: 'POST',
-				body: { results_ids: [Number(resultId)] }
-			}),
-			transformResponse: (plotsWithoutId: MeasurementPlotWithoutId[]) => {
-				if (!Array.isArray(plotsWithoutId)) return [];
-
-				return plotsWithoutId.map(addIdToPlot);
-			}
+				url: withApiV2(`/results/${resultId}/measurements`)
+			})
 		}),
 		getMeasurements: build.query<
 			{ plots: MeasurementPlot[] },
@@ -65,3 +61,31 @@ export const measurementsEndpoints = {
 		})
 	})
 };
+
+export interface SingleMeasurementResponse {
+	charts: SingleMeasurementChart[];
+	tables: SingleMeasurementTable[];
+}
+
+export interface SingleMeasurementChart {
+	id: string;
+	title: string;
+	subtitle: string;
+	axis_x_label: string;
+	axis_y_label: string;
+	axis_x_key: string;
+	axis_y_key: string;
+	dataset: Array<Array<number | string>>;
+}
+
+export interface SingleMeasurementTable {
+	id: string;
+	type: string;
+	name: string;
+	tool: string;
+	aggr: string;
+	units: string;
+	keys: string[];
+	comments: string[];
+	value: number;
+}

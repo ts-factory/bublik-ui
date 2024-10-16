@@ -3,8 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { MeasurementPlot } from '@/shared/types';
+import { SingleMeasurementTable } from '@/services/bublik-api';
 
-export const columns: ColumnDef<MeasurementPlot>[] = [
+export const columns: ColumnDef<SingleMeasurementTable>[] = [
 	{
 		accessorFn: (d) => ({ tool: d.tool, type: d.type }),
 		id: 'tool-type',
@@ -13,7 +14,7 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 			const { tool, type } = props.getValue<{ tool: string; type: string }>();
 
 			return (
-				<div className="flex gap-2">
+				<div className="flex items-center gap-2">
 					<span className="text-[0.625rem] leading-[1.125rem] font-semibold">
 						{tool}&nbsp;
 					</span>
@@ -26,15 +27,19 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 	},
 	{
 		accessorKey: 'name',
-		header: 'Name',
-		cell: (props) => {
-			const value = props.getValue<MeasurementPlot['name']>();
-			return (
-				<span className="text-[0.625rem] font-medium leading-[0.75rem]">
-					{value}
-				</span>
-			);
-		}
+		header: 'Name'
+	},
+	{
+		accessorKey: 'aggr',
+		header: 'Aggr'
+	},
+	{
+		accessorKey: 'units',
+		header: 'Units'
+	},
+	{
+		accessorKey: 'value',
+		header: 'Value'
 	},
 	{
 		accessorKey: 'keys',
@@ -75,11 +80,5 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 				</div>
 			);
 		}
-	},
-	{
-		accessorFn: (d) => d.dots[0],
-		id: 'Results',
-		header: 'Results',
-		cell: () => null
 	}
 ];

@@ -1,19 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useCallback } from 'react';
+import { useMemo } from 'react';
 
 import {
 	getErrorMessage,
 	useGetSingleMeasurementQuery
 } from '@/services/bublik-api';
-import {
-	Chart,
-	getRow,
-	scrollToRow,
-	highlightRow,
-	getColorByIdx,
-	ChartPointClickHandler
-} from '@/shared/charts';
+import { Plot } from '@/shared/charts';
+import { type SingleMeasurementChart } from '@/services/bublik-api';
 
 import { Skeleton, Icon, cn, useSidebar } from '@/shared/tailwind-ui';
 
@@ -42,7 +36,7 @@ export interface ChartsErrorProps {
 	error: unknown;
 }
 
-export const ChartsError: FC<ChartsErrorProps> = ({ error = {} }) => {
+export const ChartsError = ({ error = {} }: ChartsErrorProps) => {
 	const { status, title, description } = getErrorMessage(error);
 
 	return (
@@ -67,28 +61,11 @@ export type ChartsTiling = 'row' | 'mosaic';
 export interface ChartsProps {
 	layout: ChartsTiling;
 	resultId: string;
-	isLockedMode?: boolean;
 }
 
-export const ChartsContainer: FC<ChartsProps> = ({
-	resultId,
-	layout,
-	isLockedMode
-}) => {
+export const ChartsContainer = ({ resultId, layout }: ChartsProps) => {
 	const { isSidebarOpen } = useSidebar();
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
-
-	const handleChartPointClick: ChartPointClickHandler = useCallback(
-		({ dataIndex, chartId }) => {
-			const el = getRow(dataIndex, chartId);
-
-			if (!el) return;
-
-			scrollToRow(el, isLockedMode);
-			highlightRow(el);
-		},
-		[isLockedMode]
-	);
 
 	if (isLoading) return <ChartsLoading layout={layout} />;
 
@@ -106,15 +83,10 @@ export const ChartsContainer: FC<ChartsProps> = ({
 						: 'min-[1368px]:chart-mosaic'
 				)}
 			>
-				{data.map((plot, idx) => {
+				{data.charts.map((plot, idx) => {
 					return (
 						<div className="py-2.5 px-4" key={plot.id}>
-							<Chart
-								id={plot.id}
-								plot={plot}
-								onChartPointClick={handleChartPointClick}
-								color={getColorByIdx(idx)}
-							/>
+							<SingleMeasurementChart chart={plot} />
 						</div>
 					);
 				})}
@@ -124,18 +96,58 @@ export const ChartsContainer: FC<ChartsProps> = ({
 
 	return (
 		<div className="flex flex-col children-but-last:border-b children-but-last:border-b-border-primary">
-			{data.map((plot, idx) => {
+			{data.charts.map((plot, idx) => {
 				return (
 					<div className="py-2.5 px-4" key={plot.id}>
-						<Chart
-							id={plot.id}
-							plot={plot}
-							onChartPointClick={handleChartPointClick}
-							color={getColorByIdx(idx)}
-						/>
+						<SingleMeasurementChart chart={plot} />
 					</div>
 				);
 			})}
 		</div>
 	);
 };
+
+interface SingleMeasurementChartProps {
+	chart: SingleMeasurementChart;
+}
+
+function SingleMeasurementChart({ chart }: SingleMeasurementChartProps) {
+	const series = useMemo(
+		() =>
+			(chart.dataset?.[0] ?? [])
+				.filter((name) => name !== chart.axis_x_key)
+				.map((name) => {
+					return {
+						type: 'line',
+						name: name,
+						encode: { x: chart.axis_x_key, y: chart.axis_y_key }
+					} as const;
+				}),
+		[chart.dataset, chart.axis_x_key, chart.axis_y_key]
+	);
+
+	return (
+		<div>
+			<Plot
+				options={{
+					legend: {},
+					title: {
+						text: chart.title,
+						textStyle: { fontFamily: 'Inter', fontSize: 12, fontWeight: 600 }
+					},
+					grid: { containLabel: true },
+					tooltip: {
+						textStyle: {},
+						extraCssText: 'shadow-popover rounded-lg',
+						trigger: 'axis'
+					},
+					dataZoom: [{}, { type: 'inside' }],
+					dataset: { source: chart.dataset },
+					xAxis: { type: 'category', name: chart.axis_x_label },
+					yAxis: { type: 'value', name: chart.axis_y_label },
+					series
+				}}
+			/>
+		</div>
+	);
+}
