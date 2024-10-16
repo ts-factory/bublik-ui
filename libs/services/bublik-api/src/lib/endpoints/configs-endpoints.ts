@@ -37,10 +37,12 @@ export type ConfigSchemaParams = z.infer<typeof ConfigSchemaParamsSchema>;
 type CreateConfigParams = z.infer<typeof CreateConfigBodySchema>;
 
 const EditConfigBodySchema = z.object({
-	description: z.string().min(1),
-	content: z.string().min(1),
-	is_active: z.boolean()
+	description: z.string().min(1).optional(),
+	content: z.string().min(1).optional(),
+	is_active: z.boolean().optional()
 });
+
+export type EditConfigBody = z.infer<typeof EditConfigBodySchema>;
 
 const EditConfigByIdParamsSchema = z.object({
 	id: z.number(),

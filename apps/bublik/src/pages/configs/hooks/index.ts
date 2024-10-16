@@ -10,7 +10,8 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	bublikAPI,
 	ConfigSchemaParams,
-	ConfigSchemaParamsSchema
+	ConfigSchemaParamsSchema,
+	EditConfigBody
 } from '@/services/bublik-api';
 import { toast } from '@/shared/tailwind-ui';
 
@@ -75,7 +76,7 @@ function useConfigById(configId: number) {
 		});
 	}
 
-	function updateConfig(params: Parameters<typeof editMutation>[0]['body']) {
+	function updateConfig(params: EditConfigBody) {
 		const promise = editMutation({ id: configId, body: params }).unwrap();
 
 		toast.promise(promise, {

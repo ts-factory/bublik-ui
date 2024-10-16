@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+
+import { ConfigVersionResponse } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	Checkbox,
@@ -23,30 +25,32 @@ import {
 	InactiveBadge,
 	ModifiedBadge
 } from '../components/badges.component';
+import { useSavedState } from '../hooks';
 import { ConfigVersions } from '../versions/config-versions';
-import { ConfigVersionResponse } from '@/services/bublik-api';
 
-const configFormSchema = z.object({
-	content: z.string().refine(
-		(val) => {
-			try {
-				JSON.parse(val);
-				return true;
-			} catch {
-				return false;
-			}
-		},
-		{ message: 'Invalid JSON' }
-	),
+const ValidJsonStringSchema = z.string().refine(
+	(val) => {
+		try {
+			JSON.parse(val);
+			return true;
+		} catch {
+			return false;
+		}
+	},
+	{ message: 'Invalid JSON' }
+);
+
+const ConfigFormSchema = z.object({
+	content: ValidJsonStringSchema,
 	description: z.string().min(1, 'Description is required'),
 	is_active: z.boolean()
 });
 
-type ConfigFormData = z.infer<typeof configFormSchema>;
+type ConfigFormData = z.infer<typeof ConfigFormSchema>;
 
 interface ConfigEditorFormProps {
 	defaultValues: ConfigFormData;
-	onSubmit: (data: ConfigFormData) => void;
+	onSubmit: (data: Partial<ConfigFormData>) => void;
 	schema?: Record<string, unknown>;
 	isLoading?: boolean;
 	label: ReactNode;
@@ -70,24 +74,61 @@ function ConfigEditorForm({
 	handleMarkAsCurrent,
 	handleDeleteClick
 }: ConfigEditorFormProps) {
+	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
+
+	function getSavedForm(): ConfigFormData {
+		if (savedValue) {
+			try {
+				return JSON.parse(savedValue);
+			} catch {
+				return defaultValues;
+			}
+		}
+		return defaultValues;
+	}
+
 	const form = useForm<ConfigFormData>({
-		defaultValues,
-		resolver: zodResolver(configFormSchema)
+		defaultValues: getSavedForm(),
+		resolver: zodResolver(ConfigFormSchema)
 	});
+
+	const formValues = form.watch();
+	useEffect(
+		() => setSavedValue(JSON.stringify(formValues)),
+		[formValues, setSavedValue]
+	);
 
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 	const handleSaveClick = () => {
-		if (form.formState.isValid) {
-			setIsDialogOpen(true);
+		if (!ValidJsonStringSchema.safeParse(form.getValues('content')).success) {
+			return alert('Invalid JSON. Please check your input.');
 		}
+
+		setIsDialogOpen(true);
 	};
 
 	function handleResetToOriginalClick() {
-		form.reset({ content: defaultValues.content });
+		form.reset(defaultValues);
 	}
 
-	const isModified = form.watch('content') !== defaultValues.content;
+	const isModified =
+		JSON.stringify(formValues) !== JSON.stringify(defaultValues);
+
+	function handleSubmit(data: ConfigFormData) {
+		const dirtyFields = form.formState.dirtyFields;
+
+		if (Object.keys(dirtyFields).length === 0) return;
+
+		const changedData = Object.fromEntries(
+			Object.keys(dirtyFields)
+				.filter((key): key is keyof ConfigFormData => key in data)
+				.map((key) => [key, data[key]])
+		) as Partial<ConfigFormData>;
+
+		onSubmit(changedData);
+		setIsDialogOpen(false);
+	}
 
 	return (
 		<>
@@ -99,7 +140,7 @@ function ConfigEditorForm({
 						'sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
 					)}
 				>
-					<form onSubmit={form.handleSubmit(onSubmit)}>
+					<form onSubmit={form.handleSubmit(handleSubmit)}>
 						<h2 className="mb-4 text-xl font-semibold leading-tight text-text-primary">
 							Update Config
 						</h2>
@@ -140,7 +181,7 @@ function ConfigEditorForm({
 											onCheckedChange={field.onChange}
 										/>
 										<span className="ml-2 text-sm text-gray-700">
-											Activate config?
+											Config Active
 										</span>
 									</label>
 								)}
@@ -154,7 +195,14 @@ function ConfigEditorForm({
 							>
 								Cancel
 							</ButtonTw>
-							<ButtonTw type="submit" variant="primary">
+							<ButtonTw
+								type="submit"
+								variant="primary"
+								disabled={
+									!form.formState.isValid ||
+									!Object.keys(form.formState.dirtyFields).length
+								}
+							>
 								Save
 							</ButtonTw>
 						</div>

@@ -115,4 +115,4 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 	}
 );
 
-export { ConfigEditor };
+export { ConfigEditor, formatJson };

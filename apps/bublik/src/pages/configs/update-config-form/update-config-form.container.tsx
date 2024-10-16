@@ -1,14 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { EditConfigBody } from '@/services/bublik-api';
 import { useConfirm } from '@/shared/hooks';
+import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
 
-import {
-	useConfigPageSearchParams,
-	useConfigById,
-	useSavedState
-} from '../hooks';
+import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
+import { formatJson } from '../components/editor.component';
 
 interface ConfigsEditorContainerProps {
 	configId: number;
@@ -27,22 +25,11 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		schema
 	} = useConfigById(configId);
 	const { setConfigId, setNewConfigParams } = useConfigPageSearchParams();
-	const { savedValue, setSavedValue } = useSavedState(configId.toString());
 	const { confirm, confirmation, decline, isVisible } = useConfirm();
 	const markConfirm = useConfirm();
 
-	const handleSubmit = async (data: {
-		content: string;
-		description: string;
-		is_active: boolean;
-	}) => {
-		const result = await updateConfig({
-			content: JSON.parse(data.content),
-			description: data.description,
-			is_active: data.is_active
-		});
-
-		setSavedValue('');
+	const handleSubmit = async (data: EditConfigBody) => {
+		const result = await updateConfig(data);
 		setConfigId(result.id);
 	};
 
@@ -74,7 +61,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	if (!config) return <div>No Data...</div>;
 
 	const defaultValues = {
-		content: savedValue || JSON.stringify(config.content, null, 2),
+		content: formatJson(JSON.stringify(config.content, null, 2)),
 		description: config.description,
 		is_active: config.is_active
 	};
