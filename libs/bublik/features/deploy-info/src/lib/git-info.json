@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.09",
-	"summary": "feat(configs): handle initial global config migration",
-	"revision": "8e29d66",
-	"branch": "release-0.4.2",
-	"latestTag": "v0.4.2"
+	"date": "2024.10.16",
+	"summary": "feat(report): added link to config used for generation current report",
+	"revision": "3f606cc",
+	"branch": "release-v0.5.0",
+	"latestTag": "v0.5.0"
 }
