@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { EditConfigBody } from '@/services/bublik-api';
+import { ConfigExistsError, EditConfigBody } from '@/services/bublik-api';
 import { useConfirm } from '@/shared/hooks';
 import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
 
@@ -27,10 +27,28 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	const { setConfigId, setNewConfigParams } = useConfigPageSearchParams();
 	const { confirm, confirmation, decline, isVisible } = useConfirm();
 	const markConfirm = useConfirm();
+	const {
+		confirmation: confirmationExisting,
+		confirm: confirmExisting,
+		decline: declineExisting,
+		isVisible: isExistingVisible
+	} = useConfirm();
 
 	const handleSubmit = async (data: EditConfigBody) => {
-		const result = await updateConfig(data);
-		setConfigId(result.id);
+		try {
+			const result = await updateConfig(data);
+			setConfigId(result.id);
+		} catch (e) {
+			if (e instanceof ConfigExistsError) {
+				const shouldNavigate = await confirmationExisting();
+
+				if (!shouldNavigate) return;
+
+				setConfigId(e.configId);
+			} else {
+				throw e;
+			}
+		}
 	};
 
 	async function handleMarkAsCurrent(id: number) {
@@ -83,6 +101,13 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 				description="This action can not be undone."
 				onCancelClick={markConfirm.decline}
 				onConfirmClick={markConfirm.confirm}
+			/>
+			<ConfirmDialog
+				open={isExistingVisible}
+				title="Config Already Exists"
+				description="A config with this content already exists. Do you want to navigate to the existing config?"
+				onCancelClick={declineExisting}
+				onConfirmClick={confirmExisting}
 			/>
 			<ConfigEditorForm
 				label={label}

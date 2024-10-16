@@ -9,6 +9,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	bublikAPI,
+	ConfigExistsError,
 	ConfigSchemaParams,
 	ConfigSchemaParamsSchema,
 	EditConfigBody
@@ -82,6 +83,8 @@ function useConfigById(configId: number) {
 		toast.promise(promise, {
 			success: 'Succesfully updated config',
 			error: (e) => {
+				if (e instanceof ConfigExistsError) return e.message;
+
 				try {
 					const {
 						data: { message }

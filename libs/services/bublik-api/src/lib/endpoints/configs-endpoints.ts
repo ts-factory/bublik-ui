@@ -93,6 +93,17 @@ const ConfigVersionSchema = z.object({
 
 export type ConfigVersionResponse = z.infer<typeof ConfigVersionSchema>;
 
+export const ConfigExistsErrorResponseSchema = z.object({
+	data: z.object({ id: z.number() }).nonstrict(),
+	status: z.number()
+});
+
+export class ConfigExistsError extends Error {
+	constructor(public readonly configId: number) {
+		super(`Config already exists. Id: ${configId}`);
+	}
+}
+
 export const configsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
@@ -143,6 +154,14 @@ export const configsEndpoints = {
 				body: params.body,
 				method: 'PATCH'
 			}),
+			transformErrorResponse: (response) => {
+				const result = ConfigExistsErrorResponseSchema.safeParse(response);
+				if (result.success) {
+					return new ConfigExistsError(result.data.data.id);
+				}
+
+				return response;
+			},
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
 		deleteConfigById: build.mutation<void, number>({
