@@ -20,7 +20,6 @@ import {
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report.component';
-import { useIsSticky } from '@/shared/hooks';
 
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
