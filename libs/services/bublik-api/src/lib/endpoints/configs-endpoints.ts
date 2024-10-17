@@ -104,6 +104,15 @@ export class ConfigExistsError extends Error {
 	}
 }
 
+function transformConfigError(response: unknown) {
+	const result = ConfigExistsErrorResponseSchema.safeParse(response);
+	if (result.success) {
+		return new ConfigExistsError(result.data.data.id);
+	}
+
+	return response;
+}
+
 export const configsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
@@ -146,6 +155,7 @@ export const configsEndpoints = {
 				method: 'POST',
 				body: params
 			}),
+			transformErrorResponse: transformConfigError,
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
 		editConfigById: build.mutation<Config, EditConfigByIdParams>({
@@ -154,14 +164,7 @@ export const configsEndpoints = {
 				body: params.body,
 				method: 'PATCH'
 			}),
-			transformErrorResponse: (response) => {
-				const result = ConfigExistsErrorResponseSchema.safeParse(response);
-				if (result.success) {
-					return new ConfigExistsError(result.data.data.id);
-				}
-
-				return response;
-			},
+			transformErrorResponse: transformConfigError,
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
 		deleteConfigById: build.mutation<void, number>({

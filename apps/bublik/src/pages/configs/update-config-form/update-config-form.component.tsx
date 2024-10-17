@@ -27,18 +27,7 @@ import {
 } from '../components/badges.component';
 import { useSavedState } from '../hooks';
 import { ConfigVersions } from '../versions/config-versions';
-
-const ValidJsonStringSchema = z.string().refine(
-	(val) => {
-		try {
-			JSON.parse(val);
-			return true;
-		} catch {
-			return false;
-		}
-	},
-	{ message: 'Invalid JSON' }
-);
+import { ValidJsonStringSchema } from '../utils';
 
 const ConfigFormSchema = z.object({
 	content: ValidJsonStringSchema,
