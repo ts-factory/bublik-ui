@@ -37,7 +37,7 @@ function RunReportChart(props: RunReportChartProps) {
 	);
 
 	return (
-		<div className="w-full">
+		<div className="w-full flex flex-col gap-2">
 			<Plot
 				options={{
 					legend: enableLegend ? {} : undefined,
@@ -58,6 +58,16 @@ function RunReportChart(props: RunReportChartProps) {
 					series: series
 				}}
 			/>
+			<div className="flex items-center justify-center gap-2">
+				<div className="flex items-start flex-col gap-2">
+					<span className="text-text-secondary text-sm font-semibold">
+						Axis X: {xAxisLabel}
+					</span>
+					<span className="text-text-secondary text-sm font-semibold">
+						Axis Y: {yAxisLabel}
+					</span>
+				</div>
+			</div>
 		</div>
 	);
 }

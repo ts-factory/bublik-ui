@@ -193,7 +193,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 
 	return (
 		<div className="flex flex-col pl-1">
-			<div className="flex flex-col max-h-96" id={encodeURIComponent(id)}>
+			<div className="flex flex-col max-h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
 				{multiple_sequences ? (
 					<CardHeader
