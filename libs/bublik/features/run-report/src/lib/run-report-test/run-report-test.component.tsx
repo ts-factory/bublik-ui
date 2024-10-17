@@ -20,7 +20,6 @@ import {
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report.component';
-import { useIsSticky } from '@/shared/hooks';
 
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
@@ -194,7 +193,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 
 	return (
 		<div className="flex flex-col pl-1">
-			<div className="flex flex-col max-h-96" id={encodeURIComponent(id)}>
+			<div className="flex flex-col max-h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
 				{multiple_sequences ? (
 					<CardHeader
