@@ -13,6 +13,18 @@ const ValidationErrorSchema = z.object({
 	})
 });
 
+const ValidJsonStringSchema = z.string().refine(
+	(val) => {
+		try {
+			JSON.parse(val);
+			return true;
+		} catch {
+			return false;
+		}
+	},
+	{ message: 'Invalid JSON' }
+);
+
 function formatTimeV(date: string): string {
 	return `${format(new Date(date), 'MMM dd, yyyy')} at ${format(
 		new Date(date),
@@ -43,4 +55,10 @@ function getEditorValue(monaco?: Monaco, uri = DEFAULT_URI): string {
 	return monaco.editor.getModel(URI)?.getValue() ?? '';
 }
 
-export { ValidationErrorSchema, formatTimeV, isValidJson, getEditorValue };
+export {
+	ValidationErrorSchema,
+	formatTimeV,
+	isValidJson,
+	getEditorValue,
+	ValidJsonStringSchema
+};
