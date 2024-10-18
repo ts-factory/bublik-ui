@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.16",
-	"summary": "feat(report): added link to config used for generation current report",
-	"revision": "3f606cc",
-	"branch": "release-v0.5.0",
-	"latestTag": "v0.5.0"
+	"date": "2024.10.18",
+	"summary": "feat(report): added axis labels display at the bottom of chart",
+	"revision": "bb65ae3",
+	"branch": "main",
+	"latestTag": "v0.5.1"
 }
