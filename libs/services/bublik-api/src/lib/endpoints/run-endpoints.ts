@@ -17,7 +17,10 @@ import {
 	CreateTestCommentResponse,
 	CreateTestCommentParams,
 	EditTestCommentParams,
-	DeleteTestCommentParams
+	DeleteTestCommentParams,
+	RunAPIResponse,
+	MergedRun,
+	RunStats
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -25,6 +28,99 @@ import { getMinutes, prepareForSend } from '../utils';
 import { transformRunTable } from '../transform';
 import { API_REDUCER_PATH } from '../constants';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
+import { groupBy } from 'remeda';
+
+/**
+ * Merges runs based on result_id and exec_seqno
+ * @param runs - Top most packages of runs that contain children
+ * @returns Array of merged runs with **ONE** root node where stats are merged
+ */
+function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
+	// TODO: Add some checks so we compare only runs with same top package?
+	const runMap = new Map<number, RunData>(runs);
+
+	const nodesMap = new Map<[number, number], Map<number, RunData>>();
+	Array.from(runMap.entries()).forEach(([runId, node]) =>
+		nodesMap.set([runId, node.result_id], createNodeMap(node))
+	);
+
+	const roots = Array.from(nodesMap.entries())
+		.map(([[_, rootId], nodeMap]) => nodeMap.get(rootId))
+		.filter((node): node is RunData => node !== undefined);
+
+	const mergedNodes = createMergedNode(roots);
+
+	return [mergedNodes];
+
+	function createMergedNode(nodes: RunData[]): MergedRun {
+		const mergedNode: MergedRun = {
+			...nodes[0],
+			result_ids: [],
+			parent_ids: [],
+			children: []
+		};
+
+		const parentIds = nodes
+			.map((node) => node.parent_id)
+			.filter((id): id is number => id !== null);
+
+		mergedNode.result_ids = mergeIds(nodes.map((node) => node.result_id));
+		mergedNode.parent_ids = mergeIds(parentIds);
+		mergedNode.stats = mergeStats(nodes.map((node) => node.stats));
+
+		const allChildren = nodes.map((node) => node.children).flat();
+		const groupedChildrenById = groupBy(
+			allChildren,
+			(child) => child.result_id
+		);
+
+		Object.entries(groupedChildrenById).forEach(([_, children]) => {
+			mergedNode.children.push(createMergedNode(children));
+		});
+
+		return mergedNode;
+
+		function mergeIds(ids: number[]): number[] {
+			return [...new Set(ids)];
+		}
+
+		function mergeStats(stats: RunStats[]): RunStats {
+			const DEFAULT_STATS = {
+				abnormal: 0,
+				failed: 0,
+				passed: 0,
+				skipped: 0,
+				failed_unexpected: 0,
+				passed_unexpected: 0,
+				skipped_unexpected: 0
+			};
+
+			return stats.reduce<RunStats>(
+				(acc, curr) => ({
+					abnormal: acc.abnormal + curr.abnormal,
+					failed: acc.failed + curr.failed,
+					passed: acc.passed + curr.passed,
+					skipped: acc.skipped + curr.skipped,
+					failed_unexpected: acc.failed_unexpected + curr.failed_unexpected,
+					passed_unexpected: acc.passed_unexpected + curr.passed_unexpected,
+					skipped_unexpected: acc.skipped_unexpected + curr.skipped_unexpected
+				}),
+				DEFAULT_STATS
+			);
+		}
+	}
+
+	function createNodeMap(
+		node: RunData,
+		map: Map<number, RunData> = new Map()
+	): Map<number, RunData> {
+		map.set(node.result_id, node);
+
+		node.children.forEach((child) => createNodeMap(child, map));
+
+		return map;
+	}
+}
 
 export const runEndpoints = {
 	endpoints: (
@@ -57,10 +153,12 @@ export const runEndpoints = {
 					const DEFAULT_PAGE = 1;
 
 					const testName = query.testName;
-					const parentId = query.parentId;
+					const parentIds = Array.isArray(query.parentId)
+						? query.parentId
+						: [query.parentId];
 
-					const requests = Object.entries(query.requests).map(
-						([_columnId, props]) => {
+					const requests = parentIds.flatMap((parentId) =>
+						Object.entries(query.requests).map(([_columnId, props]) => {
 							const results = props.results.join(';');
 							const resultProperties = props.resultProperties.join(';');
 							const pageAndPageSize = `page=${DEFAULT_PAGE}&page_size=${DEFAULT_PAGE_SIZE}`;
@@ -71,7 +169,7 @@ export const runEndpoints = {
 									true
 								)
 							);
-						}
+						})
 					);
 
 					const requestsResults = (await Promise.all(
@@ -175,6 +273,31 @@ export const runEndpoints = {
 				method: 'DELETE'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]
+		}),
+		getMultipleRunsByRunIds: build.query<MergedRun[], (string | number)[]>({
+			queryFn: async (runIds, _api, _extraOptions, fetchWithBQ) => {
+				const requests = runIds.map((runId) =>
+					fetchWithBQ(withApiV2(`/runs/${runId}/stats`))
+				);
+
+				const requestsResults = await Promise.all(
+					runIds.map(async (runId, index) => {
+						const result = (await requests[
+							index
+						]) as QueryReturnValue<RunAPIResponse>;
+						const data = result.data?.results;
+
+						return data ? [Number(runId), data] : null;
+					})
+				);
+
+				const filteredResults = requestsResults.filter(
+					(item): item is [number, RunData] => item !== null
+				);
+
+				return { data: mergeRuns(filteredResults) };
+			},
+			providesTags: [BUBLIK_TAG.Run]
 		})
 	})
 };

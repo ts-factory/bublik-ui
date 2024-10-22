@@ -72,10 +72,8 @@ export type RunPageParams = {
 };
 
 export type ResultTableAPIQuery = {
-	parentId: number;
+	parentId: number | number[];
 	testName: string;
-	// page: number;
-	// pageSize: number;
 };
 
 export type ResultTableFilter = {
@@ -120,6 +118,15 @@ export type RunData = {
 	comments?: Array<RunDataComment>;
 };
 
+export type MergedRun = Omit<
+	RunData,
+	'parent_id' | 'result_id' | 'children'
+> & {
+	parent_ids: number[];
+	result_ids: number[];
+	children: MergedRun[];
+};
+
 export type RunDataComment = {
 	comment_id: string;
 	updated: string;
@@ -130,6 +137,7 @@ export type RunDataResults = {
 	name: string;
 	result_id: number;
 	iteration_id: number;
+	run_id: string;
 	has_measurements: boolean;
 	has_error: boolean;
 	expected_result: RunResultWithKeys;
