@@ -185,10 +185,7 @@ export const runEndpoints = {
 							checkedIds.add(item.result_id);
 							return !isDuplicate;
 						})
-						.sort(
-							(a, b) =>
-								new Date(a.start).getTime() - new Date(b.start).getTime()
-						);
+						.sort((a, b) => a.iteration_id - b.iteration_id);
 
 					return { data };
 				} catch (error) {
