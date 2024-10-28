@@ -17,3 +17,4 @@ export * from './settings';
 export * from './admin-users';
 export * from './run-report';
 export * from './configs';
+export * from './run-multiple';

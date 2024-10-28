@@ -38,7 +38,8 @@ import {
 	DashboardPageV2,
 	EmailActivationPage,
 	RunReportPage,
-	ConfigsPage
+	ConfigsPage,
+	RunMultiplePage
 } from '../pages';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
@@ -194,6 +195,7 @@ const router = createBrowserRouter(
 						},
 						{ path: '/runs', element: <RunsPage /> },
 						{ path: '/compare', element: <RunDiffPage /> },
+						{ path: '/multiple', element: <RunMultiplePage /> },
 						{
 							path: '/runs/:runId',
 							element: <RunPage />
