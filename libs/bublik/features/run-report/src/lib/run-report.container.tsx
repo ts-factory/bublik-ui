@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useSearchParams, useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import { useGetRunReportQuery } from '@/services/bublik-api';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	RunReport,
@@ -10,13 +11,11 @@ import {
 	RunReportError,
 	RunReportLoading
 } from './run-report.component';
-import { skipToken } from '@reduxjs/toolkit/query';
 
 function RunReportContainer() {
 	const { runId } = useParams<{ runId: string }>();
 	const [searchParams] = useSearchParams();
 	const configId = searchParams.get('config');
-
 	const { data, isLoading, error } = useGetRunReportQuery(
 		configId && runId ? { configId, runId } : skipToken
 	);

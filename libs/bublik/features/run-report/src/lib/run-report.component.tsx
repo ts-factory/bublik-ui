@@ -168,7 +168,6 @@ function RunReport(props: RunReportProps) {
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
 	);
-
 	const location = useLocation();
 
 	useMount(() => {
