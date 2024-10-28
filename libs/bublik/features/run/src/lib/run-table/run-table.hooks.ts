@@ -70,7 +70,7 @@ export const useRunTableQueryState = () => {
 };
 
 export type useRunPageNameConfig = {
-	runId: string;
+	runId: string | string[];
 };
 
 export const useRunPageName = ({ runId }: useRunPageNameConfig) => {
@@ -79,6 +79,12 @@ export const useRunPageName = ({ runId }: useRunPageNameConfig) => {
 	);
 
 	useEffect(() => {
+		if (Array.isArray(runId)) {
+			document.title = `${runId.join(' | ')} - Runs - Multiple - Bublik`;
+
+			return;
+		}
+
 		if (!details) {
 			document.title = 'Run - Bublik';
 			return;

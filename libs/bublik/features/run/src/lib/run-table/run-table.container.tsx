@@ -25,7 +25,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		? bublikAPI.useGetMultipleRunsByRunIdsQuery(runId)
 		: bublikAPI.useGetRunTableByRunIdQuery(runId);
 
-	useRunPageName({ runId: Array.isArray(runId) ? runId[0] : runId });
+	useRunPageName({ runId });
 
 	const {
 		columnVisibility,
