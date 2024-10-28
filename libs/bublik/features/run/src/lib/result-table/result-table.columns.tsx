@@ -10,22 +10,17 @@ import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useRunTableRowState } from '../hooks';
 
-export interface ResultLinksProps {
-	runId: string;
-	resultId: number;
-	result: RunDataResults;
+interface GetColumnsOptions {
+	rowId: string;
+	data: RunDataResults[];
+	showLinkToRun?: boolean;
 }
 
-const ResultLinks = ({ runId, resultId, result }: ResultLinksProps) => {
-	return (
-		<ResultLinksContainer runId={runId} resultId={resultId} result={result} />
-	);
-};
-
-export const getColumns = (
-	rowId: string,
-	data: RunDataResults[]
-): ColumnDef<RunDataResults>[] => {
+export const getColumns = ({
+	rowId,
+	data,
+	showLinkToRun = false
+}: GetColumnsOptions): ColumnDef<RunDataResults>[] => {
 	const parametersDataset = Object.fromEntries(
 		data.map((item) => [String(item.result_id), item.parameters])
 	);
@@ -40,10 +35,11 @@ export const getColumns = (
 
 				return (
 					<div className="flex items-center h-full">
-						<ResultLinks
+						<ResultLinksContainer
 							runId={value.run_id}
 							resultId={value.result_id}
 							result={value}
+							showLinkToRun={showLinkToRun}
 						/>
 					</div>
 				);

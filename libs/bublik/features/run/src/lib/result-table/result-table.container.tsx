@@ -93,5 +93,12 @@ export const ResultTableContainer = ({
 
 	if (!data) return <div>No data...</div>;
 
-	return <ResultTable data={data} rowId={rowId} getRowProps={getRowProps} />;
+	return (
+		<ResultTable
+			showLinkToRun={Array.isArray(runId)}
+			data={data}
+			rowId={rowId}
+			getRowProps={getRowProps}
+		/>
+	);
 };

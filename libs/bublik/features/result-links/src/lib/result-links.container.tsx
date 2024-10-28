@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -49,6 +49,7 @@ export interface ResultLinksProps {
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;
 	onLogLinkMouseEnter?: () => void;
+	showLinkToRun?: boolean;
 }
 
 export const ResultLinks = (props: ResultLinksProps) => {
@@ -60,12 +61,24 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		runInfo,
 		userPreferredHistoryMode = 'linear',
 		onLogLinkMouseEnter,
-		onMeasurementLinkMouseEnter
+		onMeasurementLinkMouseEnter,
+		showLinkToRun = false
 	} = props;
 
 	return (
 		<div className="flex flex-col justify-start gap-3 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
 			<ul className="flex flex-col items-start gap-3">
+				{showLinkToRun ? (
+					<li className="pl-2">
+						<Link
+							className="flex items-center w-full gap-1"
+							to={routes.run({ runId })}
+						>
+							<Icon name="Paper" className="size-5" />
+							Run {runId}
+						</Link>
+					</li>
+				) : null}
 				<li className="pl-2">
 					<Link
 						className="flex items-center w-full gap-1"
@@ -279,13 +292,11 @@ export interface ActionLinksProps {
 	runId: string;
 	resultId: number;
 	result: RunDataResults;
+	showLinkToRun?: boolean;
 }
 
-export const ResultLinksContainer: FC<ActionLinksProps> = ({
-	runId,
-	resultId,
-	result
-}) => {
+export const ResultLinksContainer = (props: ActionLinksProps) => {
+	const { runId, resultId, result, showLinkToRun = false } = props;
 	const { has_measurements: hasMeasurements } = result;
 	const { data: runInfo } = useGetRunDetailsQuery(runId);
 	const { userPreferences } = useUserPreferences();
@@ -317,6 +328,7 @@ export const ResultLinksContainer: FC<ActionLinksProps> = ({
 			hasMeasurements={hasMeasurements}
 			onLogLinkMouseEnter={handleLogLinkMouseEnter}
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}
+			showLinkToRun={showLinkToRun}
 		/>
 	);
 };

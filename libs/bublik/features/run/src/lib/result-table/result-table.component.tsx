@@ -55,14 +55,23 @@ const classNames: TableClassNames<RunDataResults> = {
 };
 
 export interface ResultTableProps {
-	data: RunDataResults[];
 	rowId: string;
+	data: RunDataResults[];
 	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
+	showLinkToRun?: boolean;
 }
 
 export const ResultTable = memo(
-	({ data = [], rowId, getRowProps }: ResultTableProps) => {
-		const columns = useMemo(() => getColumns(rowId, data), [data, rowId]);
+	({
+		data = [],
+		rowId,
+		getRowProps,
+		showLinkToRun = false
+	}: ResultTableProps) => {
+		const columns = useMemo(
+			() => getColumns({ rowId, showLinkToRun, data }),
+			[data, rowId]
+		);
 
 		return (
 			<div className="px-4 py-2">
