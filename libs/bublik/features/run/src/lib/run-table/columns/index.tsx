@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import {
 	CreateTestCommentParams,
 	EditTestCommentParams,
+	MergedRun,
 	RunData,
 	RunDataComment
 } from '@/shared/types';
@@ -32,42 +33,73 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 
-import { treeColumn } from './tree-column';
 import { badgeColumns } from './badge-columns';
+import { ColumnDef } from '@tanstack/react-table';
+import { TableNode } from '@/shared/tailwind-ui';
+import { getTreeNode } from '@/bublik/run-utils';
+
 import { ColumnId } from '../types';
 
-const helper = createColumnHelper<RunData>();
+function getColumns() {
+	const helper = createColumnHelper<RunData | MergedRun>();
 
-const columns = [
-	treeColumn,
-	helper.accessor('objective', {
-		id: ColumnId.Objective,
-		header: 'Objective',
-		cell: ({ cell }) => {
-			const objective = cell.getValue();
+	const treeColumn: ColumnDef<RunData> = {
+		id: ColumnId.Tree,
+		accessorFn: getTreeNode,
+		header: 'Tree',
+		cell: ({ getValue, row }) => {
+			const node = getValue<ReturnType<typeof getTreeNode>>();
 
-			return objective;
-		}
-	}),
-	helper.accessor('comments', {
-		header: () => (
-			<div className="flex items-center justify-end px-4">
-				<span>Notes</span>
-			</div>
-		),
-		id: ColumnId.Comments,
-		cell: ({ cell, row }) => {
-			const comments = cell.getValue();
+			if (!node) return null;
+
+			const { name, type } = node;
 
 			return (
-				<TestComments comments={comments} testId={row.original.result_id} />
+				<TableNode
+					nodeName={name}
+					nodeType={type}
+					onClick={() => row.toggleExpanded()}
+					isExpanded={row.getIsExpanded()}
+					depth={row.depth}
+				/>
 			);
 		},
-		enableSorting: false,
-		meta: { className: 'text-right' }
-	}),
-	...badgeColumns
-];
+		enableSorting: false
+	};
+
+	return [
+		treeColumn,
+		helper.accessor('objective', {
+			id: ColumnId.Objective,
+			header: 'Objective',
+			cell: ({ cell }) => {
+				const objective = cell.getValue();
+
+				return objective;
+			}
+		}),
+		helper.accessor('comments', {
+			header: () => (
+				<div className="flex items-center justify-end px-4">
+					<span>Notes</span>
+				</div>
+			),
+			id: ColumnId.Comments,
+			cell: ({ cell, row }) => {
+				const comments = cell.getValue();
+
+				if (!('result_id' in row.original)) return null;
+
+				return (
+					<TestComments comments={comments} testId={row.original.result_id} />
+				);
+			},
+			enableSorting: false,
+			meta: { className: 'text-right' }
+		}),
+		...badgeColumns
+	] as ColumnDef<RunData | MergedRun>[];
+}
 
 function useTestComment() {
 	const [createTestCommentMutation] = useCreateTestCommentMutation();
@@ -423,4 +455,4 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 	);
 }
 
-export { columns };
+export { getColumns };

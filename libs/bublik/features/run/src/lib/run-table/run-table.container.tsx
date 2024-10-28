@@ -3,8 +3,8 @@
 import { useCallback } from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
-import { useGetRunTableByRunIdQuery } from '@/services/bublik-api';
+import { MergedRun, RunData } from '@/shared/types';
+import { bublikAPI } from '@/services/bublik-api';
 
 import { RunRowStateContextProvider } from '../hooks';
 import {
@@ -17,14 +17,15 @@ import { ResultTableContainer } from '../result-table';
 import { useRunPageName, useRunTableQueryState } from './run-table.hooks';
 
 export interface RunTableContainerProps {
-	runId: string;
+	runId: string | string[];
 }
 
 export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
-	const { data, isLoading, error, isFetching } =
-		useGetRunTableByRunIdQuery(runId);
+	const { data, isLoading, error, isFetching } = Array.isArray(runId)
+		? bublikAPI.useGetMultipleRunsByRunIdsQuery(runId)
+		: bublikAPI.useGetRunTableByRunIdQuery(runId);
 
-	useRunPageName({ runId });
+	useRunPageName({ runId: Array.isArray(runId) ? runId[0] : runId });
 
 	const {
 		columnVisibility,
@@ -40,7 +41,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 	} = useRunTableQueryState();
 
 	const renderSubRow = useCallback(
-		(row: Row<RunData>) => {
+		(row: Row<RunData | MergedRun>) => {
 			return (
 				<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
 					<ResultTableContainer runId={runId} row={row} />

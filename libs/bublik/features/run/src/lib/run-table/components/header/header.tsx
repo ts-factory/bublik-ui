@@ -1,19 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useRef } from 'react';
+import { useRef } from 'react';
 
 import { flexRender, Table } from '@tanstack/react-table';
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 import { TableSort, cn } from '@/shared/tailwind-ui';
 
 import { getIsBorderGroup } from '../../utils';
 import { COLUMN_GROUPS } from '../../constants';
 
 export interface RunHeaderProps {
-	instance: Table<RunData>;
+	instance: Table<RunData | MergedRun>;
 }
 
-export const RunHeader: FC<RunHeaderProps> = ({ instance }) => {
+export const RunHeader = ({ instance }: RunHeaderProps) => {
 	const ref = useRef<HTMLTableSectionElement>(null);
 
 	return (

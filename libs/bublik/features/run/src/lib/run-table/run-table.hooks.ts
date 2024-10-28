@@ -74,7 +74,9 @@ export type useRunPageNameConfig = {
 };
 
 export const useRunPageName = ({ runId }: useRunPageNameConfig) => {
-	const { data: details } = useGetRunDetailsQuery(runId);
+	const { data: details } = useGetRunDetailsQuery(
+		Array.isArray(runId) ? runId[0] : runId
+	);
 
 	useEffect(() => {
 		if (!details) {

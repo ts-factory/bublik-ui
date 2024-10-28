@@ -2,12 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Row } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 
 import { RowDecription } from '../context';
 import { isChild, isPackage, isTest } from './expanding';
 
-export const getRowValues = (row: Row<RunData>) => {
+export const getRowValues = (row: Row<RunData | MergedRun>) => {
 	const values: Record<string, number> = {};
 
 	row.getAllCells().forEach((cell) => {
@@ -18,7 +18,7 @@ export const getRowValues = (row: Row<RunData>) => {
 };
 
 export const getRowsValuesById = (
-	rawRawsById: Record<string, Row<RunData>>
+	rawRawsById: Record<string, Row<RunData | MergedRun>>
 ) => {
 	const rowsById = Object.entries(rawRawsById);
 
@@ -30,16 +30,20 @@ export const getRowsValuesById = (
 	return valuesById;
 };
 
-const packageFilter = (originalRow: Row<RunData>) => (row: Row<RunData>) => {
-	return isChild(originalRow.id, row.id) && isPackage(row.original?.type);
-};
+const packageFilter =
+	(originalRow: Row<RunData | MergedRun>) =>
+	(row: Row<RunData | MergedRun>) => {
+		return isChild(originalRow.id, row.id) && isPackage(row.original?.type);
+	};
 
-const testFilter = (originalRow: Row<RunData>) => (row: Row<RunData>) => {
-	return isChild(originalRow.id, row.id) && isTest(row.original?.type);
-};
+const testFilter =
+	(originalRow: Row<RunData | MergedRun>) =>
+	(row: Row<RunData | MergedRun>) => {
+		return isChild(originalRow.id, row.id) && isTest(row.original?.type);
+	};
 
 export const getRowsDescriptionById = (
-	rows: Row<RunData>[]
+	rows: Row<RunData | MergedRun>[]
 ): Record<string, RowDecription> => {
 	const result: Record<string, RowDecription> = {};
 

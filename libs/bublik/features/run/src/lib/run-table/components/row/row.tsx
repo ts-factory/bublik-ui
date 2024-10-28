@@ -1,20 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, Fragment, ReactNode, useRef } from 'react';
+import { Fragment, ReactNode, useRef } from 'react';
 import { flexRender, Row } from '@tanstack/react-table';
 import { cn } from '@/shared/tailwind-ui';
 
-import { NodeEntity, RunData } from '@/shared/types';
+import { MergedRun, NodeEntity, RunData } from '@/shared/types';
 
 import { COLUMN_GROUPS } from '../../constants';
 import { getIsBorderGroup } from '../../utils';
 
 export interface RowProps {
-	row: Row<RunData>;
-	renderSubRow: (row: Row<RunData>) => ReactNode;
+	row: Row<RunData | MergedRun>;
+	renderSubRow: (row: Row<RunData | MergedRun>) => ReactNode;
 }
 
-export const RunRow: FC<RowProps> = ({ row, renderSubRow }) => {
+export const RunRow = ({ row, renderSubRow }: RowProps) => {
 	const ref = useRef<HTMLTableRowElement>(null);
 
 	const isExpanded = row.getIsExpanded();

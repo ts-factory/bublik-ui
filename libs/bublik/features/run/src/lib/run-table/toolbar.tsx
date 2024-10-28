@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Table } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 import { toolbarIcon } from '@/bublik/run-utils';
 import {
 	ButtonTw,
@@ -24,7 +24,7 @@ import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 import { ColumnId } from './types';
 
 export interface ToolbarProps {
-	table: Table<RunData>;
+	table: Table<RunData | MergedRun>;
 }
 
 export const Toolbar = ({ table }: ToolbarProps) => {

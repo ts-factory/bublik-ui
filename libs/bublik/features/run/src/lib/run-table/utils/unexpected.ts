@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ColumnSort } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 
 import { GlobalFilterValue, ColumnId } from '../types';
 import {
@@ -64,7 +64,7 @@ export const getExpandedUnexpectedState = (
 	return [unexpectedRowState, toOpen];
 };
 
-export const hasUnexpected = (data: RunData): boolean => {
+export const hasUnexpected = (data: RunData | MergedRun): boolean => {
 	return (
 		data.stats.failed_unexpected !== 0 ||
 		data.stats.passed_unexpected !== 0 ||

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 import { FilterFn, Row } from '@tanstack/react-table';
 
 import { GlobalFilterValue } from '../types';
@@ -10,7 +10,7 @@ const isChild = (rowId: string) => (filterValue: GlobalFilterValue) => {
 };
 
 const applyGlobalFilter =
-	(filters: GlobalFilterValue[]) => (row: Row<RunData>) => {
+	(filters: GlobalFilterValue[]) => (row: Row<RunData | MergedRun>) => {
 		const isPresentInSomeParent = filters.some(isChild(row.id));
 
 		// We handle only subtrees moving on (strict checking)
@@ -21,7 +21,7 @@ const applyGlobalFilter =
 		return columnsForCheck.some((columnId) => !!row.getValue(columnId));
 	};
 
-export const globalFilterFn: FilterFn<RunData> = (
+export const globalFilterFn: FilterFn<RunData | MergedRun> = (
 	row,
 	_columnId,
 	filters: GlobalFilterValue[]

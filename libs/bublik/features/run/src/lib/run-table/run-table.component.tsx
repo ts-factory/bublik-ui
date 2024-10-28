@@ -14,7 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { getErrorMessage } from '@/services/bublik-api';
 import { cn, Icon, Skeleton, Tooltip } from '@/shared/tailwind-ui';
@@ -29,7 +29,7 @@ import { AllRowsContext, RowValuesContextProvider } from './context';
 import { RunHeader, RunRow } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
-import { columns } from './columns';
+import { getColumns } from './columns';
 
 export const RunTableLoading = () => {
 	return <Skeleton className="rounded h-[30vh] w-full" />;
@@ -80,8 +80,8 @@ export const RunTableEmpty = () => {
 };
 
 export interface RunTableProps {
-	data: RunData[];
-	renderSubRow: (row: Row<RunData>) => ReactNode;
+	data: RunData[] | MergedRun[];
+	renderSubRow: (row: Row<RunData | MergedRun>) => ReactNode;
 	openUnexpected?: boolean;
 	expanded: ExpandedState;
 	sorting: SortingState;
@@ -112,7 +112,9 @@ export const RunTable = (props: RunTableProps) => {
 		isFetching
 	} = props;
 
-	const table = useReactTable<RunData>({
+	const columns = useMemo(() => getColumns(), []);
+
+	const table = useReactTable<RunData | MergedRun>({
 		data,
 		columns,
 		state: { expanded, globalFilter, sorting, columnVisibility },

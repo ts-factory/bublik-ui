@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { Table } from '@tanstack/react-table';
 
-import { RunData } from '@/shared/types';
+import { MergedRun, RunData } from '@/shared/types';
 
 import {
 	getExpandedUnexpectedState,
@@ -16,7 +16,7 @@ import { RowDecription } from '../context';
 import { useRunTableRowState } from '../../hooks';
 
 export interface UseExpandUnexpectedConfig {
-	table: Table<RunData>;
+	table: Table<RunData | MergedRun>;
 	rowsIds: Record<string, RowDecription>;
 	rowsValues: Record<string, Record<string, unknown>>;
 }

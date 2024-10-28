@@ -2,10 +2,10 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ExpandedState, Row } from '@tanstack/react-table';
 
-import { NodeEntity, RunData } from '@/shared/types';
+import { NodeEntity, MergedRun, RunData } from '@/shared/types';
 import { GlobalFilterValue, ColumnId } from '../types';
 
-export const getRowCanExpand = (row: Row<RunData>) => {
+export const getRowCanExpand = (row: Row<RunData | MergedRun>) => {
 	return !!row.subRows.length || row.original?.type === NodeEntity.Test;
 };
 
