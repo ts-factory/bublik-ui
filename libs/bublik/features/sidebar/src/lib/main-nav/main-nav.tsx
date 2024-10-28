@@ -16,7 +16,7 @@ const mainMenu: SidebarItem[] = [
 		label: 'Runs',
 		to: '/runs',
 		icon: <Icon name="Play" />,
-		pattern: [{ path: '/runs' }, { path: '/compare' }],
+		pattern: [{ path: '/runs' }, { path: '/compare' }, { path: '/multiple' }],
 		subitems: [
 			{
 				label: 'List',
@@ -31,6 +31,12 @@ const mainMenu: SidebarItem[] = [
 				pattern: { path: '/runs', search: { mode: 'charts' } }
 			},
 			{
+				label: 'Multiple',
+				icon: <Icon name="PaperStack" className="w-6 h-6" />,
+				to: '/runs',
+				pattern: { path: '/multiple' }
+			},
+			{
 				label: 'Compare',
 				to: '/compare',
 				icon: <Icon name="SwapArrows" className="rotate-90" />,
@@ -42,7 +48,7 @@ const mainMenu: SidebarItem[] = [
 		label: 'Run',
 		to: '/runs',
 		icon: <Icon name="PieChart" />,
-		pattern: { path: '/runs/:runId/*' },
+		pattern: [{ path: '/runs/:runId/*' }],
 		subitems: [
 			{
 				label: 'Details',
