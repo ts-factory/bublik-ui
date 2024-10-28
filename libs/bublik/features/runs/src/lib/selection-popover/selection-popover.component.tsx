@@ -45,40 +45,70 @@ export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
 				>
 					<div className="flex flex-col gap-2 px-4 pt-2">
 						<SelectedResultList
-							label="Compare"
+							label="Selection"
 							ids={compareIds}
 							renderItem={renderItem}
 						/>
 					</div>
-					<div className="flex items-center gap-4 px-4 py-2 mt-2 border-t border-border-primary">
-						{compareIds.length === 2 ? (
-							<Link
-								className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
-								to={{
-									pathname: '/compare',
-									search: `left=${compareIds[0]}&right=${compareIds[1]}`
-								}}
-							>
-								Compare
-								<Icon
-									name="SwapArrows"
-									size={20}
-									className="text-white rotate-90"
-								/>
-							</Link>
-						) : (
-							<ButtonTw
-								variant="primary"
-								rounded="lg"
-								size="md"
-								className="w-full justify-center"
-								disabled={compareIds.length !== 2}
-								onClick={onResetClick}
-							>
-								<Icon name="SwapArrows" size={20} className="rotate-90 mr-2" />
-								<span>Compare</span>
-							</ButtonTw>
-						)}
+					<div className="flex flex-col gap-2 px-4 py-2 mt-2 border-t border-border-primary">
+						<div className="flex items-center gap-2">
+							{compareIds.length >= 2 ? (
+								<Link
+									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+									to={{
+										pathname: '/multiple',
+										search: new URLSearchParams(
+											compareIds.map((s) => ['runIds', s])
+										).toString()
+									}}
+								>
+									<Icon name="PaperStack" className="size-5 mr-2" />
+									Multiple
+								</Link>
+							) : (
+								<ButtonTw
+									variant="primary"
+									rounded="lg"
+									size="md"
+									className="w-full justify-center"
+									disabled={compareIds.length !== 2}
+								>
+									<Icon name="PaperStack" className="size-5 mr-2" />
+									<span>Multiple</span>
+								</ButtonTw>
+							)}
+							{compareIds.length === 2 ? (
+								<Link
+									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+									to={{
+										pathname: '/compare',
+										search: `left=${compareIds[0]}&right=${compareIds[1]}`
+									}}
+								>
+									Compare
+									<Icon
+										name="SwapArrows"
+										size={20}
+										className="text-white rotate-90"
+									/>
+								</Link>
+							) : (
+								<ButtonTw
+									variant="primary"
+									rounded="lg"
+									size="md"
+									className="w-full justify-center"
+									disabled={compareIds.length !== 2}
+								>
+									<Icon
+										name="SwapArrows"
+										size={20}
+										className="rotate-90 mr-2"
+									/>
+									<span>Compare</span>
+								</ButtonTw>
+							)}
+						</div>
 						<ButtonTw
 							variant="outline"
 							rounded="lg"
