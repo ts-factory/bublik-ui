@@ -10,6 +10,7 @@ import { LogFeature, useLogPage } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 
 export interface LogHeaderProps {
 	runId: string;
@@ -22,6 +23,7 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 		<div className="flex flex-col bg-white rounded-md">
 			<CardHeader label="Info">
 				<div className="flex gap-2 items-center">
+					<RunReportConfigsContainer runId={runId} />
 					<RunModeToggle
 						isFullMode={isFullMode}
 						onToggleClick={() => setIsFullMode(!isFullMode)}
