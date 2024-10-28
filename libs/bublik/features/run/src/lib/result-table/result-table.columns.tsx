@@ -23,7 +23,6 @@ const ResultLinks = ({ runId, resultId, result }: ResultLinksProps) => {
 };
 
 export const getColumns = (
-	runId: string,
 	rowId: string,
 	data: RunDataResults[]
 ): ColumnDef<RunDataResults>[] => {
@@ -42,7 +41,7 @@ export const getColumns = (
 				return (
 					<div className="flex items-center h-full">
 						<ResultLinks
-							runId={runId}
+							runId={value.run_id}
 							resultId={value.result_id}
 							result={value}
 						/>

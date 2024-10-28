@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { RunData, RunDataResults } from '@/shared/types';
+import { MergedRun, RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
 import { TwTableProps } from '@/shared/tailwind-ui';
 
@@ -12,13 +12,21 @@ import { ColumnId } from '../run-table/types';
 import { ResultTableLoading, ResultTable } from './result-table.component';
 import { getRowValues } from '../run-table';
 
+function getParentId(row: Row<RunData | MergedRun>) {
+	return ('parent_ids' || 'result_ids') in row.original
+		? row.original.parent_ids.length
+			? row.original.parent_ids
+			: row.original.result_ids
+		: row.original.parent_id ?? row.original.result_id;
+}
+
 const DEFAULT_REQUEST = {
 	[ColumnId.Total]: { results: [], resultProperties: [] }
 };
 
 export interface ResultTableContainerProps {
-	runId: string;
-	row: Row<RunData>;
+	runId: string | string[];
+	row: Row<RunData | MergedRun>;
 }
 
 export const ResultTableContainer = ({
@@ -35,12 +43,11 @@ export const ResultTableContainer = ({
 			: DEFAULT_REQUEST
 		: DEFAULT_REQUEST;
 
-	const { parent_id: parentId, result_id: resultId, name } = row.original;
 	const values = useMemo(() => getRowValues(row), [row]);
 
 	const { data, isFetching, isError } = useGetResultsTableQuery({
-		parentId: parentId || resultId,
-		testName: name,
+		parentId: getParentId(row),
+		testName: row.original.name,
 		requests
 	});
 
@@ -86,12 +93,5 @@ export const ResultTableContainer = ({
 
 	if (!data) return <div>No data...</div>;
 
-	return (
-		<ResultTable
-			data={data}
-			runId={runId}
-			rowId={rowId}
-			getRowProps={getRowProps}
-		/>
-	);
+	return <ResultTable data={data} rowId={rowId} getRowProps={getRowProps} />;
 };
