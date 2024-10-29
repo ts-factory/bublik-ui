@@ -3,38 +3,25 @@
 import { FC, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import {
-	RunDetailsAPIResponse,
-	HistoryMode,
-	RunDataResults
-} from '@/shared/types';
-import {
-	getErrorMessage,
-	useGetLogJsonQuery,
-	useGetRunDetailsQuery,
-	usePrefetch
-} from '@/services/bublik-api';
+import { HistoryMode, RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
+import { getErrorMessage, useGetLogJsonQuery, useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
 import {
-	ButtonTw,
-	CardHeader,
-	cn,
-	Dialog,
-	DialogClose,
-	DialogContent,
-	dialogContentStyles,
-	DialogOverlay,
-	dialogOverlayStyles,
-	DialogPortal,
-	DialogTrigger,
-	Icon,
-	Skeleton
+  ButtonTw,
+  CardHeader,
+  cn,
+  DialogClose,
+  DialogOverlay,
+  dialogOverlayStyles,
+  DialogPortal,
+  DrawerContent,
+  DrawerRoot,
+  DrawerTrigger,
+  Icon,
+  Skeleton
 } from '@/shared/tailwind-ui';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
-import {
-	LogTableContextProvider,
-	SessionRoot
-} from '@/bublik/features/session-log';
+import { LogTableContextProvider, SessionRoot } from '@/bublik/features/session-log';
 
 import { LinkToHistory } from './link-to-history';
 
@@ -116,8 +103,8 @@ function LogPreviewContainer(props: LogPreviewContainerProps) {
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Dialog onOpenChange={setOpen}>
-			<DialogTrigger asChild>
+		<DrawerRoot onOpenChange={setOpen}>
+			<DrawerTrigger asChild>
 				<button className="flex items-center w-full gap-1">
 					<Icon
 						name="ExpandSelection"
@@ -126,11 +113,11 @@ function LogPreviewContainer(props: LogPreviewContainerProps) {
 					/>
 					<span>Preview</span>
 				</button>
-			</DialogTrigger>
+			</DrawerTrigger>
 			<DialogOverlay className={dialogOverlayStyles()} />
 			<DialogPortal>
-				<DialogContent className={dialogContentStyles()} asChild>
-					<div className="rounded-lg bg-white flex flex-col h-[95vh] w-[95vw]">
+				<DrawerContent asChild>
+					<div className="bg-white flex flex-col h-[95vh] w-[80vw]">
 						{/* To fetch only on mount. Do not remove check */}
 						{open ? (
 							<div className="h-full flex flex-col overflow-hidden">
@@ -158,9 +145,9 @@ function LogPreviewContainer(props: LogPreviewContainerProps) {
 							</div>
 						) : null}
 					</div>
-				</DialogContent>
+				</DrawerContent>
 			</DialogPortal>
-		</Dialog>
+		</DrawerRoot>
 	);
 }
 
@@ -198,7 +185,7 @@ function LogPreview(props: LogPreviewProps) {
 	return (
 		<div
 			className={cn(
-				'overflow-auto flex-grow px-2',
+				'overflow-auto flex-grow px-2 isolate',
 				isFetching && 'pointer-events-none opacity-40'
 			)}
 		>
