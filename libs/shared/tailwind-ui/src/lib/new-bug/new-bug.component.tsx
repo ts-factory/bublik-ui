@@ -21,6 +21,7 @@ import {
 } from '../dialog';
 import { ButtonTw } from '../button';
 import { Icon } from '../icon';
+import { DrawerContent, DrawerRoot, DrawerTrigger } from '../drawer';
 
 type KeyOption<T> = {
 	accessor: keyof T;
@@ -355,24 +356,29 @@ function NewBugButton(props: NewBugButtonProps) {
 	};
 
 	return (
-		<Dialog>
-			<DialogTrigger asChild>
+		<DrawerRoot>
+			<DrawerTrigger asChild>
 				<ButtonTw variant="secondary" size="xss" disabled={props.isDisabled}>
 					<Icon name="IssueIcon" className="size-5 mr-1.5" />
 					<span>New Bug</span>
 				</ButtonTw>
-			</DialogTrigger>
+			</DrawerTrigger>
 			<DialogOverlay className={dialogOverlayStyles()} />
-			<DialogContent
+			<DrawerContent
 				className={cn(
-					'p-4 bg-white rounded-xl shadow-popover min-w-[40vw] overflow-auto max-w-[80vw]',
-					dialogContentStyles()
+					'bg-white shadow-popover overflow-hidden min-w-[40vw] max-w-[80vw]',
+					'flex flex-col overflow-hidden max-w-3xl'
 				)}
 			>
-				<div className="flex flex-col gap-4">
-					<h2 className="text-[0.875rem] leading-[1.125rem] font-semibold">
-						New Bug
-					</h2>
+				<h2
+					className="text-[0.875rem] px-4 py-2 leading-[1.125rem] font-semibold"
+					style={{
+						boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px'
+					}}
+				>
+					New Bug
+				</h2>
+				<div className="overflow-auto px-4 py-6 flex-1">
 					<pre
 						className={cn(
 							'transition-all border border-border-primary rounded-md hover:border-primary whitespace-break-spaces overflow-wrap-anywhere',
@@ -381,12 +387,22 @@ function NewBugButton(props: NewBugButtonProps) {
 					>
 						{markdown}
 					</pre>
-					<ButtonTw variant="primary" size="xs" onClick={handleBugCopyClick}>
+				</div>
+				<div
+					className="px-4 py-2 flex items-center mt-auto"
+					style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px' }}
+				>
+					<ButtonTw
+						variant="primary"
+						size="sm"
+						onClick={handleBugCopyClick}
+						className="w-full"
+					>
 						Copy Markdown
 					</ButtonTw>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</DrawerRoot>
 	);
 }
 
