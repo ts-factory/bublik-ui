@@ -17,7 +17,8 @@ export const runsEndpoints = {
 			query: (queryParams) => ({
 				url: withApiV2('/runs'),
 				params: prepareForSend(queryParams)
-			})
+			}),
+			providesTags: [BUBLIK_TAG.Run]
 		})
 	})
 };

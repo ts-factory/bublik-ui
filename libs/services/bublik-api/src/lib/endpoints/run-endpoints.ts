@@ -125,7 +125,9 @@ export const runEndpoints = {
 				method: 'DELETE'
 			}),
 			invalidatesTags: (_result, _error, runId) => [
-				{ type: BUBLIK_TAG.RunDetails, id: runId }
+				{ type: BUBLIK_TAG.RunDetails, id: runId },
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.DashboardData
 			]
 		}),
 		markAsCompromised: build.mutation<CompromisedPostResponse, CompromisedBody>(
@@ -136,7 +138,9 @@ export const runEndpoints = {
 					body: prepareForSend(body)
 				}),
 				invalidatesTags: (_result, _error, { runId }) => [
-					{ type: BUBLIK_TAG.RunDetails, id: runId }
+					{ type: BUBLIK_TAG.RunDetails, id: runId },
+					BUBLIK_TAG.Run,
+					BUBLIK_TAG.DashboardData
 				]
 			}
 		),
