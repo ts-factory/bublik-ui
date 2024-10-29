@@ -235,19 +235,27 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			markdown += `Path: \`${options.path}\`\n`;
 		}
 
-		if (
-			Object.entries(options.tags.specialCategories).some(
-				([_, v]) => v.length
-			) &&
-			options.hashes &&
-			options.hashes.length
-		) {
-			Object.entries(options.tags.specialCategories).forEach(([_, values]) => {
-				if (!values.length) return;
-				const matches = findAllMatches(values, options.hashes as string[]);
-				matches.forEach((match) => {
-					markdown += `CMD: \`./run.sh --cfg=${match[0]} --tester-run=${match[1]} -n\`\n`;
-				});
+		// CMD
+		// TODO: Fix configration key
+		const haveConfigurations = Object.entries(
+			options.tags.specialCategories
+		).some(([_, value]) => value.length > 0);
+		const haveHashes = Boolean(options.hashes?.length);
+
+		if (haveConfigurations && haveHashes) {
+			const configurations = Object.entries(
+				options.tags.specialCategories
+			).flatMap(([_, v]) => v);
+
+			const matches = findAllMatches(configurations, options.hashes ?? []);
+
+			matches.forEach((match) => {
+				let cmd = './run.sh';
+				cmd += ` --cfg=${match[0]}`;
+				const testPath = options.path ? `${options.path.slice(1)}%` : '';
+				cmd += ` --tester-run=${testPath}${match[1]}`;
+				cmd += ' -n';
+				markdown += `CMD: \`${cmd}\`\n`;
 			});
 		}
 
