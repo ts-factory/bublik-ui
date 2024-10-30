@@ -5,12 +5,13 @@ import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import { formatTimeToDot } from '@/shared/utils';
 import {
-	Resizable,
-	CardHeader,
 	ButtonTw,
-	resizableStyles,
+	CardHeader,
 	cn,
-	NewBugButton
+	getBugProps,
+	NewBugButton,
+	Resizable,
+	resizableStyles
 } from '@/shared/tailwind-ui';
 import {
 	useGetLogJsonQuery,
@@ -19,28 +20,19 @@ import {
 } from '@/services/bublik-api';
 
 import {
-	LogPickerContainer,
 	LinkToHistoryContainer,
-	LinkToSourceContainer,
 	LinkToMeasurementsContainer,
+	LinkToSourceContainer,
+	LogPickerContainer,
 	TreeContainer
 } from './containers';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
 
-export interface LogFeatureProps {
-	runId?: string;
-	isTreeShown?: boolean;
-	children?: ReactNode;
-}
-
-export const LogFeature = (props: LogFeatureProps) => {
-	const { runId, children, isTreeShown } = props;
+function useLogTitle() {
+	const { runId, focusId } = useLogPage();
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
 	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
-	const { isLegacyLog, toggleLog } = useIsLogLegacy();
-	const { focusId, isShowingRunLog, page } = useLogPage();
-	const scrollRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		if (!details) {
@@ -56,60 +48,52 @@ export const LogFeature = (props: LogFeatureProps) => {
 			focusedTestName ? `${focusedTestName} - ` : ''
 		}${name} | ${formattedTime} | ${runId} | Log - Bublik`;
 	}, [details, runId, focusId, tree?.tree]);
+}
+
+interface GetFetchOptions {
+	runId?: number | string;
+	focusId: number | null;
+	page: string | null;
+	isShowingRunLog: boolean;
+}
+
+function getFetchOptions({
+	focusId,
+	isShowingRunLog,
+	runId,
+	page
+}: GetFetchOptions) {
+	return isShowingRunLog
+		? { id: runId! }
+		: focusId
+		? { id: focusId, page }
+		: skipToken;
+}
+
+function useScrollOnFocusIdChange() {
+	const { focusId } = useLogPage();
+	const scrollRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}, [focusId]);
 
-	const name = focusId
-		? tree?.tree[focusId].name ?? ''
-		: tree?.tree[tree?.mainPackage].name ?? '';
+	return { ref: scrollRef };
+}
 
-	const idToFetch = isShowingRunLog
-		? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		  { id: runId! }
-		: focusId
-		? { id: focusId, page }
-		: skipToken;
+export interface LogFeatureProps {
+	runId?: string;
+	isTreeShown?: boolean;
+	children?: ReactNode;
+}
 
-	const { data } = useGetLogJsonQuery(idToFetch);
-	const path = `/${tree?.tree[focusId ?? tree.mainPackage].path}` ?? '';
+function LogFeature(props: LogFeatureProps) {
+	useLogTitle();
 
-	const parameters = data?.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((meta) => meta.meta.parameters)
-		.filter((v) => !!v)
-		.flat();
-
-	const verdicts =
-		data?.root
-			.flatMap((b) => b.content)
-			.filter((b) => b.type === 'te-log-meta')
-			.map((meta) => meta.meta.verdicts)
-			.filter((v) => !!v)
-			.flat()
-			.map((v) => v.verdict) ?? [];
-
-	const objectives = (data?.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((m) => m.meta.objective)
-		.filter((v) => !!v)
-		.flat() ?? []) as string[];
-
-	const hashes = (data?.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((m) => m.entity_model.extended_properties?.['hash'])
-		.filter((v) => !!v)
-		.flat() ?? []) as string[];
-
-	const testLink = new URL(window.location.href);
-	testLink.searchParams.delete('rowState');
-	testLink.searchParams.delete('lineNumber');
-	const errorLink = new URL(window.location.href);
-	testLink.searchParams.delete('rowState');
+	const { runId, children, isTreeShown } = props;
+	const { isLegacyLog, toggleLog } = useIsLogLegacy();
+	const { focusId } = useLogPage();
+	const { ref } = useScrollOnFocusIdChange();
 
 	if (!runId) return null;
 
@@ -144,26 +128,7 @@ export const LogFeature = (props: LogFeatureProps) => {
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<LinkToSourceContainer runId={runId} />
-							<NewBugButton
-								link={testLink.href}
-								path={path}
-								name={name}
-								verdicts={verdicts}
-								hashes={hashes}
-								objectives={objectives}
-								lineLink={
-									errorLink.searchParams.get('lineNumber')
-										? errorLink.href
-										: undefined
-								}
-								tags={{
-									branches: details?.branches ?? [],
-									parameters,
-									specialCategories: details?.special_categories ?? {},
-									important: details?.important_tags ?? [],
-									revisions: details?.revisions ?? []
-								}}
-							/>
+							<NewBug />
 						</div>
 					</CardHeader>
 					<div
@@ -171,7 +136,7 @@ export const LogFeature = (props: LogFeatureProps) => {
 							'overflow-auto relative h-full isolate',
 							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
-						ref={scrollRef}
+						ref={ref}
 					>
 						<LogPickerContainer />
 					</div>
@@ -179,4 +144,30 @@ export const LogFeature = (props: LogFeatureProps) => {
 			</div>
 		</>
 	);
-};
+}
+
+function NewBug() {
+	const { focusId, isShowingRunLog, page, runId } = useLogPage();
+
+	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
+	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
+	const { data: log } = useGetLogJsonQuery(
+		getFetchOptions({ runId, focusId, isShowingRunLog, page })
+	);
+
+	if (!details || !tree || !log || !runId) return null;
+
+	return (
+		<NewBugButton
+			{...getBugProps({
+				runId: Number(runId),
+				id: focusId ?? Number(runId),
+				log,
+				tree,
+				details
+			})}
+		/>
+	);
+}
+
+export { LogFeature };
