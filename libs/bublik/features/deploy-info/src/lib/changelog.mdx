@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.6.0](https://github.com/okt-limonikas/bublik/compare/v0.5.1...v0.6.0) (2024-10-30)
+
+
+### 🚀 New Feature
+
+* **log,run:** added new bug button to log preview ([f2a37ca](https://github.com/ts-factory/bublik/commit/f2a37cae13f1848f95bdd9030e79142379a169ea))
+* **log:** added link to reports from log page ([5227387](https://github.com/ts-factory/bublik/commit/52273874e2ed12d04d71848e78fea280a053a1cb)), closes [#185](https://github.com/ts-factory/bublik/issues/185)
+* **run:** [multiple] added endpoint for merging multiple runs ([73902e5](https://github.com/ts-factory/bublik/commit/73902e58e613f6affb409e3a52b7e56991cbb04b))
+* **run:** [result-table] added prop to show link to result run ([7950f3c](https://github.com/ts-factory/bublik/commit/7950f3cc748d9b241010ceb242e88871767563f8))
+* **run:** added initial multiple runs page ([91bee3d](https://github.com/ts-factory/bublik/commit/91bee3d88d06e139c3eadb966de35d09c0365bdf))
+* **run:** added link to multiple run page from runs selection popover ([de98aea](https://github.com/ts-factory/bublik/commit/de98aeaa64cfae42fea6c728913a4e172005ab16))
+* **run:** added link to multiple runs in sidebar ([70c983e](https://github.com/ts-factory/bublik/commit/70c983e558a36267093490078a55e41bb2c37103))
+
+
+### 💅 Polish
+
+* **log:** [new-bug] made new bug appear as drawer content from right ([10b034f](https://github.com/ts-factory/bublik/commit/10b034f44679a1e23be01f6394be9637cd382915))
+* **run:** [details] removed unnecessary padding from list label ([94a7017](https://github.com/ts-factory/bublik/commit/94a70173683f052f13b74b764555d79105059e6f))
+* **run:** [log] show log preview as drawer from right side ([15cee82](https://github.com/ts-factory/bublik/commit/15cee823ecf3ec497a13710a202280cb7b24d7d5))
+
+
+### 🐛 Bug Fix
+
+* **log:** [new-bug] added test path for generated  ([bf03de0](https://github.com/ts-factory/bublik/commit/bf03de0118d2b6d674a496aa64c0eee27cff6719)), closes [#173](https://github.com/ts-factory/bublik/issues/173)
+* **run:** fixed run compromise status invalidation for runs/dashboard pages ([64d0a71](https://github.com/ts-factory/bublik/commit/64d0a71fb7789a0852dec32968a53521bd0a8633))
+* **runs:** [charts] fixed clicking on bar plot not redirecting to run ([6969fc3](https://github.com/ts-factory/bublik/commit/6969fc3a350e555c2b2fb2efe73cf06b606cd02c))
+
+
+### ♻ Code Refactoring
+
+* **log:** [new-bug] added function to get new bug props to remove boilerplate ([be5a89f](https://github.com/ts-factory/bublik/commit/be5a89fcf4d192247ec7c2d308e78f5ed7be063d))
+* **log:** [new-bug] simplified log-feature component logic ([1763d4f](https://github.com/ts-factory/bublik/commit/1763d4f75d819dfe065d4ca06fd224b1d202e16f))
+* **run:** [result-table] added support for merged results ([b358be9](https://github.com/ts-factory/bublik/commit/b358be99fe7f02da78be2ec84e75e1260cb5cae5))
+* **run:** added support for merged runs in run table ([36f7389](https://github.com/ts-factory/bublik/commit/36f7389166731820bded8f8b7b53c2bee3b455db))
+* **run:** adjusted run tab title generation for multiple runs ([d12c8c1](https://github.com/ts-factory/bublik/commit/d12c8c1f45aa2db2f40674ccf358081f574fef68))
+* **run:** sort results by iteration id ([d9fc3d1](https://github.com/ts-factory/bublik/commit/d9fc3d16db2923908b9700c788cdc84c00698bd5))
+
+
+### 📦 Chores
+
+* **log:** [new-bug] fixed typo for successful copy message ([30bbc34](https://github.com/ts-factory/bublik/commit/30bbc3421a4b838020581247fd6cd087f43783f5))
+* **report:** fixed formatting ([6271f19](https://github.com/ts-factory/bublik/commit/6271f19ac205e6579551a2e72ecc79f507f7ebfc))
+
 ### [0.5.1](https://github.com/ts-factory/bublik-ui/compare/v0.5.0...v0.5.1) (2024-10-18)
 
 
@@ -7,14 +50,15 @@
 
 * **report:** added axis labels display at the bottom of chart ([bb65ae3](https://github.com/ts-factory/bublik-ui/commit/bb65ae33bea3b90c1502fb435350f165e50b3d99))
 
+
 ### ♻ Code Refactoring
 
 * **configs:** added handling for errors in create config form ([9890f83](https://github.com/ts-factory/bublik-ui/commit/9890f8381796264794f940edee540df8148e584a))
 
+
 ### 📦 Chores
 
 * **report:** removed unnecessary import ([f3ae71b](https://github.com/ts-factory/bublik-ui/commit/f3ae71bcf534361937cca06a596bde81483f11b3))
-
 
 ## [0.5.0](https://github.com/ts-factory/bublik-ui/compare/v0.4.3...v0.5.0) (2024-10-16)
 
