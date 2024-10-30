@@ -3,31 +3,43 @@
 import { useEffect, useRef } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { BarChart, LineChart } from '@/shared/charts';
 
 import { COLOR_MAP } from '../runs-stats.component.utils';
 import { RunsStatsSchema, RunStats } from '../runs-stats.types';
 
+function useHandlePointClick() {
+	const navigate = useNavigate();
+	const ref = useRef<ReactEChartsCore>(null);
+
+	useEffect(() => {
+		const instance = ref.current?.getEchartsInstance();
+		if (!instance) return;
+
+		instance.on('click', (params) => {
+			const result = RunsStatsSchema.safeParse(params.data);
+
+			if (!result.success) {
+				toast.error('Failed to parse run stat data');
+				return;
+			}
+
+			navigate({ pathname: `/runs/${result.data.runId}` });
+		});
+	}, [navigate]);
+
+	return { ref };
+}
+
 interface DaySectionProps {
 	stats: RunStats[];
 }
 
 export const DaySection = ({ stats }: DaySectionProps) => {
-	const navigate = useNavigate();
-	const lineRef = useRef<ReactEChartsCore>(null);
-
-	useEffect(() => {
-		const instance = lineRef.current?.getEchartsInstance();
-
-		if (!instance) return;
-
-		instance.on('click', (params) => {
-			const { runId } = RunsStatsSchema.parse(params.data);
-
-			navigate({ pathname: `/runs/${runId}` });
-		});
-	}, [navigate]);
+	const { ref: lineRef } = useHandlePointClick();
+	const { ref: barRef } = useHandlePointClick();
 
 	return (
 		<section className="border-b border-b-border-primary">
@@ -68,7 +80,7 @@ export const DaySection = ({ stats }: DaySectionProps) => {
 							tooltip: { valueFormatter: (v) => `${v}%` }
 						}
 					]}
-					ref={lineRef}
+					ref={barRef}
 				/>
 			</div>
 			<div className="px-4 py-2">
