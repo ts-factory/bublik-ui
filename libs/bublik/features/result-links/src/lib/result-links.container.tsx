@@ -3,25 +3,40 @@
 import { FC, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { HistoryMode, RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
-import { getErrorMessage, useGetLogJsonQuery, useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
+import {
+	HistoryMode,
+	RunDataResults,
+	RunDetailsAPIResponse
+} from '@/shared/types';
+import {
+	getErrorMessage,
+	useGetLogJsonQuery,
+	useGetRunDetailsQuery,
+	useGetTreeByRunIdQuery,
+	usePrefetch
+} from '@/services/bublik-api';
 import { routes } from '@/router';
 import {
-  ButtonTw,
-  CardHeader,
-  cn,
-  DialogClose,
-  DialogOverlay,
-  dialogOverlayStyles,
-  DialogPortal,
-  DrawerContent,
-  DrawerRoot,
-  DrawerTrigger,
-  Icon,
-  Skeleton
+	ButtonTw,
+	CardHeader,
+	cn,
+	DialogClose,
+	DialogOverlay,
+	dialogOverlayStyles,
+	DialogPortal,
+	DrawerContent,
+	DrawerRoot,
+	DrawerTrigger,
+	getBugProps,
+	Icon,
+	NewBugButton,
+	Skeleton
 } from '@/shared/tailwind-ui';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
-import { LogTableContextProvider, SessionRoot } from '@/bublik/features/session-log';
+import {
+	LogTableContextProvider,
+	SessionRoot
+} from '@/bublik/features/session-log';
 
 import { LinkToHistory } from './link-to-history';
 
@@ -133,6 +148,7 @@ function LogPreviewContainer(props: LogPreviewContainerProps) {
 													Log
 												</Link>
 											</ButtonTw>
+											<NewBug runId={runId} resultId={resultId} />
 											<DialogClose asChild>
 												<ButtonTw variant={'secondary'} size={'xss'}>
 													<Icon name="CrossSimple" size={20} />
@@ -148,6 +164,31 @@ function LogPreviewContainer(props: LogPreviewContainerProps) {
 				</DrawerContent>
 			</DialogPortal>
 		</DrawerRoot>
+	);
+}
+
+interface NewBugProps {
+	runId: number;
+	resultId: number;
+}
+
+function NewBug(props: NewBugProps) {
+	const { data: details } = useGetRunDetailsQuery(props.runId);
+	const { data: log } = useGetLogJsonQuery({ id: props.resultId });
+	const { data: tree } = useGetTreeByRunIdQuery(String(props.runId));
+
+	if (!details || !tree || !log) return null;
+
+	return (
+		<NewBugButton
+			{...getBugProps({
+				runId: props.runId,
+				id: props.resultId ?? Number(props.runId),
+				log,
+				tree,
+				details
+			})}
+		/>
 	);
 }
 
