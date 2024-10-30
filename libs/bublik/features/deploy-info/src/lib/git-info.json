@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.18",
-	"summary": "feat(report): added axis labels display at the bottom of chart",
-	"revision": "bb65ae3",
-	"branch": "main",
-	"latestTag": "v0.5.1"
+	"date": "2024.10.30",
+	"summary": "fix(runs): [charts] fixed clicking on bar plot not redirecting to run",
+	"revision": "6969fc3",
+	"branch": "release-0.6.0",
+	"latestTag": "v0.6.0"
 }
