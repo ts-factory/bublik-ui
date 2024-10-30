@@ -1,6 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ComponentProps } from 'react';
+
+import {
+	RootBlock,
+	RunDetailsAPIResponse,
+	TreeDataAPIResponse
+} from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
+import { config } from '@/bublik/config';
 
 import { cn, toast } from '../utils';
 import {
@@ -21,6 +29,100 @@ type KeyOption<T> = {
 	linkTextKey?: keyof T;
 	preformat?: boolean;
 };
+
+type BugPropsOptions = {
+	id?: number;
+	runId: number;
+	tree: TreeDataAPIResponse;
+	details: RunDetailsAPIResponse;
+	log: RootBlock;
+};
+
+function getBugProps(
+	options: BugPropsOptions
+): ComponentProps<typeof NewBugButton> {
+	function cleanUrl(url: URL): URL {
+		const copy = new URL(url);
+
+		copy.searchParams.delete('rowState');
+		copy.searchParams.delete('globalFilter');
+		copy.searchParams.delete('expanded');
+
+		return copy;
+	}
+
+	const { log, tree, details, id, runId } = options;
+
+	const testName = id ? tree.tree[id]?.name : undefined;
+	const mainName = tree.tree[tree.mainPackage]?.name;
+	const name = testName ?? mainName ?? '';
+
+	const path = `/${tree.tree[id ?? tree.mainPackage]?.path ?? ''}`;
+
+	const parameters = log.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((meta) => meta.meta.parameters)
+		.filter((v) => !!v)
+		.flat();
+
+	const verdicts =
+		log.root
+			.flatMap((b) => b.content)
+			.filter((b) => b.type === 'te-log-meta')
+			.map((meta) => meta.meta.verdicts)
+			.filter((v) => !!v)
+			.flat()
+			.map((v) => v.verdict) ?? [];
+
+	const objectives = (log.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((m) => m.meta.objective)
+		.filter((v) => !!v)
+		.flat() ?? []) as string[];
+
+	const hashes = (log.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((m) => m.entity_model.extended_properties?.['hash'])
+		.filter((v) => !!v)
+		.flat() ?? []) as string[];
+
+	const buildStr = `${window.location.origin}${config.baseUrl}/log/${runId}`;
+	const url = new URL(buildStr);
+
+	const currUrl = new URL(window.location.href);
+
+	const currentLineNumber = currUrl.searchParams.get('lineNumber');
+	const currentMode = currUrl.searchParams.get('mode');
+
+	if (currentLineNumber) url.searchParams.set('lineNumber', currentLineNumber);
+	if (currentMode) url.searchParams.set('mode', currentMode);
+	if (id && id !== runId) url.searchParams.set('focusId', id.toString());
+
+	const link = cleanUrl(url).toString();
+	const lineLink = url.searchParams.has('lineNumber')
+		? cleanUrl(url).toString()
+		: undefined;
+
+	return {
+		name,
+		hashes,
+		link,
+		lineLink,
+		path,
+		tags: {
+			specialCategories: details.special_categories ?? {},
+			revisions: details.revisions ?? [],
+			branches: details.branches ?? [],
+			important: details.important_tags ?? [],
+			parameters
+		},
+		objectives,
+		verdicts
+	};
+}
 
 function generateMarkdownTable<T extends Record<string, unknown>>(
 	objects: Array<T>,
@@ -112,6 +214,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 
 		return matches;
 	}
+
 	try {
 		let markdown = '';
 		// 1. Link and path
@@ -287,4 +390,4 @@ function NewBugButton(props: NewBugButtonProps) {
 	);
 }
 
-export { NewBugButton };
+export { NewBugButton, getBugProps };
