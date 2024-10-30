@@ -247,7 +247,7 @@ function NewBugButton(props: NewBugButtonProps) {
 
 	const handleBugCopyClick = async () => {
 		await copy(markdown)
-			.then(() => toast.success('Succesfully copied!'))
+			.then(() => toast.success('Successfully copied!'))
 			.catch(() => toast.error('Failed to copy!'));
 	};
 
