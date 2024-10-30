@@ -18,6 +18,7 @@ import {
 	useGetRunDetailsQuery,
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
+import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 
 import {
 	LinkToHistoryContainer,
@@ -127,6 +128,7 @@ function LogFeature(props: LogFeatureProps) {
 							<LinkToRun runId={runId} />
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
 							<LinkToMeasurementsContainer focusId={focusId} />
+							<RunReportConfigsContainer runId={runId} />
 							<LinkToSourceContainer runId={runId} />
 							<NewBug />
 						</div>
