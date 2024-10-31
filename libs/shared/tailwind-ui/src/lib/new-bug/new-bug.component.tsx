@@ -11,14 +11,7 @@ import { useCopyToClipboard } from '@/shared/hooks';
 import { config } from '@/bublik/config';
 
 import { cn, toast } from '../utils';
-import {
-	Dialog,
-	DialogContent,
-	DialogOverlay,
-	DialogTrigger,
-	dialogContentStyles,
-	dialogOverlayStyles
-} from '../dialog';
+import { DialogOverlay, dialogOverlayStyles } from '../dialog';
 import { ButtonTw } from '../button';
 import { Icon } from '../icon';
 import { DrawerContent, DrawerRoot, DrawerTrigger } from '../drawer';
@@ -67,14 +60,21 @@ function getBugProps(
 		.filter((v) => !!v)
 		.flat();
 
-	const verdicts =
-		log.root
-			.flatMap((b) => b.content)
-			.filter((b) => b.type === 'te-log-meta')
-			.map((meta) => meta.meta.verdicts)
-			.filter((v) => !!v)
-			.flat()
-			.map((v) => v.verdict) ?? [];
+	const verdicts = log.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((meta) => meta.meta.verdicts)
+		.filter((v) => !!v)
+		.flat()
+		.map((v) => v.verdict);
+
+	const artifacts = log.root
+		.flatMap((b) => b.content)
+		.filter((b) => b.type === 'te-log-meta')
+		.map((meta) => meta.meta.artifacts)
+		.filter((v) => !!v)
+		.flat()
+		.map((v) => v.artifact);
 
 	const objectives = (log.root
 		.flatMap((b) => b.content)
@@ -121,7 +121,8 @@ function getBugProps(
 			parameters
 		},
 		objectives,
-		verdicts
+		verdicts,
+		artifacts
 	};
 }
 
@@ -235,8 +236,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			markdown += `Path: \`${options.path}\`\n`;
 		}
 
-		// CMD
-		// TODO: Fix configration key
+		// TODO: Fix configuration key
 		const haveConfigurations = Object.entries(
 			options.tags.specialCategories
 		).some(([_, value]) => value.length > 0);
@@ -272,6 +272,14 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			markdown += '\n## Verdicts\n\n';
 			markdown += `${generateMarkdownTable(
 				options.verdicts.map((v) => ({ value: v })),
+				[{ accessor: 'value', header: 'Value' }]
+			)}\n\n`;
+		}
+
+		if (options.artifacts?.length) {
+			markdown += '\n## Artifacts\n\n';
+			markdown += `${generateMarkdownTable(
+				options.artifacts.map((v) => ({ value: v })),
 				[{ accessor: 'value', header: 'Value' }]
 			)}\n\n`;
 		}
@@ -325,6 +333,7 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 				}
 			);
 		}
+
 		return markdown;
 	} catch (e) {
 		console.error(e);
@@ -349,6 +358,7 @@ interface NewBugButtonProps {
 	tags: BugTags;
 	isDisabled?: boolean;
 	objectives?: string[];
+	artifacts?: string[];
 	lineLink?: string;
 }
 
