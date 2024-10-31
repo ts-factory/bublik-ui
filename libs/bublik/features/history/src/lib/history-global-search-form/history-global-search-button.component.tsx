@@ -45,7 +45,7 @@ export const HistoryGlobalSearchFormButton = (
 					<div className="flex items-center gap-2">
 						<Icon name="GlobalSearch" className="grid place-items-center" />
 						<span className="text-[0.875rem] leading-[1.5rem]">
-							Global Search
+							Edit Search
 						</span>
 					</div>
 				</ButtonTw>

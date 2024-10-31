@@ -31,7 +31,7 @@ export const HistoryRefresh: FC<RefreshButtonProps> = ({ onRefreshClick }) => {
 			<motion.div animate={controls} className="mr-2">
 				<Icon name="Refresh" />
 			</motion.div>
-			Refresh
+			Submit
 		</ButtonTw>
 	);
 };
