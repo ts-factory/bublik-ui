@@ -6,9 +6,11 @@ import { useQueryParam, JsonParam, withDefault } from 'use-query-params';
 import {
 	ExpandedState,
 	SortingState,
+	Updater,
 	VisibilityState
 } from '@tanstack/react-table';
 
+import { useLocalStorage } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 
@@ -18,7 +20,56 @@ import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 const GlobalFilterParam = withDefault(JsonParam, []);
 const ExpandedParam = withDefault(JsonParam, { '0': true });
 const RowStateParam = withDefault(JsonParam, {});
-const ColumnVisibilityParam = withDefault(JsonParam, DEFAULT_COLUMN_VISIBILITY);
+
+const LOCAL_STORAGE_COLUMN_VISIBILITY_KEY = 'run-column-visibility';
+
+function useColumnVisibility() {
+	function getDefaultColumnVisibility(): VisibilityState {
+		try {
+			const columnVisibility = localStorage.getItem(
+				LOCAL_STORAGE_COLUMN_VISIBILITY_KEY
+			);
+
+			if (!columnVisibility) return DEFAULT_COLUMN_VISIBILITY;
+
+			return JSON.parse(columnVisibility);
+		} catch (_) {
+			return DEFAULT_COLUMN_VISIBILITY;
+		}
+	}
+
+	const ColumnVisibilityParam = withDefault(
+		JsonParam,
+		getDefaultColumnVisibility()
+	);
+
+	const [localColumnVisibility, setLocalColumnVisibility] =
+		useLocalStorage<VisibilityState>(
+			LOCAL_STORAGE_COLUMN_VISIBILITY_KEY,
+			getDefaultColumnVisibility()
+		);
+	const [queryColumnVisibility, seQueryColumnVisibility] =
+		useQueryParam<VisibilityState>('visibility', ColumnVisibilityParam);
+
+	const columnVisibility = Object.keys(queryColumnVisibility).length
+		? queryColumnVisibility
+		: localColumnVisibility;
+
+	const setColumnVisibility = (
+		state: Updater<VisibilityState> | VisibilityState
+	): void => {
+		const newState =
+			typeof state === 'function' ? state(columnVisibility) : state;
+
+		seQueryColumnVisibility(newState, 'replace');
+		setLocalColumnVisibility(newState);
+	};
+
+	return {
+		columnVisibility,
+		setColumnVisibility
+	};
+}
 
 export const useRunTableQueryState = () => {
 	const locationState = useLocation().state as {
@@ -41,9 +92,6 @@ export const useRunTableQueryState = () => {
 		GlobalFilterParam
 	);
 
-	const [columnVisibility, setColumnVisibility] =
-		useQueryParam<VisibilityState>('visibility', ColumnVisibilityParam);
-
 	const [rowState, setRowState] = useQueryParam<RunRowState>(
 		'rowState',
 		RowStateParam
@@ -52,6 +100,8 @@ export const useRunTableQueryState = () => {
 		() => [rowState, setRowState],
 		[rowState, setRowState]
 	);
+
+	const { setColumnVisibility, columnVisibility } = useColumnVisibility();
 
 	return {
 		locationState,
