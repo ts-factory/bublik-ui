@@ -21,7 +21,7 @@ exports[`HistoryRefresh > should render the component correctly 1`] = `
         />
       </svg>
     </div>
-    Refresh
+    Submit
   </button>
 </DocumentFragment>
 `;
