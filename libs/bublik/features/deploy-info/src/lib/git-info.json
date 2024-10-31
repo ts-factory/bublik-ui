@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.30",
-	"summary": "fix(runs): [charts] fixed clicking on bar plot not redirecting to run",
-	"revision": "6969fc3",
-	"branch": "release-0.6.0",
-	"latestTag": "v0.6.0"
+	"date": "2024.10.31",
+	"summary": "feat(run): added persistence for column visibility state",
+	"revision": "dae4b1b",
+	"branch": "main",
+	"latestTag": "v0.6.2"
 }

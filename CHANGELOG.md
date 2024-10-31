@@ -1,3 +1,18 @@
+### [0.6.2](https://github.com/ts-factory/bublik-ui/compare/v0.6.1...v0.6.2) (2024-10-31)
+
+### 🚀 New Feature
+
+* **log:** [new-bug] added artifacts to new bug ([5f34ed0](https://github.com/ts-factory/bublik-ui/commit/5f34ed0eecedce8ced72d83b49111ac07f8c9fbb))
+* **run:** added persistence for column visibility state ([dae4b1b](https://github.com/ts-factory/bublik-ui/commit/dae4b1b533c474d87835016343241d77e7c98288))
+
+### 🐛 Bug Fix
+
+* **history:** fixed filters incorrect reset when global filter has no values ([e585e4d](https://github.com/ts-factory/bublik-ui/commit/e585e4d7d6753b76aff98f16e4807c1f8de8c654))
+
+### 📦 Chores
+
+* **history:** renamed global search button labels ([54a6346](https://github.com/okt-limonikas/bublik/commit/54a63464094e1569d5135136d8d63cfd0ff85465))
+
 ## [0.6.0](https://github.com/ts-factory/bublik-ui/compare/v0.5.1...v0.6.0) (2024-10-30)
 
 ### 🚀 New Feature
