@@ -51,11 +51,6 @@ declare module '@tanstack/react-table' {
 	}
 }
 
-export interface BlockLogTableProps extends LogTableBlock {
-	/** Array index table id */
-	id: string;
-}
-
 export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	const { id, data } = props;
 
