@@ -140,7 +140,7 @@ function LogFeature(props: LogFeatureProps) {
 						)}
 						ref={ref}
 					>
-						<LogPickerContainer />
+						<LogPickerContainer scrollerRef={ref} />
 					</div>
 				</main>
 			</div>
