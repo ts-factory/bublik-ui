@@ -148,21 +148,12 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 				<div data-block-type={props.type}>
 					<LogTableToolbar {...toolbarProps} />
 					{pagination && totalCount ? (
-						<div className="flex justify-center gap-4 my-4">
-							<Pagination {...paginationProps} />
-							<ButtonTw
-								size="md"
-								variant="outline"
-								state={
-									paginationContext?.pagination?.state.pageIndex === -1
-										? 'active'
-										: 'default'
-								}
-								onClick={() => context?.onPageClick?.(id, 0)}
-							>
-								All pages
-							</ButtonTw>
-						</div>
+						<LogPagination
+							id={id}
+							pageIndex={paginationContext?.pagination?.state.pageIndex}
+							onPageClick={context?.onPageClick}
+							{...paginationProps}
+						/>
 					) : null}
 
 					<ToolbarFloating
@@ -206,9 +197,12 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 						</table>
 					</div>
 					{pagination && totalCount ? (
-						<div className="flex justify-center my-4">
-							<Pagination {...paginationProps} />
-						</div>
+						<LogPagination
+							id={id}
+							pageIndex={paginationContext?.pagination?.state.pageIndex}
+							onPageClick={context?.onPageClick}
+							{...paginationProps}
+						/>
 					) : null}
 				</div>
 			</SettingsContextProvider>
@@ -249,6 +243,30 @@ export const LogRow = (props: LogRowProps) => {
 		</tr>
 	);
 };
+
+interface LogPaginationProps extends ComponentProps<typeof Pagination> {
+	id: string;
+	pageIndex?: number;
+	onPageClick?: (id: string, page: number) => void;
+}
+
+function LogPagination(props: LogPaginationProps) {
+	const { pageIndex, id, onPageClick, ...restProps } = props;
+
+	return (
+		<div className="flex justify-center gap-4 my-4">
+			<Pagination {...restProps} />
+			<ButtonTw
+				size="md"
+				variant="outline"
+				state={pageIndex === -1 ? 'active' : 'default'}
+				onClick={() => onPageClick?.(id, 0)}
+			>
+				All pages
+			</ButtonTw>
+		</div>
+	);
+}
 
 interface ToolbarFloatingProps {
 	isVisible?: boolean;
