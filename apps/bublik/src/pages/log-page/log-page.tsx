@@ -40,10 +40,9 @@ export const useLegacyLogRedirect = () => {
 	const [searchParams] = useSearchParams();
 	const { userPreferences } = useUserPreferences();
 
-	const shouldRedirect =
+	const shouldRedirect = !!(
 		userPreferences.log.preferLegacyLog && !searchParams.get('legacy')
-			? true
-			: false;
+	);
 
 	const redirectLocation = useMemo(() => {
 		const nextParams = new URLSearchParams(searchParams);
