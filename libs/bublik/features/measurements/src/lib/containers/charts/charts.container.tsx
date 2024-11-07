@@ -9,7 +9,7 @@ import {
 import { getColorByIdx } from '@/shared/charts';
 import { Skeleton, Icon, cn, useSidebar } from '@/shared/tailwind-ui';
 
-import { MeasurementChart } from '../../components/measurement-chart/measurement-chart.component';
+import { MeasurementChart } from '@/shared/charts';
 
 export const ChartsEmpty = () => <div>Chart is empty</div>;
 
