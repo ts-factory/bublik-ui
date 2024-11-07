@@ -31,7 +31,6 @@ export const MeasurementsTable = memo(({ data }: MeasurementsTableProps) => {
 		onExpandedChange: setExpanded
 	});
 
-	// @ts-ignore
 	return (
 		<table
 			id={MeasurementConfig.tableId}
@@ -67,7 +66,6 @@ export const MeasurementsTable = memo(({ data }: MeasurementsTableProps) => {
 								key={cell.id}
 								className={cn(
 									'text-[0.625rem] font-medium leading-[0.75rem] first:pl-4 h-9',
-									// @ts-ignore
 									cell.column.columnDef.meta?.className as string
 								)}
 							>

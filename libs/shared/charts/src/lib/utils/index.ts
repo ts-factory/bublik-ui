@@ -4,5 +4,4 @@ export * from './actions';
 export * from './table-utils';
 export * from './export';
 export * from './colors';
-export * from './axises';
 export * from './formatting';

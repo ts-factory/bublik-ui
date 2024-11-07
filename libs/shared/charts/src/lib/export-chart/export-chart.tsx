@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useState } from 'react';
 
-import { MeasurementPlot } from '@/shared/types';
 import {
 	ButtonTw,
 	Icon,

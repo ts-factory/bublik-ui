@@ -1,10 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { z } from 'zod';
+
 /**
-|--------------------------------------------------
-| ROUTER
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | ROUTER
+ |--------------------------------------------------
+ */
 
 export const enum MeasurementsMode {
 	Default = 'default',
@@ -24,10 +26,10 @@ export type MeasurementsSearch = {
 };
 
 /**
-|--------------------------------------------------
-| TYPES
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | TYPES
+ |--------------------------------------------------
+ */
 
 export type ResultInfoAPIResponse = {
 	result: ResultInfo;
@@ -53,62 +55,17 @@ export type Result = {
 };
 
 /**
-|--------------------------------------------------
-| NEW
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | NEW
+ |--------------------------------------------------
+ */
 
-export type MeasurementToolInfo = {
-	type: string;
-	name: string;
-	tool: string;
-};
+export type Point = z.infer<typeof PointSchema>;
 
-export type MeasurementDescription = {
-	aggr: string;
-	multiplier: string;
-	units: string;
-};
-
-export type MeasurementMeta = {
-	keys: string[];
-	comments: string[];
-};
-
-export type MeasurementPlot = MeasurementToolInfo &
-	MeasurementDescription &
-	MeasurementMeta & {
-		id: string;
-		dots: Point[];
-		axises_config: AxisConfig;
-	};
-
-export type MeasurementPlotWithoutId = Omit<MeasurementPlot, 'id'>;
-
-export type PointMeta = {
-	result_id: number;
-	iteration_id: number;
-	run_id: number;
-};
-
-export type Point = PointMeta & Record<string, string | number>;
-
-export interface AxisConfig {
-	title: string;
-	default_x: string;
-	default_y: string;
-	getters: string[];
-	axises: Record<string, AxisDescription>;
-}
-
-export type AxisDescription = {
-	getter: string;
-	label: string;
-	units: string;
-};
-
-export interface ChartAxis {
-	label: string;
-	values: (string | number)[];
-	units: string;
-}
+export const PointSchema = z
+	.object({
+		result_id: z.number(),
+		iteration_id: z.number(),
+		run_id: z.number()
+	})
+	.nonstrict();
