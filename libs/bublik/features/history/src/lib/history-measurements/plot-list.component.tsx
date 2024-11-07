@@ -4,33 +4,38 @@ import { useMemo, useState } from 'react';
 import { Link, To, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
 
-import { MeasurementPlot, Point } from '@/shared/types';
+import { Point } from '@/shared/types';
 import {
 	ButtonTw,
 	CardHeader,
 	cn,
 	Icon,
 	Skeleton,
+	toast,
+	ToolbarButton,
 	Tooltip,
 	useSidebar
 } from '@/shared/tailwind-ui';
 import {
-	Chart,
-	ChartPointClickHandler,
 	ExportChart,
 	getChartName,
-	getColorByIdx
+	getColorByIdx,
+	MeasurementChart
 } from '@/shared/charts';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
+import { SingleMeasurementChart } from '@/services/bublik-api';
 
 import { useCombinedView } from './plot-list.hooks';
-import { isDisabledForCombined } from './plot-list.utils';
+import { isDisabledForCombined, resolvePoint } from './plot-list.utils';
 import { PlotPointModalContainer } from './components';
 
 interface PlotListItemProps {
 	idx: number;
-	plot: MeasurementPlot;
-	onAddChartClick: (args: { plot: MeasurementPlot; color: string }) => void;
+	plot: SingleMeasurementChart;
+	onAddChartClick: (args: {
+		plot: SingleMeasurementChart;
+		color: string;
+	}) => void;
 	combinedState: 'disabled' | 'active' | 'default' | 'waiting';
 }
 
@@ -39,10 +44,9 @@ const PlotListItem = (props: PlotListItemProps) => {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [point, setPoint] = useState<Point | null>(null);
 
-	const handleChartPointClick: ChartPointClickHandler = async ({
-		dataIndex
-	}) => {
-		const point = plot.dots?.[dataIndex];
+	const handleChartPointClick = async (opts: { dataIndex: number }) => {
+		const { dataIndex } = opts;
+		const point = resolvePoint(plot, dataIndex);
 
 		if (!point) return;
 
@@ -50,7 +54,7 @@ const PlotListItem = (props: PlotListItemProps) => {
 		setPoint(point);
 	};
 
-	const handleChartAddClick = (plot: MeasurementPlot) => {
+	const handleChartAddClick = (plot: SingleMeasurementChart) => {
 		onAddChartClick({ plot, color: getColorByIdx(idx) });
 	};
 
@@ -66,13 +70,20 @@ const PlotListItem = (props: PlotListItemProps) => {
 				</PlotPointModalContainer>
 			)}
 			<li className="py-2.5 px-4">
-				<Chart
-					id={plot.id}
-					plot={plot}
+				<MeasurementChart
+					chart={plot}
 					color={getColorByIdx(idx)}
 					onChartPointClick={handleChartPointClick}
-					onAddChartClick={handleChartAddClick}
-					combinedState={combinedState}
+					additionalToolBarItems={
+						<ToolbarButton
+							aria-label="Add to combined chart"
+							state={combinedState === 'active' ? 'active' : 'default'}
+							disabled={combinedState === 'disabled'}
+							onClick={() => handleChartAddClick(plot)}
+						>
+							<Icon name="AddSymbol" className="size-5" />
+						</ToolbarButton>
+					}
 				/>
 			</li>
 		</>
@@ -99,11 +110,11 @@ export const PlotListLoading = () => {
 };
 
 export interface PlotListProps {
-	plots: MeasurementPlot[];
+	plots: SingleMeasurementChart[];
 	isFetching?: boolean;
 }
 
-export const PlotList = ({ plots, isFetching }: PlotListProps) => {
+export function PlotList({ plots, isFetching }: PlotListProps) {
 	const { isSidebarOpen } = useSidebar();
 	const {
 		handleAddChartClick,
@@ -139,6 +150,7 @@ export const PlotList = ({ plots, isFetching }: PlotListProps) => {
 						plot,
 						selectedCharts.map(({ plot }) => plot)
 					);
+
 					const state = selectedCharts.length
 						? isDisabled
 							? 'disabled'
@@ -167,7 +179,7 @@ export const PlotList = ({ plots, isFetching }: PlotListProps) => {
 			/>
 		</div>
 	);
-};
+}
 
 const variants: Variants = {
 	visible: { opacity: 1, y: '0%' },
@@ -180,9 +192,9 @@ const transition: Transition = { bounce: 0.1 };
 export interface PlotStackedFormProps {
 	label: string;
 	open: boolean;
-	plots: { plot: MeasurementPlot; color: string }[];
+	plots: { plot: SingleMeasurementChart; color: string }[];
 	onResetButtonClick?: () => void;
-	onRemoveClick?: (plot: MeasurementPlot) => void;
+	onRemoveClick?: (plot: SingleMeasurementChart) => void;
 }
 
 const PlotStackedForm = (props: PlotStackedFormProps) => {
@@ -219,10 +231,7 @@ const PlotStackedForm = (props: PlotStackedFormProps) => {
 									className="flex items-center justify-between p-2 border rounded border-border-primary hover:bg-gray-50"
 								>
 									<div>
-										<span
-											className="text-[0.6875rem] font-medium leading-[0.875rem]"
-											// style={{ color: color }}
-										>
+										<span className="text-[0.6875rem] font-medium leading-[0.875rem]">
 											{getChartName(plot)}
 										</span>
 									</div>

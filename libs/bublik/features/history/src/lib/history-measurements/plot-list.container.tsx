@@ -38,7 +38,7 @@ export const PlotListContainer = () => {
 
 	if (isLoading) return <PlotListLoading />;
 
-	if (!data?.plots.length) {
+	if (!data?.length) {
 		return (
 			<HistoryEmpty
 				type="no-results"
@@ -47,5 +47,5 @@ export const PlotListContainer = () => {
 		);
 	}
 
-	return <PlotList plots={data.plots} isFetching={isFetching} />;
+	return <PlotList plots={data} isFetching={isFetching} />;
 };

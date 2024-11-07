@@ -5,10 +5,10 @@ import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import {
 	createBublikError,
+	SingleMeasurementChart,
 	useGetHistoryLinearQuery,
 	useGetMeasurementsQuery
 } from '@/services/bublik-api';
-import { MeasurementPlot } from '@/shared/types';
 import { HISTORY_MAX_RESULTS_IDS } from '@/bublik/config';
 
 import { useHistoryQuery } from '../hooks';
@@ -51,11 +51,11 @@ export const useGetHistoryMeasurements = () => {
 
 export const useCombinedView = () => {
 	const [selectedCharts, setSelectedCharts] = useState<
-		{ plot: MeasurementPlot; color: string }[]
+		{ plot: SingleMeasurementChart; color: string }[]
 	>([]);
 
 	const handleAddChartClick = (args: {
-		plot: MeasurementPlot;
+		plot: SingleMeasurementChart;
 		color: string;
 	}) => {
 		const { plot, color } = args;
@@ -73,7 +73,7 @@ export const useCombinedView = () => {
 		setSelectedCharts([]);
 	};
 
-	const handleRemoveClick = (plot: MeasurementPlot) => {
+	const handleRemoveClick = (plot: SingleMeasurementChart) => {
 		setSelectedCharts(selectedCharts.filter(({ plot: p }) => p.id !== plot.id));
 	};
 

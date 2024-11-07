@@ -8,8 +8,12 @@ import {
 	ButtonTw,
 	Dialog,
 	DialogClose,
+	DialogOverlay,
+	dialogOverlayStyles,
 	DialogPortal,
 	DialogTitle,
+	DrawerContent,
+	DrawerRoot,
 	Icon,
 	ModalContent
 } from '@/shared/tailwind-ui';
@@ -26,9 +30,9 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 	const { isDialogOpen, setIsDialogOpen, point, children } = props;
 
 	return (
-		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+		<DrawerRoot open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 			<DialogPortal>
-				<ModalContent className="rounded-md bg-white overflow-auto min-w-[90vw]">
+				<DrawerContent className="bg-white overflow-auto max-w-[70vw]">
 					<div className="flex items-center justify-between px-4 py-2 sticky top-0 bg-white z-10 border-b border-border-primary">
 						<DialogTitle className="text-[0.875rem] font-semibold leading-[1.125rem]">
 							Run Info
@@ -69,7 +73,7 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 							</DialogClose>
 						</div>
 					</div>
-					<div className="min-h-[320px] flex h-full flex-col border-b border-border-primary">
+					<div className="min-h-[320px] flex flex-col border-b border-border-primary">
 						{children}
 					</div>
 					<div className="flex flex-col">
@@ -88,7 +92,9 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 												{formatLabel(name)}:
 											</span>
 											<span className="text-[0.6875rem] font-medium leading-[0.875rem] col-start-3">
-												{value}
+												{typeof value === 'string' || typeof value === 'number'
+													? value
+													: JSON.stringify(value)}
 											</span>
 										</li>
 									);
@@ -96,9 +102,9 @@ export const PointDialog = (props: PropsWithChildren<PointDialogProps>) => {
 							</ul>
 						</div>
 					</div>
-				</ModalContent>
+				</DrawerContent>
 			</DialogPortal>
-		</Dialog>
+		</DrawerRoot>
 	);
 };
 
