@@ -1,19 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef } from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 
-import { MeasurementPlot } from '@/shared/types';
+import { SingleMeasurementTable } from '@/services/bublik-api';
 
-export const columns: ColumnDef<MeasurementPlot>[] = [
-	{
-		accessorFn: (d) => ({ tool: d.tool, type: d.type }),
-		id: 'tool-type',
+const helper = createColumnHelper<SingleMeasurementTable>();
+
+export const columns = [
+	helper.accessor((d) => ({ tool: d.tool, type: d.type }), {
+		id: 'tool_type',
 		header: 'Tool & Type',
 		cell: (props) => {
-			const { tool, type } = props.getValue<{ tool: string; type: string }>();
+			const { tool, type } = props.getValue();
 
 			return (
-				<div className="flex gap-2">
+				<div className="flex gap-2 whitespace-nowrap">
 					<span className="text-[0.625rem] leading-[1.125rem] font-semibold">
 						{tool}&nbsp;
 					</span>
@@ -22,25 +23,25 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 					</span>
 				</div>
 			);
-		}
-	},
-	{
-		accessorKey: 'name',
+		},
+		meta: { className: 'w-0' }
+	}),
+	helper.accessor('name', {
 		header: 'Name',
 		cell: (props) => {
-			const value = props.getValue<MeasurementPlot['name']>();
+			const value = props.getValue();
 			return (
 				<span className="text-[0.625rem] font-medium leading-[0.75rem]">
 					{value}
 				</span>
 			);
-		}
-	},
-	{
-		accessorKey: 'keys',
+		},
+		meta: {}
+	}),
+	helper.accessor('keys', {
 		header: 'Keys',
 		cell: (props) => {
-			const keys = props.getValue<MeasurementPlot['keys']>();
+			const keys = props.getValue();
 
 			return (
 				<div className="flex flex-col gap-2 py-2">
@@ -55,12 +56,11 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 				</div>
 			);
 		}
-	},
-	{
-		accessorKey: 'comments',
+	}),
+	helper.accessor('comments', {
 		header: 'Comments',
 		cell: (props) => {
-			const comments = props.getValue<MeasurementPlot['comments']>();
+			const comments = props.getValue();
 
 			return (
 				<div className="flex flex-col gap-2 py-2">
@@ -75,11 +75,8 @@ export const columns: ColumnDef<MeasurementPlot>[] = [
 				</div>
 			);
 		}
-	},
-	{
-		accessorFn: (d) => d.dots[0],
-		id: 'Results',
-		header: 'Results',
-		cell: () => null
-	}
+	}),
+	helper.accessor((d) => `${d.value} ${d.units}`, {
+		header: 'Value'
+	})
 ];
