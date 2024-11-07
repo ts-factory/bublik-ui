@@ -1,11 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { MeasurementPlot } from '@/shared/types';
-
 import { ExportExtensions } from '../export-chart';
+import { SingleMeasurementChart } from '@/services/bublik-api';
 
 export interface UseExportConfig {
-	plots?: MeasurementPlot[];
+	plots?: SingleMeasurementChart[];
 }
 
 export const useExportChart = (config: UseExportConfig) => {
@@ -13,15 +12,15 @@ export const useExportChart = (config: UseExportConfig) => {
 
 	const handleExportClick = async (fileExtension: ExportExtensions) => {
 		try {
-			const { getChartName, saveAsCSV, saveAsXLSX } = await import('../utils');
+			const { saveAsCSV, saveAsXLSX } = await import('../utils');
 
 			if (!plots) return;
 
 			const chartsNames = plots
-				.map(getChartName)
+				.map((p) => p.title ?? p.subtitle)
 				.join(' & ')
 				.slice(0, 31)
-				.replace(/[:]|[\\]|[\\/]|[?]|[[]|[\]]|[*]/, '#');
+				.replace(/:|\\|[\\/]|[?]|]|[*]/, '#');
 
 			switch (fileExtension) {
 				case '.xlsx':

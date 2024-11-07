@@ -13,6 +13,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { useExportChart } from '../hooks';
+import { SingleMeasurementChart } from '@/services/bublik-api';
 
 type AllowedExportExtensions = 'xlsx' | 'csv';
 
@@ -52,7 +53,7 @@ export const ExportChartList: FC<ExportChartListProps> = ({
 };
 
 export interface ExportChartProps {
-	plots?: MeasurementPlot[];
+	plots?: SingleMeasurementChart[];
 	isLoading?: boolean;
 	disabled?: boolean;
 }
