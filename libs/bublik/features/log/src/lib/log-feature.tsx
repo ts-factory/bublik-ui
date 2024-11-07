@@ -43,7 +43,7 @@ function useLogTitle() {
 
 		const { main_package: name, start } = details;
 		const formattedTime = formatTimeToDot(start);
-		const focusedTestName = focusId ? tree?.tree?.[focusId].name : '';
+		const focusedTestName = focusId ? tree?.tree?.[focusId]?.name : '';
 
 		document.title = `${
 			focusedTestName ? `${focusedTestName} - ` : ''
