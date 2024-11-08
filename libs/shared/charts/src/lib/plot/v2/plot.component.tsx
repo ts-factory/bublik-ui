@@ -25,6 +25,7 @@ export const Plot = forwardRef<ReactEChartsCore, PlotProps>((props, ref) => {
 			theme={twTheme.themeName}
 			className={className}
 			style={style}
+			notMerge={true}
 			ref={ref}
 		/>
 	);
