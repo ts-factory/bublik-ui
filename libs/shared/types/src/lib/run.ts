@@ -62,10 +62,10 @@ export type RunResultWithKeys = RunResult & {
 };
 
 /**
-|--------------------------------------------------
-| QUERY
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | QUERY
+ |--------------------------------------------------
+ */
 
 export type RunPageParams = {
 	runId: string;
@@ -86,10 +86,10 @@ export type ResultTableAPIQueryWithFilter = ResultTableAPIQuery & {
 };
 
 /**
-|--------------------------------------------------
-| DATA TYPES
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | DATA TYPES
+ |--------------------------------------------------
+ */
 
 export type RunStats = {
 	passed: number;
@@ -146,13 +146,15 @@ export type RunDataResults = {
 	parameters: string[];
 	start: string;
 	finish: string;
+	artifacts?: string[];
+	requirements?: string[];
 };
 
 /**
-|--------------------------------------------------
-| DEFINE AS COMPROMISED
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | DEFINE AS COMPROMISED
+ |--------------------------------------------------
+ */
 
 /** Form values to convert later to request */
 export interface DefineCompromisedFormValues {
@@ -224,10 +226,10 @@ export type CompromisedTagsResponse = {
 };
 
 /**
-|--------------------------------------------------
-| API RESPONSES
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | API RESPONSES
+ |--------------------------------------------------
+ */
 
 export type ResultLogAPIResponse = {
 	url: string;
@@ -247,10 +249,10 @@ export type RunSourceAPIRResponse = {
 };
 
 /**
-|--------------------------------------------------
-| Full details
-|--------------------------------------------------
-*/
+ |--------------------------------------------------
+ | Full details
+ |--------------------------------------------------
+ */
 
 export type DetailsItem = {
 	name?: string;
