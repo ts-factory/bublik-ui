@@ -1,19 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo, useState } from 'react';
+import { ComponentProps, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Point } from '@/shared/types';
 import { createBublikError } from '@/services/bublik-api';
-import { Chart, ChartPointClickHandler } from '@/shared/charts';
 import { CardHeader, cn, Skeleton } from '@/shared/tailwind-ui';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
+import { StackedMeasurementChart } from '@/shared/charts';
 
 import { useGetHistoryMeasurements } from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
 import { PlotPointModalContainer } from '../history-measurements/components';
+import { resolvePoint } from '../history-measurements/plot-list.utils';
 
-export const HistoryMeasurementsCombinedContainer = () => {
+function HistoryMeasurementsCombinedContainer() {
 	const [searchParams] = useSearchParams();
 	const { data, isLoading, isFetching, error } = useGetHistoryMeasurements();
 	const [point, setPoint] = useState<Point | null>(null);
@@ -28,11 +29,19 @@ export const HistoryMeasurementsCombinedContainer = () => {
 
 		const plotIds = plotIdsStr.split(';');
 
-		return data.plots.filter((p) => plotIds.includes(p.id));
+		return data.filter((p) => plotIds.includes(p.id.toString()));
 	}, [data, searchParams]);
 
-	const handleCombinedPointClick: ChartPointClickHandler = (config) => {
-		const point = plots[config.componentIndex].dots[config.dataIndex];
+	const handleCombinedPointClick: ComponentProps<
+		typeof StackedMeasurementChart
+	>['onPointClick'] = (config) => {
+		const plot = plots?.[config.componentIndex];
+
+		if (!plot) return;
+
+		const point = resolvePoint(plot, config.dataIndex);
+
+		if (!point) return;
 
 		setPoint(point);
 		setIsPointDialogOpen(true);
@@ -64,12 +73,10 @@ export const HistoryMeasurementsCombinedContainer = () => {
 					isFetching && 'pointer-events-none opacity-60'
 				)}
 			>
-				<Chart
-					id="Combined"
-					plots={plots}
-					style={{ height: '95%' }}
-					onChartPointClick={handleCombinedPointClick}
-					disableFullScreenToggle
+				<StackedMeasurementChart
+					charts={plots}
+					style={{ height: '100%' }}
+					onPointClick={handleCombinedPointClick}
 				/>
 				{point ? (
 					<PlotPointModalContainer
@@ -83,4 +90,6 @@ export const HistoryMeasurementsCombinedContainer = () => {
 			</div>
 		</div>
 	);
-};
+}
+
+export { HistoryMeasurementsCombinedContainer };
