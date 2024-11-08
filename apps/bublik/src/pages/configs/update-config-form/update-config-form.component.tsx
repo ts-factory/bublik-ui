@@ -16,7 +16,8 @@ import {
 	dialogOverlayStyles,
 	cn,
 	Icon,
-	Tooltip
+	Tooltip,
+	Input
 } from '@/shared/tailwind-ui';
 
 import { ConfigEditor } from '../components/editor.component';
@@ -30,8 +31,9 @@ import { ConfigVersions } from '../versions/config-versions';
 import { ValidJsonStringSchema } from '../utils';
 
 const ConfigFormSchema = z.object({
+	name: z.string(),
 	content: ValidJsonStringSchema,
-	description: z.string().min(1, 'Description is required'),
+	description: z.string(),
 	is_active: z.boolean()
 });
 
@@ -134,6 +136,13 @@ function ConfigEditorForm({
 							Update Config
 						</h2>
 						<div className="mb-4">
+							<label
+								htmlFor="name"
+								className="block text-sm font-medium text-gray-700"
+							>
+								Name
+							</label>
+							<Input id="name" {...form.register('name')} />
 							<label
 								htmlFor="description"
 								className="block text-sm font-medium text-gray-700"

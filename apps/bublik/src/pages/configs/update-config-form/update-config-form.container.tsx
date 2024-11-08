@@ -79,6 +79,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	if (!config) return <div>No Data...</div>;
 
 	const defaultValues = {
+		name: config.name,
 		content: formatJson(JSON.stringify(config.content, null, 2)),
 		description: config.description,
 		is_active: config.is_active
