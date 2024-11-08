@@ -18,7 +18,8 @@ import { usePlatformSpecificCtrl } from '@/shared/hooks';
 import { Plot } from '../plot';
 import {
 	ChartState,
-	resolveOptions
+	resolveOptions,
+	resolveStackedOptions
 } from './measurement-chart.component.utils';
 import {
 	useChartState,
@@ -214,4 +215,23 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 	);
 }
 
-export { MeasurementChart };
+interface StackedMeasurementChartProps {
+	charts: SingleMeasurementChart[];
+	style?: CSSProperties;
+	onPointClick?: (config: ChartPointClickProps) => void;
+}
+
+function StackedMeasurementChart(props: StackedMeasurementChartProps) {
+	const ref = useRef<ReactEChartsCore>(null);
+	useChartClick({ ref, onChartPointClick: props.onPointClick });
+
+	return (
+		<Plot
+			options={resolveStackedOptions(props.charts)}
+			style={props.style}
+			ref={ref}
+		/>
+	);
+}
+
+export { MeasurementChart, StackedMeasurementChart };
