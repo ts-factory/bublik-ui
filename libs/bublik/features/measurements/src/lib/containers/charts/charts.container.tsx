@@ -1,21 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useCallback } from 'react';
+import { FC } from 'react';
 
 import {
 	getErrorMessage,
 	useGetSingleMeasurementQuery
 } from '@/services/bublik-api';
-import {
-	Chart,
-	getRow,
-	scrollToRow,
-	highlightRow,
-	getColorByIdx,
-	ChartPointClickHandler
-} from '@/shared/charts';
-
+import { getColorByIdx } from '@/shared/charts';
 import { Skeleton, Icon, cn, useSidebar } from '@/shared/tailwind-ui';
+
+import { MeasurementChart } from '../../components/measurement-chart/measurement-chart.component';
 
 export const ChartsEmpty = () => <div>Chart is empty</div>;
 
@@ -70,25 +64,10 @@ export interface ChartsProps {
 	isLockedMode?: boolean;
 }
 
-export const ChartsContainer: FC<ChartsProps> = ({
-	resultId,
-	layout,
-	isLockedMode
-}) => {
+export function ChartsContainer(props: ChartsProps) {
+	const { resultId, layout } = props;
 	const { isSidebarOpen } = useSidebar();
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
-
-	const handleChartPointClick: ChartPointClickHandler = useCallback(
-		({ dataIndex, chartId }) => {
-			const el = getRow(dataIndex, chartId);
-
-			if (!el) return;
-
-			scrollToRow(el, isLockedMode);
-			highlightRow(el);
-		},
-		[isLockedMode]
-	);
 
 	if (isLoading) return <ChartsLoading layout={layout} />;
 
@@ -106,13 +85,12 @@ export const ChartsContainer: FC<ChartsProps> = ({
 						: 'min-[1368px]:chart-mosaic'
 				)}
 			>
-				{data.map((plot, idx) => {
+				{data.charts.map((plot, idx) => {
 					return (
 						<div className="py-2.5 px-4" key={plot.id}>
-							<Chart
-								id={plot.id}
-								plot={plot}
-								onChartPointClick={handleChartPointClick}
+							<MeasurementChart
+								key={plot.id}
+								chart={plot}
 								color={getColorByIdx(idx)}
 							/>
 						</div>
@@ -124,13 +102,12 @@ export const ChartsContainer: FC<ChartsProps> = ({
 
 	return (
 		<div className="flex flex-col children-but-last:border-b children-but-last:border-b-border-primary">
-			{data.map((plot, idx) => {
+			{data.charts.map((plot, idx) => {
 				return (
 					<div className="py-2.5 px-4" key={plot.id}>
-						<Chart
-							id={plot.id}
-							plot={plot}
-							onChartPointClick={handleChartPointClick}
+						<MeasurementChart
+							key={plot.id}
+							chart={plot}
 							color={getColorByIdx(idx)}
 						/>
 					</div>
@@ -138,4 +115,4 @@ export const ChartsContainer: FC<ChartsProps> = ({
 			})}
 		</div>
 	);
-};
+}
