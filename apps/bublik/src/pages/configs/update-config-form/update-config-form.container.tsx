@@ -91,7 +91,11 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 			<ConfirmDialog
 				open={isVisible}
 				title={config.is_active ? 'Deactivate Config?' : 'Activate Config?'}
-				description="This action can not be undone."
+				description={
+					config.is_active
+						? 'This configuration will be archived and cannot be used until you activate it again.'
+						: 'For the current configuration, this version will be the only active one.'
+				}
 				onCancelClick={decline}
 				onConfirmClick={confirm}
 			/>
