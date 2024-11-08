@@ -174,13 +174,6 @@ export const configsEndpoints = {
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
-		markConfigAsCurrent: build.mutation<Config, ConfigParams>({
-			query: (params) => ({
-				url: withApiV2(`/config/${params.id}/change_status`),
-				method: 'PATCH'
-			}),
-			invalidatesTags: [BUBLIK_TAG.Config]
-		}),
 		migrateGlobalConfig: build.mutation<Config, void>({
 			query: () => ({
 				url: withApiV2(`/config/create_by_per_conf`),
