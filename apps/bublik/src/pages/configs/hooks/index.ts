@@ -66,7 +66,6 @@ function useConfigById(configId: number) {
 	);
 	const [deleteMutation] = bublikAPI.useDeleteConfigByIdMutation();
 	const [editMutation] = bublikAPI.useEditConfigByIdMutation();
-	const [markAsCurrentMutation] = bublikAPI.useMarkConfigAsCurrentMutation();
 
 	async function deleteConfig(id: number) {
 		const promise = deleteMutation(id).unwrap();
@@ -107,8 +106,8 @@ function useConfigById(configId: number) {
 		return promise;
 	}
 
-	function markAsCurrent(params: Parameters<typeof markAsCurrentMutation>[0]) {
-		const promise = markAsCurrentMutation(params).unwrap();
+	function markAsCurrent(params: EditConfigBody) {
+		const promise = editMutation({ id: configId, body: params }).unwrap();
 		toast.promise(promise, {
 			success: 'Succesfully activated config',
 			error: 'Failed to activate config',

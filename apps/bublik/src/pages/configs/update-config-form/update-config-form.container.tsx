@@ -51,10 +51,10 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		}
 	};
 
-	async function handleMarkAsCurrent(id: number) {
+	async function handleMarkAsCurrent() {
 		const isConfirmed = await confirmation();
-		if (!isConfirmed) return;
-		markAsCurrent({ id });
+		if (!isConfirmed || !config) return;
+		markAsCurrent({ is_active: !config.is_active });
 	}
 
 	async function handleDeleteClick(id: number) {
@@ -130,7 +130,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 				<ButtonTw
 					variant={config.is_active ? 'destruction-secondary' : 'secondary'}
 					size="xss"
-					onClick={() => handleMarkAsCurrent(configId)}
+					onClick={() => handleMarkAsCurrent()}
 				>
 					<Icon name="Edit" className="size-5 mr-1.5" />
 					<span>{config.is_active ? 'Deactivate' : 'Activate'}</span>
