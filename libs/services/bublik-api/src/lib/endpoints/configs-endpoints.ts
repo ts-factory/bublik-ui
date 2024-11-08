@@ -22,21 +22,15 @@ const CreateConfigBodySchema = z.object({
 });
 
 export const ConfigSchemaParamsSchema = z
-	.object({
-		type: ConfigTypeSchema,
-		name: z.string().min(1)
-	})
-	.or(
-		z.object({
-			type: ConfigTypeSchema
-		})
-	);
+	.object({ type: ConfigTypeSchema, name: z.string().min(1) })
+	.or(z.object({ type: ConfigTypeSchema }));
 
 export type ConfigSchemaParams = z.infer<typeof ConfigSchemaParamsSchema>;
 
 type CreateConfigParams = z.infer<typeof CreateConfigBodySchema>;
 
 const EditConfigBodySchema = z.object({
+	name: z.string().optional(),
 	description: z.string().min(1).optional(),
 	content: z.string().min(1).optional(),
 	is_active: z.boolean().optional()
@@ -46,7 +40,7 @@ export type EditConfigBody = z.infer<typeof EditConfigBodySchema>;
 
 const EditConfigByIdParamsSchema = z.object({
 	id: z.number(),
-	body: EditConfigBodySchema
+	body: EditConfigBodySchema.optional()
 });
 
 type EditConfigByIdParams = z.infer<typeof EditConfigByIdParamsSchema>;
