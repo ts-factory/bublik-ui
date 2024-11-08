@@ -236,16 +236,17 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			markdown += `Path: \`${options.path}\`\n`;
 		}
 
-		// TODO: Fix configuration key
-		const haveConfigurations = Object.entries(
+		const hasConfigurationKey = Object.keys(
 			options.tags.specialCategories
-		).some(([_, value]) => value.length > 0);
+		).some((key) => key.toLowerCase() === 'configuration');
 		const haveHashes = Boolean(options.hashes?.length);
 
-		if (haveConfigurations && haveHashes) {
-			const configurations = Object.entries(
-				options.tags.specialCategories
-			).flatMap(([_, v]) => v);
+		if (haveHashes) {
+			const configurations = hasConfigurationKey
+				? options.tags.specialCategories['Configuration'] ||
+				  options.tags.specialCategories['configuration'] ||
+				  []
+				: Object.values(options.tags.specialCategories).flat();
 
 			const matches = findAllMatches(configurations, options.hashes ?? []);
 
