@@ -1,14 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
-import { RunDataResults, RESULT_TYPE } from '@/shared/types';
+import { RunDataResults } from '@/shared/types';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import { VerdictList, cn } from '@/shared/tailwind-ui';
+import { Badge, VerdictList, cn } from '@/shared/tailwind-ui';
 
 import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useRunTableRowState } from '../hooks';
+
+const helper = createColumnHelper<RunDataResults>();
 
 interface GetColumnsOptions {
 	rowId: string;
@@ -20,18 +22,17 @@ export const getColumns = ({
 	rowId,
 	data,
 	showLinkToRun = false
-}: GetColumnsOptions): ColumnDef<RunDataResults>[] => {
+}: GetColumnsOptions) => {
 	const parametersDataset = Object.fromEntries(
 		data.map((item) => [String(item.result_id), item.parameters])
 	);
 
 	return [
-		{
+		helper.accessor((data) => data, {
 			header: 'Actions',
 			id: 'links',
-			accessorFn: (data) => data,
 			cell: (cell) => {
-				const value = cell.getValue<RunDataResults>();
+				const value = cell.getValue();
 
 				return (
 					<div className="flex items-center h-full">
@@ -44,12 +45,59 @@ export const getColumns = ({
 					</div>
 				);
 			}
-		},
-		{
-			header: 'Expected Results',
-			accessorFn: (data) => data.expected_result,
+		}),
+		helper.accessor('requirements', {
+			header: 'Requirements',
 			cell: (cell) => {
-				const value = cell.getValue<RunDataResults['expected_result']>();
+				const requirements = cell.getValue();
+
+				if (!requirements) return;
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						{requirements.map((requirement) => {
+							return (
+								<Badge
+									key={requirement}
+									className="text-start bg-badge-2"
+									overflowWrap
+								>
+									{requirement}
+								</Badge>
+							);
+						})}
+					</div>
+				);
+			}
+		}),
+		helper.accessor('artifacts', {
+			header: 'Artifacts',
+			cell: (cell) => {
+				const artifacts = cell.getValue();
+
+				if (!artifacts) return;
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						{artifacts.map((artifact) => {
+							return (
+								<Badge
+									key={artifact}
+									className="text-start bg-badge-16"
+									overflowWrap
+								>
+									{artifact}
+								</Badge>
+							);
+						})}
+					</div>
+				);
+			}
+		}),
+		helper.accessor('expected_result', {
+			header: 'Expected Results',
+			cell: (cell) => {
+				const value = cell.getValue();
 
 				if (!value) return;
 
@@ -68,38 +116,36 @@ export const getColumns = ({
 					</div>
 				);
 			}
-		},
-		{
-			header: 'Obtained Result',
-			accessorFn: (data) => ({
+		}),
+		helper.accessor(
+			(data) => ({
 				isNotExpected: data.has_error,
 				verdicts: data.obtained_result.verdict,
 				result: data.obtained_result.result_type
 			}),
-			cell: (cell) => {
-				const value = cell.getValue<{
-					isNotExpected: boolean;
-					verdicts: string[];
-					result: RESULT_TYPE;
-				}>();
+			{
+				header: 'Obtained Result',
+				cell: (cell) => {
+					const value = cell.getValue();
 
-				if (!value.result) return;
+          if (!value.result) return;
 
-				return (
-					<VerdictList
-						variant="obtained"
-						verdicts={value.verdicts}
-						result={value.result}
-						isNotExpected={value.isNotExpected}
-					/>
-				);
+					return (
+						<VerdictList
+							variant="obtained"
+							verdicts={value.verdicts}
+							result={value.result}
+							isNotExpected={value.isNotExpected}
+						/>
+					);
+				}
+
 			}
-		},
-		{
+		),
+		helper.accessor('parameters', {
 			header: 'Parameters',
-			accessorFn: (data) => data.parameters,
 			cell: (cell) => {
-				const parameters = cell.getValue<string[]>();
+				const parameters = cell.getValue();
 				const referenceDiffRowId =
 					// eslint-disable-next-line react-hooks/rules-of-hooks
 					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
@@ -126,6 +172,6 @@ export const getColumns = ({
 					</ul>
 				);
 			}
-		}
-	];
+		})
+	] as ColumnDef<RunDataResults>[];
 };

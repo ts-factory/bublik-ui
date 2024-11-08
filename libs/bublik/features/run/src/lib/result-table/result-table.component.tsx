@@ -33,7 +33,7 @@ export const ResultTableError = () => <div>Error...</div>;
 
 export const ResultTableEmpty = () => <div>Empty...</div>;
 
-const gridClassName = 'grid grid-cols-[120px,0.6fr,0.6fr,1fr]';
+const gridClassName = 'grid grid-cols-[120px,0.6fr,0.6fr,0.6fr,0.6fr,1fr]';
 
 const getBodyRowClassName = () => {
 	return cn(
@@ -70,12 +70,12 @@ export const ResultTable = memo(
 	}: ResultTableProps) => {
 		const columns = useMemo(
 			() => getColumns({ rowId, showLinkToRun, data }),
-			[data, rowId]
+			[data, rowId, showLinkToRun]
 		);
 
 		return (
 			<div className="px-4 py-2">
-				<TwTable<RunDataResults>
+				<TwTable
 					data={data}
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
