@@ -144,6 +144,7 @@ export const {
 	useGetTreeByRunIdQuery,
 	useGetLogUrlByResultIdQuery,
 	useGetHistoryLinkDefaultsQuery,
+	useGetResultsAndVerdictsForIterationQuery,
 	// Auth
 	useMeQuery,
 	useLazyMeQuery,

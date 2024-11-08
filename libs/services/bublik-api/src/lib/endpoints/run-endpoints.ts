@@ -30,6 +30,29 @@ import { API_REDUCER_PATH } from '../constants';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { groupBy } from 'remeda';
 
+export interface ResultsAndVerdictsForIteration {
+	artifacts: Artifact[];
+	verdicts: Verdict[];
+}
+
+export interface Artifact {
+	id: number;
+	name: string;
+	type: string;
+	value: string;
+	hash: string;
+	comment: string;
+}
+
+export interface Verdict {
+	id: number;
+	name: string;
+	type: string;
+	value: string;
+	hash: string;
+	comment: string;
+}
+
 /**
  * Merges runs based on result_id and exec_seqno
  * @param runs - Top most packages of runs that contain children
@@ -295,6 +318,13 @@ export const runEndpoints = {
 				return { data: mergeRuns(filteredResults) };
 			},
 			providesTags: [BUBLIK_TAG.Run]
+		}),
+		getResultsAndVerdictsForIteration: build.query<
+			ResultsAndVerdictsForIteration,
+			string | number
+		>({
+			query: (iterationId) =>
+				withApiV2(`/results/${iterationId}/artifacts_and_verdicts`)
 		})
 	})
 };
