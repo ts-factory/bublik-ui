@@ -2,12 +2,12 @@ import { useParams } from 'react-router-dom';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { MeasurementsRouterParams } from '@/shared/types';
-import { Chart } from '@/shared/charts';
 import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
+import { StackedMeasurementChart } from '@/shared/charts';
 
 import { MeasurementStatisticsContainer } from '../../containers';
 
-export function ModeOverlay() {
+function ModeOverlay() {
 	const { runId, resultId } = useParams<MeasurementsRouterParams>();
 
 	if (!runId || !resultId) return null;
@@ -44,14 +44,11 @@ function OverlayContainer({ resultId }: OverlayContainerProps) {
 		);
 	}
 
-	if (!data) return <div>No Data!</div>;
+	if (!data || !data.charts.length) return <div>No Data!</div>;
 
 	return (
-		<Chart
-			id="Combined"
-			plots={data}
-			style={{ height: '95%' }}
-			disableFullScreenToggle
-		/>
+		<StackedMeasurementChart charts={data.charts} style={{ height: '100%' }} />
 	);
 }
+
+export { ModeOverlay };
