@@ -50,13 +50,13 @@ export enum RUN_STATUS {
 }
 
 export type RunResult = {
-	result_type: RESULT_TYPE;
-	verdict: string[];
+	result_type?: RESULT_TYPE | null;
+	verdict?: string[];
 };
 
 export type RunResultWithKeys = RunResult & {
-	key: {
-		name: string;
+	key?: {
+		name?: string;
 		url?: string;
 	}[];
 };
@@ -140,7 +140,7 @@ export type RunDataResults = {
 	run_id: string;
 	has_measurements: boolean;
 	has_error: boolean;
-	expected_result: RunResultWithKeys;
+	expected_result?: RunResultWithKeys;
 	obtained_result: RunResult;
 	comments: string[];
 	parameters: string[];
