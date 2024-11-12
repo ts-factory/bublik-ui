@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useState, ReactNode, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { forwardRef, ReactNode, useEffect, useImperativeHandle } from 'react';
+import { useForm, Controller, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -17,7 +17,8 @@ import {
 	cn,
 	Icon,
 	Tooltip,
-	Input
+	Input,
+	FormAlertError
 } from '@/shared/tailwind-ui';
 
 import { ConfigEditor } from '../components/editor.component';
@@ -47,24 +48,31 @@ interface ConfigEditorFormProps {
 	label: ReactNode;
 	config: { id: number; is_active: boolean };
 	versions: ConfigVersionResponse['all_config_versions'];
-	isModified: boolean;
 	setConfigId: (id: number) => void;
 	handleMarkAsCurrent: (id: number) => void;
 	handleDeleteClick: (id: number) => void;
+	isOpen: boolean;
+	setIsOpen: (isOpen: boolean) => void;
 }
 
-function ConfigEditorForm({
-	defaultValues,
-	onSubmit,
-	schema,
-	isLoading,
-	label,
-	config,
-	versions,
-	setConfigId,
-	handleMarkAsCurrent,
-	handleDeleteClick
-}: ConfigEditorFormProps) {
+const ConfigEditorForm = forwardRef<
+	UseFormReturn<ConfigFormData>,
+	ConfigEditorFormProps
+>((props, ref) => {
+	const {
+		defaultValues,
+		onSubmit,
+		schema,
+		isLoading,
+		label,
+		config,
+		versions,
+		setConfigId,
+		handleMarkAsCurrent,
+		handleDeleteClick,
+		isOpen,
+		setIsOpen
+	} = props;
 	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
 
 	function getSavedForm(): ConfigFormData {
@@ -83,20 +91,20 @@ function ConfigEditorForm({
 		resolver: zodResolver(ConfigFormSchema)
 	});
 
+	useImperativeHandle(ref, () => form);
+
 	const formValues = form.watch();
 	useEffect(
 		() => setSavedValue(JSON.stringify(formValues)),
 		[formValues, setSavedValue]
 	);
 
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
 	const handleSaveClick = () => {
 		if (!ValidJsonStringSchema.safeParse(form.getValues('content')).success) {
 			return alert('Invalid JSON. Please check your input.');
 		}
 
-		setIsDialogOpen(true);
+		setIsOpen(true);
 	};
 
 	function handleResetToOriginalClick() {
@@ -118,12 +126,11 @@ function ConfigEditorForm({
 		) as Partial<ConfigFormData>;
 
 		onSubmit(changedData);
-		setIsDialogOpen(false);
 	}
 
 	return (
 		<>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+			<Dialog open={isOpen} onOpenChange={setIsOpen}>
 				<DialogOverlay className={dialogOverlayStyles()} />
 				<DialogContent
 					className={cn(
@@ -135,6 +142,14 @@ function ConfigEditorForm({
 						<h2 className="mb-4 text-xl font-semibold leading-tight text-text-primary">
 							Update Config
 						</h2>
+						{form.formState.errors.root ? (
+							<div className="mb-6">
+								<FormAlertError
+									title={'Error'}
+									description={form.formState.errors.root.message}
+								/>
+							</div>
+						) : null}
 						<div className="mb-4">
 							<label
 								htmlFor="name"
@@ -189,17 +204,14 @@ function ConfigEditorForm({
 							<ButtonTw
 								variant="secondary"
 								type="button"
-								onClick={() => setIsDialogOpen(false)}
+								onClick={() => setIsOpen(false)}
 							>
 								Cancel
 							</ButtonTw>
 							<ButtonTw
 								type="submit"
 								variant="primary"
-								disabled={
-									!form.formState.isValid ||
-									!Object.keys(form.formState.dirtyFields).length
-								}
+								disabled={!form.formState.isValid}
 							>
 								Save
 							</ButtonTw>
@@ -234,7 +246,7 @@ function ConfigEditorForm({
 			/>
 		</>
 	);
-}
+});
 
 interface UpdateConfigLabelContainerProps {
 	label: ReactNode;

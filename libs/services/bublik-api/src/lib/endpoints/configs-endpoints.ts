@@ -92,6 +92,13 @@ export const ConfigExistsErrorResponseSchema = z.object({
 	status: z.number()
 });
 
+export const ConfigWithSameNameErrorResponseSchema = z.object({
+	data: z
+		.object({ message: z.string(), type: z.literal('ValueError') })
+		.nonstrict(),
+	status: z.number()
+});
+
 export class ConfigExistsError extends Error {
 	constructor(public readonly configId: number) {
 		super(`Config already exists. Id: ${configId}`);
@@ -100,6 +107,7 @@ export class ConfigExistsError extends Error {
 
 function transformConfigError(response: unknown) {
 	const result = ConfigExistsErrorResponseSchema.safeParse(response);
+
 	if (result.success) {
 		return new ConfigExistsError(result.data.data.id);
 	}
