@@ -22,6 +22,7 @@ export const LinkToSourceContainer: FC<LinkToSourceFeatureProps> = ({
 			size="xss"
 			variant="secondary"
 			state={isLoading ? 'loading' : isError ? 'disabled' : 'default'}
+			disabled={isError}
 		>
 			<a href={to}>
 				{isLoading ? (
