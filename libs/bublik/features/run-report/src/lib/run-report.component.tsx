@@ -151,10 +151,11 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 
 interface RunReportProps {
 	blocks: ReportRoot;
+	runId: number;
 }
 
 function RunReport(props: RunReportProps) {
-	const { blocks } = props;
+	const { blocks, runId } = props;
 
 	const branchBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'branch-block'),
@@ -190,11 +191,11 @@ function RunReport(props: RunReportProps) {
 		<div className="flex flex-col gap-1 relative">
 			<RunReportHeader
 				label={blocks.title}
-				runUrl={blocks.run_stats_link}
 				sourceUrl={blocks.run_source_link}
 				branches={branchBlocks}
 				revisions={revisionsBlocks}
 				warnings={blocks.warnings}
+				runId={runId}
 			/>
 			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />
 			<RunReportContentList blocks={testBlocks} />

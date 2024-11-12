@@ -29,7 +29,7 @@ function RunReportContainer() {
 
 	if (!data) return <RunReportEmpty />;
 
-	return <RunReport blocks={data} />;
+	return <RunReport blocks={data} runId={Number(runId)} />;
 }
 
 export { RunReportContainer };

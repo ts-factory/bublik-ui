@@ -1,15 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Link, useSearchParams } from 'react-router-dom';
-import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
+
+import { routes } from '@/router';
 import { BranchBlock, RevisionBlock } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
 
 import { WarningsHoverCard } from '../run-report-test';
 
 interface RunReportHeaderProps {
 	label: string;
-	runUrl: string;
+	runId: number;
 	sourceUrl: string;
 	branches: BranchBlock[];
 	revisions: RevisionBlock[];
@@ -17,7 +19,7 @@ interface RunReportHeaderProps {
 }
 
 function RunReportHeader(props: RunReportHeaderProps) {
-	const { label, runUrl, sourceUrl, branches, revisions, warnings } = props;
+	const { label, sourceUrl, branches, revisions, warnings, runId } = props;
 	const [searchParams] = useSearchParams();
 	const configId = searchParams.get('config');
 
@@ -49,9 +51,15 @@ function RunReportHeader(props: RunReportHeaderProps) {
 						</a>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<Link to={runUrl}>
+						<Link to={routes.run({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
+						</Link>
+					</ButtonTw>
+					<ButtonTw asChild variant="secondary" size="xss">
+						<Link to={routes.log({ runId })} target="_blank">
+							<Icon name="BoxArrowRight" className="mr-1.5" />
+							Log
 						</Link>
 					</ButtonTw>
 					<CopyShortUrlButtonContainer />
