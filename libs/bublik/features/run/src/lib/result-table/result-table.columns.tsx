@@ -97,21 +97,21 @@ export const getColumns = ({
 		helper.accessor('expected_result', {
 			header: 'Expected Results',
 			cell: (cell) => {
-				const value = cell.getValue();
+				const expectedResult = cell.getValue();
 
-				if (!value) return;
+				if (!expectedResult) return;
 
 				return (
 					<div className="flex flex-col flex-wrap gap-1">
-						{value.verdict && value.result_type ? (
+						{expectedResult.verdict && expectedResult.result_type ? (
 							<VerdictList
 								variant="expected"
-								verdicts={value.verdict}
-								result={value.result_type}
+								verdicts={expectedResult.verdict}
+								result={expectedResult.result_type}
 							/>
 						) : null}
-						{value?.key?.length && value.key ? (
-							<KeyList items={value.key} />
+						{expectedResult?.key?.length && expectedResult.key ? (
+							<KeyList items={expectedResult.key} />
 						) : null}
 					</div>
 				);
@@ -126,20 +126,19 @@ export const getColumns = ({
 			{
 				header: 'Obtained Result',
 				cell: (cell) => {
-					const value = cell.getValue();
+					const obtainedResult = cell.getValue();
 
-          if (!value.result) return;
+					if (!obtainedResult.result || !obtainedResult.verdicts) return;
 
 					return (
 						<VerdictList
 							variant="obtained"
-							verdicts={value.verdicts}
-							result={value.result}
-							isNotExpected={value.isNotExpected}
+							verdicts={obtainedResult.verdicts}
+							result={obtainedResult.result}
+							isNotExpected={obtainedResult.isNotExpected}
 						/>
 					);
 				}
-
 			}
 		),
 		helper.accessor('parameters', {
