@@ -15,7 +15,12 @@ import {
 	toast
 } from '@/shared/tailwind-ui';
 
-import { ReportRoot, TestBlock, NotProcessedPoint } from '@/shared/types';
+import {
+	NotProcessedPoint,
+	ReportRoot,
+	RunDetailsAPIResponse,
+	TestBlock
+} from '@/shared/types';
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
 import { useLocation } from 'react-router';
@@ -36,7 +41,7 @@ interface TableOfContentsItem {
 }
 
 function generateTableOfContents(data: ReportRoot): TableOfContentsItem[] {
-	const result = data.content
+	return data.content
 		.filter((b) => b.type === 'test-block')
 		.map((t) => ({
 			id: t.id,
@@ -58,8 +63,6 @@ function generateTableOfContents(data: ReportRoot): TableOfContentsItem[] {
 				}))
 			}))
 		}));
-
-	return result;
 }
 
 interface RunReportTableOfContentsProps {
@@ -151,11 +154,12 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 
 interface RunReportProps {
 	blocks: ReportRoot;
+	details: RunDetailsAPIResponse;
 	runId: number;
 }
 
 function RunReport(props: RunReportProps) {
-	const { blocks, runId } = props;
+	const { blocks, runId, details } = props;
 
 	const branchBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'branch-block'),
@@ -195,6 +199,7 @@ function RunReport(props: RunReportProps) {
 				branches={branchBlocks}
 				revisions={revisionsBlocks}
 				warnings={blocks.warnings}
+				details={details}
 				runId={runId}
 			/>
 			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />

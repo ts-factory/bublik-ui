@@ -1,27 +1,33 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { routes } from '@/router';
-import { BranchBlock, RevisionBlock } from '@/shared/types';
+import { RunDetailsAPIResponse } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { Badge, ButtonTw, CardHeader, Icon, cn } from '@/shared/tailwind-ui';
+import {
+	Badge,
+	ButtonTw,
+	CardHeader,
+	Icon,
+	cn,
+	RunModeToggle
+} from '@/shared/tailwind-ui';
+import { RunDetails } from '@/bublik/features/run-details';
+import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 
-import { WarningsHoverCard } from '../run-report-test';
+const IsOpenParam = withDefault(BooleanParam, true);
 
 interface RunReportHeaderProps {
 	label: string;
 	runId: number;
-	sourceUrl: string;
-	branches: BranchBlock[];
-	revisions: RevisionBlock[];
-	warnings: string[];
+	details: RunDetailsAPIResponse;
 }
 
 function RunReportHeader(props: RunReportHeaderProps) {
-	const { label, sourceUrl, branches, revisions, warnings, runId } = props;
-	const [searchParams] = useSearchParams();
-	const configId = searchParams.get('config');
+	const { label, runId, details } = props;
+	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
 
 	return (
 		<div className="flex flex-col bg-white rounded">
@@ -36,20 +42,11 @@ function RunReportHeader(props: RunReportHeaderProps) {
 				}
 			>
 				<div className="flex items-center gap-2">
-					{configId ? (
-						<ButtonTw asChild variant="secondary" size="xss">
-							<Link to={`/admin/config?configId=${configId}`}>
-								<Icon name="BoxArrowRight" className="mr-1.5" />
-								Config
-							</Link>
-						</ButtonTw>
-					) : null}
-					<ButtonTw asChild variant="secondary" size="xss">
-						<a href={sourceUrl} target="_blank" rel="noreferrer">
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Source
-						</a>
-					</ButtonTw>
+					<RunModeToggle
+						isFullMode={isModeFull}
+						onToggleClick={() => setIsModeFull(!isModeFull)}
+					/>
+					<LinkToSourceContainer runId={runId.toString()} />
 					<ButtonTw asChild variant="secondary" size="xss">
 						<Link to={routes.run({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -57,7 +54,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 						</Link>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<Link to={routes.log({ runId })} target="_blank">
+						<Link to={routes.log({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
 						</Link>
@@ -65,9 +62,25 @@ function RunReportHeader(props: RunReportHeaderProps) {
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>
-			<div className="p-4 flex flex-col gap-2">
-				<BranchesBlockList blocks={branches} />
-				<RevisionsBlockList revisions={revisions} />
+			<div className="flex flex-col gap-2">
+				<RunDetails
+					isFullMode={isModeFull}
+					runId={runId}
+					mainPackage={details.main_package}
+					start={details.start}
+					finish={details.finish}
+					duration={details.duration}
+					isCompromised={details.is_compromised}
+					importantTags={details.important_tags}
+					relevantTags={details.relevant_tags}
+					branches={details.branches}
+					labels={details.labels}
+					revisions={details.revisions}
+					specialCategories={details.special_categories}
+					runStatus={details.conclusion}
+					status={details.status}
+					statusByNok={details.status_by_nok}
+				/>
 			</div>
 		</div>
 	);
@@ -123,53 +136,6 @@ function List(props: ListProps) {
 				})}
 			</ul>
 		</div>
-	);
-}
-
-interface BranchesBlockListProps {
-	blocks: BranchBlock[];
-}
-
-function BranchesBlockList({ blocks }: BranchesBlockListProps) {
-	return blocks.map((b) => (
-		<BranchesBlockItem
-			key={b.id}
-			label={b.label}
-			items={b.content.map((item) => ({ ...item, className: 'bg-badge-16' }))}
-		/>
-	));
-}
-
-interface BranchesBlockItemProps {
-	label: string;
-	items: { name: string; value: string }[];
-}
-
-function BranchesBlockItem({ items, label }: BranchesBlockItemProps) {
-	return <List label={label} items={items} />;
-}
-
-interface RevisionsBlockListProps {
-	revisions: RevisionBlock[];
-}
-
-function RevisionsBlockList(props: RevisionsBlockListProps) {
-	return props.revisions.map((r) => (
-		<RevisionsBlockItem key={r.id} label={r.label} items={r.content} />
-	));
-}
-
-interface RevisionsBlockItemProps {
-	label: string;
-	items: { name: string; value: string; url?: string }[];
-}
-
-function RevisionsBlockItem(props: RevisionsBlockItemProps) {
-	return (
-		<List
-			label={props.label}
-			items={props.items.map((item) => ({ ...item, className: 'bg-badge-2' }))}
-		/>
 	);
 }
 
