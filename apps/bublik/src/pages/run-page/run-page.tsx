@@ -49,7 +49,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 	link.searchParams.delete('rowState');
 
 	return (
-		<header className="flex flex-col bg-white rounded min-h-[260px]">
+		<header className="flex flex-col bg-white rounded">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
 					<Tooltip content="Copy identifier for comparison">
