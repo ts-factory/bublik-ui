@@ -3,10 +3,12 @@
 import { cn } from '@/shared/tailwind-ui';
 
 export interface KeyListProps {
-	items: { name: string; url?: string }[];
+	items: { name?: string; url?: string }[];
 }
 
 export const KeyList = ({ items = [] }: KeyListProps) => {
+	if (!items.length) return;
+
 	return (
 		<ul className="flex flex-wrap gap-1">
 			{items.map(({ name, url }, idx) => {

@@ -51,14 +51,20 @@ export const getColumns = ({
 			cell: (cell) => {
 				const value = cell.getValue<RunDataResults['expected_result']>();
 
+				if (!value) return;
+
 				return (
 					<div className="flex flex-col flex-wrap gap-1">
-						<VerdictList
-							variant="expected"
-							verdicts={value.verdict}
-							result={value.result_type}
-						/>
-						{value.key.length ? <KeyList items={value.key} /> : null}
+						{value.verdict && value.result_type ? (
+							<VerdictList
+								variant="expected"
+								verdicts={value.verdict}
+								result={value.result_type}
+							/>
+						) : null}
+						{value?.key?.length && value.key ? (
+							<KeyList items={value.key} />
+						) : null}
 					</div>
 				);
 			}
@@ -76,6 +82,8 @@ export const getColumns = ({
 					verdicts: string[];
 					result: RESULT_TYPE;
 				}>();
+
+				if (!value.result) return;
 
 				return (
 					<VerdictList
