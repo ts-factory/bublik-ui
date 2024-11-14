@@ -17,7 +17,6 @@ export interface LogHeaderProps {
 
 const LogHeader = ({ runId }: LogHeaderProps) => {
 	const [isFullMode, setIsFullMode] = useState(false);
-	const { focusId } = useLogPage();
 
 	return (
 		<div className="flex flex-col bg-white rounded-md">
@@ -31,11 +30,7 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 				</div>
 			</CardHeader>
 			<div className="flex-grow">
-				<RunDetailsContainer
-					runId={runId}
-					iterationId={focusId ?? undefined}
-					isFullMode={isFullMode}
-				/>
+				<RunDetailsContainer runId={runId} isFullMode={isFullMode} />
 			</div>
 		</div>
 	);
