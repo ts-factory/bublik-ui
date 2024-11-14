@@ -1,7 +1,7 @@
 {
-	"date": "2024.10.31",
-	"summary": "feat(run): added persistence for column visibility state",
-	"revision": "dae4b1b",
-	"branch": "main",
-	"latestTag": "v0.6.2"
+	"date": "2024.11.14",
+	"summary": "fix(log): added scroll to top on page change",
+	"revision": "9b479e8",
+	"branch": "release-0.7.0",
+	"latestTag": "v0.7.0"
 }
