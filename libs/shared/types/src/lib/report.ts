@@ -1,13 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+
 export interface ReportRoot {
-	version: 'v1';
-	title: string;
-	run_source_link: string;
-	run_stats_link: string;
 	content: Block[];
 	unprocessed_iters: NotProcessedPoint[];
 	warnings: string[];
+	config: {
+		name: string;
+		description: string;
+		version: number;
+	};
 }
 
 export interface ArgsValBlock {
@@ -18,7 +21,7 @@ export interface ArgsValBlock {
 	content: MeasurementBlock[];
 }
 
-type Block = BranchBlock | RevisionBlock | TestBlock;
+type Block = TestBlock;
 
 export interface NotProcessedPoint {
 	test_name: string;
@@ -26,28 +29,6 @@ export interface NotProcessedPoint {
 	common_args: Record<string, string | number> | undefined | null;
 	reasons: string[];
 }
-
-type BranchItem = { name: string; value: string };
-
-export type BranchBlock = {
-	type: 'branch-block';
-	id: string;
-	label: string;
-	content: BranchItem[];
-};
-
-type RevItem = {
-	name: string;
-	value: string;
-	url?: string;
-};
-
-export type RevisionBlock = {
-	type: 'rev-block';
-	id: string;
-	label: string;
-	content: RevItem[];
-};
 
 export type TestBlock = {
 	type: 'test-block';
