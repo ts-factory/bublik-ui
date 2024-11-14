@@ -37,7 +37,6 @@ function RunReportHeader(props: RunReportHeaderProps) {
 						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 							{label}
 						</span>
-						<WarningsHoverCard warnings={warnings} />
 					</div>
 				}
 			>

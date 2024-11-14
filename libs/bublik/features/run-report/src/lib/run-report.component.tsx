@@ -5,6 +5,7 @@ import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 import { useMount } from '@/shared/hooks';
 import {
 	Badge,
+	ButtonTw,
 	CardHeader,
 	cn,
 	Collapsible,
@@ -22,7 +23,7 @@ import {
 	TestBlock
 } from '@/shared/types';
 import { List, RunReportHeader } from './run-report-header';
-import { RunReportTestBlock } from './run-report-test';
+import { RunReportTestBlock, WarningsHoverCard } from './run-report-test';
 import { useLocation } from 'react-router';
 import { getErrorMessage } from '@/services/bublik-api';
 import {
@@ -161,14 +162,6 @@ interface RunReportProps {
 function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
 
-	const branchBlocks = useMemo(
-		() => blocks.content.filter((b) => b.type === 'branch-block'),
-		[blocks.content]
-	);
-	const revisionsBlocks = useMemo(
-		() => blocks.content.filter((b) => b.type === 'rev-block'),
-		[blocks.content]
-	);
 	const testBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
@@ -193,18 +186,95 @@ function RunReport(props: RunReportProps) {
 
 	return (
 		<div className="flex flex-col gap-1 relative">
-			<RunReportHeader
-				label={blocks.title}
-				sourceUrl={blocks.run_source_link}
-				branches={branchBlocks}
-				revisions={revisionsBlocks}
+			<RunReportHeader label="Info" details={details} runId={runId} />
+			<ReportConfigurationFrame
 				warnings={blocks.warnings}
-				details={details}
-				runId={runId}
+				config={blocks.config}
 			/>
 			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />
 			<RunReportContentList blocks={testBlocks} />
 			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
+		</div>
+	);
+}
+
+interface ReportConfigurationFrameProps {
+	warnings: string[];
+	config: ReportRoot['config'];
+}
+
+function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
+	const { warnings, config } = props;
+	const [searchParams] = useSearchParams();
+
+	return (
+		<div className="bg-white rounded-md flex flex-col">
+			<CardHeader
+				label={
+					<div className="flex items-center gap-2">
+						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+							Report Description
+						</span>
+						<WarningsHoverCard warnings={warnings} />
+					</div>
+				}
+			>
+				<ButtonTw asChild variant="secondary" size="xss">
+					<Link to={`/admin/config?configId=${searchParams.get('config')}`}>
+						<Icon name="BoxArrowRight" className="mr-1.5" />
+						Config
+					</Link>
+				</ButtonTw>
+			</CardHeader>
+			<div className="p-4 flex flex-col gap-4">
+				{warnings.length ? (
+					<div className="bg-bg-fillError rounded-lg p-2.5 flex flex-col gap-2">
+						<div className="flex items-start gap-4">
+							<div className="grid place-items-center text-text-unexpected">
+								<Icon
+									name="TriangleExclamationMark"
+									className="text-text-unexpected size-5"
+								/>
+							</div>
+							<div className="flex flex-col gap-1.5">
+								<h2 className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+									Warnings:
+								</h2>
+								<ul className="pl-6 flex flex-col gap-1 whitespace-break-spaces list-disc">
+									{warnings.map((warning) => (
+										<li
+											key={warning}
+											className="overflow-wrap-anywhere text-[0.6875rem] font-medium leading-[0.875rem]"
+										>
+											{warning}
+										</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					</div>
+				) : null}
+				<dl className="grid grid-cols-[max-content_48px_1fr] gap-y-2">
+					<dd className="text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu col-start-1">
+						Name:
+					</dd>
+					<dt className="text-[0.6875rem] font-medium leading-[0.875rem] col-start-3">
+						{config.name}
+					</dt>
+					<dd className="text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu col-start-1">
+						Version:
+					</dd>
+					<dt className="text-[0.6875rem] font-medium leading-[0.875rem] col-start-3">
+						{config.version}
+					</dt>
+					<dd className="text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu col-start-1">
+						Description:
+					</dd>
+					<dt className="text-[0.6875rem] font-medium leading-[0.875rem] col-start-3">
+						{config.description}
+					</dt>
+				</dl>
+			</div>
 		</div>
 	);
 }
