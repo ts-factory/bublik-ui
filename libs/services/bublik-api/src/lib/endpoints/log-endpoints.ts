@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
+import { createNextState } from '@reduxjs/toolkit';
 
 import {
 	HistoryDefaultResultAPIResponse,
@@ -9,6 +10,7 @@ import {
 	RootBlock,
 	TreeDataAPIResponse
 } from '@/shared/types';
+import { config } from '@/bublik/config';
 
 import { transformLogTree } from '../transform';
 import { BUBLIK_TAG } from '../types';
@@ -19,7 +21,7 @@ import {
 	BublikHttpError,
 	isBublikParsableError
 } from '../error-handling';
-import { config } from '@/bublik/config';
+import { ResultsAndVerdictsForIteration } from './run-endpoints';
 
 type GetLogJsonInputs = {
 	id: string | number;
@@ -90,9 +92,19 @@ export const logEndpoints = {
 				}
 
 				try {
-					const blocksJson = await fetchJson(jsonUrl.data.url);
+					const [blocksJson, artifactsAndVerdicts] = (await Promise.all([
+						fetchJson(jsonUrl.data.url),
+						baseQuery(withApiV2(`/results/${id}/artifacts_and_verdicts`))
+					])) as [RootBlock, QueryReturnValue<ResultsAndVerdictsForIteration>];
 
-					return { data: blocksJson };
+					const blocksWithAddedVerdictsAndArtifacts = addArtifactsVerdicts(
+						blocksJson,
+						artifactsAndVerdicts.data!
+					);
+
+					return {
+						data: blocksWithAddedVerdictsAndArtifacts
+					};
 				} catch (e) {
 					console.error(e);
 
@@ -111,3 +123,30 @@ export const logEndpoints = {
 		})
 	})
 };
+
+function addArtifactsVerdicts(
+	logBlocks: RootBlock,
+	artifactsAndVerdicts: ResultsAndVerdictsForIteration
+): RootBlock {
+	return createNextState(logBlocks, (s) => {
+		const teLog = s.root.find((b) => b.type === 'te-log');
+		if (!teLog) return;
+
+		const logMeta = teLog.content.find((b) => b.type === 'te-log-meta');
+		if (!logMeta) return;
+
+		if (artifactsAndVerdicts.verdicts.length) {
+			logMeta.meta.verdicts = artifactsAndVerdicts.verdicts.map((v) => ({
+				level: 'RING', // default to this level since level is not provided by API
+				verdict: v.value
+			}));
+		}
+
+		if (artifactsAndVerdicts.artifacts.length) {
+			logMeta.meta.artifacts = artifactsAndVerdicts.artifacts.map((v) => ({
+				level: 'RING', // default to this level since level is not provided by API
+				artifact: v.value
+			}));
+		}
+	});
+}
