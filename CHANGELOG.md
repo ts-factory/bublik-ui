@@ -1,3 +1,9 @@
+### [0.7.1](https://github.com/ts-factory/bublik-ui/compare/v0.7.0...v0.7.1) (2024-11-15)
+
+### 🐛 Bug Fix
+
+* **log:** fixed log not scrolling to top on page change ([771d617](https://github.com/ts-factory/bublik-ui/commit/771d6179b7fb9dbecd6a9d0318f17e12dbd4fa45))
+
 ## [0.7.0](https://github.com/ts-factory/bublik-ui/compare/v0.6.2...v0.7.0) (2024-11-14)
 
 ### 🚀 New Feature
