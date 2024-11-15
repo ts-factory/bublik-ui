@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import { formatTimeToDot } from '@/shared/utils';
@@ -71,17 +71,6 @@ function getFetchOptions({
 		: skipToken;
 }
 
-function useScrollOnFocusIdChange() {
-	const { focusId } = useLogPage();
-	const scrollRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-	}, [focusId]);
-
-	return { ref: scrollRef };
-}
-
 export interface LogFeatureProps {
 	runId?: string;
 	isTreeShown?: boolean;
@@ -93,8 +82,7 @@ function LogFeature(props: LogFeatureProps) {
 
 	const { runId, children, isTreeShown } = props;
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
-	const { focusId } = useLogPage();
-	const { ref } = useScrollOnFocusIdChange();
+	const { focusId, page } = useLogPage();
 
 	if (!runId) return null;
 
@@ -138,9 +126,9 @@ function LogFeature(props: LogFeatureProps) {
 							'overflow-auto relative h-full isolate',
 							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
-						ref={ref}
+						key={`${runId}_${focusId}_${page}`}
 					>
-						<LogPickerContainer scrollerRef={ref} />
+						<LogPickerContainer />
 					</div>
 				</main>
 			</div>

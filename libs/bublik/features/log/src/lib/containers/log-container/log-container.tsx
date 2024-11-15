@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { RefObject } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import {
@@ -55,12 +54,7 @@ export const LogFrameEmpty = () => {
 	return <div>No log found!</div>;
 };
 
-interface LogPickerContainerProps {
-	scrollerRef: RefObject<HTMLDivElement>;
-}
-
-export function LogPickerContainer(props: LogPickerContainerProps) {
-	const { scrollerRef } = props;
+export function LogPickerContainer() {
 	const { isLegacyLog } = useIsLogLegacy();
 	const {
 		isShowingRunLog,
@@ -75,7 +69,6 @@ export function LogPickerContainer(props: LogPickerContainerProps) {
 	if (!runId) return <div>No run ID!</div>;
 
 	const handlePageClick = (_: string, page: number) => {
-		scrollerRef.current?.scrollTo({ behavior: 'smooth', top: 0 });
 		setPage(page);
 	};
 
