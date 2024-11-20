@@ -12,6 +12,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
+
 export interface SkeletonProps {
 	rowCount?: number;
 }
@@ -45,7 +46,7 @@ const getBodyRowClassName = () => {
 };
 
 const classNames: TableClassNames<RunDataResults> = {
-	header: 'sticky top-[68px]',
+	header: 'sticky top-[103px]',
 	headerRow: `h-[38px] bg-primary-wash rounded-b ${gridClassName} px-4`,
 	headerCell:
 		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center',
@@ -80,7 +81,7 @@ export const ResultTable = memo(
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
-					stickyOffset={-69}
+					stickyOffset={-104}
 					manualPagination
 					enableSorting={false}
 					getRowProps={getRowProps}
