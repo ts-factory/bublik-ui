@@ -2,12 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Fragment, ReactNode, useRef } from 'react';
 import { flexRender, Row } from '@tanstack/react-table';
+
 import { cn } from '@/shared/tailwind-ui';
-
 import { MergedRun, NodeEntity, RunData } from '@/shared/types';
-
-import { COLUMN_GROUPS } from '../../constants';
-import { getIsBorderGroup } from '../../utils';
 
 export interface RowProps {
 	row: Row<RunData | MergedRun>;
@@ -30,19 +27,20 @@ export const RunRow = ({ row, renderSubRow }: RowProps) => {
 				)}
 				ref={ref}
 			>
-				{row.getVisibleCells().map((cell, idx, arr) => {
-					const isBorderGroup = getIsBorderGroup({
-						currId: cell.column.id,
-						nextId: arr[idx + 1]?.column?.id,
-						groups: COLUMN_GROUPS
-					});
+				{row.getVisibleCells().map((cell) => {
+					const parentIndex = cell.column.parent?.columns?.findIndex(
+						(c) => c.id === cell.column.id
+					);
+
+					const isLast =
+						cell.column.parent?.columns?.length ?? 0 - 1 === parentIndex;
 
 					return (
 						<td
 							key={cell.id}
 							className={cn(
 								'px-4 py-0 bg-white',
-								isBorderGroup && 'border-r',
+								isLast && 'border-r',
 								cell.column.columnDef.meta?.className
 							)}
 						>
@@ -53,7 +51,7 @@ export const RunRow = ({ row, renderSubRow }: RowProps) => {
 			</tr>
 			{row.getIsExpanded() && row.original?.type === NodeEntity.Test ? (
 				<tr role="row">
-					<td colSpan={11}>{renderSubRow(row)}</td>
+					<td colSpan={row.getVisibleCells().length}>{renderSubRow(row)}</td>
 				</tr>
 			) : null}
 		</Fragment>

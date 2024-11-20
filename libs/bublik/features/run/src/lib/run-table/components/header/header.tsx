@@ -6,9 +6,6 @@ import { flexRender, Table } from '@tanstack/react-table';
 import { MergedRun, RunData } from '@/shared/types';
 import { TableSort, cn } from '@/shared/tailwind-ui';
 
-import { getIsBorderGroup } from '../../utils';
-import { COLUMN_GROUPS } from '../../constants';
-
 export interface RunHeaderProps {
 	instance: Table<RunData | MergedRun>;
 }
@@ -25,49 +22,44 @@ export const RunHeader = ({ instance }: RunHeaderProps) => {
 		>
 			{instance.getHeaderGroups().map((headerGroup) => (
 				<tr key={headerGroup.id} className="h-8.5">
-					{headerGroup.headers.map((header, idx, arr) => {
-						const isBorderGroup = getIsBorderGroup({
-							currId: header.column.id,
-							nextId: arr[idx + 1]?.column?.id,
-							groups: COLUMN_GROUPS
-						});
-
-						return (
-							<th
-								key={header.id}
-								colSpan={header.colSpan}
-								className={cn(
-									'px-2 border-b sticky top-0 z-20 bg-white',
-									isBorderGroup && 'border-r border-border-primary'
-								)}
-							>
-								{header.isPlaceholder ? null : header.column.getCanSort() ? (
-									<div
-										{...(header.column.getCanSort()
-											? {
-													onClick: header.column.getToggleSortingHandler(),
-													className: cn(
-														'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-2 py-1',
-														header.column.getIsSorted() && 'bg-primary-wash'
-													)
-											  }
-											: {})}
-									>
-										{flexRender(
-											header.column.columnDef.header,
-											header.getContext()
-										)}
-										<TableSort sortDescription={header.column.getIsSorted()} />
-									</div>
-								) : (
-									flexRender(
+					{headerGroup.headers.map((header, idx, arr) => (
+						<th
+							key={header.id}
+							colSpan={header.colSpan}
+							className={cn(
+								'px-2 border-b bg-white',
+								arr.length - 1 !== idx && 'border-r border-border-primary',
+								header.column.columnDef.meta?.className
+							)}
+							style={{
+								position: 'sticky',
+								top: header.depth === 1 ? 0 : header.depth * 17,
+								zIndex: 20
+							}}
+						>
+							{header.isPlaceholder ? null : header.column.getCanSort() ? (
+								<div
+									{...(header.column.getCanSort()
+										? {
+												onClick: header.column.getToggleSortingHandler(),
+												className: cn(
+													'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-2 py-1',
+													header.column.getIsSorted() && 'bg-primary-wash'
+												)
+										  }
+										: {})}
+								>
+									{flexRender(
 										header.column.columnDef.header,
 										header.getContext()
-									)
-								)}
-							</th>
-						);
-					})}
+									)}
+									<TableSort sortDescription={header.column.getIsSorted()} />
+								</div>
+							) : (
+								flexRender(header.column.columnDef.header, header.getContext())
+							)}
+						</th>
+					))}
 				</tr>
 			))}
 		</thead>

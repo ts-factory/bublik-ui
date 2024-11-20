@@ -5,9 +5,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { PopoverClose } from '@radix-ui/react-popover';
 import { toast } from 'sonner';
+import { groupBy } from 'remeda';
 
 import {
 	CreateTestCommentParams,
@@ -30,15 +31,15 @@ import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
+	TableNode,
 	Tooltip
 } from '@/shared/tailwind-ui';
 
 import { badgeColumns } from './badge-columns';
-import { ColumnDef } from '@tanstack/react-table';
-import { TableNode } from '@/shared/tailwind-ui';
 import { getTreeNode } from '@/bublik/run-utils';
 
 import { ColumnId } from '../types';
+import { COLUMN_GROUPS } from '../constants';
 
 function getColumns() {
 	const helper = createColumnHelper<RunData | MergedRun>();
@@ -67,24 +68,19 @@ function getColumns() {
 		enableSorting: false
 	};
 
-	return [
+	const columns = [
 		treeColumn,
 		helper.accessor('objective', {
 			id: ColumnId.Objective,
-			header: 'Objective',
-			cell: ({ cell }) => {
-				const objective = cell.getValue();
-
-				return objective;
-			}
+			header: 'Objective'
 		}),
 		helper.accessor('comments', {
+			id: ColumnId.Comments,
 			header: () => (
 				<div className="flex items-center justify-end px-4">
 					<span>Notes</span>
 				</div>
 			),
-			id: ColumnId.Comments,
 			cell: ({ cell, row }) => {
 				const comments = cell.getValue();
 
@@ -99,6 +95,22 @@ function getColumns() {
 		}),
 		...badgeColumns
 	] as ColumnDef<RunData | MergedRun>[];
+
+	const groupedColumns = groupBy(
+		columns,
+		(c) => COLUMN_GROUPS.find((g) => g.columns.includes(c.id as ColumnId))?.id
+	);
+
+	return Object.entries(groupedColumns).map(([id, columns]) => {
+		const group = COLUMN_GROUPS.find((g) => g.id === id);
+
+		return helper.group({
+			id: id,
+			header: group?.label as any,
+			columns: columns as ColumnDef<RunData | MergedRun>[],
+			meta: { className: group?.className }
+		});
+	});
 }
 
 function useTestComment() {
