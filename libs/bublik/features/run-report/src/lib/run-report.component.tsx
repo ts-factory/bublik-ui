@@ -12,7 +12,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 	Icon,
-	Skeleton,
+	Spinner,
 	toast
 } from '@/shared/tailwind-ui';
 
@@ -407,7 +407,11 @@ function NotProcessedPointsTable({ points }: NotProcessedPointsTableProps) {
 }
 
 function RunReportLoading() {
-	return <Skeleton className="rounded h-screen" />;
+	return (
+		<div className="h-screen grid place-items-center">
+			<Spinner />
+		</div>
+	);
 }
 
 function RunReportError(props: { error: unknown }) {
