@@ -41,17 +41,44 @@ export type TestBlock = {
 };
 
 export type RecordBlock = {
-	id: string;
 	type: 'record-block';
-	warnings: string[];
-	multiple_sequences: true;
-	axis_x_key: string;
-	axis_x_label: string;
-	axis_y_label: string;
-	formatters: Record<string, string>;
-	dataset_table?: Array<Array<string | number>>;
-	dataset_chart?: Array<Array<string | number>>;
+	id: string;
+	label?: string;
+	chart?: ReportChart;
+	table?: ReportTable;
 };
+
+export type ReportTable = {
+	warnings: string[];
+	formatters?: Record<string, string>;
+	labels?: Record<string, string>;
+	data: ReportSeries[];
+};
+
+export type ReportChart = {
+	warnings: string[];
+	axis_x: Axis & { values: number[] };
+	axis_y: Axis;
+	series_label: string;
+	data: ReportSeries[];
+};
+
+export type ReportSeries = {
+	series: string;
+	points: ReportPoint[];
+};
+
+export type ReportPoint = Record<string, string | number> & {
+	series: 'Suricata Rules';
+	x_value: string;
+	y_value: string;
+	metadata?: {
+		iteration_id?: number;
+		result_id?: number;
+	};
+};
+
+type Axis = { label: string; key: string };
 
 export type MeasurementBlock = {
 	type: 'measurement-block';
