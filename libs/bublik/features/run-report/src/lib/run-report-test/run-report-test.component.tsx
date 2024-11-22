@@ -159,17 +159,7 @@ type RunReportEntityBlockProps = Pick<
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
 	const { enableChartView, enableTableView, block, offset } = props;
-	const {
-		id,
-		dataset_chart,
-		dataset_table,
-		axis_x_key,
-		axis_x_label,
-		axis_y_label,
-		formatters,
-		warnings,
-		multiple_sequences
-	} = block;
+	const { id, chart, table } = block;
 	const [searchParams] = useSearchParams();
 	const ref = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
@@ -195,7 +185,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 		<div className="flex flex-col pl-1">
 			<div className="flex flex-col max-h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
-				{multiple_sequences ? (
+				{chart?.data?.length ? (
 					<CardHeader
 						label={
 							<div className="flex items-center gap-2">
@@ -207,9 +197,9 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 									onClick={() => toast.success('Saved location')}
 								>
-									{axis_y_label}
+									{chart?.series_label}
 								</Link>
-								<WarningsHoverCard warnings={warnings} />
+								<WarningsHoverCard warnings={chart?.warnings ?? []} />
 							</div>
 						}
 						ref={ref}
@@ -225,31 +215,22 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 					/>
 				) : null}
 				<div className="flex overflow-y-auto">
-					{enableChartView && dataset_chart ? (
+					{chart ? (
 						<div className="flex-1">
 							<div className="px-4 py-2">
-								<RunReportChart
-									data={dataset_chart}
-									xKey={axis_x_key}
-									xAxisLabel={axis_x_label}
-									yAxisLabel={axis_y_label}
-									label={''}
-									enableLegend={multiple_sequences}
-								/>
+								<RunReportChart chart={chart} />
 							</div>
 						</div>
 					) : null}
-					{enableTableView && dataset_table ? (
+					{enableTableView && table ? (
 						<div
 							className={cn(
 								'flex-1 flex flex-col shrink-0',
-								enableChartView &&
-									dataset_chart &&
-									'border-l border-border-primary'
+								enableChartView && chart && 'border-l border-border-primary'
 							)}
 						>
 							<div className="flex-1 overflow-auto">
-								<RunReportTable data={dataset_table} formatters={formatters} />
+								<RunReportTable table={table} />
 							</div>
 						</div>
 					) : null}
