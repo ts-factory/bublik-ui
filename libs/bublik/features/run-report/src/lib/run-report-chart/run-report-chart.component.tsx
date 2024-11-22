@@ -1,73 +1,60 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ComponentProps, useMemo } from 'react';
+
 import { Plot, chartStyles } from '@/shared/charts';
-import { useMemo } from 'react';
+import { ReportChart } from '@/shared/types';
 
 interface RunReportChartProps {
-	data: Array<Array<string | number>>;
-	xKey: string;
-	xAxisLabel: string;
-	yAxisLabel: string;
-	label: string;
-	enableLegend?: boolean;
+	chart: ReportChart;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const {
-		data,
-		xKey,
-		xAxisLabel,
-		label,
-		yAxisLabel,
-		enableLegend = true
-	} = props;
+	const { chart } = props;
 
-	const series = useMemo(
-		() =>
-			(data?.[0] ?? [])
-				.filter((name) => name !== xKey)
-				.map((name) => {
-					return {
-						type: 'line',
-						name: name,
-						encode: { x: xKey, y: name }
-					} as const;
-				}),
-		[data, xKey]
-	);
+	const series = useMemo<
+		ComponentProps<typeof Plot>['options']['series']
+	>(() => {
+		return chart.data.map((d) => ({
+			name: d.series,
+			type: 'line',
+			data: d.points.map((d) => d[chart.axis_y.key])
+		}));
+	}, []);
 
 	return (
 		<div className="w-full flex flex-col gap-2">
 			<Plot
 				options={{
-					legend: enableLegend ? {} : undefined,
-					title: {
-						text: label,
-						textStyle: { fontFamily: 'Inter', fontSize: 12, fontWeight: 600 }
-					},
-					grid: { containLabel: true },
+					toolbox: { top: 9999, feature: { dataZoom: {} } },
 					tooltip: {
+						trigger: 'axis',
 						textStyle: chartStyles.text,
 						extraCssText: 'shadow-popover rounded-lg',
-						trigger: 'axis'
+						axisPointer: { type: 'cross' }
 					},
+					legend: { data: chart.data.map((s) => s.series) },
+					grid: { containLabel: true },
 					dataZoom: [{}, { type: 'inside' }],
-					dataset: { source: data },
-					xAxis: { type: 'category', name: xAxisLabel },
-					yAxis: { type: 'value', name: yAxisLabel },
+					xAxis: {
+						type: 'category',
+						name: chart.axis_x.label,
+						nameLocation: 'middle',
+						nameGap: 20,
+						nameTextStyle: chartStyles.text,
+						axisLabel: { ...chartStyles.text }
+					},
+					yAxis: {
+						type: 'value',
+						name: chart.axis_y.label,
+						nameGap: 20,
+						nameLocation: 'end',
+						axisLabel: chartStyles.text,
+						nameTextStyle: chartStyles.text
+					},
 					series: series
 				}}
 			/>
-			<div className="flex items-center justify-center gap-2">
-				<div className="flex items-start flex-col gap-2">
-					<span className="text-text-secondary text-sm font-semibold">
-						Axis X: {xAxisLabel}
-					</span>
-					<span className="text-text-secondary text-sm font-semibold">
-						Axis Y: {yAxisLabel}
-					</span>
-				</div>
-			</div>
 		</div>
 	);
 }

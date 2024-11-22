@@ -3,15 +3,8 @@
 export const chartStyles = {
 	text: {
 		fontFamily: 'Inter',
-		fontSize: 11,
+		fontSize: 10,
 		fontWeight: 500,
 		lineHeight: 18
 	}
 };
-
-export const chartHelper = {
-	createTextStyle: () => ({}),
-	createTooltip: () => ({}),
-	createSeries: () => ({}),
-	createLegend: () => ({})
-} as const;
