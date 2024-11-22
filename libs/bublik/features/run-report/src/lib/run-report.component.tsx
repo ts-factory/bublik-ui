@@ -58,7 +58,7 @@ function generateTableOfContents(data: ReportRoot): TableOfContentsItem[] {
 					label: c.label,
 					children: c.content.map((r) => ({
 						id: r.id,
-						label: r.axis_y_label,
+						label: r.label ?? '',
 						type: r.type
 					}))
 				}))

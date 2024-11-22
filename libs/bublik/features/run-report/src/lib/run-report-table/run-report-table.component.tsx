@@ -1,55 +1,223 @@
-/* SPDX-License-Identifier: Apache-2.0 */
-/* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { cn } from '@/shared/tailwind-ui';
+import { ReportTable } from '@/shared/types';
+import { cn, cva } from '@/shared/tailwind-ui';
 
-interface RunReportTableProps {
-	data: Array<Array<string | number>>;
-	formatters?: Record<string, string>;
+const cellStyles = cva({
+	base: [
+		cn(
+			'border-b border-border-primary text-right text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 h-9'
+		)
+	]
+});
+
+const headerCellStyles = cva({
+	base: [
+		cn(
+			'border-b bg-primary-wash border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 whitespace-nowrap'
+		)
+	]
+});
+
+function formatValue(
+	value: string | number | undefined,
+	seriesName: string,
+	formatters?: Record<string, string>
+) {
+	if (value === undefined || value === null) return <>&ndash;</>;
+
+	const formatter = formatters?.[seriesName] ?? '';
+
+	return `${Number(value)}${formatter}`;
 }
 
-function RunReportTable({ data, formatters }: RunReportTableProps) {
-	const header = data?.[0] ?? [];
-	const rows = data.slice(1);
+function getValue(
+	xValue: number | string,
+	seriesName: string,
+	xAxisKey: string,
+	table: ReportTable
+): string | number | undefined {
+	const series = table.data.find((s) => s.series === seriesName);
+
+	return series?.points.find((p) => {
+		const value = p[xAxisKey!];
+
+		return value.toString() === xValue.toString();
+	})?.['y_value'];
+}
+
+function getTableDerivedData(table: ReportTable) {
+	const X_AXIS_KEY = 'x_value';
+
+	const xValues = Array.from(
+		new Set(
+			table.data.flatMap((series) =>
+				series.points.map((point) => point[X_AXIS_KEY])
+			)
+		)
+	);
+	const seriesNames = table.data.map((series) => series.series);
+
+	return {
+		seriesNames,
+		xValues,
+		xAxisKey: X_AXIS_KEY
+	};
+}
+
+interface RunReportTableProps {
+	table: ReportTable;
+}
+
+function RunReportTable({ table }: RunReportTableProps) {
+	if (!table.data.length) return null;
+
+	if (table.data.length === 1) {
+		return <SingleSeriesTable table={table} />;
+	}
+
+	return <MultipleSeriesTable table={table} />;
+}
+
+interface SingleSeriesTableProps {
+	table: ReportTable;
+}
+
+function SingleSeriesTable({ table }: SingleSeriesTableProps) {
+	const { seriesNames, xValues, xAxisKey } = getTableDerivedData(table);
 
 	return (
-		<table className="w-full relative">
-			<thead className="pl-1">
+		<table className="w-full relative border-separate border-spacing-0">
+			<thead className="sticky top-0">
 				<tr>
-					{header.map((column, idx, arr) => (
+					{seriesNames.map((seriesName, idx, arr) => (
 						<th
-							key={idx}
-							className={cn(
-								'border-b bg-primary-wash border-b-border-primary text-right text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 h-9',
-								idx !== arr.length - 1 && 'border-r',
-								'sticky top-0'
-							)}
+							key={seriesName}
+							className={headerCellStyles({
+								className: `text-right border-r h-9 ${
+									idx !== arr.length - 1 && 'border-r'
+								}`
+							})}
+							rowSpan={2}
 						>
-							{column}
+							{seriesName}
+						</th>
+					))}
+					<th
+						className={headerCellStyles({
+							className: 'text-right'
+						})}
+					>
+						{table.labels?.['y_value'] ?? 'y_value'}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{xValues.map((xValue) => (
+					<tr key={xValue}>
+						<td className={cn(cellStyles(), 'border-r text-right')}>
+							{xValue}
+						</td>
+						{seriesNames.map((seriesName) => (
+							<td
+								key={`${xValue}-${seriesName}`}
+								className={cn(
+									cellStyles(),
+									seriesName !== seriesNames[seriesNames.length - 1] &&
+										'border-r'
+								)}
+							>
+								{formatValue(
+									getValue(xValue, seriesName, xAxisKey, table),
+									seriesName,
+									table.formatters
+								)}
+							</td>
+						))}
+					</tr>
+				))}
+			</tbody>
+		</table>
+	);
+}
+
+interface MultipleSeriesTableProps {
+	table: ReportTable;
+}
+
+function MultipleSeriesTable({ table }: MultipleSeriesTableProps) {
+	const { xAxisKey, seriesNames, xValues } = getTableDerivedData(table);
+
+	return (
+		<table className="w-full relative border-separate border-spacing-0">
+			<thead className="sticky top-0">
+				<tr>
+					<th
+						className={headerCellStyles({
+							className: 'h-[72px] border-r text-right'
+						})}
+						style={{ width: '1%' }}
+						rowSpan={2}
+					>
+						{table.labels?.['y_value'] ?? 'Value'}
+					</th>
+					<th
+						className={headerCellStyles({ className: 'h-9 text-center' })}
+						colSpan={table.data.length}
+					>
+						{table.labels?.['series'] ?? 'Series'}
+					</th>
+				</tr>
+				<tr>
+					{seriesNames.map((seriesName, idx, arr) => (
+						<th
+							key={seriesName}
+							className={headerCellStyles({
+								className: `h-full text-right ${
+									idx !== arr.length - 1 && 'border-r'
+								}`
+							})}
+							rowSpan={2}
+						>
+							{seriesName}
 						</th>
 					))}
 				</tr>
-			</thead>
-			<tbody className="pl-1">
-				{rows.map((row, rowIdx) => (
-					<tr key={rowIdx}>
-						{row.map((v, idx, cells) => {
-							const formatter = formatters?.[header?.[idx]] ?? '';
-							const formattedData =
-								v !== '-' && v !== 'na' ? `${v}${formatter}` : `${v}`;
-
-							return (
-								<td
-									key={idx}
-									className={cn(
-										'border-border-primary text-right text-[0.625rem] font-semibold leading-[1.125rem] px-2 py-1 h-9',
-										'border-b w-[1%]',
-										idx !== cells.length - 1 && 'border-r'
-									)}
-								>
-									{formattedData}
-								</td>
-							);
+				<tr>
+					<th
+						className={headerCellStyles({
+							className: 'h-9 border-r text-right'
 						})}
+					>
+						{table.labels?.[xAxisKey!] || ''}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{xValues.map((xValue) => (
+					<tr key={xValue}>
+						<td
+							className={cn(
+								cellStyles(),
+								'border-r text-right bg-primary-wash'
+							)}
+						>
+							{xValue}
+						</td>
+						{seriesNames.map((seriesName) => (
+							<td
+								key={`${xValue}-${seriesName}`}
+								className={cn(
+									cellStyles(),
+									seriesName !== seriesNames[seriesNames.length - 1] &&
+										'border-r'
+								)}
+							>
+								{formatValue(
+									getValue(xValue, seriesName, xAxisKey, table),
+									seriesName,
+									table.formatters
+								)}
+							</td>
+						))}
 					</tr>
 				))}
 			</tbody>

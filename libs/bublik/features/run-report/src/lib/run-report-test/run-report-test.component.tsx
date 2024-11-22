@@ -159,7 +159,7 @@ type RunReportEntityBlockProps = Pick<
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
 	const { enableChartView, enableTableView, block, offset } = props;
-	const { id, chart, table } = block;
+	const { id, chart, table, label } = block;
 	const [searchParams] = useSearchParams();
 	const ref = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
@@ -197,7 +197,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 									onClick={() => toast.success('Saved location')}
 								>
-									{chart?.series_label}
+									{label}
 								</Link>
 								<WarningsHoverCard warnings={chart?.warnings ?? []} />
 							</div>
