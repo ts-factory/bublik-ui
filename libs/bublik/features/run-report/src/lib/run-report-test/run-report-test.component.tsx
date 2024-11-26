@@ -185,39 +185,39 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 		<div className="flex flex-col pl-1">
 			<div className="flex flex-col max-h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
-				{chart?.data?.length ? (
-					<CardHeader
-						label={
-							<div className="flex items-center gap-2">
-								<Link
-									to={{
-										hash: encodeURIComponent(id),
-										search: searchParams.toString()
-									}}
-									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-									onClick={() => toast.success('Saved location')}
-								>
-									{label}
-								</Link>
-								<WarningsHoverCard warnings={chart?.warnings ?? []} />
-							</div>
-						}
-						ref={ref}
-						className="bg-white"
-						style={{
-							position: 'sticky',
-							top: offset,
-							zIndex: 5,
-							boxShadow: isSticky
-								? 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px'
-								: undefined
-						}}
-					/>
-				) : null}
+				<CardHeader
+					label={
+						<div className="flex items-center gap-2">
+							<Link
+								to={{
+									hash: encodeURIComponent(id),
+									search: searchParams.toString()
+								}}
+								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+								onClick={() => toast.success('Saved location')}
+							>
+								{label}
+							</Link>
+						</div>
+					}
+					ref={ref}
+					className="bg-white"
+					style={{
+						position: 'sticky',
+						top: offset,
+						zIndex: 5,
+						boxShadow: isSticky
+							? 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px'
+							: undefined
+					}}
+				/>
 				<div className="flex overflow-y-auto">
 					{chart ? (
 						<div className="flex-1">
-							<div className="px-4 py-2">
+							<div className="flex items-center justify-end h-9 px-4">
+								<WarningsHoverCard warnings={chart.warnings} />
+							</div>
+							<div className="px-4 py-2 relative">
 								<RunReportChart chart={chart} />
 							</div>
 						</div>

@@ -4,6 +4,7 @@ import { ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
 
 import { RunReportPointDialog } from '../run-report-point-dialog';
+import { WarningsHoverCard } from '../run-report-test';
 
 const cellStyles = cva({
 	base: [
@@ -113,19 +114,28 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 		<table className="w-full relative border-separate border-spacing-0">
 			<thead className="sticky top-0">
 				<tr>
-					{seriesNames.map((seriesName, idx, arr) => (
-						<th
-							key={seriesName}
-							className={headerCellStyles({
-								className: `text-right border-r h-9 ${
-									idx !== arr.length - 1 && 'border-r'
-								}`
-							})}
-							rowSpan={2}
-						>
-							{seriesName}
-						</th>
-					))}
+					{seriesNames.map((seriesName, idx, arr) => {
+						return (
+							<th
+								key={seriesName}
+								className={headerCellStyles({
+									className: `text-right border-r h-9 ${
+										idx !== arr.length - 1 && 'border-r'
+									}`
+								})}
+								rowSpan={2}
+							>
+								<div className="flex items-center justify-between gap-2">
+									{table.warnings.length ? (
+										<WarningsHoverCard warnings={table.warnings} />
+									) : (
+										<div />
+									)}
+									<span>{seriesName}</span>
+								</div>
+							</th>
+						);
+					})}
 					<th
 						className={headerCellStyles({
 							className: 'text-right'
@@ -192,13 +202,19 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 						style={{ width: '1%' }}
 						rowSpan={2}
 					>
-						{table.labels?.['y_value'] ?? 'Value'}
+						<span>{table.labels?.['y_value'] ?? 'Value'}</span>
 					</th>
 					<th
 						className={headerCellStyles({ className: 'h-9 text-center' })}
 						colSpan={table.data.length}
 					>
-						{table.labels?.['series'] ?? 'Series'}
+						<div className="flex items-center justify-between">
+							<div className="size-6">
+								<WarningsHoverCard warnings={table.warnings} />
+							</div>
+							<span>{table.labels?.['series'] ?? 'Series'}</span>
+							<div />
+						</div>
 					</th>
 				</tr>
 				<tr>
