@@ -1,12 +1,19 @@
+import { useParams } from 'react-router-dom';
+
 import { ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
+
+import { RunReportPointDialog } from '../run-report-point-dialog';
 
 const cellStyles = cva({
 	base: [
 		cn(
 			'border-b border-border-primary text-right text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 h-9'
 		)
-	]
+	],
+	variants: {
+		isCellWithMeta: { true: 'hover:bg-primary-wash cursor-pointer' }
+	}
 });
 
 const headerCellStyles = cva({
@@ -44,6 +51,21 @@ function getValue(
 	})?.['y_value'];
 }
 
+function getMetadata(
+	xValue: number | string,
+	seriesName: string,
+	xAxisKey: string,
+	table: ReportTable
+) {
+	const series = table.data.find((s) => s.series === seriesName);
+
+	return series?.points.find((p) => {
+		const value = p[xAxisKey!];
+
+		return value.toString() === xValue.toString();
+	})?.metadata;
+}
+
 function getTableDerivedData(table: ReportTable) {
 	const X_AXIS_KEY = 'x_value';
 
@@ -68,20 +90,23 @@ interface RunReportTableProps {
 }
 
 function RunReportTable({ table }: RunReportTableProps) {
+	const { runId } = useParams<{ runId: string }>();
+
 	if (!table.data.length) return null;
 
 	if (table.data.length === 1) {
-		return <SingleSeriesTable table={table} />;
+		return <SingleSeriesTable table={table} runId={Number(runId)} />;
 	}
 
-	return <MultipleSeriesTable table={table} />;
+	return <MultipleSeriesTable table={table} runId={Number(runId)} />;
 }
 
 interface SingleSeriesTableProps {
+	runId: number;
 	table: ReportTable;
 }
 
-function SingleSeriesTable({ table }: SingleSeriesTableProps) {
+function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 	const { seriesNames, xValues, xAxisKey } = getTableDerivedData(table);
 
 	return (
@@ -116,22 +141,31 @@ function SingleSeriesTable({ table }: SingleSeriesTableProps) {
 						<td className={cn(cellStyles(), 'border-r text-right')}>
 							{xValue}
 						</td>
-						{seriesNames.map((seriesName) => (
-							<td
-								key={`${xValue}-${seriesName}`}
-								className={cn(
-									cellStyles(),
-									seriesName !== seriesNames[seriesNames.length - 1] &&
-										'border-r'
-								)}
-							>
-								{formatValue(
-									getValue(xValue, seriesName, xAxisKey, table),
-									seriesName,
-									table.formatters
-								)}
-							</td>
-						))}
+						{seriesNames.map((seriesName) => {
+							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
+
+							return (
+								<RunReportPointDialog
+									key={`${xValue}-${seriesName}`}
+									runId={runId}
+									resultId={metadata?.result_id}
+								>
+									<td
+										className={cn(
+											cellStyles({ isCellWithMeta: Boolean(metadata) }),
+											seriesName !== seriesNames[seriesNames.length - 1] &&
+												'border-r'
+										)}
+									>
+										{formatValue(
+											getValue(xValue, seriesName, xAxisKey, table),
+											seriesName,
+											table.formatters
+										)}
+									</td>
+								</RunReportPointDialog>
+							);
+						})}
 					</tr>
 				))}
 			</tbody>
@@ -140,10 +174,11 @@ function SingleSeriesTable({ table }: SingleSeriesTableProps) {
 }
 
 interface MultipleSeriesTableProps {
+	runId: number;
 	table: ReportTable;
 }
 
-function MultipleSeriesTable({ table }: MultipleSeriesTableProps) {
+function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 	const { xAxisKey, seriesNames, xValues } = getTableDerivedData(table);
 
 	return (
@@ -202,22 +237,31 @@ function MultipleSeriesTable({ table }: MultipleSeriesTableProps) {
 						>
 							{xValue}
 						</td>
-						{seriesNames.map((seriesName) => (
-							<td
-								key={`${xValue}-${seriesName}`}
-								className={cn(
-									cellStyles(),
-									seriesName !== seriesNames[seriesNames.length - 1] &&
-										'border-r'
-								)}
-							>
-								{formatValue(
-									getValue(xValue, seriesName, xAxisKey, table),
-									seriesName,
-									table.formatters
-								)}
-							</td>
-						))}
+						{seriesNames.map((seriesName) => {
+							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
+
+							return (
+								<RunReportPointDialog
+									key={`${xValue}-${seriesName}`}
+									runId={runId}
+									resultId={metadata?.result_id}
+								>
+									<td
+										className={cn(
+											cellStyles({ isCellWithMeta: Boolean(metadata) }),
+											seriesName !== seriesNames[seriesNames.length - 1] &&
+												'border-r'
+										)}
+									>
+										{formatValue(
+											getValue(xValue, seriesName, xAxisKey, table),
+											seriesName,
+											table.formatters
+										)}
+									</td>
+								</RunReportPointDialog>
+							);
+						})}
 					</tr>
 				))}
 			</tbody>
