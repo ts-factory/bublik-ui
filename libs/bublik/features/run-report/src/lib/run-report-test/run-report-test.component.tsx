@@ -79,7 +79,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 								</Link>
 							</div>
 							<div className="p-4">
-								<RunReportArgs label="Args Val" items={params} />
+								<RunReportArgs label="Argument Values" items={params} />
 							</div>
 						</div>
 						<ul className="pl-1 flex flex-col">

@@ -506,7 +506,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 					ref={ref}
 				/>
 				<div className="p-4">
-					<RunReportArgs label="Common Args" items={args} />
+					<RunReportArgs label="Common Arguments" items={args} />
 				</div>
 			</div>
 			<RunReportTestBlock
