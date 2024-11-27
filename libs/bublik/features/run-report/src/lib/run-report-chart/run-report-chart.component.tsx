@@ -91,7 +91,7 @@ function RunReportChart(props: RunReportChartProps) {
 							axisPointer: { type: 'shadow' }
 						},
 						legend: { data: chart.data.map((s) => s.series) },
-						grid: { containLabel: true },
+						grid: { containLabel: true, top: '30%' },
 						dataZoom: [{}, { type: 'inside' }],
 						xAxis: {
 							type: 'category',
