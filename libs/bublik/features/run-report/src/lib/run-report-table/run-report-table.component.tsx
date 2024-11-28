@@ -2,8 +2,8 @@ import { useParams } from 'react-router-dom';
 
 import { ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
+import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
-import { RunReportPointDialog } from '../run-report-point-dialog';
 import { WarningsHoverCard } from '../run-report-test';
 
 const cellStyles = cva({
@@ -155,10 +155,11 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
 
 							return (
-								<RunReportPointDialog
+								<LogPreviewContainer
 									key={`${xValue}-${seriesName}`}
 									runId={runId}
 									resultId={metadata?.result_id}
+									measurementId={metadata?.result_id}
 								>
 									<td
 										className={cn(
@@ -173,7 +174,7 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 											table.formatters
 										)}
 									</td>
-								</RunReportPointDialog>
+								</LogPreviewContainer>
 							);
 						})}
 					</tr>
@@ -257,10 +258,11 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
 
 							return (
-								<RunReportPointDialog
+								<LogPreviewContainer
 									key={`${xValue}-${seriesName}`}
 									runId={runId}
 									resultId={metadata?.result_id}
+									measurementId={metadata?.result_id}
 								>
 									<td
 										className={cn(
@@ -275,7 +277,7 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 											table.formatters
 										)}
 									</td>
-								</RunReportPointDialog>
+								</LogPreviewContainer>
 							);
 						})}
 					</tr>

@@ -8,8 +8,7 @@ import ReactEChartsCore from 'echarts-for-react/lib/core';
 
 import { Plot, chartStyles } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
-
-import { RunReportPointDialog } from '../run-report-point-dialog';
+import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 interface RunReportChartProps {
 	chart: ReportChart;
@@ -73,9 +72,10 @@ function RunReportChart(props: RunReportChartProps) {
 
 	return (
 		<>
-			<RunReportPointDialog
+			<LogPreviewContainer
 				runId={Number(runId)}
 				resultId={resultId}
+				measurementId={resultId}
 				open={open}
 				onOpenChange={setOpen}
 			/>
