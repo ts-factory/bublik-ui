@@ -106,7 +106,8 @@ function RunReportChart(props: RunReportChartProps) {
 							nameLocation: 'middle',
 							nameGap: 20,
 							nameTextStyle: chartStyles.text,
-							axisLabel: { ...chartStyles.text }
+							axisLabel: { ...chartStyles.text },
+							data: chart.axis_x.values
 						},
 						yAxis: {
 							type: 'value',
