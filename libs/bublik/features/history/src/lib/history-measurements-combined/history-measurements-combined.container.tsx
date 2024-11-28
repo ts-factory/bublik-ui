@@ -6,12 +6,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Point } from '@/shared/types';
 import { createBublikError } from '@/services/bublik-api';
 import { CardHeader, cn, Skeleton } from '@/shared/tailwind-ui';
-import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { StackedMeasurementChart } from '@/shared/charts';
+import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import { useGetHistoryMeasurements } from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
-import { PlotPointModalContainer } from '../history-measurements/components';
 import { resolvePoint } from '../history-measurements/plot-list.utils';
 
 function HistoryMeasurementsCombinedContainer() {
@@ -65,30 +64,30 @@ function HistoryMeasurementsCombinedContainer() {
 	if (error) return <HistoryError error={error} />;
 
 	return (
-		<div className="bg-white rounded-md">
-			<CardHeader label="Combined" />
-			<div
-				className={cn(
-					'p-4 h-[78vh]',
-					isFetching && 'pointer-events-none opacity-60'
-				)}
-			>
-				<StackedMeasurementChart
-					charts={plots}
-					style={{ height: '100%' }}
-					onPointClick={handleCombinedPointClick}
-				/>
-				{point ? (
-					<PlotPointModalContainer
-						point={point}
-						isDialogOpen={isPointDialogOpen}
-						setIsDialogOpen={setIsPointDialogOpen}
-					>
-						<RunDetailsContainer runId={point.run_id} isFullMode />
-					</PlotPointModalContainer>
-				) : null}
+		<>
+			<LogPreviewContainer
+				runId={point?.run_id}
+				resultId={point?.result_id}
+				measurementId={point?.result_id}
+				open={isPointDialogOpen}
+				onOpenChange={setIsPointDialogOpen}
+			/>
+			<div className="bg-white rounded-md">
+				<CardHeader label="Combined" />
+				<div
+					className={cn(
+						'p-4 h-[78vh]',
+						isFetching && 'pointer-events-none opacity-60'
+					)}
+				>
+					<StackedMeasurementChart
+						charts={plots}
+						style={{ height: '100%' }}
+						onPointClick={handleCombinedPointClick}
+					/>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
