@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { PopoverClose } from '@radix-ui/react-popover';
+import { PopoverClose, PopoverPortal } from '@radix-ui/react-popover';
 import { toast } from 'sonner';
 import { groupBy } from 'remeda';
 
@@ -275,18 +275,20 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 							</ButtonTw>
 						</PopoverTrigger>
 					</Tooltip>
-					<PopoverContent
-						className={cn(
-							'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
-						)}
-						align="end"
-						sideOffset={8}
-					>
-						<CommentEditor
-							label="Add Note"
-							onSubmit={(f) => handleCreateTestCommentClick(f.comment)}
-						/>
-					</PopoverContent>
+					<PopoverPortal container={document.body}>
+						<PopoverContent
+							className={cn(
+								'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
+							)}
+							align="end"
+							sideOffset={8}
+						>
+							<CommentEditor
+								label="Add Note"
+								onSubmit={(f) => handleCreateTestCommentClick(f.comment)}
+							/>
+						</PopoverContent>
+					</PopoverPortal>
 				</Popover>
 			</div>
 		);
