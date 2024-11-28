@@ -9,6 +9,7 @@ import ReactEChartsCore from 'echarts-for-react/lib/core';
 import { Plot, chartStyles } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
+import { usePlatformSpecificCtrl } from '@/shared/hooks';
 
 interface RunReportChartProps {
 	chart: ReportChart;
@@ -70,6 +71,9 @@ function RunReportChart(props: RunReportChartProps) {
 		};
 	}, []);
 
+	const isPressed = usePlatformSpecificCtrl();
+	const dataZoom = [{}, { type: 'inside', zoomLock: !isPressed }];
+
 	return (
 		<>
 			<LogPreviewContainer
@@ -92,7 +96,7 @@ function RunReportChart(props: RunReportChartProps) {
 						},
 						legend: { data: chart.data.map((s) => s.series) },
 						grid: { containLabel: true, top: '30%' },
-						dataZoom: [{}, { type: 'inside' }],
+						dataZoom,
 						xAxis: {
 							type: 'category',
 							name: chart.axis_x.label,
