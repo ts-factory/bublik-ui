@@ -11,7 +11,6 @@ import {
 	cn,
 	Icon,
 	Skeleton,
-	toast,
 	ToolbarButton,
 	Tooltip,
 	useSidebar
@@ -22,12 +21,11 @@ import {
 	getColorByIdx,
 	MeasurementChart
 } from '@/shared/charts';
-import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { SingleMeasurementChart } from '@/services/bublik-api';
+import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import { useCombinedView } from './plot-list.hooks';
 import { isDisabledForCombined, resolvePoint } from './plot-list.utils';
-import { PlotPointModalContainer } from './components';
 
 interface PlotListItemProps {
 	idx: number;
@@ -60,15 +58,13 @@ const PlotListItem = (props: PlotListItemProps) => {
 
 	return (
 		<>
-			{point && (
-				<PlotPointModalContainer
-					point={point}
-					isDialogOpen={isDialogOpen}
-					setIsDialogOpen={setIsDialogOpen}
-				>
-					<RunDetailsContainer runId={point.run_id} isFullMode />
-				</PlotPointModalContainer>
-			)}
+			<LogPreviewContainer
+				runId={point?.run_id}
+				resultId={point?.result_id}
+				measurementId={point?.result_id}
+				open={isDialogOpen}
+				onOpenChange={setIsDialogOpen}
+			/>
 			<li className="py-2.5 px-4">
 				<MeasurementChart
 					chart={plot}
