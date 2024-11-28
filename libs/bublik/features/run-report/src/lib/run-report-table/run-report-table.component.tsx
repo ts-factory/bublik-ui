@@ -131,7 +131,11 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 									) : (
 										<div />
 									)}
-									<span>{seriesName}</span>
+									<span>
+										{idx === 0 && table.labels?.['series'] === null
+											? table?.labels['x_value']
+											: seriesName}
+									</span>
 								</div>
 							</th>
 						);
