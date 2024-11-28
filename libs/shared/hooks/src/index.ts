@@ -34,6 +34,7 @@ export * from './lib/useConfirm';
 export * from './lib/useIsSticky';
 export * from './lib/useKeyPress';
 export * from './lib/useIsOnline';
+export * from './lib/use-controllable-state';
 
 export const useIsScrollbarVisible = <T extends HTMLElement>() => {
 	const ref = useRef<T>(null);
