@@ -94,7 +94,10 @@ function RunReportChart(props: RunReportChartProps) {
 							extraCssText: 'shadow-popover rounded-lg',
 							axisPointer: { type: 'shadow' }
 						},
-						legend: { data: chart.data.map((s) => s.series) },
+						legend:
+							chart.series_label === null
+								? undefined
+								: { data: chart.data.map((s) => s.series) },
 						grid: { containLabel: true, top: '30%' },
 						dataZoom,
 						xAxis: {
