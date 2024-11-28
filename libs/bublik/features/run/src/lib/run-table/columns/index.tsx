@@ -271,7 +271,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 						<PopoverTrigger asChild>
 							<ButtonTw variant="secondary" size="xss" className="size-6">
 								<Icon name="FilePlus" className="size-5 shrink-0" />
-								{/* <span>Add Note</span> */}
+								<span className="sr-only">Add Note</span>
 							</ButtonTw>
 						</PopoverTrigger>
 					</Tooltip>
