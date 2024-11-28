@@ -86,6 +86,7 @@ function RunReportChart(props: RunReportChartProps) {
 			<div className="w-full flex flex-col gap-2">
 				<Plot
 					ref={chartRef}
+					notMerge={false}
 					options={{
 						toolbox: { top: 9999, feature: { dataZoom: {} } },
 						tooltip: {
