@@ -83,7 +83,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 				additionalToolBarItems={additionalToolBarItems}
 				isFullScreen={isFullScreen}
 			/>
-			<Plot options={options} ref={ref} style={props.style} />
+			<Plot options={options} notMerge={false} ref={ref} style={props.style} />
 		</>
 	);
 };
