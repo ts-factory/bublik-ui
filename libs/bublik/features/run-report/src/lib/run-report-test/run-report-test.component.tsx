@@ -219,7 +219,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 
 	return (
 		<div className="flex flex-col pl-1">
-			<div className="flex flex-col max-h-[412px]" id={encodeURIComponent(id)}>
+			<div className="flex flex-col h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
 				<CardHeader
 					label={
@@ -247,13 +247,13 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 							: undefined
 					}}
 				/>
-				<div className="flex overflow-y-auto">
+				<div className="flex overflow-y-auto h-full">
 					{chart ? (
 						<div className="flex-1">
-							<div className="flex items-center justify-end h-9 px-4">
-								<WarningsHoverCard warnings={chart.warnings} />
-							</div>
-							<div className="px-4 py-2 relative">
+							<div className="relative pt-2 h-full">
+								<div className="absolute right-4 z-[1] top-1.5">
+									<WarningsHoverCard warnings={chart.warnings} />
+								</div>
 								<RunReportChart chart={chart} />
 							</div>
 						</div>

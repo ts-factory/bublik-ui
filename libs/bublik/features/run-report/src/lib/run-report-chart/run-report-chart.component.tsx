@@ -83,7 +83,7 @@ function RunReportChart(props: RunReportChartProps) {
 				open={open}
 				onOpenChange={setOpen}
 			/>
-			<div className="w-full flex flex-col gap-2">
+			<div className="w-full flex flex-col gap-2 h-full pb-2">
 				<Plot
 					ref={chartRef}
 					notMerge={false}
@@ -99,13 +99,19 @@ function RunReportChart(props: RunReportChartProps) {
 							chart.series_label === null
 								? undefined
 								: { data: chart.data.map((s) => s.series) },
-						grid: { containLabel: true, top: '30%' },
+						grid: {
+							containLabel: true,
+							top: chart.data.length >= 4 ? '25%' : '15%',
+							right: '7%',
+							left: '5%',
+							bottom: '20%'
+						},
 						dataZoom,
 						xAxis: {
 							type: 'category',
 							name: chart.axis_x.label,
 							nameLocation: 'middle',
-							nameGap: 20,
+							nameGap: 30,
 							nameTextStyle: chartStyles.text,
 							axisLabel: { ...chartStyles.text },
 							data: chart.axis_x.values
@@ -120,6 +126,7 @@ function RunReportChart(props: RunReportChartProps) {
 						},
 						series: series
 					}}
+					style={{ height: '100%' }}
 				/>
 			</div>
 		</>
