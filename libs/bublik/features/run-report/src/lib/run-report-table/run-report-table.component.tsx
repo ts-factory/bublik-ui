@@ -152,7 +152,7 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 			<tbody>
 				{xValues.map((xValue) => (
 					<tr key={xValue}>
-						<td className={cn(cellStyles(), 'border-r text-right')}>
+						<td className={cn(cellStyles(), 'border-r text-right', 'w-1/2')}>
 							{xValue}
 						</td>
 						{seriesNames.map((seriesName) => {
@@ -169,7 +169,8 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 										className={cn(
 											cellStyles({ isCellWithMeta: Boolean(metadata) }),
 											seriesName !== seriesNames[seriesNames.length - 1] &&
-												'border-r'
+												'border-r',
+											'w-1/2'
 										)}
 									>
 										{formatValue(
