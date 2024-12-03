@@ -90,10 +90,10 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 								{column.id.toLowerCase().includes('unexpected')
 									? toolbarIcon['unexpected']
 									: column.id.toLowerCase().includes('expected')
-									? toolbarIcon['expected']
-									: column.id.toLowerCase().includes('abnormal')
-									? toolbarIcon['abnormal']
-									: null}
+										? toolbarIcon['expected']
+										: column.id.toLowerCase().includes('abnormal')
+											? toolbarIcon['abnormal']
+											: null}
 							</DropdownMenuCheckboxItem>
 						))}
 				</DropdownMenuContent>

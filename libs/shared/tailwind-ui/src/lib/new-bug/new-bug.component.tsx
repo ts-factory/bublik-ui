@@ -139,8 +139,8 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 				return link && key.linkTextKey && obj[key.linkTextKey]
 					? String(obj[key.linkTextKey]).length
 					: value !== undefined
-					? String(value).length
-					: 0;
+						? String(value).length
+						: 0;
 			})
 		);
 	});
@@ -244,8 +244,8 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 		if (haveHashes) {
 			const configurations = hasConfigurationKey
 				? options.tags.specialCategories['Configuration'] ||
-				  options.tags.specialCategories['configuration'] ||
-				  []
+					options.tags.specialCategories['configuration'] ||
+					[]
 				: Object.values(options.tags.specialCategories).flat();
 
 			const matches = findAllMatches(configurations, options.hashes ?? []);

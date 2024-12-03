@@ -96,7 +96,7 @@ export const ListItem = forwardRef<
 			? (e: MouseEvent<HTMLLIElement>) => {
 					onClick?.(e);
 					onTagClick?.(tag);
-			  }
+				}
 			: undefined;
 
 	return (

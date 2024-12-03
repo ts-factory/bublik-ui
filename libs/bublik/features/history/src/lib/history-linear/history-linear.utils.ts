@@ -70,7 +70,7 @@ export const globalFilterFn: FilterFn<HistoryDataLinear> = (
 	const resultsMatch =
 		filterValue.resultType != null && filterValue.isNotExpected != null
 			? resultType === filterValue.resultType &&
-			  isNotExpected === filterValue.isNotExpected
+				isNotExpected === filterValue.isNotExpected
 			: true;
 
 	// 3. Substring filter

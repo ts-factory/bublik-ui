@@ -6,7 +6,7 @@
 	"tags": [],
 	"targets": {
 		"lint": {
-			"executor": "@nx/linter:eslint",
+			"executor": "@nx/eslint:lint",
 			"outputs": ["{options.outputFile}"],
 			"options": {
 				"lintFilePatterns": [
@@ -15,7 +15,7 @@
 			}
 		},
 		"test": {
-			"executor": "@nrwl/vite:test",
+			"executor": "@nx/vite:test",
 			"outputs": ["{workspaceRoot}/coverage/libs/bublik/features/dashboard-v2"],
 			"options": {
 				"passWithNoTests": true,

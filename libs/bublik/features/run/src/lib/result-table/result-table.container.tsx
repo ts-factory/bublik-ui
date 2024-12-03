@@ -17,7 +17,7 @@ function getParentId(row: Row<RunData | MergedRun>) {
 		? row.original.parent_ids.length
 			? row.original.parent_ids
 			: row.original.result_ids
-		: row.original.parent_id ?? row.original.result_id;
+		: (row.original.parent_id ?? row.original.result_id);
 }
 
 const DEFAULT_REQUEST = {

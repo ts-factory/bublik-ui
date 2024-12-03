@@ -103,10 +103,10 @@ export const useLogTableFilter = (config: UseLogTableFilterConfig) => {
 			const createMainTestEntityButtons = () => {
 				return mainTestEntity && entityMap.has(mainTestEntity)
 					? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					  Array.from(entityMap.get(mainTestEntity)!).map((user) => ({
+						Array.from(entityMap.get(mainTestEntity)!).map((user) => ({
 							label: `[#T]:${user}`,
 							filters: [{ entityName: mainTestEntity, userName: user }]
-					  }))
+						}))
 					: undefined;
 			};
 

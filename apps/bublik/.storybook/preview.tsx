@@ -23,6 +23,7 @@ const preview: Preview = {
 			]
 		}
 	},
+
 	decorators: [
 		(Story) => (
 			<Provider store={store}>
@@ -35,7 +36,9 @@ const preview: Preview = {
 		),
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		mswDecorator as any
-	]
+	],
+
+	tags: ['autodocs']
 };
 
 export default preview;

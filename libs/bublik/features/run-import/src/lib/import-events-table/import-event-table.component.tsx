@@ -104,7 +104,7 @@ export const ImportEventTable = (props: ImportEventTableProps) => {
 										: flexRender(
 												header.column.columnDef.header,
 												header.getContext()
-										  )}
+											)}
 								</th>
 							))}
 						</tr>

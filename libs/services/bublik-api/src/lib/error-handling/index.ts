@@ -49,7 +49,7 @@ export const getErrorMessage = (error: unknown): BublikError => {
 			description:
 				typeof data === 'string'
 					? data
-					: HTTP_CODE_DESCRIPTIONS.get(status) ?? ''
+					: (HTTP_CODE_DESCRIPTIONS.get(status) ?? '')
 		};
 	}
 

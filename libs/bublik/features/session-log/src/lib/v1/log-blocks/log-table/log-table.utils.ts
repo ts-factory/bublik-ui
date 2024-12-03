@@ -133,7 +133,7 @@ export const getFilters = (data: LogTableData[]) => {
 	const mainEntityFilters =
 		mainTestEntity && allEntityMap.has(mainTestEntity)
 			? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			  Array.from(allEntityMap.get(mainTestEntity)!)
+				Array.from(allEntityMap.get(mainTestEntity)!)
 					.map((user) => ({
 						label: `[#T]:${user}`,
 						filters: { entityName: mainTestEntity, userName: user }

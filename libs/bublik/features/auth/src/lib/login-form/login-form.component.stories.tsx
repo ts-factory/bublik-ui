@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import type { Meta, StoryObj } from '@storybook/react';
-import { withRouter } from 'storybook-addon-react-router-v6';
-import { within, userEvent } from '@storybook/testing-library';
+import { withRouter } from 'storybook-addon-remix-react-router';
+import { within, userEvent } from '@storybook/test';
 
 import { LoginForm } from './login-form.component';
 

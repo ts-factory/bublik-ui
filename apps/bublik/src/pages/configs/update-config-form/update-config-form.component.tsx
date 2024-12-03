@@ -21,7 +21,7 @@ import {
 	FormAlertError
 } from '@/shared/tailwind-ui';
 
-import { ConfigEditor } from '../components/editor.component';
+import { ConfigEditor, formatJson } from '../components/editor.component';
 import {
 	CurrentBadge,
 	InactiveBadge,
@@ -75,19 +75,19 @@ const ConfigEditorForm = forwardRef<
 	} = props;
 	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
 
-	function getSavedForm(): ConfigFormData {
+	async function getSavedForm(): Promise<ConfigFormData> {
 		if (savedValue) {
 			try {
-				return JSON.parse(savedValue);
+				return JSON.parse(await formatJson(JSON.parse(savedValue)));
 			} catch {
-				return defaultValues;
+				return JSON.parse(await formatJson(JSON.stringify(defaultValues)));
 			}
 		}
 		return defaultValues;
 	}
 
 	const form = useForm<ConfigFormData>({
-		defaultValues: getSavedForm(),
+		defaultValues: getSavedForm,
 		resolver: zodResolver(ConfigFormSchema)
 	});
 

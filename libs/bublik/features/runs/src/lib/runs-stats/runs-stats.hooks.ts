@@ -18,7 +18,7 @@ export const useRunsStats = () => {
 				...searchQuery,
 				page: '1',
 				pageSize: String(query.data.pagination.count)
-		  }
+			}
 		: skipToken;
 
 	const finalQuery = useGetRunsTablePageQuery(calculatedQuery);

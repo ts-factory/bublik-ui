@@ -25,7 +25,7 @@ const Template: StoryFn<typeof BadgeList> = (args) => {
 				selected.includes(badge.payload)
 					? setSelected((selected) =>
 							selected.filter((v) => v !== badge.payload)
-					  )
+						)
 					: setSelected((selected) => [...selected, badge.payload]);
 			}}
 		/>

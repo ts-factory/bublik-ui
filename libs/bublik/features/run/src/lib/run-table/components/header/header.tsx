@@ -50,7 +50,7 @@ export const RunHeader = ({ instance }: RunHeaderProps) => {
 														'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-2 py-1',
 														header.column.getIsSorted() && 'bg-primary-wash'
 													)
-											  }
+												}
 											: {})}
 									>
 										{flexRender(

@@ -44,3 +44,5 @@ requests.http
 
 .nx/cache
 .nx/workspace-data
+
+vite.config.*.timestamp*

@@ -183,7 +183,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 													: flexRender(
 															header.column.columnDef.header,
 															header.getContext()
-													  )}
+														)}
 											</th>
 										))}
 									</tr>

@@ -8,9 +8,12 @@ import {
 	useState
 } from 'react';
 import MonacoEditor, { Monaco, OnMount } from '@monaco-editor/react';
-import { format } from 'prettier';
-import parserJson from 'prettier/parser-babel';
 
+import { format } from 'prettier';
+import esTreePlugin from 'prettier/plugins/estree';
+import babelPlugin from 'prettier/plugins/babel';
+
+import { useLocalStorage } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
@@ -28,10 +31,12 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
-import { useLocalStorage } from '@/shared/hooks';
 
-function formatJson(value: string) {
-	return format(value, { parser: 'json', plugins: [parserJson] });
+async function formatJson(value: string) {
+	return format(value, {
+		parser: 'json',
+		plugins: [esTreePlugin, babelPlugin]
+	});
 }
 
 // MARK: Editor
@@ -69,7 +74,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 			);
 		};
 
-		function handleFormatClick() {
+		async function handleFormatClick() {
 			const URI = monaco?.Uri.parse(DEFAULT_URI);
 			if (!URI) {
 				toast.error('Failed to create URI');
@@ -85,7 +90,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 
 			const value = model.getValue();
 			try {
-				const formatted = formatJson(value);
+				const formatted = await formatJson(value);
 				model.setValue(formatted);
 			} catch (error) {
 				toast.error('Failed to format JSON');

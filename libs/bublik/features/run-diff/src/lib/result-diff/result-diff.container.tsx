@@ -33,7 +33,7 @@ const getQueries = ({
 					requests: {
 						TOTAL: { results: [], resultProperties: [] }
 					}
-			  }
+				}
 			: undefined;
 
 	const rightQuery =
@@ -44,7 +44,7 @@ const getQueries = ({
 					requests: {
 						TOTAL: { results: [], resultProperties: [] }
 					}
-			  }
+				}
 			: undefined;
 
 	return { leftQuery, rightQuery };

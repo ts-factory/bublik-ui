@@ -82,7 +82,7 @@ export const ResultDescription = (props: ResultDescriptionProps) => {
 								<li key={idx}>
 									{item.value} * {item.multiplier} {item.units}
 								</li>
-						  ))
+							))
 						: null}
 				</ul>
 			</div>

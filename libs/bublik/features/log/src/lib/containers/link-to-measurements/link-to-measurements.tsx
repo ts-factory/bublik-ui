@@ -40,8 +40,8 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 				isFetching
 					? 'loading'
 					: isError || !hasMeasurements
-					? 'disabled'
-					: 'default'
+						? 'disabled'
+						: 'default'
 			}
 		>
 			<Link
