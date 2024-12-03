@@ -1,7 +1,7 @@
 {
-	"date": "2024.11.15",
-	"summary": "fix(log): fixed log not scrolling to top on page change",
-	"revision": "771d617",
-	"branch": "release-0.7.1",
-	"latestTag": "v0.7.1"
+	"date": "2024.12.03",
+	"summary": "fix(report): [chart] display y_axis label when `series_label` is `null`",
+	"revision": "567b059",
+	"branch": "main",
+	"latestTag": "v1.0.0-rc.0"
 }
