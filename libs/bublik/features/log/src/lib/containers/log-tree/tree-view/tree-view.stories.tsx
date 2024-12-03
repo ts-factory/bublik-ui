@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import type { Meta, StoryObj } from '@storybook/react';
-import { withRouter } from 'storybook-addon-react-router-v6';
-import { TreeView } from './tree-view';
+import { withRouter } from 'storybook-addon-remix-react-router';
 
 import { LogPageMode } from '@/shared/types';
+
+import { TreeView } from './tree-view';
 
 const Story: Meta<typeof TreeView> = {
 	component: TreeView,

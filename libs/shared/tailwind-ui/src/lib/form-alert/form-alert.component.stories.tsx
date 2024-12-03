@@ -1,11 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import type { Meta, StoryFn, StoryObj } from '@storybook/react';
+import { expect, within } from '@storybook/test';
 
 import { FormAlert } from './form-alert.component';
 
-import { within } from '@storybook/testing-library';
-import { expect } from '@storybook/jest';
 import { withBackground } from '../storybook-bg';
 import { Icon } from '../icon';
 

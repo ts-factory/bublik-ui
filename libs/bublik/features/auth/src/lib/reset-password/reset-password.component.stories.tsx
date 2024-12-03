@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import type { Meta, StoryObj } from '@storybook/react';
 import { ResetPasswordForm } from './reset-password.component';
-import { userEvent, within } from '@storybook/testing-library';
+import { userEvent, within } from '@storybook/test';
 
 const Story: Meta<typeof ResetPasswordForm> = {
 	component: ResetPasswordForm,

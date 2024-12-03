@@ -13,7 +13,7 @@ import '../src/styles/tailwind.css';
 initialize({ quiet: true, onUnhandledRequest: 'bypass' });
 
 const preview: Preview = {
-	parameters: {
+    parameters: {
 		layout: 'centered',
 		backgrounds: {
 			default: 'light',
@@ -23,7 +23,8 @@ const preview: Preview = {
 			]
 		}
 	},
-	decorators: [
+
+    decorators: [
 		(Story) => (
 			<Provider store={store}>
 				<Providers>
@@ -35,7 +36,9 @@ const preview: Preview = {
 		),
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		mswDecorator as any
-	]
+	],
+
+    tags: ['autodocs']
 };
 
 export default preview;
