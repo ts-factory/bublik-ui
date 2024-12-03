@@ -143,8 +143,8 @@ export const PlotList = ({ plots, isFetching }: PlotListProps) => {
 						? isDisabled
 							? 'disabled'
 							: selectedCharts.find(({ plot: p }) => p.id === plot.id)
-							? 'active'
-							: 'waiting'
+								? 'active'
+								: 'waiting'
 						: 'default';
 
 					return (

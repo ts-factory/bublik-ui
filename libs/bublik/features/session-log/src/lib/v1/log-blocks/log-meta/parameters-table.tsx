@@ -83,7 +83,7 @@ export const ParametersTable = (props: ParametersTableProps) => {
 											: flexRender(
 													header.column.columnDef.header,
 													header.getContext()
-											  )}
+												)}
 									</th>
 								))}
 							</tr>

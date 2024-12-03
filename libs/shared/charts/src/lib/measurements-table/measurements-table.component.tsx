@@ -98,7 +98,7 @@ export const MeasurementsTable: FC<MeasurementsTableProps> = memo(
 											: flexRender(
 													header.column.columnDef.header,
 													header.getContext()
-											  )}
+												)}
 									</th>
 								);
 							})}

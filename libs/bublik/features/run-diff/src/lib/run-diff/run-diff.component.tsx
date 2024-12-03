@@ -91,10 +91,10 @@ const ColumnsVisibility = ({ table }: VisibilityProps) => {
 								const icon = leftColumn.id.toLowerCase().includes('unexpected')
 									? toolbarIcon['unexpected']
 									: leftColumn.id.toLowerCase().includes('expected')
-									? toolbarIcon['expected']
-									: leftColumn.id.toLowerCase().includes('abnormal')
-									? toolbarIcon['abnormal']
-									: null;
+										? toolbarIcon['expected']
+										: leftColumn.id.toLowerCase().includes('abnormal')
+											? toolbarIcon['abnormal']
+											: null;
 
 								return (
 									<DropdownMenuCheckboxItem
@@ -218,7 +218,7 @@ export const RunDiff: FC<RunDiffProps> = ({
 											: flexRender(
 													header.column.columnDef.header,
 													header.getContext()
-											  )}
+												)}
 									</th>
 								))}
 							</tr>

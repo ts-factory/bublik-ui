@@ -34,10 +34,10 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 						isLoading
 							? 'loading'
 							: isError || !data?.run_report_configs.length
-							? 'disabled'
-							: open
-							? 'active'
-							: 'default'
+								? 'disabled'
+								: open
+									? 'active'
+									: 'default'
 					}
 				>
 					{isLoading ? (

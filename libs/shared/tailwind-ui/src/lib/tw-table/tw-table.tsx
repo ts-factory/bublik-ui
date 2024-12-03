@@ -88,7 +88,7 @@ const TwHeader = <T extends Record<string, unknown>>(
 								: flexRender(
 										header.column.columnDef.header,
 										header.getContext()
-								  )}
+									)}
 							{header.column.getCanSort() && (
 								<div className="pl-2">
 									<TableSort sortDescription={header.column.getIsSorted()} />

@@ -35,8 +35,8 @@ export const BadgeList = forwardRef<HTMLDivElement, BadgeListProps>(
 			const finalClass = badge.isImportant
 				? 'bg-badge-6'
 				: className
-				? className
-				: 'bg-badge-0';
+					? className
+					: 'bg-badge-0';
 
 			let value = badge.payload;
 			if (isRevision(badge.payload)) value = trimRevision(badge.payload);

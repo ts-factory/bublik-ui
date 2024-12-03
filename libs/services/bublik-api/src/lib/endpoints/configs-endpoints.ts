@@ -69,7 +69,7 @@ const ConfigSchema = z.object({
 	content: z.record(z.unknown())
 });
 
-type Config = z.infer<typeof ConfigSchema>;
+export type Config = z.infer<typeof ConfigSchema>;
 
 const ConfigVersionSchema = z.object({
 	type: ConfigTypeSchema,

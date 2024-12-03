@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ComponentProps, useRef, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+
 import {
+	Config,
 	ConfigExistsError,
 	ConfigWithSameNameErrorResponseSchema,
 	EditConfigBody
@@ -10,9 +14,15 @@ import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
 
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
-import { formatJson } from '../components/editor.component';
-import { ComponentProps, useRef, useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+
+function getDefaultValues(config: Config) {
+	return {
+		name: config.name,
+		content: JSON.stringify(config.content, null, 2),
+		description: config.description,
+		is_active: config.is_active
+	};
+}
 
 interface ConfigsEditorContainerProps {
 	configId: number;
@@ -97,13 +107,6 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	if (isLoading) return <Skeleton className="h-full" />;
 	if (!config) return <div>No Data...</div>;
 
-	const defaultValues = {
-		name: config.name,
-		content: formatJson(JSON.stringify(config.content, null, 2)),
-		description: config.description,
-		is_active: config.is_active
-	};
-
 	const label = `${config.name} #${config.version}`;
 
 	return (
@@ -135,7 +138,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 			/>
 			<ConfigEditorForm
 				label={label}
-				defaultValues={defaultValues}
+				defaultValues={getDefaultValues(config)}
 				schema={schema}
 				isLoading={isFetching}
 				config={{ id: configId, is_active: config.is_active }}

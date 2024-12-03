@@ -116,14 +116,14 @@ export const useChartControl = (
 					showSliders: isSlidersEnabled,
 					fullScreen: inFullScreen,
 					plot: config.plot
-			  }
+				}
 			: {
 					mode,
 					color,
 					showSliders: isSlidersEnabled,
 					fullScreen: inFullScreen,
 					plots: config.plots
-			  };
+				};
 
 	const options = getOptions(optionsConfig);
 

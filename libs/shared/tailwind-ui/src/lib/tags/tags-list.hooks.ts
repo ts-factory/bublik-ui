@@ -96,7 +96,7 @@ export const useTagListState = (config: UseTagListConfig): UseTagListState => {
 							...t,
 							label: `${active.value}&${t.value}`,
 							value: `${active.value}&${t.value}`
-					  }
+						}
 					: t
 			);
 

@@ -146,8 +146,8 @@ const HtmlLog = (props: HtmlLogProps) => {
 		isShowingRunLog && runId
 			? parseInt(runId)
 			: focusId
-			? parseInt(focusId.toString())
-			: undefined;
+				? parseInt(focusId.toString())
+				: undefined;
 
 	const { data, error, isLoading } = useGetLogUrlByResultIdQuery(
 		idToLoad ?? skipToken
@@ -181,8 +181,8 @@ const JsonLog = (props: JsonLogProps) => {
 	const idToFetch = isShowingRunLog
 		? { id: runId }
 		: focusId
-		? { id: focusId, page }
-		: skipToken;
+			? { id: focusId, page }
+			: skipToken;
 
 	const { data, isLoading, isFetching, error } = useGetLogJsonQuery(idToFetch);
 

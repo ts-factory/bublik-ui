@@ -105,8 +105,8 @@ const getCombinedForm = (
 	const results = globalFilter.resultType
 		? [globalFilter.resultType]
 		: formFromSearchState.results.length
-		? formFromSearchState.results
-		: DEFAULT_RESULT_TYPES;
+			? formFromSearchState.results
+			: DEFAULT_RESULT_TYPES;
 
 	const resultProperties =
 		globalFilter.isNotExpected !== null
@@ -114,8 +114,8 @@ const getCombinedForm = (
 				? [RESULT_PROPERTIES.Unexpected]
 				: [RESULT_PROPERTIES.Expected]
 			: formFromSearchState.resultProperties.length
-			? formFromSearchState.resultProperties
-			: DEFAULT_RESULT_PROPERTIES;
+				? formFromSearchState.resultProperties
+				: DEFAULT_RESULT_PROPERTIES;
 
 	const runProperties = formFromSearchState.runProperties.length
 		? formFromSearchState.runProperties

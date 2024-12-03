@@ -50,8 +50,8 @@ export const VerdictSection = () => {
 						verdictLookup === VERDICT_TYPE.String
 							? 'Unexpectedly failed with errno ENOPROTOOPT'
 							: verdictLookup === VERDICT_TYPE.Regex
-							? '.\\*'
-							: ''
+								? '.\\*'
+								: ''
 					}
 					disabled={watch('verdictLookup') === VERDICT_TYPE.None}
 					control={control}

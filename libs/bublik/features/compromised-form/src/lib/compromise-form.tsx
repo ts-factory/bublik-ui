@@ -60,10 +60,10 @@ export const CompromiseStatusButton = forwardRef<
 				isLoading
 					? 'loading'
 					: isError
-					? 'disabled'
-					: isActive
-					? 'active'
-					: 'default'
+						? 'disabled'
+						: isActive
+							? 'active'
+							: 'default'
 			}
 			{...props}
 			ref={ref}

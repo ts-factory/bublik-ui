@@ -122,12 +122,12 @@ const getLineOptions = (config: GetOptionsSingle): EChartsOption => {
 					type: 'time',
 					name: axisX.label,
 					nameGap: 27
-			  })
+				})
 			: createXAxis({
 					data: axisX.values,
 					name: axisX.label,
 					nameGap: 27
-			  });
+				});
 
 	const series =
 		axisX.units === 'timestamp'
@@ -136,13 +136,13 @@ const getLineOptions = (config: GetOptionsSingle): EChartsOption => {
 					name: axisX.label,
 					color: config.color,
 					data: axisX.values.map((date, idx) => [date, axisY.values[idx]])
-			  })
+				})
 			: createSeries({
 					type: config.mode,
 					name: axisX.label,
 					color: config.color,
 					data: axisY.values
-			  });
+				});
 
 	return {
 		xAxis,

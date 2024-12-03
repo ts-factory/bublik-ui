@@ -379,7 +379,7 @@ function NotProcessedPointsTable({ points }: NotProcessedPointsTableProps) {
 										: flexRender(
 												header.column.columnDef.header,
 												header.getContext()
-										  )}
+											)}
 								</div>
 							);
 						})

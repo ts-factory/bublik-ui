@@ -67,8 +67,8 @@ function getFetchOptions({
 	return isShowingRunLog
 		? { id: runId! }
 		: focusId
-		? { id: focusId, page }
-		: skipToken;
+			? { id: focusId, page }
+			: skipToken;
 }
 
 export interface LogFeatureProps {

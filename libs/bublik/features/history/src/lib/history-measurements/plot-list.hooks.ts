@@ -43,7 +43,7 @@ export const useGetHistoryMeasurements = () => {
 					title: 'Result ids limit',
 					description:
 						"Number of result ID's is larger than limit. Please be more specific with your search query"
-			  })
+				})
 			: chartsError || linearError;
 
 	return { data, isLoading, isError, resultIds, isFetching, error } as const;

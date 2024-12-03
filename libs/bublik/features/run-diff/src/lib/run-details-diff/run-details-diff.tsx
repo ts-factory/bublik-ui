@@ -333,10 +333,9 @@ export const MetadataDiff = (props: MetadataDiffProps) => {
 			});
 
 		const allValuesWithDiff = diffWithChangedKeys
-			.reduce<(string | undefined)[]>(
-				(acc, { left, right }) => [...acc, left?.value, right?.value],
-				[]
-			)
+			.reduce<
+				(string | undefined)[]
+			>((acc, { left, right }) => [...acc, left?.value, right?.value], [])
 			.filter(Boolean);
 
 		return { allValuesWithDiff, diffWithChangedKeys };

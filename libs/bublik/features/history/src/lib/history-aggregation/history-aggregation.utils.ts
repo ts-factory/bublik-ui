@@ -67,7 +67,7 @@ export const globalFilterFn: FilterFn<HistoryDataAggregation> = (
 					({ resultType, isNotExpected }) =>
 						resultType === filterValue.resultType &&
 						isNotExpected === filterValue.isNotExpected
-			  )
+				)
 			: true;
 
 	const containsInTags = filterTags.every((filter) =>
