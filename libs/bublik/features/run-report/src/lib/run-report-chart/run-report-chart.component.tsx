@@ -25,7 +25,7 @@ function RunReportChart(props: RunReportChartProps) {
 		ComponentProps<typeof Plot>['options']['series']
 	>(() => {
 		return chart.data.map((d) => ({
-			name: d.series,
+			name: chart.series_label === null ? chart.axis_y.label : d.series,
 			type: 'line',
 			data: d.points.map((d) => d[chart.axis_y.key])
 		}));
