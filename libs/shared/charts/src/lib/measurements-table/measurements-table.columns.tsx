@@ -77,6 +77,18 @@ export const columns = [
 		}
 	}),
 	helper.accessor((d) => `${d.value} ${d.units}`, {
-		header: 'Value'
+		header: 'Value',
+		cell: ({ cell, row }) => {
+			return (
+				<div className="flex items-center gap-3">
+					<span className="text-[0.625rem] font-semibold leading-[1.125rem]">
+						{row.original.aggr}
+					</span>
+					<span className="text-[0.625rem] leading-[1.125rem]">
+						{cell.getValue()}
+					</span>
+				</div>
+			);
+		}
 	})
 ];
