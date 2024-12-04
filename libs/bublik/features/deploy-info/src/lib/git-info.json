@@ -1,7 +1,7 @@
 {
-	"date": "2024.12.03",
-	"summary": "fix(report): [chart] display y_axis label when `series_label` is `null`",
-	"revision": "567b059",
+	"date": "2024.12.04",
+	"summary": "fix(measurements): add missing measurement `aggr`",
+	"revision": "436754c",
 	"branch": "main",
-	"latestTag": "v1.0.0-rc.0"
+	"latestTag": "v1.0.0-rc.1"
 }
