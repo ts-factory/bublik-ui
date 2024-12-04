@@ -96,7 +96,7 @@ function RunReportChart(props: RunReportChartProps) {
 							axisPointer: { type: 'shadow' }
 						},
 						legend:
-							chart.series_label === null
+							chart.data.length === 1
 								? undefined
 								: { data: chart.data.map((s) => s.series) },
 						grid: {
