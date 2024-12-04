@@ -316,124 +316,126 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 						</ButtonTw>
 					</PopoverTrigger>
 				</Tooltip>
-				<PopoverContent
-					className="relative px-4 py-6 bg-white rounded-md w-96 shadow-popover"
-					sideOffset={8}
-					align="end"
-				>
-					<ConfirmDialog
-						open={isVisible}
-						title="Are you sure you want to delete this note?"
-						description="This action cannot be undone."
-						confirmLabel="Delete"
-						onCancelClick={decline}
-						onConfirmClick={confirm}
-					/>
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-[0.875rem] leading-[1.125rem] font-semibold text-left">
-							Notes
-						</h2>
-						<PopoverClose className="size-6 grid place-items-center">
-							<Icon name="Cross" className="size-3 text-text-menu" />
-						</PopoverClose>
-					</div>
-					<ul className="flex flex-col gap-2">
-						{comments.map((c) => (
-							<li key={c.comment_id} className="flex gap-2">
-								<div className="flex flex-col gap-1 bg-primary-wash rounded-md p-2 flex-1">
-									<p className="text-left">{c.comment}</p>
-									<span className="text-slate-500 text-right text-[11px] line-clamp-1">
-										{format(new Date(c.updated), 'MMM dd, yyyy')} at{' '}
-										{format(new Date(c.updated), 'HH:mm')}
-									</span>
-								</div>
-								<div className="flex flex-col gap-2">
-									<Tooltip content="Edit Note">
-										<ButtonTw
-											variant="ghost"
-											size="xss"
-											aria-label="Edit Note"
-											className="size-6"
+				<PopoverPortal>
+					<PopoverContent
+						className="relative px-4 py-6 bg-white rounded-md w-96 shadow-popover"
+						sideOffset={8}
+						align="end"
+					>
+						<ConfirmDialog
+							open={isVisible}
+							title="Are you sure you want to delete this note?"
+							description="This action cannot be undone."
+							confirmLabel="Delete"
+							onCancelClick={decline}
+							onConfirmClick={confirm}
+						/>
+						<div className="flex items-center justify-between mb-4">
+							<h2 className="text-[0.875rem] leading-[1.125rem] font-semibold text-left">
+								Notes
+							</h2>
+							<PopoverClose className="size-6 grid place-items-center">
+								<Icon name="Cross" className="size-3 text-text-menu" />
+							</PopoverClose>
+						</div>
+						<ul className="flex flex-col gap-2">
+							{comments.map((c) => (
+								<li key={c.comment_id} className="flex gap-2">
+									<div className="flex flex-col gap-1 bg-primary-wash rounded-md p-2 flex-1">
+										<p className="text-left text-[11px]">{c.comment}</p>
+										<span className="text-slate-500 text-right text-[11px] line-clamp-1">
+											{format(new Date(c.updated), 'MMM dd, yyyy')} at{' '}
+											{format(new Date(c.updated), 'HH:mm')}
+										</span>
+									</div>
+									<div className="flex flex-col gap-2">
+										<Tooltip content="Edit Note">
+											<ButtonTw
+												variant="ghost"
+												size="xss"
+												aria-label="Edit Note"
+												className="size-6"
+												onClick={() => {
+													setInput(c.comment);
+													setEditId(Number(c.comment_id));
+													inputRef.current?.focus();
+												}}
+											>
+												<Icon
+													name="Edit"
+													className="size-5 shrink-0 text-blue-500"
+												/>
+											</ButtonTw>
+										</Tooltip>
+										<Tooltip content="Delete Note">
+											<ButtonTw
+												variant="destruction-secondary"
+												size="xss"
+												aria-label="Delete Note"
+												className="size-6"
+												onClick={() =>
+													handleEditTestCommentClick(Number(c.comment_id), '')
+												}
+											>
+												<Icon name="Bin" className="size-5 shrink-0" />
+											</ButtonTw>
+										</Tooltip>
+									</div>
+								</li>
+							))}
+						</ul>
+						<div className="mt-4 flex flex-col gap-2">
+							<textarea
+								className={cn(
+									'w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent text-xs'
+								)}
+								value={input}
+								onChange={(e) => setInput(e.target.value)}
+								placeholder="Add note..."
+								ref={inputRef}
+								rows={4}
+							/>
+							<div className="flex items-center gap-2">
+								<ButtonTw
+									onClick={async () => {
+										if (!input) return;
+
+										try {
+											if (editId) {
+												await handleEditTestCommentClick(editId, input);
+											} else {
+												await handleCreateTestCommentClick(input);
+											}
+										} catch (e) {
+											return;
+										}
+										setEditId(null);
+										setInput('');
+									}}
+									variant="primary"
+									size="xs"
+									className="flex-1"
+								>
+									{editId ? 'Edit' : 'Add Note'}
+								</ButtonTw>
+								{editId ? (
+									<Tooltip content="Cancel">
+										<button
+											className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
 											onClick={() => {
-												setInput(c.comment);
-												setEditId(Number(c.comment_id));
+												setEditId(null);
+												setInput('');
 												inputRef.current?.focus();
 											}}
 										>
-											<Icon
-												name="Edit"
-												className="size-5 shrink-0 text-blue-500"
-											/>
-										</ButtonTw>
+											<Icon name="Cross" className="size-3.5" />
+										</button>
 									</Tooltip>
-									<Tooltip content="Delete Note">
-										<ButtonTw
-											variant="destruction-secondary"
-											size="xss"
-											aria-label="Delete Note"
-											className="size-6"
-											onClick={() =>
-												handleEditTestCommentClick(Number(c.comment_id), '')
-											}
-										>
-											<Icon name="Bin" className="size-5 shrink-0" />
-										</ButtonTw>
-									</Tooltip>
-								</div>
-							</li>
-						))}
-					</ul>
-					<div className="mt-4 flex flex-col gap-2">
-						<textarea
-							className={cn(
-								'w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent text-xs'
-							)}
-							value={input}
-							onChange={(e) => setInput(e.target.value)}
-							placeholder="Add note..."
-							ref={inputRef}
-							rows={4}
-						/>
-						<div className="flex items-center gap-2">
-							<ButtonTw
-								onClick={async () => {
-									if (!input) return;
-
-									try {
-										if (editId) {
-											await handleEditTestCommentClick(editId, input);
-										} else {
-											await handleCreateTestCommentClick(input);
-										}
-									} catch (e) {
-										return;
-									}
-									setEditId(null);
-									setInput('');
-								}}
-								variant="primary"
-								size="xs"
-								className="flex-1"
-							>
-								{editId ? 'Edit' : 'Add Note'}
-							</ButtonTw>
-							{editId ? (
-								<Tooltip content="Cancel">
-									<button
-										className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
-										onClick={() => {
-											setEditId(null);
-											setInput('');
-											inputRef.current?.focus();
-										}}
-									>
-										<Icon name="Cross" className="size-3.5" />
-									</button>
-								</Tooltip>
-							) : null}
+								) : null}
+							</div>
 						</div>
-					</div>
-				</PopoverContent>
+					</PopoverContent>
+				</PopoverPortal>
 			</Popover>
 			<Popover>
 				<Tooltip content="Edit Note">
@@ -448,22 +450,25 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 						</ButtonTw>
 					</PopoverTrigger>
 				</Tooltip>
-				<PopoverContent
-					className={cn(
-						'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
-					)}
-					sideOffset={8}
-					align="end"
-				>
-					<CommentEditor
-						label="Edit Note"
-						onSubmit={(f) =>
-							handleEditTestCommentClick(Number(c.comment_id), f.comment)
-						}
-						defaultValues={{ comment: c.comment }}
-						submitLabel="Edit"
-					/>
-				</PopoverContent>
+
+				<PopoverPortal>
+					<PopoverContent
+						className={cn(
+							'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
+						)}
+						sideOffset={8}
+						align="end"
+					>
+						<CommentEditor
+							label="Edit Note"
+							onSubmit={(f) =>
+								handleEditTestCommentClick(Number(c.comment_id), f.comment)
+							}
+							defaultValues={{ comment: c.comment }}
+							submitLabel="Edit"
+						/>
+					</PopoverContent>
+				</PopoverPortal>
 			</Popover>
 		</div>
 	);
