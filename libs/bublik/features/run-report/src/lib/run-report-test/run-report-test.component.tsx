@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import {
 	HoverCard,
 	HoverCardContent,
+	HoverCardPortal,
 	HoverCardTrigger
 } from '@radix-ui/react-hover-card';
 
@@ -293,20 +294,22 @@ function WarningsHoverCard({ warnings = [] }: WarningsHoverCardProps) {
 					<Icon name="TriangleExclamationMark" size={20} />
 				</div>
 			</HoverCardTrigger>
-			<HoverCardContent asChild sideOffset={4} side="right" align="start">
-				<ul
-					className={cn(
-						'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
-						popoverContentStyles
-					)}
-				>
-					{warnings.map((w) => (
-						<li key={w} className="text-[0.875rem] leading-[1.125rem]">
-							{w}
-						</li>
-					))}
-				</ul>
-			</HoverCardContent>
+			<HoverCardPortal>
+				<HoverCardContent asChild sideOffset={4} side="right" align="start">
+					<ul
+						className={cn(
+							'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
+							popoverContentStyles
+						)}
+					>
+						{warnings.map((w) => (
+							<li key={w} className="text-[0.875rem] leading-[1.125rem]">
+								{w}
+							</li>
+						))}
+					</ul>
+				</HoverCardContent>
+			</HoverCardPortal>
 		</HoverCard>
 	);
 }
