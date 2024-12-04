@@ -132,8 +132,8 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 										<div />
 									)}
 									<span>
-										{idx === 0 && table.labels?.['series'] === null
-											? table?.labels['x_value']
+										{idx === 0 && table?.labels?.['x_value']
+											? table.labels['x_value']
 											: seriesName}
 									</span>
 								</div>
