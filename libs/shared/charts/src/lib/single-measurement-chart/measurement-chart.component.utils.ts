@@ -123,7 +123,7 @@ function resolveOptions(
 			nameGap: 20,
 			nameLocation: 'end',
 			axisLabel: axisLabelStyles,
-			nameTextStyle: axisLabelStyles
+			nameTextStyle: { ...axisLabelStyles, align: 'left' }
 		},
 		series: [
 			{
