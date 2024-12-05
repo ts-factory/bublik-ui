@@ -77,6 +77,17 @@ function RunReportChart(props: RunReportChartProps) {
 	const isPressed = usePlatformSpecificCtrl();
 	const dataZoom = [{}, { type: 'inside', zoomLock: !isPressed }];
 
+	useEffect(() => {
+		function handleResize() {
+			chartRef.current?.getEchartsInstance().resize();
+		}
+
+		window.addEventListener('resize', handleResize);
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []);
+
 	return (
 		<>
 			<LogPreviewContainer
