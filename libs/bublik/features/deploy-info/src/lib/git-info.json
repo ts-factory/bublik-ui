@@ -1,7 +1,7 @@
 {
-	"date": "2024.12.04",
-	"summary": "fix(measurements): add missing measurement `aggr`",
-	"revision": "436754c",
-	"branch": "main",
-	"latestTag": "v1.0.0-rc.1"
+	"date": "2024.12.05",
+	"summary": "fix(report): [chart] resize chart on window resize",
+	"revision": "a453a95",
+	"branch": "okt-limonikas/report-charts-labels",
+	"latestTag": "v1.0.0-rc.2"
 }

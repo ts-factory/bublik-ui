@@ -1,5 +1,19 @@
 
 
+## [1.0.0-rc.2](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2024-12-05)
+
+
+### 🚀 New Feature
+
+* **report:** [chart] add legend title only when `series_label` present ([f14af54](https://github.com/ts-factory/bublik-ui/commit/f14af54e228983dc718896bba3fa54932f6a22b8))
+
+
+### 🐛 Bug Fix
+
+* **history:** [measurements] axis Y label cutoff ([c54cd17](https://github.com/ts-factory/bublik-ui/commit/c54cd17ed112a6d017d9461b4c5919a9ec6ec9f3))
+* **report:** [chart] axis Y label cutoff ([eea0d26](https://github.com/ts-factory/bublik-ui/commit/eea0d2645abe02509a46c3bed22bbb48553c8cdf))
+* **report:** [chart] resize chart on window resize ([a453a95](https://github.com/ts-factory/bublik-ui/commit/a453a95ca21196dbc413fe8c3c1cceb92b032dcc)), closes [#114](https://github.com/ts-factory/bublik-ui/issues/114)
+
 ## [1.0.0-rc.1](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.0...v1.0.0-rc.1) (2024-12-04)
 
 
