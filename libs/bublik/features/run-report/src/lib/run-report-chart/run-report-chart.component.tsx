@@ -25,11 +25,14 @@ function RunReportChart(props: RunReportChartProps) {
 		ComponentProps<typeof Plot>['options']['series']
 	>(() => {
 		return chart.data.map((d) => ({
-			name: chart.series_label === null ? chart.axis_y.label : d.series,
+			name:
+				chart.series_label === null && chart.data.length === 1
+					? chart.axis_y.label
+					: d.series,
 			type: 'line',
 			data: d.points.map((d) => d[chart.axis_y.key])
 		}));
-	}, []);
+	}, [chart.axis_y.key, chart.axis_y.label, chart.data, chart.series_label]);
 
 	const chartRef = useRef<ReactEChartsCore>(null);
 
@@ -69,7 +72,7 @@ function RunReportChart(props: RunReportChartProps) {
 		return () => {
 			instance.off('click', handleClick);
 		};
-	}, []);
+	}, [chart.data]);
 
 	const isPressed = usePlatformSpecificCtrl();
 	const dataZoom = [{}, { type: 'inside', zoomLock: !isPressed }];
@@ -89,19 +92,29 @@ function RunReportChart(props: RunReportChartProps) {
 					notMerge={false}
 					options={{
 						toolbox: { top: 9999, feature: { dataZoom: {} } },
+						title: {
+							show: Boolean(chart.series_label),
+							text: chart.series_label,
+							left: 'center',
+							textStyle: { fontSize: 12, fontFamily: 'Inter' }
+						},
 						tooltip: {
 							trigger: 'axis',
 							textStyle: chartStyles.text,
 							extraCssText: 'shadow-popover rounded-lg',
 							axisPointer: { type: 'shadow' }
 						},
-						legend:
-							chart.data.length === 1
-								? undefined
-								: { data: chart.data.map((s) => s.series) },
+						legend: {
+							data: chart.data.map((s) => s.series),
+							show: Boolean(chart.series_label),
+							padding: chart.series_label ? [25, 0, 0, 0] : undefined
+						},
 						grid: {
 							containLabel: true,
-							top: chart.data.length >= 4 ? '25%' : '15%',
+							top:
+								Boolean(chart.series_label) && chart.data.length >= 4
+									? '28%'
+									: '15%',
 							right: '7%',
 							left: '5%',
 							bottom: '20%'
