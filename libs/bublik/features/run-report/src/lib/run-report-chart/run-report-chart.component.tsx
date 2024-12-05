@@ -122,7 +122,7 @@ function RunReportChart(props: RunReportChartProps) {
 							nameGap: 20,
 							nameLocation: 'end',
 							axisLabel: chartStyles.text,
-							nameTextStyle: chartStyles.text
+							nameTextStyle: { ...chartStyles.text, align: 'left' }
 						},
 						series: series
 					}}
