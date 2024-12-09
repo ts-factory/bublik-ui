@@ -30,7 +30,7 @@ function RunReportChart(props: RunReportChartProps) {
 					? chart.axis_y.label
 					: d.series,
 			type: 'line',
-			data: d.points.map((d) => d[chart.axis_y.key])
+			data: d.points.map((d) => d?.[chart.axis_y.key])
 		}));
 	}, [chart.axis_y.key, chart.axis_y.label, chart.data, chart.series_label]);
 
