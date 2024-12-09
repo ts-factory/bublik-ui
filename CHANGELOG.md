@@ -1,5 +1,12 @@
 
 
+## [1.0.0-rc.3](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.2...v1.0.0-rc.3) (2024-12-09)
+
+
+### 🐛 Bug Fix
+
+* **report:** handle `null` values for missing chart points ([239238f](https://github.com/ts-factory/bublik-ui/commit/239238fc41df447b5762237fafba010fe8403997))
+
 ## [1.0.0-rc.2](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2024-12-05)
 
 
