@@ -189,7 +189,7 @@ function resolveStackedOptions(
 			color: getColorByIdx(idx),
 			encode: { x: plot.axis_x.key, y: plot.axis_y.key },
 			symbolSize: 5.5,
-			id: plot.title
+			id: `${plot.title}_${idx}`
 		})),
 		dataZoom: [
 			{ type: 'inside', xAxisIndex: [0] },
