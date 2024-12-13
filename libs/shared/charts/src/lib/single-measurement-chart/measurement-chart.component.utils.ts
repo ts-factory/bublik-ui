@@ -193,7 +193,8 @@ function resolveStackedOptions(
 		})),
 		dataZoom: [
 			{ type: 'inside', xAxisIndex: [0] },
-			{ type: 'inside', yAxisIndex: plots.map((_, i) => i) }
+			{ type: 'inside', yAxisIndex: plots.map((_, i) => i) },
+			{ type: 'slider', xAxisIndex: [0], bottom: 10 }
 		],
 		grid: {
 			top: 40,
