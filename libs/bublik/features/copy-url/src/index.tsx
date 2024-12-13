@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useLazyGetShortUrlQuery } from '@/services/bublik-api';
 import { ButtonTw, CommandItem, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { useCopyToClipboard } from '@/shared/hooks';
+import { config } from '@/bublik/config';
 
 interface UseCopyShortUrlConfig {
 	url: string;
@@ -37,10 +39,17 @@ interface CopyShortUrlButtonContainerProps {
 	variant?: 'header' | 'card';
 }
 
+function resolveFullUrl(location: ReturnType<typeof useLocation>) {
+	return `${window.location.origin}${config.baseUrl}${location.pathname}${location.search}`;
+}
+
 function CopyShortUrlButtonContainer({
 	variant = 'card'
 }: CopyShortUrlButtonContainerProps) {
-	const { copyShortUrl } = useCopyShortUrl({ url: window.location.href });
+	const location = useLocation();
+	const { copyShortUrl } = useCopyShortUrl({
+		url: resolveFullUrl(location)
+	});
 
 	return (
 		<Tooltip content="Copy short URL to clipboard">
@@ -66,7 +75,10 @@ interface CopyShortUrlCommandItemContainerProps {
 function CopyShortUrlCommandItemContainer(
 	props: CopyShortUrlCommandItemContainerProps
 ) {
-	const { copyShortUrl } = useCopyShortUrl({ url: window.location.href });
+	const location = useLocation();
+	const { copyShortUrl } = useCopyShortUrl({
+		url: resolveFullUrl(location)
+	});
 
 	return (
 		<CommandItem
