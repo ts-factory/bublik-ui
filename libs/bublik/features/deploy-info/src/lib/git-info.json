@@ -1,7 +1,7 @@
 {
-	"date": "2024.12.09",
-	"summary": "fix(report): handle `null` values for missing chart points",
-	"revision": "239238f",
-	"branch": "release-v1.0.0-rc.3",
-	"latestTag": "v1.0.0-rc.3"
+	"date": "2024.12.13",
+	"summary": "fix(history): resolve url based on copy router location to prevent outdated urls",
+	"revision": "bed012f",
+	"branch": "release-v1.0.1",
+	"latestTag": "v1.0.1"
 }
