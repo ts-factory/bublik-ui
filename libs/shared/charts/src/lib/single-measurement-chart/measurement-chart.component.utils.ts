@@ -208,7 +208,7 @@ function resolveStackedOptions(
 			extraCssText: 'shadow-popover rounded-lg',
 			axisPointer: { type: 'cross' }
 		},
-		legend: {}
+		legend: { left: 'left' }
 	};
 }
 
