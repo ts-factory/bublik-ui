@@ -174,7 +174,7 @@ function resolveStackedOptions(
 			nameGap: 20,
 			nameLocation: 'end',
 			axisLabel: axisLabelStyles,
-			nameTextStyle: axisLabelStyles,
+			nameTextStyle: { ...axisLabelStyles, align: 'right' },
 			position: 'right',
 			offset: idx * Y_AXIS_SPACING,
 			axisLine: { show: true, lineStyle: { color: getColorByIdx(idx) } },
@@ -198,7 +198,7 @@ function resolveStackedOptions(
 		grid: {
 			top: 40,
 			left: '5%',
-			right: `${5 * plots.length}%`,
+			right: `${10 * plots.length}%`,
 			bottom: '15%'
 		},
 		tooltip: {
