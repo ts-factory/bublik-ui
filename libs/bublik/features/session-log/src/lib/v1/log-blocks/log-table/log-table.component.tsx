@@ -146,6 +146,9 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 		<DeltaContextProvider value={deltaApi}>
 			<SettingsContextProvider>
 				<div data-block-type={props.type}>
+					<h2 className="text-lg font-semibold text-text-primary mb-2">
+						Test Logs
+					</h2>
 					<LogTableToolbar {...toolbarProps} />
 					{pagination && totalCount ? (
 						<LogPagination
