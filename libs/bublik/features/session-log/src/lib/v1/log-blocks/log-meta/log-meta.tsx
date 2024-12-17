@@ -25,9 +25,11 @@ export const BlockLogMeta = (props: LogHeaderBlock) => {
 
 	return (
 		<div data-block-type={props.type} className="flex flex-col gap-4">
-			<div className="flex flex-col gap-1">
-				<MetaHeader header={props} />
-				<MetaInformation header={props} />
+			<div className="flex gap-4">
+				<div className="flex flex-col gap-1">
+					<MetaHeader header={props} />
+					<MetaInformation header={props} />
+				</div>
 			</div>
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
