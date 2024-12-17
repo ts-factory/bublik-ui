@@ -116,7 +116,39 @@ export const getColumns = (
 			id: LOG_COLUMNS.level,
 			header: 'Level',
 			accessorKey: 'level',
-			meta: { className: 'whitespace-nowrap' }
+			cell: (cell) => {
+				const getLevelBadgeColors = (level: LogTableData['level']) => {
+					switch (level) {
+						case 'ERROR':
+							return 'bg-red-500 text-white';
+						case 'WARN':
+							return 'bg-orange-500 text-white';
+						case 'INFO':
+							return 'bg-primary text-white';
+						case 'VERB':
+							return 'bg-green-500 text-white';
+						case 'PACKET':
+							return 'bg-purple-500 text-white';
+						default:
+							return '';
+					}
+				};
+
+				const level = cell.getValue<LogTableData['level']>();
+
+				return (
+					<div className="whitespace-nowrap grid place-items-center">
+						<span
+							className={cn(
+								'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors',
+								getLevelBadgeColors(level)
+							)}
+						>
+							{level}
+						</span>
+					</div>
+				);
+			}
 		},
 		{
 			id: LOG_COLUMNS.entityName,
