@@ -162,12 +162,12 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 					/>
 					<div ref={startRef} />
 					<div className="relative">
-						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-lg h-auto p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
+						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-auto p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr
 										key={headerGroup.id}
-										className="[&>*:not(:last-child)]:border-r"
+										className="[&>*:not(:last-child)]:border-r bg-gray-50"
 									>
 										{headerGroup.headers.map((header) => (
 											<th
