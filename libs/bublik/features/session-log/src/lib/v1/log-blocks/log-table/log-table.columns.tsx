@@ -19,6 +19,7 @@ import {
 } from './blocks';
 import { useLogTableContext } from './log-table.context';
 import { TimestampDelta } from './timestamp-delta';
+import { Fragment } from 'react/jsx-runtime';
 
 const blocksMap: GetBlocksMap<
 	LogTableBlock['data'][number]['log_content'][number]
@@ -72,29 +73,73 @@ export const getColumns = (
 			header: () => <div className="grid items-center w-8 h-8">+</div>,
 			cell: (cell) => {
 				const { row } = cell;
-
-				if (!row.getCanExpand()) return null;
-
+				const depth = row.depth;
+				const parentRow = row.getParentRow();
+				const canExpand = row.getCanExpand();
 				const isExpanded = row.getIsExpanded();
 				const onClick = row.getToggleExpandedHandler();
 
+				const getIndentationForDepth = (level: number) => {
+					return 18 + level * 28;
+				};
+
 				return (
-					<ButtonTw
-						variant="outline"
-						size="xss"
-						className={cn(
-							'px-2.5',
-							isExpanded
-								? 'hover:bg-gray-100 bg-white'
-								: 'bg-bg-ok text-white hover:bg-bg-ok hover:text-white border-transparent'
+					<div className="h-full w-full">
+						{/* Vertical lines for hierarchy */}
+						{Array.from({ length: depth }).map((_, index, arr) => {
+							const isLast =
+								parentRow?.subRows.at(-1)?.id === row.id &&
+								index === arr.length - 1;
+
+							return (
+								<Fragment key={index}>
+									<div
+										className="absolute top-0 left-1/2 border-l-2 border-gray-300"
+										style={{
+											left: `${getIndentationForDepth(index)}px`,
+											height: isLast ? '50%' : '100%'
+										}}
+									/>
+								</Fragment>
+							);
+						})}
+
+						{/* Horizontal connector line */}
+						{depth > 0 && (
+							<div
+								className="absolute top-1/2 h-[2px] bg-gray-300"
+								style={{
+									left: `${getIndentationForDepth(depth - 1)}px`,
+									width: depth * 28
+								}}
+							/>
 						)}
-						onClick={onClick}
-					>
-						{isExpanded ? '-' : '+'}
-					</ButtonTw>
+
+						{/* Expand button or endpoint */}
+						{canExpand ? (
+							<button
+								onClick={onClick}
+								className={cn(
+									'flex items-center justify-center size-6 rounded relative',
+									'border border-gray-300 bg-white hover:bg-gray-50',
+									isExpanded && 'bg-gray-100'
+								)}
+								style={{ marginLeft: `${depth * 28}px` }}
+							>
+								{/* Vertical line below button when expanded */}
+								{isExpanded && (
+									<div
+										className="absolute top-1/2 left-1/2 border-l-2 h-full border-gray-300 -z-10"
+										style={{ height: '100%' }}
+									/>
+								)}
+								{isExpanded ? '-' : '+'}
+							</button>
+						) : null}
+					</div>
 				);
 			},
-			meta: { className: 'whitespace-nowrap p-1 text-center' }
+			meta: { className: 'px-1.5 relative align-middle' }
 		},
 		{
 			id: LOG_COLUMNS.lineNumber,

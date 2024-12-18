@@ -24,7 +24,7 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 			case 'PACKET':
 				return 'bg-purple-100 hover:bg-purple-200';
 			default:
-				return 'hover:bg-gray-50';
+				return '';
 		}
 	};
 

@@ -147,7 +147,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 			<SettingsContextProvider>
 				<div data-block-type={props.type}>
 					<h2 className="text-lg font-semibold text-text-primary mb-2">
-						Test Logs
+						Test Log
 					</h2>
 					<LogTableToolbar {...toolbarProps} />
 					{pagination && totalCount ? (
@@ -227,18 +227,19 @@ export const LogRow = (props: LogRowProps) => {
 			id={row.id}
 			data-depth={row.depth}
 			className={cn(
-				'border-border-primary [&>*:not(:last-child)]:border-r [&:not(:last-child)>*]:border-b [&:not(:last-child)]:border-b',
+				'border-border-primary [&>*:not(:last-child)]:border-r [&>*:not(:first-child)]:border-b',
 				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md',
 				bgClass
 			)}
 		>
-			{row.getVisibleCells().map((cell) => (
+			{row.getVisibleCells().map((cell, idx, arr) => (
 				<td
 					key={cell.id}
 					className={cn(
 						'px-1.5 py-0.5 align-top',
 						cell.column.columnDef.meta?.className
 					)}
+					style={idx === 0 ? { width: row.depth * 32 } : undefined}
 				>
 					{flexRender(cell.column.columnDef.cell, cell.getContext())}
 				</td>
