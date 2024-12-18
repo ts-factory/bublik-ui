@@ -177,7 +177,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 												key={header.id}
 												colSpan={header.colSpan}
 												className={cn(
-													'px-1.5 py-0.5 border-b border-border-primary',
+													'px-1.5 py-2 border-b border-border-primary',
 													header.column.columnDef.meta?.className
 												)}
 											>

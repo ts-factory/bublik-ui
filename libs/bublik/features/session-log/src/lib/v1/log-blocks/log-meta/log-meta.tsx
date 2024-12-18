@@ -29,13 +29,13 @@ export const BlockLogMeta = (props: LogHeaderBlock) => {
 				<div className="flex flex-col gap-1">
 					<MetaHeader header={props} />
 					<MetaInformation header={props} />
+					<VerdictsTable verdicts={verdicts} />
 				</div>
 			</div>
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
 					<ParametersTable parameters={parameters} />
 					<ArtifactsTable artifacts={artifacts} />
-					<VerdictsTable verdicts={verdicts} />
 					<RequirementsTable requirements={requirements} />
 				</div>
 			</div>
@@ -257,7 +257,7 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 			{href ? (
 				<a
 					href={href}
-					className="text-sm flex items-center gap-1 hover:underline"
+					className="text-sm flex items-center gap-1 hover:underline text-primary"
 				>
 					{value}
 					<ExternalLinkIcon className="size-4" />
@@ -315,7 +315,7 @@ function MetaInformation(props: MetaInformationProps) {
 	const authors = header.meta.authors;
 
 	return (
-		<ul className="flex flex-col gap-1">
+		<ul className="flex flex-col gap-1 py-1">
 			<li>
 				<MetaInfoItem
 					icon={<HashSymbol className="size-5" />}
@@ -335,14 +335,7 @@ function MetaInformation(props: MetaInformationProps) {
 					/>
 				</li>
 			) : null}
-			<li>
-				<MetaInfoItem
-					icon={<InformationCircleExclamationMark className="size-5" />}
-					label="Description"
-					value={description?.text ?? ''}
-					href={description?.url}
-				/>
-			</li>
+
 			{authors?.length ? (
 				<li>
 					<MetaInfoItem
@@ -377,7 +370,7 @@ function MetaHeader(props: MetaHeaderProps) {
 	const { header } = props;
 
 	return (
-		<div className="">
+		<div className="border-b border-gray-300 py-1">
 			<h2 className="flex items-center gap-2">
 				<span className="text-xl font-semibold">
 					{formatTestHeader(header)}

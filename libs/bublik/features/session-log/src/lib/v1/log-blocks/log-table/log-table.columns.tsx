@@ -70,7 +70,7 @@ export const getColumns = (
 	return [
 		{
 			id: LOG_COLUMNS.expand,
-			header: () => <div className="grid items-center w-8 h-8">+</div>,
+			header: () => null,
 			cell: (cell) => {
 				const { row } = cell;
 				const depth = row.depth;
@@ -79,17 +79,12 @@ export const getColumns = (
 				const isExpanded = row.getIsExpanded();
 				const onClick = row.getToggleExpandedHandler();
 
-				const getIndentationForDepth = (level: number) => {
-					return 18 + level * 28;
-				};
-
 				return (
 					<div
 						className="h-full w-full pl-1.5"
 						style={{
 							display: 'grid',
 							gridTemplateColumns: `repeat(${depth + 1}, 32px)`,
-							gap: '8px',
 							alignItems: 'center',
 							justifyItems: 'center'
 						}}
@@ -102,16 +97,36 @@ export const getColumns = (
 							return (
 								<div
 									key={index}
-									className="w-[2px] h-full bg-gray-300 relative justify-self-center"
+									className="w-[2px] bg-gray-500 relative justify-self-center self-start"
+									style={{
+										height: !isLast ? '100%' : '14px',
+										gridRow: '1 / -1',
+										gridColumnStart: index + 1,
+										gridColumnEnd: index + 2
+									}}
 								/>
 							);
 						})}
-						{/* {depth > 0 && <div className="h-[2px] bg-gray-300 w-full" />} */}
+						{/* Horizontal line between columns */}
+						{depth > 0 && (
+							<div
+								className="h-[2px] bg-gray-500 w-full"
+								style={{
+									gridColumnStart: depth,
+									gridColumnEnd: depth + 3,
+									gridRow: '1 / -1',
+									justifySelf: 'end',
+									width: `calc(100% - 15px)`,
+									alignSelf: 'self-start',
+									marginTop: '12px'
+								}}
+							/>
+						)}
 
 						{/* Vertical line below button when expanded */}
 						{isExpanded && canExpand && (
 							<div
-								className="bg-gray-300 w-[2px] h-1/2 self-end"
+								className="bg-gray-500 w-[2px] h-1/2 self-end"
 								style={{
 									gridColumn: depth + 1,
 									gridRow: '1 / -1', // Span all rows
