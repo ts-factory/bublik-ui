@@ -84,37 +84,41 @@ export const getColumns = (
 				};
 
 				return (
-					<div className="h-full w-full">
-						{/* Vertical lines for hierarchy */}
+					<div
+						className="h-full w-full pl-1.5"
+						style={{
+							display: 'grid',
+							gridTemplateColumns: `repeat(${depth + 1}, 32px)`,
+							gap: '8px',
+							alignItems: 'center',
+							justifyItems: 'center'
+						}}
+					>
 						{Array.from({ length: depth }).map((_, index, arr) => {
 							const isLast =
 								parentRow?.subRows.at(-1)?.id === row.id &&
 								index === arr.length - 1;
 
 							return (
-								<Fragment key={index}>
-									<div
-										className="absolute top-0 left-1/2 border-l-2 border-gray-300"
-										style={{
-											left: `${getIndentationForDepth(index)}px`,
-											height: isLast ? '50%' : '100%'
-										}}
-									/>
-								</Fragment>
+								<div
+									key={index}
+									className="w-[2px] h-full bg-gray-300 relative justify-self-center"
+								/>
 							);
 						})}
+						{/* {depth > 0 && <div className="h-[2px] bg-gray-300 w-full" />} */}
 
-						{/* Horizontal connector line */}
-						{depth > 0 && (
+						{/* Vertical line below button when expanded */}
+						{isExpanded && canExpand && (
 							<div
-								className="absolute top-1/2 h-[2px] bg-gray-300"
+								className="bg-gray-300 w-[2px] h-1/2 self-end"
 								style={{
-									left: `${getIndentationForDepth(depth - 1)}px`,
-									width: depth * 28
+									gridColumn: depth + 1,
+									gridRow: '1 / -1', // Span all rows
+									zIndex: 0
 								}}
 							/>
 						)}
-
 						{/* Expand button or endpoint */}
 						{canExpand ? (
 							<button
@@ -124,22 +128,19 @@ export const getColumns = (
 									'border border-gray-300 bg-white hover:bg-gray-50',
 									isExpanded && 'bg-gray-100'
 								)}
-								style={{ marginLeft: `${depth * 28}px` }}
+								style={{
+									gridColumn: depth + 1,
+									gridRow: 1,
+									zIndex: 1
+								}}
 							>
-								{/* Vertical line below button when expanded */}
-								{isExpanded && (
-									<div
-										className="absolute top-1/2 left-1/2 border-l-2 h-full border-gray-300 -z-10"
-										style={{ height: '100%' }}
-									/>
-								)}
 								{isExpanded ? '-' : '+'}
 							</button>
 						) : null}
 					</div>
 				);
 			},
-			meta: { className: 'px-1.5 relative align-middle' }
+			meta: { className: 'p-0 h-full relative align-middle' }
 		},
 		{
 			id: LOG_COLUMNS.lineNumber,

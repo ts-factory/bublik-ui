@@ -165,7 +165,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 					/>
 					<div ref={startRef} />
 					<div className="relative">
-						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-auto p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
+						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-fit p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr
@@ -239,7 +239,6 @@ export const LogRow = (props: LogRowProps) => {
 						'px-1.5 py-0.5 align-top',
 						cell.column.columnDef.meta?.className
 					)}
-					style={idx === 0 ? { width: row.depth * 32 } : undefined}
 				>
 					{flexRender(cell.column.columnDef.cell, cell.getContext())}
 				</td>
