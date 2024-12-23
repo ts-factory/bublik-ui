@@ -1,7 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Table } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import {
+	ComponentPropsWithoutRef,
+	CSSProperties,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
 
 import {
 	DropdownMenu,
@@ -22,14 +28,16 @@ import { LogTableFilterValue } from '../log-table.types';
 import { TableDepthFilter } from './table-depth-filter';
 import { DataTableFacetedFilter } from './table-filter';
 import { useSettingsContext } from '../settings.context';
+import { useMeasure } from 'react-use';
 
 const ERROR_LEVEL = 'ERROR';
 
 export interface ColumnToggleProps {
 	table: Table<LogTableData>;
+	className?: string;
 }
 
-export const ColumnToggle = ({ table }: ColumnToggleProps) => {
+export const ColumnToggle = ({ table, className }: ColumnToggleProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
@@ -39,7 +47,7 @@ export const ColumnToggle = ({ table }: ColumnToggleProps) => {
 					size="xs/2"
 					state={isOpen && 'active'}
 					variant="outline-secondary"
-					className="w-full"
+					className={cn('w-full', className)}
 				>
 					Columns
 					<Icon name="ArrowShortSmall" />
@@ -83,6 +91,7 @@ export interface LogTableToolbarProps {
 	entityFilters: string[];
 	isDeltaShown?: boolean;
 	handleDeltaChangeClick: () => void;
+	isIntersection?: boolean;
 }
 
 export const LogTableToolbar = (props: LogTableToolbarProps) => {
@@ -94,7 +103,8 @@ export const LogTableToolbar = (props: LogTableToolbarProps) => {
 		mainEntityFilters,
 		entityFilters,
 		handleDeltaChangeClick,
-		isDeltaShown
+		isDeltaShown,
+		isIntersection
 	} = props;
 
 	const settingsApi = useSettingsContext();
@@ -197,84 +207,123 @@ export const LogTableToolbar = (props: LogTableToolbarProps) => {
 	);
 	const isErrorActive = state.levels.includes(ERROR_LEVEL);
 
-	return (
-		<div className="grid mb-4 grid-cols-[max-content_max-content_max-content_1fr_max-content_max-content] gap-2">
-			<div className="flex items-center col-start-2 row-start-1 gap-2">
-				{scenario && (
-					<Tooltip content="Toggle scenario filters">
-						<ButtonTw
-							variant="outline"
-							size="xs/2"
-							state={isScenarioButtonActive && 'active'}
-							onClick={() => handleFilterClick(scenario)}
-						>
-							#Scenario
-						</ButtonTw>
-					</Tooltip>
-				)}
-				{test && (
-					<Tooltip content="Toggle test filters">
-						<ButtonTw
-							variant="outline"
-							size="xs/2"
-							state={isTestButtonActive && 'active'}
-							onClick={() => handleFilterClick(test)}
-						>
-							#Test
-						</ButtonTw>
-					</Tooltip>
-				)}
-				<Tooltip content="Toggle all filters">
-					<ButtonTw
-						variant="outline"
-						size="xs/2"
-						state={isAllButtonActive && 'active'}
-						onClick={() => handleFilterClick(filters)}
-					>
-						#All
-					</ButtonTw>
-				</Tooltip>
-			</div>
-			<div className="col-start-3 row-start-1">
-				{levels.includes(ERROR_LEVEL) ? (
-					<Tooltip content="Show/hide errors">
-						<ButtonTw
-							size="xs/2"
-							variant="outline"
-							disabled={!levels.includes(ERROR_LEVEL)}
-							onClick={() =>
-								table.setGlobalFilter((prev: LogTableFilterValue) => ({
-									...prev,
-									levels: prev.levels.includes(ERROR_LEVEL)
-										? prev.levels.filter((level) => level !== ERROR_LEVEL)
-										: prev.levels.concat(ERROR_LEVEL)
-								}))
-							}
-							className={cn(
-								'w-full',
-								isErrorActive &&
-									'bg-bg-error text-white hover:bg-bg-error hover:text-white border-bg-error'
-							)}
-						>
-							<Icon
-								name="InformationCircleExclamationMark"
-								size={16}
-								className="mr-2"
-							/>
-							{ERROR_LEVEL}
-						</ButtonTw>
-					</Tooltip>
-				) : null}
-			</div>
+	const [isOpen, setIsOpen] = useState(false);
+	const [ref, { height }] = useMeasure<HTMLDivElement>();
 
-			<div className="col-start-1 row-start-1">
+	const baseStyle = {
+		position: 'sticky',
+		zIndex: 10,
+		width: '100%'
+	} satisfies CSSProperties;
+
+	return (
+		<div
+			className={cn(
+				'flex justify-between gap-12 mb-2',
+				'bg-white rounded-b-lg',
+				'transition-all',
+				isIntersection && isOpen && 'shadow-xl'
+			)}
+			style={
+				isIntersection
+					? {
+							...baseStyle,
+							width: 'fit-content',
+							left: '50%',
+							transform: 'translateX(-50%)',
+							top: isOpen ? 0 : -height,
+							padding: isOpen ? '8px' : '0px'
+					  }
+					: baseStyle
+			}
+			ref={ref}
+		>
+			<FloatingExpandButton
+				isOpen={isOpen}
+				onClick={() => setIsOpen(!isOpen)}
+				className={cn(
+					'transition-all',
+					!isIntersection
+						? 'invisible opacity-0 pointer-events-none'
+						: 'opacity-100'
+				)}
+			/>
+			<div className="grid items-center grid-cols-[max-content_max-content_max-content] gap-2">
 				<TableDepthFilter
 					maxDepth={maximumDepth}
 					onDepthClick={handleDepthClick}
 					flatRows={table.getCoreRowModel().flatRows}
+					className="w-full"
 				/>
-			</div>
-			<div className="col-start-1 row-start-2">
+
+				<div className="flex items-center gap-2 col-span-2">
+					{scenario && (
+						<Tooltip content="Toggle scenario filters">
+							<ButtonTw
+								variant="outline"
+								size="xs/2"
+								state={isScenarioButtonActive && 'active'}
+								onClick={() => handleFilterClick(scenario)}
+							>
+								#Scenario
+							</ButtonTw>
+						</Tooltip>
+					)}
+					{test && (
+						<Tooltip content="Toggle test filters">
+							<ButtonTw
+								variant="outline"
+								size="xs/2"
+								state={isTestButtonActive && 'active'}
+								onClick={() => handleFilterClick(test)}
+							>
+								#Test
+							</ButtonTw>
+						</Tooltip>
+					)}
+					<Tooltip content="Toggle all filters">
+						<ButtonTw
+							variant="outline"
+							size="xs/2"
+							state={isAllButtonActive && 'active'}
+							onClick={() => handleFilterClick(filters)}
+						>
+							#All
+						</ButtonTw>
+					</Tooltip>
+					<div className="">
+						{levels.includes(ERROR_LEVEL) ? (
+							<Tooltip content="Show/hide errors">
+								<ButtonTw
+									size="xs/2"
+									variant="outline"
+									disabled={!levels.includes(ERROR_LEVEL)}
+									onClick={() =>
+										table.setGlobalFilter((prev: LogTableFilterValue) => ({
+											...prev,
+											levels: prev.levels.includes(ERROR_LEVEL)
+												? prev.levels.filter((level) => level !== ERROR_LEVEL)
+												: prev.levels.concat(ERROR_LEVEL)
+										}))
+									}
+									className={cn(
+										'w-full',
+										isErrorActive &&
+											'bg-bg-error text-white hover:bg-bg-error hover:text-white border-bg-error'
+									)}
+								>
+									<Icon
+										name="InformationCircleExclamationMark"
+										size={16}
+										className="mr-2"
+									/>
+									{ERROR_LEVEL}
+								</ButtonTw>
+							</Tooltip>
+						) : null}
+					</div>
+				</div>
+
 				<DataTableFacetedFilter
 					title="Log Level"
 					options={options.levels}
@@ -287,9 +336,7 @@ export const LogTableToolbar = (props: LogTableToolbarProps) => {
 					value={table.getState().globalFilter.levels}
 					className="w-full"
 				/>
-			</div>
 
-			<div className="col-start-2 row-start-2">
 				<DataTableFacetedFilter
 					title="Entity / User"
 					options={options.filters}
@@ -302,21 +349,7 @@ export const LogTableToolbar = (props: LogTableToolbarProps) => {
 					value={table.getState().globalFilter.filters}
 					className="w-full"
 				/>
-			</div>
-			<div className="col-start-6 row-start-2">
-				<Tooltip content="Toggle line wrapping">
-					<ButtonTw
-						variant="outline"
-						size="xs/2"
-						state={settingsApi.isWordBreakEnabled && 'active'}
-						onClick={() => settingsApi.toggleWordBreak?.()}
-					>
-						<Icon name="TextWrap" size={16} className="mr-2" />
-						Line Wrap
-					</ButtonTw>
-				</Tooltip>
-			</div>
-			<div className="col-start-3 row-start-2">
+
 				<ButtonTw
 					variant="outline"
 					size="xs/2"
@@ -332,23 +365,117 @@ export const LogTableToolbar = (props: LogTableToolbarProps) => {
 					Reset
 				</ButtonTw>
 			</div>
-			<div className="col-start-5 row-start-2">
+
+			<div className="grid items-center grid-cols-[max-content_max-content] gap-2">
+				<Tooltip content="Toggle line wrapping">
+					<ButtonTw
+						variant="outline"
+						size="xs/2"
+						state={settingsApi.isWordBreakEnabled && 'active'}
+						onClick={() => settingsApi.toggleWordBreak?.()}
+						className="row-start-2"
+					>
+						<Icon name="TextWrap" size={16} className="mr-2" />
+						Line Wrap
+					</ButtonTw>
+				</Tooltip>
+
 				<Tooltip content="Show/hide timestamp delta">
 					<ButtonTw
 						variant="outline"
 						size="xs/2"
 						onClick={handleDeltaChangeClick}
-						className="w-full"
+						className="w-full row-start-2"
 						state={isDeltaShown && 'active'}
 					>
 						<Icon name="TriangleDelta" size={16} className="mr-2" />
 						Time Delta
 					</ButtonTw>
 				</Tooltip>
+
+				<ColumnToggle table={table} className="row-start-1 col-start-2" />
 			</div>
-			<div className="col-start-6 row-start-1">
-				<ColumnToggle table={table} />
-			</div>
+		</div>
+	);
+};
+
+interface ToolbarFloatingProps {
+	isVisible?: boolean;
+	toolbarProps: ComponentProps<typeof LogTableToolbar>;
+}
+
+export const ToolbarFloating = (props: ToolbarFloatingProps) => {
+	const PADDING = 8;
+
+	const { isVisible, toolbarProps } = props;
+	const [ref, { height }] = useMeasure<HTMLDivElement>();
+	const [isOpen, setIsOpen] = useState(false);
+
+	const translation = !isOpen ? height + PADDING * 2 : 0;
+
+	return (
+		<AnimatePresence>
+			{isVisible ? (
+				<motion.div
+					initial={{ opacity: 0, y: -translation }}
+					animate={{ opacity: 1, y: -translation }}
+					transition={{ type: 'spring', bounce: 0.1 }}
+					className="sticky top-0 z-50 flex flex-col items-center justify-center left-1/2"
+				>
+					<div
+						className={cn(
+							'relative bg-white rounded-b-lg transition-shadow',
+							isOpen && 'shadow-xl'
+						)}
+					>
+						<div ref={ref} className="p-2">
+							<LogTableToolbar {...toolbarProps} />
+						</div>
+					</div>
+					<div className="z-10 flex justify-center">
+						<FloatingExpandButton
+							isOpen={isOpen}
+							onClick={() => setIsOpen(!isOpen)}
+							aria-label="Show or hide toolbar toolbar"
+						/>
+					</div>
+				</motion.div>
+			) : null}
+		</AnimatePresence>
+	);
+};
+
+type FloatingExpandButtonProps = ComponentPropsWithoutRef<'button'> & {
+	isOpen: boolean;
+};
+
+export const FloatingExpandButton = ({
+	isOpen,
+	className,
+	...props
+}: FloatingExpandButtonProps) => {
+	return (
+		<div
+			className={cn(
+				'rounded-b-xl flex absolute left-1/2 -translate-x-1/2 -bottom-6 shadow-xl items-center justify-center transition-all w-[250px] border-t',
+				isOpen
+					? 'bg-white text-primary hover:bg-primary-wash border-t-border-primary'
+					: 'bg-primary text-white border-t-transparent',
+				className
+			)}
+		>
+			<button
+				{...props}
+				className={cn(
+					'flex items-center justify-center flex-1 p-0.5 rounded-md'
+				)}
+			>
+				<Icon
+					name="ArrowShortTop"
+					size={20}
+					className={cn('transition-all', isOpen ? 'rotate-0' : 'rotate-180')}
+				/>
+			</button>
 		</div>
 	);
 };

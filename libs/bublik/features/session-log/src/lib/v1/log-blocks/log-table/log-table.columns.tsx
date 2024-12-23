@@ -231,7 +231,7 @@ export const getColumns = (
 				const level = cell.getValue<LogTableData['level']>();
 
 				return (
-					<div className="whitespace-nowrap grid place-items-center">
+					<div className="whitespace-nowrap grid items-center justify-start">
 						<span
 							className={cn(
 								'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors',

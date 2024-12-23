@@ -2,7 +2,14 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode } from 'react';
 
-import { Badge, BadgeVariants, Separator } from '@/shared/tailwind-ui';
+import {
+	Badge,
+	BadgeVariants,
+	cn,
+	Icon,
+	Separator,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { checkSchema } from '@/shared/utils';
 
 import {
@@ -33,7 +40,7 @@ export const BlockLogMeta = (props: LogHeaderBlock) => {
 				</div>
 			</div>
 			<div className="flex flex-col gap-4">
-				<div className="flex gap-4">
+				<div className="flex gap-4 flex-wrap">
 					<ParametersTable parameters={parameters} />
 					<ArtifactsTable artifacts={artifacts} />
 					<RequirementsTable requirements={requirements} />
@@ -43,7 +50,6 @@ export const BlockLogMeta = (props: LogHeaderBlock) => {
 	);
 };
 
-// Requirements table
 interface RequirementsTableProps {
 	requirements: LogHeaderBlock['meta']['requirements'];
 }
@@ -56,10 +62,12 @@ function RequirementsTable(props: RequirementsTableProps) {
 	return (
 		<div>
 			<h3 className="text-sm font-semibold mb-2">Requirements</h3>
-			<div className="border rounded-md p-2 bg-gray-100">
+			<div className="border rounded-md p-2">
 				<ul className="list-none space-y-1 text-sm font-mono">
 					{requirements.map((requirement, idx) => (
-						<li key={idx}>{requirement}</li>
+						<li key={idx}>
+							<Badge className="bg-badge-2">{requirement}</Badge>
+						</li>
 					))}
 				</ul>
 			</div>
@@ -122,10 +130,12 @@ function ArtifactsTable(props: ArtifactsTableProps) {
 	return (
 		<div>
 			<h3 className="text-sm font-semibold mb-2">Artifacts</h3>
-			<div className="border rounded-md p-2 bg-gray-100">
+			<div className="border rounded-md p-2">
 				<ul className="list-none space-y-1 text-sm font-mono">
 					{artifacts.map((artifact, idx) => (
-						<li key={idx}>{artifact.artifact}</li>
+						<li key={idx}>
+							<Badge className="bg-badge-16">{artifact.artifact}</Badge>
+						</li>
 					))}
 				</ul>
 			</div>
@@ -143,9 +153,58 @@ function VerdictsTable(props: VerdictsTableProps) {
 
 	if (!verdicts) return null;
 
+	function getVerdictIcon(level: string) {
+		const baseClasses = 'size-5';
+
+		switch (level) {
+			case 'INFO':
+				return (
+					<Icon
+						name="InformationCircleExclamationMark"
+						className={`${baseClasses} text-gray-500`}
+					/>
+				);
+			case 'ERROR':
+				return (
+					<Icon
+						name="InformationCircleCrossMark"
+						className={`${baseClasses} text-text-unexpected`}
+					/>
+				);
+			case 'WARN':
+				return (
+					<Icon
+						name="InformationCircleQuestionMark"
+						className={`${baseClasses} text-yellow-500`}
+					/>
+				);
+			case 'VERB':
+				return (
+					<Icon
+						name="InformationCircleExclamationMark"
+						className={`${baseClasses} text-green-500`}
+					/>
+				);
+			case 'PACKET':
+				return (
+					<Icon
+						name="InformationCircleExclamationMark"
+						className={`${baseClasses} text-purple-500`}
+					/>
+				);
+			default:
+				return (
+					<Icon
+						name="InformationCircleExclamationMark"
+						className={`${baseClasses} text-gray-500`}
+					/>
+				);
+		}
+	}
+
 	return (
-		<div>
-			<h3 className="text-sm font-semibold mb-2">Verdicts</h3>
+		<div className="flex flex-col gap-2">
+			<h3 className="text-sm font-semibold">Verdicts</h3>
 			<div className="border rounded-md overflow-hidden">
 				<div className="relative w-full overflow-auto">
 					<table className="w-full caption-bottom text-sm">
@@ -153,81 +212,17 @@ function VerdictsTable(props: VerdictsTableProps) {
 							{verdicts.map((verdict, idx) => (
 								<tr
 									key={idx}
-									className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${
+									className={cn(
+										'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
 										idx % 2 === 0 ? 'bg-muted/50' : ''
-									}`}
+									)}
 								>
-									<td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 py-2 pl-2 pr-4 w-6">
-										{verdict.level === 'success' ? (
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												className="lucide lucide-circle-check h-5 w-5 text-green-500"
-											>
-												<circle cx="12" cy="12" r="10" />
-												<path d="m9 12 2 2 4-4" />
-											</svg>
-										) : verdict.level === 'error' ? (
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												className="lucide lucide-circle-x h-5 w-5 text-red-500"
-											>
-												<circle cx="12" cy="12" r="10" />
-												<path d="m15 9-6 6" />
-												<path d="m9 9 6 6" />
-											</svg>
-										) : verdict.level === 'warning' ? (
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												className="lucide lucide-circle-alert h-5 w-5 text-yellow-500"
-											>
-												<circle cx="12" cy="12" r="10" />
-												<line x1="12" x2="12" y1="8" y2="12" />
-												<line x1="12" x2="12.01" y1="16" y2="16" />
-											</svg>
-										) : (
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												className="lucide lucide-circle-alert h-5 w-5 text-orange-500"
-											>
-												<circle cx="12" cy="12" r="10" />
-												<line x1="12" x2="12" y1="8" y2="12" />
-												<line x1="12" x2="12.01" y1="16" y2="16" />
-											</svg>
-										)}
-									</td>
-									<td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 py-2 text-sm">
+									<Tooltip content={`Level: ${verdict.level}`}>
+										<td className="align-middle p-2 w-px">
+											{getVerdictIcon(verdict.level)}
+										</td>
+									</Tooltip>
+									<td className="align-middle py-2 pr-4 pl-0.5 text-sm">
 										{verdict.verdict}
 									</td>
 								</tr>
@@ -257,7 +252,7 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 			{href ? (
 				<a
 					href={href}
-					className="text-sm flex items-center gap-1 hover:underline text-primary"
+					className="text-sm flex items-center gap-1 hover:underline"
 				>
 					{value}
 					<ExternalLinkIcon className="size-4" />
@@ -341,6 +336,7 @@ function MetaInformation(props: MetaInformationProps) {
 						icon={<InformationCircleExclamationMark className="size-5" />}
 						label="Description"
 						value={description.text}
+						href={description.url}
 					/>
 				</li>
 			) : null}
