@@ -237,15 +237,15 @@ export function LogRow({ row, table }: LogRowProps) {
 			className={cn(
 				'border-border-primary [&>*:not(:last-child)]:border-r',
 				shouldAddBorder ? '[&>*]:border-b' : '[&>*:not(:first-child)]:border-b',
-				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md'
-				// bgClass
+				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md',
+				bgClass
 			)}
 		>
 			{row.getVisibleCells().map((cell) => (
 				<td
 					key={cell.id}
 					className={cn(
-						'px-1.5 py-0.5 align-top bg-white',
+						'px-1.5 py-0.5 align-top',
 						cell.column.columnDef.meta?.className
 					)}
 				>
