@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 
-import { ButtonTw, cn } from '@/shared/tailwind-ui';
+import { cn } from '@/shared/tailwind-ui';
 
 import {
 	GetBlocksMap,
@@ -19,7 +19,6 @@ import {
 } from './blocks';
 import { useLogTableContext } from './log-table.context';
 import { TimestampDelta } from './timestamp-delta';
-import { Fragment } from 'react/jsx-runtime';
 
 const blocksMap: GetBlocksMap<
 	LogTableBlock['data'][number]['log_content'][number]
@@ -56,6 +55,36 @@ export const LOG_COLUMNS = {
 	logContent: 'LOG_CONTENT'
 } as const;
 
+type ShouldHideVerticalLineParams<T extends Record<string, unknown>> = {
+	row: Row<T>;
+	lineDepth: number;
+	parentRow?: Row<T> | null;
+};
+
+function shouldHideVerticalLine<T extends Record<string, unknown>>(
+	options: ShouldHideVerticalLineParams<T>
+) {
+	const { row, lineDepth, parentRow } = options;
+	const rootParent = row.getParentRows().at(0);
+	const leafRows = rootParent?.getLeafRows() || [];
+	const currentRowIndex = leafRows.findIndex((r) => r.id === row.id);
+
+	const prevRow = leafRows.at(currentRowIndex - 1);
+	const nextRow = leafRows.at(currentRowIndex + 1);
+
+	// Hide vertical line when:
+	// 1. Previous row has greater depth than current line position
+	// 2. Parent row has greater depth than current line position
+	// 3. Next row is not at the same depth as previous row
+	return !!(
+		prevRow?.depth &&
+		prevRow.depth > lineDepth &&
+		parentRow?.depth &&
+		parentRow.depth > lineDepth &&
+		nextRow?.depth !== prevRow.depth
+	);
+}
+
 export const allLogColumns = Object.values(LOG_COLUMNS);
 
 export interface GetColumnsParams {
@@ -81,7 +110,7 @@ export const getColumns = (
 
 				return (
 					<div
-						className="h-full w-full pl-1.5"
+						className="h-full w-full"
 						style={{
 							display: 'grid',
 							gridTemplateColumns: `repeat(${depth + 1}, 32px)`,
@@ -89,20 +118,27 @@ export const getColumns = (
 							justifyItems: 'center'
 						}}
 					>
-						{Array.from({ length: depth }).map((_, index, arr) => {
+						{Array.from({ length: depth }).map((_, lineDepth, arr) => {
 							const isLast =
 								parentRow?.subRows.at(-1)?.id === row.id &&
-								index === arr.length - 1;
+								lineDepth === arr.length - 1;
+
+							const hideVerticalLine = shouldHideVerticalLine({
+								row,
+								lineDepth,
+								parentRow
+							});
 
 							return (
 								<div
-									key={index}
-									className="w-[2px] bg-gray-500 relative justify-self-center self-start"
+									key={lineDepth}
+									className="w-[2px] justify-self-center self-start bg-border-primary"
 									style={{
-										height: !isLast ? '100%' : '14px',
+										height: !isLast ? 'calc(100% + 1px)' : '14px',
 										gridRow: '1 / -1',
-										gridColumnStart: index + 1,
-										gridColumnEnd: index + 2
+										gridColumnStart: lineDepth + 1,
+										gridColumnEnd: lineDepth + 2,
+										display: hideVerticalLine ? 'none' : 'block'
 									}}
 								/>
 							);
@@ -110,7 +146,7 @@ export const getColumns = (
 						{/* Horizontal line between columns */}
 						{depth > 0 && (
 							<div
-								className="h-[2px] bg-gray-500 w-full"
+								className="h-[2px] bg-border-primary w-full"
 								style={{
 									gridColumnStart: depth,
 									gridColumnEnd: depth + 3,
@@ -126,11 +162,11 @@ export const getColumns = (
 						{/* Vertical line below button when expanded */}
 						{isExpanded && canExpand && (
 							<div
-								className="bg-gray-500 w-[2px] h-1/2 self-end"
+								className="bg-border-primary w-[2px] h-1/2 self-end"
 								style={{
 									gridColumn: depth + 1,
-									gridRow: '1 / -1', // Span all rows
-									zIndex: 0
+									gridRow: '1 / -1',
+									transform: 'translateY(1px)'
 								}}
 							/>
 						)}
@@ -139,15 +175,12 @@ export const getColumns = (
 							<button
 								onClick={onClick}
 								className={cn(
-									'flex items-center justify-center size-6 rounded relative',
-									'border border-gray-300 bg-white hover:bg-gray-50',
-									isExpanded && 'bg-gray-100'
+									'flex items-center justify-center size-6 rounded border',
+									isExpanded
+										? 'bg-gray-100 border-gray-300 hover:bg-gray-50'
+										: 'bg-bg-ok text-white border-bg-ok'
 								)}
-								style={{
-									gridColumn: depth + 1,
-									gridRow: 1,
-									zIndex: 1
-								}}
+								style={{ gridColumn: depth + 1, gridRow: 1, zIndex: 1 }}
 							>
 								{isExpanded ? '-' : '+'}
 							</button>
@@ -155,7 +188,7 @@ export const getColumns = (
 					</div>
 				);
 			},
-			meta: { className: 'p-0 h-full relative align-middle' }
+			meta: { className: 'p-0 h-full align-middle w-[1px]' }
 		},
 		{
 			id: LOG_COLUMNS.lineNumber,
@@ -185,7 +218,7 @@ export const getColumns = (
 						case 'WARN':
 							return 'bg-orange-500 text-white';
 						case 'INFO':
-							return 'bg-primary text-white';
+							return '';
 						case 'VERB':
 							return 'bg-green-500 text-white';
 						case 'PACKET':

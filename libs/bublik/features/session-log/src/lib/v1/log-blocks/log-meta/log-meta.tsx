@@ -263,7 +263,7 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 					<ExternalLinkIcon className="size-4" />
 				</a>
 			) : (
-				<span className="text-sm text-gray-500">{value}</span>
+				<span className="text-sm text-gray-800">{value}</span>
 			)}
 		</div>
 	);
@@ -284,17 +284,17 @@ function MetaDuration(props: MetaDurationProps) {
 			<span className="text-sm text-text-primary font-semibold">
 				Duration:&nbsp;
 			</span>
-			<span className="text-sm text-gray-500">{duration}</span>
+			<span className="text-sm text-gray-800">{duration}</span>
 			<Separator orientation="vertical" className="h-4 mx-2" />
 			<span className="text-sm text-text-primary font-semibold">
 				Start:&nbsp;
 			</span>
-			<span className="text-sm text-gray-500">{start}</span>
+			<span className="text-sm text-gray-800">{start}</span>
 			<Separator orientation="vertical" className="h-4 mx-2" />
 			<span className="text-sm text-text-primary font-semibold">
 				End:&nbsp;
 			</span>
-			<span className="text-sm text-gray-500">{end}</span>
+			<span className="text-sm text-gray-800">{end}</span>
 		</div>
 	);
 }
@@ -332,6 +332,15 @@ function MetaInformation(props: MetaInformationProps) {
 						icon={<TargetIcon className="size-5" />}
 						label="Objective"
 						value={objective}
+					/>
+				</li>
+			) : null}
+			{description ? (
+				<li>
+					<MetaInfoItem
+						icon={<InformationCircleExclamationMark className="size-5" />}
+						label="Description"
+						value={description.text}
 					/>
 				</li>
 			) : null}

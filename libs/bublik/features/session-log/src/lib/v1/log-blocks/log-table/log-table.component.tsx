@@ -18,6 +18,7 @@ import {
 	getPaginationRowModel,
 	Row,
 	RowData,
+	Table,
 	useReactTable
 } from '@tanstack/react-table';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -194,7 +195,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 							</thead>
 							<tbody>
 								{table.getRowModel().rows.map((row) => (
-									<LogRow key={row.id} row={row} />
+									<LogRow key={row.id} row={row} table={table} />
 								))}
 							</tbody>
 						</table>
@@ -215,28 +216,36 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 
 export interface LogRowProps {
 	row: Row<LogTableData>;
+	table: Table<LogTableData>;
 }
 
-export const LogRow = (props: LogRowProps) => {
-	const { row } = props;
-
+export function LogRow({ row, table }: LogRowProps) {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const bgClass = getRowColor(row.original);
+	const canExpand = row.getCanExpand();
+	const nextRowCanExpand = table
+		.getRowModel()
+		.rows[
+			table.getRowModel().rows.findIndex((r) => r.id === row.id) + 1
+		]?.getCanExpand();
+	const shouldAddBorder = canExpand || nextRowCanExpand;
 
 	return (
 		<tr
 			id={row.id}
 			data-depth={row.depth}
 			className={cn(
-				'border-border-primary [&>*:not(:last-child)]:border-r [&>*:not(:first-child)]:border-b',
-				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md',
-				bgClass
+				'border-border-primary [&>*:not(:last-child)]:border-r',
+				shouldAddBorder ? '[&>*]:border-b' : '[&>*:not(:first-child)]:border-b',
+				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md'
+				// bgClass
 			)}
 		>
-			{row.getVisibleCells().map((cell, idx, arr) => (
+			{row.getVisibleCells().map((cell) => (
 				<td
 					key={cell.id}
 					className={cn(
-						'px-1.5 py-0.5 align-top',
+						'px-1.5 py-0.5 align-top bg-white',
 						cell.column.columnDef.meta?.className
 					)}
 				>
@@ -245,7 +254,7 @@ export const LogRow = (props: LogRowProps) => {
 			))}
 		</tr>
 	);
-};
+}
 
 interface LogPaginationProps extends ComponentProps<typeof Pagination> {
 	id: string;
