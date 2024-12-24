@@ -201,14 +201,27 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 								))}
 							</thead>
 							<tbody>
-								{table.getRowModel().rows.map((row, index, array) => (
-									<LogRow
-										key={row.id}
-										row={row}
-										table={table}
-										isLast={index === array.length - 1}
-									/>
-								))}
+								{table.getRowModel().rows.length === 0 ? (
+									<tr>
+										<td
+											colSpan={table.getAllColumns().length}
+											className="text-center py-4 text-gray-500"
+										>
+											No results found for the current filters
+										</td>
+									</tr>
+								) : (
+									table
+										.getRowModel()
+										.rows.map((row, index, array) => (
+											<LogRow
+												key={row.id}
+												row={row}
+												table={table}
+												isLast={index === array.length - 1}
+											/>
+										))
+								)}
 							</tbody>
 						</table>
 					</div>
