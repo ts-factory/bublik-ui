@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode } from 'react';
+import { ReactNode, Fragment } from 'react';
 
 import {
 	Badge,
@@ -8,16 +8,11 @@ import {
 	cn,
 	Icon,
 	Separator,
+	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { checkSchema } from '@/shared/utils';
 
-import {
-	LogHeaderArtifactSchema,
-	LogHeaderAuthorsSchema,
-	LogHeaderBlock,
-	LogHeaderVerdictSchema
-} from '@/shared/types';
+import { LogHeaderBlock } from '@/shared/types';
 import {
 	Clock,
 	HashSymbol,
@@ -26,6 +21,7 @@ import {
 	TwoUsers
 } from '@/icons';
 import { ExternalLinkIcon, TargetIcon } from '@radix-ui/react-icons';
+import { useCopyToClipboard } from '@/shared/hooks';
 
 export const BlockLogMeta = (props: LogHeaderBlock) => {
 	const { parameters, artifacts, verdicts, requirements } = props.meta;
@@ -56,6 +52,7 @@ interface RequirementsTableProps {
 
 function RequirementsTable(props: RequirementsTableProps) {
 	const { requirements } = props;
+	const [, copy] = useCopyToClipboard();
 
 	if (!requirements) return null;
 
@@ -66,7 +63,20 @@ function RequirementsTable(props: RequirementsTableProps) {
 				<ul className="list-none space-y-1 text-sm font-mono">
 					{requirements.map((requirement, idx) => (
 						<li key={idx}>
-							<Badge className="bg-badge-2">{requirement}</Badge>
+							<Badge
+								className="bg-badge-2"
+								onClick={() =>
+									copy(requirement).then((success) => {
+										if (success) {
+											toast.success('Copied to clipboard');
+										} else {
+											toast.error('Failed to copy to clipboard');
+										}
+									})
+								}
+							>
+								{requirement}
+							</Badge>
 						</li>
 					))}
 				</ul>
@@ -82,6 +92,7 @@ interface ParametersTableProps {
 
 function ParametersTable(props: ParametersTableProps) {
 	const { parameters } = props;
+	const [, copy] = useCopyToClipboard();
 
 	if (!parameters) return null;
 
@@ -104,7 +115,18 @@ function ParametersTable(props: ParametersTableProps) {
 						{parameters.map((parameter) => (
 							<tr
 								key={parameter.name}
-								className="border-b transition-colors hover:bg-gray-50"
+								className="border-b transition-colors hover:bg-gray-50 cursor-pointer"
+								onClick={() =>
+									copy(`${parameter.name}=${parameter.value}`).then(
+										(success) => {
+											if (success) {
+												toast.success('Copied to clipboard');
+											} else {
+												toast.error('Failed to copy to clipboard');
+											}
+										}
+									)
+								}
 							>
 								<td className="p-4 align-middle py-1">{parameter.name}</td>
 								<td className="p-4 align-middle py-1">{parameter.value}</td>
@@ -124,6 +146,7 @@ interface ArtifactsTableProps {
 
 function ArtifactsTable(props: ArtifactsTableProps) {
 	const { artifacts } = props;
+	const [, copy] = useCopyToClipboard();
 
 	if (!artifacts) return null;
 
@@ -134,7 +157,20 @@ function ArtifactsTable(props: ArtifactsTableProps) {
 				<ul className="list-none space-y-1 text-sm font-mono">
 					{artifacts.map((artifact, idx) => (
 						<li key={idx}>
-							<Badge className="bg-badge-16">{artifact.artifact}</Badge>
+							<Badge
+								className="bg-badge-16"
+								onClick={() =>
+									copy(artifact.artifact).then((success) => {
+										if (success) {
+											toast.success('Copied to clipboard');
+										} else {
+											toast.error('Failed to copy to clipboard');
+										}
+									})
+								}
+							>
+								{artifact.artifact}
+							</Badge>
 						</li>
 					))}
 				</ul>
@@ -150,6 +186,7 @@ interface VerdictsTableProps {
 
 function VerdictsTable(props: VerdictsTableProps) {
 	const { verdicts } = props;
+	const [, copy] = useCopyToClipboard();
 
 	if (!verdicts) return null;
 
@@ -213,9 +250,18 @@ function VerdictsTable(props: VerdictsTableProps) {
 								<tr
 									key={idx}
 									className={cn(
-										'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
-										idx % 2 === 0 ? 'bg-muted/50' : ''
+										'border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-50',
+										idx % 2 === 0 ? 'bg-gray-50' : ''
 									)}
+									onClick={() =>
+										copy(verdict.verdict).then((success) => {
+											if (success) {
+												toast.success('Copied to clipboard');
+											} else {
+												toast.error('Failed to copy to clipboard');
+											}
+										})
+									}
 								>
 									<Tooltip content={`Level: ${verdict.level}`}>
 										<td className="align-middle p-2 w-px">
@@ -244,9 +290,27 @@ interface MetaInfoItemProps {
 
 function MetaInfoItem(props: MetaInfoItemProps) {
 	const { icon, label, value, href } = props;
+	const [, copy] = useCopyToClipboard();
+
+	const handleCopy = (text: string) => {
+		if (href) return;
+		copy(text).then((success) => {
+			if (success) {
+				toast.success('Copied to clipboard');
+			} else {
+				toast.error('Failed to copy to clipboard');
+			}
+		});
+	};
 
 	return (
-		<div className="flex items-center gap-1">
+		<div
+			className={cn(
+				'flex items-center gap-1 px-1 rounded',
+				!href && 'cursor-pointer hover:bg-gray-50'
+			)}
+			onClick={() => handleCopy(value.toString())}
+		>
 			{icon}
 			<span className="text-sm text-text-primary font-semibold">{label}:</span>
 			{href ? (
@@ -258,7 +322,9 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 					<ExternalLinkIcon className="size-4" />
 				</a>
 			) : (
-				<span className="text-sm text-gray-800">{value}</span>
+				<div>
+					<span className="text-sm text-gray-800">{value}</span>
+				</div>
 			)}
 		</div>
 	);
@@ -272,24 +338,92 @@ interface MetaDurationProps {
 
 function MetaDuration(props: MetaDurationProps) {
 	const { start, end, duration } = props;
+	const [, copy] = useCopyToClipboard();
+
+	const handleCopy = (text: string) => {
+		copy(text).then((success) => {
+			if (success) {
+				toast.success('Copied to clipboard');
+			} else {
+				toast.error('Failed to copy to clipboard');
+			}
+		});
+	};
 
 	return (
-		<div className="flex items-center">
-			<Clock className="size-5 mr-1" />
-			<span className="text-sm text-text-primary font-semibold">
-				Duration:&nbsp;
-			</span>
-			<span className="text-sm text-gray-800">{duration}</span>
+		<div className="flex items-center px-1">
+			<Clock className="size-5" />
+			<div
+				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer"
+				onClick={() => handleCopy(duration)}
+			>
+				<span className="text-sm text-text-primary font-semibold">
+					Duration:&nbsp;
+				</span>
+				<span className="text-sm text-gray-800">{duration}</span>
+			</div>
 			<Separator orientation="vertical" className="h-4 mx-2" />
-			<span className="text-sm text-text-primary font-semibold">
-				Start:&nbsp;
-			</span>
-			<span className="text-sm text-gray-800">{start}</span>
+			<div
+				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer"
+				onClick={() => handleCopy(start)}
+			>
+				<span className="text-sm text-text-primary font-semibold">
+					Start:&nbsp;
+				</span>
+				<span className="text-sm text-gray-800">{start}</span>
+			</div>
 			<Separator orientation="vertical" className="h-4 mx-2" />
-			<span className="text-sm text-text-primary font-semibold">
-				End:&nbsp;
+			<div
+				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer"
+				onClick={() => handleCopy(end)}
+			>
+				<span className="text-sm text-text-primary font-semibold">
+					End:&nbsp;
+				</span>
+				<span className="text-sm text-gray-800">{end}</span>
+			</div>
+		</div>
+	);
+}
+
+interface MetaAuthorsProps {
+	authors: LogHeaderBlock['meta']['authors'];
+}
+
+function MetaAuthors({ authors }: MetaAuthorsProps) {
+	const [, copy] = useCopyToClipboard();
+
+	if (!authors?.length) return null;
+
+	const handleCopy = (text: string) => {
+		copy(text).then((success) => {
+			if (success) {
+				toast.success('Copied to clipboard');
+			} else {
+				toast.error('Failed to copy to clipboard');
+			}
+		});
+	};
+
+	return (
+		<div className="flex items-center px-1 flex-wrap">
+			<TwoUsers className="size-5" />
+			<span className="text-sm text-text-primary font-semibold px-1">
+				Authors:
 			</span>
-			<span className="text-sm text-gray-800">{end}</span>
+			{authors.map((author, index) => (
+				<Fragment key={author.email}>
+					<div
+						className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer"
+						onClick={() => handleCopy(author.email)}
+					>
+						<span className="text-sm text-gray-800">{author.email}</span>
+					</div>
+					{index < authors.length - 1 && (
+						<Separator orientation="vertical" className="h-4 mx-1" />
+					)}
+				</Fragment>
+			))}
 		</div>
 	);
 }
@@ -340,14 +474,9 @@ function MetaInformation(props: MetaInformationProps) {
 					/>
 				</li>
 			) : null}
-
 			{authors?.length ? (
 				<li>
-					<MetaInfoItem
-						icon={<TwoUsers className="size-5" />}
-						label="Authors"
-						value={authors?.map((author) => author.email).join(', ') ?? ''}
-					/>
+					<MetaAuthors authors={authors} />
 				</li>
 			) : null}
 		</ul>
@@ -373,9 +502,22 @@ interface MetaHeaderProps {
 
 function MetaHeader(props: MetaHeaderProps) {
 	const { header } = props;
+	const [, copy] = useCopyToClipboard();
+	function handleCopy() {
+		copy(header.entity_model.name).then((success) => {
+			if (success) {
+				toast.success('Copied to clipboard');
+			} else {
+				toast.error('Failed to copy to clipboard');
+			}
+		});
+	}
 
 	return (
-		<div className="border-b border-gray-300 py-1">
+		<div
+			className="border-b border-gray-300 hover:bg-gray-50 py-1 px-1 cursor-pointer"
+			onClick={handleCopy}
+		>
 			<h2 className="flex items-center gap-2">
 				<span className="text-xl font-semibold">
 					{formatTestHeader(header)}
@@ -391,7 +533,7 @@ function MetaHeader(props: MetaHeaderProps) {
 				</Badge>
 			</h2>
 			{header.entity_model.error ? (
-				<span className="text-sm text-text-menu flex items-center gap-1 text-yellow-600">
+				<span className="text-sm flex items-center gap-1 text-yellow-600">
 					<TriangleExclamationMark className="size-5" />
 					{header.entity_model.error}
 				</span>
