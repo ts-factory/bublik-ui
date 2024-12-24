@@ -128,40 +128,6 @@ interface ToggleGroupFilterProps {
 
 function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 	const { table, scenario = [], test = [], filters = [], levels = [] } = props;
-	const [activeFilter, setActiveFilter] = useState<FilterType | undefined>();
-
-	const handleToggle = (type: FilterType) => {
-		const typeToFilter: Record<string, string[]> = {
-			scenario: scenario ?? [],
-			test: test ?? [],
-			all: filters ?? []
-		};
-
-		if (type === 'error') {
-			if (activeFilter === 'error') {
-				table.setGlobalFilter({
-					filters: typeToFilter['all'],
-					levels: levels
-				});
-				setActiveFilter(undefined);
-				return;
-			}
-
-			table.setGlobalFilter({
-				filters: typeToFilter['all'],
-				levels: [ERROR_LEVEL_NAME]
-			});
-			setActiveFilter('error');
-			return;
-		}
-
-		table.setGlobalFilter((prev: LogTableFilterValue) => ({
-			...prev,
-			filters: typeToFilter[type]
-		}));
-
-		setActiveFilter((prev) => (prev === type ? undefined : type));
-	};
 
 	const state = table.getState().globalFilter as LogTableFilterValue;
 
@@ -184,15 +150,45 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 		state.levels.includes(ERROR_LEVEL_NAME) &&
 		state.levels.length === 1;
 
+	const activeFilter: FilterType | undefined = isErrorActive
+		? 'error'
+		: scenarioActive
+		? 'scenario'
+		: testActive
+		? 'test'
+		: allActive
+		? 'all'
+		: undefined;
+
+	const handleToggle = (type: FilterType, filters: string[]) => {
+		if (!type) return;
+
+		const typeToFilter: Record<string, string[]> = {
+			scenario: scenario ?? [],
+			test: test ?? [],
+			all: filters ?? []
+		};
+
+		if (type === 'error') {
+			table.setGlobalFilter((prev: LogTableFilterValue) => ({
+				...prev,
+				filters: typeToFilter['all'],
+				levels: isErrorActive ? levels : [ERROR_LEVEL_NAME]
+			}));
+			return;
+		}
+
+		table.setGlobalFilter(() => ({
+			levels,
+			filters: typeToFilter[type]
+		}));
+	};
+
 	return (
 		<>
 			<ToggleGroup.Root
 				type="single"
 				value={activeFilter}
-				onValueChange={(v) => {
-					if (!v) return;
-					handleToggle(v as FilterType);
-				}}
 				className={cn(
 					'flex items-center rounded-md border border-border-primary',
 					'[&>:first-child]:rounded-l-md [&>:last-child]:rounded-r-md'
@@ -203,6 +199,7 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 					tooltip="Toggle scenario filters"
 					disabled={!scenario?.length}
 					data-state={scenarioActive ? 'on' : 'off'}
+					onClick={() => handleToggle('scenario', scenario)}
 				>
 					#Scenario
 				</ToggleGroupFilterItem>
@@ -215,6 +212,7 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 					tooltip="Toggle test filters"
 					disabled={!test?.length}
 					data-state={testActive ? 'on' : 'off'}
+					onClick={() => handleToggle('test', test)}
 				>
 					#Test
 				</ToggleGroupFilterItem>
@@ -227,6 +225,7 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 					tooltip="Toggle all filters"
 					disabled={!filters?.length}
 					data-state={allActive ? 'on' : 'off'}
+					onClick={() => handleToggle('all', filters)}
 				>
 					#All
 				</ToggleGroupFilterItem>
@@ -239,9 +238,9 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 						'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu',
 						'transition-all appearance-none select-none',
 						'[&[data-state=on]]:border-bg-error [&[data-state=on]]:text-white [&[data-state=on]]:bg-bg-error',
-						'[&[data-state=off]]:border-border-primary [&[data-state=off]]:hover:bg-gray-50 [&[data-state=off]]:text-text-primary [&[data-state=off]]:bg-white'
+						'[&[data-state=off]]:border-border-primary [&[data-state=off]]:bg-transparent [&[data-state=off]]:hover:bg-gray-50 [&[data-state=off]]:text-text-primary'
 					)}
-					onClick={() => handleToggle('error')}
+					onClick={() => handleToggle('error', filters)}
 					disabled={!levels.includes(ERROR_LEVEL_NAME)}
 					data-state={isErrorActive ? 'on' : 'off'}
 				>
