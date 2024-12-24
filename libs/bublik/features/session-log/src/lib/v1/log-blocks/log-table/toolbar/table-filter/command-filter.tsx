@@ -37,8 +37,7 @@ export function DataTableFacetedFilter({
 	title,
 	options,
 	value,
-	onChange,
-	className
+	onChange
 }: DataTableFacetedFilterProps) {
 	const selectedValues = new Set(value);
 	const [isOpen, setIsOpen] = React.useState(false);

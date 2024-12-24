@@ -21,8 +21,7 @@ import {
 	DrawerTrigger,
 	getBugProps,
 	Icon,
-	NewBugButton,
-	Skeleton
+	NewBugButton
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import {
@@ -33,6 +32,7 @@ import {
 } from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
+	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
@@ -181,7 +181,7 @@ function LogPreview(props: LogPreviewProps) {
 	);
 
 	if (isLoading) {
-		return <LogPreviewLoading />;
+		return <SessionLoading />;
 	}
 
 	if (error) {
@@ -228,14 +228,6 @@ function LogPreviewError({ error }: LogPreviewErrorProps) {
 					<p>{description}</p>
 				</div>
 			</div>
-		</div>
-	);
-}
-
-function LogPreviewLoading() {
-	return (
-		<div className="w-full h-full p-2">
-			<Skeleton className="w-full h-full rounded" />
 		</div>
 	);
 }
