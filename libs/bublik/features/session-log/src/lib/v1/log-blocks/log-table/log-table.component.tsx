@@ -61,6 +61,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	const { filters, globalFilter, setGlobalFilter } = useLogTableGlobalFilter({
 		data
 	});
+
 	const { isTimestampDeltaShown, toggleIsTimestampDeltaShown } =
 		useLogTableTimestamp();
 
