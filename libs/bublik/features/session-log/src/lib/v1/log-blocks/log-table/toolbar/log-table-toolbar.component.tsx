@@ -127,8 +127,9 @@ interface ToggleGroupFilterProps {
 }
 
 function ToggleGroupFilter(props: ToggleGroupFilterProps) {
-	const { table, scenario = [], test = [], filters = [] } = props;
+	const { table, scenario = [], test = [], filters = [], levels = [] } = props;
 	const [activeFilter, setActiveFilter] = useState<FilterType | undefined>();
+
 	const handleToggle = (type: FilterType) => {
 		const typeToFilter: Record<string, string[]> = {
 			scenario: scenario ?? [],
@@ -137,12 +138,20 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 		};
 
 		if (type === 'error') {
-			table.setGlobalFilter((prev: LogTableFilterValue) => ({
-				...prev,
-				levels: [ERROR_LEVEL_NAME]
-			}));
+			if (activeFilter === 'error') {
+				table.setGlobalFilter({
+					filters: typeToFilter['all'],
+					levels: levels
+				});
+				setActiveFilter(undefined);
+				return;
+			}
 
-			setActiveFilter((prev) => (prev === 'error' ? undefined : 'error'));
+			table.setGlobalFilter({
+				filters: typeToFilter['all'],
+				levels: [ERROR_LEVEL_NAME]
+			});
+			setActiveFilter('error');
 			return;
 		}
 
@@ -170,52 +179,83 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 		filters.length > 0 &&
 		filters.every((filter) => state.filters.includes(filter));
 
+	const isErrorActive =
+		allActive &&
+		state.levels.includes(ERROR_LEVEL_NAME) &&
+		state.levels.length === 1;
+
 	return (
-		<ToggleGroup.Root
-			type="single"
-			value={activeFilter}
-			onValueChange={(v) => {
-				if (!v) return;
-				handleToggle(v as FilterType);
-			}}
-			className={cn(
-				'flex items-center rounded-md border border-border-primary',
-				'[&>:first-child]:rounded-l-md [&>:last-child]:rounded-r-md'
+		<>
+			<ToggleGroup.Root
+				type="single"
+				value={activeFilter}
+				onValueChange={(v) => {
+					if (!v) return;
+					handleToggle(v as FilterType);
+				}}
+				className={cn(
+					'flex items-center rounded-md border border-border-primary',
+					'[&>:first-child]:rounded-l-md [&>:last-child]:rounded-r-md'
+				)}
+			>
+				<ToggleGroupFilterItem
+					value="scenario"
+					tooltip="Toggle scenario filters"
+					disabled={!scenario?.length}
+					data-state={scenarioActive ? 'on' : 'off'}
+				>
+					#Scenario
+				</ToggleGroupFilterItem>
+				<Separator
+					orientation="vertical"
+					className="shrink-0 bg-border-primary w-px h-[30px]"
+				/>
+				<ToggleGroupFilterItem
+					value="test"
+					tooltip="Toggle test filters"
+					disabled={!test?.length}
+					data-state={testActive ? 'on' : 'off'}
+				>
+					#Test
+				</ToggleGroupFilterItem>
+				<Separator
+					orientation="vertical"
+					className="shrink-0 bg-border-primary w-px h-[30px]"
+				/>
+				<ToggleGroupFilterItem
+					value="all"
+					tooltip="Toggle all filters"
+					disabled={!filters?.length}
+					data-state={allActive ? 'on' : 'off'}
+				>
+					#All
+				</ToggleGroupFilterItem>
+			</ToggleGroup.Root>
+			{levels.includes(ERROR_LEVEL_NAME) ? (
+				<button
+					className={cn(
+						'inline-flex items-center justify-center border px-2.5 py-[7px] text-xs font-medium rounded-md w-full',
+						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
+						'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu',
+						'transition-all appearance-none select-none',
+						'[&[data-state=on]]:border-bg-error [&[data-state=on]]:text-white [&[data-state=on]]:bg-bg-error',
+						'[&[data-state=off]]:border-border-primary [&[data-state=off]]:hover:bg-gray-50 [&[data-state=off]]:text-text-primary [&[data-state=off]]:bg-white'
+					)}
+					onClick={() => handleToggle('error')}
+					disabled={!levels.includes(ERROR_LEVEL_NAME)}
+					data-state={isErrorActive ? 'on' : 'off'}
+				>
+					<Icon
+						name="InformationCircleExclamationMark"
+						size={16}
+						className="mr-2"
+					/>
+					<span>Error</span>
+				</button>
+			) : (
+				<div />
 			)}
-		>
-			<ToggleGroupFilterItem
-				value="scenario"
-				tooltip="Toggle scenario filters"
-				disabled={!scenario?.length}
-				data-state={scenarioActive ? 'on' : 'off'}
-			>
-				#Scenario
-			</ToggleGroupFilterItem>
-			<Separator
-				orientation="vertical"
-				className="shrink-0 bg-border-primary w-px h-[30px]"
-			/>
-			<ToggleGroupFilterItem
-				value="test"
-				tooltip="Toggle test filters"
-				disabled={!test?.length}
-				data-state={testActive ? 'on' : 'off'}
-			>
-				#Test
-			</ToggleGroupFilterItem>
-			<Separator
-				orientation="vertical"
-				className="shrink-0 bg-border-primary w-px h-[30px]"
-			/>
-			<ToggleGroupFilterItem
-				value="all"
-				tooltip="Toggle all filters"
-				disabled={!filters?.length}
-				data-state={allActive ? 'on' : 'off'}
-			>
-				#All
-			</ToggleGroupFilterItem>
-		</ToggleGroup.Root>
+		</>
 	);
 }
 
@@ -343,7 +383,6 @@ function ToolbarContent(props: ToolbarContentProps) {
 				levels={levels}
 				filters={filters}
 			/>
-			<div />
 			<FacetedFilters table={table} options={options} />
 			<ResetButton onClick={handleRefreshClick} />
 		</div>
