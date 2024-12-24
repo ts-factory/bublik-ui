@@ -23,7 +23,7 @@ function ConfigList({
 	onConfigClick
 }: ConfigListProps) {
 	const grouped = groupBy(
-		versions.toSorted((a) => (a.type === 'global' ? -1 : 1)),
+		[...versions].sort((a) => (a.type === 'global' ? -1 : 1)),
 		(config) => config.type
 	);
 
