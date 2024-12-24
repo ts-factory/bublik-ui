@@ -250,8 +250,7 @@ function VerdictsTable(props: VerdictsTableProps) {
 								<tr
 									key={idx}
 									className={cn(
-										'border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-50',
-										idx % 2 === 0 ? 'bg-gray-50' : ''
+										'border-b transition-colors cursor-pointer hover:bg-gray-50'
 									)}
 									onClick={() =>
 										copy(verdict.verdict).then((success) => {
