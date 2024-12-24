@@ -10,6 +10,7 @@ import {
 import {
 	LogTableContext,
 	LogTableContextProvider,
+	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
 import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
@@ -187,11 +188,7 @@ const JsonLog = (props: JsonLogProps) => {
 	const { data, isLoading, isFetching, error } = useGetLogJsonQuery(idToFetch);
 
 	if (isLoading) {
-		return (
-			<div className="h-full p-4">
-				<Skeleton className="h-full rounded" />
-			</div>
-		);
+		return <SessionLoading />;
 	}
 
 	if (error) {
