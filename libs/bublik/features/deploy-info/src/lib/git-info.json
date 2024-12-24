@@ -1,7 +1,7 @@
 {
-	"date": "2024.12.13",
-	"summary": "fix(history): resolve url based on copy router location to prevent outdated urls",
-	"revision": "bed012f",
-	"branch": "release-v1.0.1",
-	"latestTag": "v1.0.1"
+	"date": "2024.12.24",
+	"summary": "fix(config): replace `.toSorted` with `.sort` for broader browser compatibility",
+	"revision": "eb969b71",
+	"branch": "release-v1.0.2",
+	"latestTag": "v1.0.2"
 }
