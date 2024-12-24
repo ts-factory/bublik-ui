@@ -1,5 +1,12 @@
 
 
+### [1.0.2](https://github.com/ts-factory/bublik-ui/compare/v1.0.1...v1.0.2) (2024-12-24)
+
+
+### 🐛 Bug Fix
+
+* **config:** replace `.toSorted` with `.sort` for broader browser compatibility ([eb969b7](https://github.com/ts-factory/bublik-ui/commit/eb969b710e86a9444cb816a2a2dfb06408ebabdf))
+
 ### [1.0.1](https://github.com/ts-factory/bublik-ui/compare/v1.0.0...v1.0.1) (2024-12-13)
 
 
