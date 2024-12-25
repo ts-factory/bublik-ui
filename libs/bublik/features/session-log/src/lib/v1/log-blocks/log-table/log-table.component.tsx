@@ -2,8 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
 	ComponentProps,
-	ComponentPropsWithoutRef,
-	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -21,11 +19,9 @@ import {
 	Table,
 	useReactTable
 } from '@tanstack/react-table';
-import { AnimatePresence, motion } from 'framer-motion';
 
 import { LogTableBlock, LogTableData } from '@/shared/types';
-import { useMeasure } from '@/shared/hooks';
-import { ButtonTw, cn, Icon, Pagination } from '@/shared/tailwind-ui';
+import { ButtonTw, cn, Pagination } from '@/shared/tailwind-ui';
 
 import {
 	DeltaContextProvider,
@@ -117,33 +113,6 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	});
 
 	const startRef = useRef<HTMLDivElement>(null);
-	const [isIntersection, setIsIntersected] = useState(false);
-	const lastPositionRef = useRef<number>(0);
-
-	useEffect(() => {
-		const ref = startRef.current;
-
-		if (!ref) return;
-
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const entry = entries[0];
-				const currentPosition = entry.boundingClientRect.top;
-				const isScrollingDown = currentPosition < lastPositionRef.current;
-				lastPositionRef.current = currentPosition;
-
-				if (!entry.isIntersecting && isScrollingDown) {
-					setIsIntersected(true);
-				} else {
-					setIsIntersected(false);
-				}
-			},
-			{ rootMargin: '0px', threshold: 1 }
-		);
-
-		observer.observe(ref);
-		return () => observer.disconnect();
-	}, []);
 
 	const toolbarProps: ComponentProps<typeof LogTableToolbar> = {
 		table,
@@ -154,14 +123,19 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 		test: filters.testOptions,
 		handleDeltaChangeClick: toggleIsTimestampDeltaShown,
 		isDeltaShown: isTimestampDeltaShown,
-		isIntersection: isIntersection
+		startRef
 	};
 
 	return (
 		<DeltaContextProvider value={deltaApi}>
 			<SettingsContextProvider>
-				<div data-block-type={props.type}>
-					<h2 className="text-lg font-semibold text-text-primary mb-2">Logs</h2>
+				<div
+					data-block-type={props.type}
+					className="flex flex-col items-center"
+				>
+					<h2 className="w-full text-lg font-semibold text-text-primary mb-2">
+						Logs
+					</h2>
 					<LogTableToolbar {...toolbarProps} />
 					{pagination && totalCount ? (
 						<LogPagination
@@ -172,7 +146,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 						/>
 					) : null}
 					<div ref={startRef} />
-					<div className="relative">
+					<div className="relative self-stretch">
 						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-fit p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (

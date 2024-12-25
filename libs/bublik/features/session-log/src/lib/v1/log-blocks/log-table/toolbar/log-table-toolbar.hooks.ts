@@ -101,8 +101,6 @@ export function useToolbarPosition(isIntersection?: boolean): ToolbarPosition {
 		? {
 				...baseStyle,
 				width: 'fit-content',
-				left: '50%',
-				transform: 'translateX(-50%)',
 				top: isOpen ? 0 : -height,
 				padding: isOpen ? '8px' : '0px'
 		  }

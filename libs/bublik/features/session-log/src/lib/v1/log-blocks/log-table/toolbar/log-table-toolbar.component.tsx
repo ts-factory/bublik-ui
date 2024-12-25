@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithoutRef, useMemo, useState } from 'react';
+import {
+	ComponentPropsWithoutRef,
+	useEffect,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
 import { Table } from '@tanstack/react-table';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 
@@ -30,7 +36,7 @@ export interface LogTableToolbarProps {
 	entityFilters: string[];
 	isDeltaShown?: boolean;
 	handleDeltaChangeClick: () => void;
-	isIntersection?: boolean;
+	startRef: React.RefObject<HTMLDivElement>;
 }
 
 export function LogTableToolbar(props: LogTableToolbarProps) {
@@ -43,8 +49,34 @@ export function LogTableToolbar(props: LogTableToolbarProps) {
 		entityFilters,
 		handleDeltaChangeClick,
 		isDeltaShown,
-		isIntersection = false
+		startRef
 	} = props;
+	const lastPositionRef = useRef<number>(0);
+	const [isIntersection, setIsIntersected] = useState(false);
+	useEffect(() => {
+		const ref = startRef.current;
+
+		if (!ref) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const entry = entries[0];
+				const currentPosition = entry.boundingClientRect.top;
+				const isScrollingDown = currentPosition < lastPositionRef.current;
+				lastPositionRef.current = currentPosition;
+
+				if (!entry.isIntersecting && isScrollingDown) {
+					setIsIntersected(true);
+				} else {
+					setIsIntersected(false);
+				}
+			},
+			{ rootMargin: '0px', threshold: 1 }
+		);
+
+		observer.observe(ref);
+		return () => observer.disconnect();
+	}, [startRef]);
 
 	const settingsApi = useSettingsContext();
 	const { maximumDepth, handleDepthClick } = useTableDepth(table);
