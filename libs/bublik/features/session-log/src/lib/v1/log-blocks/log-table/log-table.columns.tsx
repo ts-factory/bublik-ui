@@ -113,7 +113,9 @@ export const getColumns = (
 						className="h-full w-full"
 						style={{
 							display: 'grid',
-							gridTemplateColumns: `repeat(${depth + 1}, 32px)`,
+							gridTemplateColumns: `${Array.from({ length: depth })
+								.map(() => '28px')
+								.join(' ')} ${row.getCanExpand() ? '28px' : '8px'}`,
 							alignItems: 'center',
 							justifyItems: 'center'
 						}}
