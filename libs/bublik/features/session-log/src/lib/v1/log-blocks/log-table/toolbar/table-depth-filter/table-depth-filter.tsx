@@ -10,10 +10,11 @@ export interface TableDepthFilterProps {
 	maxDepth: number;
 	onDepthClick: (depth: number) => void;
 	flatRows: Row<LogTableData>[];
+	className?: string;
 }
 
 export const TableDepthFilter = (props: TableDepthFilterProps) => {
-	const { maxDepth, onDepthClick, flatRows } = props;
+	const { maxDepth, onDepthClick, flatRows, className } = props;
 
 	const handleDepthClick = (depth: number) => () => {
 		onDepthClick(depth);
@@ -21,7 +22,11 @@ export const TableDepthFilter = (props: TableDepthFilterProps) => {
 
 	return (
 		<div
-			className={cn(twButtonStyles({ variant: 'outline' }), 'w-full py-0.5')}
+			className={cn(
+				twButtonStyles({ variant: 'outline' }),
+				'w-full py-0.5',
+				className
+			)}
 		>
 			<span className="text-xs">Nesting Level</span>
 			<Separator

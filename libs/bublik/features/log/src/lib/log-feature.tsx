@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 import { formatTimeToDot } from '@/shared/utils';
@@ -11,7 +11,8 @@ import {
 	getBugProps,
 	NewBugButton,
 	Resizable,
-	resizableStyles
+	resizableStyles,
+	ScrollToTop
 } from '@/shared/tailwind-ui';
 import {
 	useGetLogJsonQuery,
@@ -84,6 +85,8 @@ function LogFeature(props: LogFeatureProps) {
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
 	const { focusId, page } = useLogPage();
 
+	const containerRef = useRef<HTMLDivElement>(null);
+
 	if (!runId) return null;
 
 	return (
@@ -126,9 +129,14 @@ function LogFeature(props: LogFeatureProps) {
 							'overflow-auto relative h-full isolate',
 							!isLegacyLog ? 'h-[calc(100%-36px)]' : 'h-[calc(100%-20px)]'
 						)}
+						ref={containerRef}
 						key={`${runId}_${focusId}_${page}`}
 					>
 						<LogPickerContainer />
+						<ScrollToTop
+							className="fixed z-40 bottom-8 right-12"
+							containerRef={containerRef}
+						/>
 					</div>
 				</main>
 			</div>

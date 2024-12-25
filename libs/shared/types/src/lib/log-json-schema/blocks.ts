@@ -40,6 +40,10 @@ export const LogHeaderBlockSchema = z
 					.optional()
 					.describe('Optional list of verdicts'),
 				objective: z.string().optional().describe('Optional objective'),
+				requirements: z
+					.array(z.string())
+					.optional()
+					.describe('Optional list of requirements'),
 				authors: z
 					.array(LogHeaderAuthorsSchema)
 					.optional()

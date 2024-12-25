@@ -279,6 +279,7 @@ export const useLogTableGlobalFilter = ({
 
 		return { levels: filters.levels, filters: initialFilters };
 	});
+
 	return { filters, globalFilter, setGlobalFilter };
 };
 

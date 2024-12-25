@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 
-import { ButtonTw, cn } from '@/shared/tailwind-ui';
+import { cn } from '@/shared/tailwind-ui';
 
 import {
 	GetBlocksMap,
@@ -55,6 +55,36 @@ export const LOG_COLUMNS = {
 	logContent: 'LOG_CONTENT'
 } as const;
 
+type ShouldHideVerticalLineParams<T extends Record<string, unknown>> = {
+	row: Row<T>;
+	lineDepth: number;
+	parentRow?: Row<T> | null;
+};
+
+function shouldHideVerticalLine<T extends Record<string, unknown>>(
+	options: ShouldHideVerticalLineParams<T>
+) {
+	const { row, lineDepth, parentRow } = options;
+	const rootParent = row.getParentRows().at(0);
+	const leafRows = rootParent?.getLeafRows() || [];
+	const currentRowIndex = leafRows.findIndex((r) => r.id === row.id);
+
+	const prevRow = leafRows.at(currentRowIndex - 1);
+	const nextRow = leafRows.at(currentRowIndex + 1);
+
+	// Hide vertical line when:
+	// 1. Previous row has greater depth than current line position
+	// 2. Parent row has greater depth than current line position
+	// 3. Next row is not at the same depth as previous row
+	return !!(
+		prevRow?.depth &&
+		prevRow.depth > lineDepth &&
+		parentRow?.depth &&
+		parentRow.depth > lineDepth &&
+		nextRow?.depth !== prevRow.depth
+	);
+}
+
 export const allLogColumns = Object.values(LOG_COLUMNS);
 
 export interface GetColumnsParams {
@@ -69,32 +99,98 @@ export const getColumns = (
 	return [
 		{
 			id: LOG_COLUMNS.expand,
-			header: () => <div className="grid items-center w-8 h-8">+</div>,
+			header: () => null,
 			cell: (cell) => {
 				const { row } = cell;
-
-				if (!row.getCanExpand()) return null;
-
+				const depth = row.depth;
+				const parentRow = row.getParentRow();
+				const canExpand = row.getCanExpand();
 				const isExpanded = row.getIsExpanded();
 				const onClick = row.getToggleExpandedHandler();
 
 				return (
-					<ButtonTw
-						variant="outline"
-						size="xss"
-						className={cn(
-							'px-2.5',
-							isExpanded
-								? 'hover:bg-gray-100 bg-white'
-								: 'bg-bg-ok text-white hover:bg-bg-ok hover:text-white border-transparent'
-						)}
-						onClick={onClick}
+					<div
+						className="h-full w-full"
+						style={{
+							display: 'grid',
+							gridTemplateColumns: `${Array.from({ length: depth })
+								.map(() => '28px')
+								.join(' ')} ${row.getCanExpand() ? '28px' : '8px'}`,
+							alignItems: 'center',
+							justifyItems: 'center'
+						}}
 					>
-						{isExpanded ? '-' : '+'}
-					</ButtonTw>
+						{Array.from({ length: depth }).map((_, lineDepth, arr) => {
+							const isLast =
+								parentRow?.subRows.at(-1)?.id === row.id &&
+								lineDepth === arr.length - 1;
+
+							const hideVerticalLine = shouldHideVerticalLine({
+								row,
+								lineDepth,
+								parentRow
+							});
+
+							return (
+								<div
+									key={lineDepth}
+									className="w-[2px] justify-self-center self-start bg-border-primary"
+									style={{
+										height: !isLast ? 'calc(100% + 1px)' : '14px',
+										gridRow: '1 / -1',
+										gridColumnStart: lineDepth + 1,
+										gridColumnEnd: lineDepth + 2,
+										display: hideVerticalLine ? 'none' : 'block'
+									}}
+								/>
+							);
+						})}
+						{/* Horizontal line between columns */}
+						{depth > 0 && (
+							<div
+								className="h-[2px] bg-border-primary w-full"
+								style={{
+									gridColumnStart: depth,
+									gridColumnEnd: depth + 3,
+									gridRow: '1 / -1',
+									justifySelf: 'end',
+									width: `calc(100% - 15px)`,
+									alignSelf: 'self-start',
+									marginTop: '12px'
+								}}
+							/>
+						)}
+
+						{/* Vertical line below button when expanded */}
+						{isExpanded && canExpand && (
+							<div
+								className="bg-border-primary w-[2px] h-1/2 self-end"
+								style={{
+									gridColumn: depth + 1,
+									gridRow: '1 / -1',
+									transform: 'translateY(1px)'
+								}}
+							/>
+						)}
+						{/* Expand button or endpoint */}
+						{canExpand ? (
+							<button
+								onClick={onClick}
+								className={cn(
+									'flex items-center justify-center size-6 rounded border',
+									isExpanded
+										? 'bg-gray-100 border-gray-300 hover:bg-gray-50'
+										: 'bg-bg-ok text-white border-bg-ok'
+								)}
+								style={{ gridColumn: depth + 1, gridRow: 1, zIndex: 1 }}
+							>
+								{isExpanded ? '-' : '+'}
+							</button>
+						) : null}
+					</div>
 				);
 			},
-			meta: { className: 'whitespace-nowrap p-1 text-center' }
+			meta: { className: 'p-0 h-full align-middle w-[1px]' }
 		},
 		{
 			id: LOG_COLUMNS.lineNumber,
@@ -116,7 +212,39 @@ export const getColumns = (
 			id: LOG_COLUMNS.level,
 			header: 'Level',
 			accessorKey: 'level',
-			meta: { className: 'whitespace-nowrap' }
+			cell: (cell) => {
+				const getLevelBadgeColors = (level: LogTableData['level']) => {
+					switch (level) {
+						case 'ERROR':
+							return 'bg-red-500 text-white';
+						case 'WARN':
+							return 'bg-orange-500 text-white';
+						case 'INFO':
+							return '';
+						case 'VERB':
+							return 'bg-green-500 text-white';
+						case 'PACKET':
+							return 'bg-purple-500 text-white';
+						default:
+							return '';
+					}
+				};
+
+				const level = cell.getValue<LogTableData['level']>();
+
+				return (
+					<div className="whitespace-nowrap grid items-center justify-start">
+						<span
+							className={cn(
+								'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors',
+								getLevelBadgeColors(level)
+							)}
+						>
+							{level}
+						</span>
+					</div>
+				);
+			}
 		},
 		{
 			id: LOG_COLUMNS.entityName,
