@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback } from 'react';
-import { Row } from '@tanstack/react-table';
-
-import { MergedRun, RunData } from '@/shared/types';
 import { bublikAPI } from '@/services/bublik-api';
 
 import { RunRowStateContextProvider } from '../hooks';
@@ -13,7 +9,6 @@ import {
 	RunTableError,
 	RunTableLoading
 } from './run-table.component';
-import { ResultTableContainer } from '../result-table';
 import { useRunPageName, useRunTableQueryState } from './run-table.hooks';
 
 export interface RunTableContainerProps {
@@ -40,17 +35,6 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		sorting
 	} = useRunTableQueryState();
 
-	const renderSubRow = useCallback(
-		(row: Row<RunData | MergedRun>) => {
-			return (
-				<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
-					<ResultTableContainer runId={runId} row={row} />
-				</div>
-			);
-		},
-		[runId]
-	);
-
 	if (error) return <RunTableError error={error} />;
 
 	if (isLoading) return <RunTableLoading />;
@@ -60,10 +44,10 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 	return (
 		<RunRowStateContextProvider value={rowStateContext}>
 			<RunTable
+				runId={runId}
 				data={data}
 				openUnexpected={locationState?.openUnexpected}
 				openUnexpectedResults={locationState?.openUnexpectedResults}
-				renderSubRow={renderSubRow}
 				expanded={expanded}
 				globalFilter={globalFilter}
 				onExpandedChange={setExpanded}
