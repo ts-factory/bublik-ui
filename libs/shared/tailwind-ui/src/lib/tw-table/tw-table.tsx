@@ -31,7 +31,11 @@ const shadowStyle = { boxShadow: '0 0 15px 0 rgb(0 0 0 / 10%)' };
 export interface TwHeaderProps<T extends Record<string, unknown>>
 	extends Pick<
 		TwTableProps<T>,
-		'classNames' | 'stickyOffset' | 'getHeaderCellProps' | 'getHeaderRowProps'
+		| 'classNames'
+		| 'stickyOffset'
+		| 'getHeaderCellProps'
+		| 'getHeaderRowProps'
+		| 'getHeaderProps'
 	> {
 	table: Table<T>;
 }
@@ -43,7 +47,8 @@ const TwHeader = <T extends Record<string, unknown>>(
 		classNames,
 		stickyOffset,
 		getHeaderCellProps,
-		getHeaderRowProps
+		getHeaderRowProps,
+		getHeaderProps
 	} = props;
 	const headerRef = useRef(null);
 	const { isSticky } = useIsSticky(headerRef, { offset: stickyOffset });
@@ -54,6 +59,7 @@ const TwHeader = <T extends Record<string, unknown>>(
 			className={cn('tw-table-header', classNames?.header)}
 			style={isSticky && stickyOffset ? shadowStyle : undefined}
 			ref={headerRef}
+			{...getHeaderProps?.(table, { isSticky })}
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<div
@@ -122,6 +128,10 @@ export interface TwTableProps<T extends Record<string, unknown>>
 	classNames?: TableClassNames<T>;
 	/** Display shadow when reached */
 	stickyOffset?: number;
+	getHeaderProps?: (
+		table: Table<T>,
+		{ isSticky }: { isSticky: boolean }
+	) => DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
 	getRowProps?: (
 		table: Table<T>,
 		row: Row<T>
@@ -150,6 +160,7 @@ export const TwTable = <T extends Record<string, unknown>>(
 		getRowProps,
 		getCellProps,
 		getHeaderCellProps,
+		getHeaderProps,
 		...rest
 	} = props;
 
@@ -187,6 +198,7 @@ export const TwTable = <T extends Record<string, unknown>>(
 					table={table}
 					classNames={classNames}
 					stickyOffset={stickyOffset}
+					getHeaderProps={getHeaderProps}
 				/>
 				{/* Body */}
 				<div role="rowgroup" className={cn('tw-table-body', classNames?.body)}>

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { memo, useMemo } from 'react';
+import { CSSProperties, memo, useCallback, useMemo } from 'react';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -46,8 +46,7 @@ const getBodyRowClassName = () => {
 };
 
 const classNames: TableClassNames<RunDataResults> = {
-	header: 'sticky top-[103px]',
-	headerRow: `h-[38px] bg-primary-wash rounded-b ${gridClassName} px-4`,
+	headerRow: `h-[38px] grid sticky bg-primary-wash rounded-b ${gridClassName} px-4`,
 	headerCell:
 		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center',
 	body: 'space-y-1 [&>:first-of-type]:mt-1',
@@ -60,6 +59,7 @@ export interface ResultTableProps {
 	data: RunDataResults[];
 	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
 	showLinkToRun?: boolean;
+	height: number;
 }
 
 export const ResultTable = memo(
@@ -67,11 +67,27 @@ export const ResultTable = memo(
 		data = [],
 		rowId,
 		getRowProps,
-		showLinkToRun = false
+		showLinkToRun = false,
+		height
 	}: ResultTableProps) => {
 		const columns = useMemo(
 			() => getColumns({ rowId, showLinkToRun, data }),
 			[data, rowId, showLinkToRun]
+		);
+
+		const getHeaderProps = useCallback<
+			NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
+		>(
+			(_, { isSticky }) => {
+				return {
+					style: {
+						top: `${height + 68}px`,
+						position: 'sticky',
+						boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
+					} as CSSProperties
+				};
+			},
+			[height]
 		);
 
 		return (
@@ -81,10 +97,11 @@ export const ResultTable = memo(
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
-					stickyOffset={-104}
+					stickyOffset={-(height + 69)}
 					manualPagination
 					enableSorting={false}
 					getRowProps={getRowProps}
+					getHeaderProps={getHeaderProps}
 				/>
 			</div>
 		);
