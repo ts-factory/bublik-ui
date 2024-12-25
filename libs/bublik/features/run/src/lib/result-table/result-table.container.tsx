@@ -27,11 +27,13 @@ const DEFAULT_REQUEST = {
 export interface ResultTableContainerProps {
 	runId: string | string[];
 	row: Row<RunData | MergedRun>;
+	height: number;
 }
 
 export const ResultTableContainer = ({
 	runId,
-	row
+	row,
+	height
 }: ResultTableContainerProps) => {
 	const { id: rowId } = row;
 	const rowState = useRunTableRowState().rowState[rowId];
@@ -99,6 +101,7 @@ export const ResultTableContainer = ({
 			data={data}
 			rowId={rowId}
 			getRowProps={getRowProps}
+			height={height}
 		/>
 	);
 };

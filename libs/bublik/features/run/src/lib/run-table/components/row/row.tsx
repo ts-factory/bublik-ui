@@ -1,22 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Fragment, ReactNode, useRef } from 'react';
+import { Fragment } from 'react';
 import { flexRender, Row } from '@tanstack/react-table';
 
 import { cn } from '@/shared/tailwind-ui';
 import { MergedRun, NodeEntity, RunData } from '@/shared/types';
 
+import { ResultTableContainer } from '../../../result-table';
+import { useMeasure } from 'react-use';
+
 export interface RowProps {
 	row: Row<RunData | MergedRun>;
-	renderSubRow: (row: Row<RunData | MergedRun>) => ReactNode;
+	runId: string | string[];
 }
 
-export const RunRow = ({ row, renderSubRow }: RowProps) => {
-	const ref = useRef<HTMLTableRowElement>(null);
-
+export const RunRow = ({ row, runId }: RowProps) => {
 	const isExpanded = row.getIsExpanded();
 	const isTest = row.original?.type === NodeEntity.Test;
 	const isExpandedTest = isTest && isExpanded;
+	const [ref, { height }] = useMeasure<HTMLTableRowElement>();
 
 	return (
 		<Fragment>
@@ -51,7 +53,11 @@ export const RunRow = ({ row, renderSubRow }: RowProps) => {
 			</tr>
 			{row.getIsExpanded() && row.original?.type === NodeEntity.Test ? (
 				<tr role="row">
-					<td colSpan={row.getVisibleCells().length}>{renderSubRow(row)}</td>
+					<td colSpan={row.getVisibleCells().length}>
+						<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
+							<ResultTableContainer runId={runId} row={row} height={height} />
+						</div>
+					</td>
 				</tr>
 			) : null}
 		</Fragment>

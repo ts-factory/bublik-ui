@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
 	getExpandedRowModel,
 	getCoreRowModel,
@@ -9,7 +9,6 @@ import {
 	useReactTable,
 	SortingState,
 	ExpandedState,
-	Row,
 	OnChangeFn,
 	VisibilityState
 } from '@tanstack/react-table';
@@ -81,7 +80,6 @@ export const RunTableEmpty = () => {
 
 export interface RunTableProps {
 	data: RunData[] | MergedRun[];
-	renderSubRow: (row: Row<RunData | MergedRun>) => ReactNode;
 	openUnexpected?: boolean;
 	expanded: ExpandedState;
 	sorting: SortingState;
@@ -93,6 +91,7 @@ export interface RunTableProps {
 	onGlobalFilterChange: OnChangeFn<string[]>;
 	openUnexpectedResults?: boolean;
 	isFetching?: boolean;
+	runId: string | string[];
 }
 
 export const RunTable = (props: RunTableProps) => {
@@ -100,7 +99,6 @@ export const RunTable = (props: RunTableProps) => {
 		data,
 		openUnexpected,
 		openUnexpectedResults,
-		renderSubRow,
 		expanded,
 		globalFilter,
 		sorting,
@@ -109,7 +107,8 @@ export const RunTable = (props: RunTableProps) => {
 		onSortingChange,
 		columnVisibility,
 		onColumnVisibilityChange,
-		isFetching
+		isFetching,
+		runId
 	} = props;
 
 	const columns = useMemo(() => getColumns(), []);
@@ -174,7 +173,7 @@ export const RunTable = (props: RunTableProps) => {
 					<RunHeader instance={table} />
 					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
 						{table.getRowModel().rows.map((row) => (
-							<RunRow key={row.id} row={row} renderSubRow={renderSubRow} />
+							<RunRow key={row.id} row={row} runId={runId} />
 						))}
 					</tbody>
 				</table>
