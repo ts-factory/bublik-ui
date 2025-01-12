@@ -10,7 +10,6 @@ import {
 	RootBlock,
 	TreeDataAPIResponse
 } from '@/shared/types';
-import { config } from '@/bublik/config';
 
 import { transformLogTree } from '../transform';
 import { BUBLIK_TAG } from '../types';
@@ -66,9 +65,7 @@ export const logEndpoints = {
 
 					const options: RequestInit = { credentials: 'include' };
 
-					const response = config.isDev
-						? await fetch(`${config.rootUrl}/external?url=${externalUrl}`)
-						: await fetch(externalUrl, options);
+					const response = await fetch(externalUrl, options);
 
 					if (!response.ok) throw getBublikFromStatusCode(response);
 
