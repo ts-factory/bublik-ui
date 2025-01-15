@@ -71,7 +71,8 @@ export const importLogEventsEndpoint = {
 		}),
 		getImportLog: build.query<ImportJsonLog[], string>({
 			query: (celery_task_id: string) => ({
-				url: withApiV2(`/importruns/log/?task_id=${celery_task_id}`, true)
+				url: withApiV2(`/importruns/log/?task_id=${celery_task_id}`, true),
+				cache: 'no-cache'
 			})
 		})
 	})
