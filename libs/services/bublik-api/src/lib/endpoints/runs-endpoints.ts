@@ -16,7 +16,8 @@ export const runsEndpoints = {
 		getRunsTablePage: build.query<RunsAPIResponse, RunsAPIQuery>({
 			query: (queryParams) => ({
 				url: withApiV2('/runs'),
-				params: prepareForSend(queryParams)
+				params: prepareForSend(queryParams),
+				cache: 'no-cache'
 			}),
 			providesTags: [BUBLIK_TAG.Run]
 		})

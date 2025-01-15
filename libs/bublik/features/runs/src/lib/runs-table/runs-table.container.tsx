@@ -22,8 +22,10 @@ export const RunsTableContainer = () => {
 		useRunsSelection();
 
 	const { query } = useRunsQuery();
-	const { data, isFetching, isLoading, error } =
-		useGetRunsTablePageQuery(query);
+	const { data, isFetching, isLoading, error } = useGetRunsTablePageQuery(
+		query,
+		{ refetchOnFocus: true, refetchOnMountOrArgChange: true }
+	);
 
 	if (error) return <RunsTableError error={error} />;
 
