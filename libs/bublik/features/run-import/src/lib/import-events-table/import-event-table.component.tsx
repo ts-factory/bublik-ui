@@ -5,6 +5,8 @@ import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	OnChangeFn,
+	PaginationState,
 	useReactTable
 } from '@tanstack/react-table';
 
@@ -75,16 +77,21 @@ export const ImportEventTableEmpty = () => {
 
 export interface ImportEventTableProps {
 	data: LogEvent[];
+	pagination: PaginationState;
+	setPagination: OnChangeFn<PaginationState>;
 }
 
-export const ImportEventTable = (props: ImportEventTableProps) => {
+export function ImportEventTable(props: ImportEventTableProps) {
+	const { data, pagination, setPagination } = props;
+
 	const table = useReactTable({
-		initialState: { pagination: { pageIndex: 0, pageSize: 25 } },
-		data: props.data,
+		state: { pagination },
+		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		onPaginationChange: setPagination
 	});
 
 	return (
@@ -127,7 +134,7 @@ export const ImportEventTable = (props: ImportEventTableProps) => {
 			</table>
 			<div className="flex items-center justify-center">
 				<Pagination
-					totalCount={props.data.length}
+					totalCount={data.length}
 					pageSize={table.getState().pagination.pageSize}
 					onPageChange={(page) => table.setPageIndex(page - 1)}
 					onPageSizeChange={table.setPageSize}
@@ -136,4 +143,4 @@ export const ImportEventTable = (props: ImportEventTableProps) => {
 			</div>
 		</div>
 	);
-};
+}

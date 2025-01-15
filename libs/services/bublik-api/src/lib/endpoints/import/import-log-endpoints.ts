@@ -29,7 +29,8 @@ export const importLogEventsEndpoint = {
 				params: {
 					...query,
 					date: query.date ? formatTimeToAPI(query.date) : undefined
-				}
+				},
+				cache: 'no-cache'
 			}),
 			transformResponse: (response: LogApiResponse) =>
 				response.slice().reverse()

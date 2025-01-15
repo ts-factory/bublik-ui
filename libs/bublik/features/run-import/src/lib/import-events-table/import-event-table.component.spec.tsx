@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { useState } from 'react';
+import { PaginationState } from '@tanstack/react-table';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
 
@@ -12,13 +14,26 @@ import {
 	ImportEventTableLoading
 } from './import-event-table.component';
 
+function EventTableDemo() {
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: 25
+	});
+
+	return (
+		<Provider store={store}>
+			<ImportEventTable
+				data={[]}
+				pagination={pagination}
+				setPagination={setPagination}
+			/>
+		</Provider>
+	);
+}
+
 describe('ImportEventTableComponent', () => {
 	it('should render successfully', () => {
-		const { asFragment } = render(
-			<Provider store={store}>
-				<ImportEventTable data={[]} />
-			</Provider>
-		);
+		const { asFragment } = render(<EventTableDemo />);
 
 		expect(asFragment()).toMatchSnapshot();
 	});
