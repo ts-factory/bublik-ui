@@ -47,7 +47,8 @@ export const dashboardEndpoints = {
 		>({
 			query: (dateParams) => ({
 				url: withApiV2('/dashboard'),
-				params: dateParams
+				params: dateParams,
+				cache: 'no-cache'
 			}),
 			providesTags: (_result, _error, arg) => [
 				{ type: BUBLIK_TAG.DashboardData },

@@ -40,7 +40,11 @@ export const DashboardTableContainer = ({
 	const { term } = useDashboardSearchTerm();
 	const query = useGetDashboardByDateQuery(
 		{ date: date ? formatTimeToAPI(date) : formatTimeToAPI(initialDate) },
-		{ pollingInterval: isEnabled ? 30000 : undefined } // 30s
+		{
+			pollingInterval: isEnabled ? 30000 : undefined,
+			refetchOnMountOrArgChange: true,
+			refetchOnFocus: true
+		} // 30s
 	);
 
 	usePrefetchNextAndPreviousDay(date);
