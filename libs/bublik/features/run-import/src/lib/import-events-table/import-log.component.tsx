@@ -5,26 +5,36 @@ import {
 	createContext,
 	ElementRef,
 	PropsWithChildren,
+	useCallback,
 	useContext,
 	useEffect,
 	useRef,
 	useState
 } from 'react';
 import { StringParam, useQueryParam } from 'use-query-params';
+import { Link } from 'react-router-dom';
+import { PauseIcon } from '@radix-ui/react-icons';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { useGetImportLogQuery } from '@/services/bublik-api';
 import {
+	ButtonTw,
+	CardHeader,
+	cn,
 	DialogClose,
 	DialogPortal,
 	DrawerContent,
 	DrawerRoot,
 	Icon,
 	Skeleton,
-	toast
+	toast,
+	Tooltip
 } from '@/shared/tailwind-ui';
 import { ImportJsonLog } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
-import { skipToken } from '@reduxjs/toolkit/query';
+import { routes } from '@/router';
+import { config } from '@/bublik/config';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -92,7 +102,7 @@ function JsonLogContainer(props: JsonLogContainerProps) {
 		>
 			<DialogPortal>
 				<DrawerContent
-					className="bg-[#24292f] w-[60vw] flex flex-col"
+					className="w-[60vw] flex flex-col"
 					onInteractOutside={close}
 					onEscapeKeyDown={close}
 				>
@@ -106,6 +116,26 @@ function JsonLogContainer(props: JsonLogContainerProps) {
 	);
 }
 
+function getRunIdFromLogs(data: { message: string }[]): number | null {
+	const patterns = [
+		/run id is (\d+)/i, // Matches "run id is 12345"
+		/mi run id:\s*(\d+)/i // Matches "MI RUN ID: 12345"
+	];
+
+	for (const entry of data) {
+		for (const pattern of patterns) {
+			const match = entry.message.match(pattern);
+			if (match) {
+				return parseInt(match[1], 10);
+			}
+		}
+	}
+
+	return null; // Return null if no patterns match
+}
+
+const BG_CLASS = 'bg-[#24292f]';
+
 export interface ImportLogTableContainerProps {
 	taskId: ComponentProps<typeof JsonLogContainer>['taskId'];
 	enablePolling: ComponentProps<typeof JsonLogContainer>['enablePolling'];
@@ -115,10 +145,13 @@ export const ImportLogTableContainer = (
 	props: ImportLogTableContainerProps
 ) => {
 	const { taskId } = props;
+	const [isAtBottom, setIsAtBottom] = useState(true);
+	const [shouldPoll, setShouldPoll] = useState(props.enablePolling);
+
 	const { data, isLoading, isFetching, error } = useGetImportLogQuery(
 		taskId ? taskId : skipToken,
 		{
-			pollingInterval: props.enablePolling ? 5000 : 0
+			pollingInterval: shouldPoll ? 5000 : 0
 		}
 	);
 
@@ -128,37 +161,76 @@ export const ImportLogTableContainer = (
 		onSuccess: () => toast.success('Copied to clipboard')
 	});
 
+	const handleScroll = useCallback(() => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const isBottom =
+			Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 10;
+		setIsAtBottom(isBottom);
+	}, []);
+
 	useEffect(() => {
 		const el = scrollRef.current;
 		if (!el) return;
-		if (!props.enablePolling) return;
+
+		el.addEventListener('scroll', handleScroll);
+		return () => el.removeEventListener('scroll', handleScroll);
+	}, [handleScroll]);
+
+	useEffect(() => {
+		const el = scrollRef.current;
+		if (!el || !data) return;
+
+		const maybeRunId = getRunIdFromLogs(data);
+		if (maybeRunId) {
+			setShouldPoll(false);
+			return;
+		}
+
+		if (!shouldPoll || !isAtBottom) return;
 
 		setTimeout(
 			() => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }),
 			0
 		);
-	}, [props.enablePolling, isFetching]);
+	}, [data, shouldPoll, isAtBottom, isFetching]);
 
-	if (error) return <div>Error..</div>;
+	if (error) return <div>Error...</div>;
 
 	if (isLoading) return <Skeleton className="w-full h-[90vh] trounded-md" />;
 
-	if (!data) return <div>Empty </div>;
+	if (!data) return <div>Empty</div>;
+
+	const maybeRunId = getRunIdFromLogs(data);
+	const showPausedChip = shouldPoll && !isAtBottom;
 
 	return (
 		<>
-			<div className="px-4 py-2 flex gap-4 items-center justify-between">
-				<h2 className="text-gray-300 text-lg">Import: {taskId}</h2>
+			<CardHeader
+				label={
+					<div className="flex items-center gap-2">
+						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+							Import: {taskId}
+						</span>
+						<Spinner show={Boolean(shouldPoll)} />
+					</div>
+				}
+				className="px-4 py-2 flex gap-4 items-center justify-between"
+			>
 				<div className="flex gap-4 items-center">
-					{props.enablePolling ? (
-						<Icon
-							name="InformationCircleProgress"
-							size={24}
-							className="text-gray-400 p-0.5 animate-spin"
-						/>
-					) : null}
+					<HeaderLinks runId={maybeRunId} />
+					<ButtonTw asChild variant="secondary" size="xss">
+						<a
+							href={`${config.oldBaseUrl}/flower/task/${taskId}`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							<Icon name="BoxArrowRight" className="mr-1.5" />
+							<span>Flower</span>
+						</a>
+					</ButtonTw>
 					<button
-						className="p-0.5 text-gray-400 hover:bg-gray-600/20 rounded-md hover:text-gray-200"
+						className="p-0.5 rounded-md hover:bg-primary-wash text-primary"
 						onClick={async () => {
 							if (!data) return;
 							await copy(data.map((d) => d.message.trim()).join('\n'));
@@ -166,17 +238,86 @@ export const ImportLogTableContainer = (
 					>
 						<Icon name="PaperStack" size={20} />
 					</button>
-					<DialogClose className="p-0.5 text-gray-400 hover:bg-gray-600/20 rounded-md hover:text-gray-200">
+					<DialogClose className="p-0.5 rounded-md hover:bg-primary-wash hover:text-primary text-text-menu">
 						<Icon name="CrossSimple" size={20} />
 					</DialogClose>
 				</div>
-			</div>
-			<div className="px-4 pt-6 pb-4 flex-grow overflow-auto" ref={scrollRef}>
-				<ImportLogTable logs={data} />
+			</CardHeader>
+			<div className="relative h-full">
+				<AnimatePresence>
+					{showPausedChip ? (
+						<motion.div
+							className="flex items-center gap-1 px-2 py-0.5 text-xs text-white rounded-full bg-primary absolute bottom-12 left-1/2 -translate-x-1/2"
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: 10 }}
+						>
+							<PauseIcon className="size-4" />
+							<span>Scrolling Paused</span>
+						</motion.div>
+					) : null}
+				</AnimatePresence>
+				<div
+					className={cn('flex-grow overflow-auto h-full', BG_CLASS)}
+					ref={scrollRef}
+				>
+					<ImportLogTable logs={data} />
+				</div>
 			</div>
 		</>
 	);
 };
+
+interface SpinnerProps {
+	show: boolean;
+}
+
+function Spinner(props: SpinnerProps) {
+	return (
+		<AnimatePresence>
+			{props.show ? (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+				>
+					<Tooltip content="Run import is in progress">
+						<Icon
+							name="InformationCircleProgress"
+							size={24}
+							className="text-primary p-0.5 animate-spin"
+						/>
+					</Tooltip>
+				</motion.div>
+			) : null}
+		</AnimatePresence>
+	);
+}
+
+interface HeaderLinksProps {
+	runId?: number | null;
+}
+
+function HeaderLinks({ runId }: HeaderLinksProps) {
+	if (!runId) return;
+
+	return (
+		<>
+			<ButtonTw asChild variant="secondary" size="xss">
+				<Link to={routes.log({ runId })} target="_blank">
+					<Icon name="BoxArrowRight" className="mr-1.5" />
+					Log
+				</Link>
+			</ButtonTw>
+			<ButtonTw asChild variant="secondary" size="xss">
+				<Link to={routes.log({ runId })} target="_blank">
+					<Icon name="BoxArrowRight" className="mr-1.5" />
+					Run
+				</Link>
+			</ButtonTw>
+		</>
+	);
+}
 
 export interface ImportLogTableProps {
 	logs: ImportJsonLog[];
@@ -184,7 +325,7 @@ export interface ImportLogTableProps {
 
 export const ImportLogTable = (props: ImportLogTableProps) => {
 	return (
-		<ul className="font-mono text-xs leading-5">
+		<ul className={'font-mono text-xs leading-5 pb-12 pt-4 flex-1'}>
 			{props.logs.map((lg, idx) => {
 				const lineNumber = idx + 1;
 
