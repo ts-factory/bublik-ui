@@ -3,6 +3,7 @@
 import { useDocumentTitle } from '@/shared/hooks';
 import {
 	ImportEventsTableContainer,
+	ImportLogProvider,
 	ImportRunFormContainer
 } from '@/bublik/features/run-import';
 
@@ -12,9 +13,11 @@ export const ImportPage = () => {
 	return (
 		<div className="p-2 overflow-hidden h-full">
 			<div className="flex flex-col gap-1 h-full">
-				<ImportEventsTableContainer>
-					<ImportRunFormContainer />
-				</ImportEventsTableContainer>
+				<ImportLogProvider>
+					<ImportEventsTableContainer>
+						<ImportRunFormContainer />
+					</ImportEventsTableContainer>
+				</ImportLogProvider>
 			</div>
 		</div>
 	);

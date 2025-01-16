@@ -12,13 +12,11 @@ import {
 	TwScrollArea
 } from '@/shared/tailwind-ui';
 
-export interface ImportRunFormModalProps {
+interface ImportRunFormModalProps {
 	onClose?: () => void;
 }
 
-export const ImportRunFormModal = (
-	props: PropsWithChildren<ImportRunFormModalProps>
-) => {
+function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 	const handleOpenChange = (open: boolean) => {
 		if (!open) setTimeout(() => props.onClose?.(), 300);
 	};
@@ -43,4 +41,6 @@ export const ImportRunFormModal = (
 			</ModalContent>
 		</Dialog>
 	);
-};
+}
+
+export { ImportRunFormModal, type ImportRunFormModalProps };

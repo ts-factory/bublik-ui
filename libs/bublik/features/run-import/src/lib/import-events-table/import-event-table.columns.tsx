@@ -10,7 +10,7 @@ import { formatTimeToDot } from '@/shared/utils';
 
 import { FACILITY_MAP, SEVERITY_MAP } from '../utils';
 import { getSeverityBgColor } from './import-event-table-utils';
-import { JsonLogContainer } from './import-log.component';
+import { useImportLog } from './import-log.component';
 
 export const statusBadgeStyles = cva({
 	base: [
@@ -38,12 +38,20 @@ export const columns: ColumnDef<LogEvent>[] = [
 		accessorKey: 'celery_task',
 		cell: (cell) => {
 			const taskId = cell.getValue<LogEvent['celery_task']>();
+			// eslint-disable-next-line
+			const { toggle } = useImportLog();
 
 			if (!taskId) return null;
 
 			return (
 				<div className="flex flex-col justify-center gap-1">
-					<JsonLogContainer taskId={taskId} />
+					<button
+						onClick={toggle(taskId)}
+						className="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
+					>
+						<Icon name="BoxArrowRight" />
+						<span>Logs</span>
+					</button>
 					<a
 						href={`${config.oldBaseUrl}/flower/task/${taskId}`}
 						target="_blank"

@@ -3,10 +3,10 @@
 exports[`ImportRunFormResultList > should render successfully 1`] = `
 <DocumentFragment>
   <div
-    aria-describedby="radix-:r2:"
-    aria-labelledby="radix-:r1:"
+    aria-describedby="radix-:r5:"
+    aria-labelledby="radix-:r4:"
     data-state="open"
-    id="radix-:r0:"
+    id="radix-:r3:"
     role="dialog"
     style="pointer-events: auto;"
     tabindex="-1"
@@ -14,13 +14,13 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
     <div>
       <h2
         class="text-lg font-medium leading-6 text-gray-900"
-        id="radix-:r1:"
+        id="radix-:r4:"
       >
         Import runs
       </h2>
       <p
         class="mt-2 text-sm font-normal text-gray-700"
-        id="radix-:r2:"
+        id="radix-:r5:"
       >
         Scheduled runs will be imported in the background. 
         <br />
@@ -37,12 +37,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
               class="flex flex-col w-24 gap-1"
             >
               <button
-                aria-controls="radix-:r3:"
-                aria-expanded="false"
-                aria-haspopup="dialog"
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
-                data-state="closed"
-                type="button"
               >
                 <svg
                   fill="none"
@@ -63,7 +58,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 </span>
               </button>
               <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
                 href="http://localhost:3000/flower/task/1"
                 rel="noreferrer"
                 target="_blank"
@@ -118,12 +113,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
               class="flex flex-col w-24 gap-1"
             >
               <button
-                aria-controls="radix-:r6:"
-                aria-expanded="false"
-                aria-haspopup="dialog"
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
-                data-state="closed"
-                type="button"
               >
                 <svg
                   fill="none"
@@ -144,7 +134,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 </span>
               </button>
               <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
                 href="http://localhost:3000/flower/task/2"
                 rel="noreferrer"
                 target="_blank"
@@ -199,12 +189,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
               class="flex flex-col w-24 gap-1"
             >
               <button
-                aria-controls="radix-:r9:"
-                aria-expanded="false"
-                aria-haspopup="dialog"
                 class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
-                data-state="closed"
-                type="button"
               >
                 <svg
                   fill="none"
@@ -225,7 +210,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
                 </span>
               </button>
               <a
-                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff] text-xs"
+                class="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
                 href="http://localhost:3000/flower/task/3"
                 rel="noreferrer"
                 target="_blank"

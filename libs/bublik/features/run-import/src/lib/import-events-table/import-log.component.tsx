@@ -1,46 +1,110 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps, ElementRef, useEffect, useRef } from 'react';
+import {
+	ComponentProps,
+	createContext,
+	ElementRef,
+	PropsWithChildren,
+	useContext,
+	useEffect,
+	useRef,
+	useState
+} from 'react';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 import { useGetImportLogQuery } from '@/services/bublik-api';
 import {
-	Dialog,
 	DialogClose,
-	DialogTrigger,
+	DialogPortal,
+	DrawerContent,
+	DrawerRoot,
 	Icon,
-	ModalContent,
 	Skeleton,
 	toast
 } from '@/shared/tailwind-ui';
 import { ImportJsonLog } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
+import { skipToken } from '@reduxjs/toolkit/query';
 
-export interface JsonLogContainerProps {
-	taskId: string;
-	enablePolling?: boolean;
+interface ImportLogContext {
+	toggle: (taskId: string, enablePolling?: boolean) => () => void;
 }
 
-export const JsonLogContainer = ({
-	taskId,
-	enablePolling
-}: JsonLogContainerProps) => {
+const ImportLogContext = createContext<ImportLogContext | null>(null);
+
+function useImportLog() {
+	const context = useContext(ImportLogContext);
+
+	if (!context) {
+		throw new Error(
+			'useImportLog must be used within <ImportLogContextProvider />'
+		);
+	}
+
+	return context;
+}
+
+function ImportLogProvider({ children }: PropsWithChildren) {
+	const [taskId, setTaskId] = useQueryParam('taskId', StringParam);
+	const [enablePolling, setEnablePolling] = useState(false);
+
+	function toggle(task: string, enablePolling?: boolean) {
+		return () => {
+			setTaskId((t) => (t ? null : task));
+
+			if (typeof enablePolling !== 'undefined') {
+				setEnablePolling(enablePolling);
+			}
+		};
+	}
+
+	function close() {
+		setTaskId(null);
+	}
+
 	return (
-		<Dialog>
-			<DialogTrigger asChild>
-				<button className="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]">
-					<Icon name="BoxArrowRight" />
-					<span>Logs</span>
-				</button>
-			</DialogTrigger>
-			<ModalContent className="bg-[#24292f] rounded-lg w-[90vw] flex flex-col">
-				<ImportLogTableContainer
-					taskId={taskId}
-					enablePolling={enablePolling}
-				/>
-			</ModalContent>
-		</Dialog>
+		<ImportLogContext.Provider value={{ toggle }}>
+			<JsonLogContainer
+				taskId={taskId}
+				enablePolling={enablePolling}
+				close={close}
+			/>
+			{children}
+		</ImportLogContext.Provider>
 	);
-};
+}
+
+interface JsonLogContainerProps {
+	taskId?: string | null;
+	enablePolling?: boolean;
+	close: () => void;
+}
+
+function JsonLogContainer(props: JsonLogContainerProps) {
+	const { taskId, enablePolling, close } = props;
+
+	return (
+		<DrawerRoot
+			open={!!taskId}
+			onOpenChange={(open) => {
+				if (!open) close();
+			}}
+		>
+			<DialogPortal>
+				<DrawerContent
+					className="bg-[#24292f] w-[60vw] flex flex-col"
+					onInteractOutside={close}
+					onEscapeKeyDown={close}
+				>
+					<ImportLogTableContainer
+						taskId={taskId}
+						enablePolling={enablePolling}
+					/>
+				</DrawerContent>
+			</DialogPortal>
+		</DrawerRoot>
+	);
+}
 
 export interface ImportLogTableContainerProps {
 	taskId: ComponentProps<typeof JsonLogContainer>['taskId'];
@@ -51,9 +115,12 @@ export const ImportLogTableContainer = (
 	props: ImportLogTableContainerProps
 ) => {
 	const { taskId } = props;
-	const { data, isLoading, isFetching, error } = useGetImportLogQuery(taskId, {
-		pollingInterval: props.enablePolling ? 5000 : 0
-	});
+	const { data, isLoading, isFetching, error } = useGetImportLogQuery(
+		taskId ? taskId : skipToken,
+		{
+			pollingInterval: props.enablePolling ? 5000 : 0
+		}
+	);
 
 	const scrollRef = useRef<ElementRef<'div'>>(null);
 
@@ -74,14 +141,14 @@ export const ImportLogTableContainer = (
 
 	if (error) return <div>Error..</div>;
 
-	if (isLoading) return <Skeleton className="w-full h-[90vh] rounded-md" />;
+	if (isLoading) return <Skeleton className="w-full h-[90vh] trounded-md" />;
 
 	if (!data) return <div>Empty </div>;
 
 	return (
 		<>
 			<div className="px-4 py-2 flex gap-4 items-center justify-between">
-				<h2 className="text-gray-300 text-lg">Logs</h2>
+				<h2 className="text-gray-300 text-lg">Import: {taskId}</h2>
 				<div className="flex gap-4 items-center">
 					{props.enablePolling ? (
 						<Icon
@@ -137,4 +204,11 @@ export const ImportLogTable = (props: ImportLogTableProps) => {
 			})}
 		</ul>
 	);
+};
+
+export {
+	JsonLogContainer,
+	ImportLogProvider,
+	useImportLog,
+	type JsonLogContainerProps
 };
