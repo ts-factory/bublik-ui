@@ -31,7 +31,7 @@ export const BlockLogPage = (props: BlockLogPageProps) => {
 
 	return (
 		<LogTablePaginationContextProvider pagination={pagination}>
-			<div className="mb-[75vh] [&>*:not(:last-child)]:border-b [&>*:not(:last-child)]:border-border-primary [&>*]:mb-6 [&>*]:pb-4">
+			<div className="mb-[40vh] [&>*:not(:last-child)]:border-b [&>*:not(:last-child)]:border-border-primary [&>*]:mb-6 [&>*]:pb-4 font-mono">
 				{props.content.map((block, idx) => {
 					const Block = logBlocksMap[block.type];
 
