@@ -384,10 +384,12 @@ interface MetaInfoItemProps {
 	label: string;
 	value: string | number;
 	href?: string;
+	className?: string;
+	withBorder?: boolean;
 }
 
 function MetaInfoItem(props: MetaInfoItemProps) {
-	const { icon, label, value, href } = props;
+	const { icon, label, value, href, className, withBorder } = props;
 	const [, copy] = useCopyToClipboard();
 
 	const handleCopy = (text: string) => {
@@ -401,14 +403,14 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 		});
 	};
 
-	const isFormatted = isPreformatted(value.toString());
+	const isLong = value.toString().length >= 81;
 
 	return (
 		<div
 			className={cn(
 				'flex items-center gap-1 px-1 group w-fit relative',
 				!href && 'cursor-pointer hover:bg-gray-50',
-				isFormatted && 'border-t border-b border-border-primary'
+				withBorder && isLong && 'border-t border-b border-border-primary'
 			)}
 			onClick={() => handleCopy(value.toString())}
 		>
@@ -426,10 +428,17 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 				<div
 					className={cn(
 						'flex items-center gap-1',
-						isFormatted && 'border-l border-border-primary px-2'
+						withBorder && isLong && 'border-l border-border-primary px-2'
 					)}
 				>
-					<pre className="text-sm text-gray-800">{value}</pre>
+					<pre
+						className={cn(
+							'text-sm text-gray-800 whitespace-pre-wrap',
+							className
+						)}
+					>
+						{value}
+					</pre>
 					<Icon
 						name="PaperStack"
 						size={16}
@@ -633,6 +642,8 @@ function MetaInformation(props: MetaInformationProps) {
 						icon={<TargetIcon className="size-5" />}
 						label="Objective"
 						value={objective}
+						className="max-w-2xl"
+						withBorder
 					/>
 				</li>
 			) : null}
