@@ -29,9 +29,6 @@ export const TimestampDelta = (props: TimestampDeltaProps) => {
 	).timestamp;
 
 	const handleAnchroClick = () => {
-		toast.success(
-			`Set delta anchor at line ${row.getValue(LOG_COLUMNS.lineNumber)}`
-		);
 		setAnchorRow(row);
 	};
 
