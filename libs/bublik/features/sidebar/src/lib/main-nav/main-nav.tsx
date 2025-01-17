@@ -112,13 +112,13 @@ const mainMenu: SidebarItem[] = [
 		pattern: { path: '/history' },
 		subitems: [
 			{
-				label: 'List of results',
+				label: 'List Of Results',
 				to: '/history',
 				icon: <Icon name="PaperListText" />,
 				pattern: { path: '/history', search: { mode: 'linear', page: '1' } }
 			},
 			{
-				label: 'Group iterations by verdicts',
+				label: 'Groups Of Results',
 				to: '/history',
 				icon: <Icon name="Aggregation" />,
 				pattern: {
@@ -133,7 +133,7 @@ const mainMenu: SidebarItem[] = [
 				pattern: { path: '/history', search: { mode: 'measurements' } }
 			},
 			{
-				label: 'Charts Combined',
+				label: 'Stacked Charts',
 				to: '/history',
 				icon: <Icon name="LineChartMultiple" />,
 				pattern: { path: '/history', search: { mode: 'measurements-combined' } }
@@ -141,7 +141,7 @@ const mainMenu: SidebarItem[] = [
 		]
 	},
 	{
-		label: 'Measurements',
+		label: 'Result',
 		to: '/runs',
 		icon: <Icon name="LineGraph" />,
 		pattern: {
@@ -159,7 +159,7 @@ const mainMenu: SidebarItem[] = [
 				}
 			},
 			{
-				label: 'Split',
+				label: 'Charts || Tables',
 				icon: <Icon name="LayoutSidebarHeader" />,
 				to: '/runs',
 				pattern: {
@@ -168,7 +168,7 @@ const mainMenu: SidebarItem[] = [
 				}
 			},
 			{
-				label: 'Tables',
+				label: 'Measurement Tables',
 				icon: <Icon name="PaperListText" />,
 				to: '/runs',
 				pattern: {
@@ -177,7 +177,7 @@ const mainMenu: SidebarItem[] = [
 				}
 			},
 			{
-				label: 'Stacked',
+				label: 'Stacked Charts',
 				icon: <Icon name="LineChartMultiple" />,
 				to: '/runs',
 				pattern: {
