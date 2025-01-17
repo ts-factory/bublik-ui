@@ -21,8 +21,7 @@ import {
 	DrawerTrigger,
 	getBugProps,
 	Icon,
-	NewBugButton,
-	Skeleton
+	NewBugButton
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import {
@@ -33,6 +32,7 @@ import {
 } from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
+	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
@@ -77,50 +77,49 @@ function LogPreviewContainer(
 							{/* To fetch only on mount. Do not remove check */}
 							{_open ? (
 								<div className="h-full flex flex-col overflow-hidden">
-									<div className="flex-1">
-										<CardHeader label={logName}>
-											<div className="flex items-center gap-4">
-												{runId && measurementId ? (
-													<ButtonTw variant="secondary" size="xss" asChild>
-														<Link
-															to={routes.measurements({ runId, resultId })}
-															target="_blank"
-														>
-															<Icon name="BoxArrowRight" className="mr-1.5" />
-															Measurement
-														</Link>
-													</ButtonTw>
-												) : null}
-												{runId ? (
-													<ButtonTw asChild variant="secondary" size="xss">
-														<Link to={routes.run({ runId })} target="_blank">
-															<Icon name="BoxArrowRight" className="mr-1.5" />
-															Run
-														</Link>
-													</ButtonTw>
-												) : null}
-												{runId ? (
-													<ButtonTw asChild variant="secondary" size="xss">
-														<Link
-															to={routes.log({ runId, focusId: resultId })}
-															target="_blank"
-														>
-															<Icon name="BoxArrowRight" className="mr-1.5" />
-															Log
-														</Link>
-													</ButtonTw>
-												) : null}
-												{resultId && runId ? (
-													<NewBug runId={runId} resultId={resultId} />
-												) : null}
-												<DialogClose asChild>
-													<ButtonTw variant={'secondary'} size={'xss'}>
-														<Icon name="CrossSimple" size={20} />
-													</ButtonTw>
-												</DialogClose>
-											</div>
-										</CardHeader>
-									</div>
+									<CardHeader label={logName}>
+										<div className="flex items-center gap-4">
+											{runId && measurementId ? (
+												<ButtonTw variant="secondary" size="xss" asChild>
+													<Link
+														to={routes.measurements({ runId, resultId })}
+														target="_blank"
+													>
+														<Icon name="BoxArrowRight" className="mr-1.5" />
+														Measurement
+													</Link>
+												</ButtonTw>
+											) : null}
+											{runId ? (
+												<ButtonTw asChild variant="secondary" size="xss">
+													<Link to={routes.run({ runId })} target="_blank">
+														<Icon name="BoxArrowRight" className="mr-1.5" />
+														Run
+													</Link>
+												</ButtonTw>
+											) : null}
+											{runId ? (
+												<ButtonTw asChild variant="secondary" size="xss">
+													<Link
+														to={routes.log({ runId, focusId: resultId })}
+														target="_blank"
+													>
+														<Icon name="BoxArrowRight" className="mr-1.5" />
+														Log
+													</Link>
+												</ButtonTw>
+											) : null}
+											{resultId && runId ? (
+												<NewBug runId={runId} resultId={resultId} />
+											) : null}
+											<DialogClose asChild>
+												<ButtonTw variant={'secondary'} size={'xss'}>
+													<Icon name="CrossSimple" size={20} />
+												</ButtonTw>
+											</DialogClose>
+										</div>
+									</CardHeader>
+
 									{resultId ? (
 										<LogPreview resultId={resultId} />
 									) : (
@@ -181,7 +180,7 @@ function LogPreview(props: LogPreviewProps) {
 	);
 
 	if (isLoading) {
-		return <LogPreviewLoading />;
+		return <SessionLoading />;
 	}
 
 	if (error) {
@@ -228,14 +227,6 @@ function LogPreviewError({ error }: LogPreviewErrorProps) {
 					<p>{description}</p>
 				</div>
 			</div>
-		</div>
-	);
-}
-
-function LogPreviewLoading() {
-	return (
-		<div className="w-full h-full p-2">
-			<Skeleton className="w-full h-full rounded" />
 		</div>
 	);
 }
