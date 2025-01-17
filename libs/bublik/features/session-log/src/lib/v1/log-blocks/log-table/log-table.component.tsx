@@ -147,7 +147,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 					) : null}
 					<div ref={startRef} />
 					<div className="relative self-stretch">
-						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-fit p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
+						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-fit p-0 m-0 font-mono text-left text-[0.8125rem] text-text-primary">
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr
