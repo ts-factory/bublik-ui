@@ -27,3 +27,10 @@
 	font-weight: 700;
 	src: url('../public/Inter-Bold.woff2') format('woff2');
 }
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('../public/GeistMonoVariable.ttf') format('truetype');
+	font-weight: 100 900;
+	font-style: normal;
+}
