@@ -2,8 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
 	ComponentProps,
-	ComponentPropsWithoutRef,
-	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -18,13 +16,12 @@ import {
 	getPaginationRowModel,
 	Row,
 	RowData,
+	Table,
 	useReactTable
 } from '@tanstack/react-table';
-import { AnimatePresence, motion } from 'framer-motion';
 
 import { LogTableBlock, LogTableData } from '@/shared/types';
-import { useMeasure } from '@/shared/hooks';
-import { ButtonTw, cn, Icon, Pagination } from '@/shared/tailwind-ui';
+import { ButtonTw, cn, Pagination } from '@/shared/tailwind-ui';
 
 import {
 	DeltaContextProvider,
@@ -60,6 +57,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	const { filters, globalFilter, setGlobalFilter } = useLogTableGlobalFilter({
 		data
 	});
+
 	const { isTimestampDeltaShown, toggleIsTimestampDeltaShown } =
 		useLogTableTimestamp();
 
@@ -115,21 +113,6 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	});
 
 	const startRef = useRef<HTMLDivElement>(null);
-	const [isIntersection, setIsIntersected] = useState(false);
-
-	useEffect(() => {
-		const ref = startRef.current;
-
-		if (!ref) return;
-
-		const observer = new IntersectionObserver(
-			(entry) => setIsIntersected(!entry[0].isIntersecting),
-			{ rootMargin: '0px', threshold: 1 }
-		);
-
-		observer.observe(ref);
-		return () => observer.disconnect();
-	}, []);
 
 	const toolbarProps: ComponentProps<typeof LogTableToolbar> = {
 		table,
@@ -139,13 +122,20 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 		scenario: filters.scenarioOptions,
 		test: filters.testOptions,
 		handleDeltaChangeClick: toggleIsTimestampDeltaShown,
-		isDeltaShown: isTimestampDeltaShown
+		isDeltaShown: isTimestampDeltaShown,
+		startRef
 	};
 
 	return (
 		<DeltaContextProvider value={deltaApi}>
 			<SettingsContextProvider>
-				<div data-block-type={props.type}>
+				<div
+					data-block-type={props.type}
+					className="flex flex-col items-center"
+				>
+					<h2 className="w-full text-lg font-semibold text-text-primary mb-2">
+						Logs
+					</h2>
 					<LogTableToolbar {...toolbarProps} />
 					{pagination && totalCount ? (
 						<LogPagination
@@ -155,26 +145,21 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 							{...paginationProps}
 						/>
 					) : null}
-
-					<ToolbarFloating
-						isVisible={isIntersection}
-						toolbarProps={toolbarProps}
-					/>
 					<div ref={startRef} />
-					<div className="relative">
-						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-lg h-auto p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
+					<div className="relative self-stretch">
+						<table className="w-full border border-border-primary border-separate border-spacing-0 rounded-md h-fit p-0 m-0 font-mono text-left text-[0.875rem] text-text-primary">
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr
 										key={headerGroup.id}
-										className="[&>*:not(:last-child)]:border-r"
+										className="[&>*:not(:last-child)]:border-r [&>*:first-child]:rounded-tl-md [&>*:last-child]:rounded-tr-md"
 									>
 										{headerGroup.headers.map((header) => (
 											<th
 												key={header.id}
 												colSpan={header.colSpan}
 												className={cn(
-													'px-1.5 py-0.5 border-b border-border-primary',
+													'px-1.5 py-2 border-b font-semibold border-border-primary bg-gray-50',
 													header.column.columnDef.meta?.className
 												)}
 											>
@@ -190,9 +175,27 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 								))}
 							</thead>
 							<tbody>
-								{table.getRowModel().rows.map((row) => (
-									<LogRow key={row.id} row={row} />
-								))}
+								{table.getRowModel().rows.length === 0 ? (
+									<tr>
+										<td
+											colSpan={table.getAllColumns().length}
+											className="text-center py-4 text-gray-500"
+										>
+											No results found for the current filters
+										</td>
+									</tr>
+								) : (
+									table
+										.getRowModel()
+										.rows.map((row, index, array) => (
+											<LogRow
+												key={row.id}
+												row={row}
+												table={table}
+												isLast={index === array.length - 1}
+											/>
+										))
+								)}
 							</tbody>
 						</table>
 					</div>
@@ -212,19 +215,32 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 
 export interface LogRowProps {
 	row: Row<LogTableData>;
+	table: Table<LogTableData>;
+	isLast: boolean;
 }
 
-export const LogRow = (props: LogRowProps) => {
-	const { row } = props;
-
+export function LogRow({ row, table, isLast }: LogRowProps) {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const bgClass = getRowColor(row.original);
+	const canExpand = row.getCanExpand();
+	const nextRowCanExpand = table
+		.getRowModel()
+		.rows[
+			table.getRowModel().rows.findIndex((r) => r.id === row.id) + 1
+		]?.getCanExpand();
+	const shouldAddBorder = canExpand || nextRowCanExpand;
 
 	return (
 		<tr
 			id={row.id}
 			data-depth={row.depth}
 			className={cn(
-				'border-border-primary [&>*:not(:last-child)]:border-r [&:not(:last-child)>*]:border-b [&:not(:last-child)]:border-b',
+				'border-border-primary [&>*:not(:last-child)]:border-r',
+				shouldAddBorder && !isLast
+					? '[&>*]:border-b'
+					: !isLast
+					? '[&>*]:border-b'
+					: '',
 				'[&:last-child>:first-child]:rounded-bl-md [&:last-child>:last-child]:rounded-br-md',
 				bgClass
 			)}
@@ -242,7 +258,7 @@ export const LogRow = (props: LogRowProps) => {
 			))}
 		</tr>
 	);
-};
+}
 
 interface LogPaginationProps extends ComponentProps<typeof Pagination> {
 	id: string;
@@ -267,84 +283,3 @@ function LogPagination(props: LogPaginationProps) {
 		</div>
 	);
 }
-
-interface ToolbarFloatingProps {
-	isVisible?: boolean;
-	toolbarProps: ComponentProps<typeof LogTableToolbar>;
-}
-
-export const ToolbarFloating = (props: ToolbarFloatingProps) => {
-	const PADDING = 8;
-
-	const { isVisible, toolbarProps } = props;
-	const [ref, { height }] = useMeasure<HTMLDivElement>();
-	const [isOpen, setIsOpen] = useState(false);
-
-	const translation = !isOpen ? height + PADDING * 2 : 0;
-
-	return (
-		<AnimatePresence>
-			{isVisible ? (
-				<motion.div
-					initial={{ opacity: 0, y: -translation }}
-					animate={{ opacity: 1, y: -translation }}
-					transition={{ type: 'spring', bounce: 0.1 }}
-					className="sticky top-0 z-50 flex flex-col items-center justify-center left-1/2"
-				>
-					<div
-						className={cn(
-							'relative bg-white rounded-b-lg transition-shadow',
-							isOpen && 'shadow-xl'
-						)}
-					>
-						<div ref={ref} className="p-2">
-							<LogTableToolbar {...toolbarProps} />
-						</div>
-					</div>
-					<div className="z-10 flex justify-center">
-						<FloatingExpandButton
-							isOpen={isOpen}
-							onClick={() => setIsOpen(!isOpen)}
-							aria-label="Show or hide toolbar toolbar"
-						/>
-					</div>
-				</motion.div>
-			) : null}
-		</AnimatePresence>
-	);
-};
-
-type FloatingExpandButtonProps = ComponentPropsWithoutRef<'button'> & {
-	isOpen: boolean;
-};
-
-export const FloatingExpandButton = ({
-	isOpen,
-	className,
-	...props
-}: FloatingExpandButtonProps) => {
-	return (
-		<div
-			className={cn(
-				'rounded-b-xl flex shadow-xl items-center justify-center transition-all min-w-[250px] border-t',
-				isOpen
-					? 'bg-white text-primary hover:bg-primary-wash border-t-border-primary'
-					: 'bg-primary text-white border-t-transparent'
-			)}
-		>
-			<button
-				{...props}
-				className={cn(
-					'flex items-center justify-center flex-1 p-0.5 rounded-md',
-					className
-				)}
-			>
-				<Icon
-					name="ArrowShortTop"
-					size={20}
-					className={cn('transition-all', isOpen ? 'rotate-0' : 'rotate-180')}
-				/>
-			</button>
-		</div>
-	);
-};
