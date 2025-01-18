@@ -169,7 +169,7 @@ export const RunTable = (props: RunTableProps) => {
 				className={cn('bg-white rounded', isFetching && 'opacity-40')}
 				data-testid="run-table"
 			>
-				<table className="w-full p-0 m-0 border-separate border-spacing-0">
+				<table className="w-full p-0 m-0 border-separate h-full border-spacing-0">
 					<RunHeader instance={table} />
 					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
 						{table.getRowModel().rows.map((row) => (

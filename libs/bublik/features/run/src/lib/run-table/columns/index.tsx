@@ -31,9 +31,11 @@ import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
+	Separator,
 	TableNode,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { badgeColumns } from './badge-columns';
 import { getTreeNode } from '@/bublik/run-utils';
@@ -72,15 +74,54 @@ function getColumns() {
 		treeColumn,
 		helper.accessor('objective', {
 			id: ColumnId.Objective,
-			header: 'Objective'
+			header: 'Objective',
+			cell: ({ cell }) => {
+				const objective = cell.getValue();
+
+				if (!objective) return;
+
+				return (
+					<Popover modal>
+						<PopoverTrigger asChild>
+							<button className="max-w-[15vw] 2xl:max-w-[20vw] text-left w-full group relative block h-full hover:bg-primary-wash px-2">
+								<div className="absolute flex items-center right-0 top-1/2 -translate-y-1/2 z-10 h-full opacity-0 group-hover:opacity-100 transition-opacity">
+									<div className="w-6 h-full bg-gradient-to-r from-transparent to-white" />
+									<div className="grid place-items-center bg-white w-6 h-full pr-2">
+										<Icon
+											name="ChevronDown"
+											size={16}
+											className="text-primary"
+										/>
+									</div>
+								</div>
+								<pre className="truncate relative text-xs block max-w-[80ch] font-body">
+									{objective}
+								</pre>
+							</button>
+						</PopoverTrigger>
+						<PopoverPortal>
+							<PopoverPrimitive.Content
+								align="start"
+								sideOffset={0}
+								className={cn(
+									'outline-none bg-white shadow-popover p-1 rounded-lg z-50 -translate-y-[26px] -translate-x-[8px] transition-none',
+									'rdx-state-open:animate-fade-in rdx-state-closed:animate-fade-out'
+								)}
+								style={{ transform: 'translateY(-74px) translateX(-4px)' }}
+							>
+								<h2 className="px-2 py-1.5 font-semibold text-xs">Objective</h2>
+								<Separator className="h-px my-1" />
+								<pre className="p-2 text-xs font-body">{objective}</pre>
+							</PopoverPrimitive.Content>
+						</PopoverPortal>
+					</Popover>
+				);
+			},
+			meta: { className: 'w-px px-0' }
 		}),
 		helper.accessor('comments', {
 			id: ColumnId.Comments,
-			header: () => (
-				<div className="flex items-center justify-end px-4">
-					<span>Notes</span>
-				</div>
-			),
+			header: () => <div className="px-2">Notes</div>,
 			cell: ({ cell, row }) => {
 				const comments = cell.getValue();
 
@@ -91,7 +132,7 @@ function getColumns() {
 				);
 			},
 			enableSorting: false,
-			meta: { className: 'text-right' }
+			meta: { className: 'text-right w-px px-0' }
 		}),
 		...badgeColumns
 	] as ColumnDef<RunData | MergedRun>[];
@@ -265,7 +306,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 
 	if (!comments || !comments?.length) {
 		return (
-			<div className="flex items-center gap-1 justify-end">
+			<div className="flex items-center gap-1 justify-end pr-2">
 				<Popover>
 					<Tooltip content="Add Node">
 						<PopoverTrigger asChild>
@@ -299,7 +340,10 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 	if (!c) return;
 
 	return (
-		<div key={c.comment_id} className="flex items-center gap-2 justify-end">
+		<div
+			key={c.comment_id}
+			className="flex items-center gap-2 justify-end max-w-[15vw] px-2"
+		>
 			<Popover
 				onOpenChange={(open) => {
 					if (open) return;
@@ -308,7 +352,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 				}}
 				modal
 			>
-				<p className="max-[1700px]:truncate max-[1700px]:w-40">{c.comment}</p>
+				<pre className="truncate font-body block max-w-[80ch]">{c.comment}</pre>
 				<Tooltip content="Show All Notes">
 					<PopoverTrigger asChild>
 						<ButtonTw variant="secondary" size="xss" className="size-6">
@@ -316,6 +360,39 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 						</ButtonTw>
 					</PopoverTrigger>
 				</Tooltip>
+				<Popover>
+					<Tooltip content="Edit Note">
+						<PopoverTrigger asChild>
+							<ButtonTw
+								variant="secondary"
+								size="xss"
+								aria-label="Edit Note"
+								className="size-6"
+							>
+								<Icon name="Edit" className="size-5 shrink-0" />
+							</ButtonTw>
+						</PopoverTrigger>
+					</Tooltip>
+
+					<PopoverPortal>
+						<PopoverContent
+							className={cn(
+								'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
+							)}
+							sideOffset={8}
+							align="end"
+						>
+							<CommentEditor
+								label="Edit Note"
+								onSubmit={(f) =>
+									handleEditTestCommentClick(Number(c.comment_id), f.comment)
+								}
+								defaultValues={{ comment: c.comment }}
+								submitLabel="Edit"
+							/>
+						</PopoverContent>
+					</PopoverPortal>
+				</Popover>
 				<PopoverPortal>
 					<PopoverContent
 						className="relative px-4 py-6 bg-white rounded-md w-96 shadow-popover"
@@ -434,39 +511,6 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 								) : null}
 							</div>
 						</div>
-					</PopoverContent>
-				</PopoverPortal>
-			</Popover>
-			<Popover>
-				<Tooltip content="Edit Note">
-					<PopoverTrigger asChild>
-						<ButtonTw
-							variant="secondary"
-							size="xss"
-							aria-label="Edit Note"
-							className="size-6"
-						>
-							<Icon name="Edit" className="size-5 shrink-0" />
-						</ButtonTw>
-					</PopoverTrigger>
-				</Tooltip>
-
-				<PopoverPortal>
-					<PopoverContent
-						className={cn(
-							'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
-						)}
-						sideOffset={8}
-						align="end"
-					>
-						<CommentEditor
-							label="Edit Note"
-							onSubmit={(f) =>
-								handleEditTestCommentClick(Number(c.comment_id), f.comment)
-							}
-							defaultValues={{ comment: c.comment }}
-							submitLabel="Edit"
-						/>
 					</PopoverContent>
 				</PopoverPortal>
 			</Popover>
