@@ -78,7 +78,7 @@ export const getScenarioOptions = (data: LogTableData[]) => {
 		return { entities, users };
 	};
 
-	const STATIC_USERS = ['Step', 'Artifact', 'Self'];
+	const STATIC_USERS = ['Step', 'Artifact', 'Self', 'Verdict'];
 	const { allEntityMap, mainTestEntity } = getAllEntitiesMapWithUsers(
 		flatten(data)
 	);
