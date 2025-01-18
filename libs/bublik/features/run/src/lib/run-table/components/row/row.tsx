@@ -24,8 +24,9 @@ export const RunRow = ({ row, runId }: RowProps) => {
 		<Fragment>
 			<tr
 				className={cn(
-					'[&>*]:hover:bg-gray-50 relative z-10',
-					isExpandedTest && '[&>*]:bg-gray-50 [&>*]:sticky [&>*]:top-[68px]'
+					'[&>*]:hover:bg-gray-50 h-full relative z-10',
+					isExpandedTest &&
+						'[&>*]:bg-gray-50 h-full [&>*]:sticky [&>*]:top-[68px]'
 				)}
 				ref={ref}
 			>
