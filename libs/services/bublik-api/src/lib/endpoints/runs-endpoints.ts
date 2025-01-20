@@ -19,7 +19,7 @@ export const runsEndpoints = {
 				params: prepareForSend(queryParams),
 				cache: 'no-cache'
 			}),
-			providesTags: [BUBLIK_TAG.Run]
+			providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
 		})
 	})
 };

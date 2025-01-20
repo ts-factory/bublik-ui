@@ -11,6 +11,7 @@ import { useMount } from '@/shared/hooks';
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
+import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 
 export const RunsFormContainer = () => {
 	const dispatch = useDispatch();
@@ -99,6 +100,7 @@ export const RunsFormContainer = () => {
 					newForm.runData.filter((v) => v.isSelected).map((v) => v.value)
 				)
 			);
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 		},
 		[dispatch, getNewSearchParams, setSearchParams]
 	);
@@ -106,6 +108,7 @@ export const RunsFormContainer = () => {
 	const handleResetFormClick = useCallback(
 		(resettedForm: RunsFormValues) => {
 			dispatch(updateGlobalFilter([]));
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 			setSearchParams(getNewSearchParams(resettedForm), { replace: true });
 		},
 		[dispatch, getNewSearchParams, setSearchParams]
