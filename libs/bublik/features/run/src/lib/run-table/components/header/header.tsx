@@ -43,7 +43,7 @@ export const RunHeader = ({ instance }: RunHeaderProps) => {
 										? {
 												onClick: header.column.getToggleSortingHandler(),
 												className: cn(
-													'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-2 py-1',
+													'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-1 py-1',
 													header.column.getIsSorted() && 'bg-primary-wash'
 												)
 										  }

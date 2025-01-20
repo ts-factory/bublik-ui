@@ -42,7 +42,7 @@ export const RunRow = ({ row, runId }: RowProps) => {
 						<td
 							key={cell.id}
 							className={cn(
-								'px-4 py-0 bg-white',
+								'px-2 py-0 bg-white',
 								isLast && 'border-r',
 								cell.column.columnDef.meta?.className
 							)}
