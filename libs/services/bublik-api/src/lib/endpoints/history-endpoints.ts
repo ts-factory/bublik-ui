@@ -22,9 +22,13 @@ export const historyEndpoints = {
 			HistoryAPIBackendQuery
 		>({
 			query: (query) => {
-				return { url: withApiV2('/history'), params: prepareForSend(query) };
+				return {
+					url: withApiV2('/history'),
+					params: prepareForSend(query),
+					cache: 'no-cache'
+				};
 			},
-			providesTags: () => [{ type: BUBLIK_TAG.HistoryData }]
+			providesTags: () => [BUBLIK_TAG.HistoryData]
 		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
@@ -33,10 +37,11 @@ export const historyEndpoints = {
 			query: (query) => {
 				return {
 					url: withApiV2('/history/grouped'),
-					params: prepareForSend(query)
+					params: prepareForSend(query),
+					cache: 'no-cache'
 				};
 			},
-			providesTags: () => [{ type: BUBLIK_TAG.HistoryData }]
+			providesTags: () => [BUBLIK_TAG.HistoryData]
 		})
 	})
 };

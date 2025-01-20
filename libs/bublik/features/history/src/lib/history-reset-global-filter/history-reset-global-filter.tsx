@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
+import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw } from '@/shared/tailwind-ui';
 
 import {
@@ -16,6 +17,7 @@ export const HistoryResetGlobalFilterContainer = () => {
 	const actions = useHistoryActions();
 	const form = useSelector(selectSearchState);
 	const [searchParams, setSearchParams] = useSearchParams();
+	const dispatch = useDispatch();
 
 	const handleResetClick = () => {
 		actions.resetGlobalFilter();
@@ -30,6 +32,7 @@ export const HistoryResetGlobalFilterContainer = () => {
 
 		const mode = searchParams.get('mode') ?? 'linear';
 		setSearchParams({ ...historyAPIQuery, mode }, { replace: true });
+		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 	};
 
 	return (
