@@ -14,15 +14,15 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 	const getColorByLevel = (level: LogTableData['level']) => {
 		switch (level) {
 			case 'ERROR':
-				return 'bg-log-row-error/50 hover:bg-log-row-error/70';
+				return 'bg-red-200/80 hover:bg-red-300/70';
 			case 'WARN':
-				return 'bg-log-row-warn/50 hover:bg-log-row-warn/70';
+				return 'bg-orange-200/60 hover:bg-orange-300/70';
 			case 'INFO':
-				return 'bg-log-row-info/70 hover:bg-log-row-info';
+				return 'bg-blue-200/60 hover:bg-blue-200';
 			case 'VERB':
-				return 'bg-log-row-verb/50 hover:bg-log-row-verb/70';
+				return 'bg-indigo-200/80 hover:bg-indigo-300';
 			case 'PACKET':
-				return 'bg-log-row-packet/70 hover:bg-log-row-packet';
+				return 'bg-gray-200 hover:bg-gray-300/80';
 			default:
 				return 'hover:bg-gray-50';
 		}
@@ -36,7 +36,7 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 	}
 
 	if (BLUE_HIGHLIGHT.includes(row.user_name) && !isErrorLevel(row.level)) {
-		return 'bg-blue-300/50 hover:bg-blue-300/70';
+		return 'bg-blue-200/60 hover:bg-blue-200';
 	}
 
 	if (
@@ -44,7 +44,7 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 		row.level !== 'MI' &&
 		!isErrorLevel(row.level)
 	) {
-		return 'bg-[#65cd84]/50 hover:bg-[#65cd84]/70';
+		return 'bg-green-200/70 hover:bg-green-300';
 	}
 
 	return getColorByLevel(row.level);
