@@ -9,9 +9,10 @@ import {
 	useSearchParams,
 	Location,
 	Path,
-	resolvePath
+	resolvePath,
+	NavLinkProps
 } from 'react-router-dom';
-import { AccordionLinkProps, NavLinkProps } from './nav-link';
+import { AccordionLinkProps, NavLinkInternal } from './nav-link';
 
 export type SearchPattern = Record<string, string>;
 
@@ -64,11 +65,14 @@ export const useMatchSearchPattern = <T extends { search?: SearchPattern }>(
 	);
 };
 
-export type UseAccordionLinkConfig = Omit<AccordionLinkProps, 'icon' | 'label'>;
+export type UseAccordionLinkConfig = Omit<NavLinkInternal, 'icon' | 'label'>;
 
 export const useAccordionLink = (
-	config: UseAccordionLinkConfig
-): { to: Partial<Path>; isActive: boolean } => {
+	config: UseAccordionLinkConfig = {
+		to: '',
+		pattern: undefined
+	}
+) => {
 	const { pattern, to } = config;
 
 	const location = useLocation();
@@ -96,28 +100,32 @@ export const useAccordionLink = (
 	};
 };
 
-export type UseNavLinkConfig = Omit<
-	NavLinkProps,
-	'icon' | 'label' | 'subitems'
->;
+export type UseNavLinkConfig = Omit<NavLinkInternal, 'icon' | 'label'>;
 
-export const useNavLink = (config: UseNavLinkConfig) => {
-	const { to, pattern } = config;
+export const useNavLink = (
+	config: UseNavLinkConfig = {
+		to: '',
+		pattern: undefined
+	}
+) => {
 	const location = useLocation();
-	const matches = useMatchPathPattern(pattern);
+	const matches = useMatchPathPattern(config?.pattern);
 	const [searchParams] = useSearchParams();
 
-	const isActive = pattern
+	const isActive = config?.pattern
 		? Array.isArray(matches)
 			? Boolean(matches.length)
 			: Boolean(matches)
 		: false;
 
 	const pathname = useLast(
-		to.toString(),
-		getNavPathname({ location, pattern })
+		config?.to?.toString(),
+		getNavPathname({ location, pattern: config?.pattern })
 	);
-	const search = useLast('', getNavSearch({ location, searchParams, pattern }));
+	const search = useLast(
+		'',
+		getNavSearch({ location, searchParams, pattern: config?.pattern })
+	);
 
 	return {
 		isActive,
