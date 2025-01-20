@@ -25,7 +25,6 @@ import {
 	HelpPage,
 	RunsPage,
 	RunDiffPage,
-	ChangelogPage,
 	HistoryPageV2,
 	LoginPage,
 	SettingsProfilePage,
@@ -214,10 +213,7 @@ const router = createBrowserRouter(
 						},
 						{
 							path: '/help',
-							children: [
-								{ path: 'faq', element: <HelpPage /> },
-								{ path: 'changelog', element: <ChangelogPage /> }
-							]
+							children: [{ path: 'faq', element: <HelpPage /> }]
 						},
 						{
 							path: '/settings',

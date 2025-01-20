@@ -19,9 +19,7 @@ const createRequestLogger =
 		});
 	};
 
-export default defineConfig(async ({ mode }) => {
-	const mdx = await import('@mdx-js/rollup');
-
+export default defineConfig(({ mode }) => {
 	let env: Record<string, string> = {};
 	if (mode === 'development') {
 		// You need to run `pnpm start again if you change env to load it correctly`
@@ -90,13 +88,7 @@ export default defineConfig(async ({ mode }) => {
 			}
 		},
 		optimizeDeps: { include: ['react/jsx-runtime'] },
-		plugins: [
-			react(),
-			nxViteTsPaths(),
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			mdx.default({ remarkPlugins: [] }) as any,
-			svgr({ svgrOptions: { ref: true } })
-		],
+		plugins: [react(), nxViteTsPaths(), svgr({ svgrOptions: { ref: true } })],
 
 		build: {
 			outDir: '../../dist/apps/bublik',
