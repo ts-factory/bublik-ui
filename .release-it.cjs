@@ -45,8 +45,6 @@ module.exports = {
 	hooks: {
 		'before:init': [],
 		'after:bump': ['pnpm run git-info'],
-		'after:@release-it/conventional-changelog:bump':
-			'pnpm run create-mdx-changelog "${changelog}"',
 		'after:release':
 			'echo Successfully released ${name} v${version} to ${repo.repository}.'
 	},

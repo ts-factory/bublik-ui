@@ -72,18 +72,37 @@ const paddingTransition = { transition: 'padding 0.5s ease' };
 |--------------------------------------------------
 */
 
-export interface NavLinkProps extends Pick<LinkProps, 'to'> {
+type NavLinkCommon = {
 	label: string;
 	icon: ReactNode;
-	pattern?: MatchPattern | MatchPattern[];
 	subitems?: AccordionLinkProps[];
-}
+};
+
+export type NavLinkInternal = Pick<LinkProps, 'to'> &
+	NavLinkCommon & {
+		pattern?: MatchPattern | MatchPattern[];
+	};
+
+export type NavLinkExternal = NavLinkCommon & {
+	href: string;
+};
+
+export type NavLinkProps = NavLinkInternal | NavLinkExternal;
+export type AccordionLinkProps = NavLinkInternal | NavLinkExternal;
+
+export const isExternalLink = (
+	props: NavLinkProps | AccordionLinkProps
+): props is NavLinkExternal => {
+	return 'href' in props;
+};
 
 export const NavLink = (props: NavLinkProps) => {
-	const { label, to, icon, subitems = [], pattern } = props;
+	const { label, icon, subitems = [] } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const { isActive, to: finalTo } = useNavLink({ to, pattern });
+	const { isActive, to: finalTo } = useNavLink(
+		isExternalLink(props) ? undefined : props
+	);
 
 	const hasSubitems = subitems.length > 0;
 
@@ -119,14 +138,31 @@ export const NavLink = (props: NavLinkProps) => {
 						isSubmenuOpen ? 'mb-3.5' : 'delay-200 mb-0'
 					)}
 				>
-					<Link
-						to={finalTo}
-						className={linkStyles({ isSidebarOpen })}
-						style={paddingTransition}
-					>
-						<div className="grid flex-shrink-0 place-items-center">{icon}</div>
-						<span className="text-[1.125rem] truncate">{label}</span>
-					</Link>
+					{isExternalLink(props) ? (
+						<a
+							href={props.href}
+							className={linkStyles({ isSidebarOpen })}
+							style={paddingTransition}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<div className="grid flex-shrink-0 place-items-center">
+								{icon}
+							</div>
+							<span className="text-[1.125rem] truncate">{label}</span>
+						</a>
+					) : (
+						<Link
+							to={finalTo}
+							className={linkStyles({ isSidebarOpen })}
+							style={paddingTransition}
+						>
+							<div className="grid flex-shrink-0 place-items-center">
+								{icon}
+							</div>
+							<span className="text-[1.125rem] truncate">{label}</span>
+						</Link>
+					)}
 					{hasSubitems ? (
 						<button
 							aria-label="Toggle submenu"
@@ -182,13 +218,13 @@ const accordionLinkStyles = cva({
 |--------------------------------------------------
 */
 
-export type AccordionLinkProps = Omit<NavLinkProps, 'subitems'>;
-
 const AccordionLink = (props: AccordionLinkProps) => {
-	const { label, icon, pattern, to } = props;
+	const { label, icon } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const { to: matchTo, isActive } = useAccordionLink({ pattern, to });
+	const { to: matchTo, isActive } = useAccordionLink(
+		isExternalLink(props) ? undefined : props
+	);
 
 	return (
 		<Tooltip
@@ -197,16 +233,31 @@ const AccordionLink = (props: AccordionLinkProps) => {
 			delayDuration={isSidebarOpen ? 1400 : 700}
 			sideOffset={15}
 		>
-			<Link
-				to={matchTo}
-				className={accordionLinkStyles({ isActive, isSidebarOpen })}
-				style={paddingTransition}
-			>
-				<div className="grid place-items-center">{icon}</div>
-				<span className="truncate text-[0.875rem] leading-[1.5rem]">
-					{label}
-				</span>
-			</Link>
+			{isExternalLink(props) ? (
+				<a
+					href={props.href}
+					target="_blank"
+					rel="noopener noreferrer"
+					className={accordionLinkStyles({ isActive, isSidebarOpen })}
+					style={paddingTransition}
+				>
+					<div className="grid place-items-center">{icon}</div>
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">
+						{label}
+					</span>
+				</a>
+			) : (
+				<Link
+					to={matchTo}
+					className={accordionLinkStyles({ isActive, isSidebarOpen })}
+					style={paddingTransition}
+				>
+					<div className="grid place-items-center">{icon}</div>
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">
+						{label}
+					</span>
+				</Link>
+			)}
 		</Tooltip>
 	);
 };
