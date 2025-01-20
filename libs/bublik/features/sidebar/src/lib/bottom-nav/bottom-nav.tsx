@@ -4,10 +4,11 @@ import { useMemo } from 'react';
 
 import { useAuth } from '@/bublik/features/auth';
 import { Icon } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
 
 import { NavLink, SidebarItem } from '../nav-link';
 
-const getNavSections = (isAdmin: boolean) => {
+const getNavSections = (isAdmin = false) => {
 	const devSection: SidebarItem = {
 		label: 'Admin',
 		icon: <Icon name="Edit" />,
@@ -60,6 +61,11 @@ const getNavSections = (isAdmin: boolean) => {
 			to: '/help/faq',
 			pattern: [{ path: '/help', end: false }, { path: '/help/faq' }],
 			subitems: [
+				{
+					label: 'Documentation',
+					icon: <Icon name="PaperText" />,
+					href: `${config.oldBaseUrl}/docs`
+				},
 				{
 					label: 'Changelog',
 					icon: <Icon name="PaperChangelog" />,
