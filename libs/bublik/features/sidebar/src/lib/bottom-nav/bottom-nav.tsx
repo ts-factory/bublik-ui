@@ -69,8 +69,7 @@ const getNavSections = (isAdmin = false) => {
 				{
 					label: 'Changelog',
 					icon: <Icon name="PaperChangelog" />,
-					to: '/help/changelog',
-					pattern: { path: '/help/changelog' }
+					href: `${config.oldBaseUrl}/docs/blog`
 				}
 			]
 		}
