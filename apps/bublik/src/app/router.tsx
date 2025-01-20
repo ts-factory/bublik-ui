@@ -12,7 +12,6 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
 import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
-import { PrivateRoute } from '@/bublik/features/auth';
 
 import {
 	DevelopersLayout,
@@ -25,13 +24,9 @@ import {
 	HelpPage,
 	RunsPage,
 	RunDiffPage,
-	ChangelogPage,
 	HistoryPageV2,
 	LoginPage,
-	SettingsProfilePage,
-	SettingsAppearancePage,
 	ForgotPage,
-	SettingsLayout,
 	AuthLayout,
 	ResetPasswordPage,
 	AdminUsersPage,
@@ -214,22 +209,7 @@ const router = createBrowserRouter(
 						},
 						{
 							path: '/help',
-							children: [
-								{ path: 'faq', element: <HelpPage /> },
-								{ path: 'changelog', element: <ChangelogPage /> }
-							]
-						},
-						{
-							path: '/settings',
-							element: (
-								<PrivateRoute>
-									<SettingsLayout />
-								</PrivateRoute>
-							),
-							children: [
-								{ path: 'profile', element: <SettingsProfilePage /> },
-								{ path: 'appearance', element: <SettingsAppearancePage /> }
-							]
+							children: [{ path: 'faq', element: <HelpPage /> }]
 						},
 						{ path: '*', element: <NoMatchFeature /> }
 					]
