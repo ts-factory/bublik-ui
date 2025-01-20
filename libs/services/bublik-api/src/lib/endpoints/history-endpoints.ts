@@ -24,7 +24,7 @@ export const historyEndpoints = {
 			query: (query) => {
 				return { url: withApiV2('/history'), params: prepareForSend(query) };
 			},
-			providesTags: () => [{ type: BUBLIK_TAG.HistoryData }]
+			providesTags: () => [BUBLIK_TAG.HistoryData]
 		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
@@ -36,7 +36,7 @@ export const historyEndpoints = {
 					params: prepareForSend(query)
 				};
 			},
-			providesTags: () => [{ type: BUBLIK_TAG.HistoryData }]
+			providesTags: () => [BUBLIK_TAG.HistoryData]
 		})
 	})
 };

@@ -1,7 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
+
+import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from './history-slice';
@@ -15,7 +18,6 @@ import {
 	selectHistoryForm,
 	selectSearchState
 } from './history-slice.selectors';
-import { useSearchParams } from 'react-router-dom';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
 
 export const useSyncHistoryQueryToState = () => {
@@ -33,6 +35,7 @@ export const useHistoryFormSearchState = () => {
 	const form = useSelector(selectHistoryForm);
 	const state = useSelector(selectSearchState);
 	const globalFilter = useSelector(selectGlobalFilter);
+	const dispatch = useDispatch();
 
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -63,6 +66,7 @@ export const useHistoryFormSearchState = () => {
 
 			setSearchParams(newSearchParams, { replace: true });
 			actions.resetGlobalFilter();
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
 		[actions, mode, pageSize, setSearchParams]
 	);

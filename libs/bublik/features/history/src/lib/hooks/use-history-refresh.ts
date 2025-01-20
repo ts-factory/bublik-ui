@@ -2,12 +2,14 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 import {
 	HistoryAPIQuery,
 	RESULT_PROPERTIES,
 	RESULT_TYPE
 } from '@/shared/types';
+import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import {
 	DEFAULT_RESULT_PROPERTIES,
 	DEFAULT_RESULT_TYPES
@@ -79,6 +81,7 @@ export const useHistoryRefresh = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const mode = searchParams.get('mode') ?? 'linear';
 	const pageSize = searchParams.get('pageSize') ?? 25;
+	const dispatch = useDispatch();
 
 	return useCallback(
 		(globalFilter: HistoryGlobalFilter) => {
@@ -92,6 +95,7 @@ export const useHistoryRefresh = () => {
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
 			setSearchParams(params, { replace: true });
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
 		[mode, pageSize, setSearchParams, state]
 	);
