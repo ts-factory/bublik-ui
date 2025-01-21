@@ -7,7 +7,7 @@ exports[`components/AppShell > should match snapshot 1`] = `
     data-testid="tw-app-shell"
   >
     <div
-      class="sticky top-0 z-20 h-screen"
+      class="sticky top-0 z-20 h-screen h-svh"
       id="sidebar"
     >
       <div>

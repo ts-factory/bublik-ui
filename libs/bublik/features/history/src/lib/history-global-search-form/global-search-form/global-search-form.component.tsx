@@ -44,7 +44,7 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 
 	return (
 		<div
-			className="w-[768px] h-screen overflow-auto styled-scrollbar"
+			className="w-[768px] h-full overflow-auto styled-scrollbar"
 			ref={scrollableRef}
 		>
 			<FormProvider {...form.methods}>

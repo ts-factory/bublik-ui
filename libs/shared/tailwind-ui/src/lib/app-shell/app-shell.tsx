@@ -60,7 +60,7 @@ export const AppShell = ({
 				isSidebarOpen={isSidebarOpen}
 				toggleSidebar={toggleSidebar}
 			>
-				<div className="sticky top-0 z-20 h-screen" id="sidebar">
+				<div className="sticky top-0 z-20 h-screen h-svh" id="sidebar">
 					{sidebar}
 				</div>
 				<div className="flex-grow overflow-auto" id="page-container">

@@ -33,7 +33,7 @@ export const DrawerContent = forwardRef<HTMLDivElement, DialogContentProps>(
 				<DialogContent
 					{...props}
 					className={cn(
-						'fixed top-0 right-0 z-50 h-screen bg-white rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
+						'fixed top-0 right-0 z-50 h-screen h-svh bg-white rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
 						className
 					)}
 					ref={ref}

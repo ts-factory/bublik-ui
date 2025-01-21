@@ -73,7 +73,7 @@ export const LogPage = () => {
 	if (shouldRedirect) return <Navigate to={location} />;
 
 	return (
-		<div className="flex h-screen gap-1 p-2 overflow-y-hidden">
+		<div className="flex h-screen h-svh gap-1 p-2 overflow-y-hidden">
 			<LogFeature runId={runId} isTreeShown={isTreeShown}>
 				{isHeaderShown ? <LogHeader runId={runId} /> : null}
 			</LogFeature>
