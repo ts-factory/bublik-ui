@@ -9,7 +9,8 @@ import {
 	DatePickerField,
 	Icon,
 	Input,
-	SelectField
+	SelectField,
+	Tooltip
 } from '@/shared/tailwind-ui';
 
 import { facilityOptions, severityOptions } from '../utils';
@@ -98,14 +99,6 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 				<DatePickerField label="Date" name="date" control={control} />
 			</div>
 			<div className="flex items-center gap-4">
-				<button
-					type="button"
-					aria-label="Reset form"
-					className="grid w-10 h-10 rounded-md place-items-center text-text-menu bg-primary-wash hover:text-primary transition-colors"
-					onClick={props.onResetClick}
-				>
-					<Icon name="Bin" size={24} />
-				</button>
 				<ButtonTw
 					size="md"
 					rounded="lg"
@@ -113,8 +106,20 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 					type="submit"
 					variant="primary"
 				>
-					Submit
+					<Icon name="Refresh" size={24} className="mr-1.5" />
+					<span>Submit</span>
 				</ButtonTw>
+				<Tooltip content="Reset Filters">
+					<ButtonTw
+						type="button"
+						variant="outline"
+						aria-label="Reset Form"
+						className="grid size-10 place-items-center text-text-menu hover:text-primary"
+						onClick={props.onResetClick}
+					>
+						<Icon name="Bin" size={24} />
+					</ButtonTw>
+				</Tooltip>
 			</div>
 		</form>
 	);

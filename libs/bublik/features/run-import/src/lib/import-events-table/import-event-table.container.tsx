@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 import { PaginationState } from '@tanstack/react-table';
 
@@ -77,7 +77,20 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 		refetchOnFocus: true,
 		refetchOnMountOrArgChange: true
 	});
+	const [isScrolled, setIsScrolled] = useState(false);
+	const containerRef = useRef<HTMLDivElement>(null);
 
+	useEffect(() => {
+		const container = containerRef.current;
+		if (!container) return;
+
+		const handleScroll = () => {
+			setIsScrolled(container.scrollTop > 0);
+		};
+
+		container.addEventListener('scroll', handleScroll);
+		return () => container.removeEventListener('scroll', handleScroll);
+	}, []);
 	return (
 		<>
 			<div className="px-6 py-4 bg-white rounded-t-xl">
@@ -91,7 +104,7 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 					{props.children}
 				</div>
 			</div>
-			<div className="flex flex-col overflow-auto flex-grow">
+			<div className="flex flex-col overflow-auto flex-grow" ref={containerRef}>
 				{isLoading ? (
 					<ImportEventTableLoading />
 				) : error ? (
@@ -101,6 +114,7 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 						data={data}
 						pagination={pagination}
 						setPagination={setPagination}
+						isScrolled={isScrolled}
 					/>
 				) : (
 					<ImportEventTableEmpty />

@@ -15,6 +15,7 @@ import { getErrorMessage } from '@/services/bublik-api';
 import { cn, Icon, Pagination, Skeleton } from '@/shared/tailwind-ui';
 
 import { columns } from './import-event-table.columns';
+import { useState, useRef, useEffect } from 'react';
 
 export const ImportEventTableLoading = () => {
 	return (
@@ -79,10 +80,11 @@ export interface ImportEventTableProps {
 	data: LogEvent[];
 	pagination: PaginationState;
 	setPagination: OnChangeFn<PaginationState>;
+	isScrolled: boolean;
 }
 
 export function ImportEventTable(props: ImportEventTableProps) {
-	const { data, pagination, setPagination } = props;
+	const { data, pagination, setPagination, isScrolled } = props;
 
 	const table = useReactTable({
 		state: { pagination },
@@ -96,38 +98,58 @@ export function ImportEventTable(props: ImportEventTableProps) {
 
 	return (
 		<div>
-			<table className="border-separate border-spacing-y-1 w-full">
-				<thead className={cn('bg-white sticky top-0 z-10')}>
+			<table className="border-separate border-spacing-y-1 w-full h-full">
+				<thead
+					className={cn('bg-white sticky top-0 z-10 transition-shadow', {
+						'shadow-[0_0_15px_0_rgb(0_0_0_/_10%)]': isScrolled
+					})}
+				>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id} className="h-8.5">
-							{headerGroup.headers.map((header) => (
-								<th
-									key={header.id}
-									colSpan={header.colSpan}
-									className="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
-								>
-									{header.isPlaceholder
-										? null
-										: flexRender(
-												header.column.columnDef.header,
-												header.getContext()
-										  )}
-								</th>
-							))}
+							{headerGroup.headers.map((header) => {
+								const className = header.column.columnDef.meta?.['className'];
+
+								return (
+									<th
+										key={header.id}
+										colSpan={header.colSpan}
+										className={cn(
+											'px-1 py-2 tracking-wider text-left',
+											'text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+											className
+										)}
+									>
+										{header.isPlaceholder
+											? null
+											: flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+											  )}
+									</th>
+								);
+							})}
 						</tr>
 					))}
 				</thead>
 				<tbody className="bg-white">
 					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="group">
-							{row.getVisibleCells().map((cell) => (
-								<td
-									key={cell.id}
-									className="px-6 py-4 text-sm font-medium transition-colors border-t border-b border-transparent text-text-primary whitespace-nowrap first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary"
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</td>
-							))}
+						<tr key={row.id} className="group h-full">
+							{row.getVisibleCells().map((cell) => {
+								const className = cell.column.columnDef.meta?.['className'];
+
+								return (
+									<td
+										key={cell.id}
+										className={cn(
+											'px-1 py-2 transition-colors border-t border-b border-transparent text-text-primary whitespace-nowrap first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary',
+											'text-[0.75rem] leading-[1.125rem] font-medium',
+											className
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
+								);
+							})}
 						</tr>
 					))}
 				</tbody>

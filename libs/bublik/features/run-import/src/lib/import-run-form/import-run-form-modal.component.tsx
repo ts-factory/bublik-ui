@@ -5,11 +5,12 @@ import { PropsWithChildren } from 'react';
 import {
 	Dialog,
 	DialogTrigger,
-	DialogClose,
 	ModalContent,
-	Icon,
 	ButtonTw,
-	TwScrollArea
+	TwScrollArea,
+	Icon,
+	Tooltip,
+	DialogClose
 } from '@/shared/tailwind-ui';
 
 interface ImportRunFormModalProps {
@@ -24,19 +25,25 @@ function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 	return (
 		<Dialog onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<ButtonTw variant="primary" size="md" rounded="lg">
-					Import
+				<ButtonTw variant="outline" size="md" rounded="lg">
+					<Icon name="FilePlus" size={24} className="mr-1.5 text-primary" />
+					<span>Import</span>
 				</ButtonTw>
 			</DialogTrigger>
 
 			<ModalContent className="min-w-[1000px]">
-				<TwScrollArea className="bg-white max-h-[85vh] rounded-lg">
-					<div className="relative flex items-center justify-end px-6 pt-6">
-						<DialogClose className="p-1 rounded hover:bg-primary-wash text-text-menu hover:text-primary">
-							<Icon name="Cross" />
+				<TwScrollArea className="bg-white max-h-[85vh] rounded-lg p-6">
+					<Tooltip content="Close">
+						<DialogClose asChild>
+							<ButtonTw
+								variant="ghost"
+								className="absolute top-4 right-4 p-1.5 hover:text-primary text-text-menu"
+							>
+								<Icon name="Cross" size={14} />
+							</ButtonTw>
 						</DialogClose>
-					</div>
-					<div className="flex-1 px-6 pb-6">{props.children}</div>
+					</Tooltip>
+					<div className="flex-1">{props.children}</div>
 				</TwScrollArea>
 			</ModalContent>
 		</Dialog>

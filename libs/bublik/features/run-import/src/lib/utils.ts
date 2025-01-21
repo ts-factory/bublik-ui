@@ -14,7 +14,7 @@ export const SEVERITY_MAP = new Map<Severity, string>([
 export const FACILITY_MAP = new Map<Facility, string>([
 	[Facility.AddTags, 'Add Tags'],
 	[Facility.Celery, 'Celery'],
-	[Facility.ImportRuns, 'Import Runs'],
+	[Facility.ImportRuns, 'Import'],
 	[Facility.MetaCaterigozation, 'Meta Categorization']
 ]);
 
