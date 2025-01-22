@@ -171,52 +171,62 @@ exports[`ImportEventTableComponent > should render successfully 1`] = `
 <DocumentFragment>
   <div>
     <table
-      class="border-separate border-spacing-y-1 w-full"
+      class="border-separate border-spacing-y-1 w-full h-full"
     >
       <thead
-        class="bg-white sticky top-0 z-10"
+        class="bg-white sticky top-0 z-10 transition-shadow"
       >
         <tr
           class="h-8.5"
         >
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem] w-px p-0"
+            colspan="1"
+          />
+          <th
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem] w-px"
             colspan="1"
           >
-            Actions
+            <span
+              class="pl-2"
+            >
+              Actions
+            </span>
           </th>
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
-            colspan="1"
-          >
-            Status
-          </th>
-          <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
             colspan="1"
           >
             Date
           </th>
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
             colspan="1"
           >
-            Facility
+            <span
+              class="pl-2"
+            >
+              Facility
+            </span>
           </th>
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
             colspan="1"
           >
-            Severity
+            <span
+              class="pl-2"
+            >
+              Severity
+            </span>
           </th>
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
             colspan="1"
           >
             Message
           </th>
           <th
-            class="px-6 py-3 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase"
+            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
             colspan="1"
           >
             URL

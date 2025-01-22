@@ -32,6 +32,7 @@ export const importLogEventsEndpoint = {
 				},
 				cache: 'no-cache'
 			}),
+			providesTags: [BUBLIK_TAG.importEvents],
 			transformResponse: (response: LogApiResponse) =>
 				response.slice().reverse()
 		}),
@@ -67,7 +68,8 @@ export const importLogEventsEndpoint = {
 				});
 
 				return { data };
-			}
+			},
+			invalidatesTags: [BUBLIK_TAG.importEvents]
 		}),
 		getImportLog: build.query<ImportJsonLog[], string>({
 			query: (celery_task_id: string) => ({

@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
 	AriaDateRangeField,
 	ButtonTw,
-	CheckboxField,
+	Checkbox,
 	cn,
 	DialogDescription,
 	DialogTitle,
@@ -118,16 +118,30 @@ export const ImportRunForm = forwardRef<
 		return () => document.removeEventListener('paste', handlePaste);
 	}, [handlePaste]);
 
-	const HEADER = ['URL', 'RANGE', 'FORCE', ''];
+	const HEADER = ['URL', 'RANGE', ''];
 
 	const rootError = formControl.formState.errors.root?.message;
+
+	const handleGlobalForceChange = (checked: boolean) => {
+		fields.forEach((_, idx) => {
+			formControl.setValue(`runs.${idx}.force`, checked);
+		});
+	};
+
+	const allForceEnabled =
+		fields.length > 0 &&
+		fields.every((field, index) => {
+			const value = formControl.watch(`runs.${index}.force`);
+			return value === true;
+		});
+
 	return (
 		<div>
-			<DialogTitle className="text-lg font-medium leading-6 text-gray-900">
-				Import runs
+			<DialogTitle className="text-lg font-semibold leading-none tracking-tight">
+				Import Runs
 			</DialogTitle>
 
-			<DialogDescription className="mt-2 mb-6 text-sm font-normal text-gray-700">
+			<DialogDescription className="mt-1.5 mb-6 text-sm text-gray-500">
 				You can <strong>paste</strong> URLs of runs you want to import. <br />
 				URLs should be separated by a <strong>new line</strong> or{' '}
 				<strong>space</strong>.
@@ -145,7 +159,7 @@ export const ImportRunForm = forwardRef<
 				)}
 			>
 				<div className="flex flex-col gap-4">
-					<div className="grid grid-cols-[1fr,min-content,min-content,min-content] gap-y-2 gap-x-4">
+					<div className="grid grid-cols-[1fr,min-content,min-content] gap-y-2 gap-x-2">
 						{HEADER.map((label) => (
 							<HeaderCell key={label}>{label}</HeaderCell>
 						))}
@@ -166,11 +180,22 @@ export const ImportRunForm = forwardRef<
 						variant="outline"
 						onClick={() => append({ url: '', force: false, range: null })}
 					>
-						Add URL
+						<Icon name="AddSymbol" size={24} className="mr-1.5 text-primary" />
+						<span>Add Another</span>
 					</ButtonTw>
 				</div>
-
-				<div className="mt-4">
+				<div className="flex items-center gap-1">
+					<Checkbox
+						id="force-import"
+						checked={allForceEnabled}
+						onCheckedChange={handleGlobalForceChange}
+						aria-label="Force import for all runs"
+					/>
+					<label htmlFor="force-import" className="text-sm font-medium">
+						Force Import
+					</label>
+				</div>
+				<div>
 					<ButtonTw
 						type="submit"
 						rounded="lg"
@@ -231,7 +256,10 @@ const EditRow = ({ field, idx, formApi, remove }: EditRowProps) => {
 				<TextField
 					control={formApi.control}
 					name={`runs.${idx}.url`}
-					placeholder={`Url ${idx + 1}`}
+					placeholder={`https://ts-factory.io/logs/2022/11/14/fili-mcx5-${
+						idx + 1
+					}`}
+					autoFocus={idx === 0}
 				/>
 			</BodyCell>
 			<BodyCell>
@@ -243,17 +271,17 @@ const EditRow = ({ field, idx, formApi, remove }: EditRowProps) => {
 				/>
 			</BodyCell>
 			<BodyCell className="grid place-items-center">
-				<CheckboxField name={`runs.${idx}.force`} control={formApi.control} />
-			</BodyCell>
-			<BodyCell className="grid place-items-center">
-				<Tooltip content="Delete row">
-					<button
-						onClick={() => remove(idx)}
-						className="grid p-0 rounded text-text-unexpected hover:bg-red-100 place-items-center"
-					>
-						<Icon name="CrossSimple" size={24} />
-					</button>
-				</Tooltip>
+				{idx !== 0 ? (
+					<Tooltip content="Delete row">
+						<ButtonTw
+							variant="outline"
+							onClick={() => remove(idx)}
+							className="grid rounded size-10 text-text-unexpected hover:bg-red-100 place-items-center"
+						>
+							<Icon name="CrossSimple" size={24} />
+						</ButtonTw>
+					</Tooltip>
+				) : null}
 			</BodyCell>
 		</Fragment>
 	);

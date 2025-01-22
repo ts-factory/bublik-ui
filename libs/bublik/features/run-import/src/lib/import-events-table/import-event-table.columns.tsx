@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { ComponentProps, ComponentType } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { z } from 'zod';
+import { RocketIcon } from '@radix-ui/react-icons';
 
-import { LogEvent } from '@/shared/types';
+import { Facility, LogEvent } from '@/shared/types';
 import { config } from '@/bublik/config';
-import { Badge, cva, Icon } from '@/shared/tailwind-ui';
+import { Badge, ButtonTw, cn, cva, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { formatTimeToDot } from '@/shared/utils';
 
 import { FACILITY_MAP, SEVERITY_MAP } from '../utils';
@@ -15,7 +17,7 @@ import { useImportLog } from './import-log.component';
 export const statusBadgeStyles = cva({
 	base: [
 		'inline-flex',
-		'px-2',
+		'px-2 py-0.5',
 		'text-xs',
 		'font-semibold',
 		'leading-5',
@@ -23,18 +25,62 @@ export const statusBadgeStyles = cva({
 		'items-center'
 	],
 	variants: {
-		expected: { true: ['bg-badge-3', 'text-text-expected'], false: '' },
-		unexpected: { true: ['bg-badge-5', 'text-text-unexpected'], false: '' }
+		expected: { true: ['bg-badge-3', 'text-text-expected'] },
+		unexpected: { true: ['bg-badge-5', 'text-text-unexpected'] }
 	},
 	compoundVariants: [
 		{ expected: false, unexpected: false, className: 'bg-badge-10' }
 	]
 });
 
+function getBgByStatus(status: string): string {
+	const statusMap: Record<string, string> = {
+		SUCCESS: 'bg-bg-ok',
+		FAILURE: 'bg-bg-error'
+	};
+
+	return statusMap[status] ?? '';
+}
+
+function getIconByStatus(status: string) {
+	const statusMap: Record<
+		string,
+		ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>
+	> = {
+		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
+		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />
+	};
+
+	return statusMap[status];
+}
+
 export const columns: ColumnDef<LogEvent>[] = [
 	{
+		id: 'EVENT_TYPE',
+		header: '',
+		accessorKey: 'status',
+		cell: (cell) => {
+			const status = cell.getValue<LogEvent['status']>();
+			const Icon = getIconByStatus(status);
+
+			return (
+				<Tooltip content={status} side="right" align="start">
+					<div
+						className={cn(
+							'h-[calc(100%+2px)] rounded-l w-[24px] flex flex-col items-center -translate-x-px -translate-y-px',
+							getBgByStatus(status)
+						)}
+					>
+						<Icon className="mt-3.5 text-white" size={18} />
+					</div>
+				</Tooltip>
+			);
+		},
+		meta: { className: 'w-px p-0' }
+	},
+	{
 		id: 'ACTIONS',
-		header: 'Actions',
+		header: () => <span className="pl-2">Actions</span>,
 		accessorKey: 'celery_task',
 		cell: (cell) => {
 			const taskId = cell.getValue<LogEvent['celery_task']>();
@@ -44,45 +90,35 @@ export const columns: ColumnDef<LogEvent>[] = [
 			if (!taskId) return null;
 
 			return (
-				<div className="flex flex-col justify-center gap-1">
-					<button
+				<div className="flex flex-col justify-center gap-1 w-fit">
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						className="justify-start"
 						onClick={toggle(taskId)}
-						className="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
 					>
-						<Icon name="BoxArrowRight" />
-						<span>Logs</span>
-					</button>
-					<a
-						href={`${config.oldBaseUrl}/flower/task/${taskId}`}
-						target="_blank"
-						rel="noreferrer"
-						className="relative inline-flex items-center justify-start px-2 w-fit transition-all appearance-none select-none whitespace-nowrap text-primary bg-primary-wash rounded-md gap-1 h-[1.625rem] border-2 border-transparent hover:border-[#94b0ff]"
+						<Icon name="Paper" size={20} className="mr-1.5" />
+						<span>Log</span>
+					</ButtonTw>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						className="justify-start"
+						asChild
 					>
-						<Icon name="BoxArrowRight" />
-						<span>Flower</span>
-					</a>
+						<a
+							href={`${config.oldBaseUrl}/flower/task/${taskId}`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							<RocketIcon className="mr-1.5 size-4" />
+							<span>Task</span>
+						</a>
+					</ButtonTw>
 				</div>
 			);
-		}
-	},
-	{
-		id: 'EVENT_TYPE',
-		header: 'Status',
-		accessorKey: 'status',
-		cell: (cell) => {
-			const value = cell.getValue<LogEvent['status']>();
-
-			return (
-				<div
-					className={statusBadgeStyles({
-						expected: value === 'SUCCESS',
-						unexpected: value === 'FAILURE'
-					})}
-				>
-					{value}
-				</div>
-			);
-		}
+		},
+		meta: { className: 'w-px' }
 	},
 	{
 		header: 'Date',
@@ -96,18 +132,51 @@ export const columns: ColumnDef<LogEvent>[] = [
 		}
 	},
 	{
-		header: 'Facility',
+		header: () => <span className="pl-2">Facility</span>,
 		accessorKey: 'facility',
 		cell: (cell) => {
 			const value = cell.getValue<LogEvent['facility']>();
 
+			const facilityStyles = cva({
+				base: [
+					'inline-flex',
+					'items-center',
+					'w-fit',
+					'py-0.5',
+					'px-2',
+					'rounded',
+					'border',
+					'border-transparent',
+					'leading-[1.125rem]',
+					'text-[0.75rem]',
+					'font-medium',
+					'transition-colors'
+				],
+				variants: {
+					variant: {
+						[Facility.ImportRuns]: ['bg-blue-100', 'text-blue-800'],
+						[Facility.MetaCaterigozation]: ['bg-purple-100', 'text-purple-800'],
+						[Facility.AddTags]: ['bg-green-100', 'text-green-800'],
+						[Facility.Celery]: ['bg-amber-100', 'text-amber-800']
+					}
+				}
+			});
+
 			if (!value) return null;
 
-			return FACILITY_MAP.has(value) ? FACILITY_MAP.get(value) : value;
+			const facility = FACILITY_MAP.has(value)
+				? FACILITY_MAP.get(value)
+				: value;
+
+			return (
+				<span className={facilityStyles({ variant: value })}>
+					{facility?.toUpperCase()}
+				</span>
+			);
 		}
 	},
 	{
-		header: 'Severity',
+		header: () => <span className="pl-2">Severity</span>,
 		accessorKey: 'severity',
 		cell: (cell) => {
 			const value = cell.getValue<LogEvent['severity']>();
@@ -116,7 +185,9 @@ export const columns: ColumnDef<LogEvent>[] = [
 
 			return (
 				<Badge className={getSeverityBgColor(value)}>
-					{SEVERITY_MAP.has(value) ? SEVERITY_MAP.get(value) : value}
+					{SEVERITY_MAP.has(value)
+						? SEVERITY_MAP.get(value)?.toUpperCase()
+						: value.toUpperCase()}
 				</Badge>
 			);
 		}
@@ -129,7 +200,7 @@ export const columns: ColumnDef<LogEvent>[] = [
 
 			if (!value) return null;
 
-			return value;
+			return <span className="whitespace-pre-wrap font-mono">{value}</span>;
 		}
 	},
 
@@ -145,7 +216,7 @@ export const columns: ColumnDef<LogEvent>[] = [
 			return (
 				<a
 					href={url}
-					className="hover:underline"
+					className="hover:underline whitespace-pre-wrap"
 					target="_blank"
 					rel="noreferrer"
 				>

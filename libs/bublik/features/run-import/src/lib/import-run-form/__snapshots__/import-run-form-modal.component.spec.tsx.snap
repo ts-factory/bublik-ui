@@ -6,11 +6,28 @@ exports[`ImportRunFormModalComponent > should render successfully 1`] = `
     aria-controls="radix-:r0:"
     aria-expanded="false"
     aria-haspopup="dialog"
-    class="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none bg-primary text-white disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu px-3 text-[0.875rem] leading-[1.5rem] rounded-lg hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2"
+    class="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none border border-border-primary text-text-primary hover:bg-gray-50 disabled:bg-white disabled:hover:bg-white disabled:text-text-menu px-3 py-[7px] text-[0.875rem] leading-[1.5rem] rounded-lg"
     data-state="closed"
     type="button"
   >
-    Import
+    <svg
+      class="mr-1.5 text-primary"
+      fill="none"
+      height="24"
+      viewBox="0 0 25 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M15.9911 2.24464L21.0416 7.55623C21.1752 7.69717 21.25 7.88443 21.25 8.07973V17.4435C21.25 19.9553 19.2471 22 16.7837 22H8.82002C6.21399 22 4.25 20.0409 4.25 17.4435V14.9206C4.25 14.5038 4.58498 14.1655 4.99771 14.1655C5.41045 14.1655 5.74543 14.5038 5.74543 14.9206V17.4435C5.74543 19.2083 7.03847 20.4899 8.82002 20.4899H16.7837C18.4226 20.4899 19.7546 19.1227 19.7546 17.4435V8.38276L15.9373 4.36887V5.68569C15.9373 6.69647 16.7518 7.51998 17.7527 7.522C18.1654 7.523 18.4994 7.86127 18.4984 8.27907C18.4974 8.69486 18.1634 9.03211 17.7507 9.03211H17.7497C15.9263 9.02809 14.4418 7.52703 14.4418 5.68569V3.5222H8.82002C7.15312 3.5222 5.74543 4.8954 5.74543 6.52129V10.8161C5.74543 11.2329 5.41045 11.5711 4.99771 11.5711C4.58498 11.5711 4.25 11.2329 4.25 10.8161V6.52129C4.25 4.07692 6.3426 2.01208 8.82002 2.01208H15.1317C15.1413 2.01116 15.15 2.00855 15.1586 2.006C15.1688 2.00296 15.1787 2 15.1895 2C15.2012 2 15.2116 2.00313 15.222 2.00624C15.2303 2.00872 15.2385 2.01119 15.2474 2.01208H15.4517C15.6551 2.01208 15.8495 2.09564 15.9911 2.24464ZM11.8198 10.5214C11.8198 10.1046 12.1548 9.76633 12.5676 9.76633C12.9803 9.76633 13.3153 10.1046 13.3153 10.5214V12.2339H15.0111C15.4238 12.2339 15.7588 12.5721 15.7588 12.9889C15.7588 13.4057 15.4238 13.744 15.0111 13.744H13.3153V15.4555C13.3153 15.8722 12.9803 16.2105 12.5676 16.2105C12.1548 16.2105 11.8198 15.8722 11.8198 15.4555V13.744H10.125C9.71229 13.744 9.37732 13.4057 9.37732 12.9889C9.37732 12.5721 9.71229 12.2339 10.125 12.2339H11.8198V10.5214Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+    <span>
+      Import
+    </span>
   </button>
 </DocumentFragment>
 `;
