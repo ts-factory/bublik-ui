@@ -14,6 +14,8 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { facilityOptions, severityOptions } from '../utils';
+import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
+import { useDispatch } from 'react-redux';
 
 export interface ImportRunFilterProps {
 	onFiltersChange?: (filters: LogQuery) => void;
@@ -31,11 +33,13 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 		defaultValues: props.defaultValues,
 		resolver: zodResolver(LogQuerySchema)
 	});
+	const dispatch = useDispatch();
 
 	const handleInitialSubmit = () => {
 		return handleSubmit((values) => {
 			const severity = values.severity === 'all' ? undefined : values.severity;
 			const facility = values.facility === 'all' ? undefined : values.facility;
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.importEvents]));
 
 			return props.onFiltersChange?.({
 				severity,

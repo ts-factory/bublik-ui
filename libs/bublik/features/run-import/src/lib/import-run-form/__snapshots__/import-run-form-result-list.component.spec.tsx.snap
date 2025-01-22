@@ -68,7 +68,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <span
               class="text-xs text-gray-500"
             >
-              03:00 PM
+              06:00 PM
             </span>
           </div>
           <a
@@ -164,7 +164,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <span
               class="text-xs text-gray-500"
             >
-              03:00 PM
+              06:00 PM
             </span>
           </div>
           <a
@@ -260,7 +260,7 @@ exports[`ImportRunFormResultList > should render successfully 1`] = `
             <span
               class="text-xs text-gray-500"
             >
-              03:00 PM
+              06:00 PM
             </span>
           </div>
           <a

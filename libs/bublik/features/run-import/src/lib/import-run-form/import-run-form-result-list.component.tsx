@@ -49,9 +49,13 @@ const StatusBadge = ({ status }: { status: 'success' | 'fail' }) => {
 
 interface RunImportResultProps {
 	results: ImportEventResponse[];
+	timestamp?: Date;
 }
 
-function RunImportResult(props: RunImportResultProps) {
+function RunImportResult({
+	results,
+	timestamp = new Date()
+}: RunImportResultProps) {
 	const { toggle } = useImportLog();
 
 	return (
@@ -68,12 +72,17 @@ function RunImportResult(props: RunImportResultProps) {
 			</p>
 			<h3 className="text-sm font-medium text-text-primary mb-2">Imports</h3>
 			<ul className="border rounded-md [&>*:not(:last-child)]:border-b [&>*]:border-border-primary">
-				{props.results.map((result, i) => (
+				{results.map((result, i) => (
 					<li key={i} className="space-y-2 p-4">
 						<div className="flex items-center justify-between gap-2">
 							<StatusBadge status={result.taskId ? 'success' : 'fail'} />
 							<span className="text-xs text-gray-500">
-								{format(new Date(), 'hh:mm a')}
+								{format(
+									new Date(
+										timestamp.getTime() - timestamp.getTimezoneOffset() * 60000
+									),
+									'hh:mm a'
+								)}
 							</span>
 						</div>
 						<a
