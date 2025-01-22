@@ -80,16 +80,18 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 					<SearchBar {...register('tagExpr')} placeholder="Tag expression" />
 				</div>
 				<div className="flex gap-4">
-					<button
+					<ButtonTw size="md" rounded="lg" type="submit" variant="primary">
+						<Icon name="Refresh" size={24} className="mr-1.5" />
+						<span>Submit</span>
+					</ButtonTw>
+					<ButtonTw
 						type="button"
 						aria-label="Reset form"
-						className="grid w-10 h-10 transition-colors rounded-md place-items-center text-text-menu bg-primary-wash hover:text-primary"
+						variant="outline"
+						className="grid w-10 h-10 rounded-md place-items-center text-text-menu hover:text-primary"
 						onClick={handleResetClick}
 					>
 						<Icon name="Bin" size={24} />
-					</button>
-					<ButtonTw size="md" rounded="lg" type="submit" variant="primary">
-						Submit
 					</ButtonTw>
 				</div>
 			</form>
