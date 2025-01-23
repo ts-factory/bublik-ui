@@ -96,6 +96,8 @@ export const useAccordionLink = (
 
 	return {
 		isActive,
+		isPathMatch: pathMatch,
+		isSearchMatch: searchMatches,
 		to: { pathname, search }
 	};
 };
