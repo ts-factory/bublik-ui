@@ -48,7 +48,7 @@ const mainMenu: SidebarItem[] = [
 		label: 'Run',
 		to: '/runs',
 		icon: <Icon name="PieChart" />,
-		pattern: [{ path: '/runs/:runId/*' }],
+		pattern: [{ path: '/runs/:runId' }],
 		subitems: [
 			{
 				label: 'Details',
