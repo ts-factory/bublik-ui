@@ -43,7 +43,7 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 	}, []);
 
 	return (
-		<section className="flex items-center border-b border-b-border-primary chart-mosaic">
+		<section className="flex items-center chart-mosaic">
 			<RunsListModal
 				ids={runIds}
 				open={isModalOpen}

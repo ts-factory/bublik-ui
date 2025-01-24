@@ -62,11 +62,19 @@ export interface RunsStatsProps {
 
 export const RunsStats = ({ stats }: RunsStatsProps) => {
 	return (
-		<main className="flex flex-col bg-white rounded-md">
-			<CardHeader label="Runs Stats" />
-			<ConclusionSection stats={stats} />
-			<TestsSection stats={stats} />
-			<DaySection stats={stats} />
+		<main className="flex flex-col gap-1">
+			<div className="bg-white rounded-md">
+				<CardHeader label="Conclusion Stats" />
+				<ConclusionSection stats={stats} />
+			</div>
+			<div className="bg-white rounded-md">
+				<CardHeader label="Tests Stats" />
+				<TestsSection stats={stats} />
+			</div>
+			<div className="bg-white rounded-md">
+				<CardHeader label="Day Stats" />
+				<DaySection stats={stats} />
+			</div>
 		</main>
 	);
 };

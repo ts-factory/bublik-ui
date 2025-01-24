@@ -42,8 +42,8 @@ export const DaySection = ({ stats }: DaySectionProps) => {
 	const { ref: barRef } = useHandlePointClick();
 
 	return (
-		<section className="border-b border-b-border-primary">
-			<div className="px-4 py-2">
+		<section className="">
+			<div className="px-4 py-2 border-b border-b-border-primary">
 				<BarChart
 					title="Tests by day"
 					dataset={{ source: stats }}
