@@ -2,13 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
 
-import { useAuth } from '@/bublik/features/auth';
 import { Icon } from '@/shared/tailwind-ui';
 import { config } from '@/bublik/config';
 
 import { NavLink, SidebarItem } from '../nav-link';
 
-const getNavSections = (isAdmin = false) => {
+const getNavSections = () => {
 	const devSection: SidebarItem = {
 		label: 'Admin',
 		icon: <Icon name="Edit" />,
@@ -17,7 +16,7 @@ const getNavSections = (isAdmin = false) => {
 		subitems: [
 			{
 				label: 'Configs',
-				icon: <Icon name="SettingsSliders" size={20} />,
+				icon: <Icon name="SettingsSliders" size={24} />,
 				to: '/admin/config',
 				pattern: { path: '/admin/config' }
 			},
@@ -78,11 +77,9 @@ const getNavSections = (isAdmin = false) => {
 	return [devSection, ...bottomNav];
 };
 
+const links = getNavSections();
+
 export const BottomNavigation = () => {
-	const { isAdmin } = useAuth();
-
-	const links = useMemo(() => getNavSections(isAdmin), [isAdmin]);
-
 	return (
 		<ul className="flex flex-col gap-3">
 			{links.map((item) => (
