@@ -193,11 +193,19 @@ export const NavLink = (props: NavLinkProps) => {
 								isActive,
 								isSubmenuOpen: Boolean(isSubmenuOpen)
 							}),
-							'transition-[margin-bottom]',
+							'transition-[margin-bottom] group relative',
 							isSubmenuOpen ? 'mb-3.5' : 'delay-200 mb-0'
 						)}
 					>
 						{renderLink()}
+						{whenMatched ? (
+							<button
+								onClick={() => setIsDialogOpen(true)}
+								className="rounded p-0.5 hover:bg-primary-wash hover:text-primary opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity duration-300 delay-0 group-hover:delay-[1400ms]"
+							>
+								<Icon name="InformationCircleQuestionMark" size={20} />
+							</button>
+						) : null}
 						{hasSubitems ? (
 							<button
 								aria-label="Toggle submenu"
@@ -249,7 +257,7 @@ export const NavLink = (props: NavLinkProps) => {
 };
 
 const accordionLinkStyles = cva({
-	base: ['flex items-center rounded-[10px] py-1.5 h-full gap-3.5'],
+	base: ['flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group'],
 	variants: {
 		isSidebarOpen: { true: 'px-[18px]', false: 'px-[9px]' },
 		isActive: {
@@ -346,37 +354,59 @@ const AccordionLink = (props: AccordionLinkProps) => {
 	}
 
 	return (
-		<Tooltip
-			content={label}
-			side="right"
-			delayDuration={isSidebarOpen ? 1400 : 700}
-			sideOffset={15}
-		>
-			{isExternalLink(props) ? (
-				<a
-					href={props.href}
-					target="_blank"
-					rel="noopener noreferrer"
-					className={accordionLinkStyles({ isActive, isSidebarOpen })}
-					style={paddingTransition}
-				>
-					<div className="grid place-items-center">{icon}</div>
-					<span className="truncate text-[0.875rem] leading-[1.5rem]">
-						{label}
-					</span>
-				</a>
-			) : (
-				<Link
-					to={matchTo}
-					className={accordionLinkStyles({ isActive, isSidebarOpen })}
-					style={paddingTransition}
-				>
-					<div className="grid place-items-center">{icon}</div>
-					<span className="truncate text-[0.875rem] leading-[1.5rem]">
-						{label}
-					</span>
-				</Link>
-			)}
-		</Tooltip>
+		<>
+			<Tooltip
+				content={label}
+				side="right"
+				delayDuration={isSidebarOpen ? 1400 : 700}
+				sideOffset={15}
+			>
+				{isExternalLink(props) ? (
+					<a
+						href={props.href}
+						target="_blank"
+						rel="noopener noreferrer"
+						className={accordionLinkStyles({ isActive, isSidebarOpen })}
+						style={paddingTransition}
+					>
+						<div className="grid place-items-center">{icon}</div>
+						<span className="truncate text-[0.875rem] leading-[1.5rem]">
+							{label}
+						</span>
+					</a>
+				) : (
+					<Link
+						to={matchTo}
+						className={accordionLinkStyles({ isActive, isSidebarOpen })}
+						style={paddingTransition}
+					>
+						<div className="grid place-items-center">{icon}</div>
+						<span className="truncate text-[0.875rem] leading-[1.5rem]">
+							{label}
+						</span>
+						{whenMatched ? (
+							<button
+								onClick={() => setIsDialogOpen(true)}
+								className="rounded p-0.5 hover:bg-primary-wash pointer-events-none hover:text-primary opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity duration-300 delay-0 group-hover:delay-[1400ms] group-hover:pointer-events-auto"
+							>
+								<Icon name="InformationCircleQuestionMark" size={20} />
+							</button>
+						) : null}
+					</Link>
+				)}
+			</Tooltip>
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogPortal>
+					<ModalContent>
+						{dialogContent || (
+							<div className="bg-white p-6 rounded-lg">
+								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
+								<p>This section is not available yet.</p>
+							</div>
+						)}
+					</ModalContent>
+				</DialogPortal>
+			</Dialog>
+		</>
 	);
 };
