@@ -10,7 +10,7 @@ import { formatTimeToDot } from '@/shared/utils';
 import deployInfo from '../git-info.json';
 
 export const wrapperStyles = cva({
-	base: 'flex flex-col gap-2 py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[76px] h-full',
+	base: 'flex flex-col py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[76px] h-full',
 	variants: {
 		isLoading: { true: 'animate-pulse' },
 		isError: { true: 'bg-bg-fillError' }
@@ -22,7 +22,7 @@ export const wrapperStyles = cva({
 });
 
 const textStyles = cva({
-	base: 'text-[0.75rem] text-text-primary leading-[0.75rem]'
+	base: 'text-sm leading-6 text-text-secondary'
 });
 
 const formatInfo = (projectName: string, summary: DeploySummary) => {
@@ -110,7 +110,7 @@ export const DeployInfo = (props: DeployInfoProps) => {
 	const { projectName, frontend, backend } = props;
 
 	const backendGitInfo = backend ? (
-		<Tooltip content={backend.summary}>
+		<Tooltip content={backend.summary} align="start">
 			<div className="inline-flex">
 				<DeployInfoString projectName="Bublik API" summary={backend} />
 			</div>
@@ -129,7 +129,7 @@ export const DeployInfo = (props: DeployInfoProps) => {
 		<div className={wrapperStyles({ isLoading: false, isError: false })}>
 			{projectNameNode}
 			{backendGitInfo}
-			<Tooltip content={frontend.summary}>
+			<Tooltip content={frontend.summary} align="start">
 				<div className="inline-flex">
 					<DeployInfoString projectName="Bublik UI" summary={frontend} />
 				</div>
