@@ -1,7 +1,7 @@
 {
-	"date": "2024.12.24",
-	"summary": "fix(config): replace `.toSorted` with `.sort` for broader browser compatibility",
-	"revision": "eb969b71",
-	"branch": "release-v1.0.2",
-	"latestTag": "v1.0.2"
+	"date": "2025.01.29",
+	"summary": "style(runs): [charts] add better separation between different charts",
+	"revision": "85241319",
+	"branch": "main",
+	"latestTag": "v1.1.0"
 }
