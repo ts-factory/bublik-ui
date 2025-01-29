@@ -310,7 +310,7 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 				</Link>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.log({ runId })} target="_blank">
+				<Link to={routes.run({ runId })} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</Link>
