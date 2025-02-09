@@ -8,6 +8,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=${PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD}
 ENV BASE_URL="/v2"
 
+RUN npm i -g corepack@latest
 RUN corepack enable
 
 COPY . /app
@@ -19,4 +20,4 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 EXPOSE 4200
 
-CMD ["pnpm", "run", "nx", "serve", "--host=0.0.0.0", "--base=${BASE_URL}"]
+CMD pnpm run nx serve --host=0.0.0.0 --base=${BASE_URL}
