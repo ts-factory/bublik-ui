@@ -22,7 +22,7 @@ export interface NodeData {
 	id: string;
 	name: string;
 	entity: NodeEntity | NodeEntityValue;
-	hasError: boolean;
+	has_error: boolean;
 	children: string[];
 	errorCount?: number;
 	skipped?: boolean;
@@ -38,7 +38,12 @@ export type TreeData = Record<string, NodeData>;
 |--------------------------------------------------
 */
 
+export type GetLogJsonInputs = {
+	id?: string | number | null;
+	page?: string | number | null;
+};
+
 export interface TreeDataAPIResponse {
-	mainPackage: string;
+	main_package: string;
 	tree: TreeData;
 }

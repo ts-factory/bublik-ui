@@ -25,9 +25,12 @@ export const isPackage = (node: NodeData) => {
 	);
 };
 
-export const addParentIds = (data: { mainPackage: string; tree: TreeData }) => {
+export const addParentIds = (data: {
+	main_package: string;
+	tree: TreeData;
+}) => {
 	// 1) Add parent id to root
-	data.tree[data.mainPackage].parentId = null;
+	data.tree[data.main_package].parentId = null;
 
 	// 2) Add parent id to all children of packages and sessions
 	Object.values(data.tree).forEach((node) => {
@@ -73,13 +76,13 @@ export const getPathToNode = (
 
 export const getErrorCount = (tree: TreeData, nodeId: string): number => {
 	return getAllDescendantIds(tree, nodeId).reduce(
-		(acc, id) => (tree[id].hasError ? acc + 1 : acc),
+		(acc, id) => (tree[id].has_error ? acc + 1 : acc),
 		0
 	);
 };
 
 export const addErrorCount = (data: {
-	mainPackage: string;
+	main_package: string;
 	tree: TreeData;
 }) => {
 	Object.values(data.tree)
@@ -90,7 +93,7 @@ export const addErrorCount = (data: {
 };
 
 export const addPathToNodes = (data: {
-	mainPackage: string;
+	main_package: string;
 	tree: TreeData;
 }) => {
 	const PATH_SEPARATOR = '/';

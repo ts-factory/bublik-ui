@@ -13,15 +13,15 @@ import { useLogPage } from '../../../hooks';
 export const Node: FC<
 	NodeComponentProps<TreeData, FixedSizeNodePublicState<TreeData>>
 > = ({
-	data: { id, entity, nestingLevel, name, hasError, path, skipped },
-	treeData: { mainPackage, focusId, currentScrollId, changeCurrentScrollId },
+	data: { id, entity, nestingLevel, name, has_error, path, skipped },
+	treeData: { main_package, focusId, currentScrollId, changeCurrentScrollId },
 	isOpen,
 	setOpen,
 	style
 }) => {
 	const { isShowingRunLog, setFocusId } = useLogPage();
 	const isFocused = id === focusId.toString();
-	const isMainPackage = id === mainPackage;
+	const isMainPackage = id === main_package;
 	const isScrolled = currentScrollId.toString() === id;
 	const isPackage =
 		entity === NodeEntity.Package ||
@@ -68,7 +68,7 @@ export const Node: FC<
 			isScrolled={isScrolled}
 			isShowingRunLog={isShowingRunLog}
 			isRoot={isMainPackage}
-			hasError={hasError}
+			hasError={has_error}
 			isSkipped={skipped}
 			onClick={handleClick}
 			paddingStyle={paddingStyle}

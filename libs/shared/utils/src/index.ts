@@ -11,6 +11,7 @@ export * from './lib/format';
 export * from './lib/compress-tests';
 export * from './lib/router';
 export * from './lib/form';
+export * from './lib/log-tree';
 
 export const checkSchema = <SchemaType>(
 	schema: z.ZodSchema<SchemaType>,

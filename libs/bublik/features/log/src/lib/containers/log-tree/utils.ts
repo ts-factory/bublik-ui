@@ -4,14 +4,14 @@ import { TreeDataAPIResponse, TreeData } from '@/shared/types';
 
 export const getTreeOnlyWithErrors = (data: TreeDataAPIResponse) => {
 	const newTree: TreeData = {};
-	const hasErrors = Object.values(data.tree).some((node) => node.hasError);
+	const hasErrors = Object.values(data.tree).some((node) => node.has_error);
 
 	if (hasErrors) {
 		Object.values(data.tree).forEach((node) => {
-			if (node.hasError) {
+			if (node.has_error) {
 				newTree[node.id] = { ...node };
 				newTree[node.id].children = newTree[node.id].children.filter(
-					(id) => data.tree[id].hasError
+					(id) => data.tree[id].has_error
 				);
 			}
 		});
