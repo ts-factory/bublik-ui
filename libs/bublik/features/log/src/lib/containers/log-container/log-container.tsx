@@ -13,7 +13,7 @@ import {
 	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
-import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { cn, Icon } from '@/shared/tailwind-ui';
 
 import { useIsLogLegacy, useLogPage } from '../../hooks';
 
