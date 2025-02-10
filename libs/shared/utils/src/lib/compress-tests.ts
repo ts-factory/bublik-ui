@@ -10,13 +10,13 @@ const createSuiteFactory =
 	(tree: TreeData) =>
 	(name: string, parentId: string, children: string[]): NodeData => {
 		const id = nanoid(4);
-		const hasError = children.some((id) => tree[id].hasError);
+		const hasError = children.some((id) => tree[id].has_error);
 		const entity = NodeEntity.Suite;
 
 		return {
 			id,
 			name,
-			hasError,
+			has_error: hasError,
 			parentId,
 			children,
 			entity
@@ -61,7 +61,7 @@ const getFolderIds = (tree: TreeData, threshold = 100): string[] => {
 };
 
 export const compressTests = (data: {
-	mainPackage: string;
+	main_package: string;
 	tree: TreeData;
 }) => {
 	const getNodeName = createNodeNameGetter(data.tree);

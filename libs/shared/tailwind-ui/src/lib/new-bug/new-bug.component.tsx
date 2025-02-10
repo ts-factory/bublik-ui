@@ -48,10 +48,10 @@ function getBugProps(
 	const { log, tree, details, id, runId } = options;
 
 	const testName = id ? tree.tree[id]?.name : undefined;
-	const mainName = tree.tree[tree.mainPackage]?.name;
+	const mainName = tree.tree[tree.main_package]?.name;
 	const name = testName ?? mainName ?? '';
 
-	const path = `/${tree.tree[id ?? tree.mainPackage]?.path ?? ''}`;
+	const path = `/${tree.tree[id ?? tree.main_package]?.path ?? ''}`;
 
 	const parameters = log.root
 		.flatMap((b) => b.content)
