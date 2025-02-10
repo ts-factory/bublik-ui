@@ -70,6 +70,13 @@ export const ResultTable = memo(
 		showLinkToRun = false,
 		height
 	}: ResultTableProps) => {
+		const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+		const hasFilters = columnFilters.some((filter) => {
+			const value = (filter.value ?? []) as string[];
+			return value.length > 0;
+		});
+		const stickyOffset = hasFilters ? -(height * 2 + 69) : -(height + 69);
+
 		const columns = useMemo(
 			() => getColumns({ rowId, showLinkToRun, data }),
 			[data, rowId, showLinkToRun]
@@ -81,13 +88,13 @@ export const ResultTable = memo(
 			(_, { isSticky }) => {
 				return {
 					style: {
-						top: `${height + 68}px`,
+						top: `${hasFilters ? height * 2 + 68 : height + 68}px`,
 						position: 'sticky',
 						boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
 					} as CSSProperties
 				};
 			},
-			[height]
+			[hasFilters, height]
 		);
 
 		return (
