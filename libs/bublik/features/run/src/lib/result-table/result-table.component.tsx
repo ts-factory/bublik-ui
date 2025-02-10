@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties, memo, useCallback, useMemo } from 'react';
+import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -8,10 +8,13 @@ import {
 	TableClassNames,
 	cn,
 	Skeleton,
-	TwTableProps
+	TwTableProps,
+	ButtonTw,
+	Icon
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
+import { ColumnFiltersState } from '@tanstack/react-table';
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -98,16 +101,33 @@ export const ResultTable = memo(
 		);
 
 		return (
-			<div className="px-4 py-2">
+			<div className="px-4 pb-2">
+				{hasFilters ? (
+					<div
+						className={cn(
+							'flex items-center justify-between px-4',
+							'bg-white h-9 sticky border-x border-b border-border-primary z-[1]'
+						)}
+						style={{ top: `${height + 68}px` }}
+					>
+						<div></div>
+						<ButtonTw variant="secondary" size="xss">
+							<Icon name="SwapArrows" size={18} className="rotate-90 mr-1.5" />
+							<span>Parameters Diff Mode</span>
+						</ButtonTw>
+					</div>
+				) : null}
 				<TwTable
 					data={data}
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
-					stickyOffset={-(height + 69)}
+					stickyOffset={stickyOffset}
 					manualPagination
 					enableSorting={false}
 					getRowProps={getRowProps}
+					state={{ columnFilters }}
+					onColumnFiltersChange={setColumnFilters}
 					getHeaderProps={getHeaderProps}
 				/>
 			</div>
