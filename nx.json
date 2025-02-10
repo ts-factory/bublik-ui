@@ -4,6 +4,7 @@
 			"application": {
 				"style": "scss",
 				"linter": "eslint",
+				"bundler": "vite",
 				"strict": true,
 				"babel": true
 			},

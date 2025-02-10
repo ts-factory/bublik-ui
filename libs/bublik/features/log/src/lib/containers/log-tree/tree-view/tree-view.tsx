@@ -49,7 +49,7 @@ const getNodeData = (
 			entity: node.entity,
 			errorCount: node.errorCount,
 			children: node.children,
-			hasError: node.hasError,
+			has_error: node.has_error,
 			parentId: node.parentId,
 			path: node.path, // Tree
 			nestingLevel: nestingLevel,
@@ -63,11 +63,11 @@ const getNodeData = (
 };
 
 export interface TreeViewProps {
-	data: { mainPackage: string; tree: { [key: string]: TreeNode } };
+	data: { main_package: string; tree: { [key: string]: TreeNode } };
 	focusId: string | null;
 	itemSize: number;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	ref: any;
+	ref?: any;
 }
 
 export const TreeView: FC<TreeViewProps> = forwardRef<
@@ -75,7 +75,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 	TreeViewProps
 >((props, ref) => {
 	const {
-		data: { tree, mainPackage },
+		data: { tree, main_package },
 		focusId,
 		itemSize
 	} = props;
@@ -85,7 +85,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 	const treeWalker = useCallback(
 		function* treeWalkerFn(): ReturnType<TreeWalker<TreeData, NodeMeta>> {
-			yield getNodeData(tree[mainPackage], 0);
+			yield getNodeData(tree[main_package], 0);
 
 			while (true) {
 				const parent = yield;
@@ -97,13 +97,13 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 				}
 			}
 		},
-		[mainPackage, tree]
+		[main_package, tree]
 	);
 
 	/* ========== SCROLLING ========== */
 	const forceRerender = useForceRerender();
 	const { scrollableRef, scrollTo } = useSmoothScroll();
-	const currentScrollId = useRef(focusId ?? mainPackage);
+	const currentScrollId = useRef(focusId ?? main_package);
 	const scrollToFocusFuncRef = useRef<() => Promise<void>>();
 	const changeCurrentScrollId = useCallback(
 		(newScrollId: string) => {
@@ -129,7 +129,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 		const getNextPackage = (currentScrollId: string, stack: string[]) => {
 			// 1) When scroll id is root scroll to bottom
-			if (currentScrollId === mainPackage) {
+			if (currentScrollId === main_package) {
 				return stack
 					.slice()
 					.reverse()
@@ -144,11 +144,11 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					const isOpen = treeRef.current?.state.records.get(id)?.public.isOpen;
 
 					if (index === 0) return false;
-					if (id === mainPackage) return true;
+					if (id === main_package) return true;
 
 					return (
 						// 1) Next or prev node is test
-						tree[id].hasError ||
+						tree[id].has_error ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index + 1]])) ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index - 1]])) ||
 						// 2) Opened nodes
@@ -165,11 +165,11 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 						.isOpen as boolean;
 
 					if (index === 0) return false;
-					if (id === mainPackage) return true;
+					if (id === main_package) return true;
 
 					return (
 						// 1) Next or prev node is test
-						tree[id].hasError ||
+						tree[id].has_error ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index - 1]])) ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index + 1]])) ||
 						// 2) Opened nodes
@@ -188,7 +188,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 		const jumpTenNodesUp = (currentScrollId: string, stack: string[]) => {
 			// 1) When scroll id is root scroll to bottom
-			if (currentScrollId === mainPackage) {
+			if (currentScrollId === main_package) {
 				return stack
 					.slice()
 					.reverse()
@@ -208,7 +208,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			const nextId = stack.slice(stack.indexOf(currentScrollId)).slice(0, 11);
 
 			if (nextId[nextId.length - 1] === stack[stack.length - 1])
-				return mainPackage;
+				return main_package;
 
 			return nextId[nextId.length - 1];
 		};
@@ -247,8 +247,8 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			};
 
 			if (!focusId) return;
-			if (focusId === mainPackage) {
-				updateCurrentScrollId(mainPackage);
+			if (focusId === main_package) {
+				updateCurrentScrollId(main_package);
 				return;
 			}
 
@@ -266,7 +266,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 		};
 
 		const scrollToNode = (
-			scrollId: string | undefined = mainPackage,
+			scrollId: string | undefined = main_package,
 			stack: string[]
 		) => {
 			updateCurrentScrollId(scrollId);
@@ -323,7 +323,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 			// 2) To top
 			if (e.code === 'KeyT' && !isFocusInInput(e)) {
-				scrollToNode(mainPackage, stack);
+				scrollToNode(main_package, stack);
 			}
 
 			// 3) To focus
@@ -338,7 +338,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 		const handleCloseAllNodes = async (e: KeyboardEvent) => {
 			if (e.code === 'KeyG') {
 				await treeRef.current?.recomputeTree({
-					[mainPackage]: {
+					[main_package]: {
 						open: true,
 						subtreeCallback(node, ownerNode) {
 							if (node !== ownerNode) {
@@ -348,7 +348,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					}
 				});
 
-				updateCurrentScrollId(mainPackage);
+				updateCurrentScrollId(main_package);
 			}
 		};
 
@@ -357,7 +357,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			const parentId: string | null = tree[currentScrollId.current].parentId;
 
 			if (e.code === 'KeyX') {
-				if (parentId && parentId !== mainPackage) {
+				if (parentId && parentId !== main_package) {
 					await treeRef.current?.recomputeTree({
 						[parentId]: {
 							open: false,
@@ -370,7 +370,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 				if (!stack) return;
 				scrollToNode(
-					parentId && parentId !== mainPackage ? parentId : mainPackage,
+					parentId && parentId !== main_package ? parentId : main_package,
 					stack
 				);
 			}
@@ -381,7 +381,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			const parentId: string | null = tree[currentScrollId.current].parentId;
 
 			if (e.code === 'KeyZ') {
-				if (parentId && parentId !== mainPackage) {
+				if (parentId && parentId !== main_package) {
 					await treeRef.current?.recomputeTree({
 						[parentId]: {
 							open: true,
@@ -395,7 +395,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 				}
 
 				scrollToNode(
-					parentId && parentId !== mainPackage ? parentId : mainPackage,
+					parentId && parentId !== main_package ? parentId : main_package,
 					stack
 				);
 			}
@@ -411,7 +411,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 					await treeRef.current?.recomputeTree({
 						[currentScrollId.current]: !(
-							isOpen && currentScrollId.current !== mainPackage
+							isOpen && currentScrollId.current !== main_package
 						)
 					});
 				}
@@ -458,7 +458,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 		};
 	}, [
 		focusId,
-		mainPackage,
+		main_package,
 		tree,
 		itemSize,
 		scrollTo,
@@ -482,7 +482,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 						className="no-bg-scrollbar"
 						outerElementType="ul"
 						itemData={{
-							mainPackage,
+							main_package,
 							focusId,
 							currentScrollId: currentScrollId.current,
 							changeCurrentScrollId

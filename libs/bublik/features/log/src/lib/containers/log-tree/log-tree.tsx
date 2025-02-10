@@ -130,7 +130,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 						<TreeView
 							data={data}
 							itemSize={28}
-							focusId={focusId?.toString() || data.mainPackage}
+							focusId={focusId?.toString() || data.main_package}
 							ref={scrollToFocusRef}
 						/>
 					)}
@@ -138,7 +138,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 						<TreeView
 							data={treeWithOnlyErrors}
 							itemSize={28}
-							focusId={focusId?.toString() || data.mainPackage}
+							focusId={focusId?.toString() || data.main_package}
 							ref={scrollToFocusRef}
 						/>
 					)}

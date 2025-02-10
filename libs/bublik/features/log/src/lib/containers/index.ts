@@ -5,3 +5,4 @@ export * from './link-to-source';
 export * from './link-to-history';
 export * from './log-tree';
 export * from './link-to-measurements';
+export * from './log-tree/utils';
