@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef, Row } from '@tanstack/react-table';
+import { ColumnDef, Row, RowData } from '@tanstack/react-table';
 
 import { cn } from '@/shared/tailwind-ui';
 
@@ -19,6 +19,18 @@ import {
 } from './blocks';
 import { useLogTableContext } from './log-table.context';
 import { TimestampDelta } from './timestamp-delta';
+
+declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface ColumnMeta<TData extends RowData, TValue> {
+		className?: string;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface TableMeta<TData extends RowData> {
+		id?: string;
+	}
+}
 
 const blocksMap: GetBlocksMap<
 	LogTableBlock['data'][number]['log_content'][number]
