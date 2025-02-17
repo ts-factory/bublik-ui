@@ -11,6 +11,10 @@ import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
 
+const ParamsSchema = z
+	.object({ seriesIndex: z.number(), dataIndex: z.number() })
+	.nonstrict();
+
 interface RunReportChartProps {
 	chart: ReportChart;
 }
@@ -30,7 +34,39 @@ function RunReportChart(props: RunReportChartProps) {
 					? chart.axis_y.label
 					: d.series,
 			type: 'line',
-			data: d.points.map((d) => d?.[chart.axis_y.key])
+			data: d.points.map((d) => d?.[chart.axis_y.key]),
+			itemStyle: {
+				color: (params: unknown) => {
+					const parsedParams = ParamsSchema.safeParse(params);
+					if (!parsedParams.success) return '#65cd84';
+
+					const point = d.points[parsedParams.data.dataIndex];
+					const status = point?.metadata?.result_type?.toLowerCase();
+
+					if (status === 'failed') return '#f95c78';
+					return '#65cd84';
+				}
+			},
+			symbol: (_, params: unknown) => {
+				const parsedParams = ParamsSchema.safeParse(params);
+				if (!parsedParams.success) return 'circle';
+
+				const point = d.points[parsedParams.data.dataIndex];
+				const status = point?.metadata?.result_type?.toLowerCase();
+
+				if (status === 'failed') return 'diamond';
+				return 'circle';
+			},
+			symbolSize: (_, params: unknown) => {
+				const parsedParams = ParamsSchema.safeParse(params);
+				if (!parsedParams.success) return 8;
+
+				const point = d.points[parsedParams.data.dataIndex];
+				const status = point?.metadata?.result_type?.toLowerCase();
+
+				if (status === 'failed') return 16;
+				return 8;
+			}
 		}));
 	}, [chart.axis_y.key, chart.axis_y.label, chart.data, chart.series_label]);
 
@@ -41,13 +77,6 @@ function RunReportChart(props: RunReportChartProps) {
 		if (!instance) return;
 
 		function handleClick(rawParams: unknown) {
-			const ParamsSchema = z
-				.object({
-					seriesIndex: z.number(),
-					dataIndex: z.number()
-				})
-				.nonstrict();
-
 			const paramsResult = ParamsSchema.safeParse(rawParams);
 			if (!paramsResult.success) {
 				toast.error('Failed to parse point data!');
