@@ -132,37 +132,4 @@ function useConfigById(configId: number) {
 	};
 }
 
-function useShouldMigrateGlobalConfig() {
-	const { data, isLoading, error } = bublikAPI.useGetListOfConfigsQuery();
-	const [mutate] = bublikAPI.useMigrateGlobalConfigMutation();
-	const { setConfigId } = useConfigPageSearchParams();
-
-	const shouldMigrate = !data?.find(
-		(config) => config.name === 'per_conf' && config.type === 'global'
-	);
-
-	async function migrateGlobalConfig() {
-		try {
-			const promise = mutate().unwrap();
-
-			toast.promise(promise, {
-				error: 'Failed to migrate config.',
-				success: 'Succesfully migrated config',
-				loading: 'Migrating global config...'
-			});
-			const result = await promise;
-			setConfigId(result.id);
-		} catch (_) {
-			//
-		}
-	}
-
-	return { shouldMigrate, isLoading, error, migrateGlobalConfig };
-}
-
-export {
-	useConfigPageSearchParams,
-	useSavedState,
-	useConfigById,
-	useShouldMigrateGlobalConfig
-};
+export { useConfigPageSearchParams, useSavedState, useConfigById };

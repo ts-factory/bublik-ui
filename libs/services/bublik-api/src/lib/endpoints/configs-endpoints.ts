@@ -175,13 +175,6 @@ export const configsEndpoints = {
 				method: 'DELETE'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config]
-		}),
-		migrateGlobalConfig: build.mutation<Config, void>({
-			query: () => ({
-				url: withApiV2(`/config/create_by_per_conf`),
-				method: 'POST'
-			}),
-			invalidatesTags: [BUBLIK_TAG.Config]
 		})
 	})
 };

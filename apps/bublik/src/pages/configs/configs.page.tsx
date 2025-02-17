@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useConfigPageSearchParams } from './hooks';
-import { ConfigsUpgradeRequiredGate } from './config-upgrade-gate/config-upgrade-gate.container';
 import { ConfigsEditorContainer } from './update-config-form/update-config-form.container';
 import { ConfigsSidebarContainer } from './sidebar/config-sidebar.container';
 import { CreateNewConfigScreen } from './create-config-form/create-new-config.container';
@@ -10,20 +9,18 @@ function ConfigsPage() {
 	const { configId, newConfigParams } = useConfigPageSearchParams();
 
 	return (
-		<ConfigsUpgradeRequiredGate>
-			<div className="p-2 h-full flex gap-1">
-				<div className="bg-white rounded-md h-full w-[320px] overflow-hidden">
-					<ConfigsSidebarContainer />
-				</div>
-				<div className="bg-white rounded-md h-full overflow-hidden flex-1">
-					{configId ? (
-						<ConfigsEditorContainer key={configId} configId={configId} />
-					) : (
-						<CreateNewConfigScreen key={JSON.stringify(newConfigParams)} />
-					)}
-				</div>
+		<div className="p-2 h-full flex gap-1">
+			<div className="bg-white rounded-md h-full w-[320px] overflow-hidden">
+				<ConfigsSidebarContainer />
 			</div>
-		</ConfigsUpgradeRequiredGate>
+			<div className="bg-white rounded-md h-full overflow-hidden flex-1">
+				{configId ? (
+					<ConfigsEditorContainer key={configId} configId={configId} />
+				) : (
+					<CreateNewConfigScreen key={JSON.stringify(newConfigParams)} />
+				)}
+			</div>
+		</div>
 	);
 }
 
