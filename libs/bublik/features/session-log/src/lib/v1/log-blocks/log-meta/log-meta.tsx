@@ -119,7 +119,11 @@ function ParametersTable(props: ParametersTableProps) {
 							const isFormatted = isPreformatted(parameter.value);
 
 							function handleCopy() {
-								copy(`${parameter.name}=${parameter.value}`).then((success) => {
+								copy(
+									isFormatted
+										? parameter.value
+										: `${parameter.name}=${parameter.value}`
+								).then((success) => {
 									if (success) {
 										toast.success('Copied to clipboard');
 									} else {
