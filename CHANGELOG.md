@@ -1,7 +1,21 @@
 
+## [1.2.0](https://github.com/ts-factory/bublik-ui/compare/v1.1.0...v1.2.0) (2025-02-18)
+
+### 🚀 New Feature
+
+* **report:** [chart] highlight failed results with red and symbol ([cf91f2c](https://github.com/ts-factory/bublik-ui/commit/cf91f2c8e9b97e4201e37f2aa6a2d5b7b9922d5a))
+
+### 🐛 Bug Fix
+
+* **docker:** disable check for prettier ([17a31ad](https://github.com/ts-factory/bublik-ui/commit/17a31adcb949c6e81fbf91c0f3acdbde2104f37c))
+* **docker:** fix corepack keyid mismatch issue ([31d4dc2](https://github.com/ts-factory/bublik-ui/commit/31d4dc203c031eea0d3588cde9df9d3b45a7101b))
+* **run:** [table] missing column visibility url state ([a63a725](https://github.com/ts-factory/bublik-ui/commit/a63a725f7bc1a97700e6b5d44ddae3a3f948e980))
+
+### 📦 Chores
+
+* **config:** remove redundant config migration check ([e03016d](https://github.com/ts-factory/bublik-ui/commit/e03016d53b6a868b50fb26e52678526a9a70a200))
 
 ## [1.1.0](https://github.com/ts-factory/bublik-ui/compare/v1.0.2...v1.1.0) (2025-01-29)
-
 
 ### 🚀 New Feature
 
@@ -15,7 +29,6 @@
 * **run:** [objective] add popover with full content ([63abe5a](https://github.com/ts-factory/bublik-ui/commit/63abe5ad8484f2f7fe252d4c8a0ff16c439e7c92))
 * **sidebar:** add help dialogs for sidebar links ([2c8e162](https://github.com/ts-factory/bublik-ui/commit/2c8e162fdf92802de6a42072ba14d6c12b039f5f))
 
-
 ### 💅 Polish
 
 * **layout:** fix sidebar and drawer height on tablets ([b59056d](https://github.com/ts-factory/bublik-ui/commit/b59056db8da6b83f18ea69276ec194a409f7b65c))
@@ -27,7 +40,6 @@
 * **run:** [table] make cell padding smaller ([9929dba](https://github.com/ts-factory/bublik-ui/commit/9929dba7b23d0db97d41269a1dc5ae39f9337a81))
 * **runs:** [charts] add better separation between different charts ([8524131](https://github.com/ts-factory/bublik-ui/commit/852413199eed648db16a662d577ddc620e227c25))
 * **runs:** add icon for submit and change button order ([3f6c712](https://github.com/ts-factory/bublik-ui/commit/3f6c71294977adb3036facd12134796397d1edf4))
-
 
 ### 🐛 Bug Fix
 
@@ -43,7 +55,6 @@
 * **runs:** refetch runs list on mount and bypass browser cache ([ca9c984](https://github.com/ts-factory/bublik-ui/commit/ca9c98412bf5b0aa39cf77ddddb51bdf2d5cdf64))
 * **ui:** missing separator border ([4c13552](https://github.com/ts-factory/bublik-ui/commit/4c13552e5ec947373db170c010344c1126cbe100))
 
-
 ### ♻ Code Refactoring
 
 * **import:** improve styling of import table and form ([b1aa6d3](https://github.com/ts-factory/bublik-ui/commit/b1aa6d37e6ac55a1101fb7297acb79b098142296))
@@ -52,7 +63,6 @@
 * **log:** [toolbar] fix bugs with toolbar scrolling and jumping ([fde2d21](https://github.com/ts-factory/bublik-ui/commit/fde2d21fcde62d59c8ebd05a485aba98a61487fe))
 * **log:** display packages test lists as table ([1c528f6](https://github.com/ts-factory/bublik-ui/commit/1c528f6994cc878998ae333b5950aa37cb01e1fb))
 * **ui:** allow greater composability for scroll to top component ([26d84e1](https://github.com/ts-factory/bublik-ui/commit/26d84e185179c8a34413beecb414e1dbb963f971))
-
 
 ### 📦 Chores
 
@@ -65,23 +75,19 @@
 
 ### [1.0.2](https://github.com/ts-factory/bublik-ui/compare/v1.0.1...v1.0.2) (2024-12-24)
 
-
 ### 🐛 Bug Fix
 
 * **config:** replace `.toSorted` with `.sort` for broader browser compatibility ([eb969b7](https://github.com/ts-factory/bublik-ui/commit/eb969b710e86a9444cb816a2a2dfb06408ebabdf))
 
 ### [1.0.1](https://github.com/ts-factory/bublik-ui/compare/v1.0.0...v1.0.1) (2024-12-13)
 
-
 ### 🚀 New Feature
 
 * **measurements,history:** add sliders for zoom on x axis ([701fd89](https://github.com/ts-factory/bublik-ui/commit/701fd8988f5e344ef0c0928674d1b49958476f43))
 
-
 ### 💅 Polish
 
 * **measurements:** show legend on the left to prevent overlay on y axis title ([d548e79](https://github.com/ts-factory/bublik-ui/commit/d548e79ef0bddebb7d4a6248134fe5ace0453146))
-
 
 ### 🐛 Bug Fix
 
@@ -91,18 +97,15 @@
 
 ## [1.0.0-rc.3](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.2...v1.0.0-rc.3) (2024-12-09)
 
-
 ### 🐛 Bug Fix
 
 * **report:** handle `null` values for missing chart points ([239238f](https://github.com/ts-factory/bublik-ui/commit/239238fc41df447b5762237fafba010fe8403997))
 
 ## [1.0.0-rc.2](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2024-12-05)
 
-
 ### 🚀 New Feature
 
 * **report:** [chart] add legend title only when `series_label` present ([f14af54](https://github.com/ts-factory/bublik-ui/commit/f14af54e228983dc718896bba3fa54932f6a22b8))
-
 
 ### 🐛 Bug Fix
 
@@ -112,7 +115,6 @@
 
 ## [1.0.0-rc.1](https://github.com/ts-factory/bublik-ui/compare/v1.0.0-rc.0...v1.0.0-rc.1) (2024-12-04)
 
-
 ### 🐛 Bug Fix
 
 * **measurements:** add missing measurement `aggr` ([436754c](https://github.com/ts-factory/bublik-ui/commit/436754c8b03eaeaa8a9887bc921d2471f957d933))
@@ -121,7 +123,6 @@
 * **report:** [table] fix warnings not shown correctly ([c9cd01c](https://github.com/ts-factory/bublik-ui/commit/c9cd01ce26869eaf5e89bd09551fafc356745b9f))
 
 ## [1.0.0-rc.0](https://github.com/ts-factory/bublik-ui/compare/v0.7.1...v1.0.0-rc.0) (2024-12-03)
-
 
 ### 🚀 New Feature
 
@@ -137,13 +138,11 @@
 * **utils:** added controllable state hook ([dc885dd](https://github.com/ts-factory/bublik-ui/commit/dc885ddb4b5b5e91f90b772030a1429472636c80))
 * **utils:** added platform specific ctrl key hook ([3e92144](https://github.com/ts-factory/bublik-ui/commit/3e92144c76159513f4e8c6a511d7d9e49ecffaf1))
 
-
 ### 💅 Polish
 
 * **report:** [chart] made chart take as much space as possible ([74df1e5](https://github.com/ts-factory/bublik-ui/commit/74df1e52d89436cd740233dfa81176f9e0e2abee))
 * **report:** [table] made columns take 50% of width when only have one series ([b04ce9b](https://github.com/ts-factory/bublik-ui/commit/b04ce9b81ed5f36785f3fcddb706d68891005dfc))
 * **run:** adjusted offset for sticky rows ([bf47f87](https://github.com/ts-factory/bublik-ui/commit/bf47f87fb3d0d1f11fc1f007dae3bf20f43f0ed5))
-
 
 ### 🐛 Bug Fix
 
@@ -156,7 +155,6 @@
 * **report:** [chart] fixed zoom reset on ctrl + scroll ([fbb976b](https://github.com/ts-factory/bublik-ui/commit/fbb976bf300866a9555e26dfdf25ef3004fb0de2))
 * **report:** [table] incorrect table first series name ([55d576c](https://github.com/ts-factory/bublik-ui/commit/55d576cb4e2004b9066c048b45b67f48fa48b70b))
 * **run:** fixed text comment popover being on partially shown ([e803cd9](https://github.com/ts-factory/bublik-ui/commit/e803cd9e8589ba5b042cfb598fb6601acaf1e6ed))
-
 
 ### ♻ Code Refactoring
 
@@ -178,7 +176,6 @@
 * **report:** adjusted props to chart and table ([ba47278](https://github.com/ts-factory/bublik-ui/commit/ba47278b888932ca5da501280d2a00304a40e33b))
 * **report:** changed location of warnings hover cards ([154d577](https://github.com/ts-factory/bublik-ui/commit/154d577cfeadd4f93ab41dce14e600cbac3b113d))
 * **report:** use shared drawer dialog for log preview ([03f4d05](https://github.com/ts-factory/bublik-ui/commit/03f4d05b8babca7555bd8e881323548092e9396b))
-
 
 ### 📦 Chores
 
@@ -696,10 +693,6 @@
 * **build:** adjust release config to allow releases from branches other than `main` ([22a6f6b](https://github.com/ts-factory/bublik-ui/commit/22a6f6be3555e509f16ed7c1b0999dd2d98501d5))
 * **import:** [import-form] allow empty URL ([33347a3](https://github.com/ts-factory/bublik-ui/commit/33347a30152a6faafb6b5fe9ee6d16a0485faef1))
 * **log:** fix json log overflow scrolling not working ([537677c](https://github.com/ts-factory/bublik-ui/commit/537677cf6729cacb226645fc9fb905430bf2a535))
-
-[SPDX-License-Identifier: Apache-2.0]::
-
-[SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd.]::
 
 ### [0.37.2](#) (2023-12-28)
 
@@ -1541,79 +1534,80 @@
 
 ### 🚀 New Feature
 
-- **faq:** add latest tag info ([cbe7b4e](#))
+* **faq:** add latest tag info ([cbe7b4e](#))
 
 ### 💅 Polish
 
-- **import:** make modal title bigger ([bb84145](#))
-- **run:** uppercase table columns ([abcf61b](#))
+* **import:** make modal title bigger ([bb84145](#))
+* **run:** uppercase table columns ([abcf61b](#))
 
 ### ✏️ Other
 
-- **build:** migrate from webpack to vite ([749a97b](#))
-- **ci:** add new commit types ([13730fa](#))
-- **log:** add run id to tab title ([8c88283](#))
-- **test:** update snapshots ([4839df8](#))
+* **build:** migrate from webpack to vite ([749a97b](#))
+* **ci:** add new commit types ([13730fa](#))
+* **log:** add run id to tab title ([8c88283](#))
+* **test:** update snapshots ([4839df8](#))
 
 ## [0.13.0](#) (2023-04-05)
 
 ### 💅 Polish
 
-- **import:** add border to rows on hover ([22cdc75](#))
-- **import:** add scroll for overflowing table ([bd3658f](#))
-- **import:** change padding ([54b8bc9](#))
-- **import:** fix overflow and sticky position ([bb4ae4d](#))
-- **import:** improve error style for import events table ([eff1e41](#))
-- **import:** wrap form in div ([a641e27](#))
-- **log:** change skipped icon color ([9027989](#))
-- **run:** fix not sticking rows ([2a7c81c](#))
-- **ui:** [datepicker] add bg on hover to prev/next buttons ([dc5f1b4](#))
-- **ui:** [datepicker] make calendar icon bigger ([994a9f7](#))
-- **ui:** add offset to date picker field ([04adcc7](#))
-- **ui:** opacity for secondary variant ([e1f1175](#))
+* **import:** add border to rows on hover ([22cdc75](#))
+* **import:** add scroll for overflowing table ([bd3658f](#))
+* **import:** change padding ([54b8bc9](#))
+* **import:** fix overflow and sticky position ([bb4ae4d](#))
+* **import:** improve error style for import events table ([eff1e41](#))
+* **import:** wrap form in div ([a641e27](#))
+* **log:** change skipped icon color ([9027989](#))
+* **run:** fix not sticking rows ([2a7c81c](#))
+* **ui:** [datepicker] add bg on hover to prev/next buttons ([dc5f1b4](#))
+* **ui:** [datepicker] make calendar icon bigger ([994a9f7](#))
+* **ui:** add offset to date picker field ([04adcc7](#))
+* **ui:** opacity for secondary variant ([e1f1175](#))
 
 ### 🚀 New Feature
 
-- **api:** add error handling for custom backend errors ([f0a095c](#))
-- **ci:** add new release pipline ([6cc90d5](#))
-- **dashboard:** open nok results on runs ([07ca4f4](#))
-- **faq:** add latest tag info ([8962aa4](#))
-- **import:** add date-picker field to form ([b3a0f34](#))
-- **import:** add import multiple runs form ([#424](#)) ([f6f9af3](#))
-- **import:** add new columns to table ([fb8a4d7](#))
-- **import:** add sticky table header ([aa283ac](#))
-- **import:** persist form state in URL ([d1df298](#))
-- **log:** add skipped icon ([5818f26](#))
-- **log:** display focus id test name ([239c280](#))
-- **run:** open unexpected results with ctrl click ([7a0571a](#))
+* **api:** add error handling for custom backend errors ([f0a095c](#))
+* **ci:** add new release pipline ([6cc90d5](#))
+* **dashboard:** open nok results on runs ([07ca4f4](#))
+* **faq:** add latest tag info ([8962aa4](#))
+* **import:** add date-picker field to form ([b3a0f34](#))
+* **import:** add import multiple runs form ([#424](#)) ([f6f9af3](#))
+* **import:** add new columns to table ([fb8a4d7](#))
+* **import:** add sticky table header ([aa283ac](#))
+* **import:** persist form state in URL ([d1df298](#))
+* **log:** add skipped icon ([5818f26](#))
+* **log:** display focus id test name ([239c280](#))
+* **run:** open unexpected results with ctrl click ([7a0571a](#))
 
 ### ✏️ Other
 
-- **ci:** fix install script ([6a06ea1](#))
-- **ci:** remove uploading build artifacts ([0ca24f3](#))
-- cleanup ([12f3b27](#))
-- **docker:** add separate conig for bublik docker ([2d6481c](#))
-- fix log links in dev mode ([ce0192e](#))
-- fix typo ([736c53e](#))
-- **history:** format time for history legend header ([c22e6b3](#))
-- **import:** change column order ([def4032](#))
-- **import:** change timestamp query param ([8ee08e6](#))
-- remove broken datepicker tests ([47ab308](#))
-- remove broken datepicker tests ([ad4db2f](#))
-- remove old context ([f1dc7a3](#))
-- replace old base url to localhost ([b09bec5](#))
-- **ui:** [dialog] simplify modal styles ([baf87dc](#))
-- **ui:** [dialog] simplify modal styles ([e9b0bb3](#))
-- **ui:** fix snapshot ([8dcb2e9](#))
-- update snapshots ([d29dcda](#))
-- update snapshots ([07ef54c](#))
+* **ci:** fix install script ([6a06ea1](#))
+* **ci:** remove uploading build artifacts ([0ca24f3](#))
+* cleanup ([12f3b27](#))
+* **docker:** add separate conig for bublik docker ([2d6481c](#))
+* fix log links in dev mode ([ce0192e](#))
+* fix typo ([736c53e](#))
+* **history:** format time for history legend header ([c22e6b3](#))
+* **import:** change column order ([def4032](#))
+* **import:** change timestamp query param ([8ee08e6](#))
+* remove broken datepicker tests ([47ab308](#))
+* remove broken datepicker tests ([ad4db2f](#))
+* remove old context ([f1dc7a3](#))
+* replace old base url to localhost ([b09bec5](#))
+* **ui:** [dialog] simplify modal styles ([baf87dc](#))
+* **ui:** [dialog] simplify modal styles ([e9b0bb3](#))
+* **ui:** fix snapshot ([8dcb2e9](#))
+* update snapshots ([d29dcda](#))
+* update snapshots ([07ef54c](#))
 
 ### 🐛 Bug Fix
 
-- **ci:** ci wrong command ([2143d9f](#))
-- **history:** apply filters on history mount ([d50d31e](#))
-- **import:** missing date ([ed62d5e](#))
-- **import:** sidebar is not fixed on long table ([f617e7e](#))
-- **import:** trim whitespaces from msg query value ([ec9a5b6](#))
-- **import:** ur validationl won't process properly ([0a8f0cb](#))
-- **log:** wrong document title ([92f9b2f](#))
+* **ci:** ci wrong command ([2143d9f](#))
+* **history:** apply filters on history mount ([d50d31e](#))
+* **import:** missing date ([ed62d5e](#))
+* **import:** sidebar is not fixed on long table ([f617e7e](#))
+* **import:** trim whitespaces from msg query value ([ec9a5b6](#))
+* **import:** ur validationl won't process properly ([0a8f0cb](#))
+* **log:** wrong document title ([92f9b2f](#))
+

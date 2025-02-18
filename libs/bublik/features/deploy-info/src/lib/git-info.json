@@ -1,7 +1,7 @@
 {
-	"date": "2025.01.29",
-	"summary": "style(runs): [charts] add better separation between different charts",
-	"revision": "85241319",
+	"date": "2025.02.18",
+	"summary": "fix(docker): disable check for prettier",
+	"revision": "17a31adc",
 	"branch": "main",
-	"latestTag": "v1.1.0"
+	"latestTag": "v1.2.0"
 }
