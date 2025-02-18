@@ -11,11 +11,17 @@ import { Table } from '@tanstack/react-table';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 
 import { LogTableData } from '@/shared/types';
-import { Icon, Tooltip, cn, ButtonTw, Separator } from '@/shared/tailwind-ui';
+import {
+	Icon,
+	Tooltip,
+	cn,
+	ButtonTw,
+	Separator,
+	DataTableFacetedFilter
+} from '@/shared/tailwind-ui';
 
 import { LogTableFilterValue } from '../log-table.types';
 import { TableDepthFilter } from './table-depth-filter';
-import { DataTableFacetedFilter } from './table-filter';
 import { useSettingsContext } from '../settings.context';
 import {
 	useFilterOptions,
