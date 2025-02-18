@@ -33,7 +33,6 @@ import {
 	TargetIcon
 } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '@/shared/hooks';
-import { Popover, PopoverTrigger, PopoverContent } from '@/shared/tailwind-ui';
 
 export const BlockLogMeta = (props: LogHeaderBlock) => {
 	const { parameters, artifacts, verdicts, requirements } = props.meta;
