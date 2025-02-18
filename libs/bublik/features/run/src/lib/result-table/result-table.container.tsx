@@ -86,7 +86,7 @@ export const ResultTableContainer = ({
 				//}
 			};
 		},
-		[rowId, rowState?.referenceDiffRowId, rowState?.requests, updateRowState]
+		[rowState?.referenceDiffRowId]
 	);
 
 	if (isError) return <div className="">Something went wrong...</div>;

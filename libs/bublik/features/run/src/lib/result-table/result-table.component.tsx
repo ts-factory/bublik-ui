@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
+import { ColumnFiltersState } from '@tanstack/react-table';
+import { createNextState } from '@reduxjs/toolkit';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -10,11 +12,13 @@ import {
 	Skeleton,
 	TwTableProps,
 	ButtonTw,
-	Icon
+	Icon,
+	DataTableFacetedFilter,
+	Tooltip
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
-import { ColumnFiltersState } from '@tanstack/react-table';
+import { COLUMN_ID } from './constants';
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -75,8 +79,18 @@ export const ResultTable = memo(
 	}: ResultTableProps) => {
 		const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 		const hasFilters = columnFilters.some((filter) => {
-			const value = (filter.value ?? []) as string[];
-			return value.length > 0;
+			const value = Array.isArray(filter.value)
+				? (filter.value as string[])
+				: [filter.value as string];
+
+			if (Array.isArray(value)) {
+				return value.length > 0;
+			}
+			if (filter.id === COLUMN_ID.OBTAINED_RESULT) {
+				return value !== undefined && value.length > 0;
+			}
+
+			return value !== undefined;
 		});
 		const stickyOffset = hasFilters ? -(height * 2 + 69) : -(height + 69);
 
@@ -100,6 +114,94 @@ export const ResultTable = memo(
 			[hasFilters, height]
 		);
 
+		const requirements = useMemo(() => {
+			return Array.from(new Set(data.map((row) => row.requirements).flat()))
+				.filter((requirement) => requirement !== undefined)
+				.map((requirement) => ({
+					label: requirement,
+					value: requirement
+				}));
+		}, [data]);
+
+		const parameters = useMemo(() => {
+			return Array.from(new Set(data.map((row) => row.parameters).flat()))
+				.filter(Boolean)
+				.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
+				.map((parameter) => ({
+					label: parameter,
+					value: parameter
+				}));
+		}, [data]);
+
+		const verdicts = useMemo(() => {
+			return Array.from(
+				new Set(data.map((row) => row.obtained_result.verdict).flat())
+			)
+				.filter(Boolean)
+				.map((verdict) => ({
+					label: verdict,
+					value: verdict
+				}));
+		}, [data]);
+
+		const requirementsFilter = useMemo(() => {
+			return (columnFilters.find(
+				(filter) => filter.id === COLUMN_ID.REQUIREMENTS
+			)?.value ?? []) as string[];
+		}, [columnFilters]);
+
+		const parametersFilter = useMemo(() => {
+			return (columnFilters.find((filter) => filter.id === COLUMN_ID.PARAMETERS)
+				?.value ?? []) as string[];
+		}, [columnFilters]);
+
+		const verdictsFilter = useMemo(() => {
+			return (
+				(
+					columnFilters.find(
+						(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
+					)?.value as { verdicts?: string[] }
+				)?.verdicts ?? []
+			);
+		}, [columnFilters]);
+
+		function handleClearFilters() {
+			setColumnFilters([]);
+		}
+
+		function handleFilterChange(id: string, values: string[] | undefined) {
+			setColumnFilters((prev) => {
+				const filter = prev.find((filter) => filter.id === id);
+
+				if (filter) filter.value = values ?? [];
+
+				return [...prev, { id, value: values ?? [] }];
+			});
+		}
+
+		function handleVerdictsFilterChange(values: string[] | undefined) {
+			setColumnFilters((prev) =>
+				createNextState(prev, (draft) => {
+					const filter = draft.find(
+						(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
+					) as { value?: { verdicts?: string[] } };
+
+					if (filter) {
+						if (!values?.length) {
+							filter.value = { ...filter.value, verdicts: undefined };
+						} else {
+							filter.value = { ...filter.value, verdicts: values };
+						}
+					} else {
+						draft.push({
+							id: COLUMN_ID.OBTAINED_RESULT,
+							value: { verdicts: values }
+						});
+					}
+				})
+			);
+		}
+
 		return (
 			<div className="px-4 pb-2">
 				{hasFilters ? (
@@ -110,11 +212,63 @@ export const ResultTable = memo(
 						)}
 						style={{ top: `${height + 68}px` }}
 					>
-						<div></div>
-						<ButtonTw variant="secondary" size="xss">
-							<Icon name="SwapArrows" size={18} className="rotate-90 mr-1.5" />
-							<span>Parameters Diff Mode</span>
-						</ButtonTw>
+						<div className="flex gap-2 items-center">
+							<DataTableFacetedFilter
+								title="Requirements"
+								size="xss"
+								options={requirements}
+								value={requirementsFilter}
+								onChange={(values) =>
+									handleFilterChange('requirements', values)
+								}
+							/>
+							<DataTableFacetedFilter
+								title="Verdicts"
+								size="xss"
+								options={verdicts}
+								value={verdictsFilter}
+								onChange={handleVerdictsFilterChange}
+							/>
+							<DataTableFacetedFilter
+								title="Parameters"
+								size="xss"
+								options={parameters}
+								value={parametersFilter}
+								onChange={(values) => handleFilterChange('parameters', values)}
+							/>
+							<Tooltip content="Reset">
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									onClick={handleClearFilters}
+								>
+									<Icon name="Refresh" size={18} className="mr-1.5" />
+									<span>Reset</span>
+								</ButtonTw>
+							</Tooltip>
+						</div>
+						<div className="flex gap-2 items-center">
+							<Tooltip content="Apply Requirements globally to the run">
+								<ButtonTw variant="secondary" size="xss">
+									<Icon
+										name="Aggregation"
+										size={18}
+										className="rotate-90 mr-1.5"
+									/>
+									<span>Apply Requirements</span>
+								</ButtonTw>
+							</Tooltip>
+							<Tooltip content="Click on the row to compare parameters">
+								<ButtonTw variant="secondary" size="xss">
+									<Icon
+										name="SwapArrows"
+										size={18}
+										className="rotate-90 mr-1.5"
+									/>
+									<span>Parameters Compare</span>
+								</ButtonTw>
+							</Tooltip>
+						</div>
 					</div>
 				) : null}
 				<TwTable

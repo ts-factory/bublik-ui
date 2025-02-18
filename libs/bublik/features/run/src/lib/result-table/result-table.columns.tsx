@@ -10,6 +10,7 @@ import { Badge, VerdictList, cn } from '@/shared/tailwind-ui';
 import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useRunTableRowState } from '../hooks';
+import { COLUMN_ID } from './constants';
 
 const helper = createColumnHelper<RunDataResults>();
 
@@ -49,6 +50,7 @@ export const getColumns = ({
 		}),
 		helper.accessor('requirements', {
 			header: 'Requirements',
+			id: COLUMN_ID.REQUIREMENTS,
 			cell: (cell) => {
 				const requirements = cell.getValue() ?? [];
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
@@ -73,6 +75,7 @@ export const getColumns = ({
 		}),
 		helper.accessor('artifacts', {
 			header: 'Artifacts',
+			id: COLUMN_ID.ARTIFACTS,
 			cell: (cell) => {
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
 
@@ -127,6 +130,7 @@ export const getColumns = ({
 			}),
 			{
 				header: 'Obtained Result',
+				id: COLUMN_ID.OBTAINED_RESULT,
 				cell: (cell) => {
 					const obtainedResult = cell.getValue();
 					const filterValue = cell.column.getFilterValue() as {
@@ -218,6 +222,7 @@ export const getColumns = ({
 		),
 		helper.accessor('parameters', {
 			header: 'Parameters',
+			id: COLUMN_ID.PARAMETERS,
 			cell: ({ cell, getValue }) => {
 				const parameters = getValue();
 				const column = cell.column;

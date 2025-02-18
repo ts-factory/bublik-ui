@@ -2,8 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import * as React from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
+import { PopoverPortal } from '@radix-ui/react-popover';
 
-import { cn } from '../utils/index';
+import { cn } from '../utils';
 import { Badge } from '../badge';
 import { Popover, PopoverTrigger } from '../popover';
 import { ButtonTw } from '../button';
@@ -19,7 +20,6 @@ import {
 	CommandList,
 	CommandSeparator
 } from '../command';
-import { PopoverPortal } from '@radix-ui/react-popover';
 
 export interface DataTableFacetedFilterProps {
 	title?: string;
@@ -31,13 +31,15 @@ export interface DataTableFacetedFilterProps {
 	onChange: (values: string[] | undefined) => void;
 	value: string[];
 	className?: string;
+	size?: 'xss' | 'xs/2';
 }
 
 export function DataTableFacetedFilter({
 	title,
 	options,
 	value,
-	onChange
+	onChange,
+	size = 'xs/2'
 }: DataTableFacetedFilterProps) {
 	const selectedValues = new Set(value);
 	const [isOpen, setIsOpen] = React.useState(false);
@@ -47,7 +49,7 @@ export function DataTableFacetedFilter({
 		<Popover onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
 				<ButtonTw
-					size="xs/2"
+					size={size}
 					variant="outline-secondary"
 					state={isOpen && 'active'}
 				>
@@ -56,7 +58,7 @@ export function DataTableFacetedFilter({
 						size={16}
 						className="mr-2 border rounded-full border-text-primary"
 					/>
-					<span className="text-xs">{title}</span>
+					<span className="text-xs font-medium">{title}</span>
 					{selectedValues?.size > 0 && (
 						<>
 							<Separator orientation="vertical" className="h-4 mx-2" />
