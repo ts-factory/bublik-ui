@@ -10,7 +10,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { useLocalStorage } from '@/shared/hooks';
+import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 
@@ -38,22 +38,22 @@ function useColumnVisibility() {
 		}
 	}
 
-	const ColumnVisibilityParam = withDefault(
-		JsonParam,
-		getDefaultColumnVisibility()
-	);
-
 	const [localColumnVisibility, setLocalColumnVisibility] =
 		useLocalStorage<VisibilityState>(
 			LOCAL_STORAGE_COLUMN_VISIBILITY_KEY,
 			getDefaultColumnVisibility()
 		);
-	const [queryColumnVisibility, seQueryColumnVisibility] =
-		useQueryParam<VisibilityState>('visibility', ColumnVisibilityParam);
 
-	const columnVisibility = Object.keys(queryColumnVisibility).length
-		? queryColumnVisibility
-		: localColumnVisibility;
+	const [queryColumnVisibility, setQueryColumnVisibility] =
+		useQueryParam<VisibilityState>('visibility', JsonParam);
+
+	useMount(() => {
+		if (!Object.keys(queryColumnVisibility ?? {}).length) {
+			setQueryColumnVisibility(localColumnVisibility, 'replaceIn');
+		}
+	});
+
+	const columnVisibility = queryColumnVisibility ?? localColumnVisibility;
 
 	const setColumnVisibility = (
 		state: Updater<VisibilityState> | VisibilityState
@@ -61,7 +61,7 @@ function useColumnVisibility() {
 		const newState =
 			typeof state === 'function' ? state(columnVisibility) : state;
 
-		seQueryColumnVisibility(newState, 'replace');
+		setQueryColumnVisibility(newState, 'replace');
 		setLocalColumnVisibility(newState);
 	};
 
