@@ -68,22 +68,22 @@ export const ResultTableContainer = ({
 			const className =
 				rowState?.referenceDiffRowId === row.id ? 'border-primary' : '';
 			return {
-				className,
-				onClick: (e) => {
-					if (rowState?.referenceDiffRowId === row.id) {
-						updateRowState({
-							rowId,
-							referenceDiffRowId: undefined,
-							requests: rowState?.requests
-						});
-					} else {
-						updateRowState({
-							rowId,
-							referenceDiffRowId: row.id,
-							requests: rowState?.requests
-						});
-					}
-				}
+				className
+				//onClick: (e) => {
+				//	if (rowState?.referenceDiffRowId === row.id) {
+				//		updateRowState({
+				//			rowId,
+				//			referenceDiffRowId: undefined,
+				//			requests: rowState?.requests
+				//		});
+				//	} else {
+				//		updateRowState({
+				//			rowId,
+				//			referenceDiffRowId: row.id,
+				//			requests: rowState?.requests
+				//		});
+				//	}
+				//}
 			};
 		},
 		[rowId, rowState?.referenceDiffRowId, rowState?.requests, updateRowState]

@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
+import { createNextState } from '@reduxjs/toolkit';
 
-import { RunDataResults } from '@/shared/types';
+import { RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import { Badge, VerdictList, cn } from '@/shared/tailwind-ui';
 
@@ -128,8 +129,49 @@ export const getColumns = ({
 				header: 'Obtained Result',
 				cell: (cell) => {
 					const obtainedResult = cell.getValue();
+					const filterValue = cell.column.getFilterValue() as {
+						isNotExpected?: boolean;
+						result?: RESULT_TYPE;
+						verdicts?: string[];
+					};
+
+					const verdicts = filterValue?.verdicts ?? [];
 
 					if (!obtainedResult.result || !obtainedResult.verdicts) return;
+
+					function handleVerdictClick(verdict: string) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								if (!draft.verdicts) {
+									draft.verdicts = [verdict];
+									return;
+								}
+
+								if (draft.verdicts.includes(verdict)) {
+									draft.verdicts = draft.verdicts.filter((v) => v !== verdict);
+								} else {
+									draft.verdicts = [...draft.verdicts, verdict];
+								}
+							})
+						);
+					}
+
+					function handleResultClick(result: RESULT_TYPE) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								if (
+									draft.result === result &&
+									draft.isNotExpected === obtainedResult.isNotExpected
+								) {
+									draft.result = undefined;
+									draft.isNotExpected = undefined;
+								} else {
+									draft.result = result;
+									draft.isNotExpected = obtainedResult.isNotExpected;
+								}
+							})
+						);
+					}
 
 					return (
 						<VerdictList
@@ -137,8 +179,40 @@ export const getColumns = ({
 							verdicts={obtainedResult.verdicts}
 							result={obtainedResult.result}
 							isNotExpected={obtainedResult.isNotExpected}
+							onVerdictClick={handleVerdictClick}
+							selectedVerdicts={verdicts}
+							onResultClick={handleResultClick}
+							isResultSelected={
+								obtainedResult.result === filterValue?.result &&
+								obtainedResult.isNotExpected === filterValue?.isNotExpected
+							}
 						/>
 					);
+				},
+				filterFn: (
+					row,
+					column,
+					filterValue: { result?: RESULT_TYPE; verdicts?: string[] }
+				) => {
+					const value = row.getValue(column) as {
+						isNotExpected?: boolean;
+						result?: RESULT_TYPE;
+						verdicts?: string[];
+					};
+
+					if (!filterValue?.result && !filterValue?.verdicts?.length) {
+						return true;
+					}
+
+					const matchesResult =
+						!filterValue.result ||
+						(value.result === filterValue.result &&
+							value.isNotExpected === false);
+					const matchesVerdicts =
+						!filterValue.verdicts?.length ||
+						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
+
+					return matchesResult && matchesVerdicts;
 				}
 			}
 		),
