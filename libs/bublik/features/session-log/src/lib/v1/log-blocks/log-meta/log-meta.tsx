@@ -85,64 +85,110 @@ function RequirementsTable(props: RequirementsTableProps) {
 }
 
 function isPreformatted(value: string): boolean {
-	return value.includes('{\n') || value.includes('\n');
+	return isWithBracesWithoutNewlines(value) || value.includes('\n');
+}
+
+function isWithBracesWithoutNewlines(value: string): boolean {
+	return value.includes('{') && !value.includes('\n');
+}
+
+function isCodeBlock(lines: string[]): boolean {
+	// Common code block indicators
+	const codePatterns = [
+		// Comments
+		/^#/,
+		/^\/\//,
+		/^\/\*/,
+		// Control structures
+		/\bdo\s*\(/,
+		/\brepeat\s*\(/,
+		/\bawait\s*\(/,
+		/\bif\s*\(/,
+		/\bwhile\s*\(/,
+		/\bfor\s*\(/,
+		// Function calls with parameters
+		/\w+\s*\([^)]*\)\s*\.?\w*/,
+		// Variable assignments
+		/\w+:\w+/,
+		// Semicolons at end
+		/;\s*$/
+	];
+
+	// Check if enough lines match code patterns
+	const matchingLines = lines.filter((line) =>
+		codePatterns.some((pattern) => pattern.test(line.trim()))
+	);
+
+	// Consider it code if more than 30% of non-empty lines match patterns
+	const nonEmptyLines = lines.filter((line) => line.trim()).length;
+	return matchingLines.length / nonEmptyLines > 0.3;
 }
 
 function formatParameterValue(value: string): string {
 	try {
-		// Check if the value contains newlines
 		if (value.includes('\n')) {
-			// JSON-like structure with curly braces
-			if (value.includes('{\n')) {
-				let indentLevel = 0;
-				const indent = '  '; // Two spaces for each level
+			const lines = value.split('\n');
 
-				return value
-					.split('\n')
-					.map((line) => {
-						line = line.trim();
+			if (isCodeBlock(lines)) return value;
 
-						if (line.includes('}')) indentLevel--;
+			let indentLevel = 0;
+			return lines
+				.map((line) => {
+					const trimmed = line.trim();
+					if (!trimmed) return '';
 
-						const formattedLine = `${indent.repeat(
-							Math.max(0, indentLevel)
-						)}${line}`;
+					if (trimmed.startsWith('}') || trimmed.startsWith('],')) {
+						indentLevel--;
+					}
 
-						if (line.includes('{')) indentLevel++;
+					const indent = '  '.repeat(Math.max(0, indentLevel));
 
-						return formattedLine;
-					})
-					.filter((line) => line.trim())
-					.join('\n');
+					if (
+						trimmed.endsWith('{') ||
+						trimmed.endsWith('[') ||
+						trimmed.endsWith(':{')
+					) {
+						indentLevel++;
+					}
+
+					return indent + trimmed;
+				})
+				.filter(Boolean)
+				.join('\n');
+		}
+
+		if (isWithBracesWithoutNewlines(value)) {
+			let indentLevel = 0;
+			const indent = '  ';
+			let result = '';
+			let inString = false;
+
+			for (let i = 0; i < value.length; i++) {
+				const char = value[i];
+
+				if (char === '"' || char === "'") {
+					inString = !inString;
+				}
+
+				if (!inString) {
+					if (char === '{' || char === '[') {
+						result += char + '\n' + indent.repeat(++indentLevel);
+						continue;
+					}
+					if (char === '}' || char === ']') {
+						result += '\n' + indent.repeat(--indentLevel) + char;
+						continue;
+					}
+					if (char === ',') {
+						result += char + '\n' + indent.repeat(indentLevel);
+						continue;
+					}
+				}
+
+				result += char;
 			}
 
-			// Code-like structure with regular indentation
-			return value
-				.split('\n')
-				.map((line) => line.trim()) // Remove existing indentation
-				.filter((line) => line.length > 0) // Remove empty lines
-				.map((line) => {
-					// Add 2 spaces of indentation for lines that appear to be nested
-					const shouldIndent =
-						line.startsWith('await') ||
-						line.startsWith('repeat') ||
-						line.startsWith('#') ||
-						line.startsWith('if ') ||
-						line.startsWith('else ') ||
-						line.startsWith('for ') ||
-						line.startsWith('while ') ||
-						line.startsWith('try ') ||
-						line.startsWith('catch ') ||
-						line.startsWith('finally ') ||
-						line.match(/^\s*\{/) ||
-						line.match(/^\s*\[/) ||
-						line.match(/^\s*\./) ||
-						line.match(/^\s*\w+:/) ||
-						line.trim().endsWith('{') ||
-						line.trim().endsWith('[');
-					return shouldIndent ? `  ${line}` : line;
-				})
-				.join('\n');
+			return result;
 		}
 
 		return value;
@@ -182,7 +228,11 @@ function ParametersTable(props: ParametersTableProps) {
 							const isFormatted = isPreformatted(parameter.value);
 
 							function handleCopy() {
-								copy(`${parameter.name}=${parameter.value}`).then((success) => {
+								copy(
+									isFormatted
+										? formatParameterValue(parameter.value)
+										: `${parameter.name}=${parameter.value}`
+								).then((success) => {
 									if (success) {
 										toast.success('Copied to clipboard');
 									} else {
@@ -221,7 +271,9 @@ function ParametersTable(props: ParametersTableProps) {
 														/>
 													</button>
 												) : null}
-												{formatParameterValue(parameter.value)}
+												{isFormatted
+													? formatParameterValue(parameter.value)
+													: parameter.value}
 											</pre>
 											{!isFormatted && (
 												<Icon
