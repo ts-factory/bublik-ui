@@ -87,8 +87,11 @@ export const ResultTable = memo(
 		showLinkToRun = false,
 		height
 	}: ResultTableProps) => {
-		const { columnFilters, setColumnFilters, hasFilters } =
-			useColumnFilters(rowId);
+		const {
+			columnFilters,
+			setColumnFilters,
+			hasFilters: hasColumnFilters
+		} = useColumnFilters(rowId);
 		const {
 			requirements,
 			parameters,
@@ -100,19 +103,26 @@ export const ResultTable = memo(
 			onFilterChange,
 			onVerdictsFilterChange
 		} = useDataTableFilters(rowId, data);
-		const { isApplyButtonActive, onApplyRequirements, onRemoveRequirements } =
-			useGlobalRequirements({
-				localRequirements: requirementsFilter
-			});
-		const { stickyOffset, getHeaderProps } = useStickyHeader({
-			hasFilters,
-			height
+		const {
+			shouldShowRemove,
+			hasGlobalRequirements,
+			onApplyRequirements,
+			onRemoveRequirements
+		} = useGlobalRequirements({
+			localRequirements: requirementsFilter
 		});
+
+		const hasFilters = hasColumnFilters || hasGlobalRequirements;
 
 		const columns = useMemo(
 			() => getColumns({ rowId, showLinkToRun, data }),
 			[data, rowId, showLinkToRun]
 		);
+
+		const { stickyOffset, getHeaderProps } = useStickyHeader({
+			hasFilters,
+			height
+		});
 
 		return (
 			<div className="px-4 pb-2">
@@ -133,6 +143,7 @@ export const ResultTable = memo(
 								onChange={(values) =>
 									onFilterChange(COLUMN_ID.REQUIREMENTS, values)
 								}
+								disabled={!requirements.length}
 							/>
 							<DataTableFacetedFilter
 								title="Verdicts"
@@ -140,6 +151,7 @@ export const ResultTable = memo(
 								options={verdicts}
 								value={verdictsFilter}
 								onChange={onVerdictsFilterChange}
+								disabled={!verdicts.length}
 							/>
 							<DataTableFacetedFilter
 								title="Parameters"
@@ -149,6 +161,7 @@ export const ResultTable = memo(
 								onChange={(values) =>
 									onFilterChange(COLUMN_ID.PARAMETERS, values)
 								}
+								disabled={!parameters.length}
 							/>
 							<Tooltip content="Reset">
 								<ButtonTw
@@ -167,13 +180,26 @@ export const ResultTable = memo(
 							</Tooltip>
 						</div>
 						<div className="flex gap-2 items-center">
-							{isApplyButtonActive ? (
-								<Tooltip content="Apply Requirements globally to the run">
+							{shouldShowRemove ? (
+								<Tooltip content="Remove requirements filter globally from the run">
 									<ButtonTw
 										variant="secondary"
 										size="xss"
+										onClick={onRemoveRequirements}
+									>
+										<Icon name="Bin" size={18} className="mr-1.5" />
+										<span>Remove Requirements</span>
+									</ButtonTw>
+								</Tooltip>
+							) : (
+								<Tooltip content="Apply requirements filter globally to the run">
+									<ButtonTw
+										variant={
+											requirementsFilter.length === 0 ? 'secondary' : 'primary'
+										}
+										size="xss"
 										onClick={onApplyRequirements}
-										disabled={isApplyButtonActive}
+										disabled={requirementsFilter.length === 0}
 									>
 										<Icon
 											name="Aggregation"
@@ -181,21 +207,6 @@ export const ResultTable = memo(
 											className="rotate-90 mr-1.5"
 										/>
 										<span>Apply Requirements</span>
-									</ButtonTw>
-								</Tooltip>
-							) : (
-								<Tooltip content="Apply Requirements globally to the run">
-									<ButtonTw
-										variant="secondary"
-										size="xss"
-										onClick={onRemoveRequirements}
-									>
-										<Icon
-											name="Aggregation"
-											size={18}
-											className="rotate-90 mr-1.5"
-										/>
-										<span>Remove Requirements</span>
 									</ButtonTw>
 								</Tooltip>
 							)}
@@ -267,29 +278,48 @@ function useGlobalRequirements({
 		Array<string | null>
 	>('globalRequirements', withDefault(ArrayParam, []));
 
-	const isApplyButtonActive = useMemo(() => {
-		return localRequirements.some(
-			(requirement) =>
-				!globalRequirements.filter((r) => r !== null).includes(requirement)
+	const filteredGlobalRequirements = useMemo(
+		() => globalRequirements.filter((r) => r !== null) as string[],
+		[globalRequirements]
+	);
+
+	const hasGlobalRequirements = useMemo(
+		() =>
+			localRequirements.some((req) => filteredGlobalRequirements.includes(req)),
+		[filteredGlobalRequirements, localRequirements]
+	);
+
+	const shouldShowRemove = useMemo(() => {
+		const globalSet = new Set(filteredGlobalRequirements);
+		const localSet = new Set(localRequirements);
+
+		return (
+			(localRequirements.length > 0 &&
+				localSet.size === globalSet.size &&
+				localRequirements.every((req) => globalSet.has(req))) ||
+			(localRequirements.length === 0 && filteredGlobalRequirements.length > 0)
 		);
-	}, [globalRequirements, localRequirements]);
+	}, [filteredGlobalRequirements, localRequirements]);
 
 	const handleApplyRequirements = useCallback(() => {
 		setGlobalRequirements(localRequirements);
 	}, [localRequirements, setGlobalRequirements]);
 
 	const handleRemoveRequirements = useCallback(() => {
-		setGlobalRequirements(
-			globalRequirements
-				.filter((r) => r !== null)
-				.filter((r) => !localRequirements.includes(r))
-		);
-	}, [setGlobalRequirements, globalRequirements, localRequirements]);
+		if (localRequirements.length === 0) {
+			setGlobalRequirements([]);
+		} else {
+			setGlobalRequirements(
+				filteredGlobalRequirements.filter((r) => !localRequirements.includes(r))
+			);
+		}
+	}, [setGlobalRequirements, filteredGlobalRequirements, localRequirements]);
 
 	return {
 		globalRequirements,
 		setGlobalRequirements,
-		isApplyButtonActive,
+		shouldShowRemove,
+		hasGlobalRequirements,
 		onApplyRequirements: handleApplyRequirements,
 		onRemoveRequirements: handleRemoveRequirements
 	};
