@@ -115,7 +115,7 @@ export function DataTableFacetedFilter({
 								</button>
 							}
 						/>
-						<CommandList>
+						<CommandList className="max-h-96 overflow-y-auto">
 							<CommandEmpty className="py-4 text-xs text-center">
 								No results found.
 							</CommandEmpty>

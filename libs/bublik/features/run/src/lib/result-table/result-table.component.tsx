@@ -1,8 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
-import { ColumnFiltersState } from '@tanstack/react-table';
+import { CSSProperties, memo, useCallback, useMemo } from 'react';
+import { ColumnFiltersState, Updater } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
+import {
+	ArrayParam,
+	JsonParam,
+	useQueryParam,
+	withDefault
+} from 'use-query-params';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -18,7 +24,11 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
-import { COLUMN_ID } from './constants';
+import {
+	COLUMN_ID,
+	ObtainedResultFilterSchema,
+	StringArraySchema
+} from './constants';
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -77,130 +87,32 @@ export const ResultTable = memo(
 		showLinkToRun = false,
 		height
 	}: ResultTableProps) => {
-		const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-		const hasFilters = columnFilters.some((filter) => {
-			const value = Array.isArray(filter.value)
-				? (filter.value as string[])
-				: [filter.value as string];
-
-			if (Array.isArray(value)) {
-				return value.length > 0;
-			}
-			if (filter.id === COLUMN_ID.OBTAINED_RESULT) {
-				return value !== undefined && value.length > 0;
-			}
-
-			return value !== undefined;
+		const { columnFilters, setColumnFilters, hasFilters } =
+			useColumnFilters(rowId);
+		const {
+			requirements,
+			parameters,
+			verdicts,
+			requirementsFilter,
+			parametersFilter,
+			verdictsFilter,
+			onClearFilters,
+			onFilterChange,
+			onVerdictsFilterChange
+		} = useDataTableFilters(rowId, data);
+		const { isApplyButtonActive, onApplyRequirements, onRemoveRequirements } =
+			useGlobalRequirements({
+				localRequirements: requirementsFilter
+			});
+		const { stickyOffset, getHeaderProps } = useStickyHeader({
+			hasFilters,
+			height
 		});
-		const stickyOffset = hasFilters ? -(height * 2 + 69) : -(height + 69);
 
 		const columns = useMemo(
 			() => getColumns({ rowId, showLinkToRun, data }),
 			[data, rowId, showLinkToRun]
 		);
-
-		const getHeaderProps = useCallback<
-			NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
-		>(
-			(_, { isSticky }) => {
-				return {
-					style: {
-						top: `${hasFilters ? height * 2 + 68 : height + 68}px`,
-						position: 'sticky',
-						boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
-					} as CSSProperties
-				};
-			},
-			[hasFilters, height]
-		);
-
-		const requirements = useMemo(() => {
-			return Array.from(new Set(data.map((row) => row.requirements).flat()))
-				.filter((requirement) => requirement !== undefined)
-				.map((requirement) => ({
-					label: requirement,
-					value: requirement
-				}));
-		}, [data]);
-
-		const parameters = useMemo(() => {
-			return Array.from(new Set(data.map((row) => row.parameters).flat()))
-				.filter(Boolean)
-				.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
-				.map((parameter) => ({
-					label: parameter,
-					value: parameter
-				}));
-		}, [data]);
-
-		const verdicts = useMemo(() => {
-			return Array.from(
-				new Set(data.map((row) => row.obtained_result.verdict).flat())
-			)
-				.filter(Boolean)
-				.map((verdict) => ({
-					label: verdict,
-					value: verdict
-				}));
-		}, [data]);
-
-		const requirementsFilter = useMemo(() => {
-			return (columnFilters.find(
-				(filter) => filter.id === COLUMN_ID.REQUIREMENTS
-			)?.value ?? []) as string[];
-		}, [columnFilters]);
-
-		const parametersFilter = useMemo(() => {
-			return (columnFilters.find((filter) => filter.id === COLUMN_ID.PARAMETERS)
-				?.value ?? []) as string[];
-		}, [columnFilters]);
-
-		const verdictsFilter = useMemo(() => {
-			return (
-				(
-					columnFilters.find(
-						(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
-					)?.value as { verdicts?: string[] }
-				)?.verdicts ?? []
-			);
-		}, [columnFilters]);
-
-		function handleClearFilters() {
-			setColumnFilters([]);
-		}
-
-		function handleFilterChange(id: string, values: string[] | undefined) {
-			setColumnFilters((prev) => {
-				const filter = prev.find((filter) => filter.id === id);
-
-				if (filter) filter.value = values ?? [];
-
-				return [...prev, { id, value: values ?? [] }];
-			});
-		}
-
-		function handleVerdictsFilterChange(values: string[] | undefined) {
-			setColumnFilters((prev) =>
-				createNextState(prev, (draft) => {
-					const filter = draft.find(
-						(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
-					) as { value?: { verdicts?: string[] } };
-
-					if (filter) {
-						if (!values?.length) {
-							filter.value = { ...filter.value, verdicts: undefined };
-						} else {
-							filter.value = { ...filter.value, verdicts: values };
-						}
-					} else {
-						draft.push({
-							id: COLUMN_ID.OBTAINED_RESULT,
-							value: { verdicts: values }
-						});
-					}
-				})
-			);
-		}
 
 		return (
 			<div className="px-4 pb-2">
@@ -219,7 +131,7 @@ export const ResultTable = memo(
 								options={requirements}
 								value={requirementsFilter}
 								onChange={(values) =>
-									handleFilterChange('requirements', values)
+									onFilterChange(COLUMN_ID.REQUIREMENTS, values)
 								}
 							/>
 							<DataTableFacetedFilter
@@ -227,37 +139,66 @@ export const ResultTable = memo(
 								size="xss"
 								options={verdicts}
 								value={verdictsFilter}
-								onChange={handleVerdictsFilterChange}
+								onChange={onVerdictsFilterChange}
 							/>
 							<DataTableFacetedFilter
 								title="Parameters"
 								size="xss"
 								options={parameters}
 								value={parametersFilter}
-								onChange={(values) => handleFilterChange('parameters', values)}
+								onChange={(values) =>
+									onFilterChange(COLUMN_ID.PARAMETERS, values)
+								}
 							/>
 							<Tooltip content="Reset">
 								<ButtonTw
 									variant="secondary"
 									size="xss"
-									onClick={handleClearFilters}
+									onClick={onClearFilters}
 								>
-									<Icon name="Refresh" size={18} className="mr-1.5" />
+									<Icon
+										name="Refresh"
+										size={18}
+										className="mr-1.5"
+										style={{ transform: 'transform: scaleX(-1)' }}
+									/>
 									<span>Reset</span>
 								</ButtonTw>
 							</Tooltip>
 						</div>
 						<div className="flex gap-2 items-center">
-							<Tooltip content="Apply Requirements globally to the run">
-								<ButtonTw variant="secondary" size="xss">
-									<Icon
-										name="Aggregation"
-										size={18}
-										className="rotate-90 mr-1.5"
-									/>
-									<span>Apply Requirements</span>
-								</ButtonTw>
-							</Tooltip>
+							{isApplyButtonActive ? (
+								<Tooltip content="Apply Requirements globally to the run">
+									<ButtonTw
+										variant="secondary"
+										size="xss"
+										onClick={onApplyRequirements}
+										disabled={isApplyButtonActive}
+									>
+										<Icon
+											name="Aggregation"
+											size={18}
+											className="rotate-90 mr-1.5"
+										/>
+										<span>Apply Requirements</span>
+									</ButtonTw>
+								</Tooltip>
+							) : (
+								<Tooltip content="Apply Requirements globally to the run">
+									<ButtonTw
+										variant="secondary"
+										size="xss"
+										onClick={onRemoveRequirements}
+									>
+										<Icon
+											name="Aggregation"
+											size={18}
+											className="rotate-90 mr-1.5"
+										/>
+										<span>Remove Requirements</span>
+									</ButtonTw>
+								</Tooltip>
+							)}
 							<Tooltip content="Click on the row to compare parameters">
 								<ButtonTw variant="secondary" size="xss">
 									<Icon
@@ -288,3 +229,212 @@ export const ResultTable = memo(
 		);
 	}
 );
+
+interface StickyHeaderOptions {
+	hasFilters: boolean;
+	height: number;
+}
+
+function useStickyHeader({ hasFilters, height }: StickyHeaderOptions) {
+	const stickyOffset = hasFilters ? -(height * 2 + 69) : -(height + 69);
+
+	const getHeaderProps = useCallback<
+		NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
+	>(
+		(_, { isSticky }) => {
+			return {
+				style: {
+					top: `${hasFilters ? height * 2 + 68 : height + 68}px`,
+					position: 'sticky',
+					boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
+				} as CSSProperties
+			};
+		},
+		[hasFilters, height]
+	);
+
+	return { stickyOffset, getHeaderProps };
+}
+
+interface GlobalRequirementsOptions {
+	localRequirements: string[];
+}
+
+function useGlobalRequirements({
+	localRequirements
+}: GlobalRequirementsOptions) {
+	const [globalRequirements, setGlobalRequirements] = useQueryParam<
+		Array<string | null>
+	>('globalRequirements', withDefault(ArrayParam, []));
+
+	const isApplyButtonActive = useMemo(() => {
+		return localRequirements.some(
+			(requirement) =>
+				!globalRequirements.filter((r) => r !== null).includes(requirement)
+		);
+	}, [globalRequirements, localRequirements]);
+
+	const handleApplyRequirements = useCallback(() => {
+		setGlobalRequirements(localRequirements);
+	}, [localRequirements, setGlobalRequirements]);
+
+	const handleRemoveRequirements = useCallback(() => {
+		setGlobalRequirements(
+			globalRequirements
+				.filter((r) => r !== null)
+				.filter((r) => !localRequirements.includes(r))
+		);
+	}, [setGlobalRequirements, globalRequirements, localRequirements]);
+
+	return {
+		globalRequirements,
+		setGlobalRequirements,
+		isApplyButtonActive,
+		onApplyRequirements: handleApplyRequirements,
+		onRemoveRequirements: handleRemoveRequirements
+	};
+}
+
+function useDataTableFilters(rowId: string, data: RunDataResults[]) {
+	const { columnFilters, setColumnFilters } = useColumnFilters(rowId);
+
+	const requirements = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.requirements).flat()))
+			.filter((requirement) => requirement !== undefined)
+			.map((requirement) => ({
+				label: requirement,
+				value: requirement
+			}));
+	}, [data]);
+
+	const parameters = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.parameters).flat()))
+			.filter(Boolean)
+			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
+			.map((parameter) => ({
+				label: parameter,
+				value: parameter
+			}));
+	}, [data]);
+
+	const verdicts = useMemo(() => {
+		return Array.from(
+			new Set(data.map((row) => row.obtained_result.verdict).flat())
+		)
+			.filter(Boolean)
+			.map((verdict) => ({
+				label: verdict,
+				value: verdict
+			}));
+	}, [data]);
+
+	const requirementsFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.REQUIREMENTS)
+			?.value ?? []) as string[];
+	}, [columnFilters]);
+
+	const parametersFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.PARAMETERS)
+			?.value ?? []) as string[];
+	}, [columnFilters]);
+
+	const verdictsFilter = useMemo(() => {
+		return (
+			(
+				columnFilters.find((filter) => filter.id === COLUMN_ID.OBTAINED_RESULT)
+					?.value as { verdicts?: string[] }
+			)?.verdicts ?? []
+		);
+	}, [columnFilters]);
+
+	function handleClearFilters() {
+		setColumnFilters([]);
+	}
+
+	function handleFilterChange(id: string, values: string[] | undefined) {
+		setColumnFilters((prev) => {
+			const filter = prev.find((filter) => filter.id === id);
+
+			if (filter) filter.value = values ?? [];
+
+			return [...prev, { id, value: values ?? [] }];
+		});
+	}
+
+	function handleVerdictsFilterChange(values: string[] | undefined) {
+		setColumnFilters((prev) =>
+			createNextState(prev, (draft) => {
+				const filter = draft.find(
+					(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
+				) as { value?: { verdicts?: string[] } };
+
+				if (filter) {
+					if (!values?.length) {
+						filter.value = { ...filter.value, verdicts: undefined };
+					} else {
+						filter.value = { ...filter.value, verdicts: values };
+					}
+				} else {
+					draft.push({
+						id: COLUMN_ID.OBTAINED_RESULT,
+						value: { verdicts: values }
+					});
+				}
+			})
+		);
+	}
+
+	return {
+		requirements,
+		parameters,
+		verdicts,
+		requirementsFilter,
+		parametersFilter,
+		verdictsFilter,
+		onClearFilters: handleClearFilters,
+		onFilterChange: handleFilterChange,
+		onVerdictsFilterChange: handleVerdictsFilterChange
+	};
+}
+
+const columnFiltersParam = withDefault(JsonParam, []);
+
+function useColumnFilters(rowId: string) {
+	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
+		Record<string, ColumnFiltersState>
+	>('columnFilters', columnFiltersParam, { updateType: 'replaceIn' });
+
+	const columnFilters = useMemo(() => {
+		return queryColumnFilters?.[rowId] ?? [];
+	}, [queryColumnFilters, rowId]);
+
+	const setColumnFilters = useCallback(
+		(updater: Updater<ColumnFiltersState>) => {
+			const nextState =
+				typeof updater === 'function' ? updater(columnFilters) : updater;
+
+			setQueryColumnFilters((prev) => ({ ...prev, [rowId]: nextState }));
+		},
+		[columnFilters, rowId, setQueryColumnFilters]
+	);
+
+	const hasFilters = columnFilters.some((filter) => {
+		const value = StringArraySchema.safeParse(filter.value);
+
+		if (value.success) return value.data.length > 0;
+
+		if (filter.id === COLUMN_ID.OBTAINED_RESULT) {
+			const verdicts = ObtainedResultFilterSchema.safeParse(filter.value);
+
+			if (!verdicts.success) return false;
+
+			return (
+				verdicts.data.verdicts.length > 0 || verdicts.data.result !== undefined
+			);
+		}
+
+		return false;
+	});
+
+	return { columnFilters, setColumnFilters, hasFilters };
+}

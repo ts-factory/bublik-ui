@@ -10,7 +10,7 @@ import { Badge, VerdictList, cn } from '@/shared/tailwind-ui';
 import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useRunTableRowState } from '../hooks';
-import { COLUMN_ID } from './constants';
+import { COLUMN_ID, ObtainedResultFilterSchema } from './constants';
 
 const helper = createColumnHelper<RunDataResults>();
 
@@ -133,11 +133,9 @@ export const getColumns = ({
 				id: COLUMN_ID.OBTAINED_RESULT,
 				cell: (cell) => {
 					const obtainedResult = cell.getValue();
-					const filterValue = cell.column.getFilterValue() as {
-						isNotExpected?: boolean;
-						result?: RESULT_TYPE;
-						verdicts?: string[];
-					};
+					const filterValue = ObtainedResultFilterSchema.parse(
+						cell.column.getFilterValue()
+					);
 
 					const verdicts = filterValue?.verdicts ?? [];
 
