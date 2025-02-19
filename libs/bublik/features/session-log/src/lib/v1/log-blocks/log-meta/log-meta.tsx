@@ -33,7 +33,6 @@ import {
 	TargetIcon
 } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '@/shared/hooks';
-import { Popover, PopoverTrigger, PopoverContent } from '@/shared/tailwind-ui';
 
 export const BlockLogMeta = (props: LogHeaderBlock) => {
 	const { parameters, artifacts, verdicts, requirements } = props.meta;
@@ -89,69 +88,6 @@ function isPreformatted(value: string): boolean {
 	return value.includes('{\n') || value.includes('\n');
 }
 
-function formatParameterValue(value: string): string {
-	try {
-		// Check if the value contains newlines
-		if (value.includes('\n')) {
-			// JSON-like structure with curly braces
-			if (value.includes('{\n')) {
-				let indentLevel = 0;
-				const indent = '  '; // Two spaces for each level
-
-				return value
-					.split('\n')
-					.map((line) => {
-						line = line.trim();
-
-						if (line.includes('}')) indentLevel--;
-
-						const formattedLine = `${indent.repeat(
-							Math.max(0, indentLevel)
-						)}${line}`;
-
-						if (line.includes('{')) indentLevel++;
-
-						return formattedLine;
-					})
-					.filter((line) => line.trim())
-					.join('\n');
-			}
-
-			// Code-like structure with regular indentation
-			return value
-				.split('\n')
-				.map((line) => line.trim()) // Remove existing indentation
-				.filter((line) => line.length > 0) // Remove empty lines
-				.map((line) => {
-					// Add 2 spaces of indentation for lines that appear to be nested
-					const shouldIndent =
-						line.startsWith('await') ||
-						line.startsWith('repeat') ||
-						line.startsWith('#') ||
-						line.startsWith('if ') ||
-						line.startsWith('else ') ||
-						line.startsWith('for ') ||
-						line.startsWith('while ') ||
-						line.startsWith('try ') ||
-						line.startsWith('catch ') ||
-						line.startsWith('finally ') ||
-						line.match(/^\s*\{/) ||
-						line.match(/^\s*\[/) ||
-						line.match(/^\s*\./) ||
-						line.match(/^\s*\w+:/) ||
-						line.trim().endsWith('{') ||
-						line.trim().endsWith('[');
-					return shouldIndent ? `  ${line}` : line;
-				})
-				.join('\n');
-		}
-
-		return value;
-	} catch (error) {
-		return value;
-	}
-}
-
 // Parameters table
 interface ParametersTableProps {
 	parameters: LogHeaderBlock['meta']['parameters'];
@@ -183,7 +119,11 @@ function ParametersTable(props: ParametersTableProps) {
 							const isFormatted = isPreformatted(parameter.value);
 
 							function handleCopy() {
-								copy(`${parameter.name}=${parameter.value}`).then((success) => {
+								copy(
+									isFormatted
+										? parameter.value
+										: `${parameter.name}=${parameter.value}`
+								).then((success) => {
 									if (success) {
 										toast.success('Copied to clipboard');
 									} else {
@@ -222,7 +162,7 @@ function ParametersTable(props: ParametersTableProps) {
 														/>
 													</button>
 												) : null}
-												{formatParameterValue(parameter.value)}
+												{parameter.value}
 											</pre>
 											{!isFormatted && (
 												<Icon

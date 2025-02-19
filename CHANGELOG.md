@@ -1,4 +1,26 @@
 
+
+### [1.2.1](https://github.com/ts-factory/bublik-ui/compare/v1.2.0...v1.2.1) (2025-02-19)
+
+
+### 🚀 New Feature
+
+* **build:** add check that json logs is buildable to CI ([7f5ffa8](https://github.com/ts-factory/bublik-ui/commit/7f5ffa8c5d5d7cf9f32536f8b3d6d1c109ab2c91))
+* **log:** add application for local json logs ([6608e67](https://github.com/ts-factory/bublik-ui/commit/6608e67946e01dcf947f0df2bd9d80086fe32264))
+
+
+### 🐛 Bug Fix
+
+* **log:** [meta] remove manual formatting handling ([af000f7](https://github.com/ts-factory/bublik-ui/commit/af000f779e50e5a09eff1a55f5e3ccd51aff9334))
+* **log:** copy with '=' only for not formatted parameters ([66c6235](https://github.com/ts-factory/bublik-ui/commit/66c62353653017b4e322708aa85725ffdb8e3b86))
+* **log:** don't camelize keys to improve compatability ([9c64f2e](https://github.com/ts-factory/bublik-ui/commit/9c64f2ec3dad33ca3e407b24a3bcc37239d995bf))
+* **types:** fix typescript issues for tanstack react table ([1b8d911](https://github.com/ts-factory/bublik-ui/commit/1b8d911064afdba01d0c8ee228f0a891221b15eb))
+
+
+### 📦 Chores
+
+* remove redundant import ([e62a22a](https://github.com/ts-factory/bublik-ui/commit/e62a22a24db06dbebcc8d50d438c58952276ca44))
+
 ## [1.2.0](https://github.com/ts-factory/bublik-ui/compare/v1.1.0...v1.2.0) (2025-02-18)
 
 ### 🚀 New Feature
@@ -1610,4 +1632,3 @@
 * **import:** trim whitespaces from msg query value ([ec9a5b6](#))
 * **import:** ur validationl won't process properly ([0a8f0cb](#))
 * **log:** wrong document title ([92f9b2f](#))
-
