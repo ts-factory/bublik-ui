@@ -3,12 +3,7 @@
 import { CSSProperties, memo, useCallback, useMemo } from 'react';
 import { ColumnFiltersState, Updater } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
-import {
-	ArrayParam,
-	JsonParam,
-	useQueryParam,
-	withDefault
-} from 'use-query-params';
+import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -29,6 +24,7 @@ import {
 	ObtainedResultFilterSchema,
 	StringArraySchema
 } from './constants';
+import { useGlobalRequirements } from '../hooks';
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -77,6 +73,8 @@ export interface ResultTableProps {
 	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
 	showLinkToRun?: boolean;
 	height: number;
+	mode?: 'default' | 'diff';
+	setMode: (mode: 'default' | 'diff') => void;
 }
 
 export const ResultTable = memo(
@@ -85,7 +83,9 @@ export const ResultTable = memo(
 		rowId,
 		getRowProps,
 		showLinkToRun = false,
-		height
+		height,
+		mode = 'default',
+		setMode
 	}: ResultTableProps) => {
 		const {
 			columnFilters,
@@ -108,15 +108,15 @@ export const ResultTable = memo(
 			hasGlobalRequirements,
 			onApplyRequirements,
 			onRemoveRequirements
-		} = useGlobalRequirements({
+		} = useGlobalRequirementsFilters({
 			localRequirements: requirementsFilter
 		});
 
 		const hasFilters = hasColumnFilters || hasGlobalRequirements;
 
 		const columns = useMemo(
-			() => getColumns({ rowId, showLinkToRun, data }),
-			[data, rowId, showLinkToRun]
+			() => getColumns({ rowId, showLinkToRun, data, mode }),
+			[data, rowId, showLinkToRun, mode]
 		);
 
 		const { stickyOffset, getHeaderProps } = useStickyHeader({
@@ -124,9 +124,11 @@ export const ResultTable = memo(
 			height
 		});
 
+		const isDiffMode = mode === 'diff';
+
 		return (
 			<div className="px-4 pb-2">
-				{hasFilters ? (
+				{hasFilters || isDiffMode ? (
 					<div
 						className={cn(
 							'flex items-center justify-between px-4',
@@ -143,7 +145,7 @@ export const ResultTable = memo(
 								onChange={(values) =>
 									onFilterChange(COLUMN_ID.REQUIREMENTS, values)
 								}
-								disabled={!requirements.length}
+								disabled={!requirements.length || isDiffMode}
 							/>
 							<DataTableFacetedFilter
 								title="Verdicts"
@@ -151,7 +153,7 @@ export const ResultTable = memo(
 								options={verdicts}
 								value={verdictsFilter}
 								onChange={onVerdictsFilterChange}
-								disabled={!verdicts.length}
+								disabled={!verdicts.length || isDiffMode}
 							/>
 							<DataTableFacetedFilter
 								title="Parameters"
@@ -161,7 +163,7 @@ export const ResultTable = memo(
 								onChange={(values) =>
 									onFilterChange(COLUMN_ID.PARAMETERS, values)
 								}
-								disabled={!parameters.length}
+								disabled={!parameters.length || isDiffMode}
 							/>
 							<Tooltip content="Reset">
 								<ButtonTw
@@ -211,7 +213,17 @@ export const ResultTable = memo(
 								</Tooltip>
 							)}
 							<Tooltip content="Click on the row to compare parameters">
-								<ButtonTw variant="secondary" size="xss">
+								<ButtonTw
+									variant={mode === 'diff' ? 'primary' : 'secondary'}
+									size="xss"
+									onClick={() => {
+										const nextMode = mode === 'diff' ? 'default' : 'diff';
+										setMode(nextMode);
+
+										if (nextMode === 'diff') setColumnFilters([]);
+									}}
+									disabled
+								>
 									<Icon
 										name="SwapArrows"
 										size={18}
@@ -271,12 +283,10 @@ interface GlobalRequirementsOptions {
 	localRequirements: string[];
 }
 
-function useGlobalRequirements({
+function useGlobalRequirementsFilters({
 	localRequirements
 }: GlobalRequirementsOptions) {
-	const [globalRequirements, setGlobalRequirements] = useQueryParam<
-		Array<string | null>
-	>('globalRequirements', withDefault(ArrayParam, []));
+	const { globalRequirements, setGlobalRequirements } = useGlobalRequirements();
 
 	const filteredGlobalRequirements = useMemo(
 		() => globalRequirements.filter((r) => r !== null) as string[],

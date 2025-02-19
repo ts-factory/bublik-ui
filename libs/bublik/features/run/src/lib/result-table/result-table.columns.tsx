@@ -18,12 +18,14 @@ interface GetColumnsOptions {
 	rowId: string;
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
+	mode?: 'default' | 'diff';
 }
 
 export const getColumns = ({
 	rowId,
 	data,
-	showLinkToRun = false
+	showLinkToRun = false,
+	mode = 'default'
 }: GetColumnsOptions) => {
 	const parametersDataset = Object.fromEntries(
 		data.map((item) => [String(item.result_id), item.parameters])
@@ -344,7 +346,7 @@ function Parameters(props: ParametersProps) {
 						key={index}
 						className={cn(
 							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							filterValue.includes(item.value)
+							filterValue.includes(item.value) || item.isDifferent
 								? 'bg-primary-wash border-primary'
 								: 'bg-badge-1'
 						)}
