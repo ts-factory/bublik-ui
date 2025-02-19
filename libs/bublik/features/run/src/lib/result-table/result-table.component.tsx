@@ -96,9 +96,11 @@ export const ResultTable = memo(
 			requirements,
 			parameters,
 			verdicts,
+			artifacts,
 			requirementsFilter,
 			parametersFilter,
 			verdictsFilter,
+			artifactsFilter,
 			onClearFilters,
 			onFilterChange,
 			onVerdictsFilterChange
@@ -146,6 +148,16 @@ export const ResultTable = memo(
 									onFilterChange(COLUMN_ID.REQUIREMENTS, values)
 								}
 								disabled={!requirements.length || isDiffMode}
+							/>
+							<DataTableFacetedFilter
+								title="Artifacts"
+								size="xss"
+								options={artifacts}
+								value={artifactsFilter}
+								onChange={(values) =>
+									onFilterChange(COLUMN_ID.ARTIFACTS, values)
+								}
+								disabled={!artifacts.length || isDiffMode}
 							/>
 							<DataTableFacetedFilter
 								title="Verdicts"
@@ -368,6 +380,16 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			}));
 	}, [data]);
 
+	const artifacts = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.artifacts).flat()))
+			.filter(Boolean)
+			.filter((artifact) => artifact !== undefined)
+			.map((artifact) => ({
+				label: artifact,
+				value: artifact
+			}));
+	}, [data]);
+
 	const requirementsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.REQUIREMENTS)
 			?.value ?? []) as string[];
@@ -385,6 +407,11 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 					?.value as { verdicts?: string[] }
 			)?.verdicts ?? []
 		);
+	}, [columnFilters]);
+
+	const artifactsFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
+			?.value ?? []) as string[];
 	}, [columnFilters]);
 
 	function handleClearFilters() {
@@ -428,9 +455,11 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		requirements,
 		parameters,
 		verdicts,
+		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
+		artifactsFilter,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onVerdictsFilterChange: handleVerdictsFilterChange
