@@ -1,7 +1,7 @@
 {
 	"date": "2025.02.18",
-	"summary": "fix(docker): disable check for prettier",
-	"revision": "17a31adc",
-	"branch": "main",
-	"latestTag": "v1.2.0"
+	"summary": "fix(log): copy with '=' only for not formatted parameters",
+	"revision": "66c62353",
+	"branch": "release-1.2.1",
+	"latestTag": "v1.2.1"
 }
