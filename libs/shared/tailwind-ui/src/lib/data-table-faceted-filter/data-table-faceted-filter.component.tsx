@@ -32,6 +32,7 @@ export interface DataTableFacetedFilterProps {
 	value: string[];
 	className?: string;
 	size?: 'xss' | 'xs/2';
+	disabled?: boolean;
 }
 
 export function DataTableFacetedFilter({
@@ -39,7 +40,8 @@ export function DataTableFacetedFilter({
 	options,
 	value,
 	onChange,
-	size = 'xs/2'
+	size = 'xs/2',
+	disabled = false
 }: DataTableFacetedFilterProps) {
 	const selectedValues = new Set(value);
 	const [isOpen, setIsOpen] = React.useState(false);
@@ -52,11 +54,15 @@ export function DataTableFacetedFilter({
 					size={size}
 					variant="outline-secondary"
 					state={isOpen && 'active'}
+					disabled={disabled}
 				>
 					<Icon
 						name="AddSymbol"
 						size={16}
-						className="mr-2 border rounded-full border-text-primary"
+						className={cn(
+							'mr-2 border rounded-full border-text-primary',
+							disabled && 'border-text-menu'
+						)}
 					/>
 					<span className="text-xs font-medium">{title}</span>
 					{selectedValues?.size > 0 && (
