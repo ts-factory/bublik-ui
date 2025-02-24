@@ -88,6 +88,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						logName={result.name}
 						resultId={resultId}
 						runId={Number(runId)}
+						measurementId={hasMeasurements ? Number(resultId) : undefined}
 					>
 						<button className="flex items-center w-full gap-1">
 							<Icon
