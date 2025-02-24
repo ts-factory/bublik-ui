@@ -11,7 +11,13 @@ const ConfigParamsSchema = z.object({ id: z.number() });
 
 type ConfigParams = z.infer<typeof ConfigParamsSchema>;
 
-export const ConfigTypeSchema = z.enum(['global', 'report']);
+export const ConfigTypeSchema = z.enum([
+	'global',
+	'report',
+	'references',
+	'meta',
+	'tags'
+]);
 
 const CreateConfigBodySchema = z.object({
 	type: ConfigTypeSchema,

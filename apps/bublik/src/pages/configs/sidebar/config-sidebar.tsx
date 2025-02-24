@@ -14,6 +14,14 @@ import {
 	ButtonTw
 } from '@/shared/tailwind-ui';
 
+const AVAILABLE_CONFIG_TYPES: ConfigSchemaParams[] = [
+	{ name: 'per_conf', type: 'global' },
+	{ name: 'report', type: 'report' },
+	{ name: 'references', type: 'global' },
+	{ name: 'meta', type: 'global' },
+	{ name: 'tags', type: 'global' }
+];
+
 interface SidebarHeaderProps {
 	configId?: number | null;
 	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
@@ -47,24 +55,19 @@ function SidebarHeader(props: SidebarHeaderProps) {
 						</DropdownMenuTrigger>
 					</Tooltip>
 					<DropdownMenuContent sideOffset={8} align="start">
-						<DropdownMenuLabel>New Config </DropdownMenuLabel>
+						<DropdownMenuLabel>New Config</DropdownMenuLabel>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							className="pl-2"
-							onSelect={() =>
-								onCreateNewConfigClick?.({ name: 'per_conf', type: 'global' })
-							}
-						>
-							<Icon name="AddSymbol" className="size-5 mr-1.5" />
-							<span>Global</span>
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							className="pl-2"
-							onSelect={() => onCreateNewConfigClick?.({ type: 'report' })}
-						>
-							<Icon name="AddSymbol" className="size-5 mr-1.5" />
-							<span>Report</span>
-						</DropdownMenuItem>
+						{AVAILABLE_CONFIG_TYPES.filter((params) => 'name' in params).map(
+							(params) => (
+								<DropdownMenuItem
+									className="pl-2"
+									onSelect={() => onCreateNewConfigClick?.(params)}
+								>
+									<Icon name="AddSymbol" className="size-5 mr-1.5" />
+									<span>{params.name}</span>
+								</DropdownMenuItem>
+							)
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>

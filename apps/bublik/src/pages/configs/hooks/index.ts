@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { Monaco } from '@monaco-editor/react';
-import { MutableRefObject, useCallback } from 'react';
+import { MutableRefObject, useCallback, useMemo } from 'react';
 import { useQueryParam, NumberParam, JsonParam } from 'use-query-params';
 import { useSessionStorage, useUnmount } from 'react-use';
 import { useBeforeUnload } from 'react-router-dom';
@@ -28,10 +28,13 @@ function useConfigPageSearchParams() {
 		_setConfigId(configId);
 	}
 
-	const newConfigParams = ConfigSchemaParamsSchema.safeParse(_newConfigParams)
-		.success
-		? ConfigSchemaParamsSchema.parse(_newConfigParams)
-		: null;
+	const newConfigParams = useMemo<ConfigSchemaParams>(() => {
+		const parsedParams = ConfigSchemaParamsSchema.safeParse(_newConfigParams);
+
+		if (!parsedParams.success) return { type: 'global', name: 'per_conf' };
+
+		return ConfigSchemaParamsSchema.parse(parsedParams.data);
+	}, [_newConfigParams]);
 
 	return { configId, setConfigId, newConfigParams, setNewConfigParams };
 }

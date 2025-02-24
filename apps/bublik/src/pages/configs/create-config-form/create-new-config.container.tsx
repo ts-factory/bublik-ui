@@ -51,17 +51,22 @@ function CreateNewConfigScreen() {
 	const { newConfigParams, setConfigId } = useConfigPageSearchParams();
 	const [createConfigMutation, { isLoading }] =
 		bublikAPI.useCreateConfigMutation();
+
 	const editorRef = useRef<Monaco>();
+
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
 	const { savedValue: savedForm, setSavedValue } = useSavedState(
 		JSON.stringify(newConfigParams)
 	);
+
 	const {
 		confirmation: confirmationExisting,
 		confirm: confirmExisting,
 		decline: declineExisting,
 		isVisible: isExistingVisible
 	} = useConfirm();
+
 	function handleCreateConfigClick() {
 		const value = getEditorValue(editorRef.current);
 
@@ -120,7 +125,7 @@ function CreateNewConfigScreen() {
 
 	function getSavedForm(): CreateConfigInputs {
 		const defaultValues = {
-			name: newConfigParams?.type === 'global' ? 'per_conf' : '',
+			name: 'name' in newConfigParams ? newConfigParams.name : '',
 			description: '',
 			is_active: false,
 			content: savedForm ?? '{\n \n}'
@@ -133,6 +138,7 @@ function CreateNewConfigScreen() {
 				return defaultValues;
 			}
 		}
+
 		return defaultValues;
 	}
 
