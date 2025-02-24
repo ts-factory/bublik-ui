@@ -12,6 +12,7 @@ import {
 import { routes, stringifySearch, useSearchState } from '@/router';
 import { ButtonTw, ContextLinks, Icon } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
+import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 export interface LinksProps {
 	row: HistoryDataLinear;
@@ -92,6 +93,26 @@ export const Links = ({ row }: LinksProps) => {
 					</Link>
 				</ButtonTw>
 			)}
+			<LogPreviewContainer
+				runId={Number(row.run_id)}
+				resultId={Number(row.result_id)}
+				measurementId={row.has_measurements ? Number(row.result_id) : undefined}
+			>
+				<ButtonTw
+					asChild
+					size="xss"
+					variant="secondary"
+					className="justify-start w-fit"
+				>
+					<Link
+						className="justify-start w-fit"
+						to={{ pathname: '/history', search: shortcuts.historyQuery }}
+					>
+						<Icon name="ExpandSelection" className="mr-1.5" size={20} />
+						Preview
+					</Link>
+				</ButtonTw>
+			</LogPreviewContainer>
 		</div>
 	);
 };
