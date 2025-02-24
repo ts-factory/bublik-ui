@@ -79,14 +79,14 @@ function LogPreviewContainer(
 								<div className="h-full flex flex-col overflow-hidden">
 									<CardHeader label={logName}>
 										<div className="flex items-center gap-4">
-											{runId && measurementId ? (
-												<ButtonTw variant="secondary" size="xss" asChild>
+											{runId ? (
+												<ButtonTw asChild variant="secondary" size="xss">
 													<Link
-														to={routes.measurements({ runId, resultId })}
+														to={routes.log({ runId, focusId: resultId })}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
-														Measurement
+														Log
 													</Link>
 												</ButtonTw>
 											) : null}
@@ -98,14 +98,14 @@ function LogPreviewContainer(
 													</Link>
 												</ButtonTw>
 											) : null}
-											{runId ? (
-												<ButtonTw asChild variant="secondary" size="xss">
+											{runId && measurementId ? (
+												<ButtonTw variant="secondary" size="xss" asChild>
 													<Link
-														to={routes.log({ runId, focusId: resultId })}
+														to={routes.measurements({ runId, resultId })}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
-														Log
+														Measurement
 													</Link>
 												</ButtonTw>
 											) : null}
