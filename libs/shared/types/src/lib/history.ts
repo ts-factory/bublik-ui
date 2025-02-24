@@ -97,7 +97,6 @@ export type HistoryDataLinear = {
 	run_id: string;
 	result_id: string;
 	iteration_id: string;
-	test_name: string;
 	results: string[];
 	result_properties: string[];
 	important_tags: string[];
