@@ -56,7 +56,7 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 				) : (
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 				)}
-				Measure
+				Result
 			</Link>
 		</ButtonTw>
 	);

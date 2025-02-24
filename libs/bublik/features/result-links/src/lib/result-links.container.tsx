@@ -79,7 +79,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 							onMouseEnter={onMeasurementLinkMouseEnter}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
-							Measure
+							Result
 						</Link>
 					</li>
 				)}

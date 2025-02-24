@@ -89,7 +89,7 @@ export const Links = ({ row }: LinksProps) => {
 						})}
 					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
-						Measure
+						Result
 					</Link>
 				</ButtonTw>
 			)}

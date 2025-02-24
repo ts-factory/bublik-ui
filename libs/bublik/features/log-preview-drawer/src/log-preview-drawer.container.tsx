@@ -105,7 +105,7 @@ function LogPreviewContainer(
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
-														Measurement
+														Result
 													</Link>
 												</ButtonTw>
 											) : null}
