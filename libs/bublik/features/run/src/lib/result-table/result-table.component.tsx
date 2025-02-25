@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { CSSProperties, memo, useCallback, useMemo } from 'react';
+import { ColumnFiltersState, Updater } from '@tanstack/react-table';
+import { createNextState } from '@reduxjs/toolkit';
+import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { RunDataResults } from '@/shared/types';
 import {
@@ -8,10 +11,20 @@ import {
 	TableClassNames,
 	cn,
 	Skeleton,
-	TwTableProps
+	TwTableProps,
+	ButtonTw,
+	Icon,
+	DataTableFacetedFilter,
+	Tooltip
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
+import {
+	COLUMN_ID,
+	ObtainedResultFilterSchema,
+	StringArraySchema
+} from './constants';
+import { useGlobalRequirements } from '../hooks';
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -60,6 +73,8 @@ export interface ResultTableProps {
 	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
 	showLinkToRun?: boolean;
 	height: number;
+	mode?: 'default' | 'diff';
+	setMode: (mode: 'default' | 'diff') => void;
 }
 
 export const ResultTable = memo(
@@ -68,42 +83,427 @@ export const ResultTable = memo(
 		rowId,
 		getRowProps,
 		showLinkToRun = false,
-		height
+		height,
+		mode = 'default',
+		setMode
 	}: ResultTableProps) => {
+		const {
+			columnFilters,
+			setColumnFilters,
+			hasFilters: hasColumnFilters
+		} = useColumnFilters(rowId);
+		const {
+			requirements,
+			parameters,
+			verdicts,
+			artifacts,
+			requirementsFilter,
+			parametersFilter,
+			verdictsFilter,
+			artifactsFilter,
+			onClearFilters,
+			onFilterChange,
+			onVerdictsFilterChange
+		} = useDataTableFilters(rowId, data);
+		const {
+			shouldShowRemove,
+			hasGlobalRequirements,
+			onApplyRequirements,
+			onRemoveRequirements
+		} = useGlobalRequirementsFilters({
+			localRequirements: requirementsFilter
+		});
+
+		const hasFilters = hasColumnFilters || hasGlobalRequirements;
+
 		const columns = useMemo(
-			() => getColumns({ rowId, showLinkToRun, data }),
-			[data, rowId, showLinkToRun]
+			() => getColumns({ rowId, showLinkToRun, data, mode }),
+			[data, rowId, showLinkToRun, mode]
 		);
 
-		const getHeaderProps = useCallback<
-			NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
-		>(
-			(_, { isSticky }) => {
-				return {
-					style: {
-						top: `${height + 68}px`,
-						position: 'sticky',
-						boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
-					} as CSSProperties
-				};
-			},
-			[height]
-		);
+		const { stickyOffset, getHeaderProps } = useStickyHeader({
+			hasFilters,
+			height
+		});
+
+		const isDiffMode = mode === 'diff';
 
 		return (
-			<div className="px-4 py-2">
+			<div className="px-4 pb-2">
+				{hasFilters || isDiffMode ? (
+					<div
+						className={cn(
+							'flex items-center justify-between px-4',
+							'bg-white h-9 sticky border-x border-b border-border-primary z-[1]'
+						)}
+						style={{ top: `${height + 68}px` }}
+					>
+						<div className="flex gap-2 items-center">
+							<DataTableFacetedFilter
+								title="Requirements"
+								size="xss"
+								options={requirements}
+								value={requirementsFilter}
+								onChange={(values) =>
+									onFilterChange(COLUMN_ID.REQUIREMENTS, values)
+								}
+								disabled={!requirements.length || isDiffMode}
+							/>
+							<DataTableFacetedFilter
+								title="Artifacts"
+								size="xss"
+								options={artifacts}
+								value={artifactsFilter}
+								onChange={(values) =>
+									onFilterChange(COLUMN_ID.ARTIFACTS, values)
+								}
+								disabled={!artifacts.length || isDiffMode}
+							/>
+							<DataTableFacetedFilter
+								title="Verdicts"
+								size="xss"
+								options={verdicts}
+								value={verdictsFilter}
+								onChange={onVerdictsFilterChange}
+								disabled={!verdicts.length || isDiffMode}
+							/>
+							<DataTableFacetedFilter
+								title="Parameters"
+								size="xss"
+								options={parameters}
+								value={parametersFilter}
+								onChange={(values) =>
+									onFilterChange(COLUMN_ID.PARAMETERS, values)
+								}
+								disabled={!parameters.length || isDiffMode}
+							/>
+							<Tooltip content="Reset">
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									onClick={onClearFilters}
+								>
+									<Icon
+										name="Refresh"
+										size={18}
+										className="mr-1.5"
+										style={{ transform: 'transform: scaleX(-1)' }}
+									/>
+									<span>Reset</span>
+								</ButtonTw>
+							</Tooltip>
+						</div>
+						<div className="flex gap-2 items-center">
+							{shouldShowRemove ? (
+								<Tooltip content="Remove requirements filter globally from the run">
+									<ButtonTw
+										variant="secondary"
+										size="xss"
+										onClick={onRemoveRequirements}
+									>
+										<Icon name="Bin" size={18} className="mr-1.5" />
+										<span>Remove Requirements</span>
+									</ButtonTw>
+								</Tooltip>
+							) : (
+								<Tooltip content="Apply requirements filter globally to the run">
+									<ButtonTw
+										variant={
+											requirementsFilter.length === 0 ? 'secondary' : 'primary'
+										}
+										size="xss"
+										onClick={onApplyRequirements}
+										disabled={requirementsFilter.length === 0}
+									>
+										<Icon
+											name="Aggregation"
+											size={18}
+											className="rotate-90 mr-1.5"
+										/>
+										<span>Apply Requirements</span>
+									</ButtonTw>
+								</Tooltip>
+							)}
+							<Tooltip content="Click on the row to compare parameters">
+								<ButtonTw
+									variant={mode === 'diff' ? 'primary' : 'secondary'}
+									size="xss"
+									onClick={() => {
+										const nextMode = mode === 'diff' ? 'default' : 'diff';
+										setMode(nextMode);
+
+										if (nextMode === 'diff') setColumnFilters([]);
+									}}
+									disabled
+								>
+									<Icon
+										name="SwapArrows"
+										size={18}
+										className="rotate-90 mr-1.5"
+									/>
+									<span>Parameters Compare</span>
+								</ButtonTw>
+							</Tooltip>
+						</div>
+					</div>
+				) : null}
 				<TwTable
 					data={data}
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
-					stickyOffset={-(height + 69)}
+					stickyOffset={stickyOffset}
 					manualPagination
 					enableSorting={false}
 					getRowProps={getRowProps}
+					state={{ columnFilters }}
+					onColumnFiltersChange={setColumnFilters}
 					getHeaderProps={getHeaderProps}
 				/>
 			</div>
 		);
 	}
 );
+
+interface StickyHeaderOptions {
+	hasFilters: boolean;
+	height: number;
+}
+
+function useStickyHeader({ hasFilters, height }: StickyHeaderOptions) {
+	const stickyOffset = hasFilters ? -(height * 2 + 69) : -(height + 69);
+
+	const getHeaderProps = useCallback<
+		NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
+	>(
+		(_, { isSticky }) => {
+			return {
+				style: {
+					top: `${hasFilters ? height * 2 + 68 : height + 68}px`,
+					position: 'sticky',
+					boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
+				} as CSSProperties
+			};
+		},
+		[hasFilters, height]
+	);
+
+	return { stickyOffset, getHeaderProps };
+}
+
+interface GlobalRequirementsOptions {
+	localRequirements: string[];
+}
+
+function useGlobalRequirementsFilters({
+	localRequirements
+}: GlobalRequirementsOptions) {
+	const { globalRequirements, setGlobalRequirements } = useGlobalRequirements();
+
+	const filteredGlobalRequirements = useMemo(
+		() => globalRequirements.filter((r) => r !== null) as string[],
+		[globalRequirements]
+	);
+
+	const hasGlobalRequirements = useMemo(
+		() =>
+			localRequirements.some((req) => filteredGlobalRequirements.includes(req)),
+		[filteredGlobalRequirements, localRequirements]
+	);
+
+	const shouldShowRemove = useMemo(() => {
+		const globalSet = new Set(filteredGlobalRequirements);
+		const localSet = new Set(localRequirements);
+
+		return (
+			(localRequirements.length > 0 &&
+				localSet.size === globalSet.size &&
+				localRequirements.every((req) => globalSet.has(req))) ||
+			(localRequirements.length === 0 && filteredGlobalRequirements.length > 0)
+		);
+	}, [filteredGlobalRequirements, localRequirements]);
+
+	const handleApplyRequirements = useCallback(() => {
+		setGlobalRequirements(localRequirements);
+	}, [localRequirements, setGlobalRequirements]);
+
+	const handleRemoveRequirements = useCallback(() => {
+		if (localRequirements.length === 0) {
+			setGlobalRequirements([]);
+		} else {
+			setGlobalRequirements(
+				filteredGlobalRequirements.filter((r) => !localRequirements.includes(r))
+			);
+		}
+	}, [setGlobalRequirements, filteredGlobalRequirements, localRequirements]);
+
+	return {
+		globalRequirements,
+		setGlobalRequirements,
+		shouldShowRemove,
+		hasGlobalRequirements,
+		onApplyRequirements: handleApplyRequirements,
+		onRemoveRequirements: handleRemoveRequirements
+	};
+}
+
+function useDataTableFilters(rowId: string, data: RunDataResults[]) {
+	const { columnFilters, setColumnFilters } = useColumnFilters(rowId);
+
+	const requirements = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.requirements).flat()))
+			.filter((requirement) => requirement !== undefined)
+			.map((requirement) => ({
+				label: requirement,
+				value: requirement
+			}));
+	}, [data]);
+
+	const parameters = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.parameters).flat()))
+			.filter(Boolean)
+			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
+			.map((parameter) => ({
+				label: parameter,
+				value: parameter
+			}));
+	}, [data]);
+
+	const verdicts = useMemo(() => {
+		return Array.from(
+			new Set(data.map((row) => row.obtained_result.verdict).flat())
+		)
+			.filter(Boolean)
+			.map((verdict) => ({
+				label: verdict,
+				value: verdict
+			}));
+	}, [data]);
+
+	const artifacts = useMemo(() => {
+		return Array.from(new Set(data.map((row) => row.artifacts).flat()))
+			.filter(Boolean)
+			.filter((artifact) => artifact !== undefined)
+			.map((artifact) => ({
+				label: artifact,
+				value: artifact
+			}));
+	}, [data]);
+
+	const requirementsFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.REQUIREMENTS)
+			?.value ?? []) as string[];
+	}, [columnFilters]);
+
+	const parametersFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.PARAMETERS)
+			?.value ?? []) as string[];
+	}, [columnFilters]);
+
+	const verdictsFilter = useMemo(() => {
+		return (
+			(
+				columnFilters.find((filter) => filter.id === COLUMN_ID.OBTAINED_RESULT)
+					?.value as { verdicts?: string[] }
+			)?.verdicts ?? []
+		);
+	}, [columnFilters]);
+
+	const artifactsFilter = useMemo(() => {
+		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
+			?.value ?? []) as string[];
+	}, [columnFilters]);
+
+	function handleClearFilters() {
+		setColumnFilters([]);
+	}
+
+	function handleFilterChange(id: string, values: string[] | undefined) {
+		setColumnFilters((prev) => {
+			const filter = prev.find((filter) => filter.id === id);
+
+			if (filter) filter.value = values ?? [];
+
+			return [...prev, { id, value: values ?? [] }];
+		});
+	}
+
+	function handleVerdictsFilterChange(values: string[] | undefined) {
+		setColumnFilters((prev) =>
+			createNextState(prev, (draft) => {
+				const filter = draft.find(
+					(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
+				) as { value?: { verdicts?: string[] } };
+
+				if (filter) {
+					if (!values?.length) {
+						filter.value = { ...filter.value, verdicts: undefined };
+					} else {
+						filter.value = { ...filter.value, verdicts: values };
+					}
+				} else {
+					draft.push({
+						id: COLUMN_ID.OBTAINED_RESULT,
+						value: { verdicts: values }
+					});
+				}
+			})
+		);
+	}
+
+	return {
+		requirements,
+		parameters,
+		verdicts,
+		artifacts,
+		requirementsFilter,
+		parametersFilter,
+		verdictsFilter,
+		artifactsFilter,
+		onClearFilters: handleClearFilters,
+		onFilterChange: handleFilterChange,
+		onVerdictsFilterChange: handleVerdictsFilterChange
+	};
+}
+
+const columnFiltersParam = withDefault(JsonParam, []);
+
+function useColumnFilters(rowId: string) {
+	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
+		Record<string, ColumnFiltersState>
+	>('columnFilters', columnFiltersParam, { updateType: 'replaceIn' });
+
+	const columnFilters = useMemo(() => {
+		return queryColumnFilters?.[rowId] ?? [];
+	}, [queryColumnFilters, rowId]);
+
+	const setColumnFilters = useCallback(
+		(updater: Updater<ColumnFiltersState>) => {
+			const nextState =
+				typeof updater === 'function' ? updater(columnFilters) : updater;
+
+			setQueryColumnFilters((prev) => ({ ...prev, [rowId]: nextState }));
+		},
+		[columnFilters, rowId, setQueryColumnFilters]
+	);
+
+	const hasFilters = columnFilters.some((filter) => {
+		const value = StringArraySchema.safeParse(filter.value);
+
+		if (value.success) return value.data.length > 0;
+
+		if (filter.id === COLUMN_ID.OBTAINED_RESULT) {
+			const verdicts = ObtainedResultFilterSchema.safeParse(filter.value);
+
+			if (!verdicts.success) return false;
+
+			return (
+				verdicts.data.verdicts.length > 0 || verdicts.data.result !== undefined
+			);
+		}
+
+		return false;
+	});
+
+	return { columnFilters, setColumnFilters, hasFilters };
+}

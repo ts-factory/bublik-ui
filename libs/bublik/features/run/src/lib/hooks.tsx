@@ -9,6 +9,7 @@ import {
 	useContext
 } from 'react';
 import { createNextState } from '@reduxjs/toolkit';
+import { useQueryParam, ArrayParam, withDefault } from 'use-query-params';
 
 import { ResultTableFilter } from '@/shared/types';
 
@@ -43,6 +44,7 @@ export interface RowState {
 	rowId: string;
 	requests?: Record<string, ResultTableFilter>;
 	referenceDiffRowId?: string;
+	mode?: 'default' | 'diff';
 }
 
 export const useRunTableRowState = () => {
@@ -99,3 +101,17 @@ export const useRunTableRowState = () => {
 		expandAllUnexpected
 	};
 };
+
+export function useGlobalRequirements() {
+	const [globalRequirements, setGlobalRequirements] = useQueryParam<
+		Array<string | null>
+	>('globalRequirements', withDefault(ArrayParam, []));
+
+	const resetGlobalRequirements = useCallback(() => {
+		setGlobalRequirements([]);
+	}, [setGlobalRequirements]);
+
+	console.log(globalRequirements);
+
+	return { globalRequirements, setGlobalRequirements, resetGlobalRequirements };
+}

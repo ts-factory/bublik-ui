@@ -22,6 +22,7 @@ import { useExpandUnexpected } from './hooks';
 import { hasUnexpected } from './utils';
 import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 import { ColumnId } from './types';
+import { useGlobalRequirements } from '../hooks';
 
 export interface ToolbarProps {
 	table: Table<RunData | MergedRun>;
@@ -29,7 +30,7 @@ export interface ToolbarProps {
 
 export const Toolbar = ({ table }: ToolbarProps) => {
 	const { rowsIds, rowsValues } = useRowsContext();
-
+	const { resetGlobalRequirements } = useGlobalRequirements();
 	const { showUnexpected, expandUnexpected, reset } = useExpandUnexpected({
 		table,
 		rowsIds,
@@ -41,6 +42,7 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 	const handleResetState = () => {
 		table.setColumnVisibility(DEFAULT_COLUMN_VISIBILITY);
 		reset();
+		resetGlobalRequirements();
 	};
 
 	const tableHasUnexpected = useMemo(
