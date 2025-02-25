@@ -16,7 +16,7 @@ import {
 import { MergedRun, RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { getErrorMessage } from '@/services/bublik-api';
-import { cn, Icon, Skeleton, Tooltip } from '@/shared/tailwind-ui';
+import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
 
 import { globalFilterFn } from './filter';
 import {
@@ -25,7 +25,7 @@ import {
 	getRowsDescriptionById
 } from './utils';
 import { AllRowsContext, RowValuesContextProvider } from './context';
-import { RunHeader, RunRow } from './components';
+import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
@@ -158,11 +158,7 @@ export const RunTable = (props: RunTableProps) => {
 				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 					Toolbar
 				</span>
-				<Tooltip content="You can `ctrl+click` to open filtered results in subtree">
-					<div className="mr-auto ml-2 text-primary">
-						<Icon name="InformationCircleQuestionMark" size={16} />
-					</div>
-				</Tooltip>
+				<RunTableInstructionDialog />
 				<Toolbar table={table} />
 			</div>
 			<div
