@@ -1,4 +1,29 @@
 
+## [1.3.0](https://github.com/ts-factory/bublik-ui/compare/v1.2.0...v1.3.0) (2025-02-27)
+
+### 🚀 New Feature
+
+* **build:** add check that json logs is buildable to CI ([7f5ffa8](https://github.com/ts-factory/bublik-ui/commit/7f5ffa8c5d5d7cf9f32536f8b3d6d1c109ab2c91))
+* **config:** add ability to create configs for references, meta, tags ([d1b5d23](https://github.com/ts-factory/bublik-ui/commit/d1b5d23af5f01ccc652ef5bc799f396e3070bbcc))
+* **history:** add shortcut to view log on linear history ([1ee797b](https://github.com/ts-factory/bublik-ui/commit/1ee797bf113a55cef4fd8f9371896a4ece72aa4f))
+* **log:** add application for local json logs ([6608e67](https://github.com/ts-factory/bublik-ui/commit/6608e67946e01dcf947f0df2bd9d80086fe32264))
+* **run:** [table] add help dialog with usage information ([33690f7](https://github.com/ts-factory/bublik-ui/commit/33690f7887a499a5132b46e452e674cbcd3dbc12))
+
+### 🐛 Bug Fix
+
+* **log:** don't camelize keys to improve compatability ([9c64f2e](https://github.com/ts-factory/bublik-ui/commit/9c64f2ec3dad33ca3e407b24a3bcc37239d995bf))
+* **log:** improve parameter value formatting in log meta block ([a6c2399](https://github.com/ts-factory/bublik-ui/commit/a6c2399c2003a821a6c7dd65701ed7a05b461e7d))
+* **run:** display missing link to result ([c7275ea](https://github.com/ts-factory/bublik-ui/commit/c7275eaaea3ca008bbc72070324f3048bbc8e23b))
+* **types:** fix typescript issues for tanstack react table ([1b8d911](https://github.com/ts-factory/bublik-ui/commit/1b8d911064afdba01d0c8ee228f0a891221b15eb))
+
+### 📦 Chores
+
+* **log:** [preview] change order of links ([d37b6c9](https://github.com/ts-factory/bublik-ui/commit/d37b6c9499697ab190fcd7935a0b2ebb70c7e713))
+* remove redundant import ([2de7d60](https://github.com/ts-factory/bublik-ui/commit/2de7d60338f92d9e537a6ae94084eeb9a21bfa57))
+* **result:** rename links from "measure" to "result" ([d27d2b3](https://github.com/ts-factory/bublik-ui/commit/d27d2b3c789c9f8270bc9111fc1a6230a283a87f))
+* **types:** remove `test_name` from linear history data type ([3eb226e](https://github.com/ts-factory/bublik-ui/commit/3eb226ecffe606d3e344d248cc771ee79b2c50b5))
+* **ui:** move help dialog to shared lib ([ccaef6b](https://github.com/ts-factory/bublik-ui/commit/ccaef6b27ba879e4fab1cdee2466446e776c40ec))
+
 ## [1.2.0](https://github.com/ts-factory/bublik-ui/compare/v1.1.0...v1.2.0) (2025-02-18)
 
 ### 🚀 New Feature
