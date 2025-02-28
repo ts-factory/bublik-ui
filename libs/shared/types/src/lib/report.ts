@@ -75,8 +75,7 @@ export type ReportPoint = Record<string, string | number> & {
 	metadata?: {
 		iteration_id?: number;
 		result_id?: number;
-		// SKIPPED | FAILED | PASSED
-		result_type?: string;
+		has_error?: boolean;
 	};
 };
 

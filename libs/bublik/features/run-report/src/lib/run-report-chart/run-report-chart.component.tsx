@@ -41,9 +41,9 @@ function RunReportChart(props: RunReportChartProps) {
 					if (!parsedParams.success) return '#65cd84';
 
 					const point = d.points[parsedParams.data.dataIndex];
-					const status = point?.metadata?.result_type?.toLowerCase();
+					const hasError = point?.metadata?.has_error;
 
-					if (status === 'failed') return '#f95c78';
+					if (hasError) return '#f95c78';
 					return '#65cd84';
 				}
 			},
@@ -52,9 +52,9 @@ function RunReportChart(props: RunReportChartProps) {
 				if (!parsedParams.success) return 'circle';
 
 				const point = d.points[parsedParams.data.dataIndex];
-				const status = point?.metadata?.result_type?.toLowerCase();
+				const hasError = point?.metadata?.has_error;
 
-				if (status === 'failed') return 'diamond';
+				if (hasError) return 'diamond';
 				return 'circle';
 			},
 			symbolSize: (_, params: unknown) => {
@@ -62,9 +62,9 @@ function RunReportChart(props: RunReportChartProps) {
 				if (!parsedParams.success) return 8;
 
 				const point = d.points[parsedParams.data.dataIndex];
-				const status = point?.metadata?.result_type?.toLowerCase();
+				const hasError = point?.metadata?.has_error;
 
-				if (status === 'failed') return 16;
+				if (hasError) return 16;
 				return 8;
 			}
 		}));
