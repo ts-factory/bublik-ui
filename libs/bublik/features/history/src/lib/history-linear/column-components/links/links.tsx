@@ -99,18 +99,12 @@ export const Links = ({ row }: LinksProps) => {
 				measurementId={row.has_measurements ? Number(row.result_id) : undefined}
 			>
 				<ButtonTw
-					asChild
 					size="xss"
 					variant="secondary"
 					className="justify-start w-fit"
 				>
-					<Link
-						className="justify-start w-fit"
-						to={{ pathname: '/history', search: shortcuts.historyQuery }}
-					>
-						<Icon name="ExpandSelection" className="mr-1.5" size={20} />
-						Preview
-					</Link>
+					<Icon name="ExpandSelection" className="mr-1.5" size={20} />
+					<span>Preview</span>
 				</ButtonTw>
 			</LogPreviewContainer>
 		</div>
