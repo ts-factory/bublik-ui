@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ConfigSchemaParams } from '@/services/bublik-api';
+import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
 import {
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -14,14 +14,6 @@ import {
 	ButtonTw
 } from '@/shared/tailwind-ui';
 
-const AVAILABLE_CONFIG_TYPES: ConfigSchemaParams[] = [
-	{ name: 'per_conf', type: 'global' },
-	{ name: 'report', type: 'report' },
-	{ name: 'references', type: 'global' },
-	{ name: 'meta', type: 'global' },
-	{ name: 'tags', type: 'global' }
-];
-
 interface SidebarHeaderProps {
 	configId?: number | null;
 	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
@@ -29,6 +21,7 @@ interface SidebarHeaderProps {
 
 function SidebarHeader(props: SidebarHeaderProps) {
 	const { onCreateNewConfigClick, configId } = props;
+	const { data, isLoading, isError } = bublikAPI.useGetConfigTypesQuery();
 
 	return (
 		<CardHeader
@@ -40,37 +33,43 @@ function SidebarHeader(props: SidebarHeaderProps) {
 				</div>
 			}
 		>
-			<div className="flex items-center gap-4">
-				<DropdownMenu>
-					<Tooltip content="Create New Config">
-						<DropdownMenuTrigger asChild>
-							<ButtonTw
-								variant="secondary"
-								size="xss"
-								state={!configId && 'active'}
-							>
-								<Icon name="FilePlus" className="size-5 mr-1.5" />
-								<span>New</span>
-							</ButtonTw>
-						</DropdownMenuTrigger>
-					</Tooltip>
-					<DropdownMenuContent sideOffset={8} align="start">
-						<DropdownMenuLabel>New Config</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						{AVAILABLE_CONFIG_TYPES.filter((params) => 'name' in params).map(
-							(params) => (
+			{isLoading ? null : (
+				<div className="flex items-center gap-4">
+					<DropdownMenu>
+						<Tooltip content="Create New Config">
+							<DropdownMenuTrigger asChild>
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									state={!configId && 'active'}
+									disabled={isError}
+								>
+									<Icon name="FilePlus" className="size-5 mr-1.5" />
+									<span>New</span>
+								</ButtonTw>
+							</DropdownMenuTrigger>
+						</Tooltip>
+						<DropdownMenuContent sideOffset={8} align="start">
+							<DropdownMenuLabel>New Config</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							{data?.config_types_names.map((params) => (
 								<DropdownMenuItem
 									className="pl-2"
-									onSelect={() => onCreateNewConfigClick?.(params)}
+									onSelect={() =>
+										onCreateNewConfigClick?.({
+											name: params.name,
+											type: params.type
+										})
+									}
 								>
 									<Icon name="AddSymbol" className="size-5 mr-1.5" />
-									<span>{params.name}</span>
+									<span>{params.name ?? params.type}</span>
 								</DropdownMenuItem>
-							)
-						)}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			)}
 		</CardHeader>
 	);
 }

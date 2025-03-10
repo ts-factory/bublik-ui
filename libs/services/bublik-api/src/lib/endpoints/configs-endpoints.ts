@@ -11,16 +11,8 @@ const ConfigParamsSchema = z.object({ id: z.number() });
 
 type ConfigParams = z.infer<typeof ConfigParamsSchema>;
 
-export const ConfigTypeSchema = z.enum([
-	'global',
-	'report',
-	'references',
-	'meta',
-	'tags'
-]);
-
 const CreateConfigBodySchema = z.object({
-	type: ConfigTypeSchema,
+	type: z.string(),
 	name: z.string().min(1),
 	description: z.string(),
 	is_active: z.boolean(),
@@ -28,8 +20,8 @@ const CreateConfigBodySchema = z.object({
 });
 
 export const ConfigSchemaParamsSchema = z
-	.object({ type: ConfigTypeSchema, name: z.string().min(1) })
-	.or(z.object({ type: ConfigTypeSchema }));
+	.object({ type: z.string(), name: z.string().min(1).optional() })
+	.or(z.object({ type: z.string() }));
 
 export type ConfigSchemaParams = z.infer<typeof ConfigSchemaParamsSchema>;
 
@@ -53,7 +45,7 @@ type EditConfigByIdParams = z.infer<typeof EditConfigByIdParamsSchema>;
 
 const ConfigListResponseSchema = z.object({
 	id: z.number(),
-	type: ConfigTypeSchema,
+	type: z.string(),
 	name: z.string(),
 	description: z.string(),
 	is_active: z.boolean(),
@@ -65,7 +57,7 @@ export type ConfigItem = z.infer<typeof ConfigListResponseSchema>;
 
 const ConfigSchema = z.object({
 	created: z.string(),
-	type: ConfigTypeSchema,
+	type: z.string(),
 	name: z.string(),
 	id: z.number(),
 	version: z.number(),
@@ -78,7 +70,7 @@ const ConfigSchema = z.object({
 type Config = z.infer<typeof ConfigSchema>;
 
 const ConfigVersionSchema = z.object({
-	type: ConfigTypeSchema,
+	type: z.string(),
 	name: z.string(),
 	all_config_versions: z.array(
 		z.object({
@@ -104,6 +96,19 @@ export const ConfigWithSameNameErrorResponseSchema = z.object({
 		.nonstrict(),
 	status: z.number()
 });
+
+const ConfigTypesResponseSchema = z.object({
+	config_types_names: z.array(
+		z.object({
+			type: z.string(),
+			name: z.string(),
+			required: z.boolean(),
+			description: z.string()
+		})
+	)
+});
+
+export type ConfigTypesResponse = z.infer<typeof ConfigTypesResponseSchema>;
 
 export class ConfigExistsError extends Error {
 	constructor(public readonly configId: number) {
@@ -181,6 +186,9 @@ export const configsEndpoints = {
 				method: 'DELETE'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config]
+		}),
+		getConfigTypes: build.query<ConfigTypesResponse, void>({
+			query: () => ({ url: withApiV2('/config/available_types_names') })
 		})
 	})
 };

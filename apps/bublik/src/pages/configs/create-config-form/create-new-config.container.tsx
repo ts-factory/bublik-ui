@@ -125,7 +125,10 @@ function CreateNewConfigScreen() {
 
 	function getSavedForm(): CreateConfigInputs {
 		const defaultValues = {
-			name: 'name' in newConfigParams ? newConfigParams.name : '',
+			name:
+				'name' in newConfigParams && newConfigParams.name
+					? newConfigParams.name
+					: newConfigParams.type,
 			description: '',
 			is_active: false,
 			content: savedForm ?? '{\n \n}'
