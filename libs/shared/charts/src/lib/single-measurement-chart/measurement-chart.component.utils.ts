@@ -127,9 +127,32 @@ function resolveOptions(
 		},
 		series: [
 			{
-				type: 'line',
+				type: state.mode === 'scatter' ? 'scatter' : 'line',
 				color: additionalOptions.color,
-				encode: { x: chart.axis_x.key, y: chart.axis_y.key }
+				encode: { x: chart.axis_x.key, y: chart.axis_y.key },
+				itemStyle: {
+					color: (params: { dataIndex: number }) => {
+						const point = chart.dataset[params.dataIndex + 1];
+						if (!point) return additionalOptions.color ?? '#7283e2';
+
+						const hasError = point[chart.dataset[0].indexOf('has_error')];
+						return hasError ? '#f95c78' : '#65cd84';
+					}
+				},
+				symbol: (_: unknown, params: { dataIndex: number }) => {
+					const point = chart.dataset[params.dataIndex + 1];
+					if (!point) return 'emptyCircle';
+
+					const hasError = point[chart.dataset[0].indexOf('has_error')];
+					return hasError ? 'diamond' : 'emptyCircle';
+				},
+				symbolSize: (_: unknown, params: { dataIndex: number }) => {
+					const point = chart.dataset[params.dataIndex + 1];
+					if (!point) return 8;
+
+					const hasError = point[chart.dataset[0].indexOf('has_error')];
+					return hasError ? 16 : 8;
+				}
 			}
 		]
 	};
@@ -188,7 +211,29 @@ function resolveStackedOptions(
 			yAxisIndex: idx,
 			color: getColorByIdx(idx),
 			encode: { x: plot.axis_x.key, y: plot.axis_y.key },
-			symbolSize: 5.5,
+			symbolSize: (_: unknown, params: { dataIndex: number }) => {
+				const point = plot.dataset[params.dataIndex + 1];
+				if (!point) return 8;
+
+				const hasError = point[plot.dataset[0].indexOf('has_error')];
+				return hasError ? 16 : 8;
+			},
+			symbol: (_: unknown, params: { dataIndex: number }) => {
+				const point = plot.dataset[params.dataIndex + 1];
+				if (!point) return 'circle';
+
+				const hasError = point[plot.dataset[0].indexOf('has_error')];
+				return hasError ? 'diamond' : 'circle';
+			},
+			itemStyle: {
+				color: (params: { dataIndex: number }) => {
+					const point = plot.dataset[params.dataIndex + 1];
+					if (!point) return getColorByIdx(idx);
+
+					const hasError = point[plot.dataset[0].indexOf('has_error')];
+					return hasError ? '#f95c78' : '#65cd84';
+				}
+			},
 			id: `${plot.title}_${idx}`
 		})),
 		dataZoom: [
