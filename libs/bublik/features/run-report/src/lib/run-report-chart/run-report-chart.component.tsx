@@ -49,13 +49,13 @@ function RunReportChart(props: RunReportChartProps) {
 			},
 			symbol: (_, params: unknown) => {
 				const parsedParams = ParamsSchema.safeParse(params);
-				if (!parsedParams.success) return 'circle';
+				if (!parsedParams.success) return 'emptyCircle';
 
 				const point = d.points[parsedParams.data.dataIndex];
 				const hasError = point?.metadata?.has_error;
 
 				if (hasError) return 'diamond';
-				return 'circle';
+				return 'emptyCircle';
 			},
 			symbolSize: (_, params: unknown) => {
 				const parsedParams = ParamsSchema.safeParse(params);
