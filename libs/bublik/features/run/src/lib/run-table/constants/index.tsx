@@ -15,7 +15,8 @@ import { ColumnId } from '../types';
 export const UnexpectedColumns: string[] = [
 	ColumnId.PassedUnexpected,
 	ColumnId.FailedUnexpected,
-	ColumnId.SkippedUnexpected
+	ColumnId.SkippedUnexpected,
+	ColumnId.Abnormal
 ];
 
 const createUnexpectedColumnGetter =
