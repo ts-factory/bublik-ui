@@ -72,6 +72,48 @@ function useColumnVisibility() {
 }
 
 export const useRunTableQueryState = () => {
+export function migrateExpandedState(
+	expanded: Record<string, boolean> | true,
+	allRows: Record<string, Row<RunData | MergedRun>>
+): Record<string, boolean> | boolean {
+	const newExpanded: Record<string, boolean> = {};
+
+	if (typeof expanded === 'boolean') {
+		return expanded;
+	}
+
+	Object.keys(expanded).forEach((key) => {
+		const row = allRows[key];
+
+		if (!row) return;
+
+		const newRowId = getRowId(row.original, row.index, row.getParentRow());
+
+		const rowExpanded: boolean = expanded[key];
+
+		newExpanded[newRowId] = rowExpanded;
+	});
+
+	return newExpanded;
+}
+
+export function shouldMigrateExpandedState(expanded: ExpandedState): boolean {
+	return Object.keys(expanded).some((key) => key.includes('.'));
+}
+export function migrateExpandedStateUrl(
+	oldExpanded: ExpandedState,
+	rows: Record<string, Row<RunData | MergedRun>>
+) {
+	const newExpanded = migrateExpandedState(oldExpanded, rows);
+	const currentUrl = new URL(window.location.href);
+	try {
+		const expandedJson = JSON.stringify(newExpanded);
+		currentUrl.searchParams.set('expanded', expandedJson);
+	} catch (error) {
+		console.error('Failed to stringify expanded state:', error, newExpanded);
+	}
+}
+
 	const locationState = useLocation().state as {
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
@@ -79,7 +121,10 @@ export const useRunTableQueryState = () => {
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
-		ExpandedParam
+		withDefault(
+			JsonParam,
+			data && data.length > 0 ? { [getRowId(data[0], 0, undefined)]: true } : {}
+		)
 	);
 
 	const [sorting, setSorting] = useQueryParam<SortingState>(

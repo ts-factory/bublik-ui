@@ -29,6 +29,11 @@ import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
+import {
+	getRowId,
+	migrateExpandedStateUrl,
+	shouldMigrateExpandedState
+} from './run-table.hooks';
 
 export const RunTableLoading = () => {
 	return <Skeleton className="rounded h-[30vh] w-full" />;
@@ -150,6 +155,9 @@ export const RunTable = (props: RunTableProps) => {
 	useMount(() => {
 		if (openUnexpected) showUnexpected();
 		if (openUnexpectedResults) expandUnexpected();
+		if (shouldMigrateExpandedState(expanded)) {
+			migrateExpandedStateUrl(expanded, table.getCoreRowModel().rowsById);
+		}
 	});
 
 	return (
