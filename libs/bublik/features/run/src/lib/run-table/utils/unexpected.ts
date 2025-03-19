@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnSort } from '@tanstack/react-table';
+import { ColumnSort, Row, Table } from '@tanstack/react-table';
 
 import { MergedRun, RunData } from '@/shared/types';
 
@@ -11,15 +11,21 @@ import {
 	UnexpectedColumns
 } from '../constants';
 import { RowState } from '../../hooks';
+import { getRowValues } from './get-values';
+import { isTest } from './expanding';
 
 export const getUnexpectedGlobalFilter = (
-	rowValues: Record<string, number>
+	rowValues: Record<string, number>,
+	rootRowId: string
 ): GlobalFilterValue[] => {
 	return Object.entries(rowValues)
 		.filter(
 			([columnId, value]) => UnexpectedColumns.includes(columnId) && value
 		)
-		.map(([columnId]) => ({ columnId: columnId as ColumnId, rowId: '0' }));
+		.map(([columnId]) => ({
+			columnId: columnId as ColumnId,
+			rowId: rootRowId
+		}));
 };
 
 export const globalFilterToSort = (
@@ -29,45 +35,54 @@ export const globalFilterToSort = (
 	desc: true
 });
 
-type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
 export const getExpandedUnexpectedState = (
-	testIds: string[],
-	rowsValues: Record<string, Record<string, unknown>>
+	table: Table<RunData | MergedRun>
 ): [Record<string, RowState>, string[]] => {
-	const unexpectedRowState: Record<string, RowState> = {};
+	const rowModel = table.getPreFilteredRowModel();
+	const unexpectedTestRows = rowModel.flatRows
+		.filter(containsUnexpected)
+		.filter(isTest);
 
-	testIds.forEach((id) => {
-		const rowValues = rowsValues[id];
-		const rowState: WithRequired<RowState, 'requests'> = {
-			rowId: id,
-			requests: {}
+	const unexpectedRowState = unexpectedTestRows.reduce<
+		Record<string, RowState>
+	>((acc, row) => {
+		const rowValues = getRowValues(row);
+		const unexpectedColumns = Object.entries(rowValues)
+			.filter(([columnId, value]) => isUnexpectedColumn(columnId) && value)
+			.map(([columnId]) => columnId);
+
+		if (unexpectedColumns.length === 0) return acc;
+
+		const requests = unexpectedColumns.reduce(
+			(reqAcc, columnId) => ({
+				...reqAcc,
+				[columnId]: getUnexpectedResultForColumnId(columnId)
+			}),
+			{}
+		);
+
+		acc[row.id] = {
+			rowId: row.id,
+			requests
 		};
 
-		Object.entries(rowValues).forEach(([column, value]) => {
-			if (!isUnexpectedColumn(column) || !value) return;
+		return acc;
+	}, {});
 
-			rowState.requests[column] = getUnexpectedResultForColumnId(column);
-		});
+	const rowIdsToOpen = Object.keys(unexpectedRowState);
 
-		unexpectedRowState[id] = rowState;
-	});
-
-	Object.values(unexpectedRowState).forEach((row) => {
-		if (Object.keys(row.requests || {}).length !== 0) return;
-
-		delete unexpectedRowState[row.rowId];
-	});
-
-	const toOpen = Object.keys(unexpectedRowState);
-
-	return [unexpectedRowState, toOpen];
+	return [unexpectedRowState, rowIdsToOpen];
 };
 
 export const hasUnexpected = (data: RunData | MergedRun): boolean => {
 	return (
 		data.stats.failed_unexpected !== 0 ||
 		data.stats.passed_unexpected !== 0 ||
-		data.stats.skipped_unexpected !== 0
+		data.stats.skipped_unexpected !== 0 ||
+		data.stats.abnormal !== 0
 	);
 };
+
+export function containsUnexpected(row: Row<RunData | MergedRun>): boolean {
+	return hasUnexpected(row.original);
+}

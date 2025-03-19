@@ -61,6 +61,20 @@ export const ResultTableContainer = ({
 		);
 	}, [requests, values]);
 
+	const setMode = useCallback(
+		(mode: 'default' | 'diff') => updateRowState({ rowId, mode }),
+		[updateRowState, rowId]
+	);
+
+	const showToolbar = useMemo(() => {
+		return rowState?.showToolbar ?? false;
+	}, [rowState?.showToolbar]);
+
+	const setShowToolbar = useCallback(
+		(showToolbar: boolean) => updateRowState({ rowId, showToolbar }),
+		[updateRowState, rowId]
+	);
+
 	const getRowProps = useCallback<
 		NonNullable<TwTableProps<RunDataResults>['getRowProps']>
 	>(
@@ -69,24 +83,34 @@ export const ResultTableContainer = ({
 				rowState?.referenceDiffRowId === row.id ? 'border-primary' : '';
 			return {
 				className,
-				onClick: (e) => {
+				onClick: () => {
+					if (rowState?.mode === 'default' || !rowState?.mode) return;
+
 					if (rowState?.referenceDiffRowId === row.id) {
 						updateRowState({
 							rowId,
 							referenceDiffRowId: undefined,
-							requests: rowState?.requests
+							requests: rowState?.requests,
+							mode: 'diff'
 						});
 					} else {
 						updateRowState({
 							rowId,
 							referenceDiffRowId: row.id,
-							requests: rowState?.requests
+							requests: rowState?.requests,
+							mode: 'diff'
 						});
 					}
 				}
 			};
 		},
-		[rowId, rowState?.referenceDiffRowId, rowState?.requests, updateRowState]
+		[
+			rowId,
+			rowState?.mode,
+			rowState?.referenceDiffRowId,
+			rowState?.requests,
+			updateRowState
+		]
 	);
 
 	if (isError) return <div className="">Something went wrong...</div>;
@@ -102,6 +126,10 @@ export const ResultTableContainer = ({
 			rowId={rowId}
 			getRowProps={getRowProps}
 			height={height}
+			mode={rowState?.mode}
+			setMode={setMode}
+			showToolbar={showToolbar}
+			setShowToolbar={setShowToolbar}
 		/>
 	);
 };

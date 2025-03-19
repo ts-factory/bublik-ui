@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import { Row, Table } from '@tanstack/react-table';
 
 import {
-	NodeEntity,
+	MergedRun,
 	RESULT_PROPERTIES,
 	RESULT_TYPE,
 	RunData
@@ -13,6 +13,12 @@ import { Badge, BadgeVariants, Icon } from '@/shared/tailwind-ui';
 
 import { GlobalFilterValue, ColumnId } from '../../types';
 import {
+	getRootRowId,
+	isPackage,
+	isTest,
+	getAllPackageIdsRecursively
+} from '../../utils';
+import {
 	add,
 	doesRowHasMoreThanOneFilter,
 	toggleSubtree,
@@ -20,9 +26,9 @@ import {
 	isInFilter,
 	createRequestRemover,
 	createRequestAdder,
-	toggleRowExpanded
+	toggleRowExpanded,
+	getRowValues
 } from '../../utils';
-import { useRowsContext } from '../../context';
 import { OpenTooltip } from '../open-tooltip';
 import { RowState, useRunTableRowState } from '../../../hooks';
 
@@ -31,13 +37,12 @@ export interface TableBadgeModelProps {
 	columnId: ColumnId;
 	results: RESULT_TYPE[];
 	resultProperties?: RESULT_PROPERTIES[];
-
-	row: Row<RunData>;
-	table: Table<RunData>;
+	row: Row<RunData | MergedRun>;
+	table: Table<RunData | MergedRun>;
 	value: number | string;
 }
 
-export const TableBadgeModel: FC<TableBadgeModelProps> = ({
+function TableBadgeModel({
 	variant,
 	columnId,
 	results,
@@ -45,20 +50,17 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 	row,
 	table,
 	value
-}) => {
+}: TableBadgeModelProps) {
 	const { rowState, updateRowState, deleteRows, updateRowsState } =
 		useRunTableRowState();
-	const { rowsIds, rowsValues } = useRowsContext();
 	const { id: rowId } = row;
+	const rootRowId = getRootRowId(table);
 	const { getState, setGlobalFilter, setExpanded } = table;
-	const isTest = row.original?.type === NodeEntity.Test;
-
-	const { allIds, packageIds, testIds } = rowsIds[rowId];
-
 	const globalFilter: GlobalFilterValue[] = getState().globalFilter;
 	const isPackageInFilter = globalFilter.some(isInFilter(rowId, columnId));
 	const hasMoreThanOneFilter = doesRowHasMoreThanOneFilter(rowId)(globalFilter);
 
+	const isRoot = rowId === rootRowId;
 	const isTestSelected = columnId in (rowState[rowId]?.requests || {});
 	const isActive = isTestSelected || isPackageInFilter;
 
@@ -74,13 +76,13 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 		resultProperties
 	});
 
-	const openTest = () => {
+	function openTest() {
 		setExpanded(toggleRowExpanded(rowId, true));
 
 		updateRowState({ rowId, requests: addRequest(rowState[rowId]?.requests) });
-	};
+	}
 
-	const closeTest = () => {
+	function closeTest() {
 		const filterCount = Object.keys(rowState[rowId]?.requests || {}).length;
 		const isRemovingLastFilter = isTestSelected && filterCount === 1;
 
@@ -90,15 +92,19 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 			rowId,
 			requests: removeRequest(rowState[rowId]?.requests)
 		});
-	};
+	}
 
-	const handleResultClick = () => {
+	function handleResultClick() {
 		if (isTestSelected) {
 			closeTest();
 		} else {
 			openTest();
 		}
-	};
+	}
+
+	const packageIds = getAllPackageIdsRecursively(table, rowId, isPackage);
+	const testIds = getAllPackageIdsRecursively(table, rowId, isTest);
+	const rowsValues = getRowValues(row);
 
 	/**
   |--------------------------------------------------
@@ -106,15 +112,23 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
   |--------------------------------------------------
   */
 
-	const expandPackageSubtree = () => {
-		setExpanded(toggleSubtree(true, packageIds));
-		setGlobalFilter(add(rowId, columnId)(globalFilter));
-	};
+	function expandPackageSubtree() {
+		const nextGlobalFilter = add(rowId, columnId)(globalFilter);
 
-	const collapseSubtree = () => {
+		setExpanded(toggleSubtree(true, [...packageIds, rowId]));
+
+		setGlobalFilter(nextGlobalFilter);
+	}
+
+	function collapseSubtree() {
 		deleteRows(testIds);
-		setExpanded(toggleSubtree(false, allIds));
-	};
+
+		const toCollapse = !isRoot
+			? packageIds
+			: packageIds.filter((id) => id !== rowId);
+
+		setExpanded(toggleSubtree(false, toCollapse));
+	}
 
 	/**
   |--------------------------------------------------
@@ -122,7 +136,7 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
   |--------------------------------------------------
   */
 
-	const handleCtrlCollapse = (ids: string[]) => {
+	function handleCtrlCollapse(ids: string[]) {
 		const newRowState: RowState[] = ids.map((id) => {
 			const currentState = rowState[id]?.requests || {};
 
@@ -135,25 +149,26 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 
 		updateRowsState(newRowState);
 		setExpanded(toggleSubtree(false, toClose));
-	};
+	}
 
-	const handleCtrlExpand = () => {
+	function handleCtrlExpand() {
 		if (!isPackageInFilter) setGlobalFilter(add(rowId, columnId)(globalFilter));
 
-		const filteredIds = testIds.filter((id) => rowsValues[id][columnId]);
+		const filteredIds = testIds.filter((id) => rowsValues[columnId]);
 
 		const newRowState: RowState[] = filteredIds.map((rowId) => {
 			const currentState = rowState[rowId]?.requests || {};
+
 			const newState = { rowId, requests: addRequest(currentState) };
 
 			return newState;
 		});
 
-		const toOpen = [...packageIds, ...filteredIds];
+		const toOpen = [...packageIds, ...filteredIds, rowId];
 
 		updateRowsState(newRowState);
 		setExpanded(toggleSubtree(true, toOpen));
-	};
+	}
 
 	/**
   |--------------------------------------------------
@@ -161,21 +176,26 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
   |--------------------------------------------------
   */
 
-	const handleWithoutControl = () => {
-		if (!isPackageInFilter) return expandPackageSubtree();
-		if (!hasMoreThanOneFilter) collapseSubtree();
+	function handleWithoutControl() {
+		if (!isPackageInFilter) {
+			expandPackageSubtree();
+			return;
+		}
+
+		if (!hasMoreThanOneFilter) {
+			collapseSubtree();
+		}
 
 		setGlobalFilter(remove(rowId, columnId)(globalFilter));
-	};
+	}
 
-	const handlePackageClick =
-		(forceCtrl = false) =>
-		(e: MouseEvent) => {
+	function handlePackageClick(forceCtrl = false) {
+		return (e: MouseEvent) => {
 			// 1. Just open subtrees
 			if (!e.ctrlKey && !forceCtrl) return handleWithoutControl();
 
 			// 2. If rows with corresponding ids are open with results
-			const rowsWithValue = testIds.filter((id) => rowsValues[id][columnId]);
+			const rowsWithValue = testIds.filter((id) => rowsValues[columnId]);
 
 			const isOpenAndInFilter = rowsWithValue.every(
 				(rowId) => columnId in (rowState[rowId]?.requests || {})
@@ -186,14 +206,15 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 			// 3. Open test rows
 			handleCtrlExpand();
 		};
+	}
 
-	const handleClick = (e: MouseEvent) => {
+	function handleClick(e: MouseEvent) {
 		e.preventDefault();
 
-		isTest ? handleResultClick() : handlePackageClick(false)(e);
-	};
+		isTest(row) ? handleResultClick() : handlePackageClick(false)(e);
+	}
 
-	if (rowId === '0' && value) {
+	if (rowId === rootRowId && value) {
 		return (
 			<div className="flex items-center gap-1">
 				<Badge
@@ -228,4 +249,6 @@ export const TableBadgeModel: FC<TableBadgeModelProps> = ({
 			{value}
 		</Badge>
 	);
-};
+}
+
+export { TableBadgeModel };

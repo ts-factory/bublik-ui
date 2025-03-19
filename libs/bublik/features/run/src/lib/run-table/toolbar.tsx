@@ -17,23 +17,20 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 
-import { useRowsContext } from './context';
 import { useExpandUnexpected } from './hooks';
 import { hasUnexpected } from './utils';
 import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 import { ColumnId } from './types';
+import { useGlobalRequirements } from '../hooks';
 
 export interface ToolbarProps {
 	table: Table<RunData | MergedRun>;
 }
 
 export const Toolbar = ({ table }: ToolbarProps) => {
-	const { rowsIds, rowsValues } = useRowsContext();
-
+	const { resetGlobalRequirements } = useGlobalRequirements();
 	const { showUnexpected, expandUnexpected, reset } = useExpandUnexpected({
-		table,
-		rowsIds,
-		rowsValues
+		table
 	});
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -41,6 +38,10 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 	const handleResetState = () => {
 		table.setColumnVisibility(DEFAULT_COLUMN_VISIBILITY);
 		reset();
+		resetGlobalRequirements();
+
+		const rootRowId = table.getCoreRowModel().flatRows?.[0]?.id;
+		if (rootRowId) table.setExpanded({ [rootRowId]: true });
 	};
 
 	const tableHasUnexpected = useMemo(

@@ -15,20 +15,23 @@ import {
 
 import { MergedRun, RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
-import { getErrorMessage } from '@/services/bublik-api';
-import { cn, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
+import {
+	ButtonTw,
+	cn,
+	DataTableFacetedFilter,
+	Icon,
+	Skeleton,
+	Tooltip
+} from '@/shared/tailwind-ui';
 
 import { globalFilterFn } from './filter';
-import {
-	getRowCanExpand,
-	getRowsValuesById,
-	getRowsDescriptionById
-} from './utils';
-import { AllRowsContext, RowValuesContextProvider } from './context';
+import { getRowCanExpand } from './utils';
 import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
+import { useGlobalRequirements } from '../hooks';
 import {
 	getRowId,
 	migrateExpandedStateUrl,
@@ -76,7 +79,7 @@ export const RunTableEmpty = () => {
 				/>
 				<div>
 					<h1 className="text-2xl font-bold mb-0.5">No data found</h1>
-					<p className="text-lg">No data found for this run</p>
+					<p className="text-lg">No data found</p>
 				</div>
 			</div>
 		</div>
@@ -125,32 +128,21 @@ export const RunTable = (props: RunTableProps) => {
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getSubRows: (row) => row.children,
-		onExpandedChange,
+		onExpandedChange: onExpandedChange,
 		autoResetExpanded: false,
-		getRowCanExpand,
+		getRowCanExpand: getRowCanExpand,
 		getFilteredRowModel: getFilteredRowModel(),
-		onGlobalFilterChange,
-		onColumnVisibilityChange,
+		onGlobalFilterChange: onGlobalFilterChange,
+		onColumnVisibilityChange: onColumnVisibilityChange,
 		globalFilterFn: globalFilterFn,
 		filterFromLeafRows: true,
 		getSortedRowModel: getSortedRowModel(),
-		onSortingChange
+		getRowId: shouldMigrateExpandedState(expanded) ? undefined : getRowId,
+		onSortingChange: onSortingChange,
+		autoResetAll: false
 	});
 
-	const context = useMemo<AllRowsContext>(() => {
-		const rowsById = table.getPreFilteredRowModel().rowsById;
-		const flatRows = table.getPreFilteredRowModel().flatRows;
-		const rowsValues = getRowsValuesById(rowsById);
-		const rowsIds = getRowsDescriptionById(flatRows);
-
-		return { rowsValues, rowsIds };
-	}, [table]);
-
-	const { showUnexpected, expandUnexpected } = useExpandUnexpected({
-		table,
-		rowsIds: context.rowsIds,
-		rowsValues: context.rowsValues
-	});
+	const { showUnexpected, expandUnexpected } = useExpandUnexpected({ table });
 
 	useMount(() => {
 		if (openUnexpected) showUnexpected();
@@ -161,19 +153,30 @@ export const RunTable = (props: RunTableProps) => {
 	});
 
 	return (
-		<RowValuesContextProvider value={context}>
-			<div className="flex items-center justify-between px-4 py-1 bg-white rounded">
-				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
-					Toolbar
-				</span>
-				<RunTableInstructionDialog />
+		<div className={cn('rounded')} data-testid="run-table">
+			<div className="flex items-center justify-between px-4 py-1 bg-white sticky top-0 z-20 border-b border-border-primary">
+				<div className="flex items-center gap-4">
+					<div className="flex items-center gap-1">
+						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+							Toolbar
+						</span>
+						<RunTableInstructionDialog />
+					</div>
+					<GlobalRequirementsFilter runId={runId} />
+				</div>
 				<Toolbar table={table} />
 			</div>
-			<div
-				className={cn('bg-white rounded', isFetching && 'opacity-40')}
-				data-testid="run-table"
-			>
-				<table className="w-full p-0 m-0 border-separate h-full border-spacing-0">
+			{data.length === 0 ? (
+				<div className="flex items-center justify-center h-full">
+					<RunTableEmpty />
+				</div>
+			) : (
+				<table
+					className={cn(
+						'w-full p-0 m-0 border-separate h-full border-spacing-0',
+						isFetching && 'opacity-40 pointer-events-none'
+					)}
+				>
 					<RunHeader instance={table} />
 					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
 						{table.getRowModel().rows.map((row) => (
@@ -181,7 +184,78 @@ export const RunTable = (props: RunTableProps) => {
 						))}
 					</tbody>
 				</table>
-			</div>
-		</RowValuesContextProvider>
+			)}
+		</div>
 	);
 };
+
+function GlobalRequirementsFilter({ runId }: { runId: string | string[] }) {
+	const {
+		globalRequirements,
+		setGlobalRequirements,
+		resetGlobalRequirements,
+		localRequirements,
+		setLocalRequirements
+	} = useGlobalRequirements();
+
+	const { data: availableRequirements } = bublikAPI.useGetRunRequirementsQuery(
+		Array.isArray(runId) ? runId : [runId]
+	);
+
+	const options =
+		availableRequirements?.map((requirement) => ({
+			label: requirement,
+			value: requirement
+		})) ?? [];
+
+	function handleChange(values: string[] | undefined) {
+		setLocalRequirements(values ?? []);
+	}
+
+	function handleSubmit() {
+		setGlobalRequirements(localRequirements);
+	}
+
+	function handleReset() {
+		resetGlobalRequirements();
+		setLocalRequirements([]);
+	}
+
+	const hasChanges = useMemo(() => {
+		if (localRequirements.length !== globalRequirements.length) return true;
+
+		return (
+			localRequirements.some((req) => !globalRequirements.includes(req)) ||
+			globalRequirements.some((req) => !localRequirements.includes(req))
+		);
+	}, [globalRequirements, localRequirements]);
+
+	return (
+		<>
+			<DataTableFacetedFilter
+				title="Requirements"
+				size="xss"
+				disabled={availableRequirements?.length === 0}
+				options={options}
+				onChange={handleChange}
+				value={localRequirements}
+			/>
+			<Tooltip content="Apply requirements filter globally to the run">
+				<ButtonTw
+					variant={hasChanges ? 'primary' : 'secondary'}
+					size="xss"
+					onClick={handleSubmit}
+				>
+					<Icon name="Refresh" size={18} className="mr-1.5" />
+					<span>Submit</span>
+				</ButtonTw>
+			</Tooltip>
+			<Tooltip content="Reset global requirements filter">
+				<ButtonTw variant="secondary" size="xss" onClick={handleReset}>
+					<Icon name="Bin" size={18} className="mr-1.5" />
+					<span>Reset</span>
+				</ButtonTw>
+			</Tooltip>
+		</>
+	);
+}

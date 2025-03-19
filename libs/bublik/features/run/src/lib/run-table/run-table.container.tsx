@@ -2,10 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { bublikAPI } from '@/services/bublik-api';
 
-import { RunRowStateContextProvider } from '../hooks';
+import { RunRowStateContextProvider, useGlobalRequirements } from '../hooks';
 import {
 	RunTable,
-	RunTableEmpty,
 	RunTableError,
 	RunTableLoading
 } from './run-table.component';
@@ -16,12 +15,15 @@ export interface RunTableContainerProps {
 }
 
 export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
+	const { globalRequirements } = useGlobalRequirements();
+
 	const { data, isLoading, error, isFetching } = Array.isArray(runId)
 		? bublikAPI.useGetMultipleRunsByRunIdsQuery(
 				runId.map((id) => ({ runId: id, requirements: globalRequirements }))
 		  )
 		: bublikAPI.useGetRunTableByRunIdQuery({
 				runId,
+				requirements: globalRequirements
 		  });
 
 	useRunPageName({ runId });
@@ -37,19 +39,17 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		setGlobalFilter,
 		setSorting,
 		sorting
-	} = useRunTableQueryState();
+	} = useRunTableQueryState(data);
 
 	if (error) return <RunTableError error={error} />;
 
 	if (isLoading) return <RunTableLoading />;
 
-	if (!data) return <RunTableEmpty />;
-
 	return (
 		<RunRowStateContextProvider value={rowStateContext}>
 			<RunTable
 				runId={runId}
-				data={data}
+				data={data ?? []}
 				openUnexpected={locationState?.openUnexpected}
 				openUnexpectedResults={locationState?.openUnexpectedResults}
 				expanded={expanded}

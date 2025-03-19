@@ -10,64 +10,60 @@ import {
 	getRowValues,
 	getUnexpectedGlobalFilter,
 	globalFilterToSort,
-	toggleSubtree
+	toggleSubtree,
+	getRootRowId,
+	getPackageIdsWithUnexpected,
+	getAllTestIds
 } from '../utils';
-import { RowDecription } from '../context';
 import { useRunTableRowState } from '../../hooks';
 
 export interface UseExpandUnexpectedConfig {
 	table: Table<RunData | MergedRun>;
-	rowsIds: Record<string, RowDecription>;
-	rowsValues: Record<string, Record<string, unknown>>;
 }
 
 export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
-	const { table, rowsIds, rowsValues } = config;
-	const packageIds = rowsIds['0'].packageIds;
-	const testIds = rowsIds['0'].testIds;
+	const { table } = config;
+	const rootRowId = getRootRowId(table);
+
 	const rowModel = table.getPreFilteredRowModel();
-	const rootRowValues = getRowValues(rowModel.rowsById['0']);
-	const globalFilter = getUnexpectedGlobalFilter(rootRowValues);
+
+	const rootRowValues = getRowValues(rowModel.rowsById[rootRowId]);
+	const globalFilter = getUnexpectedGlobalFilter(rootRowValues, rootRowId);
 	const sortingState = globalFilter.map(globalFilterToSort);
 	const { expandAllUnexpected, resetRowState } = useRunTableRowState();
 
 	const expandUnexpected = useCallback(() => {
-		const [unexpectedRowState, toOpen] = getExpandedUnexpectedState(
-			testIds,
-			rowsValues
-		);
+		const packageIdsWithUnexpected = getPackageIdsWithUnexpected(table);
+		const [unexpectedRowState, toOpen] = getExpandedUnexpectedState(table);
 
 		table.setGlobalFilter(globalFilter);
-		table.setExpanded(toggleSubtree(true, packageIds));
-		table.setExpanded(toggleSubtree(true, toOpen));
+		table.setExpanded(
+			toggleSubtree(true, [...packageIdsWithUnexpected, ...toOpen])
+		);
 		expandAllUnexpected(unexpectedRowState);
-	}, [
-		expandAllUnexpected,
-		globalFilter,
-		packageIds,
-		rowsValues,
-		table,
-		testIds
-	]);
+	}, [expandAllUnexpected, globalFilter, table]);
 
 	/**
 	 * This will not work properly on page reload in dev since open unexpected
 	 * router state would be true and this will close all opened test with filters
 	 */
 	const showUnexpected = useCallback(() => {
+		const allTestIds = getAllTestIds(table);
+		const packageIdsWithUnexpected = getPackageIdsWithUnexpected(table);
+
 		table.setGlobalFilter(globalFilter);
-		table.setExpanded(toggleSubtree(true, packageIds));
-		table.setExpanded(toggleSubtree(false, testIds));
+		table.setExpanded(toggleSubtree(true, packageIdsWithUnexpected));
+		table.setExpanded(toggleSubtree(false, allTestIds));
 		table.setSorting(sortingState);
 		resetRowState();
-	}, [globalFilter, packageIds, resetRowState, sortingState, table, testIds]);
+	}, [globalFilter, resetRowState, sortingState, table]);
 
 	const reset = useCallback(() => {
 		table.setGlobalFilter([]);
-		table.setExpanded({ '0': true });
+		table.setExpanded({ [rootRowId]: true });
 		table.setSorting([]);
 		resetRowState();
-	}, [resetRowState, table]);
+	}, [resetRowState, rootRowId, table]);
 
 	return { expandUnexpected, showUnexpected, reset } as const;
 };

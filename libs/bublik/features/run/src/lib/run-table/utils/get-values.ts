@@ -10,7 +10,7 @@ import { isChild, isPackage, isTest } from './expanding';
 export const getRowValues = (row: Row<RunData | MergedRun>) => {
 	const values: Record<string, number> = {};
 
-	row.getAllCells().forEach((cell) => {
+	row?.getAllCells().forEach((cell) => {
 		values[cell.column.id] = row.getValue(cell.column.id);
 	});
 
@@ -33,13 +33,13 @@ export const getRowsValuesById = (
 const packageFilter =
 	(originalRow: Row<RunData | MergedRun>) =>
 	(row: Row<RunData | MergedRun>) => {
-		return isChild(originalRow.id, row.id) && isPackage(row.original?.type);
+		return isChild(originalRow, row) && isPackage(row);
 	};
 
 const testFilter =
 	(originalRow: Row<RunData | MergedRun>) =>
 	(row: Row<RunData | MergedRun>) => {
-		return isChild(originalRow.id, row.id) && isTest(row.original?.type);
+		return isChild(originalRow, row) && isTest(row);
 	};
 
 export const getRowsDescriptionById = (
@@ -47,16 +47,12 @@ export const getRowsDescriptionById = (
 ): Record<string, RowDecription> => {
 	const result: Record<string, RowDecription> = {};
 
-	rows.forEach((originalRowId) => {
-		const packageIds = rows
-			.filter(packageFilter(originalRowId))
-			.map((row) => row.id);
-
-		const testIds = rows.filter(testFilter(originalRowId)).map((row) => row.id);
-
+	rows.forEach((row) => {
+		const packageIds = rows.filter(packageFilter(row)).map((row) => row.id);
+		const testIds = rows.filter(testFilter(row)).map((row) => row.id);
 		const allIds = [...packageIds, ...testIds];
 
-		result[originalRowId.id] = { allIds, packageIds, testIds };
+		result[row.id] = { allIds, packageIds, testIds };
 	});
 
 	return result;
