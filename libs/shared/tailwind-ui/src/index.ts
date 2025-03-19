@@ -67,3 +67,4 @@ export * from './lib/radio-group';
 export * from './lib/conclusion-hover-card';
 export * from './lib/conclusion-badge';
 export * from './lib/instruction-dialog';
+export * from './lib/data-table-faceted-filter';
