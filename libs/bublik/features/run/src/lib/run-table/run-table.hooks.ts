@@ -18,8 +18,23 @@ import { RowStateContextType, RunRowState } from '../hooks';
 import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 
 const GlobalFilterParam = withDefault(JsonParam, []);
-const ExpandedParam = withDefault(JsonParam, { '0': true });
 const RowStateParam = withDefault(JsonParam, {});
+const SortingParam = withDefault(JsonParam, []);
+
+export function getRowId(
+	original: RunData | MergedRun,
+	_idx: number,
+	parent: Row<RunData | MergedRun> | undefined
+) {
+	if ('result_ids' in original) {
+		return parent
+			? `${parent.id}_${original.result_ids.join(':')}_${original.exec_seqno}`
+			: `${original.result_ids.join(':')}_${original.exec_seqno}`;
+	}
+
+	const baseId = `${original.result_id}_${original.exec_seqno}`;
+	return parent ? `${parent.id}_${baseId}` : baseId;
+}
 
 const LOCAL_STORAGE_COLUMN_VISIBILITY_KEY = 'run-column-visibility';
 
