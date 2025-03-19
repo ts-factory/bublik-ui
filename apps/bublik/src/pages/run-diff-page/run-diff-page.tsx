@@ -32,8 +32,12 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 
 	usePrefetchImmediately('getRunDetails', rightRunId);
 	usePrefetchImmediately('getRunDetails', leftRunId);
-	usePrefetchImmediately('getRunTableByRunId', leftRunId);
-	usePrefetchImmediately('getRunTableByRunId', rightRunId);
+	usePrefetchImmediately('getRunTableByRunId', {
+		runId: leftRunId
+	});
+	usePrefetchImmediately('getRunTableByRunId', {
+		runId: rightRunId
+	});
 	usePrefetchImmediately('getRunSource', leftRunId);
 	usePrefetchImmediately('getRunSource', rightRunId);
 	usePrefetchImmediately('getCompromisedTags', undefined);

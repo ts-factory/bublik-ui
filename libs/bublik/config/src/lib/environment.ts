@@ -25,5 +25,6 @@ export const config = {
 	isDev: env.DEV,
 	isProd: env.PROD,
 	isSsr: env.SSR,
-	mode: env.MODE
+	mode: env.MODE,
+	queryDelimiter: ';'
 } satisfies BublikConfig;

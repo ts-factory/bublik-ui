@@ -19,7 +19,8 @@ export const BublikConfigSchema = z.object({
 	isProd: z.boolean(),
 	isDev: z.boolean(),
 	isSsr: z.boolean(),
-	mode: z.string()
+	mode: z.string(),
+	queryDelimiter: z.string()
 });
 
 export type BublikEnv = z.infer<typeof BublikEnvSchema>;
