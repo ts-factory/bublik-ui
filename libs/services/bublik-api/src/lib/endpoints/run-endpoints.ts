@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
+import { groupBy } from 'remeda';
 
 import {
 	RunSourceAPIRResponse,
@@ -22,13 +23,14 @@ import {
 	MergedRun,
 	RunStats
 } from '@/shared/types';
+import { config } from '@/bublik/config';
 
 import { BUBLIK_TAG } from '../types';
 import { getMinutes, prepareForSend } from '../utils';
 import { transformRunTable } from '../transform';
 import { API_REDUCER_PATH } from '../constants';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
-import { groupBy } from 'remeda';
+import { z } from 'zod';
 
 export interface ResultsAndVerdictsForIteration {
 	artifacts: Artifact[];
@@ -145,6 +147,13 @@ function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 	}
 }
 
+const RunStatsParamsSchema = z.object({
+	runId: z.string().or(z.number()),
+	requirements: z.array(z.string()).optional()
+});
+
+type RunStatsParams = z.infer<typeof RunStatsParamsSchema>;
+
 export const runEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<
@@ -157,11 +166,16 @@ export const runEndpoints = {
 			query: (runId) => ({ url: withApiV2(`/runs/${runId}/source`) }),
 			keepUnusedDataFor: getMinutes(15)
 		}),
-		getRunTableByRunId: build.query<RunData[] | null, string>({
-			query: (runId) => ({
-				url: withApiV2(`/runs/${runId}/stats`),
-				cache: 'no-cache'
-			}),
+		getRunTableByRunId: build.query<RunData[] | null, RunStatsParams>({
+			query: ({ runId, requirements }) => {
+				const queryRequirements = requirements?.join(config.queryDelimiter);
+
+				return {
+					url: withApiV2(`/runs/${runId}/stats`),
+					params: { requirements: queryRequirements },
+					cache: 'no-cache'
+				};
+			},
 			keepUnusedDataFor: getMinutes(5),
 			transformResponse: transformRunTable,
 			providesTags: [{ type: BUBLIK_TAG.Run }]
@@ -172,9 +186,6 @@ export const runEndpoints = {
 		>({
 			async queryFn(query, _queryApi, _extraOptions, fetchWithBQ) {
 				try {
-					const DEFAULT_PAGE_SIZE = 5000;
-					const DEFAULT_PAGE = 1;
-
 					const testName = query.testName;
 					const parentIds = Array.isArray(query.parentId)
 						? query.parentId
@@ -182,13 +193,14 @@ export const runEndpoints = {
 
 					const requests = parentIds.flatMap((parentId) =>
 						Object.entries(query.requests).map(([_columnId, props]) => {
-							const results = props.results.join(';');
-							const resultProperties = props.resultProperties.join(';');
-							const pageAndPageSize = `page=${DEFAULT_PAGE}&page_size=${DEFAULT_PAGE_SIZE}`;
+							const results = props.results.join(config.queryDelimiter);
+							const resultProperties = props.resultProperties.join(
+								config.queryDelimiter
+							);
 
 							return fetchWithBQ(
 								withApiV2(
-									`/results/?parent_id=${parentId}&test_name=${testName}&results=${results}&result_properties=${resultProperties}&${pageAndPageSize}`,
+									`/results/?parent_id=${parentId}&test_name=${testName}&results=${results}&result_properties=${resultProperties}`,
 									true
 								)
 							);
@@ -224,6 +236,21 @@ export const runEndpoints = {
 		}),
 		getCompromisedTags: build.query<CompromisedTagsResponse, void>({
 			query: () => withApiV2('/outside_domains/logs')
+		}),
+		getRunRequirements: build.query<string[], string[] | number[]>({
+			queryFn: async (runId, _api, _extraOptions, fetchWithBQ) => {
+				const results = (await Promise.all(
+					runId.map((id) => fetchWithBQ(withApiV2(`/runs/${id}/requirements`)))
+				)) as QueryReturnValue<{ requirements: string[] }, unknown>[];
+
+				return {
+					data: Array.from(
+						new Set(
+							results.flatMap((result) => result.data?.requirements ?? [])
+						)
+					)
+				};
+			}
 		}),
 		getRunDetails: build.query<RunDetailsAPIResponse, string | number>({
 			query: (runId) => ({
@@ -294,20 +321,28 @@ export const runEndpoints = {
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]
 		}),
-		getMultipleRunsByRunIds: build.query<MergedRun[], (string | number)[]>({
-			queryFn: async (runIds, _api, _extraOptions, fetchWithBQ) => {
-				const requests = runIds.map((runId) =>
-					fetchWithBQ(withApiV2(`/runs/${runId}/stats`))
+		getMultipleRunsByRunIds: build.query<MergedRun[], RunStatsParams[]>({
+			queryFn: async (params, _api, _extraOptions, fetchWithBQ) => {
+				const queryParams = params.map(({ runId, requirements }) => {
+					const queryRequirements = requirements?.join(config.queryDelimiter);
+					const params = {} as Record<string, string>;
+					if (queryRequirements) params.requirements = queryRequirements;
+
+					return { url: withApiV2(`/runs/${runId}/stats`), params };
+				});
+
+				const requests = queryParams.map((queryParam) =>
+					fetchWithBQ(queryParam)
 				);
 
 				const requestsResults = await Promise.all(
-					runIds.map(async (runId, index) => {
+					params.map(async (runId, index) => {
 						const result = (await requests[
 							index
 						]) as QueryReturnValue<RunAPIResponse>;
 						const data = result.data?.results;
 
-						return data ? [Number(runId), data] : null;
+						return data ? [Number(runId.runId), data] : null;
 					})
 				);
 

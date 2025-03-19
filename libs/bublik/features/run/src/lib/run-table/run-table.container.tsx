@@ -17,8 +17,12 @@ export interface RunTableContainerProps {
 
 export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 	const { data, isLoading, error, isFetching } = Array.isArray(runId)
-		? bublikAPI.useGetMultipleRunsByRunIdsQuery(runId)
-		: bublikAPI.useGetRunTableByRunIdQuery(runId);
+		? bublikAPI.useGetMultipleRunsByRunIdsQuery(
+				runId.map((id) => ({ runId: id, requirements: globalRequirements }))
+		  )
+		: bublikAPI.useGetRunTableByRunIdQuery({
+				runId,
+		  });
 
 	useRunPageName({ runId });
 

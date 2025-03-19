@@ -14,12 +14,12 @@ export const useRunDiffState = (config: UseRunDiffStateConfig) => {
 		data: leftData,
 		isLoading: isLeftLoading,
 		error: leftError
-	} = useGetRunTableByRunIdQuery(leftRunId);
+	} = useGetRunTableByRunIdQuery({ runId: leftRunId });
 	const {
 		data: rightData,
 		isLoading: isRightLoading,
 		error: rightError
-	} = useGetRunTableByRunIdQuery(rightRunId);
+	} = useGetRunTableByRunIdQuery({ runId: rightRunId });
 
 	return {
 		leftData,

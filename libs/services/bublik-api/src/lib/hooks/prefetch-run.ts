@@ -19,7 +19,7 @@ export const usePrefetchRun = ({ runId }: UsePrefetchRunConfig) => {
 		if (!runId) return;
 
 		prefetchRunHeader(runId);
-		prefetchRunTable(runId);
+		prefetchRunTable({ runId });
 		prefetchRunSource(runId);
 		prefetchCompromisedTags();
 	}, [

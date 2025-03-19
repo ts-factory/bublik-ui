@@ -4,8 +4,8 @@ import { RunAPIResponse } from '@/shared/types';
 
 export const transformRunTable = (
 	data: RunAPIResponse,
-	meta: unknown,
-	arg: string
+	_meta: unknown,
+	_arg: unknown
 ) => {
 	if (!data.results) return null;
 
