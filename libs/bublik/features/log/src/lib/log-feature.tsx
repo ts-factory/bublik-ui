@@ -114,7 +114,7 @@ function LogFeature(props: LogFeatureProps) {
 								size="xss"
 								onClick={toggleLog}
 							>
-								Legacy
+								Legacy Log
 							</ButtonTw>
 							<LinkToRun runId={runId} />
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
