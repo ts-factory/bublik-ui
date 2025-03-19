@@ -15,7 +15,7 @@ function RunTableInstructionDialog() {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<button className="mr-auto ml-2 text-primary hover:bg-primary-wash rounded-sm p-0.5">
+				<button className="mr-auto text-primary hover:bg-primary-wash rounded-sm p-0.5">
 					<Icon name="InformationCircleQuestionMark" size={16} />
 				</button>
 			</DialogTrigger>

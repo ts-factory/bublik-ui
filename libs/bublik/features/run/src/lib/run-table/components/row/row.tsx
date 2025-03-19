@@ -26,7 +26,7 @@ export const RunRow = ({ row, runId }: RowProps) => {
 				className={cn(
 					'[&>*]:hover:bg-gray-50 h-full relative z-10',
 					isExpandedTest &&
-						'[&>*]:bg-gray-50 h-full [&>*]:sticky [&>*]:top-[68px]'
+						'[&>*]:bg-gray-50 h-full [&>*]:sticky [&>*]:top-[102px]'
 				)}
 				ref={ref}
 			>
@@ -54,7 +54,7 @@ export const RunRow = ({ row, runId }: RowProps) => {
 			</tr>
 			{row.getIsExpanded() && row.original?.type === NodeEntity.Test ? (
 				<tr role="row">
-					<td colSpan={row.getVisibleCells().length}>
+					<td colSpan={row.getVisibleCells().length} className="p-0 bg-white">
 						<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
 							<ResultTableContainer runId={runId} row={row} height={height} />
 						</div>

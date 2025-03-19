@@ -12,6 +12,8 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { getColumns } from './result-table.columns';
+const HEADER_HEIGHT = 102;
+const STICKY_OFFSET = HEADER_HEIGHT + 1;
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -75,20 +77,10 @@ export const ResultTable = memo(
 			[data, rowId, showLinkToRun]
 		);
 
-		const getHeaderProps = useCallback<
-			NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
-		>(
-			(_, { isSticky }) => {
-				return {
-					style: {
-						top: `${height + 68}px`,
-						position: 'sticky',
-						boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
-					} as CSSProperties
-				};
-			},
-			[height]
-		);
+		const { stickyOffset, getHeaderProps } = useStickyHeader({
+			hasFilters: hasToolbar,
+			height
+		});
 
 		return (
 			<div className="px-4 py-2">
@@ -97,7 +89,7 @@ export const ResultTable = memo(
 					getRowId={(row) => String(row.result_id)}
 					columns={columns}
 					classNames={classNames}
-					stickyOffset={-(height + 69)}
+					stickyOffset={stickyOffset}
 					manualPagination
 					enableSorting={false}
 					getRowProps={getRowProps}

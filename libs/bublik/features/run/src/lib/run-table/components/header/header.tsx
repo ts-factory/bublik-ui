@@ -33,7 +33,7 @@ export const RunHeader = ({ instance }: RunHeaderProps) => {
 							)}
 							style={{
 								position: 'sticky',
-								top: header.depth === 1 ? 0 : header.depth * 17,
+								top: header.depth === 1 ? 35 : header.depth * 17 + 35,
 								zIndex: 20
 							}}
 						>
