@@ -297,46 +297,6 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const { columnFilters, setColumnFilters, resetLocalRequirements } =
 		useColumnFilters(rowId);
 
-	const requirements = useMemo(() => {
-		return Array.from(new Set(data.map((row) => row.requirements).flat()))
-			.filter((requirement) => requirement !== undefined)
-			.map((requirement) => ({
-				label: requirement,
-				value: requirement
-			}));
-	}, [data]);
-
-	const parameters = useMemo(() => {
-		return Array.from(new Set(data.map((row) => row.parameters).flat()))
-			.filter(Boolean)
-			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
-			.map((parameter) => ({
-				label: parameter,
-				value: parameter
-			}));
-	}, [data]);
-
-	const verdicts = useMemo(() => {
-		return Array.from(
-			new Set(data.map((row) => row.obtained_result.verdict).flat())
-		)
-			.filter(Boolean)
-			.map((verdict) => ({
-				label: verdict,
-				value: verdict
-			}));
-	}, [data]);
-
-	const artifacts = useMemo(() => {
-		return Array.from(new Set(data.map((row) => row.artifacts).flat()))
-			.filter(Boolean)
-			.filter((artifact) => artifact !== undefined)
-			.map((artifact) => ({
-				label: artifact,
-				value: artifact
-			}));
-	}, [data]);
-
 	const requirementsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.REQUIREMENTS)
 			?.value ?? []) as string[];
@@ -360,6 +320,81 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
 			?.value ?? []) as string[];
 	}, [columnFilters]);
+
+	const filteredData = useMemo(() => {
+		return data.filter((row) => {
+			const hasEveryParameter = parametersFilter.every((parameter) =>
+				row.parameters?.includes(parameter)
+			);
+
+			const hasEveryVerdict = verdictsFilter.every((verdict) =>
+				row.obtained_result.verdict?.includes(verdict)
+			);
+
+			const hasEveryArtifact = artifactsFilter.every((artifact) =>
+				row.artifacts?.includes(artifact)
+			);
+
+			const hasEveryRequirement = requirementsFilter.every((requirement) =>
+				row.requirements?.includes(requirement)
+			);
+
+			return (
+				hasEveryParameter &&
+				hasEveryVerdict &&
+				hasEveryArtifact &&
+				hasEveryRequirement
+			);
+		});
+	}, [
+		artifactsFilter,
+		data,
+		parametersFilter,
+		requirementsFilter,
+		verdictsFilter
+	]);
+
+	const requirements = useMemo(() => {
+		return Array.from(
+			new Set(filteredData.map((row) => row.requirements).flat())
+		)
+			.filter((requirement) => requirement !== undefined)
+			.map((requirement) => ({
+				label: requirement,
+				value: requirement
+			}));
+	}, [filteredData]);
+
+	const parameters = useMemo(() => {
+		return Array.from(new Set(filteredData.map((row) => row.parameters).flat()))
+			.filter(Boolean)
+			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
+			.map((parameter) => ({
+				label: parameter,
+				value: parameter
+			}));
+	}, [filteredData]);
+
+	const verdicts = useMemo(() => {
+		return Array.from(
+			new Set(filteredData.map((row) => row.obtained_result.verdict).flat())
+		)
+			.filter(Boolean)
+			.map((verdict) => ({
+				label: verdict,
+				value: verdict
+			}));
+	}, [filteredData]);
+
+	const artifacts = useMemo(() => {
+		return Array.from(new Set(filteredData.map((row) => row.artifacts).flat()))
+			.filter(Boolean)
+			.filter((artifact) => artifact !== undefined)
+			.map((artifact) => ({
+				label: artifact,
+				value: artifact
+			}));
+	}, [filteredData]);
 
 	function handleClearFilters() {
 		setColumnFilters([]);
