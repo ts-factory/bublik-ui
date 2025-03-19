@@ -5,11 +5,13 @@ import { useLocation } from 'react-router-dom';
 import { useQueryParam, JsonParam, withDefault } from 'use-query-params';
 import {
 	ExpandedState,
+	Row,
 	SortingState,
 	Updater,
 	VisibilityState
 } from '@tanstack/react-table';
 
+import { RunData, MergedRun } from '@/shared/types';
 import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
@@ -86,7 +88,6 @@ function useColumnVisibility() {
 	};
 }
 
-export const useRunTableQueryState = () => {
 export function migrateExpandedState(
 	expanded: Record<string, boolean> | true,
 	allRows: Record<string, Row<RunData | MergedRun>>
@@ -129,6 +130,9 @@ export function migrateExpandedStateUrl(
 	}
 }
 
+export const useRunTableQueryState = (
+	data: RunData[] | MergedRun[] | undefined | null
+) => {
 	const locationState = useLocation().state as {
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
@@ -144,7 +148,7 @@ export function migrateExpandedStateUrl(
 
 	const [sorting, setSorting] = useQueryParam<SortingState>(
 		'sorting',
-		JsonParam
+		SortingParam
 	);
 
 	const [globalFilter, setGlobalFilter] = useQueryParam<string[]>(

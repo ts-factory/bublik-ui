@@ -1,6 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { RESULT_PROPERTIES, RESULT_TYPE, RunData } from '@/shared/types';
+import {
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
+	RunData,
+	MergedRun
+} from '@/shared/types';
 import { BadgeVariants } from '@/shared/tailwind-ui';
 
 import { ReactNode } from 'react';
@@ -32,7 +37,7 @@ export type GlobalFilterValue = {
 
 export interface RunTableColumnConfig {
 	id: ColumnId;
-	accessor: (data: RunData) => number | null;
+	accessor: (data: RunData | MergedRun) => number | null;
 	header: string;
 	variant: BadgeVariants;
 	resultProperties?: RESULT_PROPERTIES[];

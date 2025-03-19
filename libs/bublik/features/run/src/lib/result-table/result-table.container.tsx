@@ -13,7 +13,7 @@ import { ResultTableLoading, ResultTable } from './result-table.component';
 import { getRowValues } from '../run-table';
 
 function getParentId(row: Row<RunData | MergedRun>) {
-	return ('parent_ids' || 'result_ids') in row.original
+	return 'parent_ids' in row.original
 		? row.original.parent_ids.length
 			? row.original.parent_ids
 			: row.original.result_ids
