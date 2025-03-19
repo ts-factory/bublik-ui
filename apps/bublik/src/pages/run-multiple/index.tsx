@@ -1,7 +1,10 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { RunTableContainer } from '@/bublik/features/run';
+import {
+	RunTableContainer,
+	GlobalRequirementsProvider
+} from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import {
 	ButtonTw,
@@ -66,7 +69,9 @@ function RunMultiplePage() {
 					) : null
 				)}
 			</div>
-			<RunTableContainer runId={runIds} />
+			<GlobalRequirementsProvider>
+				<RunTableContainer runId={runIds} />
+			</GlobalRequirementsProvider>
 		</div>
 	);
 }

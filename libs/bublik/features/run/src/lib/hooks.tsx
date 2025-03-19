@@ -6,9 +6,12 @@ import {
 	PropsWithChildren,
 	SetStateAction,
 	useCallback,
-	useContext
+	useContext,
+	useMemo,
+	useState
 } from 'react';
 import { createNextState } from '@reduxjs/toolkit';
+import { useQueryParam, ArrayParam, withDefault } from 'use-query-params';
 
 import { ResultTableFilter } from '@/shared/types';
 
@@ -43,6 +46,8 @@ export interface RowState {
 	rowId: string;
 	requests?: Record<string, ResultTableFilter>;
 	referenceDiffRowId?: string;
+	mode?: 'default' | 'diff';
+	showToolbar?: boolean;
 }
 
 export const useRunTableRowState = () => {
@@ -98,4 +103,67 @@ export const useRunTableRowState = () => {
 		deleteRows,
 		expandAllUnexpected
 	};
+};
+
+interface GlobalRequirementsContextType {
+	globalRequirements: string[];
+	setGlobalRequirements: (value: Array<string | null>) => void;
+	resetGlobalRequirements: () => void;
+	localRequirements: string[];
+	setLocalRequirements: (value: string[]) => void;
+}
+
+const GlobalRequirementsContext =
+	createContext<GlobalRequirementsContextType | null>(null);
+
+export const GlobalRequirementsProvider = ({ children }: PropsWithChildren) => {
+	const [_globalRequirements, setGlobalRequirements] = useQueryParam<
+		Array<string | null>
+	>('globalRequirements', withDefault(ArrayParam, []));
+
+	const globalRequirements = useMemo(
+		() => _globalRequirements?.filter((req) => req !== null) ?? [],
+		[_globalRequirements]
+	);
+
+	const [localRequirements, setLocalRequirements] =
+		useState<string[]>(globalRequirements);
+
+	const resetGlobalRequirements = useCallback(() => {
+		setGlobalRequirements([]);
+	}, [setGlobalRequirements]);
+
+	const value = useMemo(
+		() => ({
+			globalRequirements,
+			setGlobalRequirements,
+			resetGlobalRequirements,
+			localRequirements,
+			setLocalRequirements
+		}),
+		[
+			globalRequirements,
+			setGlobalRequirements,
+			resetGlobalRequirements,
+			localRequirements
+		]
+	);
+
+	return (
+		<GlobalRequirementsContext.Provider value={value}>
+			{children}
+		</GlobalRequirementsContext.Provider>
+	);
+};
+
+export const useGlobalRequirements = () => {
+	const context = useContext(GlobalRequirementsContext);
+
+	if (!context) {
+		throw new Error(
+			'useGlobalRequirements must be used within a GlobalRequirementsProvider'
+		);
+	}
+
+	return context;
 };

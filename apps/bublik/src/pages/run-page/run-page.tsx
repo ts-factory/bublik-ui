@@ -5,7 +5,10 @@ import { Link, useParams } from 'react-router-dom';
 
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
-import { RunTableContainer } from '@/bublik/features/run';
+import {
+	GlobalRequirementsProvider,
+	RunTableContainer
+} from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -101,7 +104,9 @@ export const RunPage = () => {
 	return (
 		<div className="flex flex-col gap-1 p-2">
 			<RunHeader runId={runId} />
-			<RunTableContainer runId={runId} />
+			<GlobalRequirementsProvider>
+				<RunTableContainer runId={runId} />
+			</GlobalRequirementsProvider>
 			<ScrollToTopPage offset={158} />
 		</div>
 	);
