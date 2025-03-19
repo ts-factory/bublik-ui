@@ -52,13 +52,24 @@ export const getColumns = ({
 							variant={showToolbar ? 'primary' : 'secondary'}
 							size="xss"
 							onClick={() => setShowToolbar(!showToolbar)}
-							className="size-6 p-0"
+							className={cn(
+								'border',
+								showToolbar
+									? 'border-primary hover:border-[#94b0ff]'
+									: 'border-border-primary hover:shadow-none hover:border-primary'
+							)}
 						>
-							<Icon
-								name="ArrowShortTop"
-								size={18}
-								className={cn(!showToolbar && 'rotate-180')}
-							/>
+							<div
+								className={cn(
+									'flex items-center justify-center mr-1.5',
+									!showToolbar && 'rotate-180'
+								)}
+							>
+								<Icon name="ArrowShortTop" size={18} />
+							</div>
+							<span className="w-[6ch] text-left">
+								{showToolbar ? 'Hide' : 'Expose'}
+							</span>
 						</ButtonTw>
 					</Tooltip>
 				</div>

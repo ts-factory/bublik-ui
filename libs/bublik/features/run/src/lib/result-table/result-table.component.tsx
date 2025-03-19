@@ -50,7 +50,7 @@ export const ResultTableError = () => <div>Error...</div>;
 
 export const ResultTableEmpty = () => <div>Empty...</div>;
 
-const gridClassName = 'grid grid-cols-[120px,0.6fr,0.6fr,0.6fr,0.6fr,1fr]';
+const gridClassName = 'grid grid-cols-[140px,0.6fr,0.6fr,0.6fr,0.6fr,1fr]';
 
 const getBodyRowClassName = () => {
 	return cn(
