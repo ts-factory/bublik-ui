@@ -36,6 +36,7 @@ import {
 	SessionRoot
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
+import { LogArtifactsContainer } from '@/bublik/features/log-artifacts';
 
 interface LogPreviewContainerProps {
 	logName?: string;
@@ -79,6 +80,12 @@ function LogPreviewContainer(
 								<div className="h-full flex flex-col overflow-hidden">
 									<CardHeader label={logName}>
 										<div className="flex items-center gap-4">
+											{resultId && runId ? (
+												<LogArtifactsContainer
+													runId={runId}
+													focusId={resultId}
+												/>
+											) : null}
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<Link

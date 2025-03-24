@@ -30,6 +30,7 @@ import {
 } from './containers';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
+import { LogArtifactsContainer } from '@/bublik/features/log-artifacts';
 
 function useLogTitle() {
 	const { runId, focusId } = useLogPage();
@@ -116,6 +117,7 @@ function LogFeature(props: LogFeatureProps) {
 							>
 								Legacy Log
 							</ButtonTw>
+							<LogArtifactsContainer runId={Number(runId)} focusId={focusId} />
 							<LinkToRun runId={runId} />
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
 							<LinkToMeasurementsContainer focusId={focusId} />
