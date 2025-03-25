@@ -11,13 +11,18 @@ import {
 	ButtonTw,
 	VerdictList,
 	cn,
-	Tooltip
+	Tooltip,
+	toast
 } from '@/shared/tailwind-ui';
 
 import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useGlobalRequirements, useRunTableRowState } from '../hooks';
 import { COLUMN_ID, ObtainedResultFilterSchema } from './constants';
+
+function diffModeWarning() {
+	toast.warning('Parameters diff mode is enabled. Filters are disabled.');
+}
 
 const helper = createColumnHelper<RunDataResults>();
 
@@ -98,6 +103,11 @@ export const getColumns = ({
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
 
 				function handleRequirementClick(requirement: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
 					cell.column.setFilterValue(
 						filterValue.includes(requirement)
 							? filterValue.filter((v) => v !== requirement)
@@ -121,6 +131,11 @@ export const getColumns = ({
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
 
 				function handleArtifactClick(artifact: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
 					cell.column.setFilterValue(
 						filterValue.includes(artifact)
 							? filterValue.filter((v) => v !== artifact)
@@ -183,6 +198,11 @@ export const getColumns = ({
 					if (!obtainedResult.result || !obtainedResult.verdicts) return;
 
 					function handleVerdictClick(verdict: string) {
+						if (mode === 'diff') {
+							diffModeWarning();
+							return;
+						}
+
 						cell.column.setFilterValue(
 							createNextState(filterValue ?? {}, (draft) => {
 								if (!draft.verdicts) {
@@ -200,6 +220,11 @@ export const getColumns = ({
 					}
 
 					function handleResultClick(result: RESULT_TYPE) {
+						if (mode === 'diff') {
+							diffModeWarning();
+							return;
+						}
+
 						cell.column.setFilterValue(
 							createNextState(filterValue ?? {}, (draft) => {
 								if (
@@ -280,6 +305,11 @@ export const getColumns = ({
 					: parameters;
 
 				function handleParameterClick(value: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
 					column.setFilterValue(
 						filterValue?.includes(value)
 							? filterValue.filter((v) => v !== value)

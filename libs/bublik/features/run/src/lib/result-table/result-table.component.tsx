@@ -197,7 +197,6 @@ export const ResultTable = memo(
 
 										if (nextMode === 'diff') setColumnFilters([]);
 									}}
-									disabled
 								>
 									<Icon
 										name="SwapArrows"

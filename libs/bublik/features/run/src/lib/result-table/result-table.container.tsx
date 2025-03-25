@@ -61,18 +61,30 @@ export const ResultTableContainer = ({
 		);
 	}, [requests, values]);
 
-	const setMode = useCallback(
-		(mode: 'default' | 'diff') => updateRowState({ rowId, mode }),
-		[updateRowState, rowId]
-	);
-
 	const showToolbar = useMemo(() => {
+		console.log(rowState?.showToolbar);
 		return rowState?.showToolbar ?? false;
 	}, [rowState?.showToolbar]);
 
+	const setMode = useCallback(
+		(mode: 'default' | 'diff') => {
+			return updateRowState({
+				...rowState,
+				mode,
+				rowId,
+				referenceDiffRowId:
+					mode === 'diff' ? rowState?.referenceDiffRowId : undefined,
+				showToolbar: showToolbar
+			});
+		},
+		[rowState, updateRowState, rowId, showToolbar]
+	);
+
 	const setShowToolbar = useCallback(
-		(showToolbar: boolean) => updateRowState({ rowId, showToolbar }),
-		[updateRowState, rowId]
+		(showToolbar: boolean) => {
+			return updateRowState({ ...rowState, showToolbar, rowId });
+		},
+		[updateRowState, rowId, rowState]
 	);
 
 	const getRowProps = useCallback<
@@ -88,6 +100,7 @@ export const ResultTableContainer = ({
 
 					if (rowState?.referenceDiffRowId === row.id) {
 						updateRowState({
+							...rowState,
 							rowId,
 							referenceDiffRowId: undefined,
 							requests: rowState?.requests,
@@ -95,6 +108,7 @@ export const ResultTableContainer = ({
 						});
 					} else {
 						updateRowState({
+							...rowState,
 							rowId,
 							referenceDiffRowId: row.id,
 							requests: rowState?.requests,
@@ -104,13 +118,7 @@ export const ResultTableContainer = ({
 				}
 			};
 		},
-		[
-			rowId,
-			rowState?.mode,
-			rowState?.referenceDiffRowId,
-			rowState?.requests,
-			updateRowState
-		]
+		[rowId, rowState, updateRowState]
 	);
 
 	if (isError) return <div className="">Something went wrong...</div>;
