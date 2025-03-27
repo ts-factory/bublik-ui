@@ -1,7 +1,7 @@
 {
-	"date": "2025.02.28",
-	"summary": "fix(report): [chart] highlight with red color points with `has_error` flag",
-	"revision": "b7eb34ba",
-	"branch": "release-1.3.1",
-	"latestTag": "v1.3.1"
+	"date": "2025.03.27",
+	"summary": "feat(config): get available config types from rest api",
+	"revision": "86ccf09",
+	"branch": "release-1.4.0",
+	"latestTag": "v1.4.0"
 }

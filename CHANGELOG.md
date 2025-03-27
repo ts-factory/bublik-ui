@@ -1,4 +1,29 @@
 
+## [1.4.0](https://github.com/ts-factory/bublik-ui/compare/v1.3.1...v1.4.0) (2025-03-27)
+
+### 🚀 New Feature
+
+* **config:** get available config types from rest api ([86ccf09](https://github.com/ts-factory/bublik-ui/commit/86ccf095eacfe66c3d55fb42c98bb1af3dca7ac4))
+* **history:** [measurements] mark results with `has_error` with green/red marks ([a3321ef](https://github.com/ts-factory/bublik-ui/commit/a3321ef9ed7a16e881d6b1e71b21d27ef9b65ea6))
+* **log:** add artifacts dropdown menu to log page and log preview ([2e7a4ee](https://github.com/ts-factory/bublik-ui/commit/2e7a4eeb3b99b429ab1891d38f6a91e4c3edb40c))
+* **log:** add endpoint to fetch `artifacts.json` ([0565219](https://github.com/ts-factory/bublik-ui/commit/0565219a8e5f4b3226755196b2d7edfdf830808e))
+* **log:** add log-artifacts dropdown menu component ([3353a06](https://github.com/ts-factory/bublik-ui/commit/3353a0683594e6462fef1183bb6ad2621c0c6ade))
+* **ui:** add icon for download ([3b38881](https://github.com/ts-factory/bublik-ui/commit/3b38881a10de1a8c29ae2308d9fbe790db76fa4a))
+
+### 💅 Polish
+
+* **measurements:** remove red and green colors from theme for lines ([ffc8aa9](https://github.com/ts-factory/bublik-ui/commit/ffc8aa94c2e456632b37513cfc167aac865c535f))
+* **report:** chart use empty circle for results without `has_error` ([5ad1d2b](https://github.com/ts-factory/bublik-ui/commit/5ad1d2b191a4069942e31a08c88ae1e925202099))
+
+### 🐛 Bug Fix
+
+* **history:** [linear] reset filters on "Preview" button click ([ed2304b](https://github.com/ts-factory/bublik-ui/commit/ed2304b1a26224b68ee74ed98f351ebb8fa769d4))
+
+### 📦 Chores
+
+* **log:** change button label for viewing legacy log ([057e3db](https://github.com/ts-factory/bublik-ui/commit/057e3dbf890cde3f701979a52053cf621265f7f3))
+* **log:** generate log-artifacts library ([9ace68a](https://github.com/ts-factory/bublik-ui/commit/9ace68a2b8ebc4f85c40498123540b9e23d10370))
+
 ### [1.3.1](https://github.com/ts-factory/bublik-ui/compare/v1.3.0...v1.3.1) (2025-02-28)
 
 ### 🐛 Bug Fix
@@ -1641,4 +1666,3 @@
 * **import:** trim whitespaces from msg query value ([ec9a5b6](#))
 * **import:** ur validationl won't process properly ([0a8f0cb](#))
 * **log:** wrong document title ([92f9b2f](#))
-
