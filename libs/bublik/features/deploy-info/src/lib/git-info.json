@@ -1,7 +1,7 @@
 {
 	"date": "2025.03.27",
-	"summary": "feat(config): get available config types from rest api",
-	"revision": "86ccf09",
-	"branch": "release-1.4.0",
-	"latestTag": "v1.4.0"
+	"summary": "feat(run): re-enable parameters diff mode",
+	"revision": "9c7da00",
+	"branch": "main",
+	"latestTag": "v1.5.0"
 }

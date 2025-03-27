@@ -1,4 +1,36 @@
 
+## [1.5.0](https://github.com/ts-factory/bublik-ui/compare/v1.4.0...v1.5.0) (2025-03-27)
+
+### ⚠ BREAKING CHANGES
+
+* **run:** add migration for url query expanded state
+
+### 🚀 New Feature
+
+* add query delimiter to global config ([d7d8fae](https://github.com/ts-factory/bublik-ui/commit/d7d8fae798ce279687f3e83f9c287237aeca3bd9))
+* **run:** add global url requirements filter provider ([22b1201](https://github.com/ts-factory/bublik-ui/commit/22b120125d7edab39156cceb18f6f15a9b35aff3))
+* **run:** add requirements filter ([c54fcab](https://github.com/ts-factory/bublik-ui/commit/c54fcabe677b98a54b29730c83e0638d91dc451c))
+* **run:** re-enable parameters diff mode ([9c7da00](https://github.com/ts-factory/bublik-ui/commit/9c7da003f45cd61ef1ca7204ed024c6813a29f42))
+
+### 💅 Polish
+
+* **run:** adjust offsets for results table toolbar ([65c95c1](https://github.com/ts-factory/bublik-ui/commit/65c95c184cc576261e1ee76bb6f69331ef49908c))
+* **run:** change button style to show result filters toolbar ([a3f0a78](https://github.com/ts-factory/bublik-ui/commit/a3f0a78912d02f06b4f424eb2962c42a4fd0fb4a))
+
+### ♻ Code Refactoring
+
+* **api:** change API for fetching runs ([12851cc](https://github.com/ts-factory/bublik-ui/commit/12851cc07cbc5a7a5f59605eff186f8a5909b7ae))
+* **run:** add `abnormal` to unexpected columns for expansion ([a4ffac0](https://github.com/ts-factory/bublik-ui/commit/a4ffac048a07cf22aa9da6b09e8d97bcfdebb452))
+* **run:** add migration for url query expanded state ([0b9f3b6](https://github.com/ts-factory/bublik-ui/commit/0b9f3b6ff77a1e7442cb9fce415cf8ee47aeb7a4))
+* **run:** adjust getting row id ([9fbd4a3](https://github.com/ts-factory/bublik-ui/commit/9fbd4a3f3160e50c8e1ad622183829758dbb9b4d))
+* **run:** show filter options based on filtered data ([c3c66b1](https://github.com/ts-factory/bublik-ui/commit/c3c66b11aaea1a164357c8eb17661098a1e336a5))
+
+### 📦 Chores
+
+* **run:** fix types and some style changes ([04e7977](https://github.com/ts-factory/bublik-ui/commit/04e7977b4cc91afd5935475fefc9d35a4e83f889))
+* **types:** adjust incorrect types ([81b167f](https://github.com/ts-factory/bublik-ui/commit/81b167faeb88e2b1efc91b5d8952fdbbb983d807))
+* **ui:** extract data table faceted filter to shared lib ([0e977a4](https://github.com/ts-factory/bublik-ui/commit/0e977a482d87bbbb6b56783f24852ae5cfebf887))
+
 ## [1.4.0](https://github.com/ts-factory/bublik-ui/compare/v1.3.1...v1.4.0) (2025-03-27)
 
 ### 🚀 New Feature
@@ -1666,3 +1698,4 @@
 * **import:** trim whitespaces from msg query value ([ec9a5b6](#))
 * **import:** ur validationl won't process properly ([0a8f0cb](#))
 * **log:** wrong document title ([92f9b2f](#))
+
