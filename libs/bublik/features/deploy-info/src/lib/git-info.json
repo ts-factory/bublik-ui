@@ -1,7 +1,7 @@
 {
-	"date": "2025.03.27",
-	"summary": "feat(run): re-enable parameters diff mode",
-	"revision": "9c7da00",
-	"branch": "main",
-	"latestTag": "v1.5.0"
+	"date": "2025.04.04",
+	"summary": "chore(import): make 'importruns' default facility",
+	"revision": "9f6fa6d",
+	"branch": "release-1.6.0",
+	"latestTag": "v1.6.0"
 }
