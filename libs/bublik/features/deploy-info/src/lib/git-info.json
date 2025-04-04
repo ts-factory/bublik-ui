@@ -1,7 +1,7 @@
 {
 	"date": "2025.04.04",
-	"summary": "chore(import): make 'importruns' default facility",
-	"revision": "9f6fa6d",
-	"branch": "release-1.6.0",
-	"latestTag": "v1.6.0"
+	"summary": "fix(import): don't modify response from API",
+	"revision": "aa96896",
+	"branch": "release-1.6.1",
+	"latestTag": "v1.6.1"
 }

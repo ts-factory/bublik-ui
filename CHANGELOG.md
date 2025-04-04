@@ -1,3 +1,9 @@
+### [1.6.1](https://github.com/ts-factory/bublik-ui/compare/v1.6.0...v1.6.1) (2025-04-04)
+
+### 🐛 Bug Fix
+
+- **import:** don't modify response from API ([aa96896](https://github.com/ts-factory/bublik-ui/commit/aa968966c797c11def219b0c14b8b14b184023e9))
+
 ## [1.6.0](https://github.com/ts-factory/bublik-ui/compare/v1.5.0...v1.6.0) (2025-04-04)
 
 ### 🚀 New Feature
