@@ -92,7 +92,7 @@ export const bublikAPI = createApi({
 	keepUnusedDataFor: getMinutes(15),
 	endpoints: (builder) => ({
 		getShortUrl: builder.query<{ short_url: string }, { url: string }>({
-			query: ({ url }) => `/url_shortner/?url=${encodeURIComponent(url)}`
+			query: ({ url }) => `/url_shortener/?url=${encodeURIComponent(url)}`
 		})
 	})
 })
