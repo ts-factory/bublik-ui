@@ -17,7 +17,7 @@ import { ImportRunFilterForm } from '../import-run-filter-form';
 
 const FilterParams = withDefault(JsonParam, {
 	date: undefined,
-	facility: undefined,
+	facility: 'importruns',
 	msg: undefined,
 	severity: undefined,
 	task_id: undefined,
@@ -49,13 +49,13 @@ const useEventFilters = () => {
 		setParams(
 			{
 				date: undefined,
-				facility: undefined,
+				facility: 'importruns',
 				msg: undefined,
 				severity: undefined,
 				task_id: undefined,
 				url: undefined
 			},
-			'replaceIn'
+			'replace'
 		);
 	};
 
