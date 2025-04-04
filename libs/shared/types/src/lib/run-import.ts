@@ -32,6 +32,8 @@ export const LogQuerySchema = z.object({
 	facility: z.nativeEnum(Facility).optional().or(z.string()),
 	msg: z.preprocess((arg) => (arg ? arg : undefined), z.string().optional()),
 	date: z.date().optional(),
+	page: z.number().optional(),
+	page_size: z.number().optional(),
 	url: z.preprocess(
 		(arg) => (arg ? arg : undefined),
 		z.string().url().optional()
@@ -52,7 +54,10 @@ export type LogEvent = z.infer<typeof LogEventSchema>;
 
 export type LogQuery = z.infer<typeof LogQuerySchema>;
 
-export type LogApiResponse = LogEvent[];
+export type LogApiResponse = {
+	pagination: { count: number };
+	results: LogEvent[];
+};
 
 export type ImportEventResponse = z.infer<
 	typeof ImportRunMutationResponseSchema

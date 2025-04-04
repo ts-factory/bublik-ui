@@ -15,7 +15,6 @@ import { getErrorMessage } from '@/services/bublik-api';
 import { cn, Icon, Pagination, Skeleton } from '@/shared/tailwind-ui';
 
 import { columns } from './import-event-table.columns';
-import { useState, useRef, useEffect } from 'react';
 
 export const ImportEventTableLoading = () => {
 	return (
@@ -81,10 +80,11 @@ export interface ImportEventTableProps {
 	pagination: PaginationState;
 	setPagination: OnChangeFn<PaginationState>;
 	isScrolled: boolean;
+	rowCount: number;
 }
 
 export function ImportEventTable(props: ImportEventTableProps) {
-	const { data, pagination, setPagination, isScrolled } = props;
+	const { data, pagination, setPagination, isScrolled, rowCount } = props;
 
 	const table = useReactTable({
 		state: { pagination },
@@ -93,7 +93,9 @@ export function ImportEventTable(props: ImportEventTableProps) {
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		onPaginationChange: setPagination
+		onPaginationChange: setPagination,
+		rowCount,
+		manualPagination: true
 	});
 
 	return (
@@ -156,7 +158,7 @@ export function ImportEventTable(props: ImportEventTableProps) {
 			</table>
 			<div className="flex items-center justify-center">
 				<Pagination
-					totalCount={data.length}
+					totalCount={rowCount}
 					pageSize={table.getState().pagination.pageSize}
 					onPageChange={(page) => table.setPageIndex(page - 1)}
 					onPageSizeChange={table.setPageSize}

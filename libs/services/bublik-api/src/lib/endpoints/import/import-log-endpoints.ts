@@ -33,8 +33,10 @@ export const importLogEventsEndpoint = {
 				cache: 'no-cache'
 			}),
 			providesTags: [BUBLIK_TAG.importEvents],
-			transformResponse: (response: LogApiResponse) =>
-				response.slice().reverse()
+			transformResponse: (response: LogApiResponse) => ({
+				...response,
+				results: response.results.slice().reverse()
+			})
 		}),
 		importRuns: build.mutation<ImportEventResponse[], ImportRunInput[]>({
 			queryFn: async (runUrls, _api, _extraOptions, baseQuery) => {

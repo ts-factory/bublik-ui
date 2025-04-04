@@ -72,11 +72,18 @@ const useEventFilters = () => {
 export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 	const { query, setQuery, onResetClick } = useEventFilters();
 	const { pagination, setPagination } = useImportLogPagination();
-	const { data, isLoading, error } = useGetImportEventLogQuery(query, {
-		pollingInterval: pagination.pageIndex === 0 ? 5000 : 0,
-		refetchOnFocus: true,
-		refetchOnMountOrArgChange: true
-	});
+	const { data, isLoading, error } = useGetImportEventLogQuery(
+		{
+			...query,
+			page: pagination.pageIndex + 1,
+			page_size: pagination.pageSize
+		},
+		{
+			pollingInterval: pagination.pageIndex === 0 ? 5000 : 0,
+			refetchOnFocus: true,
+			refetchOnMountOrArgChange: true
+		}
+	);
 	const [isScrolled, setIsScrolled] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 
@@ -109,11 +116,12 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 					<ImportEventTableLoading />
 				) : error ? (
 					<ImportEventTableError error={error} />
-				) : data && data.length ? (
+				) : data && data.results.length ? (
 					<ImportEventTable
-						data={data}
+						data={data.results}
 						pagination={pagination}
 						setPagination={setPagination}
+						rowCount={data.pagination.count}
 						isScrolled={isScrolled}
 					/>
 				) : (
