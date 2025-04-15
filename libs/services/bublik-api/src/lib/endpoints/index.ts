@@ -12,3 +12,4 @@ export * from './import';
 export * from './admin-endpoints';
 export * from './report-endpoints';
 export * from './configs-endpoints';
+export * from './project-endpoints';

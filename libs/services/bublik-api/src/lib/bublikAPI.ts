@@ -29,7 +29,8 @@ import {
 	runEndpoints,
 	runsEndpoints,
 	reportEndpoints,
-	configsEndpoints
+	configsEndpoints,
+	projectEndpoints
 } from './endpoints';
 
 const baseQuery = fetchBaseQuery(getAPIConfig());
@@ -107,7 +108,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(authEndpoints)
 	.injectEndpoints(adminUsersEndpoints)
 	.injectEndpoints(reportEndpoints)
-	.injectEndpoints(configsEndpoints);
+	.injectEndpoints(configsEndpoints)
+	.injectEndpoints(projectEndpoints);
 
 export const {
 	// Dashboard
