@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useQueryParam, NumericArrayParam } from 'use-query-params';
 
 import { bublikAPI, Project } from '@/services/bublik-api';
 import {
@@ -21,24 +22,26 @@ import { CreateProjectModal } from '../create-project-modal';
 function ProjectPickerContainer() {
 	const { isSidebarOpen } = useSidebar();
 	const { data, isLoading, error } = bublikAPI.useGetAllProjectsQuery();
-
-	const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
 
+	const [selectedProjectIds = [], setSelectedProjectIds] = useQueryParam(
+		'project',
+		NumericArrayParam
+	);
+
 	const toggleProject = (project: Project) => {
-		setSelectedProjects((prev) => {
-			const isSelected = prev.some((p) => p.id === project.id);
-			if (isSelected) {
-				return prev.filter((p) => p.id !== project.id);
-			}
-			return [...prev, project];
-		});
+		const isSelected = selectedProjectIds?.includes(project.id);
+		if (isSelected) {
+			setSelectedProjectIds(
+				selectedProjectIds?.filter((id) => id !== project.id)
+			);
+		} else {
+			setSelectedProjectIds([...(selectedProjectIds || []), project.id]);
+		}
 	};
 
 	if (isLoading) return null;
-
 	if (error) return null;
-
 	if (!data?.length) return null;
 
 	return (
@@ -89,9 +92,7 @@ function ProjectPickerContainer() {
 					<Separator className="h-px my-1" />
 					<DropdownMenuGroup className="gap-1 flex flex-col">
 						{data.map((project) => {
-							const isSelected = selectedProjects.some(
-								(p) => p.id === project.id
-							);
+							const isSelected = selectedProjectIds?.includes(project.id);
 
 							return (
 								<DropdownMenuCheckboxItem

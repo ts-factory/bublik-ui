@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
 import { Icon, Skeleton } from '@/shared/tailwind-ui';
@@ -9,8 +9,14 @@ import { useConfigPageSearchParams } from '../hooks';
 import { SidebarHeader } from './config-sidebar';
 import { ConfigList } from './config-list.component';
 
-function ConfigsSidebarContainer() {
+interface ConfigsSidebarContainerProps {
+	createProjectButton?: ReactNode;
+}
+
+function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
+	const { createProjectButton } = props;
 	const configsQuery = bublikAPI.useGetListOfConfigsQuery();
+	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { setConfigId, configId, setNewConfigParams } =
 		useConfigPageSearchParams();
 	const prefetchConfigById = bublikAPI.usePrefetch('getConfigById');
@@ -62,6 +68,7 @@ function ConfigsSidebarContainer() {
 				<SidebarHeader
 					onCreateNewConfigClick={handleCreateNewConfigClick}
 					configId={configId}
+					createProjectButton={createProjectButton}
 				/>
 				<div className="flex-1 grid place-items-center">
 					<div className="flex flex-col items-center justify-center flex-1 p-4 text-center">
@@ -86,10 +93,12 @@ function ConfigsSidebarContainer() {
 			<SidebarHeader
 				onCreateNewConfigClick={handleCreateNewConfigClick}
 				configId={configId}
+				createProjectButton={createProjectButton}
 			/>
 			<ConfigList
-				versions={configsQuery.data}
-				isFetching={configsQuery.isFetching}
+				configs={configsQuery.data}
+				projects={projectsQuery.data}
+				isFetching={configsQuery.isFetching || projectsQuery.isFetching}
 				currentConfigId={configId}
 				onConfigClick={setConfigId}
 			/>
