@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { LogPageMode, MeasurementsMode } from '@/shared/types';
 import { Icon } from '@/shared/tailwind-ui';
+import { ProjectPickerContainer } from '@/bublik/features/projects';
 
 import { NavLink, SidebarItem } from '../nav-link';
 import {
@@ -255,6 +256,7 @@ const mainMenu: SidebarItem[] = [
 function MainNavigation() {
 	return (
 		<ul className="flex flex-col gap-3">
+			<ProjectPickerContainer />
 			{mainMenu.map((item) => (
 				<NavLink key={item.label} {...item} />
 			))}
