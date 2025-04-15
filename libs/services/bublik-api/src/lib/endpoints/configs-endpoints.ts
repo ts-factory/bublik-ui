@@ -19,7 +19,7 @@ const CreateConfigBodySchema = z.object({
 	description: z.string(),
 	is_active: z.boolean(),
 	content: z.any(),
-	project: z.number().optional()
+	project: z.number().optional().nullable()
 });
 
 export const ConfigSchemaParamsSchema = z
