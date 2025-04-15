@@ -2,8 +2,8 @@ import { ComponentType } from 'react';
 
 import {
 	bublikAPI,
-	GetLogArtifactByType,
-	LogArtifactType
+	GetLogAttachmentByType,
+	LogAttachmentType
 } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -21,18 +21,18 @@ import {
 	toast
 } from '@/shared/tailwind-ui';
 
-const ArtifactsMap: Record<
-	LogArtifactType,
+const AttachmentsMap: Record<
+	LogAttachmentType,
 	ComponentType<{
-		data: GetLogArtifactByType<LogArtifactType>;
+		data: GetLogAttachmentByType<LogAttachmentType>;
 		baseUrl: string;
 	}>
 > = {
-	text: TextArtifact
+	text: TextAttachment
 };
 
-function handleViewRawArtifact(
-	data: GetLogArtifactByType<'text'>,
+function handleViewRawAttachment(
+	data: GetLogAttachmentByType<'text'>,
 	baseUrl: string
 ) {
 	if (data.view_type === 'inline') {
@@ -53,7 +53,7 @@ function handleViewRawArtifact(
 	return;
 }
 
-async function handleDownloadArtifact(pathOrUri: string, baseUrl: string) {
+async function handleDownloadAttachments(pathOrUri: string, baseUrl: string) {
 	try {
 		let url: string;
 		let filename: string;
@@ -88,15 +88,15 @@ async function handleDownloadArtifact(pathOrUri: string, baseUrl: string) {
 
 		window.URL.revokeObjectURL(downloadUrl);
 	} catch (error) {
-		console.error('Failed to download artifact:', error);
+		console.error('Failed to download attachment:', error);
 	}
 }
 
-function TextArtifact({
+function TextAttachment({
 	data,
 	baseUrl
 }: {
-	data: GetLogArtifactByType<'text'>;
+	data: GetLogAttachmentByType<'text'>;
 	baseUrl: string;
 }) {
 	const viewUrl =
@@ -104,25 +104,25 @@ function TextArtifact({
 			? data.uri
 			: `${baseUrl}/${data.path}`;
 
-	function handleViewArtifactClick() {
+	function handleViewAttachmentClick() {
 		if (data.view_type === 'inline') {
-			handleViewRawArtifact(data, baseUrl);
+			handleViewRawAttachment(data, baseUrl);
 			return;
 		}
 
-		toast.error('No view type for text artifact');
+		toast.error('No view type for text attachment');
 	}
 
-	function handleDownloadArtifactClick() {
+	function handleDownloadAttachmentClick() {
 		if (!data.uri && !data.path) {
 			toast.error('No path or uri to download');
 			return;
 		}
 
-		handleDownloadArtifact(data.uri || data.path || '', baseUrl).catch(
+		handleDownloadAttachments(data.uri || data.path || '', baseUrl).catch(
 			(error) => {
-				console.error('Failed to download artifact:', error);
-				toast.error('Failed to download artifact');
+				console.error('Failed to download attachment:', error);
+				toast.error('Failed to download attachment');
 			}
 		);
 	}
@@ -147,7 +147,7 @@ function TextArtifact({
 						</DropdownMenuItem>
 					) : (
 						<DropdownMenuItem
-							onClick={handleViewArtifactClick}
+							onClick={handleViewAttachmentClick}
 							className="pl-2"
 						>
 							<Icon name="EyeShow" size={20} className="mr-2" />
@@ -156,7 +156,7 @@ function TextArtifact({
 					)}
 					{data.download_enabled ? (
 						<DropdownMenuItem
-							onClick={handleDownloadArtifactClick}
+							onClick={handleDownloadAttachmentClick}
 							className="pl-2"
 						>
 							<Icon name="Download" size={20} className="mr-2" />
@@ -169,18 +169,19 @@ function TextArtifact({
 	);
 }
 
-interface LogArtifactsContainerProps {
+interface LogAttachmentsContainerProps {
 	runId: number;
 	focusId: number | null;
 }
 
-function LogArtifactsContainer({ runId, focusId }: LogArtifactsContainerProps) {
-	const { data, isLoading, error } = bublikAPI.useGetLogArtifactsQuery(
+function LogAttachmentsContainer(props: LogAttachmentsContainerProps) {
+	const { runId, focusId } = props;
+	const { data, isLoading, error } = bublikAPI.useGetLogAttachmentsQuery(
 		focusId ?? runId
 	);
 
 	const isDisabled = error || !data;
-	const artifacts = data?.data.artifacts || [];
+	const attachments = data?.data.attachments || [];
 
 	return (
 		<DropdownMenu>
@@ -199,28 +200,28 @@ function LogArtifactsContainer({ runId, focusId }: LogArtifactsContainerProps) {
 					) : (
 						<Icon name="PaperStack" size={20} className="mr-1.5" />
 					)}
-					Artifacts
+					Attachments
 				</ButtonTw>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" sideOffset={8}>
 				<DropdownMenuLabel className="py-2 text-xs">
-					Artifacts
+					Attachments
 				</DropdownMenuLabel>
 				<Separator className="h-px my-1" />
 
-				{artifacts.length === 0 ? (
-					<DropdownMenuItem disabled>No artifacts available</DropdownMenuItem>
+				{attachments.length === 0 ? (
+					<DropdownMenuItem disabled>No attachments available</DropdownMenuItem>
 				) : (
-					artifacts.map((artifact, idx) => {
-						const Component = ArtifactsMap[artifact.type];
+					attachments.map((attachment, idx) => {
+						const Component = AttachmentsMap[attachment.type];
 
 						if (!Component) return null;
 
 						return (
 							<Component
 								key={idx}
-								data={artifact}
-								baseUrl={data?.artifact_base_url ?? ''}
+								data={attachment}
+								baseUrl={data?.attachments_base_url ?? ''}
 							/>
 						);
 					})
@@ -230,4 +231,4 @@ function LogArtifactsContainer({ runId, focusId }: LogArtifactsContainerProps) {
 	);
 }
 
-export { LogArtifactsContainer };
+export { LogAttachmentsContainer };

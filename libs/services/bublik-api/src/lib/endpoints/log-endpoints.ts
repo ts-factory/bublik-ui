@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 import { createNextState } from '@reduxjs/toolkit';
@@ -25,76 +24,73 @@ import {
 } from '../error-handling';
 import { ResultsAndVerdictsForIteration } from './run-endpoints';
 
-const RawLogArtifact = z.object({
-	type: z.literal('text').describe('type of artifact'),
+const RawLogAttachment = z.object({
+	type: z.literal('text').describe('type of attachment'),
 	view_type: z
 		.literal('inline')
 		.describe('inline means open in new browser tab'),
-	name: z.string().describe('name of artifact'),
+	name: z.string().describe('name of attachment'),
 	description: z
 		.string()
 		.optional()
-		.describe('optional description of artifact'),
+		.describe('optional description of attachment'),
 	download_enabled: z
 		.boolean()
 		.optional()
 		.default(false)
-		.describe('should show button to download artifact'),
+		.describe('should show button to download attachment'),
 	path: z
 		.string()
 		.optional()
-		.describe('path of artifact relative to artifacts.json'),
+		.describe('path of attachment relative to attachments.json'),
 	uri: z
 		.string()
 		.optional()
 		.describe(
-			'uri of artifact, if it is not relative to artifacts.json or external'
+			'uri of attachment, if it is not relative to attachments.json or external'
 		)
 });
 
-const LogArtifact = z.discriminatedUnion('type', [RawLogArtifact]);
+const LogAttachments = z.discriminatedUnion('type', [RawLogAttachment]);
 
-export type LogArtifactType = z.infer<typeof LogArtifact>['type'];
+export type LogAttachmentType = z.infer<typeof LogAttachments>['type'];
 
-export type GetLogArtifactByType<T extends LogArtifactType> = z.infer<
-	typeof LogArtifact
+export type GetLogAttachmentByType<T extends LogAttachmentType> = z.infer<
+	typeof LogAttachments
 > extends { type: T }
-	? z.infer<typeof LogArtifact>
+	? z.infer<typeof LogAttachments>
 	: never;
 
-const ArtifactsSchema = z
+const AttachmentsSchema = z
 	.object({
-		version: z.number().describe('version of artifacts.json'),
-		artifacts: z.array(LogArtifact).describe('list of artifacts')
+		version: z.number().describe('version of attachments.json'),
+		attachments: z.array(LogAttachments).describe('list of attachments')
 	})
-	.describe('artifacts.json schema');
+	.describe('attachments.json schema');
 
-type ArtifactsJsonResponse = {
-	artifact_base_url: string;
-	data: z.infer<typeof ArtifactsSchema>;
+type AttachmentsJsonResponse = {
+	attachments_base_url: string;
+	data: z.infer<typeof AttachmentsSchema>;
 };
 
-const ArtifactsSchemaJson = zodToJsonSchema(ArtifactsSchema);
-console.log(ArtifactsSchemaJson);
-
-function getArtifactBaseUrl(artifactsUrl: string): string {
+function getAttachmentsBaseUrl(attachmentsUrl: string): string {
 	try {
-		const url = new URL(artifactsUrl);
+		const url = new URL(attachmentsUrl);
 
 		if (url.pathname.includes('/proxy/')) {
 			const originalUrl = new URL(url.searchParams.get('url') || '');
-			return originalUrl.href.replace(/\/artifacts\.json$/, '');
+			return originalUrl.href.replace(/\/attachments\.json$/, '');
 		}
 
-		return artifactsUrl.replace(/\/artifacts\.json$/, '');
+		return attachmentsUrl.replace(/\/attachments\.json$/, '');
 	} catch (e) {
-		return artifactsUrl;
+		return attachmentsUrl;
 	}
 }
 
 type LogUrlResponse = {
 	url: string;
-	artifacts_url: string;
+	attachments_url: string;
 };
 
 export const constructJsonUrl = (input: GetLogJsonInputs): string => {
@@ -138,7 +134,7 @@ export const logEndpoints = {
 			HistoryDefaultResultAPIResponse,
 			number | string
 		>({ query: (resultId) => withApiV2(`/results/${resultId}`) }),
-		getLogArtifacts: build.query<ArtifactsJsonResponse, number>({
+		getLogAttachments: build.query<AttachmentsJsonResponse, number>({
 			queryFn: async (id, _api, _extraOptions, baseQuery) => {
 				try {
 					const getUrl = constructJsonUrl({ id });
@@ -168,12 +164,14 @@ export const logEndpoints = {
 						};
 					}
 
-					const artifactsJson = await fetchJson(jsonUrl.data.artifacts_url);
+					const attachmentsJson = await fetchJson(jsonUrl.data.attachments_url);
 
 					return {
 						data: {
-							artifact_base_url: getArtifactBaseUrl(jsonUrl.data.artifacts_url),
-							data: artifactsJson
+							attachments_base_url: getAttachmentsBaseUrl(
+								jsonUrl.data.attachments_url
+							),
+							data: attachmentsJson
 						}
 					};
 				} catch (e) {
