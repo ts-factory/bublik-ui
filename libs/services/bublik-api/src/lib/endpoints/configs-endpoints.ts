@@ -1,13 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { EndpointBuilder } from '@reduxjs/toolkit/query';
+import { z } from 'zod';
 
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
 import { API_REDUCER_PATH } from '../constants';
-import { z } from 'zod';
 
-const ConfigParamsSchema = z.object({ id: z.number() });
+const ConfigParamsSchema = z.object({
+	id: z.number()
+});
 
 type ConfigParams = z.infer<typeof ConfigParamsSchema>;
 
@@ -16,7 +18,8 @@ const CreateConfigBodySchema = z.object({
 	name: z.string().min(1),
 	description: z.string(),
 	is_active: z.boolean(),
-	content: z.any()
+	content: z.any(),
+	project: z.number().optional()
 });
 
 export const ConfigSchemaParamsSchema = z
@@ -50,7 +53,8 @@ const ConfigListResponseSchema = z.object({
 	description: z.string(),
 	is_active: z.boolean(),
 	created: z.string(),
-	version: z.number()
+	version: z.number(),
+	project: z.number().optional()
 });
 
 export type ConfigItem = z.infer<typeof ConfigListResponseSchema>;
@@ -64,6 +68,7 @@ const ConfigSchema = z.object({
 	is_active: z.boolean(),
 	description: z.string(),
 	user: z.number(),
+	project: z.number().optional(),
 	content: z.record(z.unknown())
 });
 
