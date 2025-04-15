@@ -8,6 +8,7 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuPortal,
 	DropdownMenuSeparator,
 	Icon,
 	Separator,
@@ -15,6 +16,7 @@ import {
 	cn,
 	useSidebar
 } from '@/shared/tailwind-ui';
+import { CreateProjectModal } from '../create-project-modal';
 
 function ProjectPickerContainer() {
 	const { isSidebarOpen } = useSidebar();
@@ -33,7 +35,11 @@ function ProjectPickerContainer() {
 		});
 	};
 
-	// if (!data?.length) return null;
+	if (isLoading) return null;
+
+	if (error) return null;
+
+	if (!data?.length) return null;
 
 	return (
 		<DropdownMenu.Root
@@ -62,50 +68,55 @@ function ProjectPickerContainer() {
 					</div>
 				</DropdownMenu.Trigger>
 			</Tooltip>
-			<DropdownMenuContent
-				className={cn(
-					'min-w-[238px] rounded-lg bg-white p-1 shadow-popover z-50',
-					'rdx-state-open:rdx-side-top:animate-slide-down-fade',
-					'rdx-state-open:rdx-side-right:animate-slide-left-fade',
-					'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',
-					'rdx-state-open:rdx-side-left:animate-slide-right-fade',
-					'rdx-state-closed:rdx-side-top:animate-fade-out',
-					'rdx-state-closed:rdx-side-right:animate-fade-out',
-					'rdx-state-closed:rdx-side-bottom:animate-fade-out',
-					'rdx-state-closed:rdx-side-left:animate-fade-out'
-				)}
-				sideOffset={0}
-				onInteractOutside={() => setIsOpen(false)}
-				collisionPadding={8}
-			>
-				<DropdownMenuLabel className="text-md">Projects</DropdownMenuLabel>
-				<Separator className="h-px my-1" />
-				<DropdownMenuGroup className="gap-1 flex flex-col">
-					{SAMPLE_PROJECTS.map((project) => {
-						const isSelected = selectedProjects.some(
-							(p) => p.id === project.id
-						);
-						return (
-							<DropdownMenuCheckboxItem
-								key={project.id}
-								checked={isSelected}
-								className={cn(
-									isSelected &&
-										'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
-								)}
-								onCheckedChange={() => toggleProject(project)}
-							>
-								<span className="truncate text-md">{project.name}</span>
-							</DropdownMenuCheckboxItem>
-						);
-					})}
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem className="pl-2">
-					<Icon name="FilePlus" size={20} className="mr-2" />
-					<span className="text-md">New Project</span>
-				</DropdownMenuItem>
-			</DropdownMenuContent>
+			<DropdownMenuPortal>
+				<DropdownMenuContent
+					className={cn(
+						'min-w-[238px] rounded-lg bg-white p-1 shadow-popover z-40',
+						'rdx-state-open:rdx-side-top:animate-slide-down-fade',
+						'rdx-state-open:rdx-side-right:animate-slide-left-fade',
+						'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',
+						'rdx-state-open:rdx-side-left:animate-slide-right-fade',
+						'rdx-state-closed:rdx-side-top:animate-fade-out',
+						'rdx-state-closed:rdx-side-right:animate-fade-out',
+						'rdx-state-closed:rdx-side-bottom:animate-fade-out',
+						'rdx-state-closed:rdx-side-left:animate-fade-out'
+					)}
+					sideOffset={0}
+					onInteractOutside={() => setIsOpen(false)}
+					collisionPadding={8}
+				>
+					<DropdownMenuLabel className="text-md">Projects</DropdownMenuLabel>
+					<Separator className="h-px my-1" />
+					<DropdownMenuGroup className="gap-1 flex flex-col">
+						{data.map((project) => {
+							const isSelected = selectedProjects.some(
+								(p) => p.id === project.id
+							);
+
+							return (
+								<DropdownMenuCheckboxItem
+									key={project.id}
+									checked={isSelected}
+									className={cn(
+										isSelected &&
+											'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
+									)}
+									onCheckedChange={() => toggleProject(project)}
+								>
+									<span className="truncate text-md">{project.name}</span>
+								</DropdownMenuCheckboxItem>
+							);
+						})}
+					</DropdownMenuGroup>
+					<DropdownMenuSeparator />
+					<CreateProjectModal>
+						<DropdownMenuItem className="pl-2">
+							<Icon name="FilePlus" size={20} className="mr-2" />
+							<span className="text-md">New Project</span>
+						</DropdownMenuItem>
+					</CreateProjectModal>
+				</DropdownMenuContent>
+			</DropdownMenuPortal>
 		</DropdownMenu.Root>
 	);
 }
