@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
-import { bublikAPI } from '@/services/bublik-api';
+import { bublikAPI, Project } from '@/services/bublik-api';
 import {
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
@@ -15,17 +15,6 @@ import {
 	cn,
 	useSidebar
 } from '@/shared/tailwind-ui';
-
-interface Project {
-	id: string;
-	name: string;
-}
-
-const SAMPLE_PROJECTS: Project[] = [
-	{ id: '1', name: 'Project A' },
-	{ id: '2', name: 'Project B' },
-	{ id: '3', name: 'Project C' }
-];
 
 function ProjectPickerContainer() {
 	const { isSidebarOpen } = useSidebar();
@@ -43,6 +32,8 @@ function ProjectPickerContainer() {
 			return [...prev, project];
 		});
 	};
+
+	// if (!data?.length) return null;
 
 	return (
 		<DropdownMenu.Root
