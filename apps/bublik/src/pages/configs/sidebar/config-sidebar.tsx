@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ReactNode } from 'react';
+
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
 import {
 	DropdownMenuContent,
@@ -17,10 +19,11 @@ import {
 interface SidebarHeaderProps {
 	configId?: number | null;
 	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
+	createProjectButton?: ReactNode;
 }
 
 function SidebarHeader(props: SidebarHeaderProps) {
-	const { onCreateNewConfigClick, configId } = props;
+	const { onCreateNewConfigClick, configId, createProjectButton } = props;
 	const { data, isLoading, isError } = bublikAPI.useGetConfigTypesQuery();
 
 	return (
@@ -35,6 +38,7 @@ function SidebarHeader(props: SidebarHeaderProps) {
 		>
 			{isLoading ? null : (
 				<div className="flex items-center gap-4">
+					{createProjectButton}
 					<DropdownMenu>
 						<Tooltip content="Create New Config">
 							<DropdownMenuTrigger asChild>
@@ -45,7 +49,7 @@ function SidebarHeader(props: SidebarHeaderProps) {
 									disabled={isError}
 								>
 									<Icon name="FilePlus" className="size-5 mr-1.5" />
-									<span>New</span>
+									<span>New Config</span>
 								</ButtonTw>
 							</DropdownMenuTrigger>
 						</Tooltip>
@@ -54,6 +58,7 @@ function SidebarHeader(props: SidebarHeaderProps) {
 							<DropdownMenuSeparator />
 							{data?.config_types_names.map((params) => (
 								<DropdownMenuItem
+									key={`${params.name}_${params.type}`}
 									className="pl-2"
 									onSelect={() =>
 										onCreateNewConfigClick?.({
