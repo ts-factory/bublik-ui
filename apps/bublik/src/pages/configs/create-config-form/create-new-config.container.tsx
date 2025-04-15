@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 
+import { useConfirm } from '@/shared/hooks';
 import { bublikAPI, ConfigExistsError } from '@/services/bublik-api';
 import {
 	Input,
@@ -33,7 +34,6 @@ import {
 	ValidJsonStringSchema
 } from '../utils';
 import { ConfigEditor } from '../components/editor.component';
-import { useConfirm } from '@/shared/hooks';
 
 const CreateConfigSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(32, 'Name is too long'),
