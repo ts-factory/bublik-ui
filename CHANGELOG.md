@@ -1,3 +1,12 @@
+
+
+## [1.7.0](https://github.com/ts-factory/bublik-ui/compare/v1.6.1...v1.7.0) (2025-04-16)
+
+
+### ♻ Code Refactoring
+
+* **logs:** rename 'Artifacts' to 'Attachments' ([07d5667](https://github.com/ts-factory/bublik-ui/commit/07d566768c125b8d4976d9e7cb54b5a7779721c8))
+
 ### [1.6.1](https://github.com/ts-factory/bublik-ui/compare/v1.6.0...v1.6.1) (2025-04-04)
 
 ### 🐛 Bug Fix

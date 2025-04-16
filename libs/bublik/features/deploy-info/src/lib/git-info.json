@@ -1,7 +1,7 @@
 {
-	"date": "2025.04.04",
-	"summary": "fix(import): don't modify response from API",
-	"revision": "aa96896",
-	"branch": "release-1.6.1",
-	"latestTag": "v1.6.1"
+	"date": "2025.04.16",
+	"summary": "refactor(logs): rename 'Artifacts' to 'Attachments'",
+	"revision": "07d5667",
+	"branch": "main",
+	"latestTag": "v1.7.0"
 }
