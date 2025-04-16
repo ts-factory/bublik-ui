@@ -23,7 +23,11 @@ const CreateConfigBodySchema = z.object({
 });
 
 export const ConfigSchemaParamsSchema = z
-	.object({ type: z.string(), name: z.string().min(1).optional() })
+	.object({
+		type: z.string(),
+		name: z.string().min(1).optional(),
+		project: z.number().optional()
+	})
 	.or(z.object({ type: z.string() }));
 
 export type ConfigSchemaParams = z.infer<typeof ConfigSchemaParamsSchema>;
@@ -150,7 +154,9 @@ export const configsEndpoints = {
 			query: (params) => ({
 				url: withApiV2(
 					`/config/schema/?${new URLSearchParams(
-						Object.entries(params)
+						Object.fromEntries(
+							Object.entries(params).map(([key, value]) => [key, String(value)])
+						)
 					).toString()}`,
 					true
 				)
