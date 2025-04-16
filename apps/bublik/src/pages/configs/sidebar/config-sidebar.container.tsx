@@ -101,6 +101,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 				isFetching={configsQuery.isFetching || projectsQuery.isFetching}
 				currentConfigId={configId}
 				onConfigClick={setConfigId}
+				onCreateNewConfigClick={handleCreateNewConfigClick}
 			/>
 		</div>
 	);
