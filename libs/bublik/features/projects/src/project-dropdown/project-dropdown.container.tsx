@@ -2,14 +2,13 @@ import { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useQueryParam, NumericArrayParam } from 'use-query-params';
 
-import { bublikAPI, Project } from '@/services/bublik-api';
+import { bublikAPI } from '@/services/bublik-api';
 import {
-	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuPortal,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuSeparator,
 	Icon,
 	Separator,
@@ -17,11 +16,15 @@ import {
 	cn,
 	useSidebar
 } from '@/shared/tailwind-ui';
-import { CreateProjectModal } from '../create-project-modal';
+// import { CreateProjectModal } from '../create-project-modal';
 
 function ProjectPickerContainer() {
 	const { isSidebarOpen } = useSidebar();
-	const { data, isLoading, error } = bublikAPI.useGetAllProjectsQuery();
+	const {
+		data: projects,
+		isLoading,
+		error
+	} = bublikAPI.useGetAllProjectsQuery();
 	const [isOpen, setIsOpen] = useState(false);
 
 	const [selectedProjectIds = [], setSelectedProjectIds] = useQueryParam(
@@ -29,20 +32,20 @@ function ProjectPickerContainer() {
 		NumericArrayParam
 	);
 
-	const toggleProject = (project: Project) => {
-		const isSelected = selectedProjectIds?.includes(project.id);
-		if (isSelected) {
-			setSelectedProjectIds(
-				selectedProjectIds?.filter((id) => id !== project.id)
-			);
+	const handleValueChange = (projectId: string) => {
+		if (projectId === '') {
+			setSelectedProjectIds([]);
 		} else {
-			setSelectedProjectIds([...(selectedProjectIds || []), project.id]);
+			setSelectedProjectIds([parseInt(projectId, 10)]);
 		}
 	};
 
 	if (isLoading) return null;
 	if (error) return null;
-	if (!data?.length) return null;
+	if (!projects?.length) return null;
+
+	const currentValue =
+		selectedProjectIds?.length === 1 ? selectedProjectIds[0]?.toString() : '';
 
 	return (
 		<DropdownMenu.Root
@@ -90,32 +93,44 @@ function ProjectPickerContainer() {
 				>
 					<DropdownMenuLabel className="text-md">Projects</DropdownMenuLabel>
 					<Separator className="h-px my-1" />
-					<DropdownMenuGroup className="gap-1 flex flex-col">
-						{data.map((project) => {
+					<DropdownMenuRadioGroup
+						value={currentValue}
+						onValueChange={handleValueChange}
+						className="gap-1 flex flex-col"
+					>
+						<DropdownMenuRadioItem
+							value=""
+							className={cn(
+								!selectedProjectIds?.length &&
+									'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
+							)}
+						>
+							<span className="truncate text-md">All</span>
+						</DropdownMenuRadioItem>
+						{projects.map((project) => {
 							const isSelected = selectedProjectIds?.includes(project.id);
 
 							return (
-								<DropdownMenuCheckboxItem
+								<DropdownMenuRadioItem
 									key={project.id}
-									checked={isSelected}
+									value={project.id.toString()}
 									className={cn(
 										isSelected &&
 											'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
 									)}
-									onCheckedChange={() => toggleProject(project)}
 								>
 									<span className="truncate text-md">{project.name}</span>
-								</DropdownMenuCheckboxItem>
+								</DropdownMenuRadioItem>
 							);
 						})}
-					</DropdownMenuGroup>
+					</DropdownMenuRadioGroup>
 					<DropdownMenuSeparator />
-					<CreateProjectModal>
+					{/* <CreateProjectModal>
 						<DropdownMenuItem className="pl-2">
 							<Icon name="FilePlus" size={20} className="mr-2" />
 							<span className="text-md">New Project</span>
 						</DropdownMenuItem>
-					</CreateProjectModal>
+					</CreateProjectModal> */}
 				</DropdownMenuContent>
 			</DropdownMenuPortal>
 		</DropdownMenu.Root>
