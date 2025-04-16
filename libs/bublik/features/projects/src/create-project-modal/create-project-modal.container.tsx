@@ -19,7 +19,8 @@ import {
 	DialogTrigger,
 	Input,
 	FormAlertError,
-	DialogPortal
+	DialogPortal,
+	Icon
 } from '@/shared/tailwind-ui';
 
 interface CreateProjectModalProps {
@@ -127,7 +128,10 @@ type CreateProjectButtonProps = ComponentProps<typeof ButtonTw>;
 function CreateProjectButton(props: CreateProjectButtonProps) {
 	return (
 		<CreateProjectModal>
-			<ButtonTw {...props}>Create Project</ButtonTw>
+			<ButtonTw {...props}>
+				<Icon name="FilePlus" className="size-5 mr-1.5" />
+				<span>New Project</span>
+			</ButtonTw>
 		</CreateProjectModal>
 	);
 }
