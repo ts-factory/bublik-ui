@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { type LinkProps, Link } from 'react-router-dom';
+import { type LinkProps, Link, useSearchParams } from 'react-router-dom';
 
 import {
 	Icon,
@@ -101,6 +101,21 @@ export type NavLinkExternal = NavLinkCommon & {
 export type NavLinkProps = NavLinkInternal | NavLinkExternal;
 export type AccordionLinkProps = NavLinkInternal | NavLinkExternal;
 
+function useGetSearchWithProject(to: { pathname: string; search: string }) {
+	const project = useSearchParams()[0].get('project');
+	let fSearch = '';
+	if (project) {
+		const params = new URLSearchParams(to.search);
+		params.set('project', project);
+		fSearch = `?${params.toString()}`;
+	}
+
+	return {
+		pathname: to.pathname,
+		search: fSearch
+	};
+}
+
 export const isExternalLink = (
 	props: NavLinkProps | AccordionLinkProps
 ): props is NavLinkExternal => {
@@ -111,9 +126,10 @@ export const NavLink = (props: NavLinkProps) => {
 	const { label, icon, subitems = [], whenMatched, dialogContent } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const { isActive, to: finalTo } = useNavLink(
+	const { isActive, to } = useNavLink(
 		isExternalLink(props) ? undefined : props
 	);
+	const finalTo = useGetSearchWithProject(to);
 
 	const hasSubitems = subitems.length > 0;
 
@@ -279,13 +295,12 @@ const AccordionLink = (props: AccordionLinkProps) => {
 	const { label, icon, whenMatched, dialogContent } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const {
-		to: matchTo,
-		isActive,
-		isPathMatch
-	} = useAccordionLink(isExternalLink(props) ? undefined : props);
+	const { to, isActive, isPathMatch } = useAccordionLink(
+		isExternalLink(props) ? undefined : props
+	);
 	const matchedOneTime = useRef(false);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const matchTo = useGetSearchWithProject(to);
 
 	useEffect(() => {
 		if (isActive) matchedOneTime.current = true;

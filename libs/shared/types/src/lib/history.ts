@@ -40,6 +40,7 @@ export type HistoryAPIBackendQuery = {
 
 	page?: string;
 	pageSize?: string;
+	projects?: number[];
 };
 
 export type HistoryAPIQuery = {
@@ -70,6 +71,7 @@ export type HistoryAPIQuery = {
 
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
+	project?: string;
 };
 
 export type HistorySearchParams = HistoryAPIQuery & {
