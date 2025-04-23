@@ -4,7 +4,12 @@ import { useMemo, useState } from 'react';
 import { groupBy } from 'remeda';
 
 import { ConfigItem, Project, ConfigSchemaParams } from '@/services/bublik-api';
-import { cn, Icon } from '@/shared/tailwind-ui';
+import { cn, ConfirmDialog, Icon } from '@/shared/tailwind-ui';
+import {
+	useDeleteProject,
+	UpdateProjectModal
+} from '@/bublik/features/projects';
+import { useConfirm } from '@/shared/hooks';
 
 import { formatTimeV } from '../utils';
 import { InactiveBadge } from '../components/badges.component';
@@ -12,24 +17,10 @@ import { DEFAULT_PROJECT_NAME } from '../constants';
 
 type GroupedConfigs = { [key: string]: ConfigItem[] };
 
-interface GroupState {
-	[key: string]: boolean;
-}
-
 const REQUIRED_GLOBAL_CONFIGS = [
 	{ type: 'global', name: 'per_conf' },
 	{ type: 'global', name: 'references' }
-] as const;
-
-function getInitialGroupState(projects: Project[]) {
-	const initialState: GroupState = {};
-
-	[DEFAULT_PROJECT_NAME, ...projects.map((p) => p.name)].forEach(
-		(projectName) => (initialState[projectName] = true)
-	);
-
-	return initialState;
-}
+];
 
 interface ConfigListProps {
 	configs?: ConfigItem[];
@@ -44,15 +35,11 @@ function ConfigList(props: ConfigListProps) {
 	const {
 		configs = [],
 		projects = [],
-		currentConfigId,
 		isFetching,
+		currentConfigId,
 		onConfigClick,
 		onCreateNewConfigClick
 	} = props;
-
-	const [groupState, setGroupState] = useState<GroupState>(
-		getInitialGroupState(projects)
-	);
 
 	const groupedByProject = useMemo(() => {
 		const defaultConfigs = configs.filter((config) => !config.project);
@@ -80,20 +67,11 @@ function ConfigList(props: ConfigListProps) {
 		return groupedByProject;
 	}, [configs, projects]);
 
-	const toggleProject = (projectName: string) => {
-		setGroupState((prev) => ({
-			...prev,
-			[projectName]: !prev[projectName]
-		}));
-	};
-
 	return (
 		<div
 			className={cn('flex flex-col overflow-auto', isFetching && 'opacity-40')}
 		>
 			{Object.entries(groupedByProject).map(([projectName, projectConfigs]) => {
-				const isProjectOpen = groupState[projectName];
-
 				const sortedConfigs = [...projectConfigs].sort((a, b) => {
 					if (a.type === 'global' && b.type !== 'global') return -1;
 					if (a.type !== 'global' && b.type === 'global') return 1;
@@ -113,58 +91,132 @@ function ConfigList(props: ConfigListProps) {
 						? projects.find((p) => p.name === projectName)?.id
 						: undefined;
 
-				return (
-					<div
-						key={projectName}
-						className={cn(
-							'border-border-primary last:border-b-0',
-							isProjectOpen && 'border-b'
-						)}
-					>
-						<button
-							onClick={() => toggleProject(projectName)}
-							className="w-full flex items-center justify-between border-b border-border-primary px-4 py-2 hover:bg-primary-wash"
-						>
-							<div className="flex items-center gap-2">
-								<Icon name="Folder" size={20} />
-								<span className="font-semibold text-sm">{projectName}</span>
-							</div>
-							<Icon
-								name={'ChevronDown'}
-								size={18}
-								className={cn('text-text-menu', isProjectOpen && 'rotate-180')}
-							/>
-						</button>
+				if (!projectId) return null;
 
-						{isProjectOpen && (
-							<ul>
-								{sortedConfigs.map((config) => (
-									<ConfigListItem
-										key={config.id}
-										config={config}
-										isActive={currentConfigId === config.id}
-										onClick={onConfigClick}
-									/>
-								))}
-								{missingGlobalConfigs.map((config) => (
-									<GhostConfigItem
-										key={`${config.type}-${config.name}`}
-										type={config.type}
-										name={config.name}
-										onClick={() =>
-											onCreateNewConfigClick?.({
-												type: config.type,
-												name: config.name,
-												project: projectId
-											})
-										}
-									/>
-								))}
-							</ul>
-						)}
-					</div>
+				return (
+					<ProjectCard
+						key={projectId}
+						id={projectId}
+						name={projectName}
+						configs={sortedConfigs}
+						missingConfigs={missingGlobalConfigs}
+						activeConfigId={currentConfigId}
+						onConfigClick={onConfigClick}
+						onCreateNewConfigClick={onCreateNewConfigClick}
+					/>
 				);
 			})}
+		</div>
+	);
+}
+
+interface ProjectCardProps {
+	id: number;
+	name: string;
+	configs: ConfigItem[];
+	missingConfigs: typeof REQUIRED_GLOBAL_CONFIGS;
+	onConfigClick?: (id: number) => void;
+	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
+	activeConfigId?: number | null;
+}
+
+function ProjectCard(props: ProjectCardProps) {
+	const {
+		id,
+		name,
+		configs,
+		missingConfigs,
+		onConfigClick,
+		onCreateNewConfigClick,
+		activeConfigId
+	} = props;
+	const [open, setOpen] = useState(true);
+	const { confirmation, confirm, decline, isVisible } = useConfirm();
+	const { deleteProject: _deleteProject } = useDeleteProject({ id });
+
+	async function deleteProject() {
+		const isConfirmed = await confirmation();
+		if (!isConfirmed) return;
+		_deleteProject();
+	}
+
+	return (
+		<div
+			className={cn(
+				'border-border-primary last:border-b-0',
+				open && 'border-b'
+			)}
+		>
+			<ConfirmDialog
+				open={isVisible}
+				title="Delete Project"
+				description="Do you want to delete project?"
+				onCancelClick={decline}
+				onConfirmClick={confirm}
+			/>
+			<div className="w-full flex items-center border-b border-border-primary hover:bg-primary-wash">
+				<button
+					className="flex items-center gap-2 flex-1 px-4 py-2"
+					onClick={() => setOpen((v) => !v)}
+				>
+					<Icon name="Folder" size={20} />
+					<span className="font-semibold text-sm">{name}</span>
+				</button>
+				<div className="flex items-center gap-0.5">
+					<UpdateProjectModal projectId={id} projectName={name}>
+						<button
+							className={cn(
+								'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
+								'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+							)}
+						>
+							<Icon name="Edit" size={18} />
+						</button>
+					</UpdateProjectModal>
+					<button
+						className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-red-100 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
+						onClick={deleteProject}
+					>
+						<Icon name="Bin" size={18} />
+					</button>
+					<button className="pr-4 py-2" onClick={() => setOpen((v) => !v)}>
+						<Icon
+							name={'ChevronDown'}
+							size={18}
+							className={cn('text-text-menu', open && 'rotate-180')}
+						/>
+					</button>
+				</div>
+			</div>
+
+			{open && (
+				<ul>
+					{configs.map((config) => (
+						<ConfigListItem
+							key={config.id}
+							config={config}
+							isActive={activeConfigId === config.id}
+							onClick={onConfigClick}
+						/>
+					))}
+					{missingConfigs.map((config) => {
+						return (
+							<GhostConfigItem
+								key={`${config.type}-${config.name}`}
+								type={config.type}
+								name={config.name}
+								onClick={() =>
+									onCreateNewConfigClick?.({
+										type: config.type,
+										name: config.name,
+										project: id
+									})
+								}
+							/>
+						);
+					})}
+				</ul>
+			)}
 		</div>
 	);
 }
