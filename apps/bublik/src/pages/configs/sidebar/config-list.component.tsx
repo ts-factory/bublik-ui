@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { groupBy } from 'remeda';
 
 import { ConfigItem, Project, ConfigSchemaParams } from '@/services/bublik-api';
@@ -10,14 +10,7 @@ import { formatTimeV } from '../utils';
 import { InactiveBadge } from '../components/badges.component';
 import { DEFAULT_PROJECT_NAME } from '../constants';
 
-interface ConfigListProps {
-	configs?: ConfigItem[];
-	projects?: Project[];
-	isFetching?: boolean;
-	currentConfigId?: number | null;
-	onConfigClick?: (id: number) => void;
-	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
-}
+type GroupedConfigs = { [key: string]: ConfigItem[] };
 
 interface GroupState {
 	[key: string]: boolean;
@@ -28,9 +21,24 @@ const REQUIRED_GLOBAL_CONFIGS = [
 	{ type: 'global', name: 'references' }
 ] as const;
 
-type GroupedConfigs = {
-	[key: string]: ConfigItem[];
-};
+function getInitialGroupState(projects: Project[]) {
+	const initialState: GroupState = {};
+
+	[DEFAULT_PROJECT_NAME, ...projects.map((p) => p.name)].forEach(
+		(projectName) => (initialState[projectName] = true)
+	);
+
+	return initialState;
+}
+
+interface ConfigListProps {
+	configs?: ConfigItem[];
+	projects?: Project[];
+	isFetching?: boolean;
+	currentConfigId?: number | null;
+	onConfigClick?: (id: number) => void;
+	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
+}
 
 function ConfigList(props: ConfigListProps) {
 	const {
@@ -42,37 +50,35 @@ function ConfigList(props: ConfigListProps) {
 		onCreateNewConfigClick
 	} = props;
 
-	const [groupState, setGroupState] = useState<GroupState>(() => {
-		const initialState: GroupState = {};
-		['Default', ...projects.map((p) => p.name)].forEach((projectName) => {
-			initialState[projectName] = true;
+	const [groupState, setGroupState] = useState<GroupState>(
+		getInitialGroupState(projects)
+	);
+
+	const groupedByProject = useMemo(() => {
+		const defaultConfigs = configs.filter((config) => !config.project);
+		const projectConfigs = configs.filter((config) => config.project);
+		const projectMap = new Map<number, string>();
+
+		projects.forEach((project) => projectMap.set(project.id, project.name));
+
+		const groupedByProject: GroupedConfigs = {
+			Default: defaultConfigs,
+			...Object.fromEntries(projects.map((project) => [project.name, []]))
+		};
+
+		Object.entries(
+			groupBy(
+				projectConfigs,
+				(config) => projectMap.get(config.project || 0) || DEFAULT_PROJECT_NAME
+			)
+		).forEach(([projectName, configs]) => {
+			if (projectName in groupedByProject) {
+				groupedByProject[projectName] = configs;
+			}
 		});
-		return initialState;
-	});
 
-	const projectMap = new Map<number, string>();
-	projects.forEach((project) => projectMap.set(project.id, project.name));
-
-	const defaultConfigs = configs.filter((config) => !config.project);
-	const projectConfigs = configs.filter((config) => config.project);
-
-	const groupedByProject: GroupedConfigs = {
-		Default: defaultConfigs,
-		...Object.fromEntries(
-			projects.map((project) => [project.name, [] as ConfigItem[]])
-		)
-	};
-
-	Object.entries(
-		groupBy(
-			projectConfigs,
-			(config) => projectMap.get(config.project || 0) || DEFAULT_PROJECT_NAME
-		)
-	).forEach(([projectName, configs]) => {
-		if (projectName in groupedByProject) {
-			groupedByProject[projectName] = configs;
-		}
-	});
+		return groupedByProject;
+	}, [configs, projects]);
 
 	const toggleProject = (projectName: string) => {
 		setGroupState((prev) => ({
