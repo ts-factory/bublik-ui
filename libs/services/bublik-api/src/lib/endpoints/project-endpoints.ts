@@ -31,7 +31,8 @@ export const projectEndpoints = {
 	) => ({
 		getAllProjects: build.query<Project[], void>({
 			query: () => ({
-				url: withApiV2('/projects')
+				url: withApiV2('/projects'),
+				cache: 'no-cache'
 			}),
 			transformResponse: (v: ProjectResponse[]) =>
 				v.map((v) => ({ id: v.id, name: v.project_name })),
@@ -41,26 +42,33 @@ export const projectEndpoints = {
 			query: (body) => ({
 				url: withApiV2(`/projects`),
 				method: 'POST',
-				body: { project_name: body.name }
+				body: { project_name: body.name },
+				cache: 'no-cache'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config, BUBLIK_TAG.Project]
 		}),
 		deleteProject: build.mutation<unknown, number>({
 			query: (id) => ({
 				url: withApiV2(`/projects/${id}`),
-				method: 'DELETE'
+				method: 'DELETE',
+				cache: 'no-cache'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config, BUBLIK_TAG.Project]
 		}),
-		updateProject: build.mutation<unknown, number>({
-			query: (id) => ({
+		updateProject: build.mutation<unknown, { id: number; name: string }>({
+			query: ({ id, name }) => ({
 				url: withApiV2(`/projects/${id}`),
-				method: 'PATCH'
+				method: 'PATCH',
+				body: { project_name: name },
+				cache: 'no-cache'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config, BUBLIK_TAG.Project]
 		}),
 		getProject: build.query<Project, number>({
-			query: (id) => ({ url: withApiV2(`/projects/${id}`) }),
+			query: (id) => ({
+				url: withApiV2(`/projects/${id}`),
+				cache: 'no-cache'
+			}),
 			transformResponse: (v: ProjectResponse) => ({
 				id: v.id,
 				name: v.project_name
