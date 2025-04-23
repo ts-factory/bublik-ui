@@ -17,6 +17,7 @@ import {
 	usePrefetchNextAndPreviousDay
 } from '../hooks';
 import { renderSubrow } from '../subrow';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 const modeToLayout = new Map<DASHBOARD_MODE | DashboardMode, 'row' | 'column'>([
 	[DASHBOARD_MODE.Rows, 'row'],
@@ -38,8 +39,12 @@ export const DashboardTableContainer = ({
 	const { date, setDate } = useDashboardDate(id);
 	const { isEnabled } = useDashboardReload();
 	const { term } = useDashboardSearchTerm();
+	const { projectIds } = useProjectSearch();
 	const query = useGetDashboardByDateQuery(
-		{ date: date ? formatTimeToAPI(date) : formatTimeToAPI(initialDate) },
+		{
+			date: date ? formatTimeToAPI(date) : formatTimeToAPI(initialDate),
+			projects: projectIds
+		},
 		{
 			pollingInterval: isEnabled ? 30000 : undefined,
 			refetchOnMountOrArgChange: true,

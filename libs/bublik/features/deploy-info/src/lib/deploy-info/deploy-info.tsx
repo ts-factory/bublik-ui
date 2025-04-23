@@ -4,6 +4,7 @@
 import { forwardRef, useMemo } from 'react';
 
 import { getErrorMessage, useGetDeployInfoQuery } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 import { cva, Tooltip } from '@/shared/tailwind-ui';
 import { formatTimeToDot } from '@/shared/utils';
 
@@ -139,7 +140,8 @@ export const DeployInfo = (props: DeployInfoProps) => {
 };
 
 export const DeployInfoContainer = () => {
-	const { data, isLoading } = useGetDeployInfoQuery();
+	const { projectIds } = useProjectSearch();
+	const { data, isLoading } = useGetDeployInfoQuery({ projects: projectIds });
 
 	const backendGitInfo = useMemo(() => {
 		if (!data) return undefined;

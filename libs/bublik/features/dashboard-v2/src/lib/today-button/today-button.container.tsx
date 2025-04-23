@@ -4,6 +4,7 @@ import { addDays } from 'date-fns';
 
 import { ButtonTw, Tooltip } from '@/shared/tailwind-ui';
 import { useGetDashboardByDateQuery } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 import { DASHBOARD_MODE } from '@/shared/types';
 
 import {
@@ -14,7 +15,8 @@ import {
 
 export const TodayButtonContainer = () => {
 	const { mode } = useDashboardModeSearch();
-	const { data } = useGetDashboardByDateQuery();
+	const { projectIds } = useProjectSearch();
+	const { data } = useGetDashboardByDateQuery({ projects: projectIds });
 	const { setDate: setFirstDate } = useDashboardDate(DASHBOARD_TABLE_ID.Main);
 	const { setDate: setSecondDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Secondary

@@ -19,7 +19,8 @@ export type DashboardMode = DASHBOARD_MODE | DashboardModeValue;
 */
 
 export interface DashboardAPIQuery {
-	date: string;
+	date?: string;
+	projects?: number[];
 }
 
 /** Cell context value is used for determining badge color */

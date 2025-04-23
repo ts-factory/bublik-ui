@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { HistoryAPIBackendQuery } from '@/shared/types';
+
 import { searchQueryToBackendQuery } from '../slice/history-slice.utils';
 
 export const useHistoryQuery = () => {

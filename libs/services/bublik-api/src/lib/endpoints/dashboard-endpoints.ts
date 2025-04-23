@@ -45,11 +45,21 @@ export const dashboardEndpoints = {
 			DashboardAPIResponse,
 			DashboardAPIQuery | void
 		>({
-			query: (dateParams) => ({
-				url: withApiV2('/dashboard'),
-				params: dateParams,
-				cache: 'no-cache'
-			}),
+			query: (queryParams) => {
+				let params: Record<string, unknown> | undefined;
+				if (typeof queryParams !== 'undefined') {
+					params = {
+						date: queryParams.date,
+						project: queryParams.projects?.[0]
+					};
+				}
+
+				return {
+					url: withApiV2('/dashboard'),
+					params,
+					cache: 'no-cache'
+				};
+			},
 			providesTags: (_result, _error, arg) => [
 				{ type: BUBLIK_TAG.DashboardData },
 				{ type: BUBLIK_TAG.DashboardData, id: arg?.date }

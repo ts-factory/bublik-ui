@@ -4,6 +4,7 @@ import { addDays } from 'date-fns';
 
 import { DASHBOARD_MODE } from '@/shared/types';
 import { useGetDashboardByDateQuery } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 import { cn } from '@/shared/tailwind-ui';
 
 import {
@@ -28,7 +29,8 @@ const LayoutHandlerLoading = () => {
 export const LayoutHandlerContainer = () => {
 	const modeSettings = useDashboardMode();
 	const dateSearch = useDashboardDate(DASHBOARD_TABLE_ID.Main);
-	const todayQuery = useGetDashboardByDateQuery();
+	const { projectIds } = useProjectSearch();
+	const todayQuery = useGetDashboardByDateQuery({ projects: projectIds });
 
 	if (todayQuery.isLoading || modeSettings.isModeLoading) {
 		return <LayoutHandlerLoading />;
