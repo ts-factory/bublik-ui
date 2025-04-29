@@ -40,10 +40,10 @@ export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
 					animate="visible"
 					exit="exit"
 					transition={transition}
-					className="fixed bottom-4 right-4 bg-white rounded-lg shadow-popover min-w-[360px]"
+					className="fixed bottom-4 right-4 bg-white rounded-lg shadow-popover min-w-[360px] max-h-[90vh] flex flex-col"
 					layout="size"
 				>
-					<div className="flex flex-col gap-2 px-4 pt-2">
+					<div className="flex flex-col gap-2 px-4 pt-2 flex-1 overflow-auto">
 						<SelectedResultList
 							label="Selection"
 							ids={compareIds}
