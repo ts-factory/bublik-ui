@@ -13,16 +13,12 @@ import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
-import {
-	useGetRunDetailsQuery,
-	usePrefetchLogPage
-} from '@/services/bublik-api';
+import { usePrefetchLogPage } from '@/services/bublik-api';
 import { useCopyToClipboard } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
 	Icon,
-	NewBugButton,
 	RunModeToggle,
 	ScrollToTopPage,
 	toast,
@@ -30,6 +26,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
+import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 
 export interface RunHeaderProps {
 	runId: string;
@@ -45,8 +42,6 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 	});
 
 	const handleCopyRunId = () => copy(runId);
-
-	const { data, isLoading, error } = useGetRunDetailsQuery(runId);
 
 	const link = new URL(window.location.href);
 	link.searchParams.delete('rowState');
@@ -75,18 +70,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						isFullMode={isModeFull}
 						onToggleClick={() => setIsModeFull(!isModeFull)}
 					/>
-					<NewBugButton
-						name={data?.main_package ?? ''}
-						link={link.href}
-						path={`/${data?.main_package}`}
-						tags={{
-							branches: data?.branches ?? [],
-							important: data?.important_tags ?? [],
-							specialCategories: data?.special_categories ?? {},
-							revisions: data?.revisions ?? []
-						}}
-						isDisabled={isLoading || Boolean(error)}
-					/>
+					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>

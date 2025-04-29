@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
+import { useMount } from 'react-use';
 
 import {
 	RunTableContainer,
@@ -10,7 +11,6 @@ import {
 	ButtonTw,
 	CardHeader,
 	Icon,
-	NewBugButton,
 	RunModeToggle
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
@@ -18,7 +18,7 @@ import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { useMount } from 'react-use';
+import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 
 function useIsModeFull() {
 	const [isModeFull, setIsModeFull] = useQueryParam('isModeFull', BooleanParam);
@@ -117,7 +117,7 @@ interface RunHeaderDetailsProps {
 }
 
 function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
-	const { data, isLoading, error } = useGetRunDetailsQuery(runId);
+	const { data } = useGetRunDetailsQuery(runId);
 	const [isModeFull, setIsModeFull] = useIsModeFull();
 
 	if (!data) return null;
@@ -145,18 +145,7 @@ function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
 				isFullMode={isModeFull ?? false}
 				onToggleClick={() => setIsModeFull(!isModeFull)}
 			/>
-			<NewBugButton
-				name={data?.main_package ?? ''}
-				link={link.href}
-				path={`/${data?.main_package}`}
-				tags={{
-					branches: data?.branches ?? [],
-					important: data?.important_tags ?? [],
-					specialCategories: data?.special_categories ?? {},
-					revisions: data?.revisions ?? []
-				}}
-				isDisabled={isLoading || Boolean(error)}
-			/>
+			<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 			<CopyShortUrlButtonContainer />
 		</div>
 	);
