@@ -3,6 +3,7 @@
 import { ComponentProps } from 'react';
 
 import {
+	LogTableSchema,
 	RootBlock,
 	RunDetailsAPIResponse,
 	TreeDataAPIResponse
@@ -22,14 +23,18 @@ import {
 	CardHeader,
 	Separator
 } from '@/shared/tailwind-ui';
+import { useLogTableGlobalFilter } from '@/bublik/features/session-log';
 
-type KeyOption<T> = {
-	accessor: keyof T;
-	header: string;
-	linkAccessor?: keyof T;
-	linkTextKey?: keyof T;
-	preformat?: boolean;
-};
+type KeyOption<T extends Record<string, unknown>> = {
+	[K in keyof T]: {
+		accessor: K;
+		header: string;
+		linkAccessor?: keyof T;
+		linkTextKey?: keyof T;
+		preformat?: boolean;
+		cell?: (v: T[K]) => string;
+	};
+}[keyof T];
 
 type BugPropsOptions = {
 	id?: number;
@@ -171,7 +176,11 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 	const rows = objects.map((obj) => {
 		const row = keys.map((key, i) => {
 			let value =
-				obj[key.accessor] !== undefined ? String(obj[key.accessor]) : '';
+				obj[key.accessor] !== undefined
+					? key.cell
+						? String(key.cell(obj[key.accessor]))
+						: String(obj[key.accessor])
+					: '';
 
 			value = escapeMarkdown(value);
 
@@ -194,7 +203,9 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 	return [header, separator, ...rows].join('\n');
 }
 
-function getFormattedMarkdown(options: NewBugButtonProps): string {
+function getFormattedMarkdown(
+	options: NewBugButtonProps & { globalFilter: string[] }
+): string {
 	const DELIMETER = '=';
 	const NAME_VALUE_KEYS = [
 		{ accessor: 'name', header: 'Name' },
@@ -222,6 +233,16 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 		}
 
 		return matches;
+	}
+
+	function flatten(items: LogTableSchema[]): LogTableSchema[] {
+		return items.flatMap((item) => {
+			if (item.children && item.children.length > 0) {
+				return [item, ...flatten(item.children)];
+			} else {
+				return [item];
+			}
+		});
 	}
 
 	try {
@@ -342,12 +363,49 @@ function getFormattedMarkdown(options: NewBugButtonProps): string {
 			);
 		}
 
+		// 8. Filters
+		const filters = options.globalFilter;
+		const filteredLogs = flatten(options?.logs ?? []).filter((v) => {
+			const { entity_name: entityName, user_name: userName } = v;
+
+			if (!filters.length) return true;
+
+			return filters.includes(`${entityName}:${userName}`);
+		});
+
+		if (filters.length) {
+			markdown += '\n\n## Log\n';
+			markdown += `\n${generateMarkdownTable(filteredLogs, [
+				{ header: 'No.', accessor: 'line_number' },
+				{ header: 'Level', accessor: 'level' },
+				{ header: 'Entity Name', accessor: 'entity_name' },
+				{ header: 'User Name', accessor: 'user_name' },
+				{
+					header: 'Timestamp',
+					accessor: 'timestamp',
+					cell: (v) => v.formatted
+				},
+				{
+					header: 'Log Content',
+					accessor: 'log_content',
+					cell: (v) => {
+						return `${v
+							.filter((v) => v.type === 'te-log-table-content-text')
+							.map((v) => v.content)
+							.join('\n')}`.replace(/\n/g, '<br/>');
+					}
+				}
+			])}`;
+		}
+
 		return markdown;
 	} catch (e) {
 		console.error(e);
 		return 'Failed to prepare markdown.\n Please report.';
 	}
 }
+
+const VERDICT_ENTTITY = 'Verdict';
 
 type BugTags = {
 	branches: string[];
@@ -368,18 +426,75 @@ interface NewBugButtonProps {
 	objectives?: string[];
 	artifacts?: string[];
 	lineLink?: string;
+	// Filters
+	logs?: LogTableSchema[];
 }
 
 function NewBugButton(props: NewBugButtonProps) {
 	const [, copy] = useCopyToClipboard();
+	const {
+		filters: options,
+		globalFilter,
+		setGlobalFilter
+	} = useLogTableGlobalFilter({
+		data: props.logs ?? [],
+		getDefaultFilter: (options) => ({
+			levels: options.levels,
+			filters: options.scenarioOptions
+		})
+	});
 
-	const markdown = getFormattedMarkdown(props);
+	const markdown = getFormattedMarkdown({
+		...props,
+		globalFilter: globalFilter.filters
+	});
 
 	const handleBugCopyClick = async () => {
 		await copy(markdown)
 			.then(() => toast.success('Successfully copied!'))
 			.catch(() => toast.error('Failed to copy!'));
 	};
+
+	const scenario = options.scenarioOptions;
+	const filters = globalFilter.filters;
+
+	const isScenarioActive =
+		scenario?.length > 0 &&
+		scenario?.every((filter) => filters.includes(filter));
+	const haveVerdict = !!getVerdictFilter(options.scenarioOptions).length;
+	const isVerdictActive = !!getVerdictFilter(globalFilter.filters).length;
+
+	function getVerdictFilter(options: string[]): string[] {
+		return options.filter((v) => v.split(':')?.[1] === VERDICT_ENTTITY);
+	}
+
+	function handleScenarioClick() {
+		const allScenarioFilters = scenario;
+		const isActive = allScenarioFilters.every((f) => filters.includes(f));
+
+		if (isActive) {
+			const newFilters = filters.filter((f) => !allScenarioFilters.includes(f));
+			setGlobalFilter((v) => ({ ...v, filters: newFilters }));
+		} else {
+			const newFilters = [...new Set([...filters, ...allScenarioFilters])];
+			setGlobalFilter((v) => ({ ...v, filters: newFilters }));
+		}
+	}
+
+	function handleVerdictClick() {
+		const verdictFilters = getVerdictFilter(scenario);
+		const currentFilters = globalFilter.filters;
+		const hasVerdicts = verdictFilters.some((v) => currentFilters.includes(v));
+
+		let newFilters;
+		if (hasVerdicts) {
+			newFilters = currentFilters.filter((f) => !verdictFilters.includes(f));
+		} else {
+			newFilters = [...currentFilters, ...verdictFilters];
+		}
+
+		setGlobalFilter((v) => ({ ...v, filters: newFilters }));
+	}
 
 	return (
 		<DrawerRoot>
@@ -402,7 +517,24 @@ function NewBugButton(props: NewBugButtonProps) {
 							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 								New Bug
 							</span>
-							<Separator orientation="vertical" className="" />
+							<Separator orientation="vertical" className="h-4" />
+							<ButtonTw
+								size="xss"
+								variant="outline"
+								state={isScenarioActive && 'active'}
+								onClick={handleScenarioClick}
+							>
+								#Scenario
+							</ButtonTw>
+							<ButtonTw
+								size="xss"
+								variant="outline"
+								state={isVerdictActive && 'active'}
+								onClick={handleVerdictClick}
+								disabled={!haveVerdict}
+							>
+								#T: Verdict
+							</ButtonTw>
 						</div>
 					}
 					style={{

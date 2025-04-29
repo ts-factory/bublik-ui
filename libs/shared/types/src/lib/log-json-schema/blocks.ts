@@ -233,7 +233,7 @@ export const LogTableDataBaseSchema = z
 	})
 	.describe('Log table data');
 
-type LogTableSchema = z.infer<typeof LogTableDataBaseSchema> & {
+export type LogTableSchema = z.infer<typeof LogTableDataBaseSchema> & {
 	children?: LogTableSchema[];
 };
 
