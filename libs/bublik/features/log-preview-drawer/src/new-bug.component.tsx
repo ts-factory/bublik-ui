@@ -9,12 +9,19 @@ import {
 } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { config } from '@/bublik/config';
-
-import { cn, toast } from '../utils';
-import { DialogOverlay, dialogOverlayStyles } from '../dialog';
-import { ButtonTw } from '../button';
-import { Icon } from '../icon';
-import { DrawerContent, DrawerRoot, DrawerTrigger } from '../drawer';
+import {
+	cn,
+	toast,
+	DialogOverlay,
+	dialogOverlayStyles,
+	ButtonTw,
+	Icon,
+	DrawerContent,
+	DrawerRoot,
+	DrawerTrigger,
+	CardHeader,
+	Separator
+} from '@/shared/tailwind-ui';
 
 type KeyOption<T> = {
 	accessor: keyof T;
@@ -389,14 +396,20 @@ function NewBugButton(props: NewBugButtonProps) {
 					'flex flex-col overflow-hidden max-w-3xl'
 				)}
 			>
-				<h2
-					className="text-[0.875rem] px-4 py-2 leading-[1.125rem] font-semibold"
+				<CardHeader
+					label={
+						<div className="flex items-center gap-2">
+							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+								New Bug
+							</span>
+							<Separator orientation="vertical" className="" />
+						</div>
+					}
 					style={{
-						boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px'
+						boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px',
+						border: 'none'
 					}}
-				>
-					New Bug
-				</h2>
+				/>
 				<div className="overflow-auto px-4 py-6 flex-1">
 					<pre
 						className={cn(
