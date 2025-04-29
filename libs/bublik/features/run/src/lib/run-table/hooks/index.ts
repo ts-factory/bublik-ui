@@ -9,7 +9,6 @@ import {
 	getExpandedUnexpectedState,
 	getRowValues,
 	getUnexpectedGlobalFilter,
-	globalFilterToSort,
 	toggleSubtree,
 	getRootRowId,
 	getPackageIdsWithUnexpected,
@@ -29,7 +28,6 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 
 	const rootRowValues = getRowValues(rowModel.rowsById[rootRowId]);
 	const globalFilter = getUnexpectedGlobalFilter(rootRowValues, rootRowId);
-	const sortingState = globalFilter.map(globalFilterToSort);
 	const { expandAllUnexpected, resetRowState } = useRunTableRowState();
 
 	const expandUnexpected = useCallback(() => {
@@ -54,9 +52,8 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 		table.setGlobalFilter(globalFilter);
 		table.setExpanded(toggleSubtree(true, packageIdsWithUnexpected));
 		table.setExpanded(toggleSubtree(false, allTestIds));
-		table.setSorting(sortingState);
 		resetRowState();
-	}, [globalFilter, resetRowState, sortingState, table]);
+	}, [globalFilter, resetRowState, table]);
 
 	const reset = useCallback(() => {
 		table.setGlobalFilter([]);
