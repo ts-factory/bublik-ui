@@ -5,7 +5,20 @@ import {
 	useGetRunDetailsQuery,
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
-import { getBugProps, NewBugButton } from '@/shared/tailwind-ui';
+import { RootBlock } from '@/shared/types';
+
+import { getBugProps, NewBugButton } from './new-bug.component';
+
+function getLogTablesFromLog(data?: RootBlock) {
+	if (!data) return [];
+
+	return (
+		data?.root
+			.flatMap((d) => d.content)
+			.filter((d) => d.type === 'te-log-table')
+			.flatMap((d) => d.data) ?? []
+	);
+}
 
 interface NewBugProps {
 	runId: number;
@@ -16,8 +29,7 @@ function NewBugContainer(props: NewBugProps) {
 	const { data: details } = useGetRunDetailsQuery(props.runId);
 	const { data: log } = useGetLogJsonQuery({ id: props.resultId });
 	const { data: tree } = useGetTreeByRunIdQuery(String(props.runId));
-
-	console.log(log);
+	const tables = getLogTablesFromLog(log);
 
 	if (!details || !tree || !log) return null;
 
@@ -30,6 +42,7 @@ function NewBugContainer(props: NewBugProps) {
 				tree,
 				details
 			})}
+			logs={tables}
 		/>
 	);
 }
