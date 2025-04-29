@@ -19,17 +19,10 @@ import {
 	DrawerContent,
 	DrawerRoot,
 	DrawerTrigger,
-	getBugProps,
-	Icon,
-	NewBugButton
+	Icon
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
-import {
-	getErrorMessage,
-	useGetLogJsonQuery,
-	useGetRunDetailsQuery,
-	useGetTreeByRunIdQuery
-} from '@/services/bublik-api';
+import { getErrorMessage, useGetLogJsonQuery } from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
 	SessionLoading,
@@ -37,6 +30,8 @@ import {
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
+
+import { NewBugContainer } from './log-preview-new-bug.container';
 
 interface LogPreviewContainerProps {
 	logName?: string;
@@ -117,7 +112,7 @@ function LogPreviewContainer(
 												</ButtonTw>
 											) : null}
 											{resultId && runId ? (
-												<NewBug runId={runId} resultId={resultId} />
+												<NewBugContainer runId={runId} resultId={resultId} />
 											) : null}
 											<DialogClose asChild>
 												<ButtonTw variant={'secondary'} size={'xss'}>
@@ -139,31 +134,6 @@ function LogPreviewContainer(
 				</DialogPortal>
 			) : null}
 		</DrawerRoot>
-	);
-}
-
-interface NewBugProps {
-	runId: number;
-	resultId: number;
-}
-
-function NewBug(props: NewBugProps) {
-	const { data: details } = useGetRunDetailsQuery(props.runId);
-	const { data: log } = useGetLogJsonQuery({ id: props.resultId });
-	const { data: tree } = useGetTreeByRunIdQuery(String(props.runId));
-
-	if (!details || !tree || !log) return null;
-
-	return (
-		<NewBugButton
-			{...getBugProps({
-				runId: props.runId,
-				id: props.resultId ?? Number(props.runId),
-				log,
-				tree,
-				details
-			})}
-		/>
 	);
 }
 
