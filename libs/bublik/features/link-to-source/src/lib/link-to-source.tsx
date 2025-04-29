@@ -6,32 +6,48 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useGetRunSourceQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
-export interface LinkToSourceFeatureProps {
+interface LinkToSourceFeatureProps {
 	runId: string;
 }
 
-export const LinkToSourceContainer: FC<LinkToSourceFeatureProps> = ({
-	runId
-}) => {
+function LinkToSourceContainer({ runId }: LinkToSourceFeatureProps) {
 	const { data, isLoading, isError } = useGetRunSourceQuery(runId ?? skipToken);
-	const to = isError || isLoading ? '' : data?.url || '';
+
+	const url = data?.url ?? null;
+	const hasValidUrl = Boolean(url);
+	const isDisabled = isError || !hasValidUrl;
+	const state = isLoading ? 'loading' : isDisabled ? 'disabled' : 'default';
+
+	const title = isError
+		? 'Error loading source'
+		: !hasValidUrl
+		? 'No source available'
+		: 'View source';
+
+	const iconName = isLoading ? 'ProgressIndicator' : 'BoxArrowRight';
+	const iconClass = isLoading ? 'mr-1.5 animate-spin' : 'mr-1.5';
 
 	return (
 		<ButtonTw
-			asChild
 			size="xss"
 			variant="secondary"
-			state={isLoading ? 'loading' : isError ? 'disabled' : 'default'}
-			disabled={isError}
+			state={state}
+			disabled={isDisabled}
+			asChild
 		>
-			<a href={to}>
-				{isLoading ? (
-					<Icon name="ProgressIndicator" className="mr-1.5 animate-spin" />
-				) : (
-					<Icon name="BoxArrowRight" className="mr-1.5" />
-				)}
-				Source
-			</a>
+			{hasValidUrl && url ? (
+				<a href={url} title={title} target="_blank" rel="noopener noreferrer">
+					<Icon name={iconName} className={iconClass} />
+					Source
+				</a>
+			) : (
+				<span title={title}>
+					<Icon name={iconName} className={iconClass} />
+					Source
+				</span>
+			)}
 		</ButtonTw>
 	);
-};
+}
+
+export { LinkToSourceContainer };
