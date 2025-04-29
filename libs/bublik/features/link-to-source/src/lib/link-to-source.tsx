@@ -1,30 +1,39 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
-
 import { useGetRunSourceQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
-export interface LinkToSourceFeatureProps {
+interface LinkToSourceFeatureProps {
 	runId: string;
 }
 
-export const LinkToSourceContainer: FC<LinkToSourceFeatureProps> = ({
-	runId
-}) => {
+function LinkToSourceContainer({ runId }: LinkToSourceFeatureProps) {
 	const { data, isLoading, isError } = useGetRunSourceQuery(runId ?? skipToken);
-	const to = isError || isLoading ? '' : data?.url || '';
+
+	const hasValidUrl = Boolean(data?.url);
+	const isDisabled = isError || !hasValidUrl;
+	const url = hasValidUrl ? data?.url ?? '#' : '#';
 
 	return (
 		<ButtonTw
-			asChild
 			size="xss"
 			variant="secondary"
-			state={isLoading ? 'loading' : isError ? 'disabled' : 'default'}
-			disabled={isError}
+			state={isLoading ? 'loading' : isDisabled ? 'disabled' : 'default'}
+			disabled={isDisabled}
+			asChild
 		>
-			<a href={to}>
+			<a
+				href={url}
+				onClick={isDisabled ? (e) => e.preventDefault() : undefined}
+				title={
+					isError
+						? 'Error loading source'
+						: !hasValidUrl
+						? 'No source available'
+						: 'View source'
+				}
+			>
 				{isLoading ? (
 					<Icon name="ProgressIndicator" className="mr-1.5 animate-spin" />
 				) : (
@@ -34,4 +43,6 @@ export const LinkToSourceContainer: FC<LinkToSourceFeatureProps> = ({
 			</a>
 		</ButtonTw>
 	);
-};
+}
+
+export { LinkToSourceContainer };
