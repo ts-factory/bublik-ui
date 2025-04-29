@@ -8,18 +8,17 @@ import {
 	ButtonTw,
 	CardHeader,
 	cn,
-	getBugProps,
-	NewBugButton,
 	Resizable,
 	resizableStyles,
 	ScrollToTop
 } from '@/shared/tailwind-ui';
 import {
-	useGetLogJsonQuery,
 	useGetRunDetailsQuery,
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
+import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
+import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 
 import {
 	LinkToHistoryContainer,
@@ -30,7 +29,6 @@ import {
 } from './containers';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
-import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 
 function useLogTitle() {
 	const { runId, focusId } = useLogPage();
@@ -51,26 +49,6 @@ function useLogTitle() {
 			focusedTestName ? `${focusedTestName} - ` : ''
 		}${name} | ${formattedTime} | ${runId} | Log - Bublik`;
 	}, [details, runId, focusId, tree?.tree]);
-}
-
-interface GetFetchOptions {
-	runId?: number | string;
-	focusId: number | null;
-	page: string | null;
-	isShowingRunLog: boolean;
-}
-
-function getFetchOptions({
-	focusId,
-	isShowingRunLog,
-	runId,
-	page
-}: GetFetchOptions) {
-	return isShowingRunLog
-		? { id: runId! }
-		: focusId
-		? { id: focusId, page }
-		: skipToken;
 }
 
 export interface LogFeatureProps {
@@ -126,7 +104,11 @@ function LogFeature(props: LogFeatureProps) {
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />
 							<LinkToSourceContainer runId={runId} />
-							<NewBug />
+							<NewBugContainer
+								key={`${runId}_${focusId}`}
+								resultId={focusId ?? Number(runId)}
+								runId={Number(runId)}
+							/>
 						</div>
 					</CardHeader>
 					<div
@@ -146,30 +128,6 @@ function LogFeature(props: LogFeatureProps) {
 				</main>
 			</div>
 		</>
-	);
-}
-
-function NewBug() {
-	const { focusId, isShowingRunLog, page, runId } = useLogPage();
-
-	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
-	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
-	const { data: log } = useGetLogJsonQuery(
-		getFetchOptions({ runId, focusId, isShowingRunLog, page })
-	);
-
-	if (!details || !tree || !log || !runId) return null;
-
-	return (
-		<NewBugButton
-			{...getBugProps({
-				runId: Number(runId),
-				id: focusId ?? Number(runId),
-				log,
-				tree,
-				details
-			})}
-		/>
 	);
 }
 
