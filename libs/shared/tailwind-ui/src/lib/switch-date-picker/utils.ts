@@ -15,4 +15,4 @@ export const isRangeValue = (
 
 export const isRangePicker = (
 	state: CalendarState | RangeCalendarState
-): state is RangeCalendarState => isRangeValue(state.value);
+): state is RangeCalendarState => 'highlightedRange' in state;
