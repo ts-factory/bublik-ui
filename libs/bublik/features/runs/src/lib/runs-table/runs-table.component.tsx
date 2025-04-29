@@ -85,7 +85,7 @@ const getRowProps: (
 	removeSelection: RunsTableProps['removeSelection']
 ) => TwTableProps<RunsData>['getRowProps'] =
 	(selection, addSelection, removeSelection) => (table, row) => {
-		const MAX_SELECTION_NUMBER = 5;
+		const MAX_SELECTION_NUMBER = 9999;
 		const className = row.getIsSelected()
 			? 'bg-primary-wash border-primary'
 			: '';
