@@ -22,24 +22,28 @@ export const RangeCalendar = (props: RangeCalendarProps<DateValue>) => {
 		useRangeCalendar(props, state, ref);
 
 	return (
-		<div {...calendarProps} ref={ref} className="inline-block overflow-hidden">
+		<div {...calendarProps} ref={ref} className="overflow-hidden">
 			<div className="flex items-center justify-between w-full pb-4">
-				<Button
-					className="transition-colors text-text-menu hover:text-primary"
-					{...prevButtonProps}
-				>
-					<Icon name="ArrowShortTop" className="-rotate-90" />
-				</Button>
+				<div className="w-10 flex justify-center">
+					<Button
+						className="transition-colors text-text-menu hover:text-primary border border-border-primary rounded-md size-7 grid place-items-center"
+						{...prevButtonProps}
+					>
+						<Icon name="ArrowShortTop" size={18} className="-rotate-90" />
+					</Button>
+				</div>
 				<span className="font-semibold">{title}</span>
-				<Button
-					className="transition-colors text-text-menu hover:text-primary"
-					{...nextButtonProps}
-				>
-					<Icon name="ArrowShortTop" className="rotate-90" />
-				</Button>
+				<div className="w-10 flex justify-center">
+					<Button
+						className="transition-colors text-text-menu hover:text-primary border border-border-primary rounded-md size-7 grid place-items-center"
+						{...nextButtonProps}
+					>
+						<Icon name="ArrowShortTop" size={18} className="rotate-90" />
+					</Button>
+				</div>
 			</div>
 
-			<div className="flex gap-8">
+			<div className="flex gap-8 justify-between">
 				<CalendarGrid state={state} />
 				<CalendarGrid state={state} offset={{ months: 1 }} />
 			</div>

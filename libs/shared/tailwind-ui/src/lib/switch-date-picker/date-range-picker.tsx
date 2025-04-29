@@ -178,7 +178,7 @@ export const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
 					</div>
 				</PopoverAnchor>
 				<PopoverContent
-					className="px-8 py-6 bg-white rounded-xl shadow-popover"
+					className="p-4 bg-white rounded-xl shadow-popover"
 					alignOffset={8}
 					onInteractOutside={state.close}
 					onEscapeKeyDown={state.close}

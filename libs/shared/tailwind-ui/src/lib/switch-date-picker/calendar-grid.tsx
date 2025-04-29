@@ -30,11 +30,18 @@ export const CalendarGrid: FC<CalendarGridProps> = ({ state, offset = {} }) => {
 	const weeksInMonth = getWeeksInMonth(state.visibleRange.start, locale);
 
 	return (
-		<table {...gridProps} className="flex-1" cellPadding={0}>
+		<table
+			{...gridProps}
+			className="border-separate border-spacing-0"
+			cellPadding={0}
+		>
 			<thead {...headerProps}>
 				<tr>
 					{weekDays.map((day, index) => (
-						<th key={index} className="text-xs leading-6 text-text-menu">
+						<th
+							key={index}
+							className="text-xs leading-6 p-0 relative text-text-menu"
+						>
 							{day}
 						</th>
 					))}
