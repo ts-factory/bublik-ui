@@ -19,11 +19,11 @@ import {
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 
 import {
 	LinkToHistoryContainer,
 	LinkToMeasurementsContainer,
-	LinkToSourceContainer,
 	LogPickerContainer,
 	TreeContainer
 } from './containers';
