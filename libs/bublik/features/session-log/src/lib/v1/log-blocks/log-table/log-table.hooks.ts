@@ -244,44 +244,62 @@ export const useLogTableDelta = ({ table }: UseLogTableColumnsConfig) => {
 	return { ...deltaApi, ...timestampApi };
 };
 
-interface UseLogTableGlobalFilterConfig {
-	data: LogTableData[];
+function getDefaultFilterValue(options: LogTableFilterOptions) {
+	const initialFilters: string[] = [...options.entitiesFilters];
+
+	if (options.mainEntityFilters) {
+		initialFilters.push(...options.mainEntityFilters);
+	}
+
+	return { levels: options.levels, filters: initialFilters };
 }
 
-export const useLogTableGlobalFilter = ({
-	data
-}: UseLogTableGlobalFilterConfig) => {
-	const filters = useMemo(() => {
-		const scenarioOptions = getScenarioOptions(data);
-		const { mainEntityFilters, entitiesFilters } = getFilters(data);
-		const levels = getLevelOptions(data);
-		const testOptions = getTestFilters(data);
-		const filters: string[] = [];
-		if (mainEntityFilters) filters.push(...mainEntityFilters);
-		filters.push(...entitiesFilters);
+function getFilterOptions(data: LogTableData[]): LogTableFilterOptions {
+	const scenarioOptions = getScenarioOptions(data) ?? [];
+	const { mainEntityFilters = [], entitiesFilters } = getFilters(data);
+	const levels = getLevelOptions(data);
+	const testOptions = getTestFilters(data) ?? [];
+	const filters: string[] = [];
+	if (mainEntityFilters) filters.push(...mainEntityFilters);
+	filters.push(...entitiesFilters);
 
-		return {
-			scenarioOptions,
-			mainEntityFilters,
-			entitiesFilters,
-			levels,
-			filters,
-			testOptions
-		};
-	}, [data]);
+	return {
+		scenarioOptions,
+		mainEntityFilters,
+		entitiesFilters,
+		levels,
+		filters,
+		testOptions
+	};
+}
 
-	const [globalFilter, setGlobalFilter] = useState<LogTableFilterValue>(() => {
-		const initialFilters: string[] = [...filters.entitiesFilters];
+type LogTableFilterOptions = {
+	scenarioOptions: string[];
+	mainEntityFilters: string[];
+	entitiesFilters: string[];
+	levels: string[];
+	filters: string[];
+	testOptions: string[];
+};
 
-		if (filters.mainEntityFilters) {
-			initialFilters.push(...filters.mainEntityFilters);
-		}
+interface UseLogTableGlobalFilterConfig {
+	data: LogTableData[];
+	getDefaultFilter?: (
+		filterOptions: LogTableFilterOptions
+	) => LogTableFilterValue;
+}
 
-		return { levels: filters.levels, filters: initialFilters };
-	});
+function useLogTableGlobalFilter(config: UseLogTableGlobalFilterConfig) {
+	const { data, getDefaultFilter } = config;
+
+	const filters = useMemo(() => getFilterOptions(data), [data]);
+
+	const [globalFilter, setGlobalFilter] = useState<LogTableFilterValue>(
+		getDefaultFilter?.(filters) ?? getDefaultFilterValue(filters)
+	);
 
 	return { filters, globalFilter, setGlobalFilter };
-};
+}
 
 const getInitialExpandedState = (
 	id: string,
@@ -385,3 +403,5 @@ export const useLogTablePaginationProps = ({
 
 	return { paginationProps };
 };
+
+export { useLogTableGlobalFilter };
