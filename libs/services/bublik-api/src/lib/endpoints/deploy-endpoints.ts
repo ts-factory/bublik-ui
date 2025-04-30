@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
-import { MaybePromise } from '@reduxjs/toolkit/dist/query/tsHelpers';
-import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
+import { EndpointBuilder, QueryReturnValue } from '@reduxjs/toolkit/query';
 import { camelizeKeys } from 'humps';
 
 import {
@@ -16,6 +14,7 @@ import {
 import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
+import { MaybePromise } from '../utils';
 
 export const deployEndpoints = {
 	endpoints: (

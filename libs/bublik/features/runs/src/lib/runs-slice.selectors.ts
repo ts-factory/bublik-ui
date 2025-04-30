@@ -1,13 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { createEntityAdapter, createSelector } from '@reduxjs/toolkit';
+import {
+	createEntityAdapter,
+	createSelector,
+	EntityId
+} from '@reduxjs/toolkit';
 
 import type { RunsData } from '@/shared/types';
 import type { BoxValue } from '@/shared/tailwind-ui';
 
 import { type AppStateWithRunsSlice, RUNS_PAGE_SLICE } from './runs-slice';
 
-export const runsAdapter = createEntityAdapter<RunsData>({
+export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()
 });
 

@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
-import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 import { groupBy } from 'remeda';
+import { EndpointBuilder, QueryReturnValue } from '@reduxjs/toolkit/query';
 
 import {
 	RunSourceAPIRResponse,

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useGetRunSourceQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';

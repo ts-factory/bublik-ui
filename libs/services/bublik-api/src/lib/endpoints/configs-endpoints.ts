@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { EndpointBuilder } from '@reduxjs/toolkit/query';
 
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';

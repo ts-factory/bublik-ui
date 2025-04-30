@@ -1,6 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import {
+	createSlice,
+	EntityId,
+	EntityState,
+	PayloadAction
+} from '@reduxjs/toolkit';
 
 import { bublikAPI } from '@/services/bublik-api';
 import { RunsData } from '@/shared/types';
@@ -15,7 +20,7 @@ export interface AppStateWithRunsSlice {
 
 export interface RunsPageSliceState {
 	globalFilter: string[];
-	results: EntityState<RunsData>;
+	results: EntityState<RunsData, EntityId>;
 	rowSelection: string[];
 }
 

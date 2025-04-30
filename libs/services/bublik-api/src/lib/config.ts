@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FetchBaseQueryArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
-import { BaseQueryFn } from '@reduxjs/toolkit/dist/query';
+import { BaseQueryFn, FetchBaseQueryArgs } from '@reduxjs/toolkit/query';
 
 import { config } from '@/bublik/config';
 

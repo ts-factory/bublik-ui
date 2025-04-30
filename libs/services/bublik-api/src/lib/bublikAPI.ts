@@ -6,9 +6,9 @@ import {
 	FetchArgs,
 	fetchBaseQuery,
 	FetchBaseQueryError,
-	FetchBaseQueryMeta
+	FetchBaseQueryMeta,
+	QueryReturnValue
 } from '@reduxjs/toolkit/query/react';
-import { QueryReturnValue } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 
 import { config } from '@/bublik/config';
 

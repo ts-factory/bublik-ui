@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useMemo } from 'react';
 import { stringifySearch } from '@/router';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { buildQuery } from '@/shared/utils';
 import {

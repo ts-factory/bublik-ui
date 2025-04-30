@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect } from 'react';
-import { PrefetchOptions } from '@reduxjs/toolkit/dist/query/core/module';
 import { useDispatch } from 'react-redux';
+import { PrefetchOptions } from '@reduxjs/toolkit/query';
 
 import { bublikAPI } from '../bublikAPI';
 

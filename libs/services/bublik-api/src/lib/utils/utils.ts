@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { decamelizeKeys, OptionOrProcessor } from 'humps';
 
+export type MaybePromise<T> = T | PromiseLike<T>;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const prepareForSend = (queryParams: Record<string, any>) => {
 	const decamelazationParams: OptionOrProcessor = { separator: '_' };

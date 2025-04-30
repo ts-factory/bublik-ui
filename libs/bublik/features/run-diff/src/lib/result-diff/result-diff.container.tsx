@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Row } from '@tanstack/react-table';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useGetResultsTableQuery } from '@/services/bublik-api';
 

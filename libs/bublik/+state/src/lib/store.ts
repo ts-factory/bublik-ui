@@ -24,8 +24,7 @@ export const store = configureStore({
 		getDefaultMiddleware({ serializableCheck: false }).concat(
 			bublikAPI.middleware
 		),
-	devTools: true,
-	enhancers: []
+	devTools: true
 });
 
 export type RootState = ReturnType<typeof store.getState>;
