@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, forwardRef, useRef } from 'react';
+import { forwardRef, useRef } from 'react';
 import { useDateRangePicker, AriaDateRangePickerProps } from 'react-aria';
 import { DateRangePickerState, useDateRangePickerState } from 'react-stately';
 import { mergeRefs } from '@react-aria/utils';
-import { DateValue, getLocalTimeZone, today } from '@internationalized/date';
+import { DateValue } from '@internationalized/date';
 
 import { DateField } from './date-field';
 import {
@@ -16,98 +16,33 @@ import {
 import { RangeCalendar } from './range-calendar';
 import { Button } from './calendar';
 import { cn } from '../utils';
-import { RangeValue } from './utils';
 import { Icon } from '../icon';
+import { DateRange } from './types';
+import { DEFAULT_RANGES } from './constants';
 
-export const DEFAULT_RANGES: DateRange[] = [
-	{
-		label: 'One Week',
-		range: {
-			start: today(getLocalTimeZone()).add({ weeks: -1 }),
-			end: today(getLocalTimeZone())
-		}
-	},
-	{
-		label: 'Two Weeks',
-		range: {
-			start: today(getLocalTimeZone()).add({ weeks: -2 }),
-			end: today(getLocalTimeZone())
-		}
-	},
-	{
-		label: 'One Month',
-		range: {
-			start: today(getLocalTimeZone()).add({ months: -1 }),
-			end: today(getLocalTimeZone())
-		}
-	},
-	{
-		label: 'Three Months',
-		range: {
-			start: today(getLocalTimeZone()).add({ months: -3 }),
-			end: today(getLocalTimeZone())
-		}
-	},
-	{
-		label: 'Six Months',
-		range: {
-			start: today(getLocalTimeZone()).add({ months: -6 }),
-			end: today(getLocalTimeZone())
-		}
-	},
-	{
-		label: 'One Year',
-		range: {
-			start: today(getLocalTimeZone()).add({ years: -1 }),
-			end: today(getLocalTimeZone())
-		}
-	}
-];
-
-export type DateRange = {
-	label: string;
-	range: RangeValue<DateValue>;
-};
-
-export interface DateRangesHelperProps {
-	state: DateRangePickerState;
-	ranges: DateRange[];
-}
-
-const DateRangesHelper: FC<DateRangesHelperProps> = (props) => {
-	const { state, ranges } = props;
-
-	return (
-		<ul className="flex items-center gap-4 mt-4">
-			{ranges.map(({ label, range }) => (
-				<button
-					key={label}
-					type="button"
-					onClick={() => {
-						if (!range) return;
-						state.setDateRange(range);
-					}}
-					className="px-1.5 py-1 text-sm rounded-lg bg-primary-wash border-2 border-transparent hover:border-[#94b0ff] transition-all text-primary"
-				>
-					{label}
-				</button>
-			))}
-		</ul>
-	);
-};
-
-export interface DateRangePickerProps
-	extends AriaDateRangePickerProps<DateValue> {
+type AddedProps = {
 	ranges?: DateRange[];
 	hideLabel?: boolean;
-}
+};
 
-export const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
+type DefaultDateRangePickerProps = AriaDateRangePickerProps<DateValue> &
+	AddedProps & {
+		mode?: 'default';
+	};
+
+type DurationDateRangePickerProps = AriaDateRangePickerProps<DateValue> &
+	AddedProps & {
+		mode?: 'duration';
+	};
+
+export type DateRangePickerProps =
+	| DefaultDateRangePickerProps
+	| DurationDateRangePickerProps;
+
+const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
 	(props, ref) => {
-		const { ranges = DEFAULT_RANGES, ...restProps } = props;
-
 		const groupRef = useRef<HTMLDivElement>(null);
-		const state = useDateRangePickerState(restProps);
+		const state = useDateRangePickerState(props);
 		const {
 			groupProps,
 			labelProps,
@@ -116,7 +51,9 @@ export const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
 			buttonProps,
 			dialogProps,
 			calendarProps
-		} = useDateRangePicker(restProps, state, groupRef);
+		} = useDateRangePicker(props, state, groupRef);
+
+		const ranges = props?.ranges || DEFAULT_RANGES;
 
 		return (
 			<Popover open={state.isOpen}>
@@ -194,3 +131,38 @@ export const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
 		);
 	}
 );
+
+interface DateRangesHelperProps {
+	state: DateRangePickerState;
+	ranges: DateRange[];
+}
+
+function DateRangesHelper(props: DateRangesHelperProps) {
+	const { state, ranges } = props;
+
+	return (
+		<ul className="flex items-center gap-4 mt-4">
+			{ranges.map(({ label, range }) => (
+				<button
+					key={label}
+					type="button"
+					onClick={() => {
+						if (!range) return;
+						state.setDateRange(range);
+					}}
+					className="px-1.5 py-1 text-sm rounded-lg bg-primary-wash border-2 border-transparent hover:border-[#94b0ff] transition-all text-primary"
+				>
+					{label}
+				</button>
+			))}
+		</ul>
+	);
+}
+
+function isDurationRangePicker(
+	props: DateRangePickerProps
+): props is DurationDateRangePickerProps {
+	return props.mode === 'duration';
+}
+
+export { DateRangePicker };
