@@ -215,14 +215,13 @@ export interface CompromisedPostResponse {
 /** Individual info about bugs storage */
 export type CompromisedTagValue = {
 	name: string;
-	uri: string[];
-	aliases?: string[];
+	uri: string;
 };
 
 /** Information about bugs storages */
 export type CompromisedTagsResponse = {
 	/** Keys are bugs storage id and values are meta about storage */
-	logs: Record<string, CompromisedTagValue>;
+	issues: Record<string, CompromisedTagValue>;
 };
 
 /**

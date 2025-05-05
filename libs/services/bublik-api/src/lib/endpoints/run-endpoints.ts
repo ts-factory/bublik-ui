@@ -235,7 +235,7 @@ export const runEndpoints = {
 			}
 		}),
 		getCompromisedTags: build.query<CompromisedTagsResponse, void>({
-			query: () => withApiV2('/outside_domains/logs')
+			query: () => withApiV2('/outside_domains/issues')
 		}),
 		getRunRequirements: build.query<string[], string[] | number[]>({
 			queryFn: async (runId, _api, _extraOptions, fetchWithBQ) => {
