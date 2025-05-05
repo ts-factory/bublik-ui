@@ -236,11 +236,11 @@ export const DefineCompromiseContainer = ({
 	});
 
 	const bugStorageKeys = useMemo<SelectValue[]>(() => {
-		return Object.entries(refData?.logs || {}).map(([key, value]) => ({
+		return Object.entries(refData?.issues || {}).map(([key, value]) => ({
 			value: key,
 			displayValue: value.name
 		}));
-	}, [refData?.logs]);
+	}, [refData?.issues]);
 
 	const initialValues: DefineCompromisedFormValues = useMemo(() => {
 		const bugStorageKey = bugStorageKeys?.[0]?.value ?? '';
