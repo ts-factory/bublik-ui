@@ -16,3 +16,7 @@ type Story = StoryObj<typeof DateRangePicker>;
 export const Primary = {
 	args: {}
 } satisfies Story;
+
+export const DurationBased = {
+	args: {}
+} satisfies Story;
