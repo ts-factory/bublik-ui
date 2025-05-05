@@ -9,6 +9,7 @@ import {
 } from 'react-aria';
 import { CalendarDate, isSameDay, isSameMonth } from '@internationalized/date';
 import { CalendarState, RangeCalendarState } from '@react-stately/calendar';
+
 import { cn, cva } from '../utils';
 import { isRangePicker } from './utils';
 
@@ -57,17 +58,14 @@ const outsideDateStyles = cva({
 	]
 });
 
-export interface CalendarCellProps {
+interface CalendarCellProps {
 	state: CalendarState | RangeCalendarState;
 	date: AriaCalendarCellProps['date'];
 	currentMonth: CalendarDate;
 }
 
-export const CalendarCell = ({
-	state,
-	date,
-	currentMonth
-}: CalendarCellProps) => {
+function CalendarCell(props: CalendarCellProps) {
+	const { state, date, currentMonth } = props;
 	const ref = useRef(null);
 	const { cellProps, buttonProps, isSelected, formattedDate, isDisabled } =
 		useCalendarCell({ date }, state, ref);
@@ -120,4 +118,6 @@ export const CalendarCell = ({
 			</div>
 		</td>
 	);
-};
+}
+
+export { CalendarCell };

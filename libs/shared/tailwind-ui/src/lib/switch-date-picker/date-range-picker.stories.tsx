@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { withBackground } from '../storybook-bg';
 import { DateRangePicker } from './date-range-picker';
+import { getLocalTimeZone, today } from '@internationalized/date';
 
 const Story: Meta<typeof DateRangePicker> = {
 	component: DateRangePicker,
@@ -18,5 +19,8 @@ export const Primary = {
 } satisfies Story;
 
 export const DurationBased = {
-	args: {}
+	args: {
+		mode: 'duration',
+		maxValue: today(getLocalTimeZone())
+	}
 } satisfies Story;

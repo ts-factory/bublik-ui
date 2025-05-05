@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { forwardRef, useRef } from 'react';
+import { forwardRef, Ref, useRef } from 'react';
 import { useDateRangePicker, AriaDateRangePickerProps } from 'react-aria';
 import { DateRangePickerState, useDateRangePickerState } from 'react-stately';
 import { mergeRefs } from '@react-aria/utils';
@@ -39,98 +39,100 @@ export type DateRangePickerProps =
 	| DefaultDateRangePickerProps
 	| DurationDateRangePickerProps;
 
-const DateRangePicker = forwardRef<HTMLDivElement, DateRangePickerProps>(
-	(props, ref) => {
-		const groupRef = useRef<HTMLDivElement>(null);
-		const state = useDateRangePickerState(props);
-		const {
-			groupProps,
-			labelProps,
-			startFieldProps,
-			endFieldProps,
-			buttonProps,
-			dialogProps,
-			calendarProps
-		} = useDateRangePicker(props, state, groupRef);
+function DateRangePicker(
+	props: DateRangePickerProps,
+	ref: Ref<HTMLDivElement>
+) {
+	const groupRef = useRef<HTMLDivElement>(null);
+	const state = useDateRangePickerState(props);
 
-		const ranges = props?.ranges || DEFAULT_RANGES;
+	const {
+		groupProps,
+		labelProps,
+		startFieldProps,
+		endFieldProps,
+		buttonProps,
+		dialogProps,
+		calendarProps
+	} = useDateRangePicker(props, state, groupRef);
 
-		return (
-			<Popover open={state.isOpen}>
-				<PopoverAnchor className="relative flex w-full gap-1">
-					<div className="relative inline-flex flex-col w-full text-left">
-						<span
-							{...labelProps}
+	const ranges = props?.ranges || DEFAULT_RANGES;
+
+	return (
+		<Popover open={state.isOpen}>
+			<PopoverAnchor className="relative flex w-full gap-1">
+				<div className="relative inline-flex flex-col w-full text-left">
+					<span
+						{...labelProps}
+						className={cn(
+							'absolute top-[-11px] left-2 z-10 bg-white font-normal text-text-secondary text-[0.875rem]',
+							props.hideLabel && 'sr-only'
+						)}
+					>
+						{props.label}
+					</span>
+					<div
+						{...groupProps}
+						ref={mergeRefs(groupRef, ref)}
+						className="flex group"
+					>
+						<div
 							className={cn(
-								'absolute top-[-11px] left-2 z-10 bg-white font-normal text-text-secondary text-[0.875rem]',
-								props.hideLabel && 'sr-only'
+								'relative flex items-center w-full h-10 px-2 transition-all bg-white border rounded-md border-border-primary group-hover:border-primary group-focus-within:border-primary group-focus-within:shadow-text-field group-active:shadow-none',
+								state.isOpen && 'border-primary shadow-text-field'
 							)}
 						>
-							{props.label}
-						</span>
-						<div
-							{...groupProps}
-							ref={mergeRefs(groupRef, ref)}
-							className="flex group"
-						>
-							<div
-								className={cn(
-									'relative flex items-center w-full h-10 px-2 transition-all bg-white border rounded-md border-border-primary group-hover:border-primary group-focus-within:border-primary group-focus-within:shadow-text-field group-active:shadow-none',
-									state.isOpen && 'border-primary shadow-text-field'
-								)}
-							>
-								<div className="flex items-center justify-between w-full h-full gap-2">
-									<div className="flex items-center justify-between w-full h-full">
-										<DateField {...startFieldProps} underline />
-										<span aria-hidden="true" className="px-2">
-											–
-										</span>
-										<DateField {...endFieldProps} underline />
-										<div className="flex items-center gap-4 pl-3">
-											{state.isInvalid ? (
-												<PopoverTrigger asChild>
-													<Button {...buttonProps}>
-														<Icon
-															name="TriangleExclamationMark"
-															size={24}
-															className="text-text-unexpected"
-														/>
-													</Button>
-												</PopoverTrigger>
-											) : (
-												<PopoverTrigger asChild>
-													<Button {...buttonProps}>
-														<Icon
-															name="Calendar"
-															className="transition-colors text-text-menu hover:text-primary"
-														/>
-													</Button>
-												</PopoverTrigger>
-											)}
-										</div>
+							<div className="flex items-center justify-between w-full h-full gap-2">
+								<div className="flex items-center justify-between w-full h-full">
+									<DateField {...startFieldProps} underline />
+									<span aria-hidden="true" className="px-2">
+										–
+									</span>
+									<DateField {...endFieldProps} underline />
+									<div className="flex items-center gap-4 pl-3">
+										{state.isInvalid ? (
+											<PopoverTrigger asChild>
+												<Button {...buttonProps}>
+													<Icon
+														name="TriangleExclamationMark"
+														size={24}
+														className="text-text-unexpected"
+													/>
+												</Button>
+											</PopoverTrigger>
+										) : (
+											<PopoverTrigger asChild>
+												<Button {...buttonProps}>
+													<Icon
+														name="Calendar"
+														className="transition-colors text-text-menu hover:text-primary"
+													/>
+												</Button>
+											</PopoverTrigger>
+										)}
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</PopoverAnchor>
-				<PopoverContent
-					className="p-4 bg-white rounded-xl shadow-popover"
-					alignOffset={8}
-					onInteractOutside={state.close}
-					onEscapeKeyDown={state.close}
-					sideOffset={8}
-					{...dialogProps}
-				>
-					<RangeCalendar {...calendarProps} />
-					{ranges && ranges.length ? (
-						<DateRangesHelper state={state} ranges={ranges} />
-					) : null}
-				</PopoverContent>
-			</Popover>
-		);
-	}
-);
+				</div>
+			</PopoverAnchor>
+			<PopoverContent
+				className="p-4 bg-white rounded-xl shadow-popover"
+				alignOffset={8}
+				onInteractOutside={state.close}
+				onEscapeKeyDown={state.close}
+				sideOffset={8}
+				{...dialogProps}
+			>
+				<RangeCalendar {...calendarProps} />
+				{ranges && ranges.length ? (
+					<DateRangesHelper state={state} ranges={ranges} />
+				) : null}
+			</PopoverContent>
+		</Popover>
+	);
+}
 
 interface DateRangesHelperProps {
 	state: DateRangePickerState;
@@ -165,4 +167,6 @@ function isDurationRangePicker(
 	return props.mode === 'duration';
 }
 
-export { DateRangePicker };
+const picker = forwardRef(DateRangePicker);
+
+export { picker as DateRangePicker };
