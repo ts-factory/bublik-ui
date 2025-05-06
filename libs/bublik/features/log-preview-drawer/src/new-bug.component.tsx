@@ -392,7 +392,9 @@ function getFormattedMarkdown(
 						return `${v
 							.filter((v) => v.type === 'te-log-table-content-text')
 							.map((v) => v.content)
-							.join('\n')}`.replace(/\n/g, '<br/>');
+							.join('\n')}`
+							.replace(/\|/g, ' ')
+							.replace(/\n/g, ' ');
 					}
 				}
 			])}`;
