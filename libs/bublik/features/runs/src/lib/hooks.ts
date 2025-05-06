@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useMemo } from 'react';
+import { sub } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
 import { RunsAPIQuery } from '@/shared/types';
+import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 
 import {
 	addToSelection,
@@ -79,16 +81,47 @@ export const useRunsQuery = () => {
 	const [searchParams] = useSearchParams();
 	const { pagination } = useRunsPagination();
 
+	const dates = useMemo(() => {
+		const calendarMode = searchParams.get('calendarMode');
+		const searchDuration = searchParams.get('duration');
+
+		if (calendarMode === 'duration' && searchDuration) {
+			try {
+				const duration = parseISODuration(searchDuration);
+				const endDate = new Date();
+				const startDate = sub(endDate, duration);
+
+				return {
+					startDate: formatTimeToAPI(startDate),
+					finishDate: formatTimeToAPI(endDate)
+				};
+			} catch (_: unknown) {
+				return { startDate: '', finishDate: '' };
+			}
+		}
+
+		return {
+			startDate: searchParams.get('startDate') || '',
+			finishDate: searchParams.get('finishDate') || ''
+		};
+	}, [searchParams]);
+
 	const query = useMemo<RunsAPIQuery>(
 		() => ({
-			startDate: searchParams.get('startDate') || '',
-			finishDate: searchParams.get('finishDate') || '',
+			startDate: dates.startDate,
+			finishDate: dates.finishDate,
 			page: (pagination.pageIndex + 1).toString() || '1',
 			pageSize: pagination.pageSize.toString() || '25',
 			runData: searchParams.get('runData') || '',
 			tagExpr: searchParams.get('tagExpr') || ''
 		}),
-		[pagination.pageIndex, pagination.pageSize, searchParams]
+		[
+			dates.finishDate,
+			dates.startDate,
+			pagination.pageIndex,
+			pagination.pageSize,
+			searchParams
+		]
 	);
 
 	return { query };
