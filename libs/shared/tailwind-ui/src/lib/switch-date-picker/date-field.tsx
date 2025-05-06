@@ -15,6 +15,7 @@ import {
 import { createCalendar, DateValue } from '@internationalized/date';
 
 import { LOCALE } from './utils';
+import { cn } from '../utils';
 
 const getSegmentsInOrder = (segments: DateSegmentType[]): DateSegmentType[] => {
 	const yearSegment = segments.find((segment) => segment.type === 'year');
@@ -94,14 +95,18 @@ const DateSegment: FC<DateSegmentProps> = ({ segment, state }) => {
 						: undefined,
 				textAlign: 'center'
 			}}
-			className={`box-content tabular-nums text-right outline-none rounded-sm focus:bg-primary focus:text-white group ${
-				!segment.isEditable ? 'text-gray-500' : 'text-gray-800'
-			}`}
+			className={cn(
+				'box-content tabular-nums text-right outline-none rounded-sm focus:bg-primary focus:text-white group',
+				!segment.isEditable ? 'text-text-menu' : 'text-text-primary',
+				state.isDisabled
+					? 'text-text-menu cursor-not-allowed'
+					: 'text-text-primary'
+			)}
 		>
 			{/* Always reserve space for the placeholder, to prevent layout shift when editing. */}
 			<span
 				aria-hidden="true"
-				className="block w-full text-[0.875rem] font-medium leading-[1.5rem] text-text-primary  group-focus:text-white"
+				className="block w-full text-[0.875rem] font-medium leading-[1.5rem] group-focus:text-white"
 				style={{
 					visibility: segment.isPlaceholder ? undefined : 'hidden',
 					height: segment.isPlaceholder ? '' : 0,
@@ -113,7 +118,7 @@ const DateSegment: FC<DateSegmentProps> = ({ segment, state }) => {
 			{segment.isPlaceholder ? (
 				''
 			) : (
-				<span className="text-[0.875rem] font-medium leading-[1.5rem] text-text-primary group-focus:text-white">
+				<span className="text-[0.875rem] font-medium leading-[1.5rem] group-focus:text-white">
 					{segment.type === 'literal' ? '.' : segment.text.padStart(2, '0')}
 				</span>
 			)}

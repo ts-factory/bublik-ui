@@ -10,11 +10,10 @@ import {
 
 import { DateRangePickerProps, DateRangePicker } from './date-range-picker';
 
-export interface AriaDateFieldProps<T extends FieldValues>
-	extends DateRangePickerProps {
+export type AriaDateFieldProps<T extends FieldValues> = DateRangePickerProps & {
 	name: Path<T>;
 	control: Control<T, unknown>;
-}
+};
 
 export const AriaDateRangeField = <T extends FieldValues>(
 	props: AriaDateFieldProps<T>
