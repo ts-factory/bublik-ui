@@ -14,6 +14,7 @@ import {
 import { DateValue } from '@internationalized/date';
 
 export interface RunsFormValues {
+	calendarMode: 'default' | 'duration';
 	dates: { start: DateValue; end: DateValue } | null;
 	runData: BoxValue[];
 	tagExpr: string;
@@ -27,12 +28,20 @@ export interface RunsFormProps {
 
 export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 	({ defaultValues, onRunsFormSubmit, onResetFormClick }, ref) => {
-		const { control, register, handleSubmit, reset, getValues } =
-			useForm<RunsFormValues>({ defaultValues });
+		const {
+			control,
+			register,
+			handleSubmit,
+			reset,
+			getValues,
+			watch,
+			setValue
+		} = useForm<RunsFormValues>({ defaultValues });
 
 		const handleResetClick = () => {
 			const resettedForm: RunsFormValues = {
 				dates: null,
+				calendarMode: defaultValues.calendarMode,
 				runData: getValues().runData.map((v) => ({ ...v, isSelected: false })),
 				tagExpr: ''
 			};
@@ -52,7 +61,14 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 						name="dates"
 						control={control}
 						render={({ field }) => (
-							<AriaDateRangePicker hideLabel label="Runs range" {...field} />
+							<AriaDateRangePicker
+								mode={watch('calendarMode')}
+								onModeChange={(mode) => setValue('calendarMode', mode)}
+								label="Runs Range"
+								enabledModes={['default', 'duration']}
+								hideLabel
+								{...field}
+							/>
 						)}
 					/>
 

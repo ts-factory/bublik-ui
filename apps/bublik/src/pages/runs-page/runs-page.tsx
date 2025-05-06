@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useDocumentTitle } from '@/shared/hooks';
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 import {
 	RunsFormContainer,
@@ -9,9 +8,7 @@ import {
 } from '@/bublik/features/runs';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
-export const RunsPage = () => {
-	useDocumentTitle('Runs - Bublik');
-
+function RunsPage() {
 	return (
 		<>
 			<div className="flex flex-col gap-1 p-2">
@@ -25,4 +22,6 @@ export const RunsPage = () => {
 			<SelectionPopoverContainer />
 		</>
 	);
-};
+}
+
+export { RunsPage };
