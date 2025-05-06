@@ -64,6 +64,10 @@ export const useRunsPagination = () => {
 
 				setSearchParams(newSearchParams);
 			}
+
+			document
+				.getElementById('page-container')
+				?.scrollTo({ top: 0, behavior: 'smooth' });
 		},
 		[pagination, searchParams, setSearchParams]
 	);
