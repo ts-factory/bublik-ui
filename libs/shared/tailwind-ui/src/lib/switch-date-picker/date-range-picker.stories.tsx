@@ -19,8 +19,5 @@ export const Primary = {
 } satisfies Story;
 
 export const DurationBased = {
-	args: {
-		mode: 'duration',
-		maxValue: today(getLocalTimeZone())
-	}
+	args: { mode: 'duration' }
 } satisfies Story;

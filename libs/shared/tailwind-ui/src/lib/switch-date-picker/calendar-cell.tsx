@@ -7,12 +7,18 @@ import {
 	useFocusRing,
 	mergeProps
 } from 'react-aria';
-import { CalendarDate, isSameDay, isSameMonth } from '@internationalized/date';
+import {
+	CalendarDate,
+	getLocalTimeZone,
+	isSameDay,
+	isSameMonth,
+	today
+} from '@internationalized/date';
 import { CalendarState, RangeCalendarState } from '@react-stately/calendar';
 
 import { cn, cva } from '../utils';
 import { isRangePicker } from './utils';
-
+import { useDatePickerContext } from './date-range-picker';
 const wrapperStyles = cva({
 	base: 'w-10 h-10 outline-none group',
 	variants: {
@@ -54,7 +60,8 @@ const outsideDateStyles = cva({
 		'font-normal',
 		'leading-6',
 		'opacity-40',
-		'cursor-not-allowed'
+		'cursor-not-allowed',
+		'pointer-events-none'
 	]
 });
 
@@ -67,11 +74,18 @@ interface CalendarCellProps {
 function CalendarCell(props: CalendarCellProps) {
 	const { state, date, currentMonth } = props;
 	const ref = useRef(null);
-	const { cellProps, buttonProps, isSelected, formattedDate, isDisabled } =
-		useCalendarCell({ date }, state, ref);
+	const {
+		cellProps,
+		buttonProps,
+		isSelected,
+		formattedDate,
+		isDisabled,
+		isUnavailable
+	} = useCalendarCell({ date }, state, ref);
 	const { focusProps, isFocusVisible } = useFocusRing();
 	const isOutsideMonth = !isSameMonth(currentMonth, date);
 	const isRange = isRangePicker(state);
+	const ctx = useDatePickerContext();
 
 	const isSelectionStart =
 		isRange && state.highlightedRange
@@ -94,7 +108,7 @@ function CalendarCell(props: CalendarCellProps) {
 		: '';
 
 	const dateClassname =
-		isOutsideMonth || isDisabled
+		isOutsideMonth || isDisabled || isUnavailable
 			? outsideDateStyles()
 			: dateStyles({
 					isFocusVisible,
@@ -102,14 +116,24 @@ function CalendarCell(props: CalendarCellProps) {
 					isSelectionEnd
 			  });
 
+	function handleDurationClick() {
+		if (ctx?.mode !== 'duration') return;
+		const todayDate = today(getLocalTimeZone());
+
+		ctx?.state.setValue({ start: date, end: todayDate });
+		ctx?.state.close();
+	}
+
 	return (
 		<td
 			{...cellProps}
-			className={cn('py-0.5 relative', isFocusVisible ? 'z-10' : 'z-0')}
+			className={cn('relative', isFocusVisible ? 'z-10' : 'z-0')}
 		>
 			<div className={wrapperClassname}>
 				<div
-					{...mergeProps(buttonProps, focusProps)}
+					{...(ctx?.mode === 'duration'
+						? { role: 'button', onClick: handleDurationClick }
+						: mergeProps(buttonProps, focusProps))}
 					className={dateClassname}
 					ref={ref}
 				>
