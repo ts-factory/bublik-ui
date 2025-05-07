@@ -87,7 +87,7 @@ export const DiffForm: FC<DiffFormProps> = ({
 				sideOffset={8}
 				onOpenAutoFocus={handleOpenAutoFocus}
 			>
-				<div className="relative px-4 py-6 bg-white rounded-md w-80 shadow-popover">
+				<div className="relative p-4 bg-white rounded-md w-80 shadow-popover">
 					<form
 						className="flex flex-col gap-4"
 						onSubmit={handleSubmit(onSubmit)}
