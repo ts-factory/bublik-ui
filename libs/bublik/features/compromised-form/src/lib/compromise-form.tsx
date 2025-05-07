@@ -160,7 +160,7 @@ export const CompromiseForm: FC<DefineCompromisedFormProps> = (props) => {
 	});
 
 	return (
-		<div className="min-w-[320px] py-6 px-4 bg-white rounded-md shadow-popover">
+		<div className="min-w-[320px] p-4 bg-white rounded-md shadow-popover">
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<fieldset>
 					<div className="flex flex-col gap-5">

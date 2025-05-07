@@ -319,7 +319,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 					<PopoverPortal container={document.body}>
 						<PopoverContent
 							className={cn(
-								'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
+								'relative p-4 bg-white rounded-md w-96 shadow-popover'
 							)}
 							align="end"
 							sideOffset={8}
@@ -377,7 +377,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 					<PopoverPortal>
 						<PopoverContent
 							className={cn(
-								'relative px-4 py-6 bg-white rounded-md w-96 shadow-popover'
+								'relative p-4 bg-white rounded-md w-96 shadow-popover'
 							)}
 							sideOffset={8}
 							align="end"
@@ -395,7 +395,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 				</Popover>
 				<PopoverPortal>
 					<PopoverContent
-						className="relative px-4 py-6 bg-white rounded-md w-96 shadow-popover"
+						className="relative p-4 bg-white rounded-md w-96 shadow-popover"
 						sideOffset={8}
 						align="end"
 					>
