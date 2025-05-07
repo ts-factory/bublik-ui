@@ -16,3 +16,4 @@ export * from './lib/pie-chart';
 export * from './lib/bar-chart';
 export * from './lib/line-chart';
 export * from './lib/single-measurement-chart';
+export * from './lib/selected-charts';
