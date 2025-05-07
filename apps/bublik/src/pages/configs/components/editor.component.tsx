@@ -13,6 +13,10 @@ import MonacoEditor, { Monaco, OnMount } from '@monaco-editor/react';
 import { format } from 'prettier';
 import parserJson from 'prettier/parser-babel';
 
+import * as monaco from 'monaco-editor';
+import { loader } from '@monaco-editor/react';
+
+import { useLocalStorage } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
@@ -30,7 +34,21 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
-import { useLocalStorage } from '@/shared/hooks';
+
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+
+// eslint-disable-next-line no-restricted-globals
+self.MonacoEnvironment = {
+	getWorker(_, label) {
+		if (label === 'json') {
+			return new jsonWorker();
+		}
+		return new editorWorker();
+	}
+};
+
+loader.config({ monaco });
 
 function formatJson(value: string) {
 	return format(value, { parser: 'json', plugins: [parserJson] });
