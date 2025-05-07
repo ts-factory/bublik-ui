@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { To, useNavigate, useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
@@ -50,9 +51,11 @@ export const useGetHistoryMeasurements = () => {
 };
 
 export const useCombinedView = () => {
+	const [searchParams] = useSearchParams();
 	const [selectedCharts, setSelectedCharts] = useState<
 		{ plot: SingleMeasurementChart; color: string }[]
 	>([]);
+	const navigate = useNavigate();
 
 	const handleAddChartClick = (args: {
 		plot: SingleMeasurementChart;
@@ -77,11 +80,25 @@ export const useCombinedView = () => {
 		setSelectedCharts(selectedCharts.filter(({ plot: p }) => p.id !== plot.id));
 	};
 
+	const linkToCombined = useMemo<To>(() => {
+		const params = new URLSearchParams(searchParams);
+
+		params.set('mode', 'measurements-combined');
+		params.set('combinedPlots', selectedCharts.map((p) => p.plot.id).join(';'));
+
+		return { pathname: '/history', search: params.toString() };
+	}, [selectedCharts, searchParams]);
+
+	const handleOpenButtonClick = () => {
+		navigate(linkToCombined);
+	};
+
 	return {
 		handleAddChartClick,
 		handleRemoveClick,
 		handleResetButtonClick,
-		selectedCharts
+		selectedCharts,
+		handleOpenButtonClick
 	};
 };
 
