@@ -4,12 +4,20 @@ import { FC } from 'react';
 
 import {
 	getErrorMessage,
+	SingleMeasurementChart,
 	useGetSingleMeasurementQuery
 } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
-import { Skeleton, Icon, cn, useSidebar } from '@/shared/tailwind-ui';
-
+import {
+	Skeleton,
+	Icon,
+	cn,
+	useSidebar,
+	ToolbarButton
+} from '@/shared/tailwind-ui';
 import { MeasurementChart } from '@/shared/charts';
+
+import { useResultSelectCharts } from '../../hooks';
 
 export const ChartsEmpty = () => <div>Chart is empty</div>;
 
@@ -68,6 +76,7 @@ export function ChartsContainer(props: ChartsProps) {
 	const { resultId, layout } = props;
 	const { isSidebarOpen } = useSidebar();
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
+	const { selectedCharts, handleChartClick } = useResultSelectCharts();
 
 	if (isLoading) return <ChartsLoading layout={layout} />;
 
@@ -86,12 +95,23 @@ export function ChartsContainer(props: ChartsProps) {
 				)}
 			>
 				{data.charts.map((plot, idx) => {
+					const state = selectedCharts.includes(plot.id) ? 'active' : 'default';
+
 					return (
 						<div className="py-2.5 px-4" key={plot.id}>
 							<MeasurementChart
 								key={plot.id}
 								chart={plot}
 								color={getColorByIdx(idx)}
+								additionalToolBarItems={
+									<ToolbarButton
+										aria-label="Add to combined chart"
+										state={state}
+										onClick={() => handleChartClick(plot)}
+									>
+										<Icon name="AddSymbol" className="size-5" />
+									</ToolbarButton>
+								}
 							/>
 						</div>
 					);
@@ -103,12 +123,23 @@ export function ChartsContainer(props: ChartsProps) {
 	return (
 		<div className="flex flex-col children-but-last:border-b children-but-last:border-b-border-primary">
 			{data.charts.map((plot, idx) => {
+				const state = selectedCharts.includes(plot.id) ? 'active' : 'default';
+
 				return (
 					<div className="py-2.5 px-4" key={plot.id}>
 						<MeasurementChart
 							key={plot.id}
 							chart={plot}
 							color={getColorByIdx(idx)}
+							additionalToolBarItems={
+								<ToolbarButton
+									aria-label="Add to combined chart"
+									state={state}
+									onClick={() => handleChartClick(plot)}
+								>
+									<Icon name="AddSymbol" className="size-5" />
+								</ToolbarButton>
+							}
 						/>
 					</div>
 				);

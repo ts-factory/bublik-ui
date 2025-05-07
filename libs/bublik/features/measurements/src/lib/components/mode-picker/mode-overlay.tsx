@@ -6,6 +6,8 @@ import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 import { StackedMeasurementChart } from '@/shared/charts';
 
 import { MeasurementStatisticsContainer } from '../../containers';
+import { useResultSelectCharts } from '../../hooks';
+import { useMemo } from 'react';
 
 function ModeOverlay() {
 	const { runId, resultId } = useParams<MeasurementsRouterParams>();
@@ -33,6 +35,12 @@ interface OverlayContainerProps {
 
 function OverlayContainer({ resultId }: OverlayContainerProps) {
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
+	const { selectedCharts } = useResultSelectCharts();
+
+	const charts = useMemo(() => {
+		if (!selectedCharts.length) return data?.charts;
+		return data?.charts?.filter((chart) => selectedCharts.includes(chart.id));
+	}, [data?.charts, selectedCharts]);
 
 	if (error) return <div>Error...</div>;
 
@@ -44,11 +52,9 @@ function OverlayContainer({ resultId }: OverlayContainerProps) {
 		);
 	}
 
-	if (!data || !data.charts.length) return <div>No Data!</div>;
+	if (!data || !charts?.length) return <div>No Data!</div>;
 
-	return (
-		<StackedMeasurementChart charts={data.charts} style={{ height: '100%' }} />
-	);
+	return <StackedMeasurementChart charts={charts} style={{ height: '100%' }} />;
 }
 
 export { ModeOverlay };
