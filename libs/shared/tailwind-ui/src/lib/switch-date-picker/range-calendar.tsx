@@ -8,26 +8,14 @@ import {
 } from 'react-aria';
 import { useRangeCalendarState } from 'react-stately';
 import { createCalendar, DateValue } from '@internationalized/date';
-import { upperCaseFirstLetter } from '@/shared/utils';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuLabel,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '../dropdown';
 
 import { CalendarGrid } from './calendar-grid';
 import { Button } from './calendar';
 import { Icon } from '../icon';
 import { DateRangePickerMode } from './date-range-picker';
-import { ButtonTw } from '../button';
 
 interface RangeCalendarProps extends _RangeCalendarProps<DateValue> {
 	mode: DateRangePickerMode;
-	onModeChange: (mode: string) => void;
 	enabledModes?: DateRangePickerMode[];
 }
 
@@ -57,32 +45,6 @@ export const RangeCalendar = (props: RangeCalendarProps) => {
 
 				<div className="flex items-center gap-2">
 					<span className="font-semibold">{title}</span>
-					{props.enabledModes?.length ?? 0 > 1 ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<ButtonTw
-									className="size-8 grid place-items-center p-0 hover:text-primary"
-									variant="ghost"
-								>
-									<Icon name="Gear" size={20} />
-								</ButtonTw>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent>
-								<DropdownMenuLabel>Calendar Mode</DropdownMenuLabel>
-								<DropdownMenuSeparator />
-								<DropdownMenuRadioGroup
-									value={props.mode}
-									onValueChange={props.onModeChange}
-								>
-									{props.enabledModes?.map((mode) => (
-										<DropdownMenuRadioItem value={mode}>
-											{upperCaseFirstLetter(mode)}
-										</DropdownMenuRadioItem>
-									))}
-								</DropdownMenuRadioGroup>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : null}
 				</div>
 				<div className="w-10 flex justify-center">
 					<Button

@@ -3,9 +3,18 @@
 import { createContext, forwardRef, Ref, useContext, useRef } from 'react';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useDateRangePicker, AriaDateRangePickerProps } from 'react-aria';
-import { DateRangePickerState, useDateRangePickerState } from 'react-stately';
+import {
+	DateRangePickerState,
+	DateRangePickerStateOptions,
+	useDateRangePickerState
+} from 'react-stately';
 import { mergeRefs } from '@react-aria/utils';
-import { DateValue, getLocalTimeZone, today } from '@internationalized/date';
+import {
+	DateValue,
+	getLocalTimeZone,
+	isSameDay,
+	today
+} from '@internationalized/date';
 
 import { useControllableState } from '@/shared/hooks';
 
@@ -36,7 +45,7 @@ export type DateRangePickerMode = 'default' | 'duration';
 type DateRangePickerContext = {
 	mode: DateRangePickerMode;
 	state: DateRangePickerState;
-	onModeChange?: (mode: DateRangePickerMode) => void;
+	setMode?: (mode: DateRangePickerMode) => void;
 };
 
 const DateRangePickerContext = createContext<
@@ -75,7 +84,7 @@ function DateRangePicker(
 	const maxValue =
 		props.mode === 'duration' ? today(getLocalTimeZone()) : props.maxValue;
 
-	const finalProps = {
+	const finalProps: DateRangePickerStateOptions<DateValue> = {
 		...props,
 		maxValue
 	};
@@ -96,19 +105,11 @@ function DateRangePicker(
 
 	const pickerContext: DateRangePickerContext = {
 		mode,
-		state
+		state,
+		setMode
 	};
 
-	function handleModeChange(nextMode: string) {
-		setMode(nextMode as DateRangePickerMode);
-
-		// Set duration to one month by default
-		if (nextMode !== 'duration') return;
-		const endDate = today(getLocalTimeZone());
-		const startDate = endDate.subtract({ days: 31 });
-
-		state.setValue({ start: startDate, end: endDate });
-	}
+	const moreThanOneModeEnabled = enabledModes.length > 1;
 
 	return (
 		<DateRangePickerContext.Provider value={pickerContext}>
@@ -174,7 +175,7 @@ function DateRangePicker(
 												<div className="flex items-center">
 													<span className="text-[0.875rem] font-medium leading-[1.5rem]">
 														{state.value?.start && state.value.end
-															? formatDuration(
+															? `Last ${formatDuration(
 																	intervalToDuration({
 																		start: state.value?.start.toDate(
 																			getLocalTimeZone()
@@ -183,7 +184,7 @@ function DateRangePicker(
 																			getLocalTimeZone()
 																		)
 																	})
-															  )
+															  )}`
 															: 'No Interval'}
 													</span>
 												</div>
@@ -196,7 +197,7 @@ function DateRangePicker(
 					</div>
 				</PopoverAnchor>
 				<PopoverContent
-					className="p-4 bg-white rounded-lg shadow-popover"
+					className="p-4 bg-white flex flex-col gap-4 rounded-lg shadow-popover"
 					alignOffset={8}
 					onInteractOutside={state.close}
 					onEscapeKeyDown={state.close}
@@ -206,11 +207,16 @@ function DateRangePicker(
 					<RangeCalendar
 						{...calendarProps}
 						mode={mode}
-						onModeChange={handleModeChange}
 						enabledModes={enabledModes}
 					/>
 					{ranges && ranges.length ? (
-						<DateRangesHelper state={state} ranges={ranges} />
+						<DateRangesHelper
+							state={state}
+							ranges={ranges}
+							moreThanOneModeEnabled={moreThanOneModeEnabled}
+							mode={mode}
+							setMode={setMode}
+						/>
 					) : null}
 				</PopoverContent>
 			</Popover>
@@ -221,28 +227,57 @@ function DateRangePicker(
 interface DateRangesHelperProps {
 	state: DateRangePickerState;
 	ranges: DateRange[];
+	moreThanOneModeEnabled: boolean;
+	mode: DateRangePickerMode;
+	setMode: (mode: DateRangePickerMode) => void;
 }
 
 function DateRangesHelper(props: DateRangesHelperProps) {
-	const { state, ranges } = props;
+	const { state, ranges, moreThanOneModeEnabled, setMode, mode } = props;
 
 	return (
-		<ul className="flex items-center gap-4 mt-4">
-			{ranges.map(({ label, range }) => (
-				<ButtonTw
-					key={label}
-					type="button"
-					size="xs"
-					variant="secondary"
-					onClick={() => {
-						if (!range) return;
-						state.setDateRange(range);
-					}}
-				>
-					{label}
-				</ButtonTw>
-			))}
-		</ul>
+		<div
+			className={cn('flex flex-col border-t border-border-primary gap-2 pt-2')}
+		>
+			<span
+				className={cn(
+					moreThanOneModeEnabled ? 'inline' : 'hidden',
+					'text-sm font-semibold'
+				)}
+			>
+				{moreThanOneModeEnabled ? 'Sliding' : 'Fixed'}
+			</span>
+			<ul className="flex items-center gap-4">
+				{ranges.map(({ label, range }) => {
+					const finalLabel = moreThanOneModeEnabled ? `Last ${label}` : label;
+					const isActive =
+						mode === 'duration' &&
+						range?.start &&
+						range.end &&
+						state.dateRange?.start &&
+						state.dateRange.end &&
+						isSameDay(range?.start, state.dateRange?.start) &&
+						isSameDay(range?.end, state.dateRange?.end);
+
+					return (
+						<ButtonTw
+							key={label}
+							type="button"
+							size="xs"
+							variant={isActive ? 'primary' : 'secondary'}
+							onClick={() => {
+								if (!range) return;
+
+								state.setDateRange(range);
+								if (moreThanOneModeEnabled) setMode('duration');
+							}}
+						>
+							{finalLabel}
+						</ButtonTw>
+					);
+				})}
+			</ul>
+		</div>
 	);
 }
 
