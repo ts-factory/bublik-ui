@@ -87,8 +87,8 @@ const RunsListModalItemContainer = ({
 				{icon}
 			</div>
 			<div className="flex items-center justify-between flex-1 gap-4 py-1 pl-2 pr-4 border-r rounded-r-md border-y border-border-primary">
-				<div className="flex flex-col">
-					<div>
+				<div className="flex flex-col justify-center">
+					<div className="flex items-center">
 						<span className="col-start-1 row-1 text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
 							Name:
 						</span>
@@ -97,7 +97,7 @@ const RunsListModalItemContainer = ({
 							{query.data.main_package}
 						</span>
 					</div>
-					<div>
+					<div className="flex items-center">
 						<span className="col-start-1 row-1 text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
 							Start:
 						</span>
