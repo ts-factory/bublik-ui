@@ -7,13 +7,7 @@ import {
 	useFocusRing,
 	mergeProps
 } from 'react-aria';
-import {
-	CalendarDate,
-	getLocalTimeZone,
-	isSameDay,
-	isSameMonth,
-	today
-} from '@internationalized/date';
+import { CalendarDate, isSameDay, isSameMonth } from '@internationalized/date';
 import { CalendarState, RangeCalendarState } from '@react-stately/calendar';
 
 import { cn, cva } from '../utils';
@@ -116,13 +110,7 @@ function CalendarCell(props: CalendarCellProps) {
 					isSelectionEnd
 			  });
 
-	function handleDurationClick() {
-		if (ctx?.mode !== 'duration') return;
-		const todayDate = today(getLocalTimeZone());
-
-		ctx?.state.setValue({ start: date, end: todayDate });
-		ctx?.state.close();
-	}
+	const { onClick, ...rest } = mergeProps(buttonProps, focusProps);
 
 	return (
 		<td
@@ -131,9 +119,11 @@ function CalendarCell(props: CalendarCellProps) {
 		>
 			<div className={wrapperClassname}>
 				<div
-					{...(ctx?.mode === 'duration'
-						? { role: 'button', onClick: handleDurationClick }
-						: mergeProps(buttonProps, focusProps))}
+					{...rest}
+					onClick={(e) => {
+						ctx?.setMode?.('default');
+						onClick?.(e);
+					}}
 					className={dateClassname}
 					ref={ref}
 				>

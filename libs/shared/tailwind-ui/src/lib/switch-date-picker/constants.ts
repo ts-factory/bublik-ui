@@ -4,42 +4,42 @@ import { DateRange } from './types';
 
 const DEFAULT_RANGES: DateRange[] = [
 	{
-		label: 'One Week',
+		label: '1 Week',
 		range: {
 			start: today(getLocalTimeZone()).add({ weeks: -1 }),
 			end: today(getLocalTimeZone())
 		}
 	},
 	{
-		label: 'Two Weeks',
+		label: '2 Weeks',
 		range: {
 			start: today(getLocalTimeZone()).add({ weeks: -2 }),
 			end: today(getLocalTimeZone())
 		}
 	},
 	{
-		label: 'One Month',
+		label: '1 Month',
 		range: {
 			start: today(getLocalTimeZone()).add({ months: -1 }),
 			end: today(getLocalTimeZone())
 		}
 	},
 	{
-		label: 'Three Months',
+		label: '3 Months',
 		range: {
 			start: today(getLocalTimeZone()).add({ months: -3 }),
 			end: today(getLocalTimeZone())
 		}
 	},
 	{
-		label: 'Six Months',
+		label: '6 Months',
 		range: {
 			start: today(getLocalTimeZone()).add({ months: -6 }),
 			end: today(getLocalTimeZone())
 		}
 	},
 	{
-		label: 'One Year',
+		label: '1 Year',
 		range: {
 			start: today(getLocalTimeZone()).add({ years: -1 }),
 			end: today(getLocalTimeZone())
