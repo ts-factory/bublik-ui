@@ -18,17 +18,17 @@ import {
 } from '@/services/bublik-api';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
-import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 
 import {
 	LinkToHistoryContainer,
 	LinkToMeasurementsContainer,
-	LinkToSourceContainer,
 	LogPickerContainer,
 	TreeContainer
 } from './containers';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
+import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 
 function useLogTitle() {
 	const { runId, focusId } = useLogPage();
@@ -105,9 +105,8 @@ function LogFeature(props: LogFeatureProps) {
 							<RunReportConfigsContainer runId={runId} />
 							<LinkToSourceContainer runId={runId} />
 							<NewBugContainer
-								key={`${runId}_${focusId}`}
-								resultId={focusId ?? Number(runId)}
 								runId={Number(runId)}
+								resultId={Number(focusId)}
 							/>
 						</div>
 					</CardHeader>
