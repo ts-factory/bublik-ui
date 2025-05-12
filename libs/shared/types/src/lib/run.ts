@@ -267,6 +267,8 @@ export type CompromisedStatusDetails = {
 };
 
 export type RunDetailsAPIResponse = {
+	project_id: number;
+	project_name: string;
 	id: number;
 	main_package: string;
 	start: string;
