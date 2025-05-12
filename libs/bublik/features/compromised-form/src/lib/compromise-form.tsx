@@ -15,6 +15,7 @@ import {
 	bublikAPI,
 	useDeleteCompromisedStatusMutation,
 	useGetCompromisedTagsQuery,
+	useGetRunDetailsQuery,
 	useMarkAsCompromisedMutation
 } from '@/services/bublik-api';
 import {
@@ -231,9 +232,7 @@ export const DefineCompromiseContainer = ({
 		isLoading,
 		handleAddCompromiseStatus,
 		handleDeleteCompromiseStatus
-	} = useRunCompromise({
-		runId
-	});
+	} = useRunCompromise({ runId });
 
 	const bugStorageKeys = useMemo<SelectValue[]>(() => {
 		return Object.entries(refData?.issues || {}).map(([key, value]) => ({
@@ -307,7 +306,9 @@ export const CompromiseStatus = (props: CompromiseStatusProps) => {
 	};
 
 	const renderContent = () => {
-		if (!runDetails || !tags?.length) return null;
+		if (!runDetails || !tags?.length) {
+			return null;
+		}
 
 		if (isCompromised) {
 			return (
@@ -331,7 +332,11 @@ export const CompromiseStatus = (props: CompromiseStatusProps) => {
 
 	return (
 		<Popover onOpenChange={setIsOpen} open={isOpen} modal>
-			<PopoverTrigger asChild aria-label="Compromised form">
+			<PopoverTrigger
+				asChild
+				disabled={!tags?.length}
+				aria-label="Compromised form"
+			>
 				<CompromiseStatusButton
 					isCompromised={isCompromised}
 					isLoading={isLoading}
@@ -349,11 +354,19 @@ type UseCompromiseConfig = { runId: string };
 export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 	const dispatch = useDispatch();
 	const {
+		data: details,
+		isFetching: isDetailsLoading,
+		isError: isDetailsError
+	} = useGetRunDetailsQuery(runId);
+	const {
 		data: refData,
 		isFetching: isRefsLoading,
 		isError: isRefError
-		// TODO: Update with project id
-	} = useGetCompromisedTagsQuery({ projects: [] });
+	} = useGetCompromisedTagsQuery(
+		details ? { projects: [details.project_id] } : skipToken
+	);
+
+	console.log(refData);
 
 	const {
 		data: compromiseData,
@@ -364,8 +377,8 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 	const [markAsCompromisedMutation] = useMarkAsCompromisedMutation();
 	const [deleteCompromiseStatusMutation] = useDeleteCompromisedStatusMutation();
 
-	const isLoading = isStatusLoading || isRefsLoading;
-	const isError = isCompromiseDataError || isRefError;
+	const isLoading = isStatusLoading || isRefsLoading || isDetailsLoading;
+	const isError = isCompromiseDataError || isRefError || isDetailsError;
 	const isCompromised = compromiseData?.compromised?.status;
 
 	const DASHBOARD_TO_INVALIDATE = useMemo(() => {
