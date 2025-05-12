@@ -239,6 +239,7 @@ export const runEndpoints = {
 		>({
 			query: (query) => ({
 				url: withApiV2('/outside_domains/issues'),
+				cache: 'no-cache',
 				params: { project: query.projects?.[0] }
 			})
 		}),
