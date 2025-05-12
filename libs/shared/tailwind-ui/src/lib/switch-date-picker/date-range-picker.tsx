@@ -202,6 +202,7 @@ function DateRangePicker(
 					onInteractOutside={state.close}
 					onEscapeKeyDown={state.close}
 					sideOffset={8}
+					align="start"
 					{...dialogProps}
 				>
 					<RangeCalendar
