@@ -238,9 +238,8 @@ export const runEndpoints = {
 			{ projects?: number[] }
 		>({
 			query: (query) => ({
-				url: withApiV2('/outside_domains/logs'),
-				params: { project: query.projects?.[0] },
-				cache: 'no-cache'
+				url: withApiV2('/outside_domains/issues'),
+				params: { project: query.projects?.[0] }
 			})
 		}),
 		getRunRequirements: build.query<string[], string[] | number[]>({
