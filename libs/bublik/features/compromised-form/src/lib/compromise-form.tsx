@@ -348,12 +348,12 @@ type UseCompromiseConfig = { runId: string };
 
 export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 	const dispatch = useDispatch();
-	// TODO: Add project id for run
 	const {
 		data: refData,
 		isFetching: isRefsLoading,
 		isError: isRefError
-	} = useGetCompromisedTagsQuery({});
+		// TODO: Update with project id
+	} = useGetCompromisedTagsQuery({ projects: [] });
 
 	const {
 		data: compromiseData,
