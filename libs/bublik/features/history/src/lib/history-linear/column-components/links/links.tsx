@@ -8,10 +8,11 @@ import {
 	VERDICT_TYPE
 } from '@/shared/types';
 import { routes, stringifySearch, useSearchState } from '@/router';
-import { ButtonTw, ContextLinks, Icon } from '@/shared/tailwind-ui';
+import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { ContextLinks } from '@/bublik/features/context-links';
 
 export interface LinksProps {
 	row: HistoryDataLinear;

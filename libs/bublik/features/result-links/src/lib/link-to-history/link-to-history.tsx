@@ -8,8 +8,12 @@ import {
 	HistoryMode,
 	RunDataResults
 } from '@/shared/types';
-import { ContextLinks, ContextLinksSection, Icon } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	ContextLinks,
+	ContextLinksSection
+} from '@/bublik/features/context-links';
 
 export interface LinkToHistoryProps {
 	result: RunDataResults;
