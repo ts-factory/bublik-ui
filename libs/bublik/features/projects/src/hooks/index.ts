@@ -29,13 +29,18 @@ function useProjectSearch() {
 }
 
 interface UseProjectParams {
-	id: number;
+	id: number | null;
 }
 
 function useDeleteProject({ id }: UseProjectParams) {
 	const [deleteMutation] = bublikAPI.useDeleteProjectMutation();
 
 	async function deleteProject() {
+		if (!id) {
+			toast.error("Can't delete default project");
+			return;
+		}
+
 		const promise = deleteMutation(id).unwrap();
 
 		toast.promise(promise, {
