@@ -26,7 +26,7 @@ export const ConfigSchemaParamsSchema = z
 	.object({
 		type: z.string(),
 		name: z.string().min(1).optional(),
-		project: z.number().optional()
+		project: z.number().optional().nullable()
 	})
 	.or(z.object({ type: z.string() }));
 
