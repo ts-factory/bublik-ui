@@ -34,7 +34,7 @@ function ProjectPickerContainer() {
 		<div
 			className={cn(
 				'transition-all rounded-lg delay-500 duration-500',
-				isOpen && 'bg-primary-wash'
+				isOpen && isSidebarOpen && 'bg-primary-wash'
 			)}
 		>
 			<Tooltip content="Projects" side="right" sideOffset={14}>
@@ -45,11 +45,13 @@ function ProjectPickerContainer() {
 						'flex min-w-0 flex-grow gap-3.5 items-center',
 						'transition-[padding] duration-500',
 						isSidebarOpen ? 'pl-4' : 'pl-2',
-						isOpen && 'bg-primary hover:bg-primary hover:text-white text-white'
+						isOpen &&
+							isSidebarOpen &&
+							'bg-primary hover:bg-primary hover:text-white text-white'
 					)}
 					onClick={() => setIsOpen((v) => !v)}
 				>
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 w-full">
 						<div className="grid flex-shrink-0 place-items-center">
 							<Icon name="Folder" size={28} />
 						</div>
@@ -71,7 +73,7 @@ function ProjectPickerContainer() {
 			<div
 				className={cn(
 					'[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none duration-500',
-					isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+					isOpen && isSidebarOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
 				)}
 			>
 				<ul className="gap-1 flex flex-col mt-3.5">
