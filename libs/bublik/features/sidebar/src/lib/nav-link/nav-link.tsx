@@ -102,21 +102,6 @@ export type NavLinkExternal = NavLinkCommon & {
 export type NavLinkProps = NavLinkInternal | NavLinkExternal;
 export type AccordionLinkProps = NavLinkInternal | NavLinkExternal;
 
-function useGetSearchWithProject(to: { pathname: string; search: string }) {
-	const project = useSearchParams()[0].get('project');
-	let fSearch = '';
-	if (project) {
-		const params = new URLSearchParams(to.search);
-		params.set('project', project);
-		fSearch = `?${params.toString()}`;
-	}
-
-	return {
-		pathname: to.pathname,
-		search: fSearch
-	};
-}
-
 export const isExternalLink = (
 	props: NavLinkProps | AccordionLinkProps
 ): props is NavLinkExternal => {
@@ -130,8 +115,6 @@ export const NavLink = (props: NavLinkProps) => {
 	const { isActive, to } = useNavLink(
 		isExternalLink(props) ? undefined : props
 	);
-	const finalTo = useGetSearchWithProject(to);
-
 	const hasSubitems = subitems.length > 0;
 
 	const [isOpen, toggleOpen] = useState<boolean | null>(isActive);
@@ -181,7 +164,7 @@ export const NavLink = (props: NavLinkProps) => {
 
 		return (
 			<LinkWithProject
-				to={finalTo}
+				to={to}
 				className={linkStyles({ isSidebarOpen })}
 				style={paddingTransition}
 				onClick={handleClick}
@@ -301,7 +284,6 @@ const AccordionLink = (props: AccordionLinkProps) => {
 	);
 	const matchedOneTime = useRef(false);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const matchTo = useGetSearchWithProject(to);
 
 	useEffect(() => {
 		if (isActive) matchedOneTime.current = true;
@@ -342,11 +324,8 @@ const AccordionLink = (props: AccordionLinkProps) => {
 						</a>
 					) : (
 						<LinkWithProject
-							to={matchTo}
-							className={accordionLinkStyles({
-								isActive,
-								isSidebarOpen
-							})}
+							to={to}
+							className={accordionLinkStyles({ isActive, isSidebarOpen })}
 							style={paddingTransition}
 							onClick={handleClick}
 						>
@@ -405,7 +384,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 					</a>
 				) : (
 					<LinkWithProject
-						to={matchTo}
+						to={to}
 						className={accordionLinkStyles({
 							isActive,
 							isSidebarOpen,
