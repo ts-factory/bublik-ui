@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ComponentProps, PropsWithChildren } from 'react';
-import { To, Link } from 'react-router-dom';
+import { To } from 'react-router-dom';
+
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { cn } from '../utils';
 import { HoverCard, HoverCardProps } from '../hover-card';
@@ -68,7 +70,7 @@ type LinkItemProps = LinkItem;
 
 const LinkItem = ({ to, label, state }: LinkItemProps) => {
 	return (
-		<Link
+		<LinkWithProject
 			className="flex items-center justify-between gap-4 px-4 py-2 transition-all rounded text-text-secondary hover:text-primary hover:bg-primary-wash focus:bg-primary-wash focus:text-primary group"
 			to={to}
 			state={state}
@@ -79,6 +81,6 @@ const LinkItem = ({ to, label, state }: LinkItemProps) => {
 				name="ArrowShortTop"
 				className="rotate-90 text-text-menu group-hover:text-primary group-focus:text-primary"
 			/>
-		</Link>
+		</LinkWithProject>
 	);
 };

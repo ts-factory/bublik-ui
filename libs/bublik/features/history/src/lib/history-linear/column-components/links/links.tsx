@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link } from 'react-router-dom';
-
 import {
 	HistoryDataLinear,
 	HistorySearchParams,
@@ -13,6 +11,7 @@ import { routes, stringifySearch, useSearchState } from '@/router';
 import { ButtonTw, ContextLinks, Icon } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface LinksProps {
 	row: HistoryDataLinear;
@@ -25,7 +24,7 @@ export const Links = ({ row }: LinksProps) => {
 	return (
 		<div className="flex flex-col items-start gap-1">
 			<ButtonTw asChild size="xss" variant="secondary">
-				<Link
+				<LinkWithProject
 					to={routes.log({
 						runId: row.run_id,
 						focusId: row.result_id,
@@ -34,13 +33,13 @@ export const Links = ({ row }: LinksProps) => {
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild size="xss" variant="secondary">
-				<Link to={routes.run({ runId: row.run_id })}>
+				<LinkWithProject to={routes.run({ runId: row.run_id })}>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ContextLinks
 				sections={[
@@ -71,18 +70,18 @@ export const Links = ({ row }: LinksProps) => {
 					variant="secondary"
 					className="justify-start w-fit"
 				>
-					<Link
+					<LinkWithProject
 						className="justify-start w-fit"
 						to={{ pathname: '/history', search: shortcuts.historyQuery }}
 					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						History
-					</Link>
+					</LinkWithProject>
 				</ButtonTw>
 			</ContextLinks>
 			{row.has_measurements && (
 				<ButtonTw asChild size="xss" variant="secondary">
-					<Link
+					<LinkWithProject
 						to={routes.measurements({
 							runId: row.run_id,
 							resultId: row.result_id
@@ -90,7 +89,7 @@ export const Links = ({ row }: LinksProps) => {
 					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Result
-					</Link>
+					</LinkWithProject>
 				</ButtonTw>
 			)}
 			<LogPreviewContainer
