@@ -17,6 +17,7 @@ import {
 
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import { historySearchStateToQuery } from '../slice/history-slice.utils';
+import { PROJECT_KEY } from '@/bublik/features/projects';
 
 const globalFilterToQueryAdapter = (
 	globalFilter: HistoryGlobalFilter,
@@ -91,12 +92,17 @@ export const useHistoryRefresh = () => {
 			);
 
 			const params = new URLSearchParams(newQuery);
+			for (const [key, value] of searchParams) {
+				if (key !== PROJECT_KEY) continue;
+				params.append(PROJECT_KEY, value);
+			}
+
 			params.set('mode', mode);
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
 			setSearchParams(params, { replace: true });
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[mode, pageSize, setSearchParams, state]
+		[dispatch, mode, pageSize, searchParams, setSearchParams, state]
 	);
 };

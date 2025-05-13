@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
+import { PROJECT_KEY } from '@/bublik/features/projects';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from './history-slice';
@@ -63,12 +64,18 @@ export const useHistoryFormSearchState = () => {
 			newSearchParams.set('mode', mode);
 			newSearchParams.set('page', String(1));
 			newSearchParams.set('pageSize', String(pageSize));
+			newSearchParams.delete(PROJECT_KEY);
+
+			for (const [key, value] of searchParams) {
+				if (key !== PROJECT_KEY) continue;
+				newSearchParams.append(PROJECT_KEY, value);
+			}
 
 			setSearchParams(newSearchParams, { replace: true });
 			actions.resetGlobalFilter();
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[actions, mode, pageSize, setSearchParams]
+		[actions, dispatch, mode, pageSize, searchParams, setSearchParams]
 	);
 
 	return {
