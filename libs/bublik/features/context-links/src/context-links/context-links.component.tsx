@@ -4,10 +4,7 @@ import { ComponentProps, PropsWithChildren } from 'react';
 import { To } from 'react-router-dom';
 
 import { LinkWithProject } from '@/bublik/features/projects';
-
-import { cn } from '../utils';
-import { HoverCard, HoverCardProps } from '../hover-card';
-import { Icon } from '../icon';
+import { cn, HoverCard, HoverCardProps, Icon } from '@/shared/tailwind-ui';
 
 type LinkItem = { label: string; to: To; state?: Record<string, unknown> };
 export type ContextLinksSection = { label: string; items: LinkItem[] };
