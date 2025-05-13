@@ -1,31 +1,65 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
-import { NumericArrayParam, useQueryParam } from 'use-query-params';
 import { z } from 'zod';
+import {
+	NavigateFunction,
+	NavigateOptions,
+	To,
+	useNavigate,
+	useSearchParams
+} from 'react-router-dom';
 
 import { bublikAPI } from '@/services/bublik-api';
 
 import { PROJECT_KEY } from '../constants';
 
 function useProjectSearch() {
-	const [_projectIds, _setProjectsIds] = useQueryParam(
-		PROJECT_KEY,
-		NumericArrayParam
-	);
+	const [searchParams, setSearchParams] = useSearchParams();
 
-	const searchProjectIds = useMemo(
-		() => ((_projectIds ?? []) as number[]).filter(Boolean),
-		[_projectIds]
-	);
+	const projectIds = useMemo(() => {
+		const values = searchParams.getAll(PROJECT_KEY);
+
+		return values.filter(Boolean).map(Number);
+	}, [searchParams]);
 
 	function setProjectIds(projectIds: number[]) {
-		_setProjectsIds(projectIds);
+		const params = new URLSearchParams(searchParams);
+
+		params.delete(PROJECT_KEY);
+		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
+
+		setSearchParams(params);
 	}
 
 	return {
-		projectIds: searchProjectIds,
+		projectIds,
 		setProjectsIds: setProjectIds
 	};
+}
+
+function useNavigateWithProject() {
+	const { projectIds } = useProjectSearch();
+	const _navigate = useNavigate();
+
+	const navigate = (to: To, options?: NavigateOptions) => {
+		const params =
+			typeof to.search === 'string'
+				? new URLSearchParams(to.search)
+				: new URLSearchParams();
+
+		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
+
+		if (typeof to === 'string') {
+			_navigate(to, options);
+		} else {
+			_navigate(
+				{ pathname: to.pathname, search: params.toString(), hash: to.hash },
+				options
+			);
+		}
+	};
+
+	return navigate;
 }
 
 interface UseProjectParams {
@@ -63,4 +97,4 @@ function useDeleteProject({ id }: UseProjectParams) {
 	return { deleteProject };
 }
 
-export { useProjectSearch, useDeleteProject };
+export { useProjectSearch, useDeleteProject, useNavigateWithProject };

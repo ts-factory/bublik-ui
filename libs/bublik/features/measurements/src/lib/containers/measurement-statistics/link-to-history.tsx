@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { stringifySearch } from '@/router';
 
 import {
@@ -11,6 +10,7 @@ import {
 import { buildQuery } from '@/shared/utils';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface LinkToHistoryProps {
 	runId: string;
@@ -42,14 +42,14 @@ export const LinkToHistory = ({ runId, resultId }: LinkToHistoryProps) => {
 			state={isFetching ? 'loading' : isError ? 'disabled' : 'default'}
 			asChild
 		>
-			<Link to={to}>
+			<LinkWithProject to={to}>
 				{isFetching ? (
 					<Icon name="ProgressIndicator" className="animate-spin mr-1.5" />
 				) : (
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 				)}
 				History
-			</Link>
+			</LinkWithProject>
 		</ButtonTw>
 	);
 };
