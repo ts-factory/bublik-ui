@@ -6,7 +6,7 @@ import { Icon, Tooltip, cn, useSidebar } from '@/shared/tailwind-ui';
 import { useProjectSearch } from '../hooks';
 
 function ProjectPickerContainer() {
-	const { isSidebarOpen } = useSidebar();
+	const { isSidebarOpen, toggleSidebar } = useSidebar();
 	const {
 		data: projects,
 		isLoading,
@@ -30,6 +30,10 @@ function ProjectPickerContainer() {
 
 	if (!projects?.length) return null;
 
+	const selectedProject = projects.find(
+		(project) => project.id === projectIds.at(0)
+	);
+
 	return (
 		<div
 			className={cn(
@@ -49,25 +53,37 @@ function ProjectPickerContainer() {
 							isSidebarOpen &&
 							'bg-primary hover:bg-primary hover:text-white text-white'
 					)}
-					onClick={() => setIsOpen((v) => !v)}
+					onClick={() => {
+						if (!isSidebarOpen) {
+							toggleSidebar?.();
+							setIsOpen(true);
+							return;
+						}
+
+						setIsOpen((v) => !v);
+					}}
 				>
 					<div className="flex items-center gap-2 w-full">
 						<div className="grid flex-shrink-0 place-items-center">
 							<Icon name="Folder" size={28} />
 						</div>
-						<span className="text-[1.125rem] truncate">Projects</span>
+						<span className="text-[1.125rem] truncate">
+							{selectedProject ? selectedProject.name : 'Projects'}
+						</span>
 					</div>
-					<button
-						aria-label="Toggle submenu"
-						className={cn(
-							'grid place-items-center ml-auto pr-4 rounded flex-shrink-0 [&_svg]:transition-transform [&_svg]:rounded',
-							isOpen
-								? '[&_svg]:rotate-180 [&_svg]:hover:bg-primary-wash [&_svg]:hover:text-primary'
-								: '[&_svg]:rotate-90 [&_svg]:hover:bg-primary-wash'
-						)}
-					>
-						<Icon name="ArrowShortTop" size={24} className="" />
-					</button>
+					{isSidebarOpen && (
+						<button
+							aria-label="Toggle submenu"
+							className={cn(
+								'grid place-items-center ml-auto pr-4 rounded flex-shrink-0 [&_svg]:transition-transform [&_svg]:rounded',
+								isOpen
+									? '[&_svg]:rotate-180 [&_svg]:hover:bg-primary-wash [&_svg]:hover:text-primary'
+									: '[&_svg]:rotate-90 [&_svg]:hover:bg-primary-wash'
+							)}
+						>
+							<Icon name="ArrowShortTop" size={24} className="" />
+						</button>
+					)}
 				</div>
 			</Tooltip>
 			<div
