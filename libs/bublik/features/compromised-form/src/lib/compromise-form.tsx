@@ -366,8 +366,6 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 		details ? { projects: [details.project_id] } : skipToken
 	);
 
-	console.log(refData);
-
 	const {
 		data: compromiseData,
 		isFetching: isStatusLoading,
