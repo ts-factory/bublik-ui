@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { type LinkProps, Link, useSearchParams } from 'react-router-dom';
+import { type LinkProps, useSearchParams } from 'react-router-dom';
 
 import {
 	Icon,
@@ -13,6 +13,7 @@ import {
 	ModalContent,
 	DialogPortal
 } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { MatchPattern, useAccordionLink, useNavLink } from './nav-link.hooks';
 
@@ -179,7 +180,7 @@ export const NavLink = (props: NavLinkProps) => {
 		}
 
 		return (
-			<Link
+			<LinkWithProject
 				to={finalTo}
 				className={linkStyles({ isSidebarOpen })}
 				style={paddingTransition}
@@ -187,7 +188,7 @@ export const NavLink = (props: NavLinkProps) => {
 			>
 				<div className="grid flex-shrink-0 place-items-center">{icon}</div>
 				<span className="text-[1.125rem] truncate">{label}</span>
-			</Link>
+			</LinkWithProject>
 		);
 	};
 
@@ -340,7 +341,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 							</span>
 						</a>
 					) : (
-						<Link
+						<LinkWithProject
 							to={matchTo}
 							className={accordionLinkStyles({ isActive, isSidebarOpen })}
 							style={paddingTransition}
@@ -358,7 +359,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 									<Icon name="InformationCircleQuestionMark" size={20} />
 								</button>
 							) : null}
-						</Link>
+						</LinkWithProject>
 					)}
 				</Tooltip>
 
@@ -400,7 +401,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 						</span>
 					</a>
 				) : (
-					<Link
+					<LinkWithProject
 						to={matchTo}
 						className={accordionLinkStyles({
 							isActive,
@@ -423,7 +424,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 								<Icon name="InformationCircleQuestionMark" size={20} />
 							</button>
 						) : null}
-					</Link>
+					</LinkWithProject>
 				)}
 			</Tooltip>
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

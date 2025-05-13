@@ -6,7 +6,7 @@ import {
 	useCallback,
 	useState
 } from 'react';
-import { Link } from 'react-router-dom';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	ButtonTw,
@@ -36,9 +36,9 @@ import {
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { RUN_STATUS } from '@/shared/types';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { NewBugContainer } from './log-preview-new-bug.container';
-import { skipToken } from '@reduxjs/toolkit/query';
 
 interface LogPreviewContainerProps {
 	logName?: string;
@@ -90,32 +90,35 @@ function LogPreviewContainer(
 											) : null}
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
-													<Link
+													<LinkWithProject
 														to={routes.log({ runId, focusId: resultId })}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
 														Log
-													</Link>
+													</LinkWithProject>
 												</ButtonTw>
 											) : null}
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
-													<Link to={routes.run({ runId })} target="_blank">
+													<LinkWithProject
+														to={routes.run({ runId })}
+														target="_blank"
+													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
 														Run
-													</Link>
+													</LinkWithProject>
 												</ButtonTw>
 											) : null}
 											{runId && measurementId ? (
 												<ButtonTw variant="secondary" size="xss" asChild>
-													<Link
+													<LinkWithProject
 														to={routes.measurements({ runId, resultId })}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
 														Result
-													</Link>
+													</LinkWithProject>
 												</ButtonTw>
 											) : null}
 											{resultId && runId ? (
