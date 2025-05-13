@@ -143,7 +143,7 @@ function ProjectCard(props: ProjectCardProps) {
 	return (
 		<div
 			className={cn(
-				'border-border-primary last:border-b-0',
+				'grid border-border-primary last:border-b-0',
 				open && 'border-b'
 			)}
 		>
@@ -193,7 +193,12 @@ function ProjectCard(props: ProjectCardProps) {
 				</div>
 			</div>
 
-			{open && (
+			<div
+				className={cn(
+					'[&_ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none duration-500',
+					open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+				)}
+			>
 				<ul>
 					{configs.map((config) => (
 						<ConfigListItem
@@ -220,7 +225,7 @@ function ProjectCard(props: ProjectCardProps) {
 						);
 					})}
 				</ul>
-			)}
+			</div>
 		</div>
 	);
 }
