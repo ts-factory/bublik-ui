@@ -1,6 +1,6 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 import { useMount } from 'react-use';
+import { useSearchParams } from 'react-router-dom';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import {
 	RunTableContainer,
@@ -19,6 +19,7 @@ import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 function useIsModeFull() {
 	const [isModeFull, setIsModeFull] = useQueryParam('isModeFull', BooleanParam);
@@ -95,7 +96,7 @@ function RunDetailsHeaderLabel() {
 						state={selectedRunId === runId ? 'active' : 'default'}
 						asChild
 					>
-						<Link
+						<LinkWithProject
 							to={{
 								pathname: '/multiple',
 								search: getSearchParams(runId).toString()
@@ -104,7 +105,7 @@ function RunDetailsHeaderLabel() {
 						>
 							<Icon name="Paper" className="size-5 mr-1.5" />
 							<span>Run {runId}</span>
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 				))}
 			</div>
@@ -130,16 +131,16 @@ function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
 			<RunReportConfigsContainer runId={runId} />
 			<LinkToSourceContainer runId={runId} />
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.run({ runId })}>
+				<LinkWithProject to={routes.run({ runId })}>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.log({ runId })}>
+				<LinkWithProject to={routes.log({ runId })}>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<RunModeToggle
 				isFullMode={isModeFull ?? false}

@@ -12,7 +12,6 @@ import {
 	useState
 } from 'react';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { Link } from 'react-router-dom';
 import { PauseIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -35,6 +34,7 @@ import { ImportJsonLog } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { routes } from '@/router';
 import { config } from '@/bublik/config';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -304,16 +304,16 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.log({ runId })} target="_blank">
+				<LinkWithProject to={routes.log({ runId })} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.run({ runId })} target="_blank">
+				<LinkWithProject to={routes.run({ runId })} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 		</>
 	);

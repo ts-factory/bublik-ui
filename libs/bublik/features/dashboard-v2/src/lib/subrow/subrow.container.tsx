@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren } from 'react';
-import { Link } from 'react-router-dom';
 import { Row } from '@tanstack/react-table';
 import { z } from 'zod';
 
 import { DashboardData } from '@/shared/types';
 import { cn, getRunStatusInfo } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { createColorMap } from '../dashboard-table/dashboard-table.component.utils';
 import { RunProgressContainer } from '../run-progress';
@@ -62,9 +62,9 @@ export const Subrow = ({
 							const to = getUrl(cell.payload.url, row.original.context.run_id);
 
 							return (
-								<Link key={key} to={to} className={className}>
+								<LinkWithProject key={key} to={to} className={className}>
 									{cell.value} - {context[key]}
-								</Link>
+								</LinkWithProject>
 							);
 						})}
 				</ul>

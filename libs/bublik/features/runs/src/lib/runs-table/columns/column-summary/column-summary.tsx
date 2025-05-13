@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { routes } from '@/router';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { SummaryBadge } from './summary-badge';
 
@@ -26,7 +26,7 @@ export const ColumnSummary: FC<ColumnSummaryProps> = ({
 	unexpectedCount,
 	unexpectedPercentage
 }) => {
-	const navigate = useNavigate();
+	const navigate = useNavigateWithProject();
 
 	const to = routes.run({ runId });
 

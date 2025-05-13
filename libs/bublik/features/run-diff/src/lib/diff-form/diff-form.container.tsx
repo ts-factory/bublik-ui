@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useNavigate } from 'react-router-dom';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { DiffForm, DiffFormValues } from './diff-form.component';
 
@@ -9,7 +9,7 @@ export interface DiffFormContainerProps {
 }
 
 export const DiffFormContainer = (props: DiffFormContainerProps) => {
-	const navigate = useNavigate();
+	const navigate = useNavigateWithProject();
 
 	const handleDiffFormSubmit = (form: DiffFormValues) => {
 		const { rightRunId, leftRunId } = form;
