@@ -86,17 +86,17 @@ function ConfigList(props: ConfigListProps) {
 						)
 				);
 
-				const projectId =
+				const foundProject =
 					projectName !== DEFAULT_PROJECT_NAME
-						? projects.find((p) => p.name === projectName)?.id
+						? projects.find((p) => p.name === projectName)
 						: undefined;
 
-				if (!projectId) return null;
+				const key = foundProject ? foundProject.id : 'default';
 
 				return (
 					<ProjectCard
-						key={projectId}
-						id={projectId}
+						key={key}
+						id={foundProject?.id ?? null}
 						name={projectName}
 						configs={sortedConfigs}
 						missingConfigs={missingGlobalConfigs}
@@ -111,7 +111,7 @@ function ConfigList(props: ConfigListProps) {
 }
 
 interface ProjectCardProps {
-	id: number;
+	id: number | null;
 	name: string;
 	configs: ConfigItem[];
 	missingConfigs: typeof REQUIRED_GLOBAL_CONFIGS;
