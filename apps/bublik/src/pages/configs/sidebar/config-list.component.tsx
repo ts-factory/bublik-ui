@@ -163,22 +163,26 @@ function ProjectCard(props: ProjectCardProps) {
 					<span className="font-semibold text-sm">{name}</span>
 				</button>
 				<div className="flex items-center gap-0.5">
-					<UpdateProjectModal projectId={id} projectName={name}>
-						<button
-							className={cn(
-								'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
-								'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-							)}
-						>
-							<Icon name="Edit" size={18} />
-						</button>
-					</UpdateProjectModal>
-					<button
-						className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-red-100 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
-						onClick={deleteProject}
-					>
-						<Icon name="Bin" size={18} />
-					</button>
+					{id ? (
+						<>
+							<UpdateProjectModal projectId={id} projectName={name}>
+								<button
+									className={cn(
+										'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
+										'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+									)}
+								>
+									<Icon name="Edit" size={18} />
+								</button>
+							</UpdateProjectModal>
+							<button
+								className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-red-100 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
+								onClick={deleteProject}
+							>
+								<Icon name="Bin" size={18} />
+							</button>
+						</>
+					) : null}
 					<button className="pr-4 py-2" onClick={() => setOpen((v) => !v)}>
 						<Icon
 							name={'ChevronDown'}
