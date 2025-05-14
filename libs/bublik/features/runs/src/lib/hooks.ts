@@ -8,6 +8,7 @@ import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
 import { RunsAPIQuery } from '@/shared/types';
 import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import {
 	addToSelection,
@@ -80,6 +81,7 @@ export const useRunsPagination = () => {
 export const useRunsQuery = () => {
 	const [searchParams] = useSearchParams();
 	const { pagination } = useRunsPagination();
+	const { projectIds } = useProjectSearch();
 
 	const dates = useMemo(() => {
 		const calendarMode = searchParams.get('calendarMode');
@@ -113,13 +115,15 @@ export const useRunsQuery = () => {
 			page: (pagination.pageIndex + 1).toString() || '1',
 			pageSize: pagination.pageSize.toString() || '25',
 			runData: searchParams.get('runData') || '',
-			tagExpr: searchParams.get('tagExpr') || ''
+			tagExpr: searchParams.get('tagExpr') || '',
+			projects: projectIds
 		}),
 		[
 			dates.finishDate,
 			dates.startDate,
 			pagination.pageIndex,
 			pagination.pageSize,
+			projectIds,
 			searchParams
 		]
 	);

@@ -233,10 +233,14 @@ export const runEndpoints = {
 				}
 			}
 		}),
-		getCompromisedTags: build.query<CompromisedTagsResponse, void>({
-			query: () => ({
+		getCompromisedTags: build.query<
+			CompromisedTagsResponse,
+			{ projects?: number[] }
+		>({
+			query: (query) => ({
 				url: withApiV2('/outside_domains/issues'),
-				cache: 'no-cache'
+				cache: 'no-cache',
+				params: { project: query.projects?.[0] }
 			})
 		}),
 		getRunRequirements: build.query<string[], string[] | number[]>({

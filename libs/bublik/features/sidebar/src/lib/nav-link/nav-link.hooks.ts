@@ -8,11 +8,9 @@ import {
 	useLocation,
 	useSearchParams,
 	Location,
-	Path,
-	resolvePath,
-	NavLinkProps
+	resolvePath
 } from 'react-router-dom';
-import { AccordionLinkProps, NavLinkInternal } from './nav-link';
+import { NavLinkInternal } from './nav-link';
 
 export type SearchPattern = Record<string, string>;
 
