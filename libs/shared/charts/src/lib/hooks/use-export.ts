@@ -12,7 +12,7 @@ export const useExportChart = (config: UseExportConfig) => {
 
 	const handleExportClick = async (fileExtension: ExportExtensions) => {
 		try {
-			const { saveAsCSV, saveAsXLSX } = await import('../utils');
+			const { saveAsCSV, saveAsXLSX } = await import('../utils/export');
 
 			if (!plots) return;
 
