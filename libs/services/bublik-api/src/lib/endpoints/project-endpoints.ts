@@ -1,4 +1,4 @@
-import { EndpointBuilder } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { EndpointBuilder } from '@reduxjs/toolkit/query';
 import { z } from 'zod';
 
 import { BublikBaseQueryFn, withApiV2 } from '../config';
