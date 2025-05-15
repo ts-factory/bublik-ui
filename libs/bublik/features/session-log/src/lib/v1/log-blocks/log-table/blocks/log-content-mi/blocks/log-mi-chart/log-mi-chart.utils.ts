@@ -80,7 +80,7 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 				axis: {
 					type: 'category',
 					axisTick: { alignWithLabel: true },
-					data: Array.from({ length: maxLength - 1 }, (_, idx) => idx)
+					data: Array.from({ length: maxLength }, (_, idx) => idx)
 				}
 			};
 		}
