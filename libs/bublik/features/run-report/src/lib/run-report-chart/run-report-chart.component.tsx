@@ -34,7 +34,7 @@ function RunReportChart(props: RunReportChartProps) {
 					? chart.axis_y.label
 					: d.series,
 			type: 'line',
-			data: d.points.map((d) => d?.[chart.axis_y.key]),
+			data: d.points.map((d) => [d?.[chart.axis_x.key], d?.[chart.axis_y.key]]),
 			itemStyle: {
 				color: (params: unknown) => {
 					const parsedParams = ParamsSchema.safeParse(params);
@@ -161,13 +161,15 @@ function RunReportChart(props: RunReportChartProps) {
 						},
 						dataZoom,
 						xAxis: {
-							type: 'category',
+							type: 'value',
 							name: chart.axis_x.label,
 							nameLocation: 'middle',
 							nameGap: 30,
 							nameTextStyle: chartStyles.text,
 							axisLabel: { ...chartStyles.text },
-							data: chart.axis_x.values
+							scale: true,
+							min: (value) => value.min * 0.9,
+							max: (value) => value.max * 1.1
 						},
 						yAxis: {
 							type: 'value',

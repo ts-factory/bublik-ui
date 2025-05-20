@@ -20,7 +20,7 @@ function resolveXAxisType(
 		);
 	});
 
-	return isTimeAxis ? 'time' : 'category';
+	return isTimeAxis ? 'time' : 'value';
 }
 
 type ChartState = {
