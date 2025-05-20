@@ -26,6 +26,8 @@ const AttachmentsMap: Record<
 	ComponentType<{
 		data: GetLogAttachmentByType<LogAttachmentType>;
 		baseUrl: string;
+		runId?: number;
+		resultId?: number;
 	}>
 > = {
 	text: TextAttachment
@@ -53,7 +55,16 @@ function handleViewRawAttachment(
 	return;
 }
 
-async function handleDownloadAttachments(pathOrUri: string, baseUrl: string) {
+interface DownloadAttachmentOptions {
+	runId?: number;
+	resultId?: number;
+}
+
+async function handleDownloadAttachments(
+	pathOrUri: string,
+	baseUrl: string,
+	options?: DownloadAttachmentOptions
+) {
 	try {
 		let url: string;
 		let filename: string;
@@ -79,7 +90,17 @@ async function handleDownloadAttachments(pathOrUri: string, baseUrl: string) {
 		const link = document.createElement('a');
 
 		link.href = downloadUrl;
-		link.download = filename;
+
+		let downloadFilename = filename;
+		if (options?.runId || options?.resultId) {
+			const prefixParts = [];
+			if (options?.runId) prefixParts.push(options.runId);
+			if (options?.resultId) prefixParts.push(options.resultId);
+
+			downloadFilename = `${prefixParts.join('_')}_${filename}`;
+		}
+
+		link.download = downloadFilename;
 
 		document.body.appendChild(link);
 
@@ -92,13 +113,19 @@ async function handleDownloadAttachments(pathOrUri: string, baseUrl: string) {
 	}
 }
 
-function TextAttachment({
-	data,
-	baseUrl
-}: {
+interface TextAttachmentProps {
 	data: GetLogAttachmentByType<'text'>;
 	baseUrl: string;
-}) {
+	runId?: number;
+	resultId?: number;
+}
+
+function TextAttachment({
+	data,
+	baseUrl,
+	runId,
+	resultId
+}: TextAttachmentProps) {
 	const viewUrl =
 		data.view_type === 'inline' && data.uri
 			? data.uri
@@ -119,12 +146,13 @@ function TextAttachment({
 			return;
 		}
 
-		handleDownloadAttachments(data.uri || data.path || '', baseUrl).catch(
-			(error) => {
-				console.error('Failed to download attachment:', error);
-				toast.error('Failed to download attachment');
-			}
-		);
+		handleDownloadAttachments(data.uri || data.path || '', baseUrl, {
+			runId,
+			resultId
+		}).catch((error) => {
+			console.error('Failed to download attachment:', error);
+			toast.error('Failed to download attachment');
+		});
 	}
 
 	return (
@@ -222,6 +250,8 @@ function LogAttachmentsContainer(props: LogAttachmentsContainerProps) {
 								key={idx}
 								data={attachment}
 								baseUrl={data?.attachments_base_url ?? ''}
+								runId={runId}
+								resultId={focusId ?? undefined}
 							/>
 						);
 					})
