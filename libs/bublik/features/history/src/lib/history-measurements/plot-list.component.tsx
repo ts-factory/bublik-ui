@@ -55,13 +55,15 @@ const PlotListItem = (props: PlotListItemProps) => {
 
 	return (
 		<>
-			<LogPreviewContainer
-				runId={point?.run_id}
-				resultId={point?.result_id}
-				measurementId={point?.result_id}
-				open={isDialogOpen}
-				onOpenChange={setIsDialogOpen}
-			/>
+			{point && (
+				<LogPreviewContainer
+					runId={point.run_id}
+					resultId={point.result_id}
+					measurementId={point.result_id}
+					open={isDialogOpen}
+					onOpenChange={setIsDialogOpen}
+				/>
+			)}
 			<li className="py-2.5 px-4">
 				<MeasurementChart
 					chart={plot}

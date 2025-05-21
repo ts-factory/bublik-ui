@@ -19,10 +19,15 @@ import {
 	DrawerContent,
 	DrawerRoot,
 	DrawerTrigger,
-	Icon
+	Icon,
+	RunRunning
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
-import { getErrorMessage, useGetLogJsonQuery } from '@/services/bublik-api';
+import {
+	getErrorMessage,
+	useGetLogJsonQuery,
+	useGetRunDetailsQuery
+} from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
 	SessionLoading,
@@ -30,12 +35,14 @@ import {
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
+import { RUN_STATUS } from '@/shared/types';
 
 import { NewBugContainer } from './log-preview-new-bug.container';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 interface LogPreviewContainerProps {
 	logName?: string;
-	runId?: number;
+	runId: number;
 	resultId?: number;
 	// Alias for result id if we want to show link to measurement page
 	measurementId?: number;
@@ -123,7 +130,7 @@ function LogPreviewContainer(
 									</CardHeader>
 
 									{resultId ? (
-										<LogPreview resultId={resultId} />
+										<LogPreview runId={runId} resultId={resultId} />
 									) : (
 										<div>No result ID provided!</div>
 									)}
@@ -138,16 +145,22 @@ function LogPreviewContainer(
 }
 
 interface LogPreviewProps {
+	runId: number;
 	resultId: number;
 }
 
 function LogPreview(props: LogPreviewProps) {
-	const { resultId } = props;
+	const { runId, resultId } = props;
 	const [page, setPage] = useState<number | undefined>();
 	const { data, error, isLoading, isFetching } = useGetLogJsonQuery({
 		id: resultId,
 		page: typeof page !== 'undefined' ? page.toString() : undefined
 	});
+	const {
+		data: runDetails,
+		isLoading: runDetailsLoading,
+		error: runDetailsError
+	} = useGetRunDetailsQuery(runId ?? skipToken);
 
 	const handlePageClick = useCallback(
 		(_: string, page: number) => {
@@ -156,12 +169,20 @@ function LogPreview(props: LogPreviewProps) {
 		[setPage]
 	);
 
-	if (isLoading) {
+	if (isLoading || runDetailsLoading) {
 		return <SessionLoading />;
 	}
 
-	if (error) {
-		return <LogPreviewError error={error} />;
+	if (runDetails?.conclusion === RUN_STATUS.Running) {
+		return (
+			<div className="flex justify-center items-center w-full h-full">
+				<RunRunning />
+			</div>
+		);
+	}
+
+	if (error || runDetailsError) {
+		return <LogPreviewError error={error || runDetailsError} />;
 	}
 
 	if (!data) {

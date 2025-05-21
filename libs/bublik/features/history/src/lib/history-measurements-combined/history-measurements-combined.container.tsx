@@ -65,13 +65,15 @@ function HistoryMeasurementsCombinedContainer() {
 
 	return (
 		<>
-			<LogPreviewContainer
-				runId={point?.run_id}
-				resultId={point?.result_id}
-				measurementId={point?.result_id}
-				open={isPointDialogOpen}
-				onOpenChange={setIsPointDialogOpen}
-			/>
+			{point && (
+				<LogPreviewContainer
+					runId={point?.run_id}
+					resultId={point?.result_id}
+					measurementId={point?.result_id}
+					open={isPointDialogOpen}
+					onOpenChange={setIsPointDialogOpen}
+				/>
+			)}
 			<div className="bg-white rounded-md">
 				<CardHeader label="Combined" />
 				<div

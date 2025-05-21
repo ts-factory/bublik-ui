@@ -5,7 +5,8 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	getErrorMessage,
 	useGetLogJsonQuery,
-	useGetLogUrlByResultIdQuery
+	useGetLogUrlByResultIdQuery,
+	useGetRunDetailsQuery
 } from '@/services/bublik-api';
 import {
 	LogTableContext,
@@ -13,7 +14,8 @@ import {
 	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
-import { cn, Icon } from '@/shared/tailwind-ui';
+import { cn, Icon, RunRunning } from '@/shared/tailwind-ui';
+import { RUN_STATUS } from '@/shared/types';
 
 import { useIsLogLegacy, useLogPage } from '../../hooks';
 
@@ -186,16 +188,29 @@ const JsonLog = (props: JsonLogProps) => {
 		: skipToken;
 
 	const { data, isLoading, isFetching, error } = useGetLogJsonQuery(idToFetch);
+	const {
+		data: details,
+		isLoading: detailsLoading,
+		error: detailsError
+	} = useGetRunDetailsQuery(runId ?? skipToken);
 
-	if (isLoading) {
+	if (isLoading || detailsLoading) {
 		return <SessionLoading />;
 	}
 
-	if (error) {
-		return <LogFrameError error={error} />;
+	if (details?.conclusion === RUN_STATUS.Running) {
+		return (
+			<div className="flex justify-center items-center w-full h-full">
+				<RunRunning />
+			</div>
+		);
 	}
 
-	if (!data) {
+	if (error || detailsError) {
+		return <LogFrameError error={error || detailsError} />;
+	}
+
+	if (!data || !details) {
 		return <LogFrameEmpty />;
 	}
 
