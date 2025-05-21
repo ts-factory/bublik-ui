@@ -1,5 +1,63 @@
 
 
+## [1.8.0](https://github.com/ts-factory/bublik-ui/compare/v1.7.0...v1.8.0) (2025-05-21)
+
+
+### 🚀 New Feature
+
+* **log:** [new-bug] add log filters for scenario and verdict ([c1a7827](https://github.com/ts-factory/bublik-ui/commit/c1a7827b1346fcf100cf5b86463397c13d25dbdd)), closes [#246](https://github.com/ts-factory/bublik-ui/issues/246)
+* **result:** [measurements] add selection popover for combined charts ([0d29de3](https://github.com/ts-factory/bublik-ui/commit/0d29de320d457b42467f5c78b1174570a83140da))
+* **run,log:** show message for runs in progress instead of error ([9532d31](https://github.com/ts-factory/bublik-ui/commit/9532d31fbb8f2c86bbf3fb011f66c4a8af2a0db6))
+* **runs:** add ability to select dates based on duration ([0fb0dbe](https://github.com/ts-factory/bublik-ui/commit/0fb0dbe7b7ea90924da6fe65a1bbef95c997905a))
+* **runs:** add scroll to top on page change ([c8a91ef](https://github.com/ts-factory/bublik-ui/commit/c8a91ef15b7670dadee08b49c5401d98d3501b3a))
+* **ui:** [date-range-picker] add mode for selection dates based on duration ([627c361](https://github.com/ts-factory/bublik-ui/commit/627c3614bd79c0ecbe8af6eb4eff108d694888a0))
+* **ui:** [date-range-picker] make range buttons select sliding window ([81bd2dd](https://github.com/ts-factory/bublik-ui/commit/81bd2ddcd9364f5bf3406c751057530dbcaf0ee5))
+* **utils:** add function to parse ISO8601 duration format ([112d73b](https://github.com/ts-factory/bublik-ui/commit/112d73b98ab8730ee12e15391b51e352cfdf7876))
+
+
+### 💅 Polish
+
+* **result:** [measurement] fix selection popover overlap with table header ([374ec57](https://github.com/ts-factory/bublik-ui/commit/374ec57eda7b2e79e9e558f868cd3045247ab881))
+* **run:** change padding for all popovers ([255d6e1](https://github.com/ts-factory/bublik-ui/commit/255d6e15b5a9c917b00b5e300abd3b611e3703fe))
+* **runs:** align "Name" and "Start" labels vertically in list item ([466a349](https://github.com/ts-factory/bublik-ui/commit/466a349b92607d35587367c0cb6d3b33802ec41e))
+* **ui:** [date-range-picker] fix hover styles for cells ([b2e50ea](https://github.com/ts-factory/bublik-ui/commit/b2e50ea2814a68a9e071f07f9783f8ea107bdcb4))
+* **ui:** [date-range-picker] prevent jumping when changing mode ([c172c68](https://github.com/ts-factory/bublik-ui/commit/c172c6893f41dd3676f6ce06b2cc541f94cb4d82))
+
+
+### 🐛 Bug Fix
+
+* **ci:** ignore `.pnpm-store` while checking formatting ([19fd7f4](https://github.com/ts-factory/bublik-ui/commit/19fd7f48f767a9dfc874f5f9d072ab620169f47c))
+* **configs:** [editor] prevent monaco editor getting source from CDN ([0969059](https://github.com/ts-factory/bublik-ui/commit/09690597175663d56a2345044e112687e9850a37))
+* **log:** [mi] ensure last data point is included in chart ([4b2ac17](https://github.com/ts-factory/bublik-ui/commit/4b2ac17e1d70d2b9114712c66cce28a512401f8f))
+* **log:** [mi] fix incorrect distance proportion between points ([ed3c00f](https://github.com/ts-factory/bublik-ui/commit/ed3c00f1dd349885f1b7a04e4ad7196719914969))
+* **log:** [new-bug] escape `|` in log to properly format markdown table ([bbaf57d](https://github.com/ts-factory/bublik-ui/commit/bbaf57d63bbffc46c292d8f18525a0516858e4f7))
+* **report,result:** [chart] incorrect distance proprtions in charts ([3e6a537](https://github.com/ts-factory/bublik-ui/commit/3e6a53785542414946d249ed2a187fb3234eab45))
+* **report:** missing tab title when reloading page ([c1a1e19](https://github.com/ts-factory/bublik-ui/commit/c1a1e19d0b18aa54e1b4e8dde3cfd03d0f8847e6)), closes [#321](https://github.com/ts-factory/bublik-ui/issues/321)
+* **run,log:** disable link in case no URL for source available ([973689c](https://github.com/ts-factory/bublik-ui/commit/973689c8a71c26b306d80c6b534e9e29d4355878)), closes [#243](https://github.com/ts-factory/bublik-ui/issues/243)
+* **run:** remove auto-sort on "Preview NOK" button click ([e8bbb8f](https://github.com/ts-factory/bublik-ui/commit/e8bbb8fca3b0df2d59b9768f45d89ef56bd0a35c)), closes [#320](https://github.com/ts-factory/bublik-ui/issues/320)
+* **run:** use correct endpoint for getting bug storage url ([fc9f8b0](https://github.com/ts-factory/bublik-ui/commit/fc9f8b028f3f6e44811d7339a2935fb138449468))
+
+
+### ♻ Code Refactoring
+
+* **history:** [measurements] use selection state popover from shared lib ([727aaad](https://github.com/ts-factory/bublik-ui/commit/727aaadc4115ac6eef16cc7b5af60d6e2a6e5f97))
+* **log:** allow dynamically to get initial filter options ([c7cf020](https://github.com/ts-factory/bublik-ui/commit/c7cf0207448f21d932a50b57fb3037af172332eb))
+
+
+### 📦 Chores
+
+* **log:** [attachments] improve filename generation ([9e7af6d](https://github.com/ts-factory/bublik-ui/commit/9e7af6d06b40a6c6b540b88ddccd503a86c9685f))
+* **log:** delete duplicated code for log source button component ([0a2f7fb](https://github.com/ts-factory/bublik-ui/commit/0a2f7fb394c1ded7cd65be5c97584bb2984193c3))
+* **log:** extract new bug button component ([5dd6e8e](https://github.com/ts-factory/bublik-ui/commit/5dd6e8e1967c14b1da5bf6fe94087a1757c99ac8))
+* **log:** remove duplicated new bug button component usage ([4de5b28](https://github.com/ts-factory/bublik-ui/commit/4de5b286d6eb6fb340db13aff7bac1da098b8f5a))
+* **log:** remove new bug button component ([2708628](https://github.com/ts-factory/bublik-ui/commit/2708628092af43ed62c302e84e6a6d6ad651ca61))
+* **measurements:** extract selection popover for charts to shared lib ([5867d11](https://github.com/ts-factory/bublik-ui/commit/5867d11caad7022e6ef0dc8acf061a7be0505ad4))
+* **redux:** upgrade redux and zod to latest ([54be9d1](https://github.com/ts-factory/bublik-ui/commit/54be9d132b65ee65ffc6aba84402c41a501de059))
+* **runs:** remove max selection limit to view merged runs ([27ef3c1](https://github.com/ts-factory/bublik-ui/commit/27ef3c17e9cfaa06c52fa22fa9b48936a69131b0))
+* **ui:** [date-range-picker] adjust types for duration picker ([e442a0b](https://github.com/ts-factory/bublik-ui/commit/e442a0bcef0de69773eeb5e730716b8dca34c2eb))
+* **ui:** [date-range-picker] extract shared constants and types ([35e8a63](https://github.com/ts-factory/bublik-ui/commit/35e8a63bd5824b6732bd86ac5d09fe13aa088148))
+* **ui:** [icons] add gear icon ([2c958bd](https://github.com/ts-factory/bublik-ui/commit/2c958bdf35fc0e112dfcb823b59571c32b1e68df))
+
 ## [1.7.0](https://github.com/ts-factory/bublik-ui/compare/v1.6.1...v1.7.0) (2025-04-16)
 
 
