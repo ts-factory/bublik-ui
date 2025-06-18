@@ -36,7 +36,9 @@ export const statusBadgeStyles = cva({
 function getBgByStatus(status: string): string {
 	const statusMap: Record<string, string> = {
 		SUCCESS: 'bg-bg-ok',
-		FAILURE: 'bg-bg-error'
+		FAILURE: 'bg-bg-error',
+		STARTED: 'bg-bg-running',
+		RECEIVED: 'bg-gray-400'
 	};
 
 	return statusMap[status] ?? '';
@@ -48,7 +50,9 @@ function getIconByStatus(status: string) {
 		ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>
 	> = {
 		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
-		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />
+		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />,
+		STARTED: (props) => <Icon name="ProgressIndicator" {...props} />,
+		RECEIVED: (props) => <Icon name="Download" {...props} />
 	};
 
 	return statusMap[status];
@@ -64,7 +68,7 @@ export const columns: ColumnDef<LogEvent>[] = [
 			const Icon = getIconByStatus(status);
 
 			return (
-				<Tooltip content={status} side="right" align="start">
+				<Tooltip content={status ?? '1'} side="right" align="start">
 					<div
 						className={cn(
 							'h-[calc(100%+2px)] rounded-l w-[24px] flex flex-col items-center -translate-x-px -translate-y-px',
