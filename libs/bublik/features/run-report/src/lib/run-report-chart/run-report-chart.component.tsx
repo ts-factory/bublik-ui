@@ -11,9 +11,10 @@ import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
 
-const ParamsSchema = z
-	.object({ seriesIndex: z.number(), dataIndex: z.number() })
-	.nonstrict();
+const ParamsSchema = z.object({
+	seriesIndex: z.number(),
+	dataIndex: z.number()
+});
 
 interface RunReportChartProps {
 	chart: ReportChart;
