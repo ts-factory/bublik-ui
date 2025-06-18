@@ -27,21 +27,21 @@ const headerCellStyles = cva({
 
 function formatValue(
 	value: string | number | undefined,
-	seriesName: string,
+	seriesName?: string,
 	formatters?: Record<string, string>
 ) {
 	if (value === undefined || value === null) return <>&ndash;</>;
 
-	const formatter = formatters?.[seriesName] ?? '';
+	const formatter = seriesName ? formatters?.[seriesName] : '';
 
 	return `${Number(value)}${formatter}`;
 }
 
 function getValue(
 	xValue: number | string,
-	seriesName: string,
 	xAxisKey: string,
-	table: ReportTable
+	table: ReportTable,
+	seriesName?: string
 ): string | number | undefined {
 	const series = table.data.find((s) => s.series === seriesName);
 
@@ -54,9 +54,9 @@ function getValue(
 
 function getMetadata(
 	xValue: number | string,
-	seriesName: string,
 	xAxisKey: string,
-	table: ReportTable
+	table: ReportTable,
+	seriesName?: string
 ) {
 	const series = table.data.find((s) => s.series === seriesName);
 
@@ -156,7 +156,7 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 							{xValue}
 						</td>
 						{seriesNames.map((seriesName) => {
-							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
+							const metadata = getMetadata(xValue, xAxisKey, table, seriesName);
 
 							return (
 								<LogPreviewContainer
@@ -174,7 +174,7 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 										)}
 									>
 										{formatValue(
-											getValue(xValue, seriesName, xAxisKey, table),
+											getValue(xValue, xAxisKey, table, seriesName),
 											seriesName,
 											table.formatters
 										)}
@@ -260,7 +260,7 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 							{xValue}
 						</td>
 						{seriesNames.map((seriesName) => {
-							const metadata = getMetadata(xValue, seriesName, xAxisKey, table);
+							const metadata = getMetadata(xValue, xAxisKey, table, seriesName);
 
 							return (
 								<LogPreviewContainer
@@ -277,7 +277,7 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 										)}
 									>
 										{formatValue(
-											getValue(xValue, seriesName, xAxisKey, table),
+											getValue(xValue, xAxisKey, table, seriesName),
 											seriesName,
 											table.formatters
 										)}

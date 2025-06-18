@@ -59,12 +59,12 @@ export type ReportChart = {
 	warnings: string[];
 	axis_x: Axis & { values: number[] };
 	axis_y: Axis;
-	series_label: string;
+	series_label?: string;
 	data: ReportSeries[];
 };
 
 export type ReportSeries = {
-	series: string;
+	series?: string;
 	points: ReportPoint[];
 };
 
