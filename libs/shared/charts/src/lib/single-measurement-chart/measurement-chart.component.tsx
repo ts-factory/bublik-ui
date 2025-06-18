@@ -35,10 +35,17 @@ interface MeasurementChartProps {
 	style?: CSSProperties;
 	additionalToolBarItems?: ReactNode;
 	isFullScreen?: boolean;
+	enableResultErrorHighlight?: boolean;
 }
 
 const MeasurementChart = (props: MeasurementChartProps) => {
-	const { chart, color, additionalToolBarItems, isFullScreen = false } = props;
+	const {
+		chart,
+		color,
+		additionalToolBarItems,
+		isFullScreen = false,
+		enableResultErrorHighlight = false
+	} = props;
 	const ref = useRef<ReactEChartsCore>(null);
 	const {
 		state,
@@ -46,7 +53,8 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 		resetZoom,
 		toggleSliders,
 		changeMode,
-		toggleFullScreen
+		toggleFullScreen,
+		toggleLimitYAxis
 	} = useChartState({ chart, chartRef: ref, color });
 
 	useChartClick({ ref, onChartPointClick: props.onChartPointClick });
@@ -55,7 +63,8 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 	const options = resolveOptions(chart, state, {
 		color,
 		isModifierPressed: isPressed,
-		isFullScreen
+		isFullScreen,
+		enableResultErrorHighlight
 	});
 
 	return (
@@ -69,6 +78,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 						style={{ height: '100%' }}
 						additionalToolBarItems={additionalToolBarItems}
 						isFullScreen={true}
+						enableResultErrorHighlight={enableResultErrorHighlight}
 					/>
 				</DrawerContent>
 			</DrawerRoot>
@@ -78,6 +88,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 				toggleGlobalZoom={toggleGlobalZoom}
 				resetZoom={resetZoom}
 				toggleSliders={toggleSliders}
+				toggleLimitYAxis={toggleLimitYAxis}
 				changeMode={changeMode}
 				toggleFullScreen={toggleFullScreen}
 				additionalToolBarItems={additionalToolBarItems}
@@ -94,6 +105,7 @@ interface MeasurementChartToolbarProps {
 	toggleGlobalZoom: () => void;
 	resetZoom: () => void;
 	toggleSliders: () => void;
+	toggleLimitYAxis: () => void;
 	changeMode: (type: string) => void;
 	toggleFullScreen: (open?: boolean) => void;
 	additionalToolBarItems?: ReactNode;
@@ -107,6 +119,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 		toggleGlobalZoom,
 		resetZoom,
 		toggleSliders,
+		toggleLimitYAxis,
 		changeMode,
 		toggleFullScreen,
 		additionalToolBarItems,
@@ -149,9 +162,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						</ToolbarButton>
 					</Tooltip>
 
-					<Tooltip
-						content={state.isSlidersVisible ? 'Hide sliders' : 'Show sliders'}
-					>
+					<Tooltip content={state ? 'Hide sliders' : 'Show sliders'}>
 						<ToolbarButton
 							aria-label={
 								state.isSlidersVisible ? 'Hide sliders' : 'Show sliders'
@@ -160,6 +171,26 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 							state={state.isSlidersVisible ? 'active' : 'default'}
 						>
 							<Icon name="SettingsSliders" className="size-5" />
+						</ToolbarButton>
+					</Tooltip>
+
+					<Tooltip
+						content={
+							state.limitYAxis
+								? 'Remove y-axis limit'
+								: 'Limit y-axis to max/min values'
+						}
+					>
+						<ToolbarButton
+							aria-label={
+								state.limitYAxis
+									? 'Remove y-axis limit'
+									: 'Limit y-axis to max/min values'
+							}
+							onClick={toggleLimitYAxis}
+							state={state.limitYAxis ? 'active' : 'default'}
+						>
+							<Icon name="SwapArrows" className="size-5" />
 						</ToolbarButton>
 					</Tooltip>
 				</div>

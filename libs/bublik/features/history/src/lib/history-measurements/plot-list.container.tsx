@@ -70,6 +70,7 @@ export function PlotListContainer() {
 				label="Trend Charts"
 				plots={data.trend_charts}
 				isFetching={isFetching}
+				enableResultErrorHighlight
 			/>
 			<MeasurementsList
 				measurements={data.measurement_series_charts_by_result}

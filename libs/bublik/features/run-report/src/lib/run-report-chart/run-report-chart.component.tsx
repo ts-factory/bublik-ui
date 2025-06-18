@@ -174,9 +174,7 @@ function RunReportChart(props: RunReportChartProps) {
 							nameGap: 30,
 							nameTextStyle: chartStyles.text,
 							axisLabel: { ...chartStyles.text },
-							scale: true,
-							min: (value) => value.min * 0.9,
-							max: (value) => value.max * 1.1
+							scale: true
 						},
 						yAxis: {
 							type: 'value',
