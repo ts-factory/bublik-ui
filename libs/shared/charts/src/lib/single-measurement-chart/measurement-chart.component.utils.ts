@@ -122,6 +122,8 @@ function resolveOptions(
 			name: chart.axis_y.label,
 			nameGap: 20,
 			nameLocation: 'end',
+			min: 'dataMin',
+			max: 'dataMax',
 			axisLabel: axisLabelStyles,
 			nameTextStyle: { ...axisLabelStyles, align: 'left' }
 		},
