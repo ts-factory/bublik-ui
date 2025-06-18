@@ -69,7 +69,13 @@ function RunReportChart(props: RunReportChartProps) {
 				return 8;
 			}
 		}));
-	}, [chart.axis_y.key, chart.axis_y.label, chart.data, chart.series_label]);
+	}, [
+		chart.axis_x.key,
+		chart.axis_y.key,
+		chart.axis_y.label,
+		chart.data,
+		chart.series_label
+	]);
 
 	const chartRef = useRef<ReactEChartsCore>(null);
 
