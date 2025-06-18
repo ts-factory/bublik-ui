@@ -20,15 +20,19 @@ export const measurementsEndpoints = {
 				url: withApiV2(`/results/${resultId}/measurements`)
 			})
 		}),
-		getMeasurements: build.query<SingleMeasurementChart[], (string | number)[]>(
+		getMeasurements: build.query<
 			{
-				query: (results) => ({
-					url: withApiV2('/measurements/by_result_ids'),
-					method: 'POST',
-					body: { result_ids: results.map(Number) }
-				})
-			}
-		)
+				measurement_series_charts_by_result: SingleMeasurementChart[];
+				trend_charts: SingleMeasurementChart[];
+			},
+			(string | number)[]
+		>({
+			query: (results) => ({
+				url: withApiV2('/measurements/by_result_ids'),
+				method: 'POST',
+				body: { result_ids: results.map(Number) }
+			})
+		})
 	})
 };
 

@@ -38,7 +38,10 @@ export const PlotListContainer = () => {
 
 	if (isLoading) return <PlotListLoading />;
 
-	if (!data?.length) {
+	if (
+		!data?.measurement_series_charts_by_result?.length &&
+		!data?.trend_charts?.length
+	) {
 		return (
 			<HistoryEmpty
 				type="no-results"
@@ -47,5 +50,5 @@ export const PlotListContainer = () => {
 		);
 	}
 
-	return <PlotList plots={data} isFetching={isFetching} />;
+	return <PlotList plots={data.trend_charts} isFetching={isFetching} />;
 };
