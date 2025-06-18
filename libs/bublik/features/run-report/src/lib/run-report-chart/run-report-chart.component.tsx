@@ -152,7 +152,7 @@ function RunReportChart(props: RunReportChartProps) {
 							axisPointer: { type: 'shadow' }
 						},
 						legend: {
-							data: chart.data.map((s) => s.series),
+							data: chart.data.map((s) => s.series ?? ''),
 							show: Boolean(chart.series_label),
 							padding: chart.series_label ? [25, 0, 0, 0] : undefined
 						},
