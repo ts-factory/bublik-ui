@@ -19,7 +19,8 @@ const DEFAULT_STATE: ChartState = {
 	mode: 'line',
 	isGlobalZoomEnabled: false,
 	isSlidersVisible: false,
-	isFullScreen: false
+	isFullScreen: false,
+	limitYAxis: false
 };
 
 function useChartState(props: UseChartStateProps) {
@@ -77,13 +78,18 @@ function useChartState(props: UseChartStateProps) {
 		setState((o) => ({ ...o, isFullScreen: open ?? !o.isFullScreen }));
 	}
 
+	function toggleLimitYAxis() {
+		setState((o) => ({ ...o, limitYAxis: !o.limitYAxis }));
+	}
+
 	return {
 		state,
 		changeMode,
 		resetZoom,
 		toggleGlobalZoom,
 		toggleSliders,
-		toggleFullScreen
+		toggleFullScreen,
+		toggleLimitYAxis
 	};
 }
 

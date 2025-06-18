@@ -11,9 +11,10 @@ import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
 
-const ParamsSchema = z
-	.object({ seriesIndex: z.number(), dataIndex: z.number() })
-	.nonstrict();
+const ParamsSchema = z.object({
+	seriesIndex: z.number(),
+	dataIndex: z.number()
+});
 
 interface RunReportChartProps {
 	chart: ReportChart;
@@ -68,7 +69,13 @@ function RunReportChart(props: RunReportChartProps) {
 				return 8;
 			}
 		}));
-	}, [chart.axis_y.key, chart.axis_y.label, chart.data, chart.series_label]);
+	}, [
+		chart.axis_x.key,
+		chart.axis_y.key,
+		chart.axis_y.label,
+		chart.data,
+		chart.series_label
+	]);
 
 	const chartRef = useRef<ReactEChartsCore>(null);
 
@@ -167,9 +174,7 @@ function RunReportChart(props: RunReportChartProps) {
 							nameGap: 30,
 							nameTextStyle: chartStyles.text,
 							axisLabel: { ...chartStyles.text },
-							scale: true,
-							min: (value) => value.min * 0.9,
-							max: (value) => value.max * 1.1
+							scale: true
 						},
 						yAxis: {
 							type: 'value',

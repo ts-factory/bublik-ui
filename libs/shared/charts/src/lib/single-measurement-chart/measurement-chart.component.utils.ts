@@ -28,6 +28,7 @@ type ChartState = {
 	isGlobalZoomEnabled: boolean;
 	isSlidersVisible: boolean;
 	isFullScreen: boolean;
+	limitYAxis?: boolean;
 };
 
 const axisLabelStyles = {
@@ -90,9 +91,21 @@ function resolveOptions(
 		color: string;
 		isModifierPressed?: boolean;
 		isFullScreen?: boolean;
+		enableResultErrorHighlight?: boolean;
 	}>
 ) {
 	const xAxisType = resolveXAxisType(chart.axis_x.key, chart.dataset);
+
+	const yAxis: ComponentProps<typeof Plot>['options']['yAxis'] = {
+		type: 'value',
+		name: chart.axis_y.label,
+		nameGap: 20,
+		nameLocation: 'end',
+		min: state.limitYAxis ? 'dataMin' : undefined,
+		max: state.limitYAxis ? 'dataMax' : undefined,
+		axisLabel: axisLabelStyles,
+		nameTextStyle: { ...axisLabelStyles, align: 'left' }
+	};
 
 	const options: ComponentProps<typeof Plot>['options'] = {
 		toolbox: { top: 9999, feature: { dataZoom: {} } },
@@ -117,42 +130,45 @@ function resolveOptions(
 			nameTextStyle: axisLabelStyles,
 			axisLabel: { ...axisLabelStyles }
 		},
-		yAxis: {
-			type: 'value',
-			name: chart.axis_y.label,
-			nameGap: 20,
-			nameLocation: 'end',
-			axisLabel: axisLabelStyles,
-			nameTextStyle: { ...axisLabelStyles, align: 'left' }
-		},
+		yAxis,
 		series: [
 			{
 				type: state.mode === 'scatter' ? 'scatter' : 'line',
 				color: additionalOptions.color,
 				encode: { x: chart.axis_x.key, y: chart.axis_y.key },
-				itemStyle: {
-					color: (params: { dataIndex: number }) => {
-						const point = chart.dataset[params.dataIndex + 1];
-						if (!point) return additionalOptions.color ?? '#7283e2';
+				itemStyle: additionalOptions.enableResultErrorHighlight
+					? {
+							color: (params: { dataIndex: number }) => {
+								const point = chart.dataset[params.dataIndex + 1];
+								if (!point) return additionalOptions.color ?? '#7283e2';
 
-						const hasError = point[chart.dataset[0].indexOf('has_error')];
-						return hasError ? '#f95c78' : '#65cd84';
-					}
-				},
-				symbol: (_: unknown, params: { dataIndex: number }) => {
-					const point = chart.dataset[params.dataIndex + 1];
-					if (!point) return 'emptyCircle';
+								const hasError = point[chart.dataset[0].indexOf('has_error')];
+								return hasError ? '#f95c78' : '#65cd84';
+							}
+					  }
+					: undefined,
+				symbol: additionalOptions.enableResultErrorHighlight
+					? (_: unknown, params: { dataIndex: number }) => {
+							const point = chart.dataset[params.dataIndex + 1];
+							if (!point) return 'emptyCircle';
 
-					const hasError = point[chart.dataset[0].indexOf('has_error')];
-					return hasError ? 'diamond' : 'emptyCircle';
-				},
-				symbolSize: (_: unknown, params: { dataIndex: number }) => {
-					const point = chart.dataset[params.dataIndex + 1];
-					if (!point) return 8;
+							const hasError = point[chart.dataset[0].indexOf('has_error')];
+							return hasError ? 'diamond' : 'emptyCircle';
+					  }
+					: state.mode === 'scatter'
+					? 'circle'
+					: 'emptyCircle',
+				symbolSize: additionalOptions.enableResultErrorHighlight
+					? (_: unknown, params: { dataIndex: number }) => {
+							const point = chart.dataset[params.dataIndex + 1];
+							if (!point) return 8;
 
-					const hasError = point[chart.dataset[0].indexOf('has_error')];
-					return hasError ? 16 : 8;
-				}
+							const hasError = point[chart.dataset[0].indexOf('has_error')];
+							return hasError ? 16 : 8;
+					  }
+					: state.mode === 'scatter'
+					? 8
+					: 4
 			}
 		]
 	};
@@ -160,9 +176,15 @@ function resolveOptions(
 	return options;
 }
 
+interface ResolveStackedOptionsProps {
+	enableResultErrorHighlight?: boolean;
+}
+
 function resolveStackedOptions(
-	plots: SingleMeasurementChart[]
+	plots: SingleMeasurementChart[],
+	options: ResolveStackedOptionsProps = {}
 ): ComponentProps<typeof Plot>['options'] {
+	const { enableResultErrorHighlight = false } = options;
 	const Y_AXIS_SPACING = 120;
 
 	const axisLabelStyles = {
@@ -211,29 +233,35 @@ function resolveStackedOptions(
 			yAxisIndex: idx,
 			color: getColorByIdx(idx),
 			encode: { x: plot.axis_x.key, y: plot.axis_y.key },
-			symbolSize: (_: unknown, params: { dataIndex: number }) => {
-				const point = plot.dataset[params.dataIndex + 1];
-				if (!point) return 8;
+			symbolSize: enableResultErrorHighlight
+				? (_: unknown, params: { dataIndex: number }) => {
+						const point = plot.dataset[params.dataIndex + 1];
+						if (!point) return 8;
 
-				const hasError = point[plot.dataset[0].indexOf('has_error')];
-				return hasError ? 16 : 8;
-			},
-			symbol: (_: unknown, params: { dataIndex: number }) => {
-				const point = plot.dataset[params.dataIndex + 1];
-				if (!point) return 'circle';
+						const hasError = point[plot.dataset[0].indexOf('has_error')];
+						return hasError ? 16 : 8;
+				  }
+				: 4,
+			symbol: enableResultErrorHighlight
+				? (_: unknown, params: { dataIndex: number }) => {
+						const point = plot.dataset[params.dataIndex + 1];
+						if (!point) return 'circle';
 
-				const hasError = point[plot.dataset[0].indexOf('has_error')];
-				return hasError ? 'diamond' : 'circle';
-			},
-			itemStyle: {
-				color: (params: { dataIndex: number }) => {
-					const point = plot.dataset[params.dataIndex + 1];
-					if (!point) return getColorByIdx(idx);
+						const hasError = point[plot.dataset[0].indexOf('has_error')];
+						return hasError ? 'diamond' : 'circle';
+				  }
+				: 'emptyCircle',
+			itemStyle: enableResultErrorHighlight
+				? {
+						color: (params: { dataIndex: number }) => {
+							const point = plot.dataset[params.dataIndex + 1];
+							if (!point) return getColorByIdx(idx);
 
-					const hasError = point[plot.dataset[0].indexOf('has_error')];
-					return hasError ? '#f95c78' : '#65cd84';
-				}
-			},
+							const hasError = point[plot.dataset[0].indexOf('has_error')];
+							return hasError ? '#f95c78' : '#65cd84';
+						}
+				  }
+				: undefined,
 			id: `${plot.title}_${idx}`
 		})),
 		dataZoom: [
