@@ -175,6 +175,8 @@ function RunReportChart(props: RunReportChartProps) {
 							type: 'value',
 							name: chart.axis_y.label,
 							nameGap: 20,
+							min: 'dataMin',
+							max: 'dataMax',
 							nameLocation: 'end',
 							axisLabel: chartStyles.text,
 							nameTextStyle: { ...chartStyles.text, align: 'left' }

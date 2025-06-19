@@ -4,7 +4,6 @@ import { FC } from 'react';
 
 import {
 	getErrorMessage,
-	SingleMeasurementChart,
 	useGetSingleMeasurementQuery
 } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
