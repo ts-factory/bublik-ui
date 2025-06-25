@@ -21,14 +21,20 @@ function HistoryMeasurementsCombinedContainer() {
 
 	const plots = useMemo(() => {
 		if (!data) return [];
+		const allCharts = [
+			...data.trend_charts,
+			...data.measurement_series_charts_by_result.flatMap(
+				(c) => c.measurement_series_charts
+			)
+		];
 
 		const plotIdsStr = searchParams.get('combinedPlots');
 
 		if (!plotIdsStr) return [];
 
-		const plotIds = plotIdsStr.split(';');
+		const plotIds = plotIdsStr.split(';').map(String);
 
-		return data.filter((p) => plotIds.includes(p.id.toString()));
+		return allCharts.filter((p) => plotIds.includes(String(p.id)));
 	}, [data, searchParams]);
 
 	const handleCombinedPointClick: ComponentProps<
@@ -46,7 +52,9 @@ function HistoryMeasurementsCombinedContainer() {
 		setIsPointDialogOpen(true);
 	};
 
-	if (isLoading) return <Skeleton className="h-screen rounded-sm" />;
+	if (isLoading) {
+		return <Skeleton className="h-screen rounded-sm" />;
+	}
 
 	if (!plots.length) {
 		return (
@@ -61,7 +69,9 @@ function HistoryMeasurementsCombinedContainer() {
 		);
 	}
 
-	if (error) return <HistoryError error={error} />;
+	if (error) {
+		return <HistoryError error={error} />;
+	}
 
 	return (
 		<>

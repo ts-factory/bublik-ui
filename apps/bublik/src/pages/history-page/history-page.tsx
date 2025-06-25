@@ -8,7 +8,8 @@ import {
 	HistoryPageModePickerContainer,
 	HistoryRefreshContainer,
 	HistoryResetGlobalFilterContainer,
-	HistorySubstringFilterContainer
+	HistorySubstringFilterContainer,
+	CombinedChartsProvider
 } from '@/bublik/features/history';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
@@ -29,7 +30,9 @@ export const HistoryPageV2 = () => {
 				<HistoryFilterLegendContainer />
 			</header>
 			<main>
-				<HistoryPageModePickerContainer />
+				<CombinedChartsProvider>
+					<HistoryPageModePickerContainer />
+				</CombinedChartsProvider>
 			</main>
 			<ScrollToTopPage offset={158} />
 		</div>
