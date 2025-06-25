@@ -1,10 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
 import {
 	getErrorMessage,
-	SingleMeasurementChart,
 	useGetSingleMeasurementQuery
 } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
@@ -44,7 +41,7 @@ export interface ChartsErrorProps {
 	error: unknown;
 }
 
-export const ChartsError: FC<ChartsErrorProps> = ({ error = {} }) => {
+export function ChartsError({ error = {} }: ChartsErrorProps) {
 	const { status, title, description } = getErrorMessage(error);
 
 	return (
@@ -62,7 +59,7 @@ export const ChartsError: FC<ChartsErrorProps> = ({ error = {} }) => {
 			</div>
 		</div>
 	);
-};
+}
 
 export type ChartsTiling = 'row' | 'mosaic';
 
