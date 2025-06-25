@@ -1,18 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useMemo, useState } from 'react';
-import { To, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	createBublikError,
-	SingleMeasurementChart,
 	useGetHistoryLinearQuery,
 	useGetMeasurementsQuery
 } from '@/services/bublik-api';
 import { HISTORY_MAX_RESULTS_IDS } from '@/bublik/config';
 
 import { useHistoryQuery } from '../hooks';
+import { useCombinedCharts } from './combined-charts.context';
 
 export const useGetHistoryMeasurements = () => {
 	const { query } = useHistoryQuery();
@@ -51,55 +50,7 @@ export const useGetHistoryMeasurements = () => {
 };
 
 export const useCombinedView = () => {
-	const [searchParams] = useSearchParams();
-	const [selectedCharts, setSelectedCharts] = useState<
-		{ plot: SingleMeasurementChart; color: string }[]
-	>([]);
-	const navigate = useNavigate();
-
-	const handleAddChartClick = (args: {
-		plot: SingleMeasurementChart;
-		color: string;
-	}) => {
-		const { plot, color } = args;
-
-		if (!selectedCharts.find(({ plot: p }) => p.id === plot.id)) {
-			setSelectedCharts([...selectedCharts, { plot, color }]);
-		} else {
-			setSelectedCharts(
-				selectedCharts.filter(({ plot: p }) => p.id !== plot.id)
-			);
-		}
-	};
-
-	const handleResetButtonClick = () => {
-		setSelectedCharts([]);
-	};
-
-	const handleRemoveClick = (plot: SingleMeasurementChart) => {
-		setSelectedCharts(selectedCharts.filter(({ plot: p }) => p.id !== plot.id));
-	};
-
-	const linkToCombined = useMemo<To>(() => {
-		const params = new URLSearchParams(searchParams);
-
-		params.set('mode', 'measurements-combined');
-		params.set('combinedPlots', selectedCharts.map((p) => p.plot.id).join(';'));
-
-		return { pathname: '/history', search: params.toString() };
-	}, [selectedCharts, searchParams]);
-
-	const handleOpenButtonClick = () => {
-		navigate(linkToCombined);
-	};
-
-	return {
-		handleAddChartClick,
-		handleRemoveClick,
-		handleResetButtonClick,
-		selectedCharts,
-		handleOpenButtonClick
-	};
+	return useCombinedCharts();
 };
 
 export const useHistoryMeasurementsTitle = (testName?: string) => {

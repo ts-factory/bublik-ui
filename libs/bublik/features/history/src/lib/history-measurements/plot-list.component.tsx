@@ -11,13 +11,7 @@ import {
 	ToolbarButton,
 	useSidebar
 } from '@/shared/tailwind-ui';
-import {
-	ExportChart,
-	getColorByIdx,
-	isDisabledForCombined,
-	MeasurementChart,
-	SelectedChartsPopover
-} from '@/shared/charts';
+import { ExportChart, getColorByIdx, MeasurementChart } from '@/shared/charts';
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
@@ -88,7 +82,7 @@ const PlotListItem = (props: PlotListItemProps) => {
 export const PlotListLoading = () => {
 	return (
 		<div className="bg-white rounded-md">
-			<CardHeader label="Charts">
+			<CardHeader label="Trend Charts">
 				<div className="flex items-stretch h-full gap-4">
 					<Skeleton className="w-[75px] h-full rounded" />
 				</div>
@@ -105,19 +99,15 @@ export const PlotListLoading = () => {
 };
 
 export interface PlotListProps {
+	label: string;
 	plots: SingleMeasurementChart[];
 	isFetching?: boolean;
 }
 
-export function PlotList({ plots, isFetching }: PlotListProps) {
+export function PlotList(props: PlotListProps) {
+	const { plots, isFetching, label } = props;
 	const { isSidebarOpen } = useSidebar();
-	const {
-		handleAddChartClick,
-		handleRemoveClick,
-		handleResetButtonClick,
-		selectedCharts,
-		handleOpenButtonClick
-	} = useCombinedView();
+	const { handleAddChartClick, selectedCharts } = useCombinedView();
 
 	return (
 		<div
@@ -127,7 +117,7 @@ export function PlotList({ plots, isFetching }: PlotListProps) {
 			)}
 		>
 			<div className="sticky top-0 z-10 bg-white rounded-md">
-				<CardHeader label="Charts" enableStickyShadow>
+				<CardHeader label={label} enableStickyShadow>
 					<div className="flex items-stretch gap-4">
 						<ExportChart plots={plots} />
 					</div>
@@ -142,22 +132,16 @@ export function PlotList({ plots, isFetching }: PlotListProps) {
 				)}
 			>
 				{plots.map((plot, idx) => {
-					const isDisabled = isDisabledForCombined(
-						plot,
-						selectedCharts.map(({ plot }) => plot)
-					);
-
+					const plotId = String(plot.id);
 					const state = selectedCharts.length
-						? isDisabled
-							? 'disabled'
-							: selectedCharts.find(({ plot: p }) => p.id === plot.id)
+						? selectedCharts.find(({ plot: p }) => String(p.id) === plotId)
 							? 'active'
 							: 'waiting'
 						: 'default';
 
 					return (
 						<PlotListItem
-							key={`${idx}_${plot.id}`}
+							key={`${idx}_${plotId}`}
 							idx={idx}
 							plot={plot}
 							onAddChartClick={handleAddChartClick}
@@ -166,14 +150,6 @@ export function PlotList({ plots, isFetching }: PlotListProps) {
 					);
 				})}
 			</ul>
-			<SelectedChartsPopover
-				open={!!selectedCharts.length}
-				label="Combined"
-				plots={selectedCharts}
-				onResetButtonClick={handleResetButtonClick}
-				onRemoveClick={handleRemoveClick}
-				onOpenButtonClick={handleOpenButtonClick}
-			/>
 		</div>
 	);
 }
