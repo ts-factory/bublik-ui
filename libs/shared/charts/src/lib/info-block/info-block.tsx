@@ -1,12 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, memo, SVGProps } from 'react';
+import { FC, SVGProps } from 'react';
+import { format, isValid, parseISO } from 'date-fns';
 
+import { TIME_DOT_FORMAT_FULL } from '@/shared/utils';
 import { Icon } from '@/shared/tailwind-ui';
 
 import { InfoItem } from './info-item';
 
-const ObtainedResultIcon: FC<SVGProps<SVGAElement>> = (props) => {
+const ObtainedResultIcon: FC<SVGProps<SVGAElement>> = () => {
 	return (
 		<svg
 			width="24"
@@ -33,37 +35,55 @@ const ObtainedResultIcon: FC<SVGProps<SVGAElement>> = (props) => {
 
 export interface InfoBlockProps {
 	name: string;
-	obtainedResult: string;
+	obtainedResult?: string;
 	parameters: string[];
-	isError: boolean;
+	isError?: boolean;
 	separator?: string;
+	start?: string;
 }
 
-export const InfoBlock: FC<InfoBlockProps> = memo(
-	({ name, obtainedResult, isError, parameters, separator = '=' }) => {
-		return (
-			<div className="flex flex-col gap-4">
-				<div className="flex items-center gap-4">
+export function InfoBlock(props: InfoBlockProps) {
+	const {
+		name,
+		obtainedResult,
+		isError,
+		parameters,
+		start,
+		separator = '='
+	} = props;
+
+	return (
+		<div className="flex flex-col gap-4">
+			<div className="flex items-center gap-4">
+				<InfoItem
+					label="Test name"
+					value={name}
+					icon={<Icon name="Paper" size={24} />}
+				/>
+				{typeof start !== 'undefined' && isValid(new Date(start)) ? (
 					<InfoItem
-						label="Test name"
-						value={name}
-						icon={<Icon name="Paper" size={24} />}
+						label="Start"
+						value={format(parseISO(start), TIME_DOT_FORMAT_FULL)}
+						icon={<Icon name="Clock" size={24} />}
 					/>
+				) : null}
+				{typeof obtainedResult !== 'undefined' &&
+				typeof isError !== 'undefined' ? (
 					<InfoItem
 						label="Obtained result"
 						value={obtainedResult}
 						icon={<ObtainedResultIcon />}
 						isError={isError}
 					/>
-				</div>
-				<div className="flex flex-wrap items-center gap-4">
-					{parameters.map((param) => {
-						const [label, value] = param.split(separator);
-
-						return <InfoItem key={param} label={label} value={value} />;
-					})}
-				</div>
+				) : null}
 			</div>
-		);
-	}
-);
+			<div className="flex flex-wrap items-center gap-4">
+				{parameters.map((param) => {
+					const [label, value] = param.split(separator);
+
+					return <InfoItem key={param} label={label} value={value} />;
+				})}
+			</div>
+		</div>
+	);
+}
