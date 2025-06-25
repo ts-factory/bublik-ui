@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
-import { Link, To, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
 
 import { ButtonTw, Icon, Tooltip } from '@/shared/tailwind-ui';
