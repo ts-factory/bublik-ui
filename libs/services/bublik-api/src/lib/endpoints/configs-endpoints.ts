@@ -177,7 +177,7 @@ export const configsEndpoints = {
 			query: (params) => ({
 				url: withApiV2('/config'),
 				method: 'POST',
-				body: params
+				body: { ...params, project: params.project ?? undefined }
 			}),
 			transformErrorResponse: transformConfigError,
 			invalidatesTags: [BUBLIK_TAG.Config]
