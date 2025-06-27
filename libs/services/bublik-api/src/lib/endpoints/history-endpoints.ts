@@ -22,9 +22,12 @@ export const historyEndpoints = {
 			HistoryAPIBackendQuery
 		>({
 			query: (query) => {
+				const { projects, ...rest } = query;
+				const params = { ...rest, project: projects?.[0] };
+
 				return {
 					url: withApiV2('/history'),
-					params: prepareForSend(query),
+					params: prepareForSend(params),
 					cache: 'no-cache'
 				};
 			},
@@ -35,9 +38,12 @@ export const historyEndpoints = {
 			HistoryAPIBackendQuery
 		>({
 			query: (query) => {
+				const { projects, ...rest } = query;
+				const params = { ...rest, project: projects?.[0] };
+
 				return {
 					url: withApiV2('/history/grouped'),
-					params: prepareForSend(query),
+					params: prepareForSend(params),
 					cache: 'no-cache'
 				};
 			},

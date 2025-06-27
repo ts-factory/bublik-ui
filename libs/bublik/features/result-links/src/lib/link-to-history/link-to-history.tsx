@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 
 import { getHistorySearch } from '@/shared/utils';
 import {
@@ -9,7 +8,12 @@ import {
 	HistoryMode,
 	RunDataResults
 } from '@/shared/types';
-import { ContextLinks, ContextLinksSection, Icon } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	ContextLinks,
+	ContextLinksSection
+} from '@/bublik/features/context-links';
 
 export interface LinkToHistoryProps {
 	result: RunDataResults;
@@ -70,14 +74,14 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 
 	return (
 		<ContextLinks sections={sections}>
-			<Link
+			<LinkWithProject
 				className="flex items-center w-full gap-1"
 				to={prefilled}
 				state={{ fromRun: true }}
 			>
 				<Icon name="BoxArrowRight" className="grid place-items-center" />
 				History
-			</Link>
+			</LinkWithProject>
 		</ContextLinks>
 	);
 };
