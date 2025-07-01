@@ -47,11 +47,11 @@ function ProjectPickerContainer() {
 						'group w-full relative rounded-[0.625rem] py-[7px] cursor-pointer',
 						'hover:bg-primary-wash text-text-menu hover:text-primary',
 						'flex min-w-0 flex-grow gap-3.5 items-center',
-						'transition-[padding] duration-500',
+						'transition-[padding] transition-[margin-bottom] duration-500',
 						isSidebarOpen ? 'pl-4' : 'pl-2',
 						isOpen &&
 							isSidebarOpen &&
-							'bg-primary hover:bg-primary hover:text-white text-white'
+							'bg-primary hover:bg-primary hover:text-white text-white mb-3.5'
 					)}
 					onClick={() => {
 						if (!isSidebarOpen) {
@@ -63,7 +63,7 @@ function ProjectPickerContainer() {
 						setIsOpen((v) => !v);
 					}}
 				>
-					<div className="flex items-center gap-2 w-full">
+					<div className="flex items-center gap-4 w-full">
 						<div className="grid flex-shrink-0 place-items-center">
 							<Icon name="Folder" size={28} />
 						</div>
@@ -92,7 +92,7 @@ function ProjectPickerContainer() {
 					isOpen && isSidebarOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
 				)}
 			>
-				<ul className="gap-1 flex flex-col mt-3.5">
+				<ul className="gap-1 flex flex-col">
 					<li
 						onClick={() => handleValueChange(undefined)}
 						role="button"
