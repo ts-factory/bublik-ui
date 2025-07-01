@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
 import {
 	bublikAPI,
 	CreateProject,
@@ -20,7 +22,6 @@ import {
 	FormAlertError,
 	DialogPortal
 } from '@/shared/tailwind-ui';
-import { z } from 'zod';
 
 interface UpdateProjectModalProps {
 	children: React.ReactNode;
@@ -80,23 +81,48 @@ function UpdateProjectForm({
 	async function handleSubmit(data: CreateProject) {
 		const promise = updateProject({ id: projectId, name: data.name }).unwrap();
 
-		toast.promise(promise, {
-			loading: 'Updating project...',
-			success: 'Project updated successfully',
-			error: (error) => {
-				const result = z
-					.object({ data: z.object({ message: z.string() }) })
-					.safeParse(error);
+		try {
+			toast.promise(promise, {
+				loading: 'Updating project...',
+				success: 'Project updated successfully',
+				error: (error) => {
+					const result = z
+						.object({ data: z.object({ message: z.string() }) })
+						.safeParse(error);
 
-				if (result.success) return result.data.data.message;
+					if (result.success) return result.data.data.message;
 
-				return 'Failed to update project';
+					return 'Failed to update project';
+				}
+			});
+
+			await promise;
+			form.reset({ name: data.name });
+			onSuccess?.();
+		} catch (e) {
+			try {
+				const {
+					data: { message }
+				} = z
+					.object({
+						status: z.number(),
+						data: z.object({
+							type: z.string(),
+							message: z.record(z.array(z.string()))
+						})
+					})
+					.parse(e);
+				const errorMessage = Object.entries(message)
+					.map(([key, error]) => `${key}: ${error}`)
+					.flat()
+					.join('\n');
+
+				return form.setError('root', { message: errorMessage });
+			} catch (parseError) {
+				console.error(parseError);
+				form.setError('root', { message: 'Unknown Error!' });
 			}
-		});
-
-		await promise;
-		form.reset({ name: data.name });
-		onSuccess?.();
+		}
 	}
 
 	return (
