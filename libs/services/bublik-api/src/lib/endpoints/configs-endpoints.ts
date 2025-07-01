@@ -100,9 +100,7 @@ export const ConfigExistsErrorResponseSchema = z.object({
 });
 
 export const ConfigWithSameNameErrorResponseSchema = z.object({
-	data: z
-		.object({ message: z.string(), type: z.literal('ValueError') })
-		.nonstrict(),
+	data: z.object({ message: z.string(), type: z.literal('ValueError') }),
 	status: z.number()
 });
 
@@ -177,7 +175,7 @@ export const configsEndpoints = {
 			query: (params) => ({
 				url: withApiV2('/config'),
 				method: 'POST',
-				body: { ...params, project: params.project ?? undefined }
+				body: { ...params, project: params.project ?? null }
 			}),
 			transformErrorResponse: transformConfigError,
 			invalidatesTags: [BUBLIK_TAG.Config]
