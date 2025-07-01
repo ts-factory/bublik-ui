@@ -9,7 +9,10 @@ import { CardHeader, cn, Skeleton } from '@/shared/tailwind-ui';
 import { StackedMeasurementChart } from '@/shared/charts';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
-import { useGetHistoryMeasurements } from '../history-measurements/plot-list.hooks';
+import {
+	useCombinedView,
+	useGetHistoryMeasurements
+} from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
 import { resolvePoint } from '../history-measurements/plot-list.utils';
 
@@ -18,17 +21,24 @@ function HistoryMeasurementsCombinedContainer() {
 	const { data, isLoading, isFetching, error } = useGetHistoryMeasurements();
 	const [point, setPoint] = useState<Point | null>(null);
 	const [isPointDialogOpen, setIsPointDialogOpen] = useState(false);
+	const { selectedGroup } = useCombinedView();
 
 	const plots = useMemo(() => {
 		if (!data) return [];
+		const allCharts = [
+			...data.trend_charts,
+			...data.measurement_series_charts_by_result.flatMap(
+				(c) => c.measurement_series_charts
+			)
+		];
 
 		const plotIdsStr = searchParams.get('combinedPlots');
 
 		if (!plotIdsStr) return [];
 
-		const plotIds = plotIdsStr.split(';');
+		const plotIds = plotIdsStr.split(';').map(String);
 
-		return data.filter((p) => plotIds.includes(p.id.toString()));
+		return allCharts.filter((p) => plotIds.includes(String(p.id)));
 	}, [data, searchParams]);
 
 	const handleCombinedPointClick: ComponentProps<
@@ -46,7 +56,9 @@ function HistoryMeasurementsCombinedContainer() {
 		setIsPointDialogOpen(true);
 	};
 
-	if (isLoading) return <Skeleton className="h-screen rounded-sm" />;
+	if (isLoading) {
+		return <Skeleton className="h-screen rounded-sm" />;
+	}
 
 	if (!plots.length) {
 		return (
@@ -61,7 +73,9 @@ function HistoryMeasurementsCombinedContainer() {
 		);
 	}
 
-	if (error) return <HistoryError error={error} />;
+	if (error) {
+		return <HistoryError error={error} />;
+	}
 
 	return (
 		<>
@@ -86,6 +100,7 @@ function HistoryMeasurementsCombinedContainer() {
 						charts={plots}
 						style={{ height: '100%' }}
 						onPointClick={handleCombinedPointClick}
+						enableResultErrorHighlight={selectedGroup === 'trend'}
 					/>
 				</div>
 			</div>

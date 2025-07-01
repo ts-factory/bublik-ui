@@ -1,5 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useParams } from 'react-router';
+
+import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
+import { getColorByIdx, SelectedChartsPopover } from '@/shared/charts';
 import { MeasurementsMode, MeasurementsRouterParams } from '@/shared/types';
 
 import { ModeDefault } from './mode-default';
@@ -8,14 +13,6 @@ import { ModeTables } from './mode-tables';
 import { ModeSplit } from './mode-split';
 import { ModeOverlay } from './mode-overlay';
 import { useResultSelectCharts } from '../../hooks';
-import {
-	SingleMeasurementChart,
-	useGetSingleMeasurementQuery
-} from '@/services/bublik-api';
-import { getColorByIdx, SelectedChartsPopover } from '@/shared/charts';
-import { useNavigate, useParams } from 'react-router';
-import { skipToken } from '@reduxjs/toolkit/query';
-import { useSearchParams } from 'react-router-dom';
 
 const modeMap = {
 	[MeasurementsMode.Charts]: ModeCharts,

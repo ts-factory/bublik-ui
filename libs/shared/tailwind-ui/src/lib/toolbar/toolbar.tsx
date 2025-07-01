@@ -34,7 +34,8 @@ export const toolbarToggleButtonStyles = cva({
 		},
 		state: {
 			default: '',
-			active: 'text-white bg-primary'
+			active: 'text-white bg-primary',
+			disabled: 'text-text-menu cursor-not-allowed'
 		}
 	},
 	defaultVariants: {
