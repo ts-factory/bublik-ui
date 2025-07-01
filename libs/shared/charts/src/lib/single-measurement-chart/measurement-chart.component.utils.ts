@@ -228,7 +228,7 @@ function resolveStackedOptions(
 		})),
 		series: plots.map((plot, idx) => ({
 			type: 'line',
-			name: plot.title,
+			name: `${idx} - ${plot.title}`,
 			datasetId: `dataset_${idx}`,
 			yAxisIndex: idx,
 			color: getColorByIdx(idx),
@@ -270,7 +270,7 @@ function resolveStackedOptions(
 			{ type: 'slider', xAxisIndex: [0], bottom: 10 }
 		],
 		grid: {
-			top: 40,
+			top: 80,
 			left: '5%',
 			right: `${10 * plots.length}%`,
 			bottom: '15%'

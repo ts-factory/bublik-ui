@@ -250,6 +250,7 @@ interface StackedMeasurementChartProps {
 	charts: SingleMeasurementChart[];
 	style?: CSSProperties;
 	onPointClick?: (config: ChartPointClickProps) => void;
+	enableResultErrorHighlight?: boolean;
 }
 
 function StackedMeasurementChart(props: StackedMeasurementChartProps) {
@@ -258,7 +259,9 @@ function StackedMeasurementChart(props: StackedMeasurementChartProps) {
 
 	return (
 		<Plot
-			options={resolveStackedOptions(props.charts)}
+			options={resolveStackedOptions(props.charts, {
+				enableResultErrorHighlight: props.enableResultErrorHighlight
+			})}
 			style={props.style}
 			ref={ref}
 		/>
