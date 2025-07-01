@@ -78,13 +78,7 @@ function ConfigList(props: ConfigListProps) {
 					return a.name.localeCompare(b.name);
 				});
 
-				const missingGlobalConfigs = REQUIRED_GLOBAL_CONFIGS.filter(
-					(required) =>
-						!sortedConfigs.some(
-							(config) =>
-								config.type === required.type && config.name === required.name
-						)
-				);
+				const missingGlobalConfigs: typeof REQUIRED_GLOBAL_CONFIGS = [];
 
 				const foundProject =
 					projectName !== DEFAULT_PROJECT_NAME
@@ -200,30 +194,42 @@ function ProjectCard(props: ProjectCardProps) {
 				)}
 			>
 				<ul>
-					{configs.map((config) => (
-						<ConfigListItem
-							key={config.id}
-							config={config}
-							isActive={activeConfigId === config.id}
-							onClick={onConfigClick}
-						/>
-					))}
-					{missingConfigs.map((config) => {
-						return (
-							<GhostConfigItem
-								key={`${config.type}-${config.name}`}
-								type={config.type}
-								name={config.name}
-								onClick={() =>
-									onCreateNewConfigClick?.({
-										type: config.type,
-										name: config.name,
-										project: id
-									})
-								}
-							/>
-						);
-					})}
+					{configs.length === 0 ? (
+						<li className="min-h-16 flex flex-col border-b border-dashed border-border-primary last:border-b-0">
+							<div className="grid place-items-center gap-1 px-2.5 py-2 text-xs w-full h-full flex-1 opacity-50">
+								<p className="text-xs w-full text-center font-semibold flex-1 overflow-wrap-anywhere">
+									No configurations found for this project
+								</p>
+							</div>
+						</li>
+					) : (
+						<>
+							{configs.map((config) => (
+								<ConfigListItem
+									key={config.id}
+									config={config}
+									isActive={activeConfigId === config.id}
+									onClick={onConfigClick}
+								/>
+							))}
+							{missingConfigs.map((config) => {
+								return (
+									<GhostConfigItem
+										key={`${config.type}-${config.name}`}
+										type={config.type}
+										name={config.name}
+										onClick={() =>
+											onCreateNewConfigClick?.({
+												type: config.type,
+												name: config.name,
+												project: id
+											})
+										}
+									/>
+								);
+							})}
+						</>
+					)}
 				</ul>
 			</div>
 		</div>
