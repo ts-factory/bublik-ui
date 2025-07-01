@@ -9,7 +9,10 @@ import { CardHeader, cn, Skeleton } from '@/shared/tailwind-ui';
 import { StackedMeasurementChart } from '@/shared/charts';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
-import { useGetHistoryMeasurements } from '../history-measurements/plot-list.hooks';
+import {
+	useCombinedView,
+	useGetHistoryMeasurements
+} from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
 import { resolvePoint } from '../history-measurements/plot-list.utils';
 
@@ -18,6 +21,7 @@ function HistoryMeasurementsCombinedContainer() {
 	const { data, isLoading, isFetching, error } = useGetHistoryMeasurements();
 	const [point, setPoint] = useState<Point | null>(null);
 	const [isPointDialogOpen, setIsPointDialogOpen] = useState(false);
+	const { selectedGroup } = useCombinedView();
 
 	const plots = useMemo(() => {
 		if (!data) return [];
@@ -96,6 +100,7 @@ function HistoryMeasurementsCombinedContainer() {
 						charts={plots}
 						style={{ height: '100%' }}
 						onPointClick={handleCombinedPointClick}
+						enableResultErrorHighlight={selectedGroup === 'trend'}
 					/>
 				</div>
 			</div>

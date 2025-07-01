@@ -71,9 +71,11 @@ export function PlotListContainer() {
 				plots={data.trend_charts}
 				isFetching={isFetching}
 				enableResultErrorHighlight
+				group="trend"
 			/>
 			<MeasurementsList
 				measurements={data.measurement_series_charts_by_result}
+				group="measurement"
 			/>
 			<SelectedChartsPopover
 				open={!!selectedCharts.length}
@@ -91,8 +93,10 @@ interface MeasurementListProps {
 	measurements: HistoryMeasurementResult[];
 }
 
-function MeasurementsList(props: MeasurementListProps) {
-	const { measurements } = props;
+function MeasurementsList(
+	props: MeasurementListProps & { group: 'trend' | 'measurement' }
+) {
+	const { measurements, group } = props;
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -108,7 +112,11 @@ function MeasurementsList(props: MeasurementListProps) {
 							/>
 						</div>
 						{m.measurement_series_charts.length ? (
-							<PlotList label="Charts" plots={m.measurement_series_charts} />
+							<PlotList
+								label="Charts"
+								plots={m.measurement_series_charts}
+								group={group}
+							/>
 						) : null}
 					</div>
 				);
