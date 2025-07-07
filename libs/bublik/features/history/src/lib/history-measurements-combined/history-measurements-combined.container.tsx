@@ -11,7 +11,8 @@ import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import {
 	useCombinedView,
-	useGetHistoryMeasurements
+	useGetHistoryMeasurements,
+	useGetHistoryMeasurementsByResult
 } from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
 import { resolvePoint } from '../history-measurements/plot-list.utils';
@@ -19,17 +20,23 @@ import { resolvePoint } from '../history-measurements/plot-list.utils';
 function HistoryMeasurementsCombinedContainer() {
 	const [searchParams] = useSearchParams();
 	const { data, isLoading, isFetching, error } = useGetHistoryMeasurements();
+	const {
+		data: byResult,
+		isLoading: byResultLoading,
+		isFetching: byResultFetching,
+		error: byResultError
+	} = useGetHistoryMeasurementsByResult();
 	const [point, setPoint] = useState<Point | null>(null);
 	const [isPointDialogOpen, setIsPointDialogOpen] = useState(false);
 	const { selectedGroup } = useCombinedView();
 
 	const plots = useMemo(() => {
 		if (!data) return [];
+		if (!byResult) return [];
+
 		const allCharts = [
-			...data.trend_charts,
-			...data.measurement_series_charts_by_result.flatMap(
-				(c) => c.measurement_series_charts
-			)
+			...data,
+			...byResult.flatMap((c) => c.measurement_series_charts)
 		];
 
 		const plotIdsStr = searchParams.get('combinedPlots');
@@ -39,7 +46,7 @@ function HistoryMeasurementsCombinedContainer() {
 		const plotIds = plotIdsStr.split(';').map(String);
 
 		return allCharts.filter((p) => plotIds.includes(String(p.id)));
-	}, [data, searchParams]);
+	}, [byResult, data, searchParams]);
 
 	const handleCombinedPointClick: ComponentProps<
 		typeof StackedMeasurementChart
@@ -56,7 +63,7 @@ function HistoryMeasurementsCombinedContainer() {
 		setIsPointDialogOpen(true);
 	};
 
-	if (isLoading) {
+	if (isLoading || byResultLoading) {
 		return <Skeleton className="h-screen rounded-sm" />;
 	}
 
@@ -73,8 +80,8 @@ function HistoryMeasurementsCombinedContainer() {
 		);
 	}
 
-	if (error) {
-		return <HistoryError error={error} />;
+	if (error || byResultError) {
+		return <HistoryError error={error || byResultError} />;
 	}
 
 	return (
@@ -93,7 +100,7 @@ function HistoryMeasurementsCombinedContainer() {
 				<div
 					className={cn(
 						'p-4 h-[78vh]',
-						isFetching && 'pointer-events-none opacity-60'
+						(isFetching || byResultFetching) && 'pointer-events-none opacity-60'
 					)}
 				>
 					<StackedMeasurementChart

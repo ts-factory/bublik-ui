@@ -166,11 +166,21 @@ const mainMenu: SidebarItem[] = [
 				}
 			},
 			{
-				label: 'Charts',
+				label: 'Trend Charts',
 				to: '/history',
 				dialogContent: <HistoryHelpDialog />,
 				icon: <Icon name="LineChartSingle" />,
 				pattern: { path: '/history', search: { mode: 'measurements' } }
+			},
+			{
+				label: 'Measurements By Result',
+				to: '/history',
+				dialogContent: <HistoryHelpDialog />,
+				icon: <Icon name="LineChartSingle" />,
+				pattern: {
+					path: '/history',
+					search: { mode: 'measurements-by-result' }
+				}
 			},
 			{
 				label: 'Stacked Charts',

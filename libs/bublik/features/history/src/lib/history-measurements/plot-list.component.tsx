@@ -102,10 +102,15 @@ const PlotListItem = (props: PlotListItemProps) => {
 	);
 };
 
-export const PlotListLoading = () => {
+interface PlotListLoadingProps {
+	label: string;
+}
+
+export const PlotListLoading = (props: PlotListLoadingProps) => {
+	const { label } = props;
 	return (
 		<div className="bg-white rounded-md">
-			<CardHeader label="Trend Charts">
+			<CardHeader label={label}>
 				<div className="flex items-stretch h-full gap-4">
 					<Skeleton className="w-[75px] h-full rounded" />
 				</div>
@@ -142,8 +147,8 @@ export function PlotList(props: PlotListProps) {
 				isFetching && 'pointer-events-none opacity-60'
 			)}
 		>
-			<div className="sticky top-0 z-10 bg-white rounded-md">
-				<CardHeader label={label} enableStickyShadow>
+			<div className="bg-white rounded-md">
+				<CardHeader label={label}>
 					<div className="flex items-stretch gap-4">
 						<ExportChart plots={plots} />
 					</div>

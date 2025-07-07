@@ -20,9 +20,19 @@ export const measurementsEndpoints = {
 				url: withApiV2(`/results/${resultId}/measurements`)
 			})
 		}),
-		getMeasurements: build.query<RawHistoryCharts, (string | number)[]>({
+		getMeasurements: build.query<
+			HistoryMeasurementResult[],
+			(string | number)[]
+		>({
 			query: (results) => ({
 				url: withApiV2('/measurements/by_result_ids'),
+				method: 'POST',
+				body: { result_ids: results.map(Number) }
+			})
+		}),
+		getTrendCharts: build.query<SingleMeasurementChart[], (string | number)[]>({
+			query: (results) => ({
+				url: withApiV2('/measurements/trend_charts'),
 				method: 'POST',
 				body: { result_ids: results.map(Number) }
 			})
@@ -39,6 +49,8 @@ export type HistoryMeasurementResult = {
 	id: number;
 	start: string;
 	test_name: string;
+	run_id: number;
+	result_id: number;
 	parameters_list: string[];
 	measurement_series_charts: SingleMeasurementChart[];
 };
