@@ -28,7 +28,9 @@ export const measurementsEndpoints = {
 				url: withApiV2('/measurements/by_result_ids'),
 				method: 'POST',
 				body: { result_ids: results.map(Number) }
-			})
+			}),
+			transformResponse: (resp: HistoryMeasurementResult[]) =>
+				resp.filter((v) => v.measurement_series_charts.length)
 		}),
 		getTrendCharts: build.query<SingleMeasurementChart[], (string | number)[]>({
 			query: (results) => ({
