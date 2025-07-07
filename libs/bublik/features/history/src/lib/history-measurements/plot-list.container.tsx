@@ -134,7 +134,7 @@ export function PlotListContainerByResult() {
 	return (
 		<div className="bg-white rounded-md">
 			<div className="sticky top-0 z-10 bg-white rounded-md">
-				<CardHeader label={'Measurement By Result'} enableStickyShadow />
+				<CardHeader label="Series Charts" enableStickyShadow />
 			</div>
 			<MeasurementsList measurements={data} group="measurement" />
 			<SelectedChartsPopover

@@ -327,7 +327,10 @@ const AccordionLink = (props: AccordionLinkProps) => {
 					) : (
 						<Link
 							to={matchTo}
-							className={accordionLinkStyles({ isActive, isSidebarOpen })}
+							className={accordionLinkStyles({
+								isActive,
+								isSidebarOpen
+							})}
 							style={paddingTransition}
 							onClick={handleClick}
 						>

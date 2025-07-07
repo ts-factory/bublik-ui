@@ -14,7 +14,9 @@ import {
 	HistoryHelpDialog,
 	RunsDialog,
 	RunsChartsDialog,
-	DashboardDialog
+	DashboardDialog,
+	HistoryHelpTrendChartsDialog,
+	HistoryHelpMeasurementSeriesDialog
 } from './instruction-dialog';
 
 const mainMenu: SidebarItem[] = [
@@ -168,18 +170,18 @@ const mainMenu: SidebarItem[] = [
 			{
 				label: 'Trend Charts',
 				to: '/history',
-				dialogContent: <HistoryHelpDialog />,
+				dialogContent: <HistoryHelpTrendChartsDialog />,
 				icon: <Icon name="LineChartSingle" />,
 				pattern: { path: '/history', search: { mode: 'measurements' } }
 			},
 			{
-				label: 'Measurements By Result',
+				label: 'Series Charts',
 				to: '/history',
-				dialogContent: <HistoryHelpDialog />,
+				dialogContent: <HistoryHelpMeasurementSeriesDialog />,
 				icon: <Icon name="LineChartSingle" />,
 				pattern: {
 					path: '/history',
-					search: { mode: 'measurements-by-result' }
+					search: { mode: 'measurements-by-iteration' }
 				}
 			},
 			{

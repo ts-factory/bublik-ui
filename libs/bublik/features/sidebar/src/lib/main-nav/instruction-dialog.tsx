@@ -25,6 +25,14 @@ import historySidebar from './images/history/history-sidebar.png';
 import historyEditSearch from './images/history/history-search.png';
 import historyRunHover from './images/history/history-run-hover.png';
 
+import historyTrendchartsOne from './images/history/trend-charts-1.webp';
+import historyTrendchartsTwo from './images/history/trend-charts-2.webp';
+import historyTrendchartsThree from './images/history/trend-charts-3.webp';
+
+import historySeriesOne from './images/history/series-1.webp';
+import historySeriesTwo from './images/history/series-2.webp';
+import historySeriesThree from './images/history/series-3.webp';
+
 import runsSidebar from './images/runs/runs-sidebar.png';
 
 import runsConclusionReason from './images/runs/run-reason.png';
@@ -256,6 +264,68 @@ export function ResultMeasurementsDialog() {
 					title: 'You can visit result from the History Page',
 					description: 'Visit the History page to view the history.',
 					image: resultLinkFromHistory
+				}
+			]}
+		/>
+	);
+}
+
+export function HistoryHelpTrendChartsDialog() {
+	return (
+		<InstructionDialog
+			dialogTitle="History - Trend Charts"
+			dialogDescription=""
+			steps={[
+				{
+					title: 'Access history page via sidebar link',
+					description: 'Open the sidebar to navigate to history page',
+					image: historyTrendchartsOne
+				},
+				{
+					title: 'Specify search query to view history',
+					description:
+						'Specify search query to filter result by parameters, verdicts, etc.',
+					image: historyTrendchartsTwo
+				},
+				{
+					title: 'View Trend Charts',
+					description:
+						'Click on "Trend Charts" label in sidebar to view results ordered by their start time',
+					image: historyTrendchartsThree
+				}
+			]}
+		/>
+	);
+}
+
+export function HistoryHelpMeasurementSeriesDialog() {
+	return (
+		<InstructionDialog
+			dialogTitle="History - Series Charts"
+			dialogDescription=""
+			steps={[
+				{
+					title: 'Access history page via sidebar link',
+					description: 'Open the sidebar to navigate to history page',
+					image: historySeriesOne
+				},
+				{
+					title: 'Specify search query to view history',
+					description:
+						'Specify search query to filter result by parameters, verdicts, etc.',
+					image: historyTrendchartsTwo
+				},
+				{
+					title: 'View Series Charts',
+					description:
+						'Click on "Series Charts" to view the measurement series charts for all iterations that match the search query',
+					image: historySeriesTwo
+				},
+				{
+					title: 'Empty Series Charts',
+					description:
+						'In case no series charts present you will see this page',
+					image: historySeriesThree
 				}
 			]}
 		/>

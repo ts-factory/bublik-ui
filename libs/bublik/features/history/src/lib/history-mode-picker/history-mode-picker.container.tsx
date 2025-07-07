@@ -22,9 +22,15 @@ export const HistoryPageModePickerContainer = () => {
 	useSyncHistoryQueryToState();
 
 	if (mode === 'linear') return <HistoryLinearContainer />;
+
 	if (mode === 'aggregation') return <HistoryAggregationContainer />;
+
 	if (mode === 'measurements') return <PlotListContainer />;
-	if (mode === 'measurements-by-result') return <PlotListContainerByResult />;
+
+	if (mode === 'measurements-by-iteration') {
+		return <PlotListContainerByResult />;
+	}
+
 	if (mode === 'measurements-combined') {
 		return <HistoryMeasurementsCombinedContainer />;
 	}
