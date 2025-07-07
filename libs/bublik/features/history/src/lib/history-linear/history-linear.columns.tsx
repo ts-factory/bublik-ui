@@ -105,17 +105,21 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 	{
 		id: HistoryLinearColumns.ExpectedResults,
 		header: 'Expected Results',
-		accessorFn: (data) => data.expected_result,
+		accessorFn: (data) => data.expected_results,
 		cell: (cell) => {
-			const { result_type: expectedResultType, verdict: expectedVerdicts } =
-				cell.getValue<RunResult>();
+			const expectedResults = cell.getValue<RunResult[]>();
 
 			return (
-				<VerdictList
-					variant={VerdictVariant.Expected}
-					result={expectedResultType}
-					verdicts={expectedVerdicts}
-				/>
+				<>
+					{expectedResults.map((result, idx) => (
+						<VerdictList
+							key={idx}
+							variant={VerdictVariant.Expected}
+							result={result.result_type}
+							verdicts={result.verdicts}
+						/>
+					))}
+				</>
 			);
 		}
 	},

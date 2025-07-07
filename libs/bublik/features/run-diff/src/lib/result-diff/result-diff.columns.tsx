@@ -56,11 +56,11 @@ export const getColumns = (
 			cell: (cell) => {
 				const { left, right } = cell.getValue<RunDataResultsWithDiff>();
 				const leftResultType = left?.obtained_result.result_type;
-				const leftVerdicts = left?.obtained_result.verdict;
+				const leftVerdicts = left?.obtained_result.verdicts;
 				const leftIsNotExpected = left?.has_error;
 
 				const rightResultType = right?.obtained_result.result_type;
-				const rightVerdicts = right?.obtained_result.verdict;
+				const rightVerdicts = right?.obtained_result.verdicts;
 				const rightIsNotExpected = right?.has_error;
 
 				return (
@@ -127,11 +127,11 @@ export const getColumns = (
 			cell: (cell) => {
 				const { left, right } = cell.getValue<RunDataResultsWithDiff>();
 				const leftResultType = left?.obtained_result.result_type;
-				const leftVerdicts = left?.obtained_result.verdict;
+				const leftVerdicts = left?.obtained_result.verdicts;
 				const leftIsNotExpected = left?.has_error;
 
 				const rightResultType = right?.obtained_result.result_type;
-				const rightVerdicts = right?.obtained_result.verdict;
+				const rightVerdicts = right?.obtained_result.verdicts;
 				const rightIsNotExpected = right?.has_error;
 
 				return (

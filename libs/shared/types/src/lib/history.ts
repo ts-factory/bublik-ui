@@ -88,7 +88,7 @@ export type HistoryDataLinear = {
 	finish_date: string;
 	duration: string;
 	obtained_result: RunResult;
-	expected_result: RunResult;
+	expected_results: RunResult[];
 	relevant_tags: string[];
 	metadata: string[];
 	parameters: string[];

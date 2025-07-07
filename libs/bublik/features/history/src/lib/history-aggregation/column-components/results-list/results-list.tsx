@@ -84,6 +84,7 @@ export const ResultList = (props: ResultListProps) => {
 		<div className="flex flex-col gap-1">
 			{results.map((result, idx) => (
 				<HistoryContextMenuContainer
+					key={idx}
 					badges={result.verdict.map((verdict) => ({ payload: verdict }))}
 					filterKey="verdicts"
 					label="verdicts"

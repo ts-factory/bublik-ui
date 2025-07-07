@@ -158,7 +158,7 @@ const getHistorySearch = (
 			...row.metadata
 		].join(';'),
 		parameters: row.parameters.join(';'),
-		verdict: row.obtained_result.verdict.join(';'),
+		verdict: row.obtained_result.verdicts.join(';'),
 		results: DEFAULT_RESULT_TYPES.join(';')
 	};
 
@@ -172,7 +172,7 @@ const getHistorySearch = (
 		].join(';'),
 		parameters: row.parameters.join(';'),
 		results: row.obtained_result.result_type,
-		verdict: row.obtained_result.verdict.join(';'),
+		verdict: row.obtained_result.verdicts.join(';'),
 		runProperties: search.runProperties,
 		resultProperties: row.has_error
 			? RESULT_PROPERTIES.Unexpected

@@ -327,7 +327,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			);
 
 			const hasEveryVerdict = verdictsFilter.every((verdict) =>
-				row.obtained_result.verdict?.includes(verdict)
+				row.obtained_result.verdicts?.includes(verdict)
 			);
 
 			const hasEveryArtifact = artifactsFilter.every((artifact) =>
@@ -376,7 +376,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 
 	const verdicts = useMemo(() => {
 		return Array.from(
-			new Set(filteredData.map((row) => row.obtained_result.verdict).flat())
+			new Set(filteredData.map((row) => row.obtained_result.verdicts).flat())
 		)
 			.filter(Boolean)
 			.map((verdict) => ({

@@ -113,7 +113,7 @@ const byPrefilled = (
 		resultProperties: result.has_error
 			? RESULT_PROPERTIES.Unexpected
 			: RESULT_PROPERTIES.Expected,
-		verdict: result.obtained_result.verdict.join(';'),
+		verdict: result.obtained_result.verdicts?.join(';'),
 		runData: allTags.join(';')
 	};
 };

@@ -30,7 +30,7 @@ export const getObtainedResult = (
 	return {
 		isNotExpected: data.has_error,
 		result: data.obtained_result.result_type,
-		verdicts: data.obtained_result.verdict
+		verdicts: data.obtained_result.verdicts
 	};
 };
 
@@ -49,7 +49,7 @@ export const globalFilterFn: FilterFn<HistoryDataLinear> = (
 	const importantTags = row.original.important_tags;
 	const metadata = row.original.metadata;
 	const parameters = row.original.parameters;
-	const verdicts = row.original.obtained_result.verdict;
+	const verdicts = row.original.obtained_result.verdicts;
 	const resultType = row.original.obtained_result.result_type;
 	const isNotExpected = row.original.has_error;
 

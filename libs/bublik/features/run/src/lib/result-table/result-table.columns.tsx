@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { Fragment } from 'react';
 import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
@@ -155,25 +156,31 @@ export const getColumns = ({
 			},
 			filterFn: fitlerIncludesSome
 		}),
-		helper.accessor('expected_result', {
+		helper.accessor('expected_results', {
 			header: 'Expected Results',
 			cell: (cell) => {
-				const expectedResult = cell.getValue();
+				const expectedResults = cell.getValue();
 
-				if (!expectedResult) return;
+				if (expectedResults.length === 0) return;
 
 				return (
 					<div className="flex flex-col flex-wrap gap-1">
-						{expectedResult.verdict && expectedResult.result_type ? (
-							<VerdictList
-								variant="expected"
-								verdicts={expectedResult.verdict}
-								result={expectedResult.result_type}
-							/>
-						) : null}
-						{expectedResult?.key?.length && expectedResult.key ? (
-							<KeyList items={expectedResult.key} />
-						) : null}
+						{expectedResults.map((result, idx) => {
+							return (
+								<Fragment key={idx}>
+									{result.verdicts && result.result_type ? (
+										<VerdictList
+											variant="expected"
+											verdicts={result.verdicts}
+											result={result.result_type}
+										/>
+									) : null}
+									{result?.keys?.length && result.keys ? (
+										<KeyList items={result.keys} />
+									) : null}
+								</Fragment>
+							);
+						})}
 					</div>
 				);
 			}
@@ -181,7 +188,7 @@ export const getColumns = ({
 		helper.accessor(
 			(data) => ({
 				isNotExpected: data.has_error,
-				verdicts: data.obtained_result.verdict,
+				verdicts: data.obtained_result.verdicts,
 				result: data.obtained_result.result_type
 			}),
 			{

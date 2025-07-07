@@ -63,13 +63,13 @@ export const computeResultsDiff = ({
 				const leftData: Record<string, RESULT_TYPE | boolean | string[]> = {
 					resultType: left.obtained_result.result_type,
 					isNotExpected: left.has_error,
-					verdicts: left.obtained_result.verdict
+					verdicts: left.obtained_result.verdicts
 				};
 
 				const rightData: Record<string, RESULT_TYPE | boolean | string[]> = {
 					resultType: right.obtained_result.result_type,
 					isNotExpected: right.has_error,
-					verdicts: right.obtained_result.verdict
+					verdicts: right.obtained_result.verdicts
 				};
 
 				const isChanged =
