@@ -1,6 +1,38 @@
 
 
-## [1.9.0](https://github.com/okt-limonikas/bublik-docker/compare/v1.8.0...v1.9.0) (2025-06-18)
+## [1.10.0](https://github.com/ts-factory/bublik-ui/compare/v1.9.0...v1.10.0) (2025-07-09)
+
+
+### 🚀 New Feature
+
+* **history:** [charts] add new mode for measurements by result ([d17f7d5](https://github.com/ts-factory/bublik-ui/commit/d17f7d572957d0e9eae6a8dac7f21780e873f714))
+* **history:** [charts] add new section with measurement series chart data ([07a027c](https://github.com/ts-factory/bublik-ui/commit/07a027cf9e06109498e2b59d7ae07adf18ffbdc7))
+* **history:** [charts] add selected group in search params for persistence ([b2e6b6d](https://github.com/ts-factory/bublik-ui/commit/b2e6b6d8f828d9744c1a0cfbd8566a269a76a756))
+* **history:** add help for "Series Charts" history mode ([ee98b3a](https://github.com/ts-factory/bublik-ui/commit/ee98b3aec3aa59cb7686702489aa8ec2e61aff81))
+* **history:** adjust history measurements API for new response type ([031b2e1](https://github.com/ts-factory/bublik-ui/commit/031b2e1e04ede39ee4570f563b276699face081e))
+* **import:** handle `RECEIVED` and `STARTED` statuses ([1a82e3c](https://github.com/ts-factory/bublik-ui/commit/1a82e3cdc4549f070dfe886fe49ab2f3e36309da)), closes [#347](https://github.com/ts-factory/bublik-ui/issues/347)
+* **report,measurements:** add toggle to limit min/max values for plot ([c0e2cc6](https://github.com/ts-factory/bublik-ui/commit/c0e2cc659915dfd0ec83b876a54adcc138d3887f)), closes [#350](https://github.com/ts-factory/bublik-ui/issues/350)
+* **report:** allow empty `series` and `series_labels` ([0efffbf](https://github.com/ts-factory/bublik-ui/commit/0efffbf61a25b651a0e9cb76e308ed566e997ba4)), closes [#349](https://github.com/ts-factory/bublik-ui/issues/349)
+
+
+### 🐛 Bug Fix
+
+* **history:** [series] show only results which have measurements ([1698f25](https://github.com/ts-factory/bublik-ui/commit/1698f254dd90149eaba045eebb34c80ebb1e30cd))
+
+
+### ♻ Code Refactoring
+
+* **history,run:** [results] allow multiple `expected_results` ([6cc385c](https://github.com/ts-factory/bublik-ui/commit/6cc385c2597062cd37065d2bc73db26f8a4652c3))
+* **measurements:** allow empty values and add `start` for result info block ([8da566d](https://github.com/ts-factory/bublik-ui/commit/8da566db73629fc95d02d3598ab7ff43518e4b94))
+
+
+### 📦 Chores
+
+* **history,measurements:** cleanup ([02af5da](https://github.com/ts-factory/bublik-ui/commit/02af5dacf898ada8ea3037a9a25ade035d57421a))
+* **report:** add missing parameter to dependency effect array ([c2c2cf6](https://github.com/ts-factory/bublik-ui/commit/c2c2cf66c0d6fd7871ec341ee365ee9e5311f785))
+* **report:** remove deprecated `nonscrict` call ([5de3b95](https://github.com/ts-factory/bublik-ui/commit/5de3b95cd944f3e2aa6d7efa372f1f12b29ee98f))
+
+## [1.9.0](https://github.com/ts-factory/bublik-ui/compare/v1.8.0...v1.9.0) (2025-06-18)
 
 ## [1.8.0](https://github.com/ts-factory/bublik-ui/compare/v1.7.0...v1.8.0) (2025-05-21)
 
