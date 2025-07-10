@@ -219,51 +219,55 @@ function resolveStackedOptions(
 			nameGap: 20,
 			nameLocation: 'end',
 			axisLabel: axisLabelStyles,
-			nameTextStyle: { ...axisLabelStyles, align: 'right' },
-			position: 'right',
-			offset: idx * Y_AXIS_SPACING,
+			nameTextStyle: { ...axisLabelStyles, align: 'left' },
+			position: idx === 0 ? 'left' : 'right',
+			offset: idx <= 1 ? 0 : (idx - 1) * Y_AXIS_SPACING,
 			axisLine: { show: true, lineStyle: { color: getColorByIdx(idx) } },
 			axisTick: { show: true },
 			scale: true
 		})),
-		series: plots.map((plot, idx) => ({
-			type: 'line',
-			name: `${idx} - ${plot.title}`,
-			datasetId: `dataset_${idx}`,
-			yAxisIndex: idx,
-			color: getColorByIdx(idx),
-			encode: { x: plot.axis_x.key, y: plot.axis_y.key },
-			symbolSize: enableResultErrorHighlight
-				? (_: unknown, params: { dataIndex: number }) => {
-						const point = plot.dataset[params.dataIndex + 1];
-						if (!point) return 8;
+		series: plots.map((plot, idx) => {
+			const title = plot.title ?? plot.subtitle ?? '';
 
-						const hasError = point[plot.dataset[0].indexOf('has_error')];
-						return hasError ? 16 : 8;
-				  }
-				: 4,
-			symbol: enableResultErrorHighlight
-				? (_: unknown, params: { dataIndex: number }) => {
-						const point = plot.dataset[params.dataIndex + 1];
-						if (!point) return 'circle';
-
-						const hasError = point[plot.dataset[0].indexOf('has_error')];
-						return hasError ? 'diamond' : 'circle';
-				  }
-				: 'emptyCircle',
-			itemStyle: enableResultErrorHighlight
-				? {
-						color: (params: { dataIndex: number }) => {
+			return {
+				type: 'line',
+				name: `${title.replace(/\u200B/g, '')}${`\u200B`.repeat(idx)}`,
+				datasetId: `dataset_${idx}`,
+				yAxisIndex: idx,
+				color: getColorByIdx(idx),
+				encode: { x: plot.axis_x.key, y: plot.axis_y.key },
+				symbolSize: enableResultErrorHighlight
+					? (_: unknown, params: { dataIndex: number }) => {
 							const point = plot.dataset[params.dataIndex + 1];
-							if (!point) return getColorByIdx(idx);
+							if (!point) return 8;
 
 							const hasError = point[plot.dataset[0].indexOf('has_error')];
-							return hasError ? '#f95c78' : '#65cd84';
-						}
-				  }
-				: undefined,
-			id: `${plot.title}_${idx}`
-		})),
+							return hasError ? 16 : 8;
+					  }
+					: 4,
+				symbol: enableResultErrorHighlight
+					? (_: unknown, params: { dataIndex: number }) => {
+							const point = plot.dataset[params.dataIndex + 1];
+							if (!point) return 'circle';
+
+							const hasError = point[plot.dataset[0].indexOf('has_error')];
+							return hasError ? 'diamond' : 'circle';
+					  }
+					: 'emptyCircle',
+				itemStyle: enableResultErrorHighlight
+					? {
+							color: (params: { dataIndex: number }) => {
+								const point = plot.dataset[params.dataIndex + 1];
+								if (!point) return getColorByIdx(idx);
+
+								const hasError = point[plot.dataset[0].indexOf('has_error')];
+								return hasError ? '#f95c78' : '#65cd84';
+							}
+					  }
+					: undefined,
+				id: `${plot.title}_${idx}`
+			};
+		}),
 		dataZoom: [
 			{ type: 'inside', xAxisIndex: [0] },
 			{ type: 'inside', yAxisIndex: plots.map((_, i) => i) },

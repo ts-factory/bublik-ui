@@ -257,15 +257,11 @@ function StackedMeasurementChart(props: StackedMeasurementChartProps) {
 	const ref = useRef<ReactEChartsCore>(null);
 	useChartClick({ ref, onChartPointClick: props.onPointClick });
 
-	return (
-		<Plot
-			options={resolveStackedOptions(props.charts, {
-				enableResultErrorHighlight: props.enableResultErrorHighlight
-			})}
-			style={props.style}
-			ref={ref}
-		/>
-	);
+	const stackedOptions = resolveStackedOptions(props.charts, {
+		enableResultErrorHighlight: props.enableResultErrorHighlight
+	});
+
+	return <Plot options={stackedOptions} style={props.style} ref={ref} />;
 }
 
 export { MeasurementChart, StackedMeasurementChart };
