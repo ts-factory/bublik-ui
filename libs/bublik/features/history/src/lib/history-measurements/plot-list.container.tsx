@@ -119,7 +119,7 @@ export function PlotListContainerByResult() {
 	}
 
 	if (isLoading) {
-		return <PlotListLoading label="Measurements By Result" />;
+		return <PlotListLoading label="Series Charts" />;
 	}
 
 	if (!data?.length) {
