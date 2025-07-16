@@ -1,5 +1,12 @@
 
 
+### [1.10.2](https://github.com/ts-factory/bublik-ui/compare/v1.10.1...v1.10.2) (2025-07-16)
+
+
+### 🐛 Bug Fix
+
+* **report:** [table] don't show "undefined" when formatter is not present ([7876216](https://github.com/ts-factory/bublik-ui/commit/78762163a5bad460ed573fd1814c9685e8430b2a))
+
 ## [1.10.0](https://github.com/ts-factory/bublik-ui/compare/v1.9.0...v1.10.0) (2025-07-09)
 
 
