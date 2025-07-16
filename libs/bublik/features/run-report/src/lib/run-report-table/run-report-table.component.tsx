@@ -32,7 +32,7 @@ function formatValue(
 ) {
 	if (value === undefined || value === null) return <>&ndash;</>;
 
-	const formatter = seriesName ? formatters?.[seriesName] : '';
+	const formatter = seriesName ? formatters?.[seriesName] ?? '' : '';
 
 	return `${Number(value)}${formatter}`;
 }
