@@ -3,7 +3,6 @@
 export * from './lib/echart';
 export * from './lib/themes';
 export * from './lib/plot';
-export * from './lib/chart-control-panel';
 export * from './lib/hooks';
 export * from './lib/export-chart';
 export * from './lib/measurements-table';
