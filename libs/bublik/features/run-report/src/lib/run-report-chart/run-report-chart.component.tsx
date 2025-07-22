@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
-import { Plot } from '@/shared/charts';
+import { MeasurementChartToolbar, Plot } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
@@ -14,13 +14,16 @@ import {
 	ParamsSchema,
 	resolveRunReportChartOptions
 } from './run-report-chart.utils';
+import { useRunReportChartState } from './run-report-chart.hooks';
+import { DrawerContent, DrawerRoot } from '@/shared/tailwind-ui';
 
 interface RunReportChartProps {
 	chart: ReportChart;
+	isFullScreen?: boolean;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const { chart } = props;
+	const { chart, isFullScreen = false } = props;
 	const { runId } = useParams<{ runId: string }>();
 	const [resultId, setResultId] = useState<number>();
 	const [open, setOpen] = useState(false);
@@ -70,8 +73,22 @@ function RunReportChart(props: RunReportChartProps) {
 	}, []);
 
 	const isCtrlPressed = usePlatformSpecificCtrl();
+	const {
+		state,
+		toggleGlobalZoom,
+		resetZoom,
+		toggleSliders,
+		changeMode,
+		toggleFullScreen,
+		toggleLimitYAxis
+	} = useRunReportChartState({ chart, chartRef, isCtrlPressed, isFullScreen });
 
-	const options = resolveRunReportChartOptions({ chart, isCtrlPressed });
+	const options = resolveRunReportChartOptions({
+		chart,
+		state,
+		isCtrlPressed,
+		isFullScreen
+	});
 
 	return (
 		<>
@@ -82,7 +99,25 @@ function RunReportChart(props: RunReportChartProps) {
 				open={open}
 				onOpenChange={setOpen}
 			/>
+			<DrawerRoot open={state.isFullScreen} onOpenChange={toggleFullScreen}>
+				<DrawerContent className="w-[75vw] p-4">
+					<RunReportChart chart={chart} isFullScreen={true} />
+				</DrawerContent>
+			</DrawerRoot>
 			<div className="w-full flex flex-col gap-2 h-full pb-2">
+				<div className="pr-12">
+					<MeasurementChartToolbar
+						title=""
+						state={state}
+						toggleGlobalZoom={toggleGlobalZoom}
+						resetZoom={resetZoom}
+						toggleSliders={toggleSliders}
+						toggleLimitYAxis={toggleLimitYAxis}
+						changeMode={changeMode}
+						toggleFullScreen={toggleFullScreen}
+						isFullScreen={isFullScreen}
+					/>
+				</div>
 				<Plot
 					ref={chartRef}
 					notMerge={false}

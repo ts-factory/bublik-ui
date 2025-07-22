@@ -3,8 +3,9 @@
 import { ComponentProps } from 'react';
 import { z } from 'zod';
 
-import { chartStyles, EChartsOption, Plot } from '@/shared/charts';
+import { ChartState, chartStyles, EChartsOption, Plot } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
+import { DataZoomComponentOption } from 'echarts';
 
 const ParamsSchema = z.object({
 	seriesIndex: z.number(),
@@ -13,22 +14,64 @@ const ParamsSchema = z.object({
 
 interface RunReportChartConfigOptions {
 	chart: ReportChart;
+	state: ChartState;
 	isCtrlPressed: boolean;
+	isFullScreen: boolean;
+}
+
+function resolveDataZoom(
+	state: ChartState,
+	isModifierPressed = false,
+	isFullScreen = false
+) {
+	const dataZoom = [];
+
+	dataZoom.push({
+		type: 'inside',
+		xAxisIndex: [0],
+		zoomLock: !isModifierPressed
+	});
+	dataZoom.push({
+		type: 'inside',
+		yAxisIndex: [0],
+		zoomLock: !isModifierPressed
+	});
+
+	if (state.isSlidersVisible) {
+		dataZoom.push({
+			type: 'slider',
+			show: true,
+			xAxisIndex: [0],
+			bottom: isFullScreen ? 50 : 15
+		});
+		dataZoom.push({
+			type: 'slider',
+			show: true,
+			yAxisIndex: [0],
+			right: isFullScreen ? 70 : 0,
+			bottom: isFullScreen ? '15%' : '30%'
+		});
+	}
+
+	return dataZoom;
 }
 
 function resolveRunReportChartOptions(
 	options: RunReportChartConfigOptions
 ): EChartsOption {
-	const { chart, isCtrlPressed } = options;
+	const { chart, isCtrlPressed, state, isFullScreen } = options;
 
-	const dataZoom = [{}, { type: 'inside', zoomLock: !isCtrlPressed }];
+	const dataZoom: DataZoomComponentOption[] = state.isSlidersVisible
+		? [{ left: '8%' }, { type: 'inside', zoomLock: !isCtrlPressed }]
+		: [{ left: -999999999999 }, { type: 'inside', zoomLock: !isCtrlPressed }];
+
 	const series: ComponentProps<typeof Plot>['options']['series'] =
 		chart.data.map((d) => ({
 			name:
 				chart.series_label === null && chart.data.length === 1
 					? chart.axis_y.label
 					: d.series,
-			type: 'line',
+			type: state.mode === 'scatter' ? 'scatter' : 'line',
 			data: d.points.map((d) => [d?.[chart.axis_x.key], d?.[chart.axis_y.key]]),
 			itemStyle: {
 				color: (params: unknown) => {
@@ -76,7 +119,7 @@ function resolveRunReportChartOptions(
 			trigger: 'axis',
 			textStyle: chartStyles.text,
 			extraCssText: 'shadow-popover rounded-lg',
-			axisPointer: { type: 'shadow' }
+			axisPointer: { type: 'line' }
 		},
 		legend: {
 			data: chart.data.map((s) => s.series ?? ''),
@@ -85,11 +128,14 @@ function resolveRunReportChartOptions(
 		},
 		grid: {
 			containLabel: true,
-			top:
-				Boolean(chart.series_label) && chart.data.length >= 4 ? '28%' : '15%',
-			right: '7%',
+			top: !isFullScreen
+				? Boolean(chart.series_label) && chart.data.length >= 4
+					? '28%'
+					: '15%'
+				: '7%',
+			right: '3%',
 			left: '5%',
-			bottom: '20%'
+			bottom: isFullScreen ? '10%' : state.isSlidersVisible ? '21%' : '10%'
 		},
 		dataZoom,
 		xAxis: {
@@ -106,10 +152,12 @@ function resolveRunReportChartOptions(
 			name: chart.axis_y.label,
 			nameGap: 20,
 			nameLocation: 'end',
+			min: state.limitYAxis ? 'dataMin' : undefined,
+			max: state.limitYAxis ? 'dataMax' : undefined,
 			axisLabel: chartStyles.text,
 			nameTextStyle: { ...chartStyles.text, align: 'left' }
 		},
-		series: series
+		series
 	};
 }
 

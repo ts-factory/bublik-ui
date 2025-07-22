@@ -264,4 +264,4 @@ function StackedMeasurementChart(props: StackedMeasurementChartProps) {
 	return <Plot options={stackedOptions} style={props.style} ref={ref} />;
 }
 
-export { MeasurementChart, StackedMeasurementChart };
+export { MeasurementChart, StackedMeasurementChart, MeasurementChartToolbar };
