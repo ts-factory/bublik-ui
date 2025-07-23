@@ -64,7 +64,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						Log
 					</Link>
 				</li>
-				<li className="pl-2">
+				<li className="pl-0.5">
 					<LinkToHistory
 						result={result}
 						runDetails={runInfo}
