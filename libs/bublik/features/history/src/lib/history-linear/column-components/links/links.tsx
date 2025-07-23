@@ -10,7 +10,7 @@ import {
 	VERDICT_TYPE
 } from '@/shared/types';
 import { routes, stringifySearch, useSearchState } from '@/router';
-import { ButtonTw, ContextLinks, Icon } from '@/shared/tailwind-ui';
+import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
@@ -42,44 +42,60 @@ export const Links = ({ row }: LinksProps) => {
 					Run
 				</Link>
 			</ButtonTw>
-			<ContextLinks
-				sections={[
-					{
-						label: 'Shortcuts',
-						items: [
-							{
-								label: 'All unexpected',
-								to: {
-									pathname: '/history',
-									search: shortcuts.allUnexpected
-								}
-							},
-							{
-								label: 'Similar unexpected',
-								to: {
+			<SplitButton.Root variant="secondary" size="xss">
+				<SplitButton.Button asChild>
+					<Link to={{ pathname: '/history', search: shortcuts.historyQuery }}>
+						<Icon
+							name="BoxArrowRight"
+							size={20}
+							className="grid place-items-center mr-1"
+						/>
+						<span>History</span>
+					</Link>
+				</SplitButton.Button>
+				<SplitButton.Separator orientation="vertical" className="h-5" />
+				<SplitButton.Trigger>
+					<Icon name="ChevronDown" size={14} />
+				</SplitButton.Trigger>
+				<SplitButton.Content align="start">
+					<SplitButton.Label>Shortcuts</SplitButton.Label>
+					<SplitButton.Separator className="my-1" />
+					<Tooltip
+						side="right"
+						sideOffset={12}
+						content="All unexpected with (meta, tags, parameters)"
+					>
+						<SplitButton.Item asChild>
+							<Link
+								to={{ pathname: '/history', search: shortcuts.allUnexpected }}
+								target="_blank"
+							>
+								<Icon name="ExternalLink" size={16} className="text-primary" />
+								<span>All Unexpected</span>
+							</Link>
+						</SplitButton.Item>
+					</Tooltip>
+
+					<Tooltip
+						side="right"
+						sideOffset={12}
+						content="All unexpected with (meta, tags, parameters, verdicts)"
+					>
+						<SplitButton.Item asChild>
+							<Link
+								to={{
 									pathname: '/history',
 									search: shortcuts.similarUnexpected
-								}
-							}
-						]
-					}
-				]}
-			>
-				<ButtonTw
-					asChild
-					size="xss"
-					variant="secondary"
-					className="justify-start w-fit"
-				>
-					<Link
-						className="justify-start w-fit"
-						to={{ pathname: '/history', search: shortcuts.historyQuery }}
-					>
-						<Icon name="BoxArrowRight" className="mr-1.5" />
-						History
-					</Link>
-				</ButtonTw>
-			</ContextLinks>
+								}}
+								target="_blank"
+							>
+								<Icon name="ExternalLink" size={16} className="text-primary" />
+								<span>Similar Unexpected</span>
+							</Link>
+						</SplitButton.Item>
+					</Tooltip>
+				</SplitButton.Content>
+			</SplitButton.Root>
 			{row.has_measurements && (
 				<ButtonTw asChild size="xss" variant="secondary">
 					<Link
