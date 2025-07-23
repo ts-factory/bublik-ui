@@ -117,7 +117,7 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 					{seriesNames.map((seriesName, idx, arr) => {
 						return (
 							<th
-								key={seriesName}
+								key={idx}
 								className={headerCellStyles({
 									className: `text-right border-r h-9 ${
 										idx !== arr.length - 1 && 'border-r'
