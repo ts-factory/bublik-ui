@@ -4,6 +4,8 @@ on:
     branches: [main]
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+  NODE_OPTIONS: '--max-old-space-size=4096'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
