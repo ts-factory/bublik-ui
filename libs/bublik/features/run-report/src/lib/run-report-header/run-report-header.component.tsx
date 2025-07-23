@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { Link } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { routes } from '@/router';
@@ -16,6 +15,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 const IsOpenParam = withDefault(BooleanParam, true);
 
@@ -47,16 +47,16 @@ function RunReportHeader(props: RunReportHeaderProps) {
 					/>
 					<LinkToSourceContainer runId={runId.toString()} />
 					<ButtonTw asChild variant="secondary" size="xss">
-						<Link to={routes.run({ runId })}>
+						<LinkWithProject to={routes.run({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<Link to={routes.log({ runId })}>
+						<LinkWithProject to={routes.log({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<CopyShortUrlButtonContainer />
 				</div>

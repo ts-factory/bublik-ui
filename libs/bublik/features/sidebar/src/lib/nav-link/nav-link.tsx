@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { type LinkProps, Link } from 'react-router-dom';
+import { type LinkProps, useSearchParams } from 'react-router-dom';
 
 import {
 	Icon,
@@ -13,6 +13,7 @@ import {
 	ModalContent,
 	DialogPortal
 } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { MatchPattern, useAccordionLink, useNavLink } from './nav-link.hooks';
 
@@ -111,10 +112,9 @@ export const NavLink = (props: NavLinkProps) => {
 	const { label, icon, subitems = [], whenMatched, dialogContent } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const { isActive, to: finalTo } = useNavLink(
+	const { isActive, to } = useNavLink(
 		isExternalLink(props) ? undefined : props
 	);
-
 	const hasSubitems = subitems.length > 0;
 
 	const [isOpen, toggleOpen] = useState<boolean | null>(isActive);
@@ -163,15 +163,15 @@ export const NavLink = (props: NavLinkProps) => {
 		}
 
 		return (
-			<Link
-				to={finalTo}
+			<LinkWithProject
+				to={to}
 				className={linkStyles({ isSidebarOpen })}
 				style={paddingTransition}
 				onClick={handleClick}
 			>
 				<div className="grid flex-shrink-0 place-items-center">{icon}</div>
 				<span className="text-[1.125rem] truncate">{label}</span>
-			</Link>
+			</LinkWithProject>
 		);
 	};
 
@@ -279,11 +279,9 @@ const AccordionLink = (props: AccordionLinkProps) => {
 	const { label, icon, whenMatched, dialogContent } = props;
 
 	const { isSidebarOpen } = useSidebar();
-	const {
-		to: matchTo,
-		isActive,
-		isPathMatch
-	} = useAccordionLink(isExternalLink(props) ? undefined : props);
+	const { to, isActive, isPathMatch } = useAccordionLink(
+		isExternalLink(props) ? undefined : props
+	);
 	const matchedOneTime = useRef(false);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -325,12 +323,9 @@ const AccordionLink = (props: AccordionLinkProps) => {
 							</span>
 						</a>
 					) : (
-						<Link
-							to={matchTo}
-							className={accordionLinkStyles({
-								isActive,
-								isSidebarOpen
-							})}
+						<LinkWithProject
+							to={to}
+							className={accordionLinkStyles({ isActive, isSidebarOpen })}
 							style={paddingTransition}
 							onClick={handleClick}
 						>
@@ -346,7 +341,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 									<Icon name="InformationCircleQuestionMark" size={20} />
 								</button>
 							) : null}
-						</Link>
+						</LinkWithProject>
 					)}
 				</Tooltip>
 
@@ -388,8 +383,8 @@ const AccordionLink = (props: AccordionLinkProps) => {
 						</span>
 					</a>
 				) : (
-					<Link
-						to={matchTo}
+					<LinkWithProject
+						to={to}
 						className={accordionLinkStyles({
 							isActive,
 							isSidebarOpen,
@@ -411,7 +406,7 @@ const AccordionLink = (props: AccordionLinkProps) => {
 								<Icon name="InformationCircleQuestionMark" size={20} />
 							</button>
 						) : null}
-					</Link>
+					</LinkWithProject>
 				)}
 			</Tooltip>
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

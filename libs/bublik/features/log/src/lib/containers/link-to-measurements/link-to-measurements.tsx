@@ -1,24 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
+import { MeasurementsMode } from '@/shared/types';
+import { ButtonTw, Icon } from '@/shared/tailwind-ui';
+import { routes } from '@/router';
 import {
 	useGetResultInfoQuery,
 	usePrefetchMeasurementsPage
 } from '@/services/bublik-api';
-import { ButtonTw, Icon } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
-import { MeasurementsMode } from '@/shared/types';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface LinkToMeasurementsProps {
 	focusId?: string | number | null;
 }
 
-export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
+export const LinkToMeasurementsContainer = ({
 	focusId
-}) => {
+}: LinkToMeasurementsProps) => {
 	const { data, isFetching, isError } = useGetResultInfoQuery(
 		focusId ?? skipToken
 	);
@@ -44,7 +43,7 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 					: 'default'
 			}
 		>
-			<Link
+			<LinkWithProject
 				to={routes.measurements({
 					resultId,
 					runId,
@@ -57,7 +56,7 @@ export const LinkToMeasurementsContainer: FC<LinkToMeasurementsProps> = ({
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 				)}
 				Result
-			</Link>
+			</LinkWithProject>
 		</ButtonTw>
 	);
 };
