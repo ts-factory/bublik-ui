@@ -11,16 +11,9 @@ import {
 	ToolbarButton,
 	useSidebar
 } from '@/shared/tailwind-ui';
-import {
-	ExportChart,
-	getColorByIdx,
-	isDisabledForCombined,
-	MeasurementChart,
-	SelectedChartsPopover
-} from '@/shared/charts';
+import { ExportChart, getColorByIdx, MeasurementChart } from '@/shared/charts';
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
-import { isDisabledForCombined } from '@/shared/charts';
 
 import { useCombinedView } from './plot-list.hooks';
 import { resolvePoint } from './plot-list.utils';
