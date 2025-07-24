@@ -252,7 +252,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 					{chart ? (
 						<div className="flex-1">
 							<div className="relative pt-2 h-full">
-								<div className="absolute right-4 z-[1] top-1.5">
+								<div className="absolute right-4 z-[1] top-2.5">
 									<WarningsHoverCard warnings={chart.warnings} />
 								</div>
 								<RunReportChart chart={chart} />
