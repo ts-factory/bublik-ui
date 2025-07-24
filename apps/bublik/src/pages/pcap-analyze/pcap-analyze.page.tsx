@@ -1,10 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { get, map, reduce } from 'lodash';
 import { Buffer } from 'buffer';
 
-import { TypedWorker } from './types';
-import { DissectionTree } from './dissection-tree';
-import { DissectionDump } from './dissection-dump';
 import { DrawerRoot, DrawerContent } from '@/shared/tailwind-ui';
 import {
 	ContextMenu,
@@ -13,15 +10,46 @@ import {
 	ContextMenuItem
 } from '@/shared/tailwind-ui';
 
+import { TypedWorker } from './types';
+import { DissectionTree, TreeNode } from './dissection-tree';
+import { DissectionDump } from './dissection-dump';
+import { DataSource } from '@goodtools/wiregasm';
+
+type Position = { idx: number; start: number; length: number };
+type PositionsMap = Map<string, Position>;
+
+type DateSource = {
+	name: string;
+	data: string;
+};
+
+type PacketInfo = {
+	data_sources: DataSource[];
+	tree: TreeNode[];
+	type: string;
+};
+
+type Data = Record<string, unknown> & { tree: unknown };
+
 function PcapAnalyzePage() {
-	const [file, setFile] = useState<File | null>(null);
+	const [, setFile] = useState<File | null>(null);
 	const [filterInput, setFilterInput] = useState('');
-	const [tableData, setTableData] = useState<Record<string, any>[]>([]);
+	const [data, setData] = useState<Data[]>([]);
 	const [selectedRowIdx, setSelectedRowIdx] = useState(0);
-	const [selectedPacket, setSelectedPacket] = useState<any>(null);
-	const [preparedPositions, setPreparedPositions] = useState<Map<string, any>>(
+	const [selectedPacket, setSelectedPacket] = useState<PacketInfo | null>(null);
+	const [preparedPositions, setPreparedPositions] = useState<PositionsMap>(
 		new Map()
 	);
+	const [columns, setColumns] = useState<{ title: string; key: string }[]>([]);
+	const [showTraceFlowDialog, setShowTraceFlowDialog] = useState(false);
+	const [streamedData, setStreamedData] = useState<any[]>([]);
+	const [followResult, setFollowResult] = useState<any>(null);
+	const [status, setStatus] = useState('Loading...');
+	const [loading, setLoading] = useState(true);
+	const [processed, setProcessed] = useState(false);
+	const [summary, setSummary] = useState<any>(null);
+	const [initialized, setInitialized] = useState(false);
+
 	const [selectedTreeEntry, setSelectedTreeEntry] = useState<{
 		id: string;
 		idx: number;
@@ -33,26 +61,6 @@ function PcapAnalyzePage() {
 		start: 0,
 		length: 0
 	});
-	const [columns, setColumns] = useState<{ title: string; key: string }[]>([]);
-	const [showTraceFlowDialog, setShowTraceFlowDialog] = useState(false);
-	const [contextMenu, setContextMenu] = useState<{
-		show: boolean;
-		x: number;
-		y: number;
-		row: any;
-	}>({
-		show: false,
-		x: 0,
-		y: 0,
-		row: null
-	});
-	const [streamedData, setStreamedData] = useState<any[]>([]);
-	const [followResult, setFollowResult] = useState<any>(null);
-	const [status, setStatus] = useState('Loading...');
-	const [loading, setLoading] = useState(true);
-	const [processed, setProcessed] = useState(false);
-	const [summary, setSummary] = useState<any>(null);
-	const [initialized, setInitialized] = useState(false);
 
 	const workerRef = useRef<TypedWorker | null>(null);
 
@@ -105,7 +113,7 @@ function PcapAnalyzePage() {
 				}
 
 				console.log('Processing', data.frames.length, 'frames');
-				const dataSource = map(data.frames, (f: any) => {
+				const dataSource = map(data.frames, (f: Record<string, unknown>) => {
 					return reduce(
 						columns,
 						(acc, col, idx) => {
@@ -118,7 +126,7 @@ function PcapAnalyzePage() {
 				});
 
 				console.log('Processed table data:', dataSource.length, 'rows');
-				setTableData(dataSource);
+				setData(dataSource as unknown as Data[]);
 			} catch (error) {
 				console.error('Error processing table data:', error);
 				setStatus(
@@ -260,7 +268,7 @@ function PcapAnalyzePage() {
 		console.log('File selected:', selectedFile.name, selectedFile.size);
 		setFile(selectedFile);
 		setProcessed(false);
-		setTableData([]);
+		setData([]);
 		setStatus('Processing file...');
 
 		selectedFile
@@ -287,29 +295,31 @@ function PcapAnalyzePage() {
 			});
 	};
 
+	console.log(preparedPositions);
+
 	const handleRowClick = (row: any) => {
 		console.log('Row clicked:', row.raw.number);
 		setSelectedRowIdx(row.raw.number);
 	};
 
-	const handleTraceFlow = () => {
-		console.log('Trace flow clicked:', contextMenu.row);
-		if (!contextMenu.row || !workerRef.current) return;
+	const handleTraceFlow = (row: any) => {
+		console.log('Trace flow clicked:', row);
+		if (!row || !workerRef.current) return;
 
 		const { port1, port2 } = new MessageChannel();
 		port1.onmessage = (ev: MessageEvent<any>) => {
+			console.log('Trace flow response:', ev);
 			setFollowResult(ev.data.followResult);
 			setStreamedData(ev.data.payloads);
 			setFilterInput(ev.data.filter);
 		};
 
 		workerRef.current.postMessage(
-			{ type: 'follow-stream', number: contextMenu.row.raw.number },
+			{ type: 'follow-stream', number: row.raw.number },
 			[port2]
 		);
 
 		setShowTraceFlowDialog(true);
-		setContextMenu({ show: false, x: 0, y: 0, row: null });
 	};
 
 	const handleDataSourceSelect = (src_idx: number, pos: number) => {
@@ -387,7 +397,7 @@ function PcapAnalyzePage() {
 					<strong>Columns:</strong> {columns.length}
 				</div>
 				<div>
-					<strong>Table Data:</strong> {tableData.length} rows
+					<strong>Table Data:</strong> {data.length} rows
 				</div>
 				<div>
 					<strong>Loading:</strong> {loading.toString()}
@@ -413,12 +423,11 @@ function PcapAnalyzePage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{tableData.length > 0 ? (
-								tableData.map((row, index) => (
-									<ContextMenu>
+							{data.length > 0 ? (
+								data.map((row, index) => (
+									<ContextMenu key={index}>
 										<ContextMenuTrigger asChild>
 											<tr
-												key={index}
 												onClick={() => handleRowClick(row)}
 												style={getRowStyle(row)}
 												className="cursor-pointer hover:opacity-75"
@@ -428,7 +437,7 @@ function PcapAnalyzePage() {
 														key={column.key}
 														className="px-6 py-4 whitespace-nowrap text-sm"
 													>
-														{row[column.key]}
+														{row[column.key] as ReactNode}
 													</td>
 												))}
 											</tr>
@@ -436,7 +445,7 @@ function PcapAnalyzePage() {
 										<ContextMenuContent>
 											<ContextMenuItem
 												label="Trace Flow"
-												onClick={handleTraceFlow}
+												onClick={() => handleTraceFlow(row)}
 											/>
 										</ContextMenuContent>
 									</ContextMenu>
@@ -460,7 +469,7 @@ function PcapAnalyzePage() {
 				</div>
 			</div>
 
-			{selectedPacket?.tree?.length > 0 && (
+			{(selectedPacket?.tree?.length ?? 0) > 0 && selectedPacket && (
 				<div className="flex flex-col md:flex-row gap-4 mt-4 h-[400px]">
 					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
 						<DissectionTree
@@ -472,7 +481,7 @@ function PcapAnalyzePage() {
 						/>
 					</div>
 					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
-						{selectedPacket.data_sources.map(
+						{selectedPacket?.data_sources.map(
 							(data_source: any, idx: number) => (
 								<div key={idx} className="mb-4 last:mb-0">
 									<DissectionDump
@@ -497,7 +506,7 @@ function PcapAnalyzePage() {
 				open={showTraceFlowDialog}
 				onOpenChange={setShowTraceFlowDialog}
 			>
-				<DrawerContent className="w-full max-w-4xl">
+				<DrawerContent className="w-full max-w-4xl flex flex-col">
 					<div className="border-b p-4 flex justify-between items-center">
 						<h3 className="text-lg font-semibold">Trace Flow</h3>
 						<button
@@ -507,7 +516,7 @@ function PcapAnalyzePage() {
 							&times;
 						</button>
 					</div>
-					<div className="overflow-auto p-4 flex-grow">
+					<div className="p-4 flex-grow overflow-auto">
 						{streamedData.length > 0 ? (
 							<div className="space-y-3">
 								{streamedData.map((data, index) => (
@@ -534,14 +543,6 @@ function PcapAnalyzePage() {
 					</div>
 				</DrawerContent>
 			</DrawerRoot>
-
-			{loading && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white p-6 rounded-lg shadow-lg">
-						<p className="text-center">{status}</p>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }
