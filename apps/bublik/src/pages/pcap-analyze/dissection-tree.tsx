@@ -40,7 +40,7 @@ function DissectionTree(props: DissectionTreeProps) {
 			});
 			return newMap;
 		});
-	}, [selected, id, tree, isOpen]);
+	}, [selected]);
 
 	const toggle = (nodeId: string) => {
 		setOpenStates((prev) => {
