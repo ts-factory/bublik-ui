@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { get, map, reduce } from 'lodash';
-import { TypedWorker, WorkerResponseMap } from './types';
 import { Buffer } from 'buffer';
+
+import { TypedWorker } from './types';
+import { DissectionTree } from './dissection-tree';
+import { DissectionDump } from './dissection-dump';
 
 function PcapAnalyzePage() {
 	const [file, setFile] = useState<File | null>(null);
@@ -13,7 +15,12 @@ function PcapAnalyzePage() {
 	const [preparedPositions, setPreparedPositions] = useState<Map<string, any>>(
 		new Map()
 	);
-	const [selectedTreeEntry, setSelectedTreeEntry] = useState<any>({
+	const [selectedTreeEntry, setSelectedTreeEntry] = useState<{
+		id: string;
+		idx: number;
+		start: number;
+		length: number;
+	}>({
 		id: '',
 		idx: 0,
 		start: 0,
@@ -149,6 +156,8 @@ function PcapAnalyzePage() {
 
 			const { type } = ev.data;
 
+			let newColumns: { title: string; key: string }[] = [];
+			let positions: Map<string, any> = new Map();
 			switch (type) {
 				case 'init':
 					console.log('Worker initialized');
@@ -160,10 +169,12 @@ function PcapAnalyzePage() {
 
 				case 'columned':
 					console.log('Columns received:', ev.data.columns);
-					const newColumns = ev.data.columns.map((c: string) => ({
-						title: c,
-						key: c
-					}));
+					newColumns = ev.data.columns.map(
+						(c: string): { title: string; key: string } => ({
+							title: c,
+							key: c
+						})
+					);
 					console.log('Setting columns:', newColumns);
 					setColumns(newColumns);
 					break;
@@ -183,7 +194,7 @@ function PcapAnalyzePage() {
 
 				case 'selected':
 					console.log('Packet selected:', ev.data);
-					const positions = preparePositions('root', ev.data);
+					positions = preparePositions('root', ev.data);
 					setPreparedPositions(new Map(positions));
 					setSelectedPacket(ev.data);
 					break;
@@ -207,6 +218,7 @@ function PcapAnalyzePage() {
 			worker.terminate();
 			worker.removeEventListener('message', messageHandler);
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
@@ -447,7 +459,9 @@ function PcapAnalyzePage() {
 							(data_source: any, idx: number) => (
 								<div key={idx} className="mb-4 last:mb-0">
 									<DissectionDump
-										buffer={Buffer.from(data_source.data, 'base64')}
+										buffer={
+											new Uint8Array(Buffer.from(data_source.data, 'base64'))
+										}
 										selected={
 											idx === selectedTreeEntry.idx
 												? [selectedTreeEntry.start, selectedTreeEntry.length]
@@ -528,91 +542,5 @@ function PcapAnalyzePage() {
 		</div>
 	);
 }
-
-export const DissectionTree = ({ tree, selected, select }: any) => {
-	const renderTree = (node: any, depth = 0, path = 'root') => {
-		return (
-			<div key={path} className="pl-4">
-				<div
-					className={`p-1 my-1 rounded cursor-pointer ${
-						selected === path ? 'bg-blue-100' : 'hover:bg-gray-100'
-					}`}
-					onClick={() => select({ id: path, ...node })}
-				>
-					<div className="flex items-center">
-						<span className="text-xs mr-2 text-gray-500">[{depth}]</span>
-						<span className="font-mono text-sm">{node.label}</span>
-					</div>
-				</div>
-
-				{node.tree?.map((child: any, idx: number) =>
-					renderTree(child, depth + 1, `${path}-${idx}`)
-				)}
-			</div>
-		);
-	};
-
-	return (
-		<div className="font-mono text-sm">
-			{tree.map((node: any, idx: number) => renderTree(node, 0, `root-${idx}`))}
-		</div>
-	);
-};
-
-export const DissectionDump = ({ buffer, selected, onSelect }: any) => {
-	const [selection, setSelection] = useState<[number, number]>(selected);
-
-	const hex = Array.from(new Uint8Array(buffer))
-		.map((byte) => byte.toString(16).padStart(2, '0'))
-		.join(' ');
-
-	const ascii = Array.from(new Uint8Array(buffer))
-		.map((byte) =>
-			byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'
-		)
-		.join('');
-
-	const handleClick = (index: number) => {
-		// TODO: Calculate proper byte ranges
-		onSelect(index);
-	};
-
-	return (
-		<div>
-			<div className="font-mono text-sm mb-2">Hex View</div>
-			<div className="flex flex-wrap gap-1">
-				{hex.split(' ').map((byte, index) => (
-					<span
-						key={index}
-						onClick={() => handleClick(index)}
-						className={`cursor-pointer px-1 ${
-							index >= selected[0] && index < selected[0] + selected[1]
-								? 'bg-yellow-200'
-								: 'hover:bg-gray-100'
-						}`}
-					>
-						{byte}
-					</span>
-				))}
-			</div>
-			<div className="font-mono text-sm mt-4 mb-2">ASCII View</div>
-			<div className="flex flex-wrap">
-				{ascii.split('').map((char, index) => (
-					<span
-						key={index}
-						onClick={() => handleClick(index)}
-						className={`cursor-pointer w-4 text-center ${
-							index >= selected[0] && index < selected[0] + selected[1]
-								? 'bg-yellow-200'
-								: 'hover:bg-gray-100'
-						}`}
-					>
-						{char}
-					</span>
-				))}
-			</div>
-		</div>
-	);
-};
 
 export { PcapAnalyzePage };
