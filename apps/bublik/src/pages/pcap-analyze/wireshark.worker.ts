@@ -1,22 +1,29 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable no-restricted-globals */
 
 import pako from 'pako';
-// @ts-ignore
+// @ts-ignore: No types for these imports
 import wasmModuleCompressed from '@goodtools/wiregasm/dist/wiregasm.wasm.gz?url';
-// @ts-ignore
+// @ts-ignore: No types for these imports
 import wasmDataCompressed from '@goodtools/wiregasm/dist/wiregasm.data.gz?url';
-// @ts-ignore
+// @ts-ignore: No types for these imports
 import loadWiregasm from '@goodtools/wiregasm/dist/wiregasm';
-import { Wiregasm, vectorToArray } from '@goodtools/wiregasm';
+// @ts-ignore: No types for these imports
+import { Wiregasm, vectorToArray, Vector } from '@goodtools/wiregasm';
 import { Buffer } from 'buffer';
 
 import type { WorkerMessageMap, WorkerResponseMap } from './types';
 
 const wg = new Wiregasm();
 
-function replacer(_: string, value: any) {
-	if (value.constructor.name.startsWith('Vector')) {
-		return vectorToArray(value);
+function replacer(_: string, value: unknown) {
+	if (
+		value &&
+		typeof value === 'object' &&
+		'constructor' in value &&
+		value.constructor.name.startsWith('Vector')
+	) {
+		return vectorToArray(value as Vector<unknown>);
 	}
 	return value;
 }
@@ -42,8 +49,8 @@ const fetchPackages = async () => {
 let WASM: ArrayBuffer;
 let DATA: ArrayBuffer;
 fetchPackages().then(({ wasm, data }) => {
-	WASM = wasm;
-	DATA = data;
+	WASM = wasm as unknown as ArrayBuffer;
+	DATA = data as unknown as ArrayBuffer;
 	init(WASM, DATA);
 });
 
