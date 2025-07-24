@@ -5,6 +5,13 @@ import { Buffer } from 'buffer';
 import { TypedWorker } from './types';
 import { DissectionTree } from './dissection-tree';
 import { DissectionDump } from './dissection-dump';
+import { DrawerRoot, DrawerContent } from '@/shared/tailwind-ui';
+import {
+	ContextMenu,
+	ContextMenuTrigger,
+	ContextMenuContent,
+	ContextMenuItem
+} from '@/shared/tailwind-ui';
 
 function PcapAnalyzePage() {
 	const [file, setFile] = useState<File | null>(null);
@@ -48,7 +55,6 @@ function PcapAnalyzePage() {
 	const [initialized, setInitialized] = useState(false);
 
 	const workerRef = useRef<TypedWorker | null>(null);
-	const contextMenuRef = useRef<HTMLDivElement>(null);
 
 	const preparePositions = useCallback(
 		(id: string, node: any): Map<string, any> => {
@@ -287,6 +293,7 @@ function PcapAnalyzePage() {
 	};
 
 	const handleTraceFlow = () => {
+		console.log('Trace flow clicked:', contextMenu.row);
 		if (!contextMenu.row || !workerRef.current) return;
 
 		const { port1, port2 } = new MessageChannel();
@@ -408,21 +415,31 @@ function PcapAnalyzePage() {
 						<tbody className="bg-white divide-y divide-gray-200">
 							{tableData.length > 0 ? (
 								tableData.map((row, index) => (
-									<tr
-										key={index}
-										onClick={() => handleRowClick(row)}
-										style={getRowStyle(row)}
-										className="cursor-pointer hover:opacity-75"
-									>
-										{columns.map((column) => (
-											<td
-												key={column.key}
-												className="px-6 py-4 whitespace-nowrap text-sm"
+									<ContextMenu>
+										<ContextMenuTrigger asChild>
+											<tr
+												key={index}
+												onClick={() => handleRowClick(row)}
+												style={getRowStyle(row)}
+												className="cursor-pointer hover:opacity-75"
 											>
-												{row[column.key]}
-											</td>
-										))}
-									</tr>
+												{columns.map((column) => (
+													<td
+														key={column.key}
+														className="px-6 py-4 whitespace-nowrap text-sm"
+													>
+														{row[column.key]}
+													</td>
+												))}
+											</tr>
+										</ContextMenuTrigger>
+										<ContextMenuContent>
+											<ContextMenuItem
+												label="Trace Flow"
+												onClick={handleTraceFlow}
+											/>
+										</ContextMenuContent>
+									</ContextMenu>
 								))
 							) : (
 								<tr>
@@ -476,61 +493,47 @@ function PcapAnalyzePage() {
 				</div>
 			)}
 
-			{/* Context Menu */}
-			{contextMenu.show && (
-				<div
-					ref={contextMenuRef}
-					className="fixed z-50 bg-white shadow-lg rounded-md py-1 min-w-[120px] border border-gray-200"
-					style={{ left: contextMenu.x, top: contextMenu.y }}
-				>
-					<button
-						onClick={handleTraceFlow}
-						className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-					></button>
-				</div>
-			)}
-
-			{/* Trace Flow Dialog */}
-			{showTraceFlowDialog && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[90vh] flex flex-col">
-						<div className="border-b p-4 flex justify-between items-center">
-							<h3 className="text-lg font-semibold">Trace Flow</h3>
-							<button
-								onClick={() => setShowTraceFlowDialog(false)}
-								className="text-gray-500 hover:text-gray-700"
-							>
-								&times;
-							</button>
-						</div>
-						<div className="overflow-auto p-4 flex-grow">
-							{streamedData.length > 0 ? (
-								<div className="space-y-3">
-									{streamedData.map((data, index) => (
-										<div
-											key={index}
-											className={`whitespace-pre-wrap p-2 rounded ${
-												data.server
-													? 'bg-red-50 text-red-700'
-													: 'bg-blue-50 text-blue-700'
-											}`}
-										>
-											<div>{data.data}</div>
-										</div>
-									))}
-								</div>
-							) : (
-								<div className="space-y-2 text-sm">
-									<div>{`Server: ${followResult?.shost}:${followResult?.sport}`}</div>
-									<div>{`Client: ${followResult?.chost}:${followResult?.cport}`}</div>
-									<div>{`Sent by Server: ${followResult?.sbytes} bytes`}</div>
-									<div>{`Sent by Client: ${followResult?.cbytes} bytes`}</div>
-								</div>
-							)}
-						</div>
+			<DrawerRoot
+				open={showTraceFlowDialog}
+				onOpenChange={setShowTraceFlowDialog}
+			>
+				<DrawerContent className="w-full max-w-4xl">
+					<div className="border-b p-4 flex justify-between items-center">
+						<h3 className="text-lg font-semibold">Trace Flow</h3>
+						<button
+							onClick={() => setShowTraceFlowDialog(false)}
+							className="text-gray-500 hover:text-gray-700"
+						>
+							&times;
+						</button>
 					</div>
-				</div>
-			)}
+					<div className="overflow-auto p-4 flex-grow">
+						{streamedData.length > 0 ? (
+							<div className="space-y-3">
+								{streamedData.map((data, index) => (
+									<div
+										key={index}
+										className={`whitespace-pre-wrap p-2 rounded ${
+											data.server
+												? 'bg-red-50 text-red-700'
+												: 'bg-blue-50 text-blue-700'
+										}`}
+									>
+										<div>{data.data}</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="space-y-2 text-sm">
+								<div>{`Server: ${followResult?.shost}:${followResult?.sport}`}</div>
+								<div>{`Client: ${followResult?.chost}:${followResult?.cport}`}</div>
+								<div>{`Sent by Server: ${followResult?.sbytes} bytes`}</div>
+								<div>{`Sent by Client: ${followResult?.cbytes} bytes`}</div>
+							</div>
+						)}
+					</div>
+				</DrawerContent>
+			</DrawerRoot>
 
 			{loading && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
