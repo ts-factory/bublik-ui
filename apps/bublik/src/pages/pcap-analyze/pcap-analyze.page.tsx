@@ -295,8 +295,6 @@ function PcapAnalyzePage() {
 			});
 	};
 
-	console.log(preparedPositions);
-
 	const handleRowClick = (row: any) => {
 		console.log('Row clicked:', row.raw.number);
 		setSelectedRowIdx(row.raw.number);
@@ -354,21 +352,81 @@ function PcapAnalyzePage() {
 		};
 	};
 
+	const handleLoadSamplePcap = async () => {
+		const SAMPLE_URLS = [
+			'/v2/samples/dhcp.pcap',
+			'/v2/samples/diameter_non_standard.pcap',
+			'/v2/samples/dns_port.pcap',
+			'/v2/samples/http.cap',
+			'/v2/samples/tftp_rrq.pcap',
+			'/v2/samples/http2-16-ssl.pcapng'
+		];
+
+		try {
+			const sampleUrl =
+				SAMPLE_URLS[Math.floor(Math.random() * SAMPLE_URLS.length)];
+			setStatus(`Fetching sample file from: ${sampleUrl}`);
+			setProcessed(false);
+			setData([]);
+			setLoading(true);
+
+			const res = await fetch(sampleUrl);
+			if (!res.ok) throw new Error(`Failed to fetch sample: ${sampleUrl}`);
+
+			const buf = await res.arrayBuffer();
+			console.log('Sample file fetched:', buf.byteLength, 'bytes');
+
+			if (!workerRef.current) {
+				console.error('Worker not initialized');
+				setStatus('Worker not available');
+				setLoading(false);
+				return;
+			}
+
+			const filename = sampleUrl.split('/').pop() || 'sample.pcap';
+
+			workerRef.current.postMessage(
+				{
+					type: 'process',
+					name: filename,
+					arrayBuffer: buf
+				},
+				[buf]
+			);
+			setStatus(`Processing sample file: ${filename}`);
+		} catch (err: any) {
+			console.error('Error loading sample PCAP:', err);
+			setStatus(`Error: ${err.message}`);
+			setLoading(false);
+		}
+	};
+
 	return (
 		<div className="p-5">
-			<div className="mb-4">
-				<label className="block text-sm font-medium mb-1">PCAP File</label>
+			<div className="mb-4 flex items-center justify-start gap-4">
+				<label className="text-sm font-medium shrink-0 mb-1">PCAP File</label>
 				<input
 					type="file"
 					onChange={handleFileChange}
 					accept=".pcap,.pcapng,.cap"
-					className="block w-full text-sm text-gray-500
+					className="text-sm text-gray-500
             file:mr-4 file:py-2 file:px-4
             file:rounded-md file:border-0
             file:text-sm file:font-semibold
             file:bg-blue-50 file:text-blue-700
             hover:file:bg-blue-100"
 				/>
+				<button
+					onClick={handleLoadSamplePcap}
+					className="text-sm
+            mr-4 py-2 px-4
+            rounded-md border-0
+            font-semibold
+            bg-blue-50 text-blue-700
+            hover:bg-blue-100"
+				>
+					Load <strong>Random</strong> Sample
+				</button>
 			</div>
 
 			<div className="mb-4">
