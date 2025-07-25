@@ -123,6 +123,7 @@ const MESSAGE_STRATEGIES: {
 				throw new Error('Data conversion failed');
 			}
 
+			console.log(name, buffer);
 			const res = wg.load(name, buffer);
 
 			postMessage<'processed'>({ type: 'processed', summary: res, name });
@@ -142,10 +143,7 @@ const MESSAGE_STRATEGIES: {
 		for (let i = 0; i < result.payloads.size(); i++) {
 			const payload = result.payloads.get(i);
 			const decoded = atob(payload.data).trim();
-			payloadsArray.push({
-				...payload,
-				data: decoded
-			});
+			payloadsArray.push({ ...payload, data: decoded });
 		}
 		ev.ports[0].postMessage({
 			type: 'streamed',
