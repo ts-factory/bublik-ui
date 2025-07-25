@@ -89,6 +89,7 @@ export default defineConfig(({ mode }) => {
 		},
 		optimizeDeps: { include: ['react/jsx-runtime'] },
 		plugins: [react(), nxViteTsPaths(), svgr({ svgrOptions: { ref: true } })],
+		publicDir: './src/public',
 
 		build: {
 			outDir: '../../dist/apps/bublik',
