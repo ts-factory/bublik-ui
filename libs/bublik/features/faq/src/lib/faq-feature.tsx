@@ -7,7 +7,7 @@ import { CardHeader } from '@/shared/tailwind-ui';
 import { Question, QuestionAnswer } from './questions-section';
 import { AskForHelp } from './ask-for-help';
 
-import helpImage from './images/sidebar-help.png';
+import helpImage from './images/sidebar-help.webp';
 
 const QUESTIONS: QuestionAnswer[] = [
 	{

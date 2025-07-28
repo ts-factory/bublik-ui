@@ -7,9 +7,9 @@ import {
 	Dialog
 } from '@/shared/tailwind-ui';
 
-import one from './img/run-use-1.png';
-import two from './img/run-use-2.png';
-import three from './img/run-use-3.png';
+import one from './img/run-use-1.webp';
+import two from './img/run-use-2.webp';
+import three from './img/run-use-3.webp';
 
 function RunTableInstructionDialog() {
 	return (

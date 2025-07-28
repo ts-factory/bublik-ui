@@ -2,28 +2,28 @@
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
 import { InstructionDialog } from '@/shared/tailwind-ui';
 
-import multipleRuns1 from './images/runs/multiple-1.png';
-import multipleRuns2 from './images/runs/multiple-2.png';
-import multipleRuns3 from './images/runs/multiple-3.png';
-import compareRuns1 from './images/runs/compare.png';
-import compareRunsSelect from './images/runs/compare-runs-select.png';
+import multipleRuns1 from './images/runs/multiple-1.webp';
+import multipleRuns2 from './images/runs/multiple-2.webp';
+import multipleRuns3 from './images/runs/multiple-3.webp';
+import compareRuns1 from './images/runs/compare.webp';
+import compareRunsSelect from './images/runs/compare-runs-select.webp';
 
-import runLinkFromSessionList from './images/runs/run-link-session-list.png';
-import runSidebar from './images/runs/go-to-run-details.png';
+import runLinkFromSessionList from './images/runs/run-link-session-list.webp';
+import runSidebar from './images/runs/go-to-run-details.webp';
 
-import runReport from './images/runs/report-link.png';
+import runReport from './images/runs/report-link.webp';
 
-import logLinkFromRuns from './images/log/log-link.png';
-import logLinkFromRunDetails from './images/log/log-from-run.png';
-import logLinkFromHistory from './images/log/log-from-history.png';
+import logLinkFromRuns from './images/log/log-link.webp';
+import logLinkFromRunDetails from './images/log/log-from-run.webp';
+import logLinkFromHistory from './images/log/log-from-history.webp';
 
-import resultLinkFromLog from './images/result/result-from-log.png';
-import resultLinkFromRunDetails from './images/result/result-from-run.png';
-import resultLinkFromHistory from './images/result/result-from-history.png';
+import resultLinkFromLog from './images/result/result-from-log.webp';
+import resultLinkFromRunDetails from './images/result/result-from-run.webp';
+import resultLinkFromHistory from './images/result/result-from-history.webp';
 
-import historySidebar from './images/history/history-sidebar.png';
-import historyEditSearch from './images/history/history-search.png';
-import historyRunHover from './images/history/history-run-hover.png';
+import historySidebar from './images/history/history-sidebar.webp';
+import historyEditSearch from './images/history/history-search.webp';
+import historyRunHover from './images/history/history-run-hover.webp';
 
 import historyTrendchartsOne from './images/history/trend-charts-1.webp';
 import historyTrendchartsTwo from './images/history/trend-charts-2.webp';
@@ -33,19 +33,14 @@ import historySeriesOne from './images/history/series-1.webp';
 import historySeriesTwo from './images/history/series-2.webp';
 import historySeriesThree from './images/history/series-3.webp';
 
-import runsSidebar from './images/runs/runs-sidebar.png';
+import runsSidebar from './images/runs/runs-sidebar.webp';
+import runsConclusionReason from './images/runs/run-reason.webp';
+import runsCharts from './images/runs/runs-charts-click.webp';
+import runsChartsDialog from './images/runs/runs-charts-dialog.webp';
 
-import runsConclusionReason from './images/runs/run-reason.png';
-
-import runsCharts from './images/runs/runs-charts-click.png';
-
-import runsChartsDialog from './images/runs/runs-charts-dialog.png';
-
-import dashboardSidebar from './images/dashboard/dashboard-sidebar.png';
-
-import dashboardLinks from './images/dashboard/dashboard-links.png';
-
-import dashboardControls from './images/dashboard/dashboard-hints.png';
+import dashboardSidebar from './images/dashboard/dashboard-sidebar.webp';
+import dashboardLinks from './images/dashboard/dashboard-links.webp';
+import dashboardControls from './images/dashboard/dashboard-hints.webp';
 
 export function MultipleRunsDialog() {
 	return (
