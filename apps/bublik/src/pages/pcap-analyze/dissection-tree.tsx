@@ -81,8 +81,9 @@ function DissectionTree(props: DissectionTreeProps) {
 	return (
 		<div
 			className={cn(
-				root ? 'overflow-x-auto w-auto' : 'pl-2 border-l',
-				'font-mono'
+				root ? 'overflow-x-auto w-auto' : 'pl-2',
+				'font-mono h-full',
+				'overflow-auto rounded-md p-2 bg-white'
 			)}
 		>
 			{tree.map((node, i) => {

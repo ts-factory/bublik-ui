@@ -10,7 +10,9 @@ import {
 	ContextMenuContent,
 	ButtonTw,
 	CardHeader,
-	cn
+	cn,
+	Resizable,
+	resizableStyles
 } from '@/shared/tailwind-ui';
 
 import { Data, PacketInfo, Position, PositionsMap, TypedWorker } from './types';
@@ -402,15 +404,7 @@ interface PacketTableProps {
 }
 
 function PacketTable(props: PacketTableProps) {
-	const {
-		data,
-		columns,
-		loading,
-		processed,
-		onRowClick,
-		onTraceFlow,
-		getRowStyle
-	} = props;
+	const { data, columns, loading, processed, onRowClick, getRowStyle } = props;
 
 	return (
 		<div className="font-mono">
@@ -492,19 +486,26 @@ export function PcapAnalyzePage() {
 
 	return (
 		<div className="flex flex-col gap-1 p-2 h-full overflow-hidden">
-			<div className="h-full overflow-hidden">
+			{/* Top section - Packet table */}
+			<Resizable
+				defaultSize={{ width: '100%', height: '80%' }}
+				enable={{ bottom: true }}
+				minHeight={200}
+				className="flex flex-col"
+				{...resizableStyles}
+			>
 				<CardHeader
 					label={
-						<div className="flex items-center gap-4">
+						<div className="flex items-center gap-4 w-full">
 							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] shrink-0">
 								Packet Capture
 							</span>
 							<input
-								placeholder="tcp"
+								placeholder="filter e.g tcp"
 								value={filterInput}
 								onChange={(e) => setFilterInput(e.target.value)}
 								className={cn(
-									'w-full px-3.5 py-[0px] outline-none rounded text-text-secondary transition-all active:shadow-none',
+									'w-full px-2 py-[0px] outline-none font-mono tracking-tighter rounded text-text-secondary transition-all active:shadow-none',
 									'border border-border-primary hover:border-primary',
 									'disabled:text-text-menu disabled:cursor-not-allowed',
 									'focus:border-primary focus:shadow-text-field focus:ring-transparent'
@@ -512,9 +513,9 @@ export function PcapAnalyzePage() {
 							/>
 						</div>
 					}
-					className="bg-white rounded-t-md"
+					className="bg-white rounded-t-md flex-shrink-0"
 				>
-					<div className="flex items-center gap-4">
+					<div className="flex items-center gap-4 shrink-0 pl-4">
 						<ButtonTw
 							variant="secondary"
 							size="xss"
@@ -525,7 +526,7 @@ export function PcapAnalyzePage() {
 					</div>
 				</CardHeader>
 
-				<div className="overflow-auto h-full bg-white">
+				<div className="overflow-auto flex-1 bg-white">
 					<PacketTable
 						data={data}
 						columns={columns}
@@ -536,11 +537,19 @@ export function PcapAnalyzePage() {
 						getRowStyle={getRowStyle}
 					/>
 				</div>
-			</div>
+			</Resizable>
 
+			{/* Bottom section - Details panel (only shown when packet is selected) */}
 			{selectedPacket && selectedPacket.tree?.length > 0 && (
-				<div className="flex flex-col md:flex-row gap-1 h-[20vh]">
-					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
+				<div className="flex gap-1 flex-1 min-h-0">
+					{/* Left panel - Dissection Tree */}
+					<Resizable
+						defaultSize={{ width: '50%', height: '100%' }}
+						enable={{ right: true }}
+						minWidth={250}
+						maxWidth="80%"
+						{...resizableStyles}
+					>
 						<DissectionTree
 							id="root"
 							tree={selectedPacket.tree}
@@ -548,8 +557,10 @@ export function PcapAnalyzePage() {
 							select={setSelectedTreeEntry}
 							setFilter={setFilterInput}
 						/>
-					</div>
-					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
+					</Resizable>
+
+					{/* Right panel - Hex dump */}
+					<div className="flex-1 overflow-auto rounded-md p-2 bg-white min-w-0">
 						{selectedPacket.data_sources.map(
 							(data_source: DataSource, idx: number) => {
 								return (

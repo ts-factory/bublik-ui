@@ -3,9 +3,14 @@
 import { ResizableProps } from 're-resizable';
 
 export const resizableStyles: ResizableProps = {
-	handleStyles: { right: { width: 4, right: -4 } },
+	handleStyles: {
+		right: { width: 4, right: -4 },
+		bottom: { height: 4, bottom: -4 }
+	},
 	handleClasses: {
 		right:
+			'bg-transparent rounded-full transition-colors z-20 hover:bg-primary active:bg-primary',
+		bottom:
 			'bg-transparent rounded-full transition-colors z-20 hover:bg-primary active:bg-primary'
 	}
 };
