@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { cn } from '@/shared/tailwind-ui';
 
-import { Position } from './types';
+import { Position } from '../types';
 
 export const NO_SELECTION: Position = { id: '', idx: 0, start: 0, length: 0 };
 

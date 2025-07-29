@@ -12,7 +12,7 @@ import loadWiregasm from '@goodtools/wiregasm/dist/wiregasm';
 import { Wiregasm, vectorToArray, Vector } from '@goodtools/wiregasm';
 import { Buffer } from 'buffer';
 
-import type { WorkerMessageMap, WorkerResponseMap } from './types';
+import type { WorkerMessageMap, WorkerResponseMap } from '../types';
 
 const wg = new Wiregasm();
 
@@ -123,7 +123,6 @@ const MESSAGE_STRATEGIES: {
 				throw new Error('Data conversion failed');
 			}
 
-			console.log(name, buffer);
 			const res = wg.load(name, buffer);
 
 			postMessage<'processed'>({ type: 'processed', summary: res, name });
