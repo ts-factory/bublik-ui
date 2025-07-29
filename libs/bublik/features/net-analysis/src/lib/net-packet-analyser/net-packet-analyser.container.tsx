@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
-import { useMount } from 'react-use';
+import { Link } from 'react-router-dom';
 import { Buffer } from 'buffer';
 import { DataSource, FrameMeta, ProtoTree } from '@goodtools/wiregasm';
 import { z } from 'zod';
 
 import {
+	ButtonTw,
 	CardHeader,
 	cn,
+	Icon,
 	Resizable,
 	resizableStyles
 } from '@/shared/tailwind-ui';
+import { routes } from '@/router';
 
 import {
 	Data,
@@ -21,7 +24,8 @@ import {
 import { DissectionTree } from '../dissection-tree';
 import { DissectionDump } from '../dissection-dump';
 
-// @ts-expect-error fix
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import WorkerUrl from './wireshark.worker.ts?worker&url';
 
 interface UsePacketAnalyzerOptions {
@@ -329,12 +333,15 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 		};
 	};
 
+	useEffect(() => {
+		if (!initialized) return;
+		loadFile(fileUrl);
+	}, [fileUrl, initialized]);
+
 	const loadFile = async (fileUrl: string) => {
 		try {
 			setStatus(`Fetching sample file from: ${fileUrl}`);
 			setProcessed(false);
-			setData([]);
-			setLoading(true);
 
 			const res = await fetch(fileUrl);
 			if (!res.ok) throw new Error(`Failed to fetch sample: ${fileUrl}`);
@@ -342,7 +349,6 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 
 			if (!workerRef.current) {
 				setStatus('Worker not available');
-				setLoading(false);
 				return;
 			}
 
@@ -361,7 +367,6 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 		} catch (err: unknown) {
 			console.error('Error loading sample PCAP:', err);
 			if (err instanceof Error) setStatus(`Error: ${err.message}`);
-			setLoading(false);
 		}
 	};
 
@@ -384,7 +389,6 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 		handleTraceFlow,
 		handleDataSourceSelect,
 		getRowStyle,
-		handleLoadSamplePcap: loadFile,
 		setShowTraceFlowDialog,
 		setSelectedTreeEntry,
 		loadFile
@@ -464,9 +468,9 @@ function PacketTable(props: PacketTableProps) {
 	);
 }
 
-interface NetPacketAnalyserContainerProps {
-	fileUrl: string;
-}
+type NetPacketAnalyserContainerProps =
+	| { fileUrl: string }
+	| { fileUrl: string; runId: number; resultId: number };
 
 function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 	const { fileUrl } = props;
@@ -483,13 +487,11 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 		handleTraceFlow,
 		handleDataSourceSelect,
 		getRowStyle,
-		setSelectedTreeEntry,
-		loadFile
+		setSelectedTreeEntry
 	} = usePacketAnalyzer({ fileUrl });
 
 	return (
 		<div className="flex flex-col gap-1 p-2 h-full overflow-hidden">
-			<button onClick={() => loadFile(fileUrl)}>Loadf File</button>
 			{/* Top section - Packet table */}
 			<Resizable
 				defaultSize={{ width: '100%', height: '80%' }}
@@ -502,7 +504,7 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 					label={
 						<div className="flex items-center gap-4 w-full">
 							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] shrink-0">
-								Packet Capture
+								Filter
 							</span>
 							<input
 								placeholder="filter e.g tcp"
@@ -518,7 +520,31 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 						</div>
 					}
 					className="bg-white rounded-t-md flex-shrink-0"
-				/>
+				>
+					<div className="flex items-center gap-2 pl-4">
+						{'runId' in props ? (
+							<>
+								<ButtonTw variant="secondary" size="xss" asChild>
+									<Link
+										to={routes.log({
+											runId: props.runId,
+											focusId: props.resultId
+										})}
+									>
+										<Icon name="BoxArrowRight" className="mr-1" />
+										Log
+									</Link>
+								</ButtonTw>
+								<ButtonTw variant="secondary" size="xss" asChild>
+									<Link to={routes.run({ runId: props.runId })}>
+										<Icon name="BoxArrowRight" className="mr-1" />
+										Run
+									</Link>
+								</ButtonTw>
+							</>
+						) : null}
+					</div>
+				</CardHeader>
 
 				<div className="overflow-auto flex-1 bg-white">
 					<PacketTable

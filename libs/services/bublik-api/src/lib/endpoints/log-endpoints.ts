@@ -50,15 +50,44 @@ const RawLogAttachment = z.object({
 		)
 });
 
-const LogAttachments = z.discriminatedUnion('type', [RawLogAttachment]);
+const PacketCaptureAttachment = z.object({
+	type: z.literal('packet-capture').describe('type of attachment'),
+	view_type: z
+		.literal('bublik-tools/net-packet-analyzer')
+		.describe('view with network packet analyzer tool'),
+	name: z.string().describe('name of attachment'),
+	description: z
+		.string()
+		.optional()
+		.describe('optional description of attachment'),
+	download_enabled: z
+		.boolean()
+		.optional()
+		.default(false)
+		.describe('should show button to download attachment'),
+	path: z
+		.string()
+		.optional()
+		.describe('path of attachment relative to attachments.json'),
+	uri: z
+		.string()
+		.optional()
+		.describe(
+			'uri of attachment, if it is not relative to attachments.json or external'
+		)
+});
+
+const LogAttachments = z.discriminatedUnion('type', [
+	RawLogAttachment,
+	PacketCaptureAttachment
+]);
 
 export type LogAttachmentType = z.infer<typeof LogAttachments>['type'];
 
-export type GetLogAttachmentByType<T extends LogAttachmentType> = z.infer<
-	typeof LogAttachments
-> extends { type: T }
-	? z.infer<typeof LogAttachments>
-	: never;
+export type GetLogAttachmentByType<T extends LogAttachmentType> = Extract<
+	z.infer<typeof LogAttachments>,
+	{ type: T }
+>;
 
 const AttachmentsSchema = z
 	.object({

@@ -1,10 +1,6 @@
-import { ComponentType } from 'react';
+import { Link } from 'react-router-dom';
 
-import {
-	bublikAPI,
-	GetLogAttachmentByType,
-	LogAttachmentType
-} from '@/services/bublik-api';
+import { bublikAPI, GetLogAttachmentByType } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	DropdownMenu,
@@ -20,18 +16,6 @@ import {
 	DropdownMenuSubContent,
 	toast
 } from '@/shared/tailwind-ui';
-
-const AttachmentsMap: Record<
-	LogAttachmentType,
-	ComponentType<{
-		data: GetLogAttachmentByType<LogAttachmentType>;
-		baseUrl: string;
-		runId?: number;
-		resultId?: number;
-	}>
-> = {
-	text: TextAttachment
-};
 
 function handleViewRawAttachment(
 	data: GetLogAttachmentByType<'text'>,
@@ -197,6 +181,90 @@ function TextAttachment({
 	);
 }
 
+interface PacketCaptureAttachmentProps {
+	data: GetLogAttachmentByType<'packet-capture'>;
+	baseUrl: string;
+	runId?: number;
+	resultId?: number;
+}
+
+function PacketCaptureAttachment({
+	data,
+	baseUrl,
+	runId,
+	resultId
+}: PacketCaptureAttachmentProps) {
+	function getPacketViewerUrl(): string {
+		const fileUrl = data.uri || (data.path ? `${baseUrl}/${data.path}` : '');
+		const searchParams = new URLSearchParams();
+		searchParams.set('fileUrl', fileUrl);
+
+		if (runId && resultId) {
+			searchParams.set('runId', runId.toString());
+			searchParams.set('resultId', resultId.toString());
+		}
+
+		return `/tools/packet-viewer?${searchParams.toString()}`;
+	}
+
+	function handleDownloadAttachmentClick() {
+		if (!data.uri && !data.path) {
+			toast.error('No path or uri to download');
+			return;
+		}
+
+		handleDownloadAttachments(data.uri || data.path || '', baseUrl, {
+			runId,
+			resultId
+		}).catch((error) => {
+			console.error('Failed to download packet capture:', error);
+			toast.error('Failed to download packet capture');
+		});
+	}
+
+	const viewerUrl = getPacketViewerUrl();
+	const hasValidUrl = data.uri || data.path;
+
+	return (
+		<DropdownMenuSub>
+			<DropdownMenuSubTrigger className="pl-2 text-xs">
+				<div className="mr-2 flex items-center">
+					<Icon name="Aggregation" size={20} className="mr-2" />
+					{data.name}
+				</div>
+			</DropdownMenuSubTrigger>
+
+			<DropdownMenuPortal>
+				<DropdownMenuSubContent>
+					{hasValidUrl &&
+					data.view_type === 'bublik-tools/net-packet-analyzer' ? (
+						<DropdownMenuItem asChild className="pl-2">
+							<Link to={viewerUrl} target="_blank">
+								<Icon name="EyeShow" size={20} className="mr-2" />
+								View
+							</Link>
+						</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem disabled className="pl-2">
+							<Icon name="EyeShow" size={20} className="mr-2" />
+							View
+						</DropdownMenuItem>
+					)}
+					{data.download_enabled ? (
+						<DropdownMenuItem
+							onClick={handleDownloadAttachmentClick}
+							className="pl-2"
+						>
+							<Icon name="Download" size={20} className="mr-2" />
+							Download
+						</DropdownMenuItem>
+					) : null}
+				</DropdownMenuSubContent>
+			</DropdownMenuPortal>
+		</DropdownMenuSub>
+	);
+}
+
 interface LogAttachmentsContainerProps {
 	runId: number;
 	focusId: number | null;
@@ -241,19 +309,30 @@ function LogAttachmentsContainer(props: LogAttachmentsContainerProps) {
 					<DropdownMenuItem disabled>No attachments available</DropdownMenuItem>
 				) : (
 					attachments.map((attachment, idx) => {
-						const Component = AttachmentsMap[attachment.type];
-
-						if (!Component) return null;
-
-						return (
-							<Component
-								key={idx}
-								data={attachment}
-								baseUrl={data?.attachments_base_url ?? ''}
-								runId={runId}
-								resultId={focusId ?? undefined}
-							/>
-						);
+						switch (attachment.type) {
+							case 'text':
+								return (
+									<TextAttachment
+										key={idx}
+										data={attachment}
+										baseUrl={data?.attachments_base_url ?? ''}
+										runId={runId}
+										resultId={focusId ?? undefined}
+									/>
+								);
+							case 'packet-capture':
+								return (
+									<PacketCaptureAttachment
+										key={idx}
+										data={attachment}
+										baseUrl={data?.attachments_base_url ?? ''}
+										runId={runId}
+										resultId={focusId ?? undefined}
+									/>
+								);
+							default:
+								return null;
+						}
 					})
 				)}
 			</DropdownMenuContent>
