@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const NO_SELECTION = { id: '', idx: 0, start: 0, length: 0 };
+import { cn } from '@/shared/tailwind-ui';
+
+import { Position } from './types';
+
+export const NO_SELECTION: Position = { id: '', idx: 0, start: 0, length: 0 };
 
 export interface TreeNode {
 	label: string;
@@ -14,7 +18,7 @@ export interface TreeNode {
 interface DissectionTreeProps {
 	id: string;
 	tree: TreeNode[];
-	select?: (selection: any) => void;
+	select?: (selection: Position) => void;
 	root?: boolean;
 	selected?: string;
 	setFilter?: (filter: string) => void;
@@ -40,6 +44,7 @@ function DissectionTree(props: DissectionTreeProps) {
 			});
 			return newMap;
 		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selected]);
 
 	const toggle = (nodeId: string) => {
@@ -62,7 +67,8 @@ function DissectionTree(props: DissectionTreeProps) {
 		if (e.detail === 2 && setFilter && node.filter) {
 			setFilter(node.filter);
 		}
-		if (node.length > 0) {
+
+		if (node.length > 0 && node.data_source_idx && node.start) {
 			select?.({
 				id: nodeId,
 				idx: node.data_source_idx,
@@ -73,7 +79,12 @@ function DissectionTree(props: DissectionTreeProps) {
 	};
 
 	return (
-		<div className={root ? 'overflow-x-auto w-auto' : 'pl-2 border-l'}>
+		<div
+			className={cn(
+				root ? 'overflow-x-auto w-auto' : 'pl-2 border-l',
+				'font-mono'
+			)}
+		>
 			{tree.map((node, i) => {
 				const nodeId = `${id}-${i}`;
 				const isSelected = nodeId === selected;
@@ -123,7 +134,7 @@ function DissectionTree(props: DissectionTreeProps) {
 								</span>
 							)}
 							<div
-								className="ml-1 flex-1 whitespace-nowrap overflow-visible font-mono text-xs select-none"
+								className="ml-1 flex-1 whitespace-nowrap overflow-visible text-xs select-none"
 								onClick={(e) => handleClick(e, node, nodeId)}
 								onDoubleClick={() => toggle(nodeId)}
 							>

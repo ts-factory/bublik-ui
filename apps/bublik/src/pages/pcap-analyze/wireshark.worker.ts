@@ -166,5 +166,6 @@ self.onmessage = (
 	>
 ) => {
 	const type = event.data.type as keyof WorkerMessageMap;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	MESSAGE_STRATEGIES[type](event as any);
 };

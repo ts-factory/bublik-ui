@@ -1,31 +1,25 @@
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { Buffer } from 'buffer';
-import { DataSource } from '@goodtools/wiregasm';
+import { DataSource, FrameMeta, ProtoTree } from '@goodtools/wiregasm';
+import { z } from 'zod';
 
-import { DrawerRoot, DrawerContent } from '@/shared/tailwind-ui';
 import {
 	ContextMenu,
 	ContextMenuTrigger,
 	ContextMenuItem,
-	ContextMenuContent
+	ContextMenuContent,
+	ButtonTw,
+	CardHeader,
+	cn
 } from '@/shared/tailwind-ui';
 
-import { TypedWorker } from './types';
-import { DissectionTree, TreeNode } from './dissection-tree';
+import { Data, PacketInfo, Position, PositionsMap, TypedWorker } from './types';
+import { DissectionTree } from './dissection-tree';
 import { DissectionDump } from './dissection-dump';
-
-type Position = { idx: number; start: number; length: number };
-type PositionsMap = Map<string, Position>;
-type PacketInfo = {
-	data_sources: DataSource[];
-	tree: TreeNode[];
-	type: string;
-};
-type Data = Record<string, unknown> & { raw: any };
 
 function usePcapAnalyzer() {
 	const workerRef = useRef<TypedWorker | null>(null);
-	const [file, setFile] = useState<File | null>(null);
+	const [, setFile] = useState<File | null>(null);
 	const [filterInput, setFilterInput] = useState('');
 	const [data, setData] = useState<Data[]>([]);
 	const [selectedRowIdx, setSelectedRowIdx] = useState(0);
@@ -35,12 +29,11 @@ function usePcapAnalyzer() {
 	);
 	const [columns, setColumns] = useState<{ title: string; key: string }[]>([]);
 	const [showTraceFlowDialog, setShowTraceFlowDialog] = useState(false);
-	const [streamedData, setStreamedData] = useState<any[]>([]);
-	const [followResult, setFollowResult] = useState<any>(null);
+	const [streamedData, setStreamedData] = useState<unknown[]>([]);
+	const [, setFollowResult] = useState<unknown>(null);
 	const [status, setStatus] = useState('Loading...');
 	const [loading, setLoading] = useState(true);
 	const [processed, setProcessed] = useState(false);
-	const [summary, setSummary] = useState<any>(null);
 	const [initialized, setInitialized] = useState(false);
 	const [selectedTreeEntry, setSelectedTreeEntry] = useState<{
 		id: string;
@@ -55,12 +48,15 @@ function usePcapAnalyzer() {
 	});
 
 	const preparePositions = useCallback(
-		(id: string, node: any): Map<string, Position> => {
+		(id: string, node: ProtoTree): Map<string, Position> => {
+			console.log(node.tree);
 			let map = new Map<string, Position>();
-			if (node.tree?.length > 0) {
-				for (let i = 0; i < node.tree.length; i++) {
+			const vector = node.tree as unknown as ProtoTree[];
+
+			if (vector.length > 0) {
+				for (let i = 0; i < vector.length; i++) {
 					const subId = `${id}-${i}`;
-					const subMap = preparePositions(subId, node.tree[i]);
+					const subMap = preparePositions(subId, vector[i]);
 					map = new Map([...map, ...subMap]);
 				}
 			} else if (node.length > 0) {
@@ -90,6 +86,7 @@ function usePcapAnalyzer() {
 		setLoading(true);
 		const { port1, port2 } = new MessageChannel();
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		port1.onmessage = (ev: MessageEvent<any>) => {
 			try {
 				console.log('Received table data response:', ev.data);
@@ -148,6 +145,7 @@ function usePcapAnalyzer() {
 
 		workerRef.current = worker;
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const messageHandler = (ev: MessageEvent<any>) => {
 			console.log('Worker message received:', ev.data.type, ev.data);
 			const { type } = ev.data;
@@ -163,6 +161,7 @@ function usePcapAnalyzer() {
 
 				case 'columned':
 					console.log('Columns received:', ev.data.columns);
+					// eslint-disable-next-line no-case-declarations
 					const newColumns = ev.data.columns.map((c: string) => ({
 						title: c,
 						key: c
@@ -176,7 +175,6 @@ function usePcapAnalyzer() {
 
 				case 'processed':
 					console.log('File processed:', ev.data);
-					setSummary(ev.data.summary);
 					setProcessed(true);
 					if (selectedRowIdx === 0) setSelectedRowIdx(1);
 					break;
@@ -207,6 +205,7 @@ function usePcapAnalyzer() {
 			worker.terminate();
 			worker.removeEventListener('message', messageHandler);
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [preparePositions]);
 
 	useEffect(() => {
@@ -258,18 +257,31 @@ function usePcapAnalyzer() {
 			});
 	};
 
-	const handleRowClick = (row: any) => {
+	const handleRowClick = (row: Data) => {
 		setSelectedRowIdx(row.raw.number);
 	};
 
-	const handleTraceFlow = (row: any) => {
+	const handleTraceFlow = (row: Data) => {
 		if (!row || !workerRef.current) return;
 		const { port1, port2 } = new MessageChannel();
 
-		port1.onmessage = (ev: MessageEvent<any>) => {
-			setFollowResult(ev.data.followResult);
-			setStreamedData(ev.data.payloads);
-			setFilterInput(ev.data.filter);
+		port1.onmessage = (ev: MessageEvent<unknown>) => {
+			const schema = z.object({
+				followResult: z.unknown(),
+				payloads: z.array(z.unknown()),
+				filter: z.string()
+			});
+
+			const result = schema.safeParse(ev?.data);
+
+			if (!result.success) {
+				console.warn('Failed to parse trace flow');
+				return;
+			}
+
+			setFollowResult(result.data.followResult);
+			setStreamedData(result.data.payloads);
+			setFilterInput(result.data.filter);
 		};
 
 		workerRef.current.postMessage(
@@ -296,8 +308,9 @@ function usePcapAnalyzer() {
 		}
 	};
 
-	const getRowStyle = (item: any) => {
+	const getRowStyle = (item: { raw: FrameMeta }) => {
 		const raw = item.raw;
+
 		return {
 			backgroundColor: `#${Number(raw.bg || 0xffffff)
 				.toString(16)
@@ -346,15 +359,14 @@ function usePcapAnalyzer() {
 				[buf]
 			);
 			setStatus(`Processing sample file: ${filename}`);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Error loading sample PCAP:', err);
-			setStatus(`Error: ${err.message}`);
+			if (err instanceof Error) setStatus(`Error: ${err.message}`);
 			setLoading(false);
 		}
 	};
 
 	return {
-		// State
 		filterInput,
 		data,
 		columns,
@@ -362,15 +374,11 @@ function usePcapAnalyzer() {
 		selectedPacket,
 		showTraceFlowDialog,
 		streamedData,
-		followResult,
 		status,
 		loading,
 		processed,
-		summary,
 		selectedTreeEntry,
 		initialized,
-
-		// Actions
 		setFilterInput,
 		handleFileChange,
 		handleRowClick,
@@ -405,47 +413,44 @@ function PacketTable(props: PacketTableProps) {
 	} = props;
 
 	return (
-		<div className="overflow-auto max-h-96">
-			<table className="min-w-full divide-y divide-gray-200">
-				<thead className="bg-gray-50 sticky top-0">
+		<div className="font-mono">
+			<table className="min-w-full divide-y divide-border-primary h-full">
+				<thead
+					className="sticky top-0"
+					style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 10px' }}
+				>
 					<tr>
 						{columns.map((column) => (
 							<th
 								key={column.key}
-								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+								className={cn(
+									'px-2 h-[34px] bg-white border-r last:border-none border-border-primary text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+									'relative'
+								)}
 							>
 								{column.title}
 							</th>
 						))}
 					</tr>
 				</thead>
-				<tbody className="bg-white divide-y divide-gray-200">
+				<tbody className="bg-white divide-y divide-border-primary">
 					{data.length > 0 ? (
-						data.map((row, index) => (
-							<ContextMenu key={index}>
-								<ContextMenuTrigger asChild>
-									<tr
-										onClick={() => onRowClick(row)}
-										style={getRowStyle(row)}
-										className="cursor-pointer hover:opacity-75"
+						data.map((row, idx) => (
+							<tr
+								key={idx}
+								onClick={() => onRowClick(row)}
+								style={getRowStyle(row)}
+								className="cursor-pointer hover:opacity-75"
+							>
+								{columns.map((column) => (
+									<td
+										key={column.key}
+										className="px-2 h-[34px] last:border-none border-r text-[0.75rem] leading-[1.125rem] font-medium"
 									>
-										{columns.map((column) => (
-											<td
-												key={column.key}
-												className="px-6 py-4 whitespace-nowrap text-sm"
-											>
-												{row[column.key] as ReactNode}
-											</td>
-										))}
-									</tr>
-								</ContextMenuTrigger>
-								<ContextMenuContent>
-									<ContextMenuItem
-										label="Trace Flow"
-										onClick={() => onTraceFlow(row)}
-									/>
-								</ContextMenuContent>
-							</ContextMenu>
+										{row[column.key] as ReactNode}
+									</td>
+								))}
+							</tr>
 						))
 					) : (
 						<tr>
@@ -467,133 +472,74 @@ function PacketTable(props: PacketTableProps) {
 	);
 }
 
-interface TraceFlowDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	streamedData: any[];
-	followResult: any;
-}
-
-function TraceFlowDialog(props: TraceFlowDialogProps) {
-	const { open, onOpenChange, streamedData, followResult } = props;
-
-	return (
-		<DrawerRoot open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="w-full max-w-4xl flex flex-col">
-				<div className="border-b p-4 flex justify-between items-center">
-					<h3 className="text-lg font-semibold">Trace Flow</h3>
-					<button
-						onClick={() => onOpenChange(false)}
-						className="text-gray-500 hover:text-gray-700"
-					>
-						&times;
-					</button>
-				</div>
-				<div className="p-4 flex-grow overflow-auto">
-					{streamedData.length > 0 ? (
-						<div className="space-y-3">
-							{streamedData.map((data, index) => (
-								<div
-									key={index}
-									className={`whitespace-pre-wrap p-2 rounded ${
-										data.server
-											? 'bg-red-50 text-red-700'
-											: 'bg-blue-50 text-blue-700'
-									}`}
-								>
-									<div>{data.data}</div>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="space-y-2 text-sm">
-							<div>
-								Server: {followResult?.shost}:{followResult?.sport}
-							</div>
-							<div>
-								Client: {followResult?.chost}:{followResult?.cport}
-							</div>
-							<div>Sent by Server: {followResult?.sbytes} bytes</div>
-							<div>Sent by Client: {followResult?.cbytes} bytes</div>
-						</div>
-					)}
-				</div>
-			</DrawerContent>
-		</DrawerRoot>
-	);
-}
-
 export function PcapAnalyzePage() {
 	const {
 		filterInput,
 		data,
 		columns,
 		selectedPacket,
-		showTraceFlowDialog,
-		streamedData,
-		followResult,
 		loading,
 		processed,
 		selectedTreeEntry,
 		setFilterInput,
-		handleFileChange,
 		handleRowClick,
 		handleTraceFlow,
 		handleDataSourceSelect,
 		getRowStyle,
 		handleLoadSamplePcap,
-		setShowTraceFlowDialog,
 		setSelectedTreeEntry
 	} = usePcapAnalyzer();
 
 	return (
-		<div className="p-5">
-			<div className="mb-4 flex items-center justify-start gap-4">
-				<label className="text-sm font-medium shrink-0 mb-1">PCAP File</label>
-				<input
-					type="file"
-					onChange={handleFileChange}
-					accept=".pcap,.pcapng,.cap"
-					className="text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-md file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-50 file:text-blue-700
-            hover:file:bg-blue-100"
-				/>
-				<button
-					onClick={handleLoadSamplePcap}
-					className="text-sm mr-4 py-2 px-4 rounded-md border-0 font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100"
+		<div className="flex flex-col gap-1 p-2 h-full overflow-hidden">
+			<div className="h-full overflow-hidden">
+				<CardHeader
+					label={
+						<div className="flex items-center gap-4">
+							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] shrink-0">
+								Packet Capture
+							</span>
+							<input
+								placeholder="tcp"
+								value={filterInput}
+								onChange={(e) => setFilterInput(e.target.value)}
+								className={cn(
+									'w-full px-3.5 py-[0px] outline-none rounded text-text-secondary transition-all active:shadow-none',
+									'border border-border-primary hover:border-primary',
+									'disabled:text-text-menu disabled:cursor-not-allowed',
+									'focus:border-primary focus:shadow-text-field focus:ring-transparent'
+								)}
+							/>
+						</div>
+					}
+					className="bg-white rounded-t-md"
 				>
-					Load <strong>Random</strong> Sample
-				</button>
-			</div>
+					<div className="flex items-center gap-4">
+						<ButtonTw
+							variant="secondary"
+							size="xss"
+							onClick={handleLoadSamplePcap}
+						>
+							Load Sample
+						</ButtonTw>
+					</div>
+				</CardHeader>
 
-			<div className="mb-4">
-				<label className="block text-sm font-medium mb-1">Display Filter</label>
-				<input
-					type="text"
-					placeholder="e.g., tcp"
-					value={filterInput}
-					onChange={(e) => setFilterInput(e.target.value)}
-					className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				/>
-			</div>
-
-			<div className="border rounded-md shadow-sm overflow-hidden mb-6">
-				<PacketTable
-					data={data}
-					columns={columns}
-					loading={loading}
-					processed={processed}
-					onRowClick={handleRowClick}
-					onTraceFlow={handleTraceFlow}
-					getRowStyle={getRowStyle}
-				/>
+				<div className="overflow-auto h-full bg-white">
+					<PacketTable
+						data={data}
+						columns={columns}
+						loading={loading}
+						processed={processed}
+						onRowClick={handleRowClick}
+						onTraceFlow={handleTraceFlow}
+						getRowStyle={getRowStyle}
+					/>
+				</div>
 			</div>
 
 			{selectedPacket && selectedPacket.tree?.length > 0 && (
-				<div className="flex flex-col md:flex-row gap-4 mt-4 h-[400px]">
+				<div className="flex flex-col md:flex-row gap-1 h-[20vh]">
 					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
 						<DissectionTree
 							id="root"
@@ -605,32 +551,29 @@ export function PcapAnalyzePage() {
 					</div>
 					<div className="w-full md:w-1/2 overflow-auto border rounded-md p-4 bg-white">
 						{selectedPacket.data_sources.map(
-							(data_source: any, idx: number) => (
-								<div key={idx} className="mb-4 last:mb-0">
-									<DissectionDump
-										buffer={
-											new Uint8Array(Buffer.from(data_source.data, 'base64'))
-										}
-										selected={
-											idx === selectedTreeEntry.idx
-												? [selectedTreeEntry.start, selectedTreeEntry.length]
-												: [0, 0]
-										}
-										onSelect={(pos: number) => handleDataSourceSelect(idx, pos)}
-									/>
-								</div>
-							)
+							(data_source: DataSource, idx: number) => {
+								return (
+									<div key={idx} className="mb-4 last:mb-0">
+										<DissectionDump
+											buffer={
+												new Uint8Array(Buffer.from(data_source.data, 'base64'))
+											}
+											selected={
+												idx === selectedTreeEntry.idx
+													? [selectedTreeEntry.start, selectedTreeEntry.length]
+													: [0, 0]
+											}
+											onSelect={(pos: number) =>
+												handleDataSourceSelect(idx, pos)
+											}
+										/>
+									</div>
+								);
+							}
 						)}
 					</div>
 				</div>
 			)}
-
-			<TraceFlowDialog
-				open={showTraceFlowDialog}
-				onOpenChange={setShowTraceFlowDialog}
-				streamedData={streamedData}
-				followResult={followResult}
-			/>
 		</div>
 	);
 }
