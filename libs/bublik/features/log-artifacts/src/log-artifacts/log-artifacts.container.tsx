@@ -229,7 +229,7 @@ function PacketCaptureAttachment({
 		<DropdownMenuSub>
 			<DropdownMenuSubTrigger className="pl-2 text-xs">
 				<div className="mr-2 flex items-center">
-					<Icon name="Aggregation" size={20} className="mr-2" />
+					<Icon name="Network" size={20} className="mr-2 scale-95" />
 					{data.name}
 				</div>
 			</DropdownMenuSubTrigger>

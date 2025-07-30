@@ -82,3 +82,4 @@ export { ReactComponent as FilePlus } from './file-plus.svg';
 export { ReactComponent as Download } from './download.svg';
 export { ReactComponent as Gear } from './gear.svg';
 export { ReactComponent as ExternalLink } from './external-link.svg';
+export { ReactComponent as Network } from './network.svg';

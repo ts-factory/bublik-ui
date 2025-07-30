@@ -51,12 +51,7 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 	const [loading, setLoading] = useState(true);
 	const [processed, setProcessed] = useState(false);
 	const [initialized, setInitialized] = useState(false);
-	const [selectedTreeEntry, setSelectedTreeEntry] = useState<{
-		id: string;
-		idx: number;
-		start: number;
-		length: number;
-	}>({
+	const [selectedTreeEntry, setSelectedTreeEntry] = useState<Position>({
 		id: '',
 		idx: 0,
 		start: 0,
@@ -306,8 +301,10 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 	const handleDataSourceSelect = (src_idx: number, pos: number) => {
 		let current: string | null = null;
 		let smallestEntry: Position | null = null;
+
 		preparedPositions.forEach((pp, id) => {
 			if (pp.idx !== src_idx) return;
+			if (!pp.start) return;
 			if (pos >= pp.start && pos <= pp.start + pp.length) {
 				if (!smallestEntry || smallestEntry.length > pp.length) {
 					smallestEntry = pp;
@@ -561,48 +558,69 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 
 			{/* Bottom section - Details panel (only shown when packet is selected) */}
 			{selectedPacket && selectedPacket.tree?.length > 0 && (
-				<div className="flex gap-1 flex-1 min-h-0">
-					{/* Left panel - Dissection Tree */}
-					<Resizable
-						defaultSize={{ width: '50%', height: '100%' }}
-						enable={{ right: true }}
-						minWidth={250}
-						maxWidth="80%"
-						{...resizableStyles}
-					>
-						<DissectionTree
-							id="root"
-							tree={selectedPacket.tree}
-							selected={selectedTreeEntry.id}
-							select={setSelectedTreeEntry}
-							setFilter={setFilterInput}
-						/>
-					</Resizable>
+				<div className="flex gap-1 flex-1 min-h-0 overflow-hidden">
+					{(() => {
+						const totalPanels = 1 + selectedPacket.data_sources.length;
+						const panelWidth = `${100 / totalPanels}%`;
 
-					{/* Right panel - Hex dump */}
-					<div className="flex-1 overflow-auto rounded-md p-2 bg-white min-w-0">
-						{selectedPacket.data_sources.map(
-							(data_source: DataSource, idx: number) => {
-								return (
-									<div key={idx} className="mb-4 last:mb-0">
-										<DissectionDump
-											buffer={
-												new Uint8Array(Buffer.from(data_source.data, 'base64'))
-											}
-											selected={
-												idx === selectedTreeEntry.idx
-													? [selectedTreeEntry.start, selectedTreeEntry.length]
-													: [0, 0]
-											}
-											onSelect={(pos: number) =>
-												handleDataSourceSelect(idx, pos)
-											}
-										/>
-									</div>
-								);
-							}
-						)}
-					</div>
+						return (
+							<>
+								{/* Left panel - Dissection Tree */}
+								<Resizable
+									defaultSize={{ width: panelWidth, height: '100%' }}
+									enable={{ right: true }}
+									minWidth={150}
+									{...resizableStyles}
+								>
+									<DissectionTree
+										id="root"
+										tree={selectedPacket.tree}
+										selected={selectedTreeEntry.id}
+										select={setSelectedTreeEntry}
+										setFilter={setFilterInput}
+									/>
+								</Resizable>
+
+								{/* Data source panels */}
+								{selectedPacket.data_sources.map(
+									(data_source: DataSource, idx: number, items) => {
+										const isLast = idx === items.length - 1;
+
+										return (
+											<Resizable
+												key={idx}
+												defaultSize={{ width: panelWidth, height: '100%' }}
+												enable={{ right: !isLast }}
+												minWidth={150}
+												className={isLast ? 'flex-1 min-w-0' : ''}
+												{...resizableStyles}
+											>
+												<DissectionDump
+													buffer={
+														new Uint8Array(
+															Buffer.from(data_source.data, 'base64')
+														)
+													}
+													selected={
+														idx === selectedTreeEntry.idx &&
+														selectedTreeEntry.start
+															? [
+																	selectedTreeEntry.start,
+																	selectedTreeEntry.length
+															  ]
+															: [0, 0]
+													}
+													onSelect={(pos: number) =>
+														handleDataSourceSelect(idx, pos)
+													}
+												/>
+											</Resizable>
+										);
+									}
+								)}
+							</>
+						);
+					})()}
 				</div>
 			)}
 		</div>

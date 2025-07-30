@@ -121,25 +121,27 @@ export const DissectionDump: React.FC<DissectionDumpProps> = ({
 	);
 
 	return (
-		<div className="flex font-mono text-xs whitespace-pre break-all">
-			<div className="select-none text-gray-500" style={{ minWidth: 60 }}>
-				{addrLines.join('\n')}
-			</div>
-			<div className="ml-4 cursor-pointer">
-				<HighlightedText
-					text={hexLines.join('\n')}
-					start={hexHighlight[0]}
-					size={hexHighlight[1]}
-					onOffsetClicked={handleHexClick}
-				/>
-			</div>
-			<div className="ml-4 cursor-pointer">
-				<HighlightedText
-					text={asciiLines.join('\n')}
-					start={asciiHighlight[0]}
-					size={asciiHighlight[1]}
-					onOffsetClicked={handleAsciiClick}
-				/>
+		<div className="flex-1 overflow-auto rounded-md p-2 bg-white min-w-0 h-full">
+			<div className="flex font-mono text-xs whitespace-pre break-all">
+				<div className="select-none text-gray-500" style={{ minWidth: 60 }}>
+					{addrLines.join('\n')}
+				</div>
+				<div className="ml-4 cursor-pointer">
+					<HighlightedText
+						text={hexLines.join('\n')}
+						start={hexHighlight[0]}
+						size={hexHighlight[1]}
+						onOffsetClicked={handleHexClick}
+					/>
+				</div>
+				<div className="ml-4 cursor-pointer">
+					<HighlightedText
+						text={asciiLines.join('\n')}
+						start={asciiHighlight[0]}
+						size={asciiHighlight[1]}
+						onOffsetClicked={handleAsciiClick}
+					/>
+				</div>
 			</div>
 		</div>
 	);

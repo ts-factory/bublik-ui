@@ -44,8 +44,8 @@ export type WorkerResponse<K extends keyof WorkerResponseMap> = {
 
 export type Position = {
 	id: string;
-	idx: number;
-	start: number;
+	idx?: number;
+	start?: number;
 	length: number;
 };
 

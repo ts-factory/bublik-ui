@@ -68,7 +68,7 @@ function DissectionTree(props: DissectionTreeProps) {
 			setFilter(node.filter);
 		}
 
-		if (node.length > 0 && node.data_source_idx && node.start) {
+		if (node.length > 0) {
 			select?.({
 				id: nodeId,
 				idx: node.data_source_idx,
