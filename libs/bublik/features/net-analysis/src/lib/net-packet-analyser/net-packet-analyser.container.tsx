@@ -10,7 +10,8 @@ import {
 	cn,
 	Icon,
 	Resizable,
-	resizableStyles
+	resizableStyles,
+	Spinner
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 
@@ -403,7 +404,23 @@ interface PacketTableProps {
 }
 
 function PacketTable(props: PacketTableProps) {
-	const { data, columns, loading, processed, onRowClick, getRowStyle } = props;
+	const { data, columns, loading, onRowClick, getRowStyle } = props;
+
+	if (loading) {
+		return (
+			<div className="px-6 py-4 grid place-items-center text-center text-gray-500 h-full">
+				<Spinner className="scale-50" />
+			</div>
+		);
+	}
+
+	if (!data.length) {
+		return (
+			<div className="px-6 py-4 grid place-items-center text-center text-gray-500 h-full">
+				No Data
+			</div>
+		);
+	}
 
 	return (
 		<div className="font-mono">
@@ -427,38 +444,23 @@ function PacketTable(props: PacketTableProps) {
 					</tr>
 				</thead>
 				<tbody className="bg-white divide-y divide-border-primary">
-					{data.length > 0 ? (
-						data.map((row, idx) => (
-							<tr
-								key={idx}
-								onClick={() => onRowClick(row)}
-								style={getRowStyle(row)}
-								className="cursor-pointer hover:opacity-75"
-							>
-								{columns.map((column) => (
-									<td
-										key={column.key}
-										className="px-2 h-[34px] last:border-none border-r text-[0.75rem] leading-[1.125rem] font-medium"
-									>
-										{row[column.key] as ReactNode}
-									</td>
-								))}
-							</tr>
-						))
-					) : (
-						<tr>
-							<td
-								colSpan={columns.length || 1}
-								className="px-6 py-4 text-center text-gray-500"
-							>
-								{loading
-									? 'Loading...'
-									: processed
-									? 'No data available'
-									: 'Please select a PCAP file'}
-							</td>
+					{data.map((row, idx) => (
+						<tr
+							key={idx}
+							onClick={() => onRowClick(row)}
+							style={getRowStyle(row)}
+							className="cursor-pointer hover:opacity-75"
+						>
+							{columns.map((column) => (
+								<td
+									key={column.key}
+									className="px-2 h-[34px] last:border-none border-r text-[0.75rem] leading-[1.125rem] font-medium"
+								>
+									{row[column.key] as ReactNode}
+								</td>
+							))}
 						</tr>
-					)}
+					))}
 				</tbody>
 			</table>
 		</div>
