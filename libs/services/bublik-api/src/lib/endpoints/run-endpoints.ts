@@ -302,6 +302,7 @@ export const runEndpoints = {
 			query: (params) => ({
 				url: withApiV2(`/tests/${params.testId}/comments`),
 				method: 'POST',
+				params: { project: params.projectId },
 				body: { comment: params.comment }
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]
@@ -313,6 +314,7 @@ export const runEndpoints = {
 			query: (params) => ({
 				url: withApiV2(`/tests/${params.testId}/comments/${params.commentId}`),
 				method: 'PATCH',
+				params: { project: params.projectId },
 				body: { comment: params.comment }
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]
@@ -323,6 +325,7 @@ export const runEndpoints = {
 		>({
 			query: (params) => ({
 				url: withApiV2(`/tests/${params.testId}/comments/${params.commentId}`),
+				params: { project: params.projectId },
 				method: 'DELETE'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]

@@ -100,6 +100,7 @@ export interface RunTableProps {
 	openUnexpectedResults?: boolean;
 	isFetching?: boolean;
 	runId: string | string[];
+	projectId?: number;
 }
 
 export const RunTable = (props: RunTableProps) => {
@@ -116,10 +117,11 @@ export const RunTable = (props: RunTableProps) => {
 		columnVisibility,
 		onColumnVisibilityChange,
 		isFetching,
-		runId
+		runId,
+		projectId
 	} = props;
 
-	const columns = useMemo(() => getColumns(), []);
+	const columns = useMemo(() => getColumns({ projectId }), [projectId]);
 
 	const table = useReactTable<RunData | MergedRun>({
 		data,
