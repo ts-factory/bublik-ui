@@ -181,17 +181,20 @@ export interface CompromisedBody {
 }
 
 export type CreateTestCommentParams = {
+	projectId: number;
 	testId: number;
 	comment: string;
 };
 
 export type EditTestCommentParams = {
+	projectId: number;
 	testId: number;
 	commentId: number;
 	comment: string;
 };
 
 export type DeleteTestCommentParams = {
+	projectId: number;
 	testId: number;
 	commentId: number;
 };
@@ -267,6 +270,8 @@ export type CompromisedStatusDetails = {
 };
 
 export type RunDetailsAPIResponse = {
+	project_id: number;
+	project_name: string;
 	id: number;
 	main_package: string;
 	start: string;

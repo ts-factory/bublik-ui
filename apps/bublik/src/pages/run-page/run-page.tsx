@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
@@ -27,6 +27,7 @@ import {
 import { RunPageParams } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface RunHeaderProps {
 	runId: string;
@@ -61,10 +62,10 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
 					<ButtonTw asChild variant="secondary" size="xss">
-						<Link to={routes.log({ runId })}>
+						<LinkWithProject to={routes.log({ runId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<RunModeToggle
 						isFullMode={isModeFull}

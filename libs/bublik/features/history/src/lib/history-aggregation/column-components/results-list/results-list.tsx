@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link } from 'react-router-dom';
-
 import { RESULT_TYPE, ResultData, ResultDataArrayObj } from '@/shared/types';
 import {
 	badgeBaseStyles,
@@ -14,6 +12,7 @@ import {
 	VerdictVariant
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { AggregationTooltip } from '../aggregation-tooltip';
 import { HistoryContextMenuContainer } from '../../../history-context-menu';
@@ -37,7 +36,7 @@ export const LinkList = ({ results }: LinkListProps) => {
 						badges={resultData.relevant_tags}
 						startDate={resultData.start_date}
 					>
-						<Link
+						<LinkWithProject
 							to={to}
 							state={{ fromHistory: true }}
 							className={cn(
@@ -49,7 +48,7 @@ export const LinkList = ({ results }: LinkListProps) => {
 							)}
 						>
 							{idx + 1}
-						</Link>
+						</LinkWithProject>
 					</AggregationTooltip>
 				);
 			})}
