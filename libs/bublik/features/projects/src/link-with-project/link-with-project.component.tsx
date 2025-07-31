@@ -29,7 +29,7 @@ function getToFromString(
 
 function _LinkWithProject(
 	{ to, children, ...props }: LinkWithProjectProps,
-	_ref: Ref<'a'>
+	ref: Ref<HTMLAnchorElement>
 ) {
 	const { projectIds } = useProjectSearch();
 
@@ -52,7 +52,7 @@ function _LinkWithProject(
 			: { pathname: to.pathname, search: searchParams.toString() };
 
 	return (
-		<Link to={finalTo} {...props}>
+		<Link to={finalTo} {...props} ref={ref}>
 			{children}
 		</Link>
 	);
