@@ -12,12 +12,11 @@ import {
 	useState
 } from 'react';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { Link } from 'react-router-dom';
 import { PauseIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { useGetImportLogQuery } from '@/services/bublik-api';
+import { getErrorMessage, useGetImportLogQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	CardHeader,
@@ -35,6 +34,7 @@ import { ImportJsonLog } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { routes } from '@/router';
 import { config } from '@/bublik/config';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -195,11 +195,15 @@ export const ImportLogTableContainer = (
 		);
 	}, [data, shouldPoll, isAtBottom, isFetching]);
 
-	if (error) return <div>Error...</div>;
+	if (error) {
+		return <ImportLogError error={error} />;
+	}
 
 	if (isLoading) return <Skeleton className="w-full h-[90vh] trounded-md" />;
 
-	if (!data) return <div>Empty</div>;
+	if (!data) {
+		return <div className="grid place-items-center h-full">Not Log Found</div>;
+	}
 
 	const maybeRunId = getRunIdFromLogs(data);
 	const showPausedChip = shouldPoll && !isAtBottom;
@@ -268,6 +272,30 @@ export const ImportLogTableContainer = (
 	);
 };
 
+interface ImportLogErrorProps {
+	error: unknown;
+}
+
+function ImportLogError({ error }: ImportLogErrorProps) {
+	const { status, title, description } = getErrorMessage(error);
+
+	return (
+		<div className="grid place-items-center h-full">
+			<div className="flex flex-col items-center text-center">
+				<Icon
+					name="TriangleExclamationMark"
+					size={24}
+					className="text-text-unexpected"
+				/>
+				<h3 className="mt-2 text-sm font-medium text-gray-900">
+					{status} {title}
+				</h3>
+				<p className="mt-1 text-sm text-gray-500">{description}</p>
+			</div>
+		</div>
+	);
+}
+
 interface SpinnerProps {
 	show: boolean;
 }
@@ -304,16 +332,16 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.log({ runId })} target="_blank">
+				<LinkWithProject to={routes.log({ runId })} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<Link to={routes.run({ runId })} target="_blank">
+				<LinkWithProject to={routes.run({ runId })} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 		</>
 	);

@@ -1,7 +1,7 @@
 {
-	"date": "2025.07.16",
-	"summary": "fix(report): [table] don't show \"undefined\" when formatter is not present",
-	"revision": "7876216",
-	"branch": "release-1.10.2",
-	"latestTag": "v1.10.2"
+	"date": "2025.08.06",
+	"summary": "fix(import): improve import log error handling and display",
+	"revision": "7a919122",
+	"branch": "release-2.0.0",
+	"latestTag": "v2.0.0"
 }

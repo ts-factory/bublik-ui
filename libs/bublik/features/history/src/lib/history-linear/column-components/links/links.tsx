@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link } from 'react-router-dom';
-
 import {
 	HistoryDataLinear,
 	HistorySearchParams,
@@ -13,6 +11,7 @@ import { routes, stringifySearch, useSearchState } from '@/router';
 import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface LinksProps {
 	row: HistoryDataLinear;
@@ -25,7 +24,7 @@ export const Links = ({ row }: LinksProps) => {
 	return (
 		<div className="flex flex-col items-start gap-1">
 			<ButtonTw asChild size="xss" variant="secondary">
-				<Link
+				<LinkWithProject
 					to={routes.log({
 						runId: row.run_id,
 						focusId: row.result_id,
@@ -34,24 +33,26 @@ export const Links = ({ row }: LinksProps) => {
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild size="xss" variant="secondary">
-				<Link to={routes.run({ runId: row.run_id })}>
+				<LinkWithProject to={routes.run({ runId: row.run_id })}>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</Link>
+				</LinkWithProject>
 			</ButtonTw>
 			<SplitButton.Root variant="secondary" size="xss">
 				<SplitButton.Button asChild>
-					<Link to={{ pathname: '/history', search: shortcuts.historyQuery }}>
+					<LinkWithProject
+						to={{ pathname: '/history', search: shortcuts.historyQuery }}
+					>
 						<Icon
 							name="BoxArrowRight"
 							size={20}
 							className="grid place-items-center mr-1"
 						/>
 						<span>History</span>
-					</Link>
+					</LinkWithProject>
 				</SplitButton.Button>
 				<SplitButton.Separator orientation="vertical" className="h-5" />
 				<SplitButton.Trigger>
@@ -66,13 +67,13 @@ export const Links = ({ row }: LinksProps) => {
 						content="All unexpected with (meta, tags, parameters)"
 					>
 						<SplitButton.Item asChild>
-							<Link
+							<LinkWithProject
 								to={{ pathname: '/history', search: shortcuts.allUnexpected }}
 								target="_blank"
 							>
 								<Icon name="ExternalLink" size={16} className="text-primary" />
 								<span>All Unexpected</span>
-							</Link>
+							</LinkWithProject>
 						</SplitButton.Item>
 					</Tooltip>
 
@@ -82,7 +83,7 @@ export const Links = ({ row }: LinksProps) => {
 						content="All unexpected with (meta, tags, parameters, verdicts)"
 					>
 						<SplitButton.Item asChild>
-							<Link
+							<LinkWithProject
 								to={{
 									pathname: '/history',
 									search: shortcuts.similarUnexpected
@@ -91,14 +92,14 @@ export const Links = ({ row }: LinksProps) => {
 							>
 								<Icon name="ExternalLink" size={16} className="text-primary" />
 								<span>Similar Unexpected</span>
-							</Link>
+							</LinkWithProject>
 						</SplitButton.Item>
 					</Tooltip>
 				</SplitButton.Content>
 			</SplitButton.Root>
 			{row.has_measurements && (
 				<ButtonTw asChild size="xss" variant="secondary">
-					<Link
+					<LinkWithProject
 						to={routes.measurements({
 							runId: row.run_id,
 							resultId: row.result_id
@@ -106,7 +107,7 @@ export const Links = ({ row }: LinksProps) => {
 					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Result
-					</Link>
+					</LinkWithProject>
 				</ButtonTw>
 			)}
 			<LogPreviewContainer

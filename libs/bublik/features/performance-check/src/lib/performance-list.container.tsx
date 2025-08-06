@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useGetPerformanceTimeoutsQuery } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import {
 	PerformanceList,
@@ -10,7 +11,10 @@ import {
 } from './performance-list.component';
 
 function PerformanceListContainer() {
-	const { data, isLoading, error } = useGetPerformanceTimeoutsQuery();
+	const { projectIds } = useProjectSearch();
+	const { data, isLoading, error } = useGetPerformanceTimeoutsQuery({
+		projects: projectIds
+	});
 
 	if (isLoading) return <PerformanceListLoading />;
 

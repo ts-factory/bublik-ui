@@ -14,5 +14,6 @@ export const enum BUBLIK_TAG {
 	AdminUsersTable = 'admin-users-table',
 	Config = 'config',
 	importEvents = 'import-events',
-	SessionList = 'session-list'
+	SessionList = 'session-list',
+	Project = 'project'
 }

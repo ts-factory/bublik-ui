@@ -1,15 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import { useLocation } from 'react-router';
-import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	useReactTable
-} from '@tanstack/react-table';
 
 import { useMount } from '@/shared/hooks';
 import {
@@ -34,6 +29,13 @@ import { getErrorMessage } from '@/services/bublik-api';
 
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock, WarningsHoverCard } from './run-report-test';
+import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+	useReactTable
+} from '@tanstack/react-table';
 
 interface TableOfContentsItem {
 	type: string;
@@ -128,7 +130,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 				) : (
 					<div className="size-5 rounded-full" />
 				)}
-				<Link
+				<LinkWithProject
 					to={{
 						search: `?config=${configid}`,
 						hash: encodeURIComponent(item.id)
@@ -140,7 +142,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 					onClick={scrollToItem}
 				>
 					{item.label}
-				</Link>
+				</LinkWithProject>
 			</div>
 			{item.children && item.children.length ? (
 				<CollapsibleContent asChild>
@@ -224,10 +226,12 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 				}
 			>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<Link to={`/admin/config?configId=${searchParams.get('config')}`}>
+					<LinkWithProject
+						to={`/admin/config?configId=${searchParams.get('config')}`}
+					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Config
-					</Link>
+					</LinkWithProject>
 				</ButtonTw>
 			</CardHeader>
 			<div className="p-4 flex flex-col gap-4">
@@ -497,7 +501,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 				{/* LEVEL 1 */}
 				<CardHeader
 					label={
-						<Link
+						<LinkWithProject
 							className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 							to={{
 								search: params.toString(),
@@ -505,7 +509,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 							}}
 						>
 							{block.label}
-						</Link>
+						</LinkWithProject>
 					}
 					ref={ref}
 				/>

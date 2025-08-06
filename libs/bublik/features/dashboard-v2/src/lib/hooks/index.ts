@@ -16,6 +16,7 @@ import {
 	useGetDeployInfoQuery,
 	usePrefetch
 } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 import { DASHBOARD_MODE } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 
@@ -73,7 +74,10 @@ export const useDashboardModePicker = () => {
 	const { setDate: setSecondDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Secondary
 	);
-	const { data: todayData } = useGetDashboardByDateQuery();
+	const { projectIds } = useProjectSearch();
+	const { data: todayData } = useGetDashboardByDateQuery({
+		projects: projectIds
+	});
 
 	const handleModeChange = (nextMode: DASHBOARD_MODE) => {
 		const modeToDates = {
@@ -109,22 +113,27 @@ export const useDashboardModePicker = () => {
 export const useDashboardClock = () => {
 	const { date: mainDate } = useDashboardDate(DASHBOARD_TABLE_ID.Main);
 	const { date: secondDate } = useDashboardDate(DASHBOARD_TABLE_ID.Secondary);
+	const { projectIds } = useProjectSearch();
 
 	const {
 		fulfilledTimeStamp: todayTimetamp = new Date().getTime(),
 		refetch: refetchToday
-	} = useGetDashboardByDateQuery();
+	} = useGetDashboardByDateQuery({ projects: projectIds });
 	const {
 		fulfilledTimeStamp: mainTimestamp = new Date().getTime(),
 		refetch: refetchMain
 	} = useGetDashboardByDateQuery(
-		mainDate ? { date: formatTimeToAPI(mainDate) } : undefined
+		mainDate
+			? { date: formatTimeToAPI(mainDate), projects: projectIds }
+			: undefined
 	);
 	const {
 		fulfilledTimeStamp: secondTimestamp = new Date().getTime(),
 		refetch: refetchSecond
 	} = useGetDashboardByDateQuery(
-		secondDate ? { date: formatTimeToAPI(secondDate) } : undefined
+		secondDate
+			? { date: formatTimeToAPI(secondDate), projects: projectIds }
+			: undefined
 	);
 
 	const refetch = () => {
@@ -142,7 +151,8 @@ export const useDashboardClock = () => {
 };
 
 export const useDashboardTitle = () => {
-	const { data } = useGetDeployInfoQuery();
+	const { projectIds } = useProjectSearch();
+	const { data } = useGetDeployInfoQuery({ projects: projectIds });
 
 	useEffect(() => {
 		if (!data) {
