@@ -144,7 +144,8 @@ export function searchQueryToBackendQuery(
 		verdictLookup: query.verdictLookup,
 		verdict: query.verdict,
 		page: query.page,
-		pageSize: query.pageSize
+		pageSize: query.pageSize,
+		projects: query.project ? [Number(query.project)] : undefined
 	};
 }
 
