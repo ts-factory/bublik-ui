@@ -63,7 +63,7 @@ function ProjectPickerContainer() {
 						setIsOpen((v) => !v);
 					}}
 				>
-					<div className="flex items-center gap-4 w-full">
+					<div className="flex items-center gap-4 w-full truncate">
 						<div className="grid flex-shrink-0 place-items-center">
 							<Icon name="Folder" size={28} />
 						</div>
