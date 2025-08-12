@@ -14,7 +14,7 @@ export type Project = z.infer<typeof ProjectSchema>;
 
 const ProjectResponseSchema = z.object({
 	id: z.number(),
-	project_name: z.string()
+	name: z.string()
 });
 
 type ProjectResponse = z.infer<typeof ProjectResponseSchema>;
@@ -35,14 +35,14 @@ export const projectEndpoints = {
 				cache: 'no-cache'
 			}),
 			transformResponse: (v: ProjectResponse[]) =>
-				v.map((v) => ({ id: v.id, name: v.project_name })),
+				v.map((v) => ({ id: v.id, name: v.name })),
 			providesTags: [BUBLIK_TAG.Project]
 		}),
 		createProject: build.mutation<Project, CreateProject>({
 			query: (body) => ({
 				url: withApiV2(`/projects`),
 				method: 'POST',
-				body: { project_name: body.name },
+				body: { name: body.name },
 				cache: 'no-cache'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config, BUBLIK_TAG.Project]
@@ -59,7 +59,7 @@ export const projectEndpoints = {
 			query: ({ id, name }) => ({
 				url: withApiV2(`/projects/${id}`),
 				method: 'PATCH',
-				body: { project_name: name },
+				body: { name: name },
 				cache: 'no-cache'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Config, BUBLIK_TAG.Project]
@@ -71,7 +71,7 @@ export const projectEndpoints = {
 			}),
 			transformResponse: (v: ProjectResponse) => ({
 				id: v.id,
-				name: v.project_name
+				name: v.name
 			}),
 			providesTags: [BUBLIK_TAG.Project]
 		})
