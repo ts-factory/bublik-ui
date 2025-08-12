@@ -43,7 +43,11 @@ import { getTreeNode } from '@/bublik/run-utils';
 import { ColumnId } from '../types';
 import { COLUMN_GROUPS } from '../constants';
 
-function getColumns() {
+interface GetColumnsOptions {
+	projectId?: number;
+}
+
+function getColumns({ projectId }: GetColumnsOptions) {
 	const helper = createColumnHelper<RunData | MergedRun>();
 
 	const treeColumn: ColumnDef<RunData> = {
@@ -125,10 +129,15 @@ function getColumns() {
 			cell: ({ cell, row }) => {
 				const comments = cell.getValue();
 
+				if (!projectId) return null;
 				if (!('result_id' in row.original)) return null;
 
 				return (
-					<TestComments comments={comments} testId={row.original.result_id} />
+					<TestComments
+						comments={comments}
+						testId={row.original.result_id}
+						projectId={projectId}
+					/>
 				);
 			},
 			enableSorting: false,
@@ -276,15 +285,17 @@ function CommentEditor(props: CommentEditorProps) {
 
 interface TestCommentsProps {
 	testId: number;
+	projectId: number;
 	comments?: Array<RunDataComment>;
 }
 
-function TestComments({ comments, testId }: TestCommentsProps) {
+function TestComments(props: TestCommentsProps) {
+	const { comments, testId, projectId } = props;
 	const { createTestComment, editTestComment } = useTestComment();
 	const { confirm, confirmation, decline, isVisible } = useConfirm();
 
 	async function handleCreateTestCommentClick(comment: string) {
-		await createTestComment({ testId, comment });
+		await createTestComment({ testId, comment, projectId });
 	}
 
 	async function handleEditTestCommentClick(
@@ -297,7 +308,7 @@ function TestComments({ comments, testId }: TestCommentsProps) {
 			if (!isConfirmed) return;
 		}
 
-		await editTestComment({ commentId, testId, comment });
+		await editTestComment({ commentId, testId, comment, projectId });
 	}
 
 	const [input, setInput] = useState('');

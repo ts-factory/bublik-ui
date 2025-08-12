@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { bublikAPI } from '@/services/bublik-api';
+import { bublikAPI, useGetRunDetailsQuery } from '@/services/bublik-api';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { RunRowStateContextProvider, useGlobalRequirements } from '../hooks';
 import {
@@ -10,11 +11,20 @@ import {
 } from './run-table.component';
 import { useRunPageName, useRunTableQueryState } from './run-table.hooks';
 
+function getSingleRunId(runId: string | string[]) {
+	if (typeof runId === 'string') return runId;
+	if (new Set(runId).size === 1) return runId[0];
+
+	return skipToken;
+}
+
 export interface RunTableContainerProps {
 	runId: string | string[];
 }
 
 export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
+	useRunPageName({ runId });
+
 	const { globalRequirements } = useGlobalRequirements();
 
 	const { data, isLoading, error, isFetching } = Array.isArray(runId)
@@ -26,7 +36,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				requirements: globalRequirements
 		  });
 
-	useRunPageName({ runId });
+	const detailsQuery = useGetRunDetailsQuery(getSingleRunId(runId));
 
 	const {
 		columnVisibility,
@@ -41,14 +51,19 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		sorting
 	} = useRunTableQueryState(data);
 
-	if (error) return <RunTableError error={error} />;
+	if (error || detailsQuery.error) {
+		return <RunTableError error={error || detailsQuery.error} />;
+	}
 
-	if (isLoading) return <RunTableLoading />;
+	if (isLoading || detailsQuery.isLoading) {
+		return <RunTableLoading />;
+	}
 
 	return (
 		<RunRowStateContextProvider value={rowStateContext}>
 			<RunTable
 				runId={runId}
+				projectId={detailsQuery.data?.project_id}
 				data={data ?? []}
 				openUnexpected={locationState?.openUnexpected}
 				openUnexpectedResults={locationState?.openUnexpectedResults}
