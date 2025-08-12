@@ -9,14 +9,12 @@ import {
 	DropdownMenuPortal,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
 	Icon,
 	Separator,
 	Tooltip,
 	cn,
 	useSidebar
 } from '@/shared/tailwind-ui';
-// import { CreateProjectModal } from '../create-project-modal';
 
 function ProjectPickerContainer() {
 	const { isSidebarOpen } = useSidebar();
@@ -124,7 +122,7 @@ function ProjectPickerContainer() {
 							);
 						})}
 					</DropdownMenuRadioGroup>
-					<DropdownMenuSeparator />
+					{/* <DropdownMenuSeparator /> */}
 					{/* <CreateProjectModal>
 						<DropdownMenuItem className="pl-2">
 							<Icon name="FilePlus" size={20} className="mr-2" />

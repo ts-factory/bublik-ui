@@ -20,11 +20,15 @@ export const deployEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getDeployInfo: build.query<DeployInfo, void>({
+		getDeployInfo: build.query<DeployInfo, { projects?: number[] } | void>({
 			queryFn: async (_args, _api, _extraOptions, fetchBaseQuery) => {
-				const projectName = fetchBaseQuery(
-					withApiV2('/server/project')
-				) as MaybePromise<QueryReturnValue<DeployProjectAPIResponse>>;
+				const projectName = fetchBaseQuery({
+					url: withApiV2('/server/project'),
+					params:
+						typeof _args !== 'undefined'
+							? { project: _args.projects?.[0] }
+							: undefined
+				}) as MaybePromise<QueryReturnValue<DeployProjectAPIResponse>>;
 				const gitInfo = fetchBaseQuery(
 					withApiV2('/server/version')
 				) as MaybePromise<QueryReturnValue<DeployGitInfoAPIResponse>>;
@@ -48,8 +52,14 @@ export const deployEndpoints = {
 				};
 			}
 		}),
-		getPerformanceTimeouts: build.query<PerformanceResponse, void>({
-			query: () => ({ url: '/performance_check/' })
+		getPerformanceTimeouts: build.query<
+			PerformanceResponse,
+			{ projects: number[] }
+		>({
+			query: (query) => ({
+				url: '/performance_check/',
+				params: { project: query.projects?.[0] }
+			})
 		})
 	})
 };

@@ -16,7 +16,7 @@ export type RunsAPIQuery = {
 	runData?: string | null;
 	tagExpr?: string | null;
 	pageSize?: string | null;
-	project?: number;
+	projects?: number[];
 };
 
 /**

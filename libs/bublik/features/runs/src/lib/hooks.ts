@@ -5,10 +5,10 @@ import { sub } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
-import { NumericArrayParam, useQueryParam } from 'use-query-params';
 
 import { RunsAPIQuery } from '@/shared/types';
 import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import {
 	addToSelection,
@@ -81,7 +81,7 @@ export const useRunsPagination = () => {
 export const useRunsQuery = () => {
 	const [searchParams] = useSearchParams();
 	const { pagination } = useRunsPagination();
-	const [selectedProjectIds = []] = useQueryParam('project', NumericArrayParam);
+	const { projectIds } = useProjectSearch();
 
 	const dates = useMemo(() => {
 		const calendarMode = searchParams.get('calendarMode');
@@ -116,15 +116,15 @@ export const useRunsQuery = () => {
 			pageSize: pagination.pageSize.toString() || '25',
 			runData: searchParams.get('runData') || '',
 			tagExpr: searchParams.get('tagExpr') || '',
-			project: selectedProjectIds?.[0] ?? undefined
+			projects: projectIds
 		}),
 		[
 			dates.finishDate,
 			dates.startDate,
 			pagination.pageIndex,
 			pagination.pageSize,
-			searchParams,
-			selectedProjectIds
+			projectIds,
+			searchParams
 		]
 	);
 

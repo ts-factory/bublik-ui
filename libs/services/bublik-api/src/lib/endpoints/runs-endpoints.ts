@@ -14,11 +14,16 @@ export const runsEndpoints = {
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getRunsTablePage: build.query<RunsAPIResponse, RunsAPIQuery>({
-			query: (queryParams) => ({
-				url: withApiV2('/runs'),
-				params: prepareForSend(queryParams),
-				cache: 'no-cache'
-			}),
+			query: (queryParams) => {
+				const { projects, ...rest } = queryParams;
+				const params = { ...prepareForSend(rest), project: projects?.[0] };
+
+				return {
+					url: withApiV2('/runs'),
+					params,
+					cache: 'no-cache'
+				};
+			},
 			providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
 		})
 	})
