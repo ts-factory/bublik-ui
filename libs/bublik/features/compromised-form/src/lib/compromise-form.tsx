@@ -13,6 +13,7 @@ import {
 import {
 	BUBLIK_TAG,
 	bublikAPI,
+	getErrorMessage,
 	useDeleteCompromisedStatusMutation,
 	useGetCompromisedTagsQuery,
 	useGetRunDetailsQuery,
@@ -410,7 +411,10 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 			toast.promise(markCompromisePromise, {
 				success: 'Added compromise status!',
 				loading: 'Marking run as compromised!',
-				error: 'Failed to add compromise status!',
+				error: (err: unknown) => {
+					const errorMessage = getErrorMessage(err);
+					return `${errorMessage.title}\n${errorMessage.description}`;
+				},
 				position: 'top-center'
 			});
 			dispatch(bublikAPI.util.invalidateTags(DASHBOARD_TO_INVALIDATE));
