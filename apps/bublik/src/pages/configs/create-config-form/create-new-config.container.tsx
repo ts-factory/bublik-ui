@@ -133,7 +133,8 @@ function CreateNewConfigScreen() {
 					: newConfigParams.type,
 			description: '',
 			is_active: true,
-			project: null,
+			project:
+				'project' in newConfigParams ? newConfigParams.project ?? null : null,
 			content: savedForm ?? '{\n \n}'
 		};
 
