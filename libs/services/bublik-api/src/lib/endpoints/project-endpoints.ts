@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
 import { API_REDUCER_PATH } from '../constants';
-import { z } from 'zod';
 
 const ProjectSchema = z.object({
 	id: z.number(),
@@ -12,11 +11,6 @@ const ProjectSchema = z.object({
 });
 
 export type Project = z.infer<typeof ProjectSchema>;
-
-const ProjectSchema = z.object({
-	id: z.number(),
-	name: z.string()
-});
 
 const ProjectResponseSchema = z.object({
 	id: z.number(),
@@ -28,8 +22,6 @@ type ProjectResponse = z.infer<typeof ProjectResponseSchema>;
 export const CreateProjectSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(32, 'Name is too long')
 });
-
-export type Project = z.infer<typeof ProjectSchema>;
 
 export type CreateProject = z.infer<typeof CreateProjectSchema>;
 

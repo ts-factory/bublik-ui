@@ -42,6 +42,7 @@ const CreateConfigSchema = z.object({
 		.min(1, 'Description is required')
 		.max(255, 'Description is too long'),
 	is_active: z.boolean(),
+	project: z.number().optional().nullable(),
 	content: ValidJsonStringSchema
 });
 
@@ -51,6 +52,7 @@ function CreateNewConfigScreen() {
 	const { newConfigParams, setConfigId } = useConfigPageSearchParams();
 	const [createConfigMutation, { isLoading }] =
 		bublikAPI.useCreateConfigMutation();
+	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 
 	const editorRef = useRef<Monaco>();
 
@@ -130,7 +132,8 @@ function CreateNewConfigScreen() {
 					? newConfigParams.name
 					: newConfigParams.type,
 			description: '',
-			is_active: false,
+			is_active: true,
+			project: null,
 			content: savedForm ?? '{\n \n}'
 		};
 
@@ -175,7 +178,7 @@ function CreateNewConfigScreen() {
 
 	const schemaQuery = bublikAPI.useGetConfigSchemaQuery(newConfigParams);
 
-	if (schemaQuery.isLoading) {
+	if (schemaQuery.isLoading || projectsQuery.isLoading) {
 		return <Skeleton className="flex-1" />;
 	}
 
@@ -204,6 +207,35 @@ function CreateNewConfigScreen() {
 								/>
 							</div>
 						) : null}
+						<Controller
+							name="project"
+							control={form.control}
+							render={({ field }) => (
+								<div className="relative">
+									<label className="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white">
+										Project
+									</label>
+									<select
+										{...field}
+										value={field.value?.toString() ?? 'default'}
+										onChange={(e) => {
+											const value = e.target.value;
+											field.onChange(
+												value === 'default' ? null : parseInt(value, 10)
+											);
+										}}
+										className="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent"
+									>
+										<option value="default">Default Project</option>
+										{projectsQuery.data?.map((project) => (
+											<option key={project.id} value={project.id.toString()}>
+												{project.name}
+											</option>
+										))}
+									</select>
+								</div>
+							)}
+						/>
 						<Controller
 							name="name"
 							control={form.control}
