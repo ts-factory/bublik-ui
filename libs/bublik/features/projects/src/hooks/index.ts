@@ -1,18 +1,30 @@
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { NumericArrayParam, useQueryParam } from 'use-query-params';
 import { z } from 'zod';
 
 import { bublikAPI } from '@/services/bublik-api';
 
+import { PROJECT_KEY } from '../constants';
+
 function useProjectSearch() {
-	const [_projectIds = [], setProjectsIds] = useQueryParam(
-		'project',
+	const [_projectIds, _setProjectsIds] = useQueryParam(
+		PROJECT_KEY,
 		NumericArrayParam
 	);
 
+	const searchProjectIds = useMemo(
+		() => ((_projectIds ?? []) as number[]).filter(Boolean),
+		[_projectIds]
+	);
+
+	function setProjectIds(projectIds: number[]) {
+		_setProjectsIds(projectIds);
+	}
+
 	return {
-		projectIds: ((_projectIds ?? []) as number[]).filter(Boolean),
-		setProjectsIds
+		projectIds: searchProjectIds,
+		setProjectsIds: setProjectIds
 	};
 }
 
