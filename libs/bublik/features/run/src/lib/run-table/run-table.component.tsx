@@ -155,7 +155,7 @@ export const RunTable = (props: RunTableProps) => {
 	});
 
 	return (
-		<div className={cn('rounded')} data-testid="run-table">
+		<div className={cn('rounded isolate')} data-testid="run-table">
 			<div className="flex items-center justify-between px-4 py-1 bg-white sticky top-0 z-20 border-b border-border-primary">
 				<div className="flex items-center gap-4">
 					<div className="flex items-center gap-1">
