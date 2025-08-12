@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw } from '@/shared/tailwind-ui';
+import { PROJECT_KEY } from '@/bublik/features/projects';
 
 import {
 	DEFAULT_SEARCH_FORM_STATE,
@@ -31,7 +32,16 @@ export const HistoryResetGlobalFilterContainer = () => {
 		});
 
 		const mode = searchParams.get('mode') ?? 'linear';
-		setSearchParams({ ...historyAPIQuery, mode }, { replace: true });
+
+		const nextSearchParams = new URLSearchParams({ ...historyAPIQuery, mode });
+		nextSearchParams.delete(PROJECT_KEY);
+
+		for (const [key, value] of searchParams) {
+			if (key !== PROJECT_KEY) continue;
+			nextSearchParams.append(PROJECT_KEY, value);
+		}
+
+		setSearchParams(nextSearchParams, { replace: true });
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 	};
 
