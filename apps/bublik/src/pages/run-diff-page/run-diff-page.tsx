@@ -40,7 +40,6 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 	});
 	usePrefetchImmediately('getRunSource', leftRunId);
 	usePrefetchImmediately('getRunSource', rightRunId);
-	usePrefetchImmediately('getCompromisedTags', undefined);
 
 	const handleExpandClick = (leftOrRight: 'left' | 'right' | 'diff') => () =>
 		selected === leftOrRight ? setSelected(null) : setSelected(leftOrRight);

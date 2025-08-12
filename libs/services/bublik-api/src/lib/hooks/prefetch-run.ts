@@ -13,7 +13,6 @@ export const usePrefetchRun = ({ runId }: UsePrefetchRunConfig) => {
 	const prefetchRunHeader = usePrefetch('getRunDetails');
 	const prefetchRunTable = usePrefetch('getRunTableByRunId');
 	const prefetchRunSource = usePrefetch('getRunSource');
-	const prefetchCompromisedTags = usePrefetch('getCompromisedTags');
 
 	useEffect(() => {
 		if (!runId) return;
@@ -21,12 +20,5 @@ export const usePrefetchRun = ({ runId }: UsePrefetchRunConfig) => {
 		prefetchRunHeader(runId);
 		prefetchRunTable({ runId });
 		prefetchRunSource(runId);
-		prefetchCompromisedTags();
-	}, [
-		runId,
-		prefetchRunHeader,
-		prefetchRunSource,
-		prefetchRunTable,
-		prefetchCompromisedTags
-	]);
+	}, [runId, prefetchRunHeader, prefetchRunSource, prefetchRunTable]);
 };
