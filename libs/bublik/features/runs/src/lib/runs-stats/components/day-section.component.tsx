@@ -2,16 +2,16 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { BarChart, LineChart } from '@/shared/charts';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { COLOR_MAP } from '../runs-stats.component.utils';
 import { RunsStatsSchema, RunStats } from '../runs-stats.types';
 
 function useHandlePointClick() {
-	const navigate = useNavigate();
+	const navigate = useNavigateWithProject();
 	const ref = useRef<ReactEChartsCore>(null);
 
 	useEffect(() => {

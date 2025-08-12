@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { memo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { useDocumentTitle } from '@/shared/hooks';
 import { routes } from '@/router';
@@ -19,6 +19,7 @@ import {
 	RunDetailsDiffContainer,
 	RunDiffContainer
 } from '@/bublik/features/run-diff';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface RunDiffHeaderProps {
 	leftRunId: string;
@@ -49,16 +50,16 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 			<div className="flex justify-between border-b border-border-primary h-9">
 				<div className="flex items-center gap-4 px-4 border-r border-border-primary">
 					<ButtonTw size="xss" asChild variant="secondary">
-						<Link to={routes.run({ runId: leftRunId })}>
+						<LinkWithProject to={routes.run({ runId: leftRunId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw size="xss" asChild variant="secondary">
-						<Link to={routes.log({ runId: leftRunId })}>
+						<LinkWithProject to={routes.log({ runId: leftRunId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<LinkToSourceContainer runId={leftRunId} />
 				</div>
@@ -90,16 +91,16 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 				</div>
 				<div className="flex items-center gap-4 px-4 border-l border-border-primary">
 					<ButtonTw variant="secondary" size="xss" asChild>
-						<Link to={routes.run({ runId: rightRunId })}>
+						<LinkWithProject to={routes.run({ runId: rightRunId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw variant="secondary" size="xss" asChild>
-						<Link to={routes.log({ runId: rightRunId })}>
+						<LinkWithProject to={routes.log({ runId: rightRunId })}>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
-						</Link>
+						</LinkWithProject>
 					</ButtonTw>
 					<LinkToSourceContainer runId={rightRunId} />
 				</div>
@@ -157,7 +158,7 @@ export const RunDiffPage = () => {
 						rounded="lg"
 						className="w-full py-2.5"
 					>
-						<Link to="/runs">Go to runs</Link>
+						<LinkWithProject to="/runs">Go to runs</LinkWithProject>
 					</ButtonTw>
 				}
 			/>

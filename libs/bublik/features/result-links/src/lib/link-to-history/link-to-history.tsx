@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link } from 'react-router-dom';
-
 import { getHistorySearch } from '@/shared/utils';
 import {
 	RunDetailsAPIResponse,
@@ -9,6 +7,7 @@ import {
 	RunDataResults
 } from '@/shared/types';
 import { Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 export interface LinkToHistoryProps {
 	result: RunDataResults;
@@ -24,14 +23,14 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 	return (
 		<SplitButton.Root variant="secondary" size="xss">
 			<SplitButton.Button asChild>
-				<Link to={prefilled} state={{ fromRun: true }} className="">
+				<LinkWithProject to={prefilled} state={{ fromRun: true }} className="">
 					<Icon
 						name="BoxArrowRight"
 						size={20}
 						className="grid place-items-center mr-1"
 					/>
 					<span>History</span>
-				</Link>
+				</LinkWithProject>
 			</SplitButton.Button>
 			<SplitButton.Separator orientation="vertical" className="h-5" />
 			<SplitButton.Trigger>
@@ -46,13 +45,13 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<Link
+						<LinkWithProject
 							to={{ pathname: '/history', search: search.prefilled }}
 							state={{ fromRun: true }}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>All Parameters</span>
-						</Link>
+						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<SplitButton.Separator className="my-1" />
@@ -64,10 +63,12 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<Link to={{ pathname: '/history', search: search.byTestName }}>
+						<LinkWithProject
+							to={{ pathname: '/history', search: search.byTestName }}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name</span>
-						</Link>
+						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
@@ -76,10 +77,12 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<Link to={{ pathname: '/history', search: search.byIteration }}>
+						<LinkWithProject
+							to={{ pathname: '/history', search: search.byIteration }}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Iteration</span>
-						</Link>
+						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
@@ -88,7 +91,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<Link
+						<LinkWithProject
 							to={{
 								pathname: '/history',
 								search: search.byIterationWithImportant
@@ -96,7 +99,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Iteration And Important</span>
-						</Link>
+						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
@@ -105,7 +108,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<Link
+						<LinkWithProject
 							to={{
 								pathname: '/history',
 								search: search.byIterationWithAllTags
@@ -113,7 +116,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Iteration And Tags</span>
-						</Link>
+						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 			</SplitButton.Content>

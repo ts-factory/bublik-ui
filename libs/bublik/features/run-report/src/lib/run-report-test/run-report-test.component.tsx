@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
 	HoverCard,
 	HoverCardContent,
@@ -18,6 +18,7 @@ import {
 	popoverContentStyles,
 	toast
 } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
@@ -70,7 +71,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 								className="border-b border-border-primary py-1.5 px-4 bg-white"
 								style={{ zIndex: 8 }}
 							>
-								<Link
+								<LinkWithProject
 									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 									to={{
 										search: searchParams.toString(),
@@ -78,7 +79,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 									}}
 								>
 									{argsValBlock.label}
-								</Link>
+								</LinkWithProject>
 							</div>
 							<div className="p-4">
 								<RunReportArgs label="Argument Values" items={params} />
@@ -104,7 +105,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 												zIndex: 6
 											}}
 											label={
-												<Link
+												<LinkWithProject
 													className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 													to={{
 														search: searchParams.toString(),
@@ -112,7 +113,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 													}}
 												>
 													{measurement.label}
-												</Link>
+												</LinkWithProject>
 											}
 										/>
 										<div
@@ -225,7 +226,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 				<CardHeader
 					label={
 						<div className="flex items-center gap-2">
-							<Link
+							<LinkWithProject
 								to={{
 									hash: encodeURIComponent(id),
 									search: searchParams.toString()
@@ -234,7 +235,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 								onClick={() => toast.success('Saved location')}
 							>
 								{label}
-							</Link>
+							</LinkWithProject>
 						</div>
 					}
 					ref={ref}

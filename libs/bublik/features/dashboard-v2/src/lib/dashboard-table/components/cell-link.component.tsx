@@ -1,10 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { DashboardCellData } from '@/shared/types';
 import { cn, cva, Tooltip } from '@/shared/tailwind-ui';
+import {
+	LinkWithProject,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 import { getUrl } from '../../utils';
 
@@ -60,12 +64,12 @@ export const CellLink = ({
 	// 3. Relative URL
 	return (
 		<Tooltip content={cellString}>
-			<Link
+			<LinkWithProject
 				to={getUrl(data.payload.url, data.payload?.params)}
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
-			</Link>
+			</LinkWithProject>
 		</Tooltip>
 	);
 };
@@ -77,11 +81,11 @@ interface LinkToRunProps {
 }
 
 const LinkToRun = ({ cellString, to, bgColor }: LinkToRunProps) => {
-	const navigate = useNavigate();
+	const navigate = useNavigateWithProject();
 
 	return (
 		<Tooltip content={cellString}>
-			<Link
+			<LinkWithProject
 				to={to}
 				state={{ openUnexpected: true }}
 				onClick={(e) => {
@@ -103,7 +107,7 @@ const LinkToRun = ({ cellString, to, bgColor }: LinkToRunProps) => {
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
-			</Link>
+			</LinkWithProject>
 		</Tooltip>
 	);
 };

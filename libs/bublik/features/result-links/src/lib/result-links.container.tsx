@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link } from 'react-router-dom';
-
 import {
 	HistoryMode,
 	RunDataResults,
@@ -12,6 +10,7 @@ import { routes } from '@/router';
 import { Icon } from '@/shared/tailwind-ui';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { LinkToHistory } from './link-to-history';
 
@@ -45,24 +44,24 @@ export const ResultLinks = (props: ResultLinksProps) => {
 			<ul className="flex flex-col items-start gap-3">
 				{showLinkToRun ? (
 					<li className="pl-2">
-						<Link
+						<LinkWithProject
 							className="flex items-center w-full gap-1"
 							to={routes.run({ runId })}
 						>
 							<Icon name="Paper" className="size-5" />
 							Run {runId}
-						</Link>
+						</LinkWithProject>
 					</li>
 				) : null}
 				<li className="pl-2">
-					<Link
+					<LinkWithProject
 						className="flex items-center w-full gap-1"
 						onMouseEnter={onLogLinkMouseEnter}
 						to={routes.log({ runId, focusId: resultId })}
 					>
 						<Icon name="BoxArrowRight" className="grid place-items-center" />
 						Log
-					</Link>
+					</LinkWithProject>
 				</li>
 				<li className="pl-0.5">
 					<LinkToHistory
@@ -73,14 +72,14 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				</li>
 				{hasMeasurements && (
 					<li className="pl-2">
-						<Link
+						<LinkWithProject
 							className="flex items-center gap-1"
 							to={routes.measurements({ runId, resultId })}
 							onMouseEnter={onMeasurementLinkMouseEnter}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Result
-						</Link>
+						</LinkWithProject>
 					</li>
 				)}
 				<li className="pl-2">

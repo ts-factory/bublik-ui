@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { useState } from 'react';
+
 import { useGetRunReportConfigsQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -12,8 +14,7 @@ import {
 	Icon,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 interface RunReportConfigsContainerProps {
 	runId: string | number;
@@ -65,13 +66,15 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 								sideOffset={8}
 							>
 								<DropdownMenuItem asChild className="pl-2 gap-4">
-									<Link to={`/runs/${runId}/report/?config=${config.id}`}>
+									<LinkWithProject
+										to={`/runs/${runId}/report/?config=${config.id}`}
+									>
 										{config.name}
 										<Icon
 											name="BoxArrowRight"
 											className="text-primary ml-auto w-4 h-4"
 										/>
-									</Link>
+									</LinkWithProject>
 								</DropdownMenuItem>
 							</Tooltip>
 						))}
