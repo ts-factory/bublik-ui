@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { addDays, addMonths, isBefore, isValid, parseISO } from 'date-fns';
+import { Link, To } from 'react-router-dom';
+import { ComponentProps } from 'react';
 
 import {
 	RunDetailsAPIResponse,
@@ -13,6 +15,7 @@ import {
 	RunDataResults
 } from '@/shared/types';
 import {
+	config,
 	DEFAULT_HISTORY_END_DATE,
 	DEFAULT_RESULT_TYPES,
 	DEFAULT_RUN_PROPERTIES,
@@ -50,164 +53,221 @@ const getToDate = (maybeDate: string) => {
 
 export const buildQuery = (config: {
 	result: HistoryDefaultResultAPIResponse;
-	runDetails: RunDetailsAPIResponse;
+	details: RunDetailsAPIResponse;
 }): HistorySearchParams => {
 	const {
 		result: { result },
-		runDetails
+		details
 	} = config;
 
-	const testName = result.name;
-	const startDate = getFromDate(runDetails.start);
-	const finishDate = formatTimeToAPI(DEFAULT_HISTORY_END_DATE);
-	const runProperties = RUN_PROPERTIES.NotCompromised;
-	const resultProperties = result.has_error
-		? RESULT_PROPERTIES.Unexpected
-		: RESULT_PROPERTIES.Expected;
-	const results = result.obtained_result.result_type;
-	const parameters = result.parameters.join(';');
-	const verdictLookup = DEFAULT_VERDICT_LOOKUP;
+	const query = new HistorySearchBuilder(result.name, details.start)
+		.withParameters(result.parameters)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
 
 	return {
-		testName,
-		startDate,
-		finishDate,
-		runProperties,
-		resultProperties,
-		results,
-		parameters,
-		verdictLookup,
-		mode: 'linear',
-		page: '1',
+		...query,
+		finishDate: formatTimeToAPI(DEFAULT_HISTORY_END_DATE),
+		results: result.obtained_result.result_type,
 		pageSize: '25'
 	};
 };
 
-export interface HistorySearch {
-	prefilled: string;
-	byTestName: string;
-	byIteration: string;
-	byIterationWithImportant: string;
-	byIterationWithAllTags: string;
+export type HistorySearch = {
+	testName: ComponentProps<typeof Link>;
+	testNameAndVerdicts: ComponentProps<typeof Link>;
+	testNameAndParameters: ComponentProps<typeof Link>;
+	testNameAndParametersAndImportantTags: ComponentProps<typeof Link>;
+	testNameAndParametersAndAllTags: ComponentProps<typeof Link>;
+	testNameAndParametersAndVerdicts: ComponentProps<typeof Link>;
+};
+
+class HistorySearchBuilder {
+	private query: HistoryAPIQuery;
+	private delimiter = config.queryDelimiter;
+
+	constructor(testName: string, maybeToDate: string) {
+		this.query = {
+			page: '1',
+			results: DEFAULT_RESULT_TYPES.join(this.delimiter),
+			verdictLookup: DEFAULT_VERDICT_LOOKUP,
+			startDate: getFromDate(maybeToDate),
+			finishDate: getToDate(maybeToDate),
+			testName,
+			runProperties: RUN_PROPERTIES.NotCompromised
+		};
+	}
+
+	/**
+	 * Adds test parameters to the query.
+	 * @param parameters - Array of parameter strings
+	 */
+	withParameters(parameters: string[]): HistorySearchBuilder {
+		this.query.parameters = parameters.join(this.delimiter);
+		return this;
+	}
+
+	/**
+	 * Adds tags to the query (runData). Can be called multiple times to accumulate tags.
+	 * @param tags - Array of tag strings
+	 */
+	withTags(tags: string[]): HistorySearchBuilder {
+		if (tags.length > 0) {
+			const newTags = tags.join(this.delimiter);
+			if (this.query.runData) {
+				this.query.runData += this.delimiter + newTags;
+			} else {
+				this.query.runData = newTags;
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Adds verdict filtering to the query.
+	 * @param verdicts - Array of verdict strings (e.g., ['PASS', 'FAIL'])
+	 */
+	withVerdicts(verdicts: string[]): HistorySearchBuilder {
+		if (verdicts.length > 0) {
+			this.query.verdict = verdicts.join(this.delimiter);
+		}
+		return this;
+	}
+
+	/**
+	 * Sets result properties based on whether there's an error.
+	 * @param hasError - Whether the result has an error
+	 */
+	withResultPropertiesBasedOnError(hasError: boolean): HistorySearchBuilder {
+		this.query.resultProperties = hasError
+			? RESULT_PROPERTIES.Unexpected
+			: RESULT_PROPERTIES.Expected;
+		return this;
+	}
+
+	withResultProperties(properties: RESULT_PROPERTIES[]): HistorySearchBuilder {
+		this.query.resultProperties = properties.join(this.delimiter);
+		return this;
+	}
+
+	withRunProperties(properties: RUN_PROPERTIES[]): HistorySearchBuilder {
+		this.query.runProperties = properties.join(this.delimiter);
+		return this;
+	}
+
+	build(): HistoryAPIQuery {
+		return { ...this.query };
+	}
 }
 
-const shared: Partial<HistorySearchParams> = {
-	mode: 'linear',
-	page: '1',
-	results: DEFAULT_RESULT_TYPES.join(';'),
-	verdictLookup: DEFAULT_VERDICT_LOOKUP
-};
+interface GetToLocationOptions {
+	search: Record<string, string>;
+	mode?: HistoryMode;
+	preview?: boolean;
+}
 
-const byPrefilled = (
+function getToLocation(options: GetToLocationOptions): To {
+	const { search, mode, preview } = options;
+
+	const searchParams = new URLSearchParams(stringifySearch(search));
+	searchParams.set('mode', mode ?? 'linear');
+	if (preview) searchParams.set('fromRun', 'true');
+
+	return { pathname: '/history', search: searchParams.toString() };
+}
+
+interface GetHistorySearchOutput {
+	prefilled: HistorySearch;
+	direct: HistorySearch;
+}
+
+function getHistorySearch(
+	run: RunDetailsAPIResponse,
 	result: RunDataResults,
-	allTags: string[],
-	maybeToDate: string
-): HistoryAPIQuery => {
-	return {
-		...shared,
-		startDate: getFromDate(maybeToDate),
-		finishDate: getToDate(maybeToDate),
-		testName: result.name,
-		parameters: result.parameters.join(';'),
-		runProperties: DEFAULT_RUN_PROPERTIES.join(';'),
-		resultProperties: result.has_error
-			? RESULT_PROPERTIES.Unexpected
-			: RESULT_PROPERTIES.Expected,
-		verdict: result.obtained_result.verdicts?.join(';'),
-		runData: allTags.join(';')
-	};
-};
-
-const byTestName = (
-	result: RunDataResults,
-	maybeToDate: string
-): HistoryAPIQuery => ({
-	...shared,
-	startDate: getFromDate(maybeToDate),
-	finishDate: getToDate(maybeToDate),
-	testName: result.name,
-	runProperties: RUN_PROPERTIES.NotCompromised
-});
-
-const byIteration = (
-	result: RunDataResults,
-	maybeToDate: string
-): HistoryAPIQuery => ({
-	...shared,
-	startDate: getFromDate(maybeToDate),
-	finishDate: getToDate(maybeToDate),
-	testName: result.name,
-	runProperties: RUN_PROPERTIES.NotCompromised,
-	parameters: result.parameters.join(';')
-});
-
-const byIterationWithImportant = (
-	result: RunDataResults,
-	importantTags: string[],
-	maybeToDate: string
-): HistoryAPIQuery => ({
-	...shared,
-	startDate: getFromDate(maybeToDate),
-	finishDate: getToDate(maybeToDate),
-	testName: result.name,
-	parameters: result.parameters.join(';'),
-	runProperties: RUN_PROPERTIES.NotCompromised,
-	runData: importantTags.join(';')
-});
-
-const byIterationWithAllTags = (
-	result: RunDataResults,
-	allTags: string[],
-	maybeToDate: string
-): HistoryAPIQuery => ({
-	...shared,
-	startDate: getFromDate(maybeToDate),
-	finishDate: getToDate(maybeToDate),
-	testName: result.name,
-	parameters: result.parameters?.join(';'),
-	runProperties: RUN_PROPERTIES.NotCompromised,
-	runData: allTags.join(';')
-});
-
-export const getHistorySearch = (
-	runDetails: RunDetailsAPIResponse,
-	resultInfo: RunDataResults,
 	userPreferredHistoryMode: HistoryMode
-): HistorySearch => {
-	const { relevant_tags, important_tags } = runDetails;
-	const important = important_tags;
-	const allRunTags = [...important, ...relevant_tags];
+): GetHistorySearchOutput {
+	const { relevant_tags, important_tags } = run;
 
-	const prefilled = byPrefilled(resultInfo, allRunTags, runDetails.finish);
-	const testName = byTestName(resultInfo, runDetails.finish);
-	const iteration = byIteration(resultInfo, runDetails.finish);
+	const testName = new HistorySearchBuilder(result.name, run.finish)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
 
-	const iterationWithImportant = byIterationWithImportant(
-		resultInfo,
-		important,
-		runDetails.finish
-	);
+	const testNameAndVerdicts = new HistorySearchBuilder(result.name, run.finish)
+		.withVerdicts(result.obtained_result.verdicts)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
 
-	const iterationWithAllTags = byIterationWithAllTags(
-		resultInfo,
-		allRunTags,
-		runDetails.finish
-	);
+	const testNameAndParameters = new HistorySearchBuilder(
+		result.name,
+		run.finish
+	)
+		.withParameters(result.parameters)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
 
-	const searchObj = {
-		prefilled: stringifySearch(prefilled).concat('&fromRun=true'),
-		byTestName: stringifySearch(testName),
-		byIteration: stringifySearch(iteration),
-		byIterationWithImportant: stringifySearch(iterationWithImportant),
-		byIterationWithAllTags: stringifySearch(iterationWithAllTags)
+	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(
+		result.name,
+		run.finish
+	)
+		.withParameters(result.parameters)
+		.withVerdicts(result.obtained_result.verdicts)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
+
+	const testNameAndParametersAndImportantTags = new HistorySearchBuilder(
+		result.name,
+		run.finish
+	)
+		.withParameters(result.parameters)
+		.withTags(important_tags)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.build();
+
+	const testNameAndParametersAndAllTags = new HistorySearchBuilder(
+		result.name,
+		run.finish
+	)
+		.withParameters(result.parameters)
+		.withResultPropertiesBasedOnError(result.has_error)
+		.withTags(relevant_tags)
+		.withTags(important_tags)
+		.build();
+
+	const searches: Record<keyof HistorySearch, HistoryAPIQuery> = {
+		testName,
+		testNameAndVerdicts,
+		testNameAndParameters,
+		testNameAndParametersAndImportantTags,
+		testNameAndParametersAndAllTags,
+		testNameAndParametersAndVerdicts
 	};
 
-	return Object.fromEntries(
-		Object.entries(searchObj).map(([key, search]) => {
-			const searchParams = new URLSearchParams(search);
-			searchParams.set('mode', userPreferredHistoryMode);
+	const prefilled = getLinkProps(searches, {
+		preview: true,
+		mode: userPreferredHistoryMode
+	});
 
-			return [key, searchParams.toString()];
-		})
-	) as unknown as HistorySearch;
-};
+	const direct = getLinkProps(searches, {
+		preview: false,
+		mode: userPreferredHistoryMode
+	});
+
+	return { prefilled, direct } as const;
+}
+
+function getLinkProps(
+	items: Record<keyof HistorySearch, HistoryAPIQuery>,
+	options: Omit<GetToLocationOptions, 'search'>
+): HistorySearch {
+	return Object.fromEntries(
+		Object.entries(items).map(([key, search]) => [
+			key,
+			{
+				to: getToLocation({ search, ...options }),
+				state: { fromRun: options.preview }
+			}
+		])
+	) as HistorySearch;
+}
+
+export { getHistorySearch, HistorySearchBuilder };

@@ -26,7 +26,7 @@ export const LinkToHistory = ({ runId, resultId }: LinkToHistoryProps) => {
 	const query = useMemo<string>(() => {
 		if (!data || !runDetails) return '';
 
-		const query = buildQuery({ result: data, runDetails });
+		const query = buildQuery({ result: data, details: runDetails });
 		const search = new URLSearchParams(stringifySearch(query));
 		search.set('mode', userPreferences.history.defaultMode);
 

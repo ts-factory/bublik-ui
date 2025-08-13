@@ -18,12 +18,13 @@ export interface LinkToHistoryProps {
 export const LinkToHistory = (props: LinkToHistoryProps) => {
 	const { runDetails, result, userPreferredHistoryMode = 'linear' } = props;
 	const search = getHistorySearch(runDetails, result, userPreferredHistoryMode);
-	const prefilled = { pathname: '/history', search: search.prefilled };
 
 	return (
 		<SplitButton.Root variant="secondary" size="xss">
 			<SplitButton.Button asChild>
-				<LinkWithProject to={prefilled} state={{ fromRun: true }} className="">
+				<LinkWithProject
+					{...search.prefilled.testNameAndParametersAndImportantTags}
+				>
 					<Icon
 						name="BoxArrowRight"
 						size={20}
@@ -37,85 +38,110 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 				<Icon name="ChevronDown" size={14} />
 			</SplitButton.Trigger>
 			<SplitButton.Content align="start">
-				<SplitButton.Label>Prefilled</SplitButton.Label>
+				<SplitButton.Label>Open Prefilled Form</SplitButton.Label>
 				<SplitButton.Separator className="my-1" />
 				<Tooltip
-					content="View history with all tags, test parameters, and verdicts prefilled"
+					content="Tells you if test was exposing the observed behaviour (if verdict exists), you can add some parameters or tags by hands before searching"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject {...search.prefilled.testNameAndVerdicts}>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>Test Name + Verdicts</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<Tooltip
+					content="Tells you behaviour of the test iteration (i.e. test with the same parameter values) over time. You can remove some parameters to widen the search before searching"
 					side="right"
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
 						<LinkWithProject
-							to={{ pathname: '/history', search: search.prefilled }}
-							state={{ fromRun: true }}
+							{...search.prefilled.testNameAndParametersAndVerdicts}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>All Parameters</span>
+							<span>Test Name + Parameters + Verdicts</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<Tooltip
+					content="Tells you the behaviour of the test iteration (i.e. test with the same parameter values) in similar execution environment. You can remove some tags/parameters before doing the search"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject
+							{...search.prefilled.testNameAndParametersAndImportantTags}
+						>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>Test Name + Parameters + Important Tags (Default)</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<SplitButton.Separator className="my-1" />
-				<SplitButton.Label>Direct</SplitButton.Label>
+				<SplitButton.Label>Open Direct Search</SplitButton.Label>
 				<SplitButton.Separator className="my-1" />
 				<Tooltip
-					content="View history for this test name with all default settings"
+					content="Tells you how the test behaves with different parameters"
 					side="right"
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject
-							to={{ pathname: '/history', search: search.byTestName }}
-						>
+						<LinkWithProject {...search.direct.testName}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
-					content="View history for this test name with parameters"
+					content="Tells you if test was exposing the observed behaviour (if verdict exists) over time"
 					side="right"
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject
-							to={{ pathname: '/history', search: search.byIteration }}
-						>
+						<LinkWithProject {...search.direct.testNameAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Iteration</span>
+							<span>Test Name + Verdicts</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
-					content="View history for this test with important tags and parameters"
+					content="Tells you how this specific test iteration (i.e. test with the same parameter values) behaves across all the runs"
 					side="right"
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject
-							to={{
-								pathname: '/history',
-								search: search.byIterationWithImportant
-							}}
-						>
+						<LinkWithProject {...search.direct.testNameAndParameters}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Iteration And Important</span>
+							<span>Test Name + Parameters</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
 				<Tooltip
-					content="View history for this test with all tags and parameters"
+					content="Tells you how this specific test iteration (i.e. test with the same parameter values) behaves in similar environment (based on what project defines as important)"
 					side="right"
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
 						<LinkWithProject
-							to={{
-								pathname: '/history',
-								search: search.byIterationWithAllTags
-							}}
+							{...search.direct.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Iteration And Tags</span>
+							<span>Test Name + Parameters + Important Tags</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<Tooltip
+					content="Tells you behaviour of the exact iteration (i.e. test with the same parameter values) under the exact conditions. Likely has very little runs in it, cause it's a super-restrictive search"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject {...search.direct.testNameAndParametersAndAllTags}>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>Test Name + Parameters + All Tags</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>

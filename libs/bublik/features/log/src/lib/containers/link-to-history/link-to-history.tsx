@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useMemo } from 'react';
+import { useMemo } from 'react';
 import { stringifySearch } from '@/router';
 import { skipToken } from '@reduxjs/toolkit/query';
 
@@ -19,10 +19,8 @@ export interface LinkToHistoryContainerProps {
 	focusId?: string | number | null;
 }
 
-export const LinkToHistoryContainer: FC<LinkToHistoryContainerProps> = ({
-	runId,
-	focusId
-}) => {
+export function LinkToHistoryContainer(props: LinkToHistoryContainerProps) {
+	const { runId, focusId } = props;
 	const { node } = bublikAPI.endpoints.getTreeByRunId.useQueryState(runId, {
 		selectFromResult: (state) => ({
 			node: !state.data || !focusId ? undefined : state.data.tree[focusId]
@@ -41,7 +39,7 @@ export const LinkToHistoryContainer: FC<LinkToHistoryContainerProps> = ({
 	const to = useMemo(() => {
 		if (!data || !runDetails) return '/history';
 
-		const query = buildQuery({ result: data, runDetails });
+		const query = buildQuery({ result: data, details: runDetails });
 
 		const search = new URLSearchParams(stringifySearch(query));
 		search.set('mode', userPreferences.history.defaultMode);
@@ -52,4 +50,4 @@ export const LinkToHistoryContainer: FC<LinkToHistoryContainerProps> = ({
 	return (
 		<LinkToHistory to={to} isError={isError || !data} isLoading={isFetching} />
 	);
-};
+}
