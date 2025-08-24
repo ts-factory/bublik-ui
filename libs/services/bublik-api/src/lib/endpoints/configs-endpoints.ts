@@ -16,7 +16,7 @@ type ConfigParams = z.infer<typeof ConfigParamsSchema>;
 const CreateConfigBodySchema = z.object({
 	type: z.string(),
 	name: z.string().min(1),
-	description: z.string(),
+	description: z.string().optional(),
 	is_active: z.boolean(),
 	content: z.any(),
 	project: z.number().optional().nullable()
@@ -36,8 +36,8 @@ type CreateConfigParams = z.infer<typeof CreateConfigBodySchema>;
 
 const EditConfigBodySchema = z.object({
 	name: z.string().optional(),
-	description: z.string().min(1).optional(),
-	content: z.string().min(1).optional(),
+	description: z.string().optional(),
+	content: z.string().optional(),
 	is_active: z.boolean().optional()
 });
 

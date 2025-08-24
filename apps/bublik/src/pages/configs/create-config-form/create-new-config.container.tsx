@@ -38,10 +38,7 @@ import { DEFAULT_PROJECT_LABEL } from '../config.constants';
 
 const CreateConfigSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(32, 'Name is too long'),
-	description: z
-		.string()
-		.min(1, 'Description is required')
-		.max(255, 'Description is too long'),
+	description: z.string().optional(),
 	is_active: z.boolean(),
 	project: z.number().optional().nullable(),
 	content: ValidJsonStringSchema

@@ -34,7 +34,7 @@ import { ValidJsonStringSchema } from '../utils';
 const ConfigFormSchema = z.object({
 	name: z.string(),
 	content: ValidJsonStringSchema,
-	description: z.string(),
+	description: z.string().optional(),
 	is_active: z.boolean()
 });
 
