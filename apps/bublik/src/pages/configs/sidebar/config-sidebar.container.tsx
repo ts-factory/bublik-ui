@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
 import { Icon, Skeleton } from '@/shared/tailwind-ui';
 
 import { useConfigPageSearchParams } from '../hooks';
@@ -15,7 +16,10 @@ interface ConfigsSidebarContainerProps {
 
 function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	const { createProjectButton } = props;
-	const configsQuery = bublikAPI.useGetListOfConfigsQuery();
+	const { projectIds } = useProjectSearch();
+	const configsQuery = bublikAPI.useGetListOfConfigsQuery({
+		projects: projectIds
+	});
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { setConfigId, configId, setNewConfigParams } =
 		useConfigPageSearchParams();

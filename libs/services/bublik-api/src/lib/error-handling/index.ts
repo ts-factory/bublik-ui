@@ -12,7 +12,8 @@ import {
 	isBublikAuthError,
 	isHistoryParsingError,
 	BublikError,
-	isValidationError
+	isValidationError,
+	isBublikApiSimpleError
 } from './validation';
 
 export const createBublikError = (config: BublikError): BublikError => config;
@@ -33,6 +34,14 @@ export const getErrorMessage = (error: unknown): BublikError => {
 			description: Object.entries(error.data.message)
 				.map(([field, error]) => `${field}: ${error}`)
 				.join('\n')
+		};
+	}
+
+	if (isBublikApiSimpleError(error)) {
+		return {
+			status: error.status,
+			title: error.status.toString(),
+			description: error.data.message
 		};
 	}
 
