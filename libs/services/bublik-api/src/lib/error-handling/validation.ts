@@ -32,6 +32,16 @@ const TimeoutErrorSchema = z.object({
 	data: z.unknown()
 });
 
+const ValidationErrorSchema = z.object({
+	status: z.number(),
+	data: z.object({
+		type: z.literal('ValidationError'),
+		message: z.record(z.array(z.string()))
+	})
+});
+
+export type ValidationError = z.infer<typeof ValidationErrorSchema>;
+
 export type BublikTimeoutError = z.infer<typeof TimeoutErrorSchema>;
 
 const CustomErrorSchema = z.object({
@@ -87,13 +97,20 @@ export const BublikParsableErrorSchema = z.union([
 	BublikApiCustomErrorSchema,
 	BublikErrorSchema,
 	BublikApiAuthError,
-	HistoryParsingErrorSchema
+	HistoryParsingErrorSchema,
+	ValidationErrorSchema
 ]);
 
 export const isHistoryParsingError = (
 	error: unknown
 ): error is z.infer<typeof HistoryParsingErrorSchema> => {
 	return HistoryParsingErrorSchema.safeParse(error).success;
+};
+
+export const isValidationError = (
+	error: unknown
+): error is z.infer<typeof ValidationErrorSchema> => {
+	return ValidationErrorSchema.safeParse(error).success;
 };
 
 export const isBublikAuthError = (

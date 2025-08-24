@@ -11,7 +11,8 @@ import {
 	isBublikError,
 	isBublikAuthError,
 	isHistoryParsingError,
-	BublikError
+	BublikError,
+	isValidationError
 } from './validation';
 
 export const createBublikError = (config: BublikError): BublikError => config;
@@ -21,7 +22,19 @@ export const createBublikError = (config: BublikError): BublikError => config;
  * provided error title and description will overwrite default from HTTP code
  */
 export const getErrorMessage = (error: unknown): BublikError => {
-	if (isBublikError(error)) return error;
+	if (isBublikError(error)) {
+		return error;
+	}
+
+	if (isValidationError(error)) {
+		return {
+			status: 400,
+			title: error.data.type,
+			description: Object.entries(error.data.message)
+				.map(([field, error]) => `${field}: ${error}`)
+				.join('\n')
+		};
+	}
 
 	if (isHistoryParsingError(error)) {
 		return {
