@@ -34,6 +34,7 @@ import {
 	ValidJsonStringSchema
 } from '../utils';
 import { ConfigEditor } from '../components/editor.component';
+import { DEFAULT_PROJECT_LABEL } from '../config.constants';
 
 const CreateConfigSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(32, 'Name is too long'),
@@ -227,7 +228,7 @@ function CreateNewConfigScreen() {
 										}}
 										className="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent"
 									>
-										<option value="default">Default Project</option>
+										<option value="default">{DEFAULT_PROJECT_LABEL}</option>
 										{projectsQuery.data?.map((project) => (
 											<option key={project.id} value={project.id.toString()}>
 												{project.name}

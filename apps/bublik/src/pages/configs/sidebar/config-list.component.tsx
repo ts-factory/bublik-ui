@@ -13,7 +13,7 @@ import { useConfirm } from '@/shared/hooks';
 
 import { formatTimeV } from '../utils';
 import { InactiveBadge } from '../components/badges.component';
-import { DEFAULT_PROJECT_NAME } from '../constants';
+import { DEFAULT_PROJECT_LABEL } from '../config.constants';
 
 type GroupedConfigs = { [key: string]: ConfigItem[] };
 
@@ -49,14 +49,14 @@ function ConfigList(props: ConfigListProps) {
 		projects.forEach((project) => projectMap.set(project.id, project.name));
 
 		const groupedByProject: GroupedConfigs = {
-			Default: defaultConfigs,
+			[DEFAULT_PROJECT_LABEL]: defaultConfigs,
 			...Object.fromEntries(projects.map((project) => [project.name, []]))
 		};
 
 		Object.entries(
 			groupBy(
 				projectConfigs,
-				(config) => projectMap.get(config.project || 0) || DEFAULT_PROJECT_NAME
+				(config) => projectMap.get(config.project || 0) || DEFAULT_PROJECT_LABEL
 			)
 		).forEach(([projectName, configs]) => {
 			if (projectName in groupedByProject) {
@@ -81,7 +81,7 @@ function ConfigList(props: ConfigListProps) {
 				const missingGlobalConfigs: typeof REQUIRED_GLOBAL_CONFIGS = [];
 
 				const foundProject =
-					projectName !== DEFAULT_PROJECT_NAME
+					projectName !== DEFAULT_PROJECT_LABEL
 						? projects.find((p) => p.name === projectName)
 						: undefined;
 
