@@ -62,7 +62,6 @@ export const ResultTableContainer = ({
 	}, [requests, values]);
 
 	const showToolbar = useMemo(() => {
-		console.log(rowState?.showToolbar);
 		return rowState?.showToolbar ?? false;
 	}, [rowState?.showToolbar]);
 
