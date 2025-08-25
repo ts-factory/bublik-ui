@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
-import { useMount } from '@/shared/hooks';
+import { useMount, useUnmount } from '@/shared/hooks';
 
 import { HistoryGlobalSearchFormButton } from './history-global-search-button.component';
 import {
@@ -44,6 +44,8 @@ export const HistoryGlobalSearchFormContainer = () => {
 			actions.toggleIsGlobalSearchOpen(true);
 		}
 	});
+
+	useUnmount(() => actions.toggleIsGlobalSearchOpen(false));
 
 	return (
 		<HistoryGlobalSearchFormButton
