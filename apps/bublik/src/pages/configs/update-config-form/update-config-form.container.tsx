@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ComponentProps, useRef, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+
 import {
 	ConfigExistsError,
 	ConfigWithSameNameErrorResponseSchema,
-	EditConfigBody
+	EditConfigBody,
+	getErrorMessage
 } from '@/services/bublik-api';
 import { useConfirm } from '@/shared/hooks';
 import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
@@ -11,8 +15,6 @@ import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
 import { formatJson } from '../components/editor.component';
-import { ComponentProps, useRef, useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
 
 interface ConfigsEditorContainerProps {
 	configId: number;
@@ -93,7 +95,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		}
 	}
 
-	if (error) return <div>Error...</div>;
+	if (error) return <ConfigEditorError error={error} />;
 	if (isLoading) return <Skeleton className="h-full" />;
 	if (!config) return <div>No Data...</div>;
 
@@ -168,6 +170,18 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 			</div>
 		</>
 	);
+}
+
+interface ConfigEditorErrorProps {
+	error: unknown;
+}
+
+function ConfigEditorError(props: ConfigEditorErrorProps) {
+	const { error } = props;
+
+	const { description } = getErrorMessage(error);
+
+	return <div className="grid place-items-center h-full">{description}</div>;
 }
 
 export { ConfigsEditorContainer };
