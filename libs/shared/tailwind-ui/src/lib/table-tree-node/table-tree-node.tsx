@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, CSSProperties, forwardRef } from 'react';
+import {
+	ComponentPropsWithRef,
+	CSSProperties,
+	forwardRef,
+	ReactNode,
+	Ref
+} from 'react';
 
 import { NodeEntity } from '@/shared/types';
 
@@ -32,29 +38,60 @@ export interface TableNodeProps extends ComponentPropsWithRef<'button'> {
 	nodeType: NodeEntity;
 	isExpanded?: boolean;
 	depth: number;
+	trailing?: ReactNode;
 }
 
-export const TableNode = forwardRef<HTMLButtonElement, TableNodeProps>(
-	({ nodeName, nodeType, isExpanded, depth, ...props }, ref) => {
-		return (
-			<button
-				className="flex items-center w-full gap-1 overflow-hidden text-ellipsis whitespace-nowrap hover:text-primary"
-				style={getPaddingStyle(depth)}
-				{...props}
-				ref={ref}
-			>
-				<Icon
-					name="ArrowShortSmall"
-					className={cn(
-						'grid place-items-center',
-						isExpanded && 'text-primary',
-						isExpanded ? 'rotate-360' : '-rotate-90'
-					)}
-				/>
+function _TableNode(props: TableNodeProps, ref: Ref<HTMLButtonElement>) {
+	const { nodeName, nodeType, isExpanded, depth, trailing, ...restProps } =
+		props;
 
-				<div className="grid place-items-center">{getIcon(nodeType)}</div>
-				<span className="truncate">{nodeName}</span>
-			</button>
+	if (trailing) {
+		return (
+			<div className="flex items-center gap-1">
+				<button
+					className="flex items-center w-full gap-1 overflow-hidden text-ellipsis whitespace-nowrap hover:text-primary"
+					style={getPaddingStyle(depth)}
+					{...restProps}
+					ref={ref}
+				>
+					<Icon
+						name="ArrowShortSmall"
+						className={cn(
+							'grid place-items-center',
+							isExpanded && 'text-primary',
+							isExpanded ? 'rotate-360' : '-rotate-90'
+						)}
+					/>
+
+					<div className="grid place-items-center">{getIcon(nodeType)}</div>
+					<span className="truncate">{nodeName}</span>
+				</button>
+				{trailing}
+			</div>
 		);
 	}
-);
+
+	return (
+		<button
+			className="flex items-center w-full gap-1 overflow-hidden text-ellipsis whitespace-nowrap hover:text-primary"
+			style={getPaddingStyle(depth)}
+			{...restProps}
+			ref={ref}
+		>
+			<Icon
+				name="ArrowShortSmall"
+				className={cn(
+					'grid place-items-center',
+					isExpanded && 'text-primary',
+					isExpanded ? 'rotate-360' : '-rotate-90'
+				)}
+			/>
+
+			<div className="grid place-items-center">{getIcon(nodeType)}</div>
+			<span className="truncate">{nodeName}</span>
+			{trailing}
+		</button>
+	);
+}
+
+export const TableNode = forwardRef(_TableNode);

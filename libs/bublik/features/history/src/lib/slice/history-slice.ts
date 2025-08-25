@@ -46,6 +46,7 @@ export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	finishDate: DEFAULT_HISTORY_END_DATE,
 	runData: [],
 	tagExpr: '',
+	runIds: [],
 	/* Result section */
 	runProperties: DEFAULT_RUN_PROPERTIES,
 	resultProperties: DEFAULT_RESULT_PROPERTIES,

@@ -18,7 +18,6 @@ import {
 	config,
 	DEFAULT_HISTORY_END_DATE,
 	DEFAULT_RESULT_TYPES,
-	DEFAULT_RUN_PROPERTIES,
 	DEFAULT_VERDICT_LOOKUP
 } from '@/bublik/config';
 import { stringifySearch } from '@/router';
@@ -60,7 +59,8 @@ export const buildQuery = (config: {
 		details
 	} = config;
 
-	const query = new HistorySearchBuilder(result.name, details.start)
+	const query = new HistorySearchBuilder(result.name)
+		.withAnchorDate(details.start)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
@@ -86,16 +86,30 @@ class HistorySearchBuilder {
 	private query: HistoryAPIQuery;
 	private delimiter = config.queryDelimiter;
 
-	constructor(testName: string, maybeToDate: string) {
+	constructor(testName: string) {
+		const today = new Date().toISOString();
+
 		this.query = {
 			page: '1',
 			results: DEFAULT_RESULT_TYPES.join(this.delimiter),
 			verdictLookup: DEFAULT_VERDICT_LOOKUP,
-			startDate: getFromDate(maybeToDate),
-			finishDate: getToDate(maybeToDate),
+			startDate: getFromDate(today),
+			finishDate: getToDate(today),
 			testName,
 			runProperties: RUN_PROPERTIES.NotCompromised
 		};
+	}
+
+	withAnchorDate(anchorDate: string): HistorySearchBuilder {
+		this.query.startDate = getFromDate(anchorDate);
+		this.query.finishDate = getToDate(anchorDate);
+
+		return this;
+	}
+
+	withRunIds(runIds: number[]): HistorySearchBuilder {
+		this.query.runIds = runIds.join(this.delimiter);
+		return this;
 	}
 
 	/**
@@ -188,45 +202,41 @@ function getHistorySearch(
 ): GetHistorySearchOutput {
 	const { relevant_tags, important_tags } = run;
 
-	const testName = new HistorySearchBuilder(result.name, run.finish)
+	const testName = new HistorySearchBuilder(result.name)
+		.withAnchorDate(run.finish)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndVerdicts = new HistorySearchBuilder(result.name, run.finish)
+	const testNameAndVerdicts = new HistorySearchBuilder(result.name)
+		.withAnchorDate(run.finish)
 		.withVerdicts(result.obtained_result.verdicts)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParameters = new HistorySearchBuilder(
-		result.name,
-		run.finish
-	)
+	const testNameAndParameters = new HistorySearchBuilder(result.name)
+		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(
-		result.name,
-		run.finish
-	)
+	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(result.name)
+		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withVerdicts(result.obtained_result.verdicts)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndParametersAndImportantTags = new HistorySearchBuilder(
-		result.name,
-		run.finish
+		result.name
 	)
+		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withTags(important_tags)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParametersAndAllTags = new HistorySearchBuilder(
-		result.name,
-		run.finish
-	)
+	const testNameAndParametersAndAllTags = new HistorySearchBuilder(result.name)
+		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.withTags(relevant_tags)

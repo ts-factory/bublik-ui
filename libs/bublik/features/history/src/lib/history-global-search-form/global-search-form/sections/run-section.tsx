@@ -38,8 +38,18 @@ export const RunSection = (props: RunSectionProps) => {
 				/>
 			</FormSectionHeader>
 			<div className="flex flex-col gap-4">
-				<div className={'w-1/2'}>
-					<AriaDateRangeField label="Dates" name="dates" control={control} />
+				<div className={'flex gap-4 items-center'}>
+					<div className="flex-1">
+						<AriaDateRangeField label="Dates" name="dates" control={control} />
+					</div>
+					<div className="flex-1">
+						<TextField
+							name="runIds"
+							label="Run ID"
+							placeholder="1"
+							control={control}
+						/>
+					</div>
 				</div>
 				<BadgeField
 					name="labels"
