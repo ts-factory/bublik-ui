@@ -31,6 +31,7 @@ export interface HistoryGlobalSearchFormValues {
 	parameters: BadgeItem[];
 	dates: { startDate: Date; endDate: Date };
 	runData: BadgeItem[];
+	runIds: string;
 	tagExpr: string;
 	branches: BadgeItem[];
 	revisions: BadgeItem[];
@@ -52,6 +53,7 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	results: DEFAULT_RESULT_TYPES,
 	runData: [],
 	parameters: [],
+	runIds: '',
 	labels: [],
 	hash: '',
 	dates: { startDate: new Date(), endDate: new Date() },

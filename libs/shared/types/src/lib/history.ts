@@ -32,6 +32,7 @@ export type HistoryAPIBackendQuery = {
 	testArgExpr?: string;
 
 	runProperties?: string;
+	runIds?: string;
 	resultTypes?: string;
 	resultStatuses?: string;
 
@@ -68,6 +69,7 @@ export type HistoryAPIQuery = {
 	runProperties?: string;
 	resultProperties?: string;
 	results?: string;
+	runIds?: string;
 
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;

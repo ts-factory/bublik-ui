@@ -14,6 +14,7 @@ import {
 	CreateTestCommentParams,
 	EditTestCommentParams,
 	MergedRun,
+	NodeEntity,
 	RunData,
 	RunDataComment
 } from '@/shared/types';
@@ -27,6 +28,12 @@ import {
 	ButtonTw,
 	cn,
 	ConfirmDialog,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 	Icon,
 	Popover,
 	PopoverContent,
@@ -35,6 +42,8 @@ import {
 	TableNode,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import { config } from '@/bublik/config';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { badgeColumns } from './badge-columns';
@@ -43,11 +52,71 @@ import { getTreeNode } from '@/bublik/run-utils';
 import { ColumnId } from '../types';
 import { COLUMN_GROUPS } from '../constants';
 
-interface GetColumnsOptions {
-	projectId?: number;
+function getHistoryViewLink(name: string, runIds: number[]): URLSearchParams {
+	const searchParams = new URLSearchParams();
+
+	searchParams.set('testName', name);
+	searchParams.set('runIds', runIds.join(config.queryDelimiter));
+
+	return searchParams;
 }
 
-function getColumns({ projectId }: GetColumnsOptions) {
+interface HistoryRunLinksDropdownMenuProps {
+	testName: string;
+	runIds: number[];
+}
+
+function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
+	const { runIds, testName } = props;
+	const [open, setOpen] = useState(false);
+
+	return (
+		<DropdownMenu onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>
+				<button
+					className={cn(
+						'inline-flex items-center justify-center transition-all appearance-none select-none text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff]',
+						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
+						'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary',
+						'p-[3px]',
+						open
+							? 'bg-primary text-white'
+							: 'hover:bg-primary-wash text-primary'
+					)}
+				>
+					<Icon name="ArrowShortTop" size={18} className={cn('rotate-180')} />
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start">
+				<DropdownMenuLabel>Open Direct Search</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem asChild>
+					<LinkWithProject
+						to={{
+							pathname: '/history',
+							search: getHistoryViewLink(testName, runIds).toString()
+						}}
+						className="pl-2"
+					>
+						<Icon
+							name="BoxArrowRight"
+							size={20}
+							className="mr-2 text-primary"
+						/>
+						<span>History View Of Results In The Run</span>
+					</LinkWithProject>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+interface GetColumnsOptions {
+	projectId?: number;
+	runIds?: number[];
+}
+
+function getColumns({ projectId, runIds }: GetColumnsOptions) {
 	const helper = createColumnHelper<RunData | MergedRun>();
 
 	const treeColumn: ColumnDef<RunData> = {
@@ -68,6 +137,11 @@ function getColumns({ projectId }: GetColumnsOptions) {
 					onClick={() => row.toggleExpanded()}
 					isExpanded={row.getIsExpanded()}
 					depth={row.depth}
+					trailing={
+						runIds && runIds.length && type === NodeEntity.Test ? (
+							<HistoryRunLinksDropdownMenu runIds={runIds} testName={name} />
+						) : null
+					}
 				/>
 			);
 		},

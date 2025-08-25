@@ -44,6 +44,7 @@ export type HistoryStateSearch = {
 	startDate: Date;
 	finishDate: Date;
 	runData: string[];
+	runIds: string[];
 	tagExpr: string;
 	/* Result section */
 	runProperties: string[];

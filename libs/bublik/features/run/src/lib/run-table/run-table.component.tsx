@@ -121,7 +121,14 @@ export const RunTable = (props: RunTableProps) => {
 		projectId
 	} = props;
 
-	const columns = useMemo(() => getColumns({ projectId }), [projectId]);
+	const columns = useMemo(
+		() =>
+			getColumns({
+				projectId,
+				runIds: typeof runId === 'string' ? [Number(runId)] : runId.map(Number)
+			}),
+		[projectId, runId]
+	);
 
 	const table = useReactTable<RunData | MergedRun>({
 		data,
