@@ -76,7 +76,7 @@ const baseQueryWithAuth: BaseQueryFn<
 
 			loginUrl.searchParams.set('redirect_url', window.location.href);
 
-			window.location.replace(loginUrl);
+			// window.location.replace(loginUrl);
 		}
 
 		// 3. Retry the initial query

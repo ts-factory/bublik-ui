@@ -50,7 +50,11 @@ function ConfigList(props: ConfigListProps) {
 
 		const groupedByProject: GroupedConfigs = {
 			[DEFAULT_PROJECT_LABEL]: defaultConfigs,
-			...Object.fromEntries(projects.map((project) => [project.name, []]))
+			...Object.fromEntries(
+				projects
+					.filter((p) => configs.some((c) => c.project === p.id))
+					.map((project) => [project.name, []])
+			)
 		};
 
 		Object.entries(

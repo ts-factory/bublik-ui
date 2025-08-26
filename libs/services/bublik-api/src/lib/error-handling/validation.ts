@@ -60,6 +60,13 @@ const BublikApiCustomErrorSchema = z.object({
 	})
 });
 
+const BublikAPISimpleErrorSchema = z.object({
+	status: z.number(),
+	data: z.object({ message: z.string() })
+});
+
+export type BublikAPISimpleError = z.infer<typeof BublikAPISimpleErrorSchema>;
+
 const BublikApiAuthError = z.union([
 	z.object({ status: z.number(), data: z.object({ message: z.string() }) }),
 	z.object({
@@ -98,7 +105,8 @@ export const BublikParsableErrorSchema = z.union([
 	BublikErrorSchema,
 	BublikApiAuthError,
 	HistoryParsingErrorSchema,
-	ValidationErrorSchema
+	ValidationErrorSchema,
+	BublikAPISimpleErrorSchema
 ]);
 
 export const isHistoryParsingError = (
@@ -123,6 +131,12 @@ export const isBublikError = (
 	error: unknown
 ): error is z.infer<typeof BublikErrorSchema> => {
 	return BublikErrorSchema.safeParse(error).success;
+};
+
+export const isBublikApiSimpleError = (
+	error: unknown
+): error is z.infer<typeof BublikAPISimpleErrorSchema> => {
+	return BublikAPISimpleErrorSchema.safeParse(error).success;
 };
 
 export const isHttpError = (
