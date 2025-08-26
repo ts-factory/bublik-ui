@@ -1,7 +1,7 @@
 {
-	"date": "2025.08.14",
-	"summary": "refactor(run): [result-table] change history link labels and add new shortcuts",
-	"revision": "484c4d55",
-	"branch": "release-2.0.0",
-	"latestTag": "v2.0.0"
+	"date": "2025.08.26",
+	"summary": "fix(run): reset `open` state for history search form on back navigation",
+	"revision": "7de1533b",
+	"branch": "release-2.1.0",
+	"latestTag": "v2.1.0"
 }

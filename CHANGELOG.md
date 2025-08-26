@@ -1,5 +1,25 @@
 
 
+## [2.1.0](https://github.com/ts-factory/bublik-ui/compare/v2.0.1...v2.1.0) (2025-08-26)
+
+
+### 🚀 New Feature
+
+* **run:** add link to history for test filtered by run id and test name ([53d2c52](https://github.com/ts-factory/bublik-ui/commit/53d2c52fdd3cae8a77e2c195fc9b7ff080982a67)), closes [#372](https://github.com/ts-factory/bublik-ui/issues/372)
+
+
+### 🐛 Bug Fix
+
+* **config:** [update-project-form] show meaningful validation errors ([ea98698](https://github.com/ts-factory/bublik-ui/commit/ea98698096c5a743a860ec0be83b0f5228121b70)), closes [#374](https://github.com/ts-factory/bublik-ui/issues/374)
+* **config:** make description field optional in config forms and API ([cf653d9](https://github.com/ts-factory/bublik-ui/commit/cf653d9fa3ac07104daecf50f92df549186d0813)), closes [#377](https://github.com/ts-factory/bublik-ui/issues/377)
+* **run:** reset `open` state for history search form on back navigation ([7de1533](https://github.com/ts-factory/bublik-ui/commit/7de1533b40ca875ccf9213b884c66a003914a4e6)), closes [#383](https://github.com/ts-factory/bublik-ui/issues/383)
+
+
+### 📦 Chores
+
+* **projects:** [config] update default project label ([6b6adef](https://github.com/ts-factory/bublik-ui/commit/6b6adef40630ef500d99f90dcce81524c5bde66b)), closes [#375](https://github.com/ts-factory/bublik-ui/issues/375)
+* **run:** remove forgotten `console.log` ([71173e7](https://github.com/ts-factory/bublik-ui/commit/71173e77acbb21ad33ec6a3f1c7c22d44f1f9268))
+
 ## [2.0.0](https://github.com/ts-factory/bublik-ui/compare/v1.10.3...v2.0.0) (2025-08-14)
 
 This major version contains breaking API changes and introduces new features which affect existing functionality.
