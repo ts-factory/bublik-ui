@@ -1,0 +1,28 @@
+services:
+  traefik:
+    image: traefik:{{ traefik_version }}
+    network_mode: host
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@{{ traefik_domain }}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Optional: Enable access logs
+      - "--accesslog=true"
+      # Optional: Set log level
+      - "--log.level=INFO"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic:/dynamic:ro
+      - ./letsencrypt:/letsencrypt
+    restart: unless-stopped
+    labels:
+      # Disable Traefik for itself to avoid the "port is missing" error
+      traefik.enable: "false"

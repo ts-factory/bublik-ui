@@ -1,0 +1,106 @@
+---
+- name: Create the new user
+  user:
+    name: '{{ bublik_user }}'
+    state: present
+    create_home: yes
+    shell: /bin/bash
+
+- name: Install additional packages
+  apt:
+    name: '{{ additional_packages }}'
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Ensure Task is installed
+  stat:
+    path: /usr/local/bin/task
+  register: task_bin
+
+- name: Install Task
+  shell: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+  when: not task_bin.stat.exists
+
+- name: Ensure yq is installed
+  stat:
+    path: /usr/local/bin/yq
+  register: yq_bin
+
+- name: Download yq
+  get_url:
+    url: "https://github.com/mikefarah/yq/releases/download/v4.47.2/{{ 'yq_linux_amd64' if ansible_architecture == 'x86_64' else 'yq_linux_arm64' }}"
+    dest: /usr/local/bin/yq
+    mode: '0755'
+  when: not yq_bin.stat.exists
+
+- name: Install Docker using geerlingguy.docker role
+  include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: true
+    docker_compose_package: docker-compose-plugin
+    docker_users:
+      - '{{ ansible_user }}'
+      - '{{ bublik_user }}'
+
+- name: Configure Docker daemon.json
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "dns": ["8.8.8.8", "8.8.4.4", "1.1.1.1"]
+      }
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+
+- name: Create Traefik network
+  community.docker.docker_network:
+    name: '{{ traefik_network }}'
+    driver: bridge
+
+- name: Create Traefik directory
+  file:
+    path: /opt/traefik
+    state: directory
+    mode: '0755'
+    owner: '{{ bublik_user }}'
+    group: '{{ bublik_user }}'
+  become: true
+
+- name: Create Traefik PR directory
+  file:
+    path: /opt/traefik/dynamic
+    state: directory
+    mode: '0755'
+    owner: '{{ bublik_user }}'
+    group: '{{ bublik_user }}'
+  become: true
+
+- name: Copy Traefik docker-compose file
+  template:
+    src: docker-compose.traefik.yml.j2
+    dest: /opt/traefik/docker-compose.yml
+  become_user: '{{ bublik_user }}'
+
+- name: Start Traefik with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: /opt/traefik
+    state: present
+  become_user: '{{ bublik_user }}'
+
+- name: Create Bootstrap Logs directory
+  file:
+    path: /opt/bootstrap/logs
+    state: directory
+    mode: '0755'
+    owner: '{{ bublik_user }}'
+    group: '{{ bublik_user }}'
+  become: true

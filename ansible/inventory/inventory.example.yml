@@ -1,0 +1,9 @@
+all:
+  children:
+    preview_server:
+      hosts:
+        preview:
+          ansible_host: <ip_adress>
+          ansible_user: <user>
+          ansible_ssh_private_key_file: ~/.ssh/preview
+          ansible_command_timeout: 900

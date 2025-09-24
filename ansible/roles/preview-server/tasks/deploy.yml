@@ -1,0 +1,198 @@
+---
+- name: Create PR previews directory
+  file:
+    path: '/opt/previews'
+    state: directory
+    mode: '0755'
+    owner: '{{ bublik_user }}'
+    group: '{{ bublik_user }}'
+  become: true
+
+- name: Create PR preview directory
+  file:
+    path: '/opt/previews/bublik-pr{{ pr_id }}'
+    state: directory
+    mode: '0755'
+    owner: '{{ bublik_user }}'
+    group: '{{ bublik_user }}'
+  become_user: '{{ bublik_user }}'
+
+- name: Clone main bublik-docker repository
+  git:
+    repo: '{{ docker_repo }}'
+    dest: '/opt/previews/bublik-pr{{ pr_id }}/repo'
+    version: '{{ docker_branch }}'
+    force: yes
+    update: yes
+  become_user: '{{ bublik_user }}'
+
+- name: Initialize and update submodules
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: |
+    git submodule init
+    git submodule update --recursive
+  become_user: '{{ bublik_user }}'
+
+- name: Checkout frontend submodule to PR branch
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo/bublik-ui
+  shell: |
+    git remote set-url origin {{ frontend_repo }}
+    git fetch origin
+    git checkout {{ frontend_branch }}
+    git reset --hard origin/{{ frontend_branch }}
+  become_user: '{{ bublik_user }}'
+
+- name: Checkout backend submodule to PR branch
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo/bublik
+  shell: |
+    git remote set-url origin {{ backend_repo }}
+    git fetch origin
+    git checkout {{ backend_branch }}
+    git reset --hard origin/{{ backend_branch }}
+  become_user: '{{ bublik_user }}'
+
+- name: Setup .env file and django settings files
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: task setup
+  become_user: '{{ bublik_user }}'
+
+- name: Generate random SECRET_KEY
+  set_fact:
+    secret_key: "{{ lookup('ansible.builtin.pipe', 'openssl rand -base64 50 | tr -d \"/+=\\n\"') }}"
+  no_log: true
+
+- name: Preprocess .env file - adjust variables for PR preview
+  lineinfile:
+    path: '/opt/previews/bublik-pr{{ pr_id }}/repo/.env'
+    regexp: '^{{ item.key }}='
+    line: '{{ item.key }}={{ item.value }}'
+  loop:
+    - { key: 'COMPOSE_PROJECT_NAME', value: 'pr-{{ pr_id }}' }
+    - { key: 'IMAGE_TAG', value: 'pr-{{ pr_id }}' }
+    - { key: 'SECRET_KEY', value: '{{ secret_key }}' }
+    - {
+        key: 'BUBLIK_FQDN',
+        value: 'https://pr-{{ pr_id }}.{{ traefik_domain }}'
+      }
+    - { key: 'DJANGO_SUPERUSER_EMAIL', value: '{{ django_superuser_email }}' }
+    - {
+        key: 'DJANGO_SUPERUSER_PASSWORD',
+        value: '{{ django_superuser_password }}'
+      }
+  become_user: '{{ bublik_user }}'
+  no_log: true
+
+- name: Adjust ports based on PR ID
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: |
+    PR_ID={{ pr_id }}
+    STEP=10
+    ENV_FILE=".env"
+
+    echo "Adjusting ports for PR #${PR_ID} with step ${STEP}..."
+
+    cp "${ENV_FILE}" "${ENV_FILE}.backup.$(date +%s)"
+
+    update_port() {
+        local var_name="$1"
+        local base_port="$2"
+        local new_port=$((base_port + PR_ID * STEP))
+        sed -i "s/^${var_name}=.*/${var_name}=${new_port}/" "${ENV_FILE}"
+    }
+
+    update_port "BUBLIK_DOCKER_PROXY_PORT"      42000
+    update_port "BUBLIK_DOCKER_DJANGO_PORT"    42100
+    update_port "BUBLIK_DOCKER_TE_LOG_SERVER_PORT" 42200
+    update_port "BUBLIK_DOCKER_DOCS_PORT"      42300
+    update_port "DB_PORT"                      42400
+    update_port "REDIS_PORT"                   42500
+    update_port "RABBITMQ_PORT"                42600
+    update_port "FLOWER_PORT"                  42700
+    update_port "BUBLIK_DOCKER_BUBLIK_UI_PORT" 42800
+    update_port "EMAIL_PORT"                   42900
+
+    echo "Port adjustment completed!"
+    echo "New ports for PR #${PR_ID}:"
+    grep -E "^(BUBLIK_DOCKER_PROXY_PORT|BUBLIK_DOCKER_DJANGO_PORT|BUBLIK_DOCKER_TE_LOG_SERVER_PORT|BUBLIK_DOCKER_DOCS_PORT|BUBLIK_AI_PORT|DB_PORT|REDIS_PORT|RABBITMQ_PORT|FLOWER_PORT|BUBLIK_DOCKER_BUBLIK_UI_PORT|EMAIL_PORT)=" "${ENV_FILE}" | sort
+  become_user: '{{ bublik_user }}'
+
+- name: Get nginx port from .env
+  shell: grep '^BUBLIK_DOCKER_PROXY_PORT=' /opt/previews/bublik-pr{{ pr_id }}/repo/.env | cut -d= -f2
+  register: nginx_port_raw
+  changed_when: false
+
+- name: Set nginx_port fact
+  set_fact:
+    nginx_port: '{{ nginx_port_raw.stdout }}'
+
+- name: Build Images
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: task build
+  become_user: '{{ bublik_user }}'
+  environment:
+    NODE_OPTIONS: '--max-old-space-size=8192'
+
+- name: Stop Bublik
+  community.docker.docker_compose_v2:
+    project_src: /opt/previews/bublik-pr{{ pr_id }}/repo
+    state: absent
+    remove_volumes: true
+    files:
+      - docker-compose.yml
+      - docker-compose.db.yml
+  become_user: '{{ bublik_user }}'
+
+- name: Start Bublik
+  community.docker.docker_compose_v2:
+    project_src: /opt/previews/bublik-pr{{ pr_id }}/repo
+    state: present
+    build: 'always'
+    recreate: 'always'
+    files:
+      - docker-compose.yml
+      - docker-compose.db.yml
+  become_user: '{{ bublik_user }}'
+
+- name: Wait for services to be healthy
+  uri:
+    url: 'http://127.0.0.1:{{ nginx_port }}/v2'
+    method: GET
+    status_code: 200
+  register: health_check
+  until: health_check.status == 200
+  retries: 30
+  delay: 10
+  ignore_errors: true
+
+- name: Expose Sub-Domain Proxy
+  template:
+    src: pr-preview.yml.j2
+    dest: /opt/traefik/dynamic/pr-{{ pr_id }}-preview.yml
+  become_user: '{{ bublik_user }}'
+
+- name: Setup Configs For Preview
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: |
+    echo "Creating configs for preview..."
+
+- name: Copy Bootstarp Log Files For Local Logs
+  copy:
+    src: /opt/bootstrap/logs
+    dest: /opt/previews/bublik-pr{{ pr_id }}/repo/data/logs/incoming
+    remote_src: true
+
+- name: Publish Logs And Start Import
+  args:
+    chdir: /opt/previews/bublik-pr{{ pr_id }}/repo
+  shell: task logs:publish-incoming-logs
+
+- name: Display preview URL
+  debug:
+    msg: 'PR #{{ pr_id }} preview is available at: https://pr-{{ pr_id }}.{{ traefik_domain }}'

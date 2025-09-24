@@ -44,3 +44,4 @@ requests.http
 
 .nx/cache
 .nx/workspace-data
+ansible/inventory/inventory.yml

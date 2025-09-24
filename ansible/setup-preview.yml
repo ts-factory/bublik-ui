@@ -1,0 +1,7 @@
+- name: Setup PR preview server
+  hosts: preview_server
+  become: true
+  roles:
+    - role: preview-server
+      vars:
+        traefik_domain: example.com

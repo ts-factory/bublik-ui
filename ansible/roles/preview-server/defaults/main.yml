@@ -1,0 +1,39 @@
+---
+# Packages to install
+additional_packages:
+  - jq
+  - git
+  - python3-pip
+  - python3-requests
+  - python3-docker
+  - wget
+  - tar
+
+# Proxy
+traefik_version: '3.5.2'
+traefik_network: 'traefik_proxy'
+traefik_domain: 'example.com'
+
+# Branches and remotes defaults
+docker_repo: 'https://github.com/ts-factory/bublik-docker'
+docker_branch: 'main'
+
+frontend_repo: 'https://github.com/ts-factory/bublik-ui.git'
+frontend_branch: 'main'
+
+backend_repo: 'https://github.com/ts-factory/bublik.git'
+backend_branch: 'main'
+
+# Preview user
+bublik_user: bublik
+django_superuser_email: admin@bublik.com
+django_superuser_password: admin
+
+# Docker
+docker_install_compose_plugin: true
+docker_compose_package: docker-compose-plugin
+docker_users:
+  - '{{ ansible_user | default(ansible_env.USER) }}'
+docker_install_compose: true
+docker_pip_package: python3-pip
+docker_pip_executable: pip3

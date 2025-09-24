@@ -1,0 +1,9 @@
+- name: Destroy PR preview
+  hosts: preview_server
+  become: true
+  vars:
+    pr_id: 123
+  tasks:
+    - include_role:
+        name: preview-server
+        tasks_from: destroy.yml
