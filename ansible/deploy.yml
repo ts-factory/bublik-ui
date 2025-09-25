@@ -1,0 +1,12 @@
+---
+- name: Deploy Bublik PR preview
+  hosts: preview_server
+  become: true
+  vars:
+    environment_name: 'production'
+    environment_domain: 'example.com'
+
+  tasks:
+    - include_role:
+        name: preview-server
+        tasks_from: deploy.yml

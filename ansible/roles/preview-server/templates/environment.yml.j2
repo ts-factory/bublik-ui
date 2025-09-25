@@ -1,16 +1,16 @@
 http:
   routers:
-    bublik-nginx-{{ pr_id }}:
-      rule: "Host(`pr-{{ pr_id }}.{{ traefik_domain }}`)"
+    bublik-nginx-{{ environment_name }}:
+      rule: "Host(`{{ environment_domain }}`)"
       entryPoints:
         - web
         - websecure
-      service: nginx-service-{{ pr_id }}
+      service: nginx-service-{{ environment_name }}
       tls:
         certResolver: letsencrypt
 
   services:
-    nginx-service-{{ pr_id }}:
+    nginx-service-{{ environment_name }}:
       loadBalancer:
         servers:
           - url: "http://127.0.0.1:{{ nginx_port }}"

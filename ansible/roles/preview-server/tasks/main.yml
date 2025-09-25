@@ -88,13 +88,11 @@
   template:
     src: docker-compose.traefik.yml.j2
     dest: /opt/traefik/docker-compose.yml
-  become_user: '{{ bublik_user }}'
 
 - name: Start Traefik with Docker Compose
   community.docker.docker_compose_v2:
     project_src: /opt/traefik
     state: present
-  become_user: '{{ bublik_user }}'
 
 - name: Create Bootstrap Logs directory
   file:

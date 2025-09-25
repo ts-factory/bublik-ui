@@ -15,7 +15,7 @@ traefik_network: 'traefik_proxy'
 traefik_domain: 'example.com'
 
 # Branches and remotes defaults
-docker_repo: 'https://github.com/ts-factory/bublik-docker'
+docker_repo: 'https://github.com/ts-factory/bublik-docker.git'
 docker_branch: 'main'
 
 frontend_repo: 'https://github.com/ts-factory/bublik-ui.git'
