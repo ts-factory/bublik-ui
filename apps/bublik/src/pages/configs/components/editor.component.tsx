@@ -176,7 +176,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 									size="xss"
 									onClick={() => setIsSettingsOpen(true)}
 								>
-									<Icon name="SettingsSliders" className="size-5 mr-1.5" />
+									<Icon name="SettingsSliders" className="size-[18px] mr-1.5" />
 									<span>Settings</span>
 								</ButtonTw>
 							</DropdownMenuTrigger>
@@ -187,18 +187,16 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 							>
 								<DropdownMenuLabel>Appearance</DropdownMenuLabel>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem>
-									<div className="flex items-center justify-between w-full">
-										<span>Font Size</span>
-										<Input
-											type="number"
-											className="w-16 h-8"
-											min={8}
-											max={32}
-											value={fontSize}
-											onChange={(e) => setFontSize(Number(e.target.value))}
-										/>
-									</div>
+								<DropdownMenuItem className="h-7 pl-2 pr-1.5 justify-between">
+									<span className="">Font Size</span>
+									<Input
+										type="number"
+										className="w-16 h-6 text-md"
+										min={8}
+										max={32}
+										value={fontSize}
+										onChange={(e) => setFontSize(Number(e.target.value))}
+									/>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
