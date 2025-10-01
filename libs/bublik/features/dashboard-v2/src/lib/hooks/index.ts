@@ -11,6 +11,7 @@ import {
 import { addDays } from 'date-fns';
 
 import {
+	bublikAPI,
 	useGetDashboardByDateQuery,
 	useGetDashboardModeQuery,
 	useGetDeployInfoQuery,
@@ -152,16 +153,32 @@ export const useDashboardClock = () => {
 
 export const useDashboardTitle = () => {
 	const { projectIds } = useProjectSearch();
-	const { data } = useGetDeployInfoQuery({ projects: projectIds });
+	const { data } = bublikAPI.useGetAllProjectsQuery();
 
 	useEffect(() => {
-		if (!data) {
+		if (!data || data.length === 0) {
 			document.title = 'Dashboard - Bublik';
 			return;
 		}
 
-		document.title = `${data.projectName} - Dashboard - Bublik`;
-	}, [data]);
+		const projectMapById = new Map(data.map((d) => [d.id, d.name]));
+
+		const selectedProjectNames = projectIds
+			.map((id) => projectMapById.get(id))
+			.filter(Boolean)
+			.join(' | ');
+
+		if (selectedProjectNames) {
+			document.title = `${selectedProjectNames} - Dashboard - Bublik`;
+		} else if (projectIds.length > 0) {
+			console.warn(
+				"could not map project id to data retrieved from backend, it' either stale or incorrect"
+			);
+			document.title = 'Dashboard - Bublik';
+		} else {
+			document.title = 'All - Dashboard - Bublik';
+		}
+	}, [data, projectIds]);
 };
 
 export const useDashboardMode = () => {
