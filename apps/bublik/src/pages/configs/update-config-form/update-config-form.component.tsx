@@ -187,8 +187,8 @@ const ConfigEditorForm = forwardRef<
 										{...field}
 										id="description"
 										rows={4}
-										className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-										placeholder="Enter description for the new config"
+										className="mt-1 block w-full rounded-md border-border-primary shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 placeholder:text-text-menu"
+										placeholder="Enter description for the update"
 									/>
 									{form.formState.errors.description && (
 										<p className="mt-1 text-[0.75rem] font-normal text-bg-error">

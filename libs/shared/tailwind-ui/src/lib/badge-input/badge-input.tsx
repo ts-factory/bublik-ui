@@ -184,7 +184,7 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 					<div className="flex flex-wrap flex-grow h-full">
 						{!disabled ? <BadgeList label={label} badges={badges} /> : null}
 						<input
-							className="flex w-full outline-none disabled:bg-bg-body p-2 cursor-[inherit] bg-transparent border-none text-text-secondary focus:ring-transparent  "
+							className="flex w-full outline-none disabled:bg-bg-body pr-2 pl-4 py-2 cursor-[inherit] bg-transparent placeholder:text-text-menu border-none text-text-secondary leading-[1.5rem] font-medium text-[0.875rem] focus:ring-transparent"
 							value={value}
 							id={label}
 							onChange={handleChange}
