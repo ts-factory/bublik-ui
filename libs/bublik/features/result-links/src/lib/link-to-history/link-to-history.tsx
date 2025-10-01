@@ -38,52 +38,6 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 				<Icon name="ChevronDown" size={14} />
 			</SplitButton.Trigger>
 			<SplitButton.Content align="start">
-				<SplitButton.Label>Open Prefilled Form</SplitButton.Label>
-				<SplitButton.Separator className="my-1" />
-				<Tooltip
-					content="Tells you if test was exposing the observed behaviour (if verdict exists), you can add some parameters or tags by hands before searching"
-					side="right"
-					sideOffset={8}
-				>
-					<SplitButton.Item asChild>
-						<LinkWithProject {...search.prefilled.testNameAndVerdicts}>
-							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Verdicts</span>
-						</LinkWithProject>
-					</SplitButton.Item>
-				</Tooltip>
-				<Tooltip
-					content="Tells you behaviour of the test iteration (i.e. test with the same parameter values) over time. You can remove some parameters to widen the search before searching"
-					side="right"
-					sideOffset={8}
-				>
-					<SplitButton.Item asChild>
-						<LinkWithProject
-							{...search.prefilled.testNameAndParametersAndVerdicts}
-						>
-							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + Verdicts</span>
-						</LinkWithProject>
-					</SplitButton.Item>
-				</Tooltip>
-				<Tooltip
-					content="Tells you the behaviour of the test iteration (i.e. test with the same parameter values) in similar execution environment. You can remove some tags/parameters before doing the search"
-					side="right"
-					sideOffset={8}
-				>
-					<SplitButton.Item asChild>
-						<LinkWithProject
-							{...search.prefilled.testNameAndParametersAndImportantTags}
-						>
-							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>
-								Test Name + Parameters + Important Tags{' '}
-								<strong>(Default)</strong>
-							</span>
-						</LinkWithProject>
-					</SplitButton.Item>
-				</Tooltip>
-				<SplitButton.Separator className="my-1" />
 				<SplitButton.Label>Open Direct Search</SplitButton.Label>
 				<SplitButton.Separator className="my-1" />
 				<Tooltip
@@ -145,6 +99,52 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 						<LinkWithProject {...search.direct.testNameAndParametersAndAllTags}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Parameters + All Tags</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<SplitButton.Separator className="my-1" />
+				<SplitButton.Label>Open Prefilled Form</SplitButton.Label>
+				<SplitButton.Separator className="my-1" />
+				<Tooltip
+					content="Tells you if test was exposing the observed behaviour (if verdict exists), you can add some parameters or tags by hands before searching"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject {...search.prefilled.testNameAndVerdicts}>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>Test Name + Verdicts</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<Tooltip
+					content="Tells you behaviour of the test iteration (i.e. test with the same parameter values) over time. You can remove some parameters to widen the search before searching"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject
+							{...search.prefilled.testNameAndParametersAndVerdicts}
+						>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>Test Name + Parameters + Verdicts</span>
+						</LinkWithProject>
+					</SplitButton.Item>
+				</Tooltip>
+				<Tooltip
+					content="Tells you the behaviour of the test iteration (i.e. test with the same parameter values) in similar execution environment. You can remove some tags/parameters before doing the search"
+					side="right"
+					sideOffset={8}
+				>
+					<SplitButton.Item asChild>
+						<LinkWithProject
+							{...search.prefilled.testNameAndParametersAndImportantTags}
+						>
+							<Icon name="BoxArrowRight" size={20} className="text-primary" />
+							<span>
+								Test Name + Parameters + Important Tags{' '}
+								<strong>(Default)</strong>
+							</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
