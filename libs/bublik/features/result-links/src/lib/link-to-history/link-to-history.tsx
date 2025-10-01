@@ -76,7 +76,10 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 							{...search.prefilled.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + Important Tags (Default)</span>
+							<span>
+								Test Name + Parameters + Important Tags{' '}
+								<strong>(Default)</strong>
+							</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
