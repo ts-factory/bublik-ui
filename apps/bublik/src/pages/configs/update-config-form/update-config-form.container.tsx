@@ -148,24 +148,6 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 				setIsOpen={setIsDialogOpen}
 				ref={formRef}
 			/>
-			<div className="mt-4 flex gap-2">
-				<ButtonTw
-					variant={config.is_active ? 'destruction-secondary' : 'secondary'}
-					size="xss"
-					onClick={() => handleMarkAsCurrent()}
-				>
-					<Icon name="Edit" className="size-5 mr-1.5" />
-					<span>{config.is_active ? 'Deactivate' : 'Activate'}</span>
-				</ButtonTw>
-				<ButtonTw
-					variant="destruction-secondary"
-					size="xss"
-					onClick={() => handleDeleteClick(configId)}
-				>
-					<Icon name="Bin" className="size-5 mr-1.5" />
-					<span>Delete</span>
-				</ButtonTw>
-			</div>
 		</>
 	);
 }
