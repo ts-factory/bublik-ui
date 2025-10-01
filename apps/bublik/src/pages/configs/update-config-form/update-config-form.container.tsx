@@ -1,5 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { ComponentProps, useRef, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+
 import {
 	ConfigExistsError,
 	ConfigValidationErrorSchema,
@@ -13,9 +16,6 @@ import { useAuth } from '@/bublik/features/auth';
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
 import { formatJson } from '../components/editor.component';
-import { ComponentProps, useRef, useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
 
 interface ConfigsEditorContainerProps {
 	configId: number;
