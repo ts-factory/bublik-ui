@@ -198,7 +198,7 @@ function ProjectCard(props: ProjectCardProps) {
 						<li className="min-h-16 flex flex-col border-b border-dashed border-border-primary last:border-b-0">
 							<div className="grid place-items-center gap-1 px-2.5 py-2 text-xs w-full h-full flex-1 opacity-50">
 								<p className="text-xs w-full text-center font-semibold flex-1 overflow-wrap-anywhere">
-									No configurations found for this project
+									No configurations available or accessible
 								</p>
 							</div>
 						</li>

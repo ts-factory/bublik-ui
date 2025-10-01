@@ -3,7 +3,6 @@
 import { ReactNode, useEffect } from 'react';
 
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
-import { Icon, Skeleton } from '@/shared/tailwind-ui';
 
 import { useConfigPageSearchParams } from '../hooks';
 import { SidebarHeader } from './config-sidebar';
@@ -60,32 +59,6 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 					configId={configId}
 				/>
 				<Skeleton className="h-full" />
-			</div>
-		);
-	}
-
-	if (!configsQuery.data?.length || !configsQuery.data) {
-		return (
-			<div className="flex flex-col h-full">
-				<SidebarHeader
-					onCreateNewConfigClick={handleCreateNewConfigClick}
-					configId={configId}
-					createProjectButton={createProjectButton}
-				/>
-				<div className="flex-1 grid place-items-center">
-					<div className="flex flex-col items-center justify-center flex-1 p-4 text-center">
-						<Icon
-							name="SettingsSliders"
-							className="size-12 mb-4 text-text-menu"
-						/>
-						<h3 className="text-lg font-semibold mb-2">
-							No configurations yet
-						</h3>
-						<p className="text-sm text-text-menu mb-4">
-							Create your first configuration to get started.
-						</p>
-					</div>
-				</div>
 			</div>
 		);
 	}
