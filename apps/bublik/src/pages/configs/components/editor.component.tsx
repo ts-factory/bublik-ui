@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState
 } from 'react';
+import ShikiHighlighter from 'react-shiki';
 import MonacoEditor, { Monaco, OnMount } from '@monaco-editor/react';
 import { format } from 'prettier';
 import parserJson from 'prettier/parser-babel';
@@ -30,7 +31,14 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuItem,
-	Input
+	Input,
+	DrawerRoot,
+	DrawerTrigger,
+	DrawerContent,
+	CodeBlock,
+	CodeBlockBody,
+	CodeBlockContent,
+	CodeBlockItem
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
@@ -117,6 +125,39 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 			<div className="flex flex-col h-full">
 				<CardHeader label={label ?? 'Editor'}>
 					<div className="flex items-center gap-4">
+						<DrawerRoot>
+							<Tooltip content="View Schema">
+								<DrawerTrigger asChild>
+									<ButtonTw variant="secondary" size="xss">
+										<Icon name="Password" className="size-5 mr-1.5" />
+										<span>Schema</span>
+									</ButtonTw>
+								</DrawerTrigger>
+							</Tooltip>
+							<DrawerContent
+								className={cn(
+									'bg-white shadow-popover overflow-hidden w-[80vw] max-w-[80vw]',
+									'flex flex-col overflow-hidden max-w-7xl'
+								)}
+							>
+								<CardHeader label="Schema" />
+								<div className="flex-1 overflow-hidden">
+									<ShikiHighlighter
+										language="json"
+										theme="github-light"
+										showLineNumbers
+										addDefaultStyles={false}
+										className={cn([
+											'[&_pre]:overflow-auto [&_pre]:h-full h-full',
+											'[&_pre]:px-6',
+											'[&_pre]:py-5'
+										])}
+									>
+										{JSON.stringify(schema, null, 2)}
+									</ShikiHighlighter>
+								</div>
+							</DrawerContent>
+						</DrawerRoot>
 						<Tooltip content="Format JSON">
 							<ButtonTw
 								variant="secondary"
