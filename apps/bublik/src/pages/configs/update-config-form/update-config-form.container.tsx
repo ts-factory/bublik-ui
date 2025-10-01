@@ -8,6 +8,7 @@ import {
 } from '@/services/bublik-api';
 import { useConfirm } from '@/shared/hooks';
 import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { useAuth } from '@/bublik/features/auth';
 
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
@@ -35,6 +36,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	const { setConfigId, setNewConfigParams } = useConfigPageSearchParams();
 	const { confirm, confirmation, decline, isVisible } = useConfirm();
 	const markConfirm = useConfirm();
+	const { isAdmin } = useAuth();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const {
 		confirmation: confirmationExisting,
@@ -173,6 +175,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 				onSubmit={handleSubmit}
 				isOpen={isDialogOpen}
 				setIsOpen={setIsDialogOpen}
+				isAdmin={isAdmin}
 				ref={formRef}
 			/>
 		</>

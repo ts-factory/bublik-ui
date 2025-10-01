@@ -53,6 +53,7 @@ interface ConfigEditorFormProps {
 	handleDeleteClick: (id: number) => void;
 	isOpen: boolean;
 	setIsOpen: (isOpen: boolean) => void;
+	isAdmin?: boolean;
 }
 
 const ConfigEditorForm = forwardRef<
@@ -71,7 +72,8 @@ const ConfigEditorForm = forwardRef<
 		handleMarkAsCurrent,
 		handleDeleteClick,
 		isOpen,
-		setIsOpen
+		setIsOpen,
+		isAdmin
 	} = props;
 	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
 
@@ -241,6 +243,7 @@ const ConfigEditorForm = forwardRef<
 						schema={schema}
 						value={field.value}
 						onChange={field.onChange}
+						readOnly={!isAdmin}
 						className={cn(isLoading && 'opacity-40 pointer-events-none')}
 						label={
 							<UpdateConfigLabelContainer
@@ -253,6 +256,7 @@ const ConfigEditorForm = forwardRef<
 								handleMarkAsCurrent={handleMarkAsCurrent}
 								handleDeleteClick={handleDeleteClick}
 								handleSaveClick={handleSaveClick}
+								isAdmin={isAdmin}
 							/>
 						}
 					/>
@@ -272,19 +276,23 @@ interface UpdateConfigLabelContainerProps {
 	handleMarkAsCurrent: (id: number) => void;
 	handleDeleteClick: (id: number) => void;
 	handleSaveClick: () => void;
+	isAdmin?: boolean;
 }
 
-function UpdateConfigLabelContainer({
-	label,
-	config,
-	versions,
-	isModified,
-	handleResetToOriginalClick,
-	setConfigId,
-	handleMarkAsCurrent,
-	handleDeleteClick,
-	handleSaveClick
-}: UpdateConfigLabelContainerProps) {
+function UpdateConfigLabelContainer(props: UpdateConfigLabelContainerProps) {
+	const {
+		label,
+		config,
+		versions,
+		isModified,
+		handleResetToOriginalClick,
+		setConfigId,
+		handleMarkAsCurrent,
+		handleDeleteClick,
+		handleSaveClick,
+		isAdmin
+	} = props;
+
 	return (
 		<div className="flex items-center gap-2">
 			<div className="flex items-center gap-2">
@@ -301,27 +309,40 @@ function UpdateConfigLabelContainer({
 				versions={versions ?? []}
 				onVersionClick={setConfigId}
 			/>
-			<Tooltip content="Update">
-				<ButtonTw variant="secondary" size="xss" onClick={handleSaveClick}>
+			<Tooltip content="Login as an admin to update config" disabled={isAdmin}>
+				<ButtonTw
+					variant="secondary"
+					size="xss"
+					disabled={!isAdmin}
+					onClick={handleSaveClick}
+					className="pointer-events-auto"
+				>
 					<Icon name="Edit" className="size-5 mr-1.5" />
 					<span>Update</span>
 				</ButtonTw>
 			</Tooltip>
-			<Tooltip content="Activate">
+			<Tooltip
+				content="Login as an admin to activate or deactivate config"
+				disabled={isAdmin}
+			>
 				<ButtonTw
 					variant={config.is_active ? 'destruction-secondary' : 'secondary'}
 					size="xss"
 					onClick={() => handleMarkAsCurrent(config.id)}
+					disabled={!isAdmin}
+					className="pointer-events-auto"
 				>
 					<Icon name="Edit" className="size-5 mr-1.5" />
 					<span>{config.is_active ? 'Deactivate' : 'Activate'}</span>
 				</ButtonTw>
 			</Tooltip>
-			<Tooltip content="Delete Config">
+			<Tooltip content="Login as an admin to delete config" disabled={isAdmin}>
 				<ButtonTw
 					variant="destruction-secondary"
 					size="xss"
 					onClick={() => handleDeleteClick(config.id)}
+					disabled={!isAdmin}
+					className="pointer-events-auto"
 				>
 					<Icon name="Bin" className="size-5 mr-1.5" />
 					<span>Delete</span>

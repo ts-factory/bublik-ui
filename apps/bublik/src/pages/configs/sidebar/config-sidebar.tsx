@@ -20,10 +20,12 @@ interface SidebarHeaderProps {
 	configId?: number | null;
 	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
 	createProjectButton?: ReactNode;
+	isAdmin?: boolean;
 }
 
 function SidebarHeader(props: SidebarHeaderProps) {
-	const { onCreateNewConfigClick, configId, createProjectButton } = props;
+	const { onCreateNewConfigClick, configId, createProjectButton, isAdmin } =
+		props;
 	const { data, isLoading, isError } = bublikAPI.useGetConfigTypesQuery();
 
 	return (
@@ -40,13 +42,16 @@ function SidebarHeader(props: SidebarHeaderProps) {
 				<div className="flex items-center gap-2">
 					{createProjectButton}
 					<DropdownMenu>
-						<Tooltip content="Create New Config">
-							<DropdownMenuTrigger asChild>
+						<Tooltip
+							content="Login as an admin to create config"
+							disabled={isAdmin}
+						>
+							<DropdownMenuTrigger disabled={isError || !isAdmin} asChild>
 								<ButtonTw
 									variant="secondary"
 									size="xss"
 									state={!configId && 'active'}
-									disabled={isError}
+									className="pointer-events-auto"
 								>
 									<Icon name="FilePlus" className="size-5 mr-1.5" />
 									<span>New Config</span>

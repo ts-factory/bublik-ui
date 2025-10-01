@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ReactNode, useEffect } from 'react';
 
+import { Skeleton } from '@/shared/tailwind-ui';
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
+import { useAuth } from '@/bublik/features/auth';
 
 import { useConfigPageSearchParams } from '../hooks';
 import { SidebarHeader } from './config-sidebar';
@@ -18,6 +20,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 		refetchOnMountOrArgChange: true
 	});
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
+	const { isAdmin } = useAuth();
 	const { setConfigId, configId, setNewConfigParams } =
 		useConfigPageSearchParams();
 	const prefetchConfigById = bublikAPI.usePrefetch('getConfigById');
@@ -69,6 +72,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 				onCreateNewConfigClick={handleCreateNewConfigClick}
 				configId={configId}
 				createProjectButton={createProjectButton}
+				isAdmin={isAdmin}
 			/>
 			<ConfigList
 				configs={configsQuery.data}

@@ -1,4 +1,4 @@
-import { ComponentProps, useState } from 'react';
+import { ComponentProps, ForwardedRef, forwardRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -147,15 +147,20 @@ function CreateProjectForm({ onSuccess, onCancel }: CreateProjectFormProps) {
 
 type CreateProjectButtonProps = ComponentProps<typeof ButtonTw>;
 
-function CreateProjectButton(props: CreateProjectButtonProps) {
+function _CreateProjectButton(
+	props: CreateProjectButtonProps,
+	ref: ForwardedRef<HTMLButtonElement>
+) {
 	return (
 		<CreateProjectModal>
-			<ButtonTw {...props}>
+			<ButtonTw {...props} ref={ref}>
 				<Icon name="FilePlus" className="size-5 mr-1.5" />
 				<span>New Project</span>
 			</ButtonTw>
 		</CreateProjectModal>
 	);
 }
+
+const CreateProjectButton = forwardRef(_CreateProjectButton);
 
 export { CreateProjectButton };

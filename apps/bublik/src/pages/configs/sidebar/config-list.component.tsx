@@ -10,6 +10,7 @@ import {
 	UpdateProjectModal
 } from '@/bublik/features/projects';
 import { useConfirm } from '@/shared/hooks';
+import { useAuth } from '@/bublik/features/auth';
 
 import { formatTimeV } from '../utils';
 import { InactiveBadge } from '../components/badges.component';
@@ -127,6 +128,7 @@ function ProjectCard(props: ProjectCardProps) {
 	const [open, setOpen] = useState(true);
 	const { confirmation, confirm, decline, isVisible } = useConfirm();
 	const { deleteProject: _deleteProject } = useDeleteProject({ id });
+	const { isAdmin } = useAuth();
 
 	async function deleteProject() {
 		const isConfirmed = await confirmation();
@@ -157,7 +159,7 @@ function ProjectCard(props: ProjectCardProps) {
 					<span className="font-semibold text-sm">{name}</span>
 				</button>
 				<div className="flex items-center gap-0.5">
-					{id ? (
+					{id && isAdmin ? (
 						<>
 							<UpdateProjectModal projectId={id} projectName={name}>
 								<button
@@ -165,6 +167,7 @@ function ProjectCard(props: ProjectCardProps) {
 										'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
 										'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
 									)}
+									aria-label="Change project name"
 								>
 									<Icon name="Edit" size={18} />
 								</button>
@@ -172,6 +175,7 @@ function ProjectCard(props: ProjectCardProps) {
 							<button
 								className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-red-100 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
 								onClick={deleteProject}
+								aria-label="Delete project"
 							>
 								<Icon name="Bin" size={18} />
 							</button>

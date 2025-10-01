@@ -66,10 +66,11 @@ function formatJson(value: string) {
 interface ConfigEditorProps extends ComponentProps<typeof MonacoEditor> {
 	schema?: Record<string, unknown>;
 	label?: ComponentProps<typeof CardHeader>['label'];
+	readOnly?: boolean;
 }
 
 const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
-	({ schema, label, className, ...props }, ref) => {
+	({ schema, label, readOnly, className, ...props }, ref) => {
 		const [monaco, setMonaco] = useState<Monaco>();
 		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 		const [fontSize, setFontSize] = useLocalStorage('editor-font-size', 14);
@@ -209,7 +210,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 						path={DEFAULT_URI}
 						beforeMount={handleEditorWillMount}
 						onMount={handleEditorDidMount}
-						options={{ fontSize }}
+						options={{ fontSize, readOnly }}
 						loading={null}
 						{...props}
 					/>
