@@ -71,7 +71,7 @@ export const getColumns = ({
 									!showToolbar && 'rotate-180'
 								)}
 							>
-								<Icon name="ArrowShortTop" size={18} />
+								<Icon name="ArrowLeanUp" size={18} />
 							</div>
 							<span className="w-[6ch] text-left">
 								{showToolbar ? 'Hide' : 'Expose'}
