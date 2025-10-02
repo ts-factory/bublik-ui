@@ -1,5 +1,45 @@
 
 
+## [2.2.0](https://github.com/ts-factory/bublik-ui/compare/v2.1.0...v2.2.0) (2025-10-02)
+
+
+### 🚀 New Feature
+
+* **config:** add button to view config schema ([eed4e0b](https://github.com/ts-factory/bublik-ui/commit/eed4e0b0b060cf379a348759b0d406c3fbbb0a5c))
+* **config:** show only projects/configs that are currently selected ([9dd52b1](https://github.com/ts-factory/bublik-ui/commit/9dd52b14868dd3af23bdf39b27c5cdc4668ae7b1))
+
+
+### 💅 Polish
+
+* **config:** [settings] improve sizing of icon and styling of dropdown ([c0c26f6](https://github.com/ts-factory/bublik-ui/commit/c0c26f6b668391cfc10a8b2958d4975dd5cc3b07))
+* **run:** [results] change `Expose` button icon ([c131cb5](https://github.com/ts-factory/bublik-ui/commit/c131cb5341e176a2197156109f45cd036860084d))
+* **run:** [results] make default history link bold ([2106fa5](https://github.com/ts-factory/bublik-ui/commit/2106fa52a21ef196aac0d0fc9bbf1148e623de2a))
+* **ui:** [button] fix disabled state color ([9858ac1](https://github.com/ts-factory/bublik-ui/commit/9858ac1450960537634262ed3b9b40ebf507ebaa))
+* **ui:** make placeholder text color dimmer for inputs ([8b9d38d](https://github.com/ts-factory/bublik-ui/commit/8b9d38dfb70ef5874c9da0023a1427e6ca2314cb))
+
+
+### 🐛 Bug Fix
+
+* **config:** [update] display validation error in case of error ([e4cdcce](https://github.com/ts-factory/bublik-ui/commit/e4cdcce2ef269ceeaebc2f48886d5a7422113f7c))
+* **config:** outdated config list after auth ([41c7b74](https://github.com/ts-factory/bublik-ui/commit/41c7b74fcc9e8379d0769ed7028378dd703a3641))
+* **config:** overlapping editor line numbers ([4366ff1](https://github.com/ts-factory/bublik-ui/commit/4366ff12c67a8c7e75e37ea120deff9154a7ebb8))
+* **dashboard:** missing project name for selected project ([534485d](https://github.com/ts-factory/bublik-ui/commit/534485d827d1087b5e7525e1352db13f41c53c63))
+
+
+### ♻ Code Refactoring
+
+* **config:** [list] show all project cards by default ([e6e89e0](https://github.com/ts-factory/bublik-ui/commit/e6e89e091ae87ab8f3701de494739fca998ee0ea))
+* **config:** disable/hide admin only actions ([2c0f7da](https://github.com/ts-factory/bublik-ui/commit/2c0f7da5828b2592e6da87cd470ff680f179f631))
+* **config:** improve error handling for config create/update forms ([e01691b](https://github.com/ts-factory/bublik-ui/commit/e01691b031fd04f88a265d22aec777c54a66c076))
+
+
+### 📦 Chores
+
+* **config:** remove redundant code ([8509e01](https://github.com/ts-factory/bublik-ui/commit/8509e01c9bfae956f97e4c9a39de8a78521cfd21))
+* **run:** [results] change order of result table columns ([18f0ff6](https://github.com/ts-factory/bublik-ui/commit/18f0ff6711bb62eb47f4dde03dbf17033dc92b83))
+* **run:** [results] swap `prefilled` and `direct` order ([52e0ddf](https://github.com/ts-factory/bublik-ui/commit/52e0ddf6ff76baac425c9f6163f8cbde75148da9))
+* **run:** change default link to direct to history ([4dd7997](https://github.com/ts-factory/bublik-ui/commit/4dd7997716c3e09efa3223ff8dcf73164e531555))
+
 ## [2.1.0](https://github.com/ts-factory/bublik-ui/compare/v2.0.1...v2.1.0) (2025-08-26)
 
 

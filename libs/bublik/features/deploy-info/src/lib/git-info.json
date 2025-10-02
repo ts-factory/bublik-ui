@@ -1,7 +1,7 @@
 {
-	"date": "2025.08.26",
-	"summary": "fix(run): reset `open` state for history search form on back navigation",
-	"revision": "7de1533b",
-	"branch": "release-2.1.0",
-	"latestTag": "v2.1.0"
+	"date": "2025.10.02",
+	"summary": "fix(config): overlapping editor line numbers",
+	"revision": "4366ff12",
+	"branch": "release-2.2.0",
+	"latestTag": "v2.2.0"
 }
