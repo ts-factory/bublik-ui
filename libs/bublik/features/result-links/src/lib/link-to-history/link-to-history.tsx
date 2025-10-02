@@ -23,7 +23,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 		<SplitButton.Root variant="secondary" size="xss">
 			<SplitButton.Button asChild>
 				<LinkWithProject
-					{...search.prefilled.testNameAndParametersAndImportantTags}
+					{...search.direct.testNameAndParametersAndImportantTags}
 				>
 					<Icon
 						name="BoxArrowRight"
@@ -86,7 +86,10 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 							{...search.direct.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + Important Tags</span>
+							<span>
+								Test Name + Parameters + Important Tags{' '}
+								<strong>(Default)</strong>
+							</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -141,10 +144,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 							{...search.prefilled.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>
-								Test Name + Parameters + Important Tags{' '}
-								<strong>(Default)</strong>
-							</span>
+							<span>Test Name + Parameters + Important Tags</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
