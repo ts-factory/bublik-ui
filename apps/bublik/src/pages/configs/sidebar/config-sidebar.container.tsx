@@ -15,7 +15,9 @@ interface ConfigsSidebarContainerProps {
 
 function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	const { createProjectButton } = props;
-	const configsQuery = bublikAPI.useGetListOfConfigsQuery();
+	const configsQuery = bublikAPI.useGetListOfConfigsQuery(undefined, {
+		refetchOnMountOrArgChange: true
+	});
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { setConfigId, configId, setNewConfigParams } =
 		useConfigPageSearchParams();
