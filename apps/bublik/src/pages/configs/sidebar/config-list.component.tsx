@@ -30,6 +30,7 @@ interface ConfigListProps {
 	currentConfigId?: number | null;
 	onConfigClick?: (id: number) => void;
 	onCreateNewConfigClick?: (params: ConfigSchemaParams) => void;
+	projectIds: number[];
 }
 
 function ConfigList(props: ConfigListProps) {
@@ -39,19 +40,29 @@ function ConfigList(props: ConfigListProps) {
 		isFetching,
 		currentConfigId,
 		onConfigClick,
-		onCreateNewConfigClick
+		onCreateNewConfigClick,
+		projectIds
 	} = props;
 
 	const groupedByProject = useMemo(() => {
+		const filteredProjects =
+			projectIds && projectIds.length > 0
+				? projects.filter((project) => projectIds.includes(project.id))
+				: projects;
+
 		const defaultConfigs = configs.filter((config) => !config.project);
 		const projectConfigs = configs.filter((config) => config.project);
-		const projectMap = new Map<number, string>();
 
-		projects.forEach((project) => projectMap.set(project.id, project.name));
+		const projectMap = new Map<number, string>();
+		filteredProjects.forEach((project) =>
+			projectMap.set(project.id, project.name)
+		);
 
 		const groupedByProject: GroupedConfigs = {
 			[DEFAULT_PROJECT_LABEL]: defaultConfigs,
-			...Object.fromEntries(projects.map((project) => [project.name, []]))
+			...Object.fromEntries(
+				filteredProjects.map((project) => [project.name, []])
+			)
 		};
 
 		Object.entries(
@@ -66,7 +77,7 @@ function ConfigList(props: ConfigListProps) {
 		});
 
 		return groupedByProject;
-	}, [configs, projects]);
+	}, [configs, projectIds, projects]);
 
 	return (
 		<div

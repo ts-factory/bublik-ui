@@ -5,6 +5,7 @@ import { ReactNode, useEffect } from 'react';
 import { Skeleton } from '@/shared/tailwind-ui';
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
 import { useAuth } from '@/bublik/features/auth';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import { useConfigPageSearchParams } from '../hooks';
 import { SidebarHeader } from './config-sidebar';
@@ -16,9 +17,11 @@ interface ConfigsSidebarContainerProps {
 
 function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	const { createProjectButton } = props;
-	const configsQuery = bublikAPI.useGetListOfConfigsQuery(undefined, {
-		refetchOnMountOrArgChange: true
-	});
+	const { projectIds } = useProjectSearch();
+	const configsQuery = bublikAPI.useGetListOfConfigsQuery(
+		{ projectIds: projectIds },
+		{ refetchOnMountOrArgChange: true }
+	);
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { isAdmin } = useAuth();
 	const { setConfigId, configId, setNewConfigParams } =
@@ -77,6 +80,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 			<ConfigList
 				configs={configsQuery.data}
 				projects={projectsQuery.data}
+				projectIds={projectIds}
 				isFetching={configsQuery.isFetching || projectsQuery.isFetching}
 				currentConfigId={configId}
 				onConfigClick={setConfigId}

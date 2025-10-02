@@ -145,8 +145,15 @@ export const configsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getListOfConfigs: build.query<ConfigItem[], void>({
-			query: () => ({ url: withApiV2('/config'), cache: 'no-cache' }),
+		getListOfConfigs: build.query<
+			ConfigItem[],
+			{ projectIds?: number[] } | undefined
+		>({
+			query: (params) => ({
+				url: withApiV2('/config'),
+				params: { project: params?.projectIds?.[0] },
+				cache: 'no-cache'
+			}),
 			providesTags: [BUBLIK_TAG.Config]
 		}),
 		getConfigById: build.query<Config, ConfigParams>({
