@@ -96,95 +96,6 @@ export const getColumns = ({
 				);
 			}
 		}),
-		helper.accessor('requirements', {
-			header: 'Requirements',
-			id: COLUMN_ID.REQUIREMENTS,
-			cell: (cell) => {
-				const requirements = cell.getValue() ?? [];
-				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
-
-				function handleRequirementClick(requirement: string) {
-					if (mode === 'diff') {
-						diffModeWarning();
-						return;
-					}
-
-					cell.column.setFilterValue(
-						filterValue.includes(requirement)
-							? filterValue.filter((v) => v !== requirement)
-							: [...filterValue, requirement]
-					);
-				}
-
-				return (
-					<RequirementsList
-						requirements={requirements}
-						onRequirementClick={handleRequirementClick}
-					/>
-				);
-			},
-			filterFn: fitlerIncludesSome
-		}),
-		helper.accessor('artifacts', {
-			header: 'Artifacts',
-			id: COLUMN_ID.ARTIFACTS,
-			cell: (cell) => {
-				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
-
-				function handleArtifactClick(artifact: string) {
-					if (mode === 'diff') {
-						diffModeWarning();
-						return;
-					}
-
-					cell.column.setFilterValue(
-						filterValue.includes(artifact)
-							? filterValue.filter((v) => v !== artifact)
-							: [...filterValue, artifact]
-					);
-				}
-
-				return (
-					<div className="flex flex-col flex-wrap gap-1">
-						<ArtifactsList
-							artifacts={cell.getValue()}
-							filterValue={filterValue}
-							onArtifactClick={handleArtifactClick}
-						/>
-					</div>
-				);
-			},
-			filterFn: fitlerIncludesSome
-		}),
-		helper.accessor('expected_results', {
-			header: 'Expected Results',
-			cell: (cell) => {
-				const expectedResults = cell.getValue();
-
-				if (expectedResults.length === 0) return;
-
-				return (
-					<div className="flex flex-col flex-wrap gap-1">
-						{expectedResults.map((result, idx) => {
-							return (
-								<Fragment key={idx}>
-									{result.verdicts && result.result_type ? (
-										<VerdictList
-											variant="expected"
-											verdicts={result.verdicts}
-											result={result.result_type}
-										/>
-									) : null}
-									{result?.keys?.length && result.keys ? (
-										<KeyList items={result.keys} />
-									) : null}
-								</Fragment>
-							);
-						})}
-					</div>
-				);
-			}
-		}),
 		helper.accessor(
 			(data) => ({
 				isNotExpected: data.has_error,
@@ -295,6 +206,66 @@ export const getColumns = ({
 				}
 			}
 		),
+		helper.accessor('expected_results', {
+			header: 'Expected Results',
+			cell: (cell) => {
+				const expectedResults = cell.getValue();
+
+				if (expectedResults.length === 0) return;
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						{expectedResults.map((result, idx) => {
+							return (
+								<Fragment key={idx}>
+									{result.verdicts && result.result_type ? (
+										<VerdictList
+											variant="expected"
+											verdicts={result.verdicts}
+											result={result.result_type}
+										/>
+									) : null}
+									{result?.keys?.length && result.keys ? (
+										<KeyList items={result.keys} />
+									) : null}
+								</Fragment>
+							);
+						})}
+					</div>
+				);
+			}
+		}),
+		helper.accessor('artifacts', {
+			header: 'Artifacts',
+			id: COLUMN_ID.ARTIFACTS,
+			cell: (cell) => {
+				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
+
+				function handleArtifactClick(artifact: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
+					cell.column.setFilterValue(
+						filterValue.includes(artifact)
+							? filterValue.filter((v) => v !== artifact)
+							: [...filterValue, artifact]
+					);
+				}
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						<ArtifactsList
+							artifacts={cell.getValue()}
+							filterValue={filterValue}
+							onArtifactClick={handleArtifactClick}
+						/>
+					</div>
+				);
+			},
+			filterFn: fitlerIncludesSome
+		}),
 		helper.accessor('parameters', {
 			header: 'Parameters',
 			id: COLUMN_ID.PARAMETERS,
@@ -330,6 +301,35 @@ export const getColumns = ({
 						reference={reference}
 						filterValue={filterValue}
 						onParameterClick={handleParameterClick}
+					/>
+				);
+			},
+			filterFn: fitlerIncludesSome
+		}),
+		helper.accessor('requirements', {
+			header: 'Requirements',
+			id: COLUMN_ID.REQUIREMENTS,
+			cell: (cell) => {
+				const requirements = cell.getValue() ?? [];
+				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
+
+				function handleRequirementClick(requirement: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
+					cell.column.setFilterValue(
+						filterValue.includes(requirement)
+							? filterValue.filter((v) => v !== requirement)
+							: [...filterValue, requirement]
+					);
+				}
+
+				return (
+					<RequirementsList
+						requirements={requirements}
+						onRequirementClick={handleRequirementClick}
 					/>
 				);
 			},
