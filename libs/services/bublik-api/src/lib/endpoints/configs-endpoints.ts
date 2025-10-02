@@ -104,6 +104,14 @@ export const ConfigWithSameNameErrorResponseSchema = z.object({
 	status: z.number()
 });
 
+export const ConfigValidationErrorSchema = z.object({
+	status: z.number(),
+	data: z.object({
+		type: z.string(),
+		message: z.record(z.array(z.string())).or(z.string())
+	})
+});
+
 const ConfigTypesResponseSchema = z.object({
 	config_types_names: z.array(
 		z.object({

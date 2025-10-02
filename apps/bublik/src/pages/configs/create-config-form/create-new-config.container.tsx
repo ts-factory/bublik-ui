@@ -8,7 +8,11 @@ import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 
 import { useConfirm } from '@/shared/hooks';
-import { bublikAPI, ConfigExistsError } from '@/services/bublik-api';
+import {
+	bublikAPI,
+	ConfigExistsError,
+	ConfigValidationErrorSchema
+} from '@/services/bublik-api';
 import {
 	Input,
 	cn,
@@ -27,12 +31,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { useConfigPageSearchParams, useSavedState } from '../hooks';
-import {
-	getEditorValue,
-	isValidJson,
-	ValidationErrorSchema,
-	ValidJsonStringSchema
-} from '../utils';
+import { getEditorValue, isValidJson, ValidJsonStringSchema } from '../utils';
 import { ConfigEditor } from '../components/editor.component';
 import { DEFAULT_PROJECT_LABEL } from '../config.constants';
 
@@ -92,17 +91,6 @@ function CreateNewConfigScreen() {
 
 		toast.promise(promise, {
 			success: 'Successfully created config',
-			error: (e) => {
-				const result = ValidationErrorSchema.safeParse(e);
-				if (result.success) {
-					const errorMessage = Object.entries(result.data.data.message)
-						.map(([key, error]) => `${key}: ${error}`)
-						.join('\n');
-					form.setError('root', { message: errorMessage });
-				}
-
-				return 'Failed to create config';
-			},
 			loading: 'Creating config...'
 		});
 
@@ -120,6 +108,28 @@ function CreateNewConfigScreen() {
 
 				setConfigId(e.configId);
 			}
+			const result = ConfigValidationErrorSchema.safeParse(e);
+			if (!result.success) {
+				form?.setError('root', {
+					message: `Unknown error occured: ${String(e)}`
+				});
+				return;
+			}
+
+			if (typeof result.data.data.message === 'object') {
+				Object.entries(result?.data.data.message).forEach(([key, error]) => {
+					if (key === 'content') {
+						form?.setError('root', { message: error.join('\n') });
+						return;
+					}
+
+					// @ts-expect-error mapped frontend form field names to frontend so should be fine
+					return form?.setError(key, { message: error.join('\n') });
+				});
+				return;
+			}
+
+			form?.setError('root', { message: result.data.data.message });
 		}
 	}
 
@@ -238,16 +248,17 @@ function CreateNewConfigScreen() {
 						<Controller
 							name="name"
 							control={form.control}
-							render={({ field }) => (
+							render={({ field, fieldState }) => (
 								<Input
 									{...field}
 									placeholder="per_conf"
 									type="text"
 									label="Name"
-									error={form.formState.errors.name?.message}
+									error={fieldState.error?.message}
 								/>
 							)}
 						/>
+
 						<Controller
 							name="description"
 							control={form.control}
@@ -255,7 +266,7 @@ function CreateNewConfigScreen() {
 								<div>
 									<label
 										htmlFor="description"
-										className="block text-sm font-medium text-gray-700"
+										className="font-normal text-text-secondary text-[0.875rem]"
 									>
 										Description
 									</label>

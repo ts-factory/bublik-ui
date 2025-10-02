@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import {
 	ConfigExistsError,
+	ConfigValidationErrorSchema,
 	ConfigWithSameNameErrorResponseSchema,
 	EditConfigBody
 } from '@/services/bublik-api';
@@ -13,6 +14,7 @@ import { ConfigEditorForm } from './update-config-form.component';
 import { formatJson } from '../components/editor.component';
 import { ComponentProps, useRef, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
 
 interface ConfigsEditorContainerProps {
 	configId: number;
@@ -67,6 +69,31 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 
 				setConfigId(e.configId);
 			}
+
+			const validationError = ConfigValidationErrorSchema.safeParse(e);
+			if (!validationError.success) {
+				form?.setError('root', {
+					message: `Unknown error occured: ${String(e)}`
+				});
+				return;
+			}
+
+			if (typeof validationError.data.data.message === 'object') {
+				Object.entries(validationError?.data.data.message).forEach(
+					([key, error]) => {
+						if (key === 'content') {
+							form?.setError('root', { message: error.join('\n') });
+							return;
+						}
+
+						// @ts-expect-error mapped frontend form field names to frontend so should be fine
+						return form?.setError(key, { message: error.join('\n') });
+					}
+				);
+				return;
+			}
+
+			form?.setError('root', { message: validationError.data.data.message });
 		}
 	};
 

@@ -12,11 +12,12 @@ import {
 	ConfigExistsError,
 	ConfigSchemaParams,
 	ConfigSchemaParamsSchema,
+	ConfigValidationErrorSchema,
 	EditConfigBody
 } from '@/services/bublik-api';
 import { toast } from '@/shared/tailwind-ui';
 
-import { getEditorValue, ValidationErrorSchema } from '../utils';
+import { getEditorValue } from '../utils';
 
 function useConfigPageSearchParams() {
 	const [configId, _setConfigId] = useQueryParam('configId', NumberParam);
@@ -84,25 +85,6 @@ function useConfigById(configId: number) {
 
 		toast.promise(promise, {
 			success: 'Succesfully updated config',
-			error: (e) => {
-				if (e instanceof ConfigExistsError) return e.message;
-
-				try {
-					const {
-						data: { message }
-					} = ValidationErrorSchema.parse(e);
-					const errorMessage = Object.entries(message)
-						.map(([key, error]) => `${key}: ${error}`)
-						.flat()
-						.join('\n');
-
-					return errorMessage;
-				} catch (parseError) {
-					console.error(parseError);
-				}
-
-				return 'Failed to update config';
-			},
 			loading: 'Updating config...'
 		});
 

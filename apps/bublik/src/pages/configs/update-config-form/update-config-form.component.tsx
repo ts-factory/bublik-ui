@@ -138,7 +138,10 @@ const ConfigEditorForm = forwardRef<
 						'sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
 					)}
 				>
-					<form onSubmit={form.handleSubmit(handleSubmit)}>
+					<form
+						onSubmit={form.handleSubmit(handleSubmit)}
+						className="flex flex-col gap-4"
+					>
 						<h2 className="mb-4 text-xl font-semibold leading-tight text-text-primary">
 							Update Config
 						</h2>
@@ -150,40 +153,51 @@ const ConfigEditorForm = forwardRef<
 								/>
 							</div>
 						) : null}
-						<div className="mb-4">
-							<label
-								htmlFor="name"
-								className="block text-sm font-medium text-gray-700"
-							>
-								Name
-							</label>
-							<Input id="name" {...form.register('name')} />
-							<label
-								htmlFor="description"
-								className="block text-sm font-medium text-gray-700"
-							>
-								Description
-							</label>
-							<Controller
-								name="description"
-								control={form.control}
-								render={({ field }) => (
+
+						<Controller
+							name="name"
+							control={form.control}
+							render={({ field, fieldState }) => {
+								return (
+									<Input
+										{...field}
+										placeholder="per_conf"
+										type="text"
+										label="Name"
+										error={fieldState.error?.message}
+									/>
+								);
+							}}
+						/>
+
+						<Controller
+							name="description"
+							control={form.control}
+							render={({ field }) => (
+								<div>
+									<label
+										htmlFor="description"
+										className="font-normal text-text-secondary text-[0.875rem]"
+									>
+										Description
+									</label>
 									<textarea
 										{...field}
 										id="description"
 										rows={4}
 										className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-										placeholder="Enter description for the update"
+										placeholder="Enter description for the new config"
 									/>
-								)}
-							/>
-							{form.formState.errors.description && (
-								<p className="mt-1 text-sm text-red-600">
-									{form.formState.errors.description.message}
-								</p>
+									{form.formState.errors.description && (
+										<p className="mt-1 text-[0.75rem] font-normal text-bg-error">
+											{form.formState.errors.description.message}
+										</p>
+									)}
+								</div>
 							)}
-						</div>
-						<div className="mb-4">
+						/>
+
+						<div>
 							<Controller
 								name="is_active"
 								control={form.control}

@@ -5,14 +5,6 @@ import { format } from 'date-fns';
 import { Monaco } from '@monaco-editor/react';
 import { DEFAULT_URI } from '../config.constants';
 
-const ValidationErrorSchema = z.object({
-	status: z.number(),
-	data: z.object({
-		type: z.string(),
-		message: z.record(z.array(z.string()))
-	})
-});
-
 const ValidJsonStringSchema = z.string().refine(
 	(val) => {
 		try {
@@ -55,10 +47,4 @@ function getEditorValue(monaco?: Monaco, uri = DEFAULT_URI): string {
 	return monaco.editor.getModel(URI)?.getValue() ?? '';
 }
 
-export {
-	ValidationErrorSchema,
-	formatTimeV,
-	isValidJson,
-	getEditorValue,
-	ValidJsonStringSchema
-};
+export { formatTimeV, isValidJson, getEditorValue, ValidJsonStringSchema };
