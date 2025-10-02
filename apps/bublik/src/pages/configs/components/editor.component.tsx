@@ -34,11 +34,7 @@ import {
 	Input,
 	DrawerRoot,
 	DrawerTrigger,
-	DrawerContent,
-	CodeBlock,
-	CodeBlockBody,
-	CodeBlockContent,
-	CodeBlockItem
+	DrawerContent
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
@@ -208,7 +204,11 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 						path={DEFAULT_URI}
 						beforeMount={handleEditorWillMount}
 						onMount={handleEditorDidMount}
-						options={{ fontSize, readOnly }}
+						options={{
+							fontSize,
+							readOnly
+						}}
+						className="[&_.line-numbers]:before:!content-none"
 						loading={null}
 						{...props}
 					/>
