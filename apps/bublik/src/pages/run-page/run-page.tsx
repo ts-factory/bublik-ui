@@ -58,7 +58,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						</ButtonTw>
 					</Tooltip>
 					<DefineCompromiseContainer runId={runId} />
-					<DiffFormContainer defaultValues={{ leftRunId: Number(runId) }} />
+					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
 					<ButtonTw asChild variant="secondary" size="xss">

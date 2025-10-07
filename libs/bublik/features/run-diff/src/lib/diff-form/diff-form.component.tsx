@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-
 import {
 	Input,
 	Popover,
@@ -12,24 +11,34 @@ import {
 	PopoverTrigger,
 	cn,
 	Icon,
-	ButtonTw
+	ButtonTw,
+	Tooltip
 } from '@/shared/tailwind-ui';
 
+const RunIdOrUrl = z
+	.string()
+	.trim()
+	.refine((val) => val !== '', { message: 'Must be a valid URL or Run ID' })
+	.superRefine((val, ctx) => {
+		const num = Number(val);
+		if (!isNaN(num) && val !== '') {
+			if (!Number.isInteger(num)) {
+				ctx.addIssue({ code: 'custom', message: 'Must not be a decimal' });
+			} else if (num <= 0) {
+				ctx.addIssue({ code: 'custom', message: 'Must be positive number' });
+			}
+		} else {
+			try {
+				new URL(val);
+			} catch {
+				ctx.addIssue({ code: 'custom', message: 'Must be a valid URL' });
+			}
+		}
+	});
+
 const DiffFormSchema = z.object({
-	leftRunId: z.coerce
-		.number({
-			invalid_type_error: 'Must be number',
-			required_error: 'Run ID must be specified'
-		})
-		.int({ message: 'Must not be a double number' })
-		.positive('Run ID must be positive number'),
-	rightRunId: z.coerce
-		.number({
-			invalid_type_error: 'Must be number',
-			required_error: 'Run ID must be specified'
-		})
-		.int({ message: 'Must not be a double number' })
-		.positive('Run ID must be positive number')
+	leftRunId: RunIdOrUrl,
+	rightRunId: RunIdOrUrl
 });
 
 export type DiffFormValues = z.infer<typeof DiffFormSchema>;
@@ -40,26 +49,20 @@ export interface DiffFormProps {
 	defaultOpen?: boolean;
 }
 
-export const DiffForm: FC<DiffFormProps> = ({
-	defaultOpen,
-	onSubmit,
-	defaultValues
-}) => {
+const DiffForm = (props: DiffFormProps) => {
+	const { defaultOpen, onSubmit, defaultValues } = props;
 	const { handleSubmit, register, formState, setFocus, getValues } =
 		useForm<DiffFormValues>({
 			defaultValues,
 			resolver: zodResolver(DiffFormSchema)
 		});
 	const [isOpen, setIsOpen] = useState(false);
-
 	const { leftRunId: leftRunError, rightRunId: rightRunError } =
 		formState.errors;
 
 	const handleOpenAutoFocus = (e: Event) => {
 		e.preventDefault();
-
 		const leftRunId = getValues('leftRunId');
-
 		if (leftRunId) {
 			setFocus('rightRunId');
 		} else {
@@ -92,20 +95,31 @@ export const DiffForm: FC<DiffFormProps> = ({
 						className="flex flex-col gap-4"
 						onSubmit={handleSubmit(onSubmit)}
 					>
-						<span className="text-[0.875rem] leading-[1.125rem] font-semibold">
-							Compare runs
-						</span>
+						<div className="flex items-center gap-2">
+							<span className="text-[0.875rem] leading-[1.125rem] font-semibold">
+								Compare Runs
+							</span>
+							<Tooltip content="You can provide run id as a number or provide URL to a run">
+								<div className="mr-auto text-primary hover:bg-primary-wash rounded-sm p-0.5">
+									<Icon
+										name="InformationCircleQuestionMark"
+										className="text-primary"
+										size={18}
+									/>
+								</div>
+							</Tooltip>
+						</div>
 						<Input
-							label="Left run id"
+							label="Left Run"
 							{...register('leftRunId')}
 							error={leftRunError?.message}
-							placeholder="12345678"
+							placeholder="Run ID or URL"
 						/>
 						<Input
-							label="Right run id"
+							label="Right Run"
 							{...register('rightRunId')}
 							error={rightRunError?.message}
-							placeholder="12345678"
+							placeholder="Run ID or URL"
 						/>
 						<ButtonTw
 							variant="primary"
@@ -114,7 +128,7 @@ export const DiffForm: FC<DiffFormProps> = ({
 							className="justify-center"
 							type="submit"
 						>
-							Submit
+							Compare
 						</ButtonTw>
 					</form>
 				</div>
@@ -122,3 +136,5 @@ export const DiffForm: FC<DiffFormProps> = ({
 		</Popover>
 	);
 };
+
+export { DiffForm };
