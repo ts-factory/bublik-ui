@@ -1,12 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useEffect } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useParams } from 'react-router-dom';
 
 import { RunReportContainer } from '@/bublik/features/run-report';
-import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
-import { useParams } from 'react-router-dom';
-import { skipToken } from '@reduxjs/toolkit/query';
+import { useGetRunDetailsQuery } from '@/services/bublik-api';
+
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 function RunReportPage() {
 	const { runId } = useParams<{ runId: string }>();
@@ -26,19 +27,15 @@ interface UseRunReportPageNameConfig {
 function useRunReportPageName({ runId }: UseRunReportPageNameConfig) {
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
 
-	useEffect(() => {
-		if (!runId) return;
+	let title = 'Report - Bublik';
 
-		if (!details) {
-			document.title = 'Report - Bublik';
-			return;
-		}
-
+	if (runId && details) {
 		const { main_package: name, start } = details;
 		const formattedTime = formatTimeToDot(start);
+		title = `${name} | ${formattedTime} | ${runId} | Report - Bublik`;
+	}
 
-		document.title = `${name} | ${formattedTime} | ${runId} | Report - Bublik`;
-	}, [details, runId]);
+	useTabTitleWithPrefix(title);
 }
 
 export { RunReportPage };

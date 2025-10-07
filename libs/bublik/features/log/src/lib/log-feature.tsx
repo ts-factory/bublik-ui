@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { formatTimeToDot } from '@/shared/utils';
@@ -20,6 +20,7 @@ import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import {
 	LinkToHistoryContainer,
@@ -35,20 +36,16 @@ function useLogTitle() {
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
 	const { data: tree } = useGetTreeByRunIdQuery(runId ?? skipToken);
 
-	useEffect(() => {
-		if (!details) {
-			document.title = 'Log - Bublik';
-			return;
-		}
+	const formattedTime = details?.start ? formatTimeToDot(details.start) : '';
+	const focusedTestName = focusId ? tree?.tree?.[focusId]?.name : '';
 
-		const { main_package: name, start } = details;
-		const formattedTime = formatTimeToDot(start);
-		const focusedTestName = focusId ? tree?.tree?.[focusId]?.name : '';
-
-		document.title = `${
-			focusedTestName ? `${focusedTestName} - ` : ''
-		}${name} | ${formattedTime} | ${runId} | Log - Bublik`;
-	}, [details, runId, focusId, tree?.tree]);
+	useTabTitleWithPrefix([
+		focusedTestName,
+		details?.main_package,
+		formattedTime,
+		runId,
+		'Log - Bublik'
+	]);
 }
 
 export interface LogFeatureProps {

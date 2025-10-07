@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQueryParam, JsonParam, withDefault } from 'use-query-params';
 import {
@@ -15,9 +15,11 @@ import { RunData, MergedRun } from '@/shared/types';
 import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { RowStateContextType, RunRowState } from '../hooks';
 import { DEFAULT_COLUMN_VISIBILITY } from './constants';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 const GlobalFilterParam = withDefault(JsonParam, []);
 const RowStateParam = withDefault(JsonParam, {});
@@ -188,25 +190,19 @@ export type useRunPageNameConfig = {
 };
 
 export const useRunPageName = ({ runId }: useRunPageNameConfig) => {
-	const { data: details } = useGetRunDetailsQuery(
-		Array.isArray(runId) ? runId[0] : runId
-	);
+	const singleRunId = Array.isArray(runId) ? runId[0] : runId;
+	const { data: details } = useGetRunDetailsQuery(singleRunId ?? skipToken);
 
-	useEffect(() => {
-		if (Array.isArray(runId)) {
-			document.title = `${runId.join(' | ')} - Runs - Multiple - Bublik`;
-
-			return;
-		}
-
-		if (!details) {
-			document.title = 'Run - Bublik';
-			return;
-		}
-
+	let title: string;
+	if (Array.isArray(runId)) {
+		title = `${runId.join(' | ')} - Runs - Multiple - Bublik`;
+	} else if (!details) {
+		title = 'Run - Bublik';
+	} else {
 		const { main_package: name, start } = details;
 		const formattedTime = formatTimeToDot(start);
+		title = `${name} | ${formattedTime} | ${runId} | Run - Bublik`;
+	}
 
-		document.title = `${name} | ${formattedTime} | ${runId} | Run - Bublik`;
-	}, [details, runId]);
+	useTabTitleWithPrefix(title);
 };

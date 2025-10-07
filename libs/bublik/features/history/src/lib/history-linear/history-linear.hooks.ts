@@ -1,10 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { OnChangeFn } from '@tanstack/react-table';
 
 import { isFunction } from '@/shared/utils';
+
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { selectLinearGlobalFilter, useHistoryActions } from '../slice';
@@ -43,12 +45,5 @@ export const useHistoryLinearGlobalFilter = () => {
 };
 
 export const useHistoryLinearTitle = (config: { testName?: string }) => {
-	useEffect(() => {
-		if (!config.testName) {
-			document.title = 'Linear - History - Bublik';
-			return;
-		}
-
-		document.title = `${config.testName} | Linear - History - Bublik`;
-	}, [config.testName]);
+	useTabTitleWithPrefix([config?.testName, 'Linear - History - Bublik']);
 };

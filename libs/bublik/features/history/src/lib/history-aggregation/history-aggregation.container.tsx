@@ -14,6 +14,7 @@ import { HistoryEmpty } from '../history-empty';
 import { useHistoryActions } from '../slice';
 import { HistoryError } from '../history-error';
 import { useLocation } from 'react-router-dom';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 export const HistoryAggregationContainer = () => {
 	const actions = useHistoryActions();
@@ -22,6 +23,8 @@ export const HistoryAggregationContainer = () => {
 		useAggregationGlobalFilter();
 	const state = useLocation().state as { fromRun?: boolean };
 	const { query } = useHistoryQuery();
+
+	useTabTitleWithPrefix([query?.testName, 'Aggregation - History - Bublik']);
 
 	const { data, isLoading, isFetching, error } = useGetHistoryAggregationQuery(
 		query,
@@ -32,15 +35,6 @@ export const HistoryAggregationContainer = () => {
 		() => actions.toggleIsGlobalSearchOpen(true),
 		[actions]
 	);
-
-	useEffect(() => {
-		if (!query.testName) {
-			document.title = 'Linear - History - Bublik';
-			return;
-		}
-
-		document.title = `${query.testName} | Aggregation - History - Bublik`;
-	}, [query]);
 
 	if (!query.testName) {
 		return (

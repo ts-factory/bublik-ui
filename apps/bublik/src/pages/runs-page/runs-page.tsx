@@ -7,8 +7,38 @@ import {
 	SelectionPopoverContainer
 } from '@/bublik/features/runs';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
+import { useSearchParams } from 'react-router-dom';
+import { formatTimeToDot, parseISODuration } from '@/shared/utils';
+import { formatDuration } from 'date-fns';
+
+function useRunsPageTitle() {
+	const [searchParams] = useSearchParams();
+
+	const startDate = searchParams.get('startDate') ?? '';
+	const endDate = searchParams.get('finishDate') ?? '';
+	const searchDuration = searchParams.get('duration') ?? '';
+	const calendarMode = searchParams.get('calendarMode') ?? '';
+
+	let title = 'Runs - Bublik';
+
+	if (startDate || endDate || searchDuration) {
+		if (calendarMode === 'default') {
+			const start = formatTimeToDot(startDate);
+			const end = formatTimeToDot(endDate);
+			title = `${start} - ${end} | Runs - Bublik`;
+		} else if (calendarMode === 'duration') {
+			const duration = parseISODuration(searchDuration);
+			title = `${formatDuration(duration)} | Runs - Bublik`;
+		}
+	}
+
+	useTabTitleWithPrefix(title);
+}
 
 function RunsPage() {
+	useRunsPageTitle();
+
 	return (
 		<>
 			<div className="flex flex-col gap-1 p-2">

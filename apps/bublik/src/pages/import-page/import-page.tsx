@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useDocumentTitle } from '@/shared/hooks';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 import {
 	ImportEventsTableContainer,
 	ImportLogProvider,
@@ -8,7 +8,7 @@ import {
 } from '@/bublik/features/run-import';
 
 export const ImportPage = () => {
-	useDocumentTitle('Import - Bublik');
+	useTabTitleWithPrefix('Import - Bublik');
 
 	return (
 		<div className="p-2 overflow-hidden h-full">

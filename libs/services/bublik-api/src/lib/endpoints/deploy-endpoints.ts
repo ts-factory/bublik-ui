@@ -15,6 +15,12 @@ import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 import { MaybePromise } from '../utils';
+import { z } from 'zod';
+import { config } from '@/bublik/config';
+
+const TabTitlePrefixResponseSchema = z.object({
+	tab_title_prefix: z.string().nullable()
+});
 
 export const deployEndpoints = {
 	endpoints: (
@@ -60,6 +66,21 @@ export const deployEndpoints = {
 				url: '/performance_check/',
 				params: { project: query.projects?.[0] }
 			})
+		}),
+		getTabTitlePrefix: build.query({
+			query: (query) => ({
+				url: withApiV2('/server/tab_title_prefix'),
+				params: {
+					project_id: query?.projects.length
+						? query?.projects?.join(config.queryDelimiter)
+						: undefined
+				}
+			}),
+			rawResponseSchema: TabTitlePrefixResponseSchema,
+			responseSchema: z.string().nullable(),
+			transformResponse: (resp: z.infer<typeof TabTitlePrefixResponseSchema>) =>
+				resp.tab_title_prefix,
+			argSchema: z.object({ projects: z.array(z.number()) }).optional()
 		})
 	})
 };

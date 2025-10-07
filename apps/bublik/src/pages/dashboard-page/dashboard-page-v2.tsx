@@ -10,14 +10,14 @@ import {
 	ModePickerContainer,
 	SearchBarContainer,
 	TodayButtonContainer,
-	TvModeContainer,
-	useDashboardTitle
+	TvModeContainer
 } from '@/bublik/features/dashboard-v2';
 import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 export const DashboardPageV2 = () => {
-	useDashboardTitle();
+	useTabTitleWithPrefix('Dashboard - Bublik');
 	const [searchParams] = useSearchParams();
 
 	const search = Object.fromEntries(searchParams.entries());

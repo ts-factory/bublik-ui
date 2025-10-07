@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import {
-	NavigateFunction,
 	NavigateOptions,
 	To,
 	useNavigate,
@@ -62,6 +61,22 @@ function useNavigateWithProject() {
 	return navigate;
 }
 
+function useTabTitleWithPrefix(title: string | (string | undefined)[]) {
+	const { projectIds } = useProjectSearch();
+	const { data: prefix } = bublikAPI.useGetTabTitlePrefixQuery(
+		{ projects: projectIds },
+		{ refetchOnMountOrArgChange: true }
+	);
+	useEffect(() => {
+		const titleParts = [
+			prefix,
+			...(Array.isArray(title) ? title.filter(Boolean) : [title])
+		].filter(Boolean);
+
+		document.title = titleParts.join(' - ');
+	}, [prefix, title]);
+}
+
 interface UseProjectParams {
 	id: number | null;
 }
@@ -97,4 +112,9 @@ function useDeleteProject({ id }: UseProjectParams) {
 	return { deleteProject };
 }
 
-export { useProjectSearch, useDeleteProject, useNavigateWithProject };
+export {
+	useProjectSearch,
+	useDeleteProject,
+	useNavigateWithProject,
+	useTabTitleWithPrefix
+};

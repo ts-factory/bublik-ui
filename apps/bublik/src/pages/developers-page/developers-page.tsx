@@ -3,11 +3,11 @@
 import { Outlet } from 'react-router-dom';
 
 import { config } from '@/bublik/config';
-import { useDocumentTitle } from '@/shared/hooks';
 import { IframeToOldBublik } from '@/shared/tailwind-ui';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 export const FlowerFeature = () => {
-	useDocumentTitle('Flower - Bublik');
+	useTabTitleWithPrefix('Flower - Bublik');
 
 	return (
 		<IframeToOldBublik
@@ -19,7 +19,7 @@ export const FlowerFeature = () => {
 };
 
 export const DevelopersLayout = () => {
-	useDocumentTitle('Dev - Bublik');
+	useTabTitleWithPrefix('Dev - Bublik');
 
 	return <Outlet />;
 };

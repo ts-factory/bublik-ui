@@ -1,21 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
-import {
-	formatDuration,
-	formatISODuration,
-	intervalToDuration,
-	sub
-} from 'date-fns';
+import { formatISODuration, intervalToDuration, sub } from 'date-fns';
 
-import {
-	formatTimeToAPI,
-	formatTimeToDot,
-	parseISODuration
-} from '@/shared/utils';
+import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
@@ -30,7 +21,6 @@ function RunsFormContainer() {
 	const [searchParams, setSearchParams] = useSearchParams(location.search);
 	const localGlobalFilter = useSelector(selectGlobalFilter);
 	const allTags = useSelector(selectAllTags);
-	useRunsPageTitle();
 
 	useMount(() => {
 		const initialGlobalFilter =
@@ -169,35 +159,6 @@ function formToSearchParams(
 
 	params.set('page', '1');
 	return params;
-}
-
-function useRunsPageTitle() {
-	const [searchParams] = useSearchParams();
-
-	useEffect(() => {
-		const startDate = searchParams.get('startDate') ?? '';
-		const endDate = searchParams.get('finishDate') ?? '';
-		const searchDuration = searchParams.get('duration') ?? '';
-		const calendarMode = searchParams.get('calendarMode') ?? '';
-
-		if (!startDate && !endDate && !searchDuration) {
-			document.title = 'Runs - Bublik';
-			return;
-		}
-
-		if (calendarMode === 'default') {
-			const start = formatTimeToDot(startDate);
-			const end = formatTimeToDot(endDate);
-			document.title = `${start} - ${end} | Runs - Bublik`;
-			return;
-		}
-
-		if (calendarMode === 'duration') {
-			const duration = parseISODuration(searchDuration);
-			document.title = `${formatDuration(duration)} | Runs - Bublik`;
-			return;
-		}
-	}, [searchParams]);
 }
 
 export { RunsFormContainer };

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect } from 'react';
+
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
@@ -10,6 +10,7 @@ import {
 	useGetMeasurementsQuery
 } from '@/services/bublik-api';
 import { HISTORY_MAX_RESULTS_IDS } from '@/bublik/config';
+import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { useHistoryQuery } from '../hooks';
 import { useCombinedCharts } from './combined-charts.context';
@@ -93,11 +94,7 @@ function useCombinedView() {
 }
 
 function useHistoryMeasurementsTitle(testName?: string) {
-	useEffect(() => {
-		document.title = testName
-			? `${testName} | Measurements - History - Bublik`
-			: 'Measurements - History - Bublik';
-	}, [testName]);
+	useTabTitleWithPrefix([testName, 'Measurements - History - Bublik']);
 }
 
 export {

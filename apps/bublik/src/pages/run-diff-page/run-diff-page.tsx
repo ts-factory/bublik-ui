@@ -3,7 +3,6 @@
 import { memo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { useDocumentTitle } from '@/shared/hooks';
 import { routes } from '@/router';
 import { usePrefetchImmediately } from '@/services/bublik-api';
 import {
@@ -19,7 +18,10 @@ import {
 	RunDetailsDiffContainer,
 	RunDiffContainer
 } from '@/bublik/features/run-diff';
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	LinkWithProject,
+	useTabTitleWithPrefix
+} from '@/bublik/features/projects';
 
 export interface RunDiffHeaderProps {
 	leftRunId: string;
@@ -143,7 +145,7 @@ export const RunDiffPage = () => {
 	const leftRunId = searchParams.get('left');
 	const rightRunId = searchParams.get('right');
 
-	useDocumentTitle(`Diff - ${leftRunId} | ${rightRunId} - Bublik`);
+	useTabTitleWithPrefix(`Diff - ${leftRunId} | ${rightRunId} - Bublik`);
 
 	if (!leftRunId || !rightRunId) {
 		return (
