@@ -1,7 +1,7 @@
 {
-	"date": "2025.10.02",
-	"summary": "fix(config): overlapping editor line numbers",
-	"revision": "4366ff12",
-	"branch": "release-2.2.0",
-	"latestTag": "v2.2.0"
+	"date": "2025.10.08",
+	"summary": "feat(run): [compare] support pasting full run URLs in comparison form",
+	"revision": "87976f41",
+	"branch": "release-2.3.0",
+	"latestTag": "v2.3.0"
 }

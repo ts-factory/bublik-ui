@@ -1,5 +1,17 @@
 
 
+## [2.3.0](https://github.com/ts-factory/bublik-ui/compare/v2.2.0...v2.3.0) (2025-10-08)
+
+
+### 🚀 New Feature
+
+* **run:** [compare] support pasting full run URLs in comparison form ([87976f4](https://github.com/ts-factory/bublik-ui/commit/87976f414d6b9a08cfc5d6dde07ea68377c93607)), closes [#413](https://github.com/ts-factory/bublik-ui/issues/413)
+
+
+### ♻ Code Refactoring
+
+* **projects:** get tab title prefix from API ([9c4c2cb](https://github.com/ts-factory/bublik-ui/commit/9c4c2cb79b8ac66ef86739e65717dc1ff4d481a0))
+
 ## [2.2.0](https://github.com/ts-factory/bublik-ui/compare/v2.1.0...v2.2.0) (2025-10-02)
 
 
