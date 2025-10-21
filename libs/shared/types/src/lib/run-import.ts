@@ -18,13 +18,15 @@ export enum Facility {
 
 export const LogEventSchema = z.object({
 	event_id: z.number(),
-	status: z.enum(['SUCCESS', 'FAILURE']).or(z.string()),
+	status: z.enum(['SUCCESS', 'FAILURE', 'STARTED']).or(z.string()),
 	uri: z.string(),
-	celery_task: z.string().optional(),
+	celery_task: z.string(),
 	facility: z.nativeEnum(Facility),
 	severity: z.nativeEnum(Severity),
 	timestamp: z.string(),
-	error_msg: z.string().optional()
+	run_id: z.number().optional().nullable(),
+	error_msg: z.string().optional().nullable(),
+	runtime: z.number().optional().nullable()
 });
 
 export const LogQuerySchema = z.object({
@@ -54,10 +56,21 @@ export type LogEvent = z.infer<typeof LogEventSchema>;
 
 export type LogQuery = z.infer<typeof LogQuerySchema>;
 
-export type LogApiResponse = {
-	pagination: { count: number };
-	results: LogEvent[];
-};
+export const LogRawApiResponseSchema = z.object({
+	pagination: z.object({ count: z.number() }),
+	results: z.array(z.array(LogEventSchema))
+});
+
+const LogEventWithChildrenSchema = LogEventSchema.extend({
+	children: z.array(LogEventSchema)
+});
+
+export type LogEventWithChildren = z.infer<typeof LogEventWithChildrenSchema>;
+
+export const LogEventResponseSchema = z.object({
+	pagination: z.object({ count: z.number() }),
+	results: z.array(LogEventWithChildrenSchema)
+});
 
 export type ImportEventResponse = z.infer<
 	typeof ImportRunMutationResponseSchema

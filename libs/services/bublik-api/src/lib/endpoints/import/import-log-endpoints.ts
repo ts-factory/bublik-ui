@@ -1,13 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { EndpointBuilder, QueryReturnValue } from '@reduxjs/toolkit/query';
+import { z } from 'zod';
 
 import {
 	ImportEventResponse,
 	ImportRunInput,
-	LogApiResponse,
-	LogQuery,
-	ImportJsonLog
+	ImportJsonLog,
+	LogRawApiResponseSchema,
+	LogQuerySchema,
+	LogEventResponseSchema
 } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 import { config } from '@/bublik/config';
@@ -22,7 +24,7 @@ export const importLogEventsEndpoint = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getImportEventLog: build.query<LogApiResponse, LogQuery>({
+		getImportEventLog: build.query({
 			query: (query) => ({
 				url: withApiV2('/session_import'),
 				params: {
@@ -30,6 +32,28 @@ export const importLogEventsEndpoint = {
 					date: query.date ? formatTimeToAPI(query.date) : undefined
 				},
 				cache: 'no-cache'
+			}),
+			argSchema: LogQuerySchema,
+			responseSchema: LogEventResponseSchema,
+			rawResponseSchema: LogRawApiResponseSchema,
+			transformResponse: (
+				response: z.infer<typeof LogRawApiResponseSchema>
+			): z.infer<typeof LogEventResponseSchema> => ({
+				...response,
+				results: response.results.map((result) => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					const latest = result.at(0)!;
+					const other = result.slice(0);
+					const maybeRunId = result.find(
+						(item) => item?.run_id !== undefined
+					)?.run_id;
+
+					return {
+						...latest,
+						children: other,
+						run_id: maybeRunId
+					};
+				})
 			}),
 			providesTags: [BUBLIK_TAG.importEvents]
 		}),

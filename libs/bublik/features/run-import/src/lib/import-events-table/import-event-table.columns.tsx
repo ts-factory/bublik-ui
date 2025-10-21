@@ -1,39 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ComponentProps, ComponentType } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import { z } from 'zod';
 import { RocketIcon } from '@radix-ui/react-icons';
 
-import { Facility, LogEvent } from '@/shared/types';
+import { LogEventWithChildren } from '@/shared/types';
 import { config } from '@/bublik/config';
-import { Badge, ButtonTw, cn, cva, Icon, Tooltip } from '@/shared/tailwind-ui';
+import { Badge, ButtonTw, cn, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { formatTimeToDot } from '@/shared/utils';
 
-import { FACILITY_MAP, SEVERITY_MAP } from '../utils';
+import { SEVERITY_MAP } from '../utils';
 import { getSeverityBgColor } from './import-event-table-utils';
 import { useImportLog } from './import-log.component';
+import { FacilityBadge } from './import-event-table.component';
+import { LinkWithProject } from '@/bublik/features/projects';
+import { routes } from '@/router';
 
-export const statusBadgeStyles = cva({
-	base: [
-		'inline-flex',
-		'px-2 py-0.5',
-		'text-xs',
-		'font-semibold',
-		'leading-5',
-		'rounded',
-		'items-center'
-	],
-	variants: {
-		expected: { true: ['bg-badge-3', 'text-text-expected'] },
-		unexpected: { true: ['bg-badge-5', 'text-text-unexpected'] }
-	},
-	compoundVariants: [
-		{ expected: false, unexpected: false, className: 'bg-badge-10' }
-	]
-});
-
-function getBgByStatus(status: string): string {
+export function getBgByStatus(status: string): string {
 	const statusMap: Record<string, string> = {
 		SUCCESS: 'bg-bg-ok',
 		FAILURE: 'bg-bg-error',
@@ -44,34 +28,36 @@ function getBgByStatus(status: string): string {
 	return statusMap[status] ?? '';
 }
 
-function getIconByStatus(status: string) {
+export function getIconByStatus(status: string) {
 	const statusMap: Record<
 		string,
 		ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>
 	> = {
 		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
 		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />,
-		STARTED: (props) => <Icon name="ProgressIndicator" {...props} />,
+		STARTED: (props) => <Icon name="Play" {...props} />,
 		RECEIVED: (props) => <Icon name="Download" {...props} />
 	};
 
 	return statusMap[status];
 }
 
-export const columns: ColumnDef<LogEvent>[] = [
-	{
+const columnHelper = createColumnHelper<LogEventWithChildren>();
+
+export const columns = [
+	columnHelper.accessor('status', {
 		id: 'EVENT_TYPE',
 		header: '',
-		accessorKey: 'status',
 		cell: (cell) => {
-			const status = cell.getValue<LogEvent['status']>();
+			const status = cell.getValue();
 			const Icon = getIconByStatus(status);
 
 			return (
-				<Tooltip content={status ?? '1'} side="right" align="start">
+				<Tooltip content={status} side="right" align="start">
 					<div
 						className={cn(
-							'h-[calc(100%+2px)] rounded-l w-[24px] flex flex-col items-center -translate-x-px -translate-y-px',
+							'h-[calc(100%+2px)] w-[24px] flex flex-col items-center',
+							cell.row.getIsExpanded() ? 'rounded-tl' : 'rounded-l',
 							getBgByStatus(status)
 						)}
 					>
@@ -80,21 +66,33 @@ export const columns: ColumnDef<LogEvent>[] = [
 				</Tooltip>
 			);
 		},
-		meta: { className: 'w-px p-0' }
-	},
-	{
+		meta: { className: 'p-0', width: '24px' }
+	}),
+	columnHelper.accessor('celery_task', {
 		id: 'ACTIONS',
 		header: () => <span className="pl-2">Actions</span>,
-		accessorKey: 'celery_task',
 		cell: (cell) => {
-			const taskId = cell.getValue<LogEvent['celery_task']>();
+			const taskId = cell.getValue();
 			// eslint-disable-next-line
 			const { toggle } = useImportLog();
+			const runId = cell.row.original.run_id;
 
 			if (!taskId) return null;
 
 			return (
 				<div className="flex flex-col justify-center gap-1 w-fit">
+					{runId && (
+						<LinkWithProject to={routes.run({ runId })}>
+							<ButtonTw
+								variant="secondary"
+								size="xss"
+								className="justify-start"
+							>
+								<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
+								<span>Run</span>
+							</ButtonTw>
+						</LinkWithProject>
+					)}
 					<ButtonTw
 						variant="secondary"
 						size="xss"
@@ -122,68 +120,32 @@ export const columns: ColumnDef<LogEvent>[] = [
 				</div>
 			);
 		},
-		meta: { className: 'w-px' }
-	},
-	{
+		meta: { width: 'min-content' }
+	}),
+	columnHelper.accessor('timestamp', {
 		header: 'Date',
-		accessorKey: 'timestamp',
 		cell: (cell) => {
-			const date = cell.getValue<LogEvent['timestamp']>();
+			const date = cell.getValue();
 
 			if (!date) return null;
 
 			return formatTimeToDot(date);
-		}
-	},
-	{
+		},
+		meta: { width: '0.1fr' }
+	}),
+	columnHelper.accessor('facility', {
 		header: () => <span className="pl-2">Facility</span>,
-		accessorKey: 'facility',
 		cell: (cell) => {
-			const value = cell.getValue<LogEvent['facility']>();
+			const facility = cell.getValue();
 
-			const facilityStyles = cva({
-				base: [
-					'inline-flex',
-					'items-center',
-					'w-fit',
-					'py-0.5',
-					'px-2',
-					'rounded',
-					'border',
-					'border-transparent',
-					'leading-[1.125rem]',
-					'text-[0.75rem]',
-					'font-medium',
-					'transition-colors'
-				],
-				variants: {
-					variant: {
-						[Facility.ImportRuns]: ['bg-blue-100', 'text-blue-800'],
-						[Facility.MetaCaterigozation]: ['bg-purple-100', 'text-purple-800'],
-						[Facility.AddTags]: ['bg-green-100', 'text-green-800'],
-						[Facility.Celery]: ['bg-amber-100', 'text-amber-800']
-					}
-				}
-			});
-
-			if (!value) return null;
-
-			const facility = FACILITY_MAP.has(value)
-				? FACILITY_MAP.get(value)
-				: value;
-
-			return (
-				<span className={facilityStyles({ variant: value })}>
-					{facility?.toUpperCase()}
-				</span>
-			);
-		}
-	},
-	{
+			return <FacilityBadge facility={facility} />;
+		},
+		meta: { width: '0.1fr' }
+	}),
+	columnHelper.accessor('severity', {
 		header: () => <span className="pl-2">Severity</span>,
-		accessorKey: 'severity',
 		cell: (cell) => {
-			const value = cell.getValue<LogEvent['severity']>();
+			const value = cell.getValue();
 
 			if (!value) return null;
 
@@ -194,39 +156,68 @@ export const columns: ColumnDef<LogEvent>[] = [
 						: value.toUpperCase()}
 				</Badge>
 			);
-		}
-	},
-	{
+		},
+		meta: { width: '0.1fr' }
+	}),
+	columnHelper.accessor('error_msg', {
 		header: 'Message',
-		accessorKey: 'error_msg',
 		cell: (cell) => {
-			const value = cell.getValue<LogEvent['error_msg']>();
+			const value = cell.getValue();
 
 			if (!value) return null;
 
 			return <span className="whitespace-pre-wrap font-mono">{value}</span>;
-		}
-	},
-
-	{
+		},
+		meta: { width: '1fr' }
+	}),
+	columnHelper.accessor('uri', {
 		id: 'URI',
 		header: 'URL',
-		accessorKey: 'uri',
 		cell: (cell) => {
-			const url = cell.getValue<LogEvent['uri']>();
+			const url = cell.getValue();
 
 			if (!z.string().url().safeParse(url).success) return null;
 
 			return (
 				<a
 					href={url}
-					className="hover:underline whitespace-pre-wrap"
+					className="hover:underline whitespace-pre-wrap text-primary"
 					target="_blank"
 					rel="noreferrer"
 				>
 					{url}
 				</a>
 			);
-		}
-	}
+		},
+		meta: { width: '1fr' }
+	}),
+	columnHelper.display({
+		id: 'expand',
+		cell: ({ row }) => {
+			if (!row.getCanExpand()) return;
+
+			return (
+				<Tooltip content="Expand/Collapse">
+					<button
+						className={cn(
+							'grid place-items-center p-1 rounded-md hover:bg-primary-wash text-primary',
+							row.getIsExpanded() &&
+								'bg-primary text-white hover:text-white hover:bg-primary'
+						)}
+						onClick={() => row.toggleExpanded()}
+					>
+						<Icon
+							name="ArrowShortTop"
+							className={cn(
+								'size-5',
+								'rotate-90',
+								row.getIsExpanded() && 'rotate-180'
+							)}
+						/>
+					</button>
+				</Tooltip>
+			);
+		},
+		meta: { width: 'min-content' }
+	})
 ];

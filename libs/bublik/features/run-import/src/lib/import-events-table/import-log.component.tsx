@@ -17,7 +17,7 @@ import {
 	useQueryParam,
 	withDefault
 } from 'use-query-params';
-import { PauseIcon } from '@radix-ui/react-icons';
+import { PauseIcon, RocketIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -238,8 +238,8 @@ export const ImportLogTableContainer = (
 							target="_blank"
 							rel="noreferrer"
 						>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							<span>Flower</span>
+							<RocketIcon className="mr-1.5" />
+							<span>Task</span>
 						</a>
 					</ButtonTw>
 					<button

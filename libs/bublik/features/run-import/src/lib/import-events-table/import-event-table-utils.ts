@@ -5,7 +5,7 @@ import { Severity } from '@/shared/types';
 export const getSeverityBgColor = (severity: Severity) => {
 	const colorMap = new Map<Severity, string>([
 		[Severity.DEBUG, 'bg-badge-6'],
-		[Severity.ERROR, 'bg-badge-12 text-white'],
+		[Severity.ERROR, 'bg-badge-5 text-text-unexpected'],
 		[Severity.WARNING, 'bg-bg-warning text-white']
 	]);
 

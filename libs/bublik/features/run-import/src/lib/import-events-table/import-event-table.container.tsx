@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
-import { PaginationState } from '@tanstack/react-table';
+import { ExpandedState, PaginationState } from '@tanstack/react-table';
 
 import { LogQuery } from '@/shared/types';
 import { useGetImportEventLogQuery } from '@/services/bublik-api';
@@ -36,6 +36,15 @@ function useImportLogPagination() {
 	);
 
 	return { pagination, setPagination };
+}
+
+function useImportLogExpanded() {
+	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
+		'expanded',
+		JsonParam
+	);
+
+	return { expanded, setExpanded };
 }
 
 const useEventFilters = () => {
@@ -72,6 +81,7 @@ const useEventFilters = () => {
 export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 	const { query, setQuery, onResetClick } = useEventFilters();
 	const { pagination, setPagination } = useImportLogPagination();
+	const { expanded, setExpanded } = useImportLogExpanded();
 	const { data, isLoading, error } = useGetImportEventLogQuery(
 		{
 			...query,
@@ -98,6 +108,7 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 		container.addEventListener('scroll', handleScroll);
 		return () => container.removeEventListener('scroll', handleScroll);
 	}, []);
+
 	return (
 		<>
 			<div className="px-6 py-4 bg-white rounded-t-xl">
@@ -121,6 +132,8 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 						data={data.results}
 						pagination={pagination}
 						setPagination={setPagination}
+						expanded={expanded}
+						setExpanded={setExpanded}
 						rowCount={data.pagination.count}
 						isScrolled={isScrolled}
 					/>

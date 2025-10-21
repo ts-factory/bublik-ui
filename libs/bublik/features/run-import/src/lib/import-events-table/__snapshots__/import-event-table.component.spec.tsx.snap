@@ -170,75 +170,65 @@ exports[`ImportEventTableComponent > should render loading state 1`] = `
 exports[`ImportEventTableComponent > should render successfully 1`] = `
 <DocumentFragment>
   <div>
-    <table
-      class="border-separate border-spacing-y-1 w-full h-full"
-    >
-      <thead
-        class="bg-white sticky top-0 z-10 transition-shadow"
-      >
-        <tr
-          class="h-8.5"
-        >
-          <th
-            class="tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem] w-px p-0"
-            colspan="1"
-          />
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem] w-px"
-            colspan="1"
-          >
-            <span
-              class="pl-2"
-            >
-              Actions
-            </span>
-          </th>
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
-            colspan="1"
-          >
-            Date
-          </th>
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
-            colspan="1"
-          >
-            <span
-              class="pl-2"
-            >
-              Facility
-            </span>
-          </th>
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
-            colspan="1"
-          >
-            <span
-              class="pl-2"
-            >
-              Severity
-            </span>
-          </th>
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
-            colspan="1"
-          >
-            Message
-          </th>
-          <th
-            class="px-1 py-2 tracking-wider text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
-            colspan="1"
-          >
-            URL
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="bg-white"
-      />
-    </table>
     <div
-      class="flex items-center justify-center"
+      class="w-full overflow-hidden"
+    >
+      <div
+        class="grid"
+        style="grid-template-columns: 24px min-content 0.1fr 0.1fr 0.1fr 1fr 1fr min-content;"
+      >
+        <div
+          class="tracking-wider sticky top-0 mb-1 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white p-0"
+        />
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          <span
+            class="pl-2"
+          >
+            Actions
+          </span>
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          Date
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          <span
+            class="pl-2"
+          >
+            Facility
+          </span>
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          <span
+            class="pl-2"
+          >
+            Severity
+          </span>
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          Message
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        >
+          URL
+        </div>
+        <div
+          class="tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+        />
+      </div>
+    </div>
+    <div
+      class="flex items-center justify-center mt-4"
     >
       <div
         class="flex gap-1"

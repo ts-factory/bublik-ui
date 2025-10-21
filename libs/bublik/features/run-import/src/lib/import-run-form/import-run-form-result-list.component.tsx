@@ -1,5 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { format } from 'date-fns';
+import { RocketIcon } from '@radix-ui/react-icons';
+
 import { config } from '@/bublik/config';
 import { ImportEventResponse } from '@/shared/types';
 import {
@@ -9,43 +12,8 @@ import {
 	Icon
 } from '@/shared/tailwind-ui';
 
-import { statusBadgeStyles } from '../import-events-table/import-event-table.columns';
 import { useImportLog } from '../import-events-table';
-import { format } from 'date-fns';
-import { RocketIcon } from '@radix-ui/react-icons';
-
-function StatusIcon({ status }: { status: 'success' | 'fail' }) {
-	switch (status) {
-		case 'success':
-			return (
-				<Icon
-					name="InformationCircleCheckmark"
-					className="h-4 w-4 text-text-expected mr-1"
-				/>
-			);
-		case 'fail':
-			return (
-				<Icon
-					name="InformationCircleCrossMark"
-					className="h-4 w-4 text-text-unexpected mr-1"
-				/>
-			);
-	}
-}
-
-const StatusBadge = ({ status }: { status: 'success' | 'fail' }) => {
-	return (
-		<span
-			className={statusBadgeStyles({
-				expected: status === 'success',
-				unexpected: status === 'fail'
-			})}
-		>
-			<StatusIcon status={status} />
-			{status === 'success' ? 'STARTED' : 'FAILED'}
-		</span>
-	);
-};
+import { StatusBadge } from '../import-events-table/import-event-table.component';
 
 interface RunImportResultProps {
 	results: ImportEventResponse[];
@@ -75,7 +43,7 @@ function RunImportResult({
 				{results.map((result, i) => (
 					<li key={i} className="space-y-2 p-4">
 						<div className="flex items-center justify-between gap-2">
-							<StatusBadge status={result.taskId ? 'success' : 'fail'} />
+							<StatusBadge status={result.taskId ? 'SUCCESS' : 'FAILURE'} />
 							<span className="text-xs text-gray-500">
 								{format(
 									new Date(
