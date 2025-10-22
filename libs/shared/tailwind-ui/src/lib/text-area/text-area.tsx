@@ -4,7 +4,7 @@ import React, { ComponentPropsWithRef, forwardRef } from 'react';
 
 import { cn, cva, VariantProps } from '../utils';
 
-const textAreaStyles = cva({
+export const textAreaStyles = cva({
 	base: 'block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none',
 	variants: {
 		variant: {

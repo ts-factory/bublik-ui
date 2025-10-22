@@ -18,6 +18,7 @@ import { InfoList } from './info-list';
 
 import { InfoListItem } from './info-list/list-item';
 import styles from './run-details.module.scss';
+import { RunCommentFormContainer } from './run-comment.container';
 
 export const RunDetailsLoading = () => {
 	return (
@@ -173,9 +174,10 @@ export interface RunDetailsProps {
 	statusByNok: string;
 	isFetching?: boolean;
 	conclusionReason?: string | null;
+	runComment?: string;
 }
 
-export const RunDetails: FC<RunDetailsProps> = (props) => {
+function RunDetails(props: RunDetailsProps) {
 	const {
 		isFullMode,
 		runId,
@@ -193,7 +195,8 @@ export const RunDetails: FC<RunDetailsProps> = (props) => {
 		status,
 		statusByNok,
 		isFetching,
-		conclusionReason
+		conclusionReason,
+		runComment
 	} = props;
 
 	const data = useMemo(() => {
@@ -277,7 +280,15 @@ export const RunDetails: FC<RunDetailsProps> = (props) => {
 						</div>
 					</div>
 				) : null}
+				<div className="p-4 col-span-full border-t border-border-primary">
+					<RunCommentFormContainer
+						runId={runId}
+						defaultValues={{ comment: runComment ?? '' }}
+					/>
+				</div>
 			</div>
 		</div>
 	);
-};
+}
+
+export { RunDetails };

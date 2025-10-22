@@ -369,6 +369,52 @@ export const runEndpoints = {
 		>({
 			query: (iterationId) =>
 				withApiV2(`/results/${iterationId}/artifacts_and_verdicts`)
+		}),
+		getRunComment: build.query({
+			query: ({ runId }) => withApiV2(`/runs/${runId}/comment`),
+			argSchema: z.object({ runId: z.number() }),
+			responseSchema: z.object({ comment: z.string().nullable() }),
+			providesTags: ['run-comment']
+		}),
+		deleteRunComment: build.mutation({
+			query: ({ runId }) => ({
+				url: withApiV2(`/runs/${runId}/comment`),
+				method: 'DELETE'
+			}),
+			argSchema: z.object({ runId: z.number() }),
+			invalidatesTags: ['run-comment']
+		}),
+		createRunComment: build.mutation({
+			query: ({ runId, comment }) => ({
+				url: withApiV2(`/runs/${runId}/comment`),
+				method: 'POST',
+				body: { comment }
+			}),
+			argSchema: z.object({
+				runId: z.number(),
+				comment: z.string()
+			}),
+			responseSchema: z.object({
+				id: z.number(),
+				comment: z.string()
+			}),
+			invalidatesTags: ['run-comment']
+		}),
+		updateRunComment: build.mutation({
+			query: ({ runId, comment }) => ({
+				url: withApiV2(`/runs/${runId}/comment`),
+				method: 'PUT',
+				body: { comment: comment }
+			}),
+			argSchema: z.object({
+				runId: z.number(),
+				comment: z.string()
+			}),
+			responseSchema: z.object({
+				id: z.number(),
+				comment: z.string()
+			}),
+			invalidatesTags: ['run-comment']
 		})
 	})
 };

@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
-import { useGetRunDetailsQuery } from '@/services/bublik-api';
+import { bublikAPI, useGetRunDetailsQuery } from '@/services/bublik-api';
 
 import {
 	RunDetails,
@@ -16,17 +14,29 @@ export interface InfoContainerProps {
 	isFullMode?: boolean;
 }
 
-export const RunDetailsContainer: FC<InfoContainerProps> = ({
-	runId,
-	isFullMode
-}) => {
-	const { data, isLoading, isFetching, error } = useGetRunDetailsQuery(runId);
+function RunDetailsContainer(props: InfoContainerProps) {
+	const { runId, isFullMode } = props;
+	const { data, isLoading, isFetching, error } = useGetRunDetailsQuery(
+		props.runId
+	);
+	const {
+		data: commentData,
+		isLoading: commentIsLoading,
+		error: commentError,
+		isFetching: commentIsFetching
+	} = bublikAPI.useGetRunCommentQuery({ runId: Number(runId) });
 
-	if (error) return <RunDetailsError error={error} />;
+	if (error || commentError) {
+		return <RunDetailsError error={error || commentError} />;
+	}
 
-	if (isLoading) return <RunDetailsLoading />;
+	if (isLoading || commentIsLoading) {
+		return <RunDetailsLoading />;
+	}
 
-	if (!data) return <RunDetailsEmpty />;
+	if (!data || !commentData) {
+		return <RunDetailsEmpty />;
+	}
 
 	return (
 		<RunDetails
@@ -47,7 +57,10 @@ export const RunDetailsContainer: FC<InfoContainerProps> = ({
 			specialCategories={data.special_categories}
 			status={data.status}
 			statusByNok={data.status_by_nok}
-			isFetching={isFetching}
+			isFetching={isFetching || commentIsFetching}
+			runComment={commentData?.comment ?? ''}
 		/>
 	);
-};
+}
+
+export { RunDetailsContainer };
