@@ -11,7 +11,12 @@ import {
 	useRef,
 	useState
 } from 'react';
-import { StringParam, useQueryParam } from 'use-query-params';
+import {
+	BooleanParam,
+	StringParam,
+	useQueryParam,
+	withDefault
+} from 'use-query-params';
 import { PauseIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -56,7 +61,10 @@ function useImportLog() {
 
 function ImportLogProvider({ children }: PropsWithChildren) {
 	const [taskId, setTaskId] = useQueryParam('taskId', StringParam);
-	const [enablePolling, setEnablePolling] = useState(false);
+	const [enablePolling = false, setEnablePolling] = useQueryParam(
+		'poll',
+		withDefault(BooleanParam, false)
+	);
 
 	function toggle(task: string, enablePolling?: boolean) {
 		return () => {
@@ -70,6 +78,7 @@ function ImportLogProvider({ children }: PropsWithChildren) {
 
 	function close() {
 		setTaskId(null);
+		setEnablePolling(null);
 	}
 
 	return (
