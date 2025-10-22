@@ -17,6 +17,7 @@ import {
 	UseFormReturn
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Project } from '@/services/bublik-api';
 
 import {
 	AriaDateRangeField,
@@ -27,6 +28,7 @@ import {
 	DialogTitle,
 	FormAlertError,
 	Icon,
+	SelectInput,
 	TextField,
 	toast,
 	Tooltip
@@ -35,16 +37,19 @@ import { ImportRunsFormSchema, ImportRunsFormValues } from '@/shared/types';
 
 import { stringToArray } from './import-run-form.utils';
 
+const DEFAULT_PROJECT_VALUE = 'default';
+
 export interface ImportRunFormProps {
 	onImportRunsSubmit?: (values: ImportRunsFormValues) => void;
+	projects: Project[];
 }
 
 const defaultValues: ImportRunsFormValues = {
 	runs: [
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null },
-		{ url: '', force: null, range: null }
+		{ url: '', force: null, range: null, project: null },
+		{ url: '', force: null, range: null, project: null },
+		{ url: '', force: null, range: null, project: null },
+		{ url: '', force: null, range: null, project: null }
 	]
 };
 
@@ -55,7 +60,7 @@ export type ImportRunFormHandle = {
 export const ImportRunForm = forwardRef<
 	ImportRunFormHandle,
 	ImportRunFormProps
->(({ onImportRunsSubmit }, ref) => {
+>(({ onImportRunsSubmit, projects }, ref) => {
 	const formControl = useForm<ImportRunsFormValues>({
 		defaultValues,
 		resolver: zodResolver(ImportRunsFormSchema)
@@ -128,24 +133,49 @@ export const ImportRunForm = forwardRef<
 		});
 	};
 
+	const handleProjectFieldChange = (value: string) => {
+		fields.forEach((_, idx) => {
+			if (value === DEFAULT_PROJECT_VALUE) {
+				formControl.setValue(`runs.${idx}.project`, null);
+				return;
+			}
+
+			formControl.setValue(`runs.${idx}.project`, parseInt(value));
+		});
+	};
+
 	const allForceEnabled =
 		fields.length > 0 &&
-		fields.every((field, index) => {
+		fields.every((_, index) => {
 			const value = formControl.watch(`runs.${index}.force`);
 			return value === true;
 		});
 
+	const projectOptions = [
+		{
+			value: DEFAULT_PROJECT_VALUE,
+			displayValue: 'No Project (Default)'
+		},
+		...projects.map((project) => ({
+			value: project.id.toString(),
+			displayValue: project.name
+		}))
+	];
+
+	const runs = formControl.watch('runs');
+
+	const uniqueProjects = new Set(
+		runs.map((run) => run.project?.toString() ?? DEFAULT_PROJECT_VALUE)
+	);
+
+	const projectValue =
+		uniqueProjects.size === 1 ? [...uniqueProjects][0] : DEFAULT_PROJECT_VALUE;
+
 	return (
-		<div>
+		<>
 			<DialogTitle className="text-lg font-semibold leading-none tracking-tight">
 				Import Runs
 			</DialogTitle>
-
-			<DialogDescription className="mt-1.5 mb-6 text-sm text-gray-500">
-				You can <strong>paste</strong> URLs of runs you want to import. <br />
-				URLs should be separated by a <strong>new line</strong> or{' '}
-				<strong>space</strong>.
-			</DialogDescription>
 			{rootError ? (
 				<FormAlertError title={'Error'} description={rootError} />
 			) : null}
@@ -158,6 +188,35 @@ export const ImportRunForm = forwardRef<
 					})
 				)}
 			>
+				<SelectInput
+					label="Project"
+					options={projectOptions}
+					value={projectValue}
+					onValueChange={handleProjectFieldChange}
+				/>
+				<p className="text-gray-500 text-sm leading-relaxed font-normal space-y-1">
+					<span>
+						Run must be linked to a project. If it isn’t, the import will fail.{' '}
+						<br />
+						You can link it here in the import form or in the run’s
+						<code className="mx-1 bg-gray-100 px-1 py-0.5 rounded text-gray-700">
+							meta_data.json
+						</code>
+						.
+						<br />
+					</span>
+					<span className="font-medium text-gray-600">Precedence order:</span>
+					<ol className="list-decimal list-inside mt-1 space-y-0.5">
+						<li>Project specified in the import form</li>
+						<li>
+							Project specified in{' '}
+							<code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">
+								meta_data.json
+							</code>
+						</li>
+					</ol>
+				</p>
+
 				<div className="flex flex-col gap-4">
 					<div className="grid grid-cols-[1fr,min-content,min-content] gap-y-2 gap-x-2">
 						{HEADER.map((label) => (
@@ -178,10 +237,12 @@ export const ImportRunForm = forwardRef<
 						rounded="lg"
 						size="md"
 						variant="outline"
-						onClick={() => append({ url: '', force: false, range: null })}
+						onClick={() =>
+							append({ url: '', force: false, range: null, project: null })
+						}
 					>
 						<Icon name="AddSymbol" size={24} className="mr-1.5 text-primary" />
-						<span>Add Another</span>
+						<span>Add</span>
 					</ButtonTw>
 				</div>
 				<div className="flex items-center gap-1">
@@ -212,7 +273,7 @@ export const ImportRunForm = forwardRef<
 					</ButtonTw>
 				</div>
 			</form>
-		</div>
+		</>
 	);
 });
 

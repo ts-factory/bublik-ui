@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { ImportEventResponse, ImportRunsFormValues } from '@/shared/types';
-import { useImportRunsMutation } from '@/services/bublik-api';
+import { bublikAPI, useImportRunsMutation } from '@/services/bublik-api';
 
 import {
 	ImportRunForm,
@@ -62,11 +62,16 @@ export const useImportTasks = () => {
 export const ImportRunFormContainer = () => {
 	const { step, onFormClose, onFormSubmit, celeryTasks, importFormRef } =
 		useImportTasks();
+	const { data, error, isLoading } = bublikAPI.useGetAllProjectsQuery();
 
 	return (
 		<ImportRunFormModal onClose={onFormClose}>
-			{step === 'form' && (
-				<ImportRunForm onImportRunsSubmit={onFormSubmit} ref={importFormRef} />
+			{step === 'form' && !error && !isLoading && data && (
+				<ImportRunForm
+					projects={data}
+					onImportRunsSubmit={onFormSubmit}
+					ref={importFormRef}
+				/>
 			)}
 			{step === 'result' && <RunImportResult results={celeryTasks} />}
 		</ImportRunFormModal>

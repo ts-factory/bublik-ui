@@ -10,7 +10,8 @@ export const ImportRunsFormSchema = z.object({
 				range: z
 					.object({ startDate: z.date(), endDate: z.date() })
 					.or(z.null()),
-				force: z.boolean().or(z.null())
+				force: z.boolean().or(z.null()),
+				project: z.number().optional().nullable()
 			})
 		)
 		.min(1)

@@ -43,7 +43,7 @@ function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 							</ButtonTw>
 						</DialogClose>
 					</Tooltip>
-					<div className="flex-1">{props.children}</div>
+					<div className="flex-1 flex flex-col gap-4">{props.children}</div>
 				</TwScrollArea>
 			</ModalContent>
 		</Dialog>

@@ -9,12 +9,21 @@ export const getUrl = (run: ImportRunInput) => {
 	const FORCE_PARAM_KEY = 'force';
 	const START_DATE_PARAM_KEY = 'from';
 	const END_DATE_PARAM_KEY = 'to';
+	const PROJECT_PARAM_KEY = 'project';
 
 	const originalUrl = new URL(run.url);
 
-	if (run.force) originalUrl.searchParams.set(FORCE_PARAM_KEY, 'true');
+	if (run.force) {
+		originalUrl.searchParams.set(FORCE_PARAM_KEY, 'true');
+	}
 
-	if (!run.range) return originalUrl;
+	if (run.project) {
+		originalUrl.searchParams.set(PROJECT_PARAM_KEY, run.project.toString());
+	}
+
+	if (!run.range) {
+		return originalUrl;
+	}
 
 	originalUrl.searchParams.set(
 		START_DATE_PARAM_KEY,
