@@ -1,7 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Fragment } from 'react';
-import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
+import { CSSProperties, Fragment } from 'react';
+import {
+	ColumnDef,
+	createColumnHelper,
+	Row,
+	RowData
+} from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
 import { RESULT_TYPE, RunDataResults } from '@/shared/types';
@@ -20,6 +25,16 @@ import { KeyList } from './key-list';
 import { highlightDifferences } from './matcher';
 import { useGlobalRequirements, useRunTableRowState } from '../hooks';
 import { COLUMN_ID, ObtainedResultFilterSchema } from './constants';
+
+declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface ColumnMeta<TData extends RowData, TValue> {
+		style?: CSSProperties;
+		width?: string;
+		className?: string;
+		headerCellClassName?: string;
+	}
+}
 
 function diffModeWarning() {
 	toast.warning('Parameters diff mode is enabled. Filters are disabled.');
@@ -94,96 +109,8 @@ export const getColumns = ({
 						/>
 					</div>
 				);
-			}
-		}),
-		helper.accessor('requirements', {
-			header: 'Requirements',
-			id: COLUMN_ID.REQUIREMENTS,
-			cell: (cell) => {
-				const requirements = cell.getValue() ?? [];
-				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
-
-				function handleRequirementClick(requirement: string) {
-					if (mode === 'diff') {
-						diffModeWarning();
-						return;
-					}
-
-					cell.column.setFilterValue(
-						filterValue.includes(requirement)
-							? filterValue.filter((v) => v !== requirement)
-							: [...filterValue, requirement]
-					);
-				}
-
-				return (
-					<RequirementsList
-						requirements={requirements}
-						onRequirementClick={handleRequirementClick}
-					/>
-				);
 			},
-			filterFn: fitlerIncludesSome
-		}),
-		helper.accessor('artifacts', {
-			header: 'Artifacts',
-			id: COLUMN_ID.ARTIFACTS,
-			cell: (cell) => {
-				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
-
-				function handleArtifactClick(artifact: string) {
-					if (mode === 'diff') {
-						diffModeWarning();
-						return;
-					}
-
-					cell.column.setFilterValue(
-						filterValue.includes(artifact)
-							? filterValue.filter((v) => v !== artifact)
-							: [...filterValue, artifact]
-					);
-				}
-
-				return (
-					<div className="flex flex-col flex-wrap gap-1">
-						<ArtifactsList
-							artifacts={cell.getValue()}
-							filterValue={filterValue}
-							onArtifactClick={handleArtifactClick}
-						/>
-					</div>
-				);
-			},
-			filterFn: fitlerIncludesSome
-		}),
-		helper.accessor('expected_results', {
-			header: 'Expected Results',
-			cell: (cell) => {
-				const expectedResults = cell.getValue();
-
-				if (expectedResults.length === 0) return;
-
-				return (
-					<div className="flex flex-col flex-wrap gap-1">
-						{expectedResults.map((result, idx) => {
-							return (
-								<Fragment key={idx}>
-									{result.verdicts && result.result_type ? (
-										<VerdictList
-											variant="expected"
-											verdicts={result.verdicts}
-											result={result.result_type}
-										/>
-									) : null}
-									{result?.keys?.length && result.keys ? (
-										<KeyList items={result.keys} />
-									) : null}
-								</Fragment>
-							);
-						})}
-					</div>
-				);
-			}
+			meta: { width: 'max-content' }
 		}),
 		helper.accessor(
 			(data) => ({
@@ -292,9 +219,72 @@ export const getColumns = ({
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
 
 					return matchesResult && matchesVerdicts;
-				}
+				},
+				meta: { headerCellClassName: 'pl-[12px]' }
 			}
 		),
+		helper.accessor('expected_results', {
+			header: 'Expected Results',
+			cell: (cell) => {
+				const expectedResults = cell.getValue();
+
+				if (expectedResults.length === 0) return;
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						{expectedResults.map((result, idx) => {
+							return (
+								<Fragment key={idx}>
+									{result.verdicts && result.result_type ? (
+										<VerdictList
+											variant="expected"
+											verdicts={result.verdicts}
+											result={result.result_type}
+										/>
+									) : null}
+									{result?.keys?.length && result.keys ? (
+										<KeyList items={result.keys} />
+									) : null}
+								</Fragment>
+							);
+						})}
+					</div>
+				);
+			},
+			meta: { headerCellClassName: 'pl-[12px]' }
+		}),
+		helper.accessor('artifacts', {
+			header: 'Artifacts',
+			id: COLUMN_ID.ARTIFACTS,
+			cell: (cell) => {
+				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
+
+				function handleArtifactClick(artifact: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
+					cell.column.setFilterValue(
+						filterValue.includes(artifact)
+							? filterValue.filter((v) => v !== artifact)
+							: [...filterValue, artifact]
+					);
+				}
+
+				return (
+					<div className="flex flex-col flex-wrap gap-1">
+						<ArtifactsList
+							artifacts={cell.getValue()}
+							filterValue={filterValue}
+							onArtifactClick={handleArtifactClick}
+						/>
+					</div>
+				);
+			},
+			filterFn: fitlerIncludesSome,
+			meta: { headerCellClassName: 'pl-[12px]' }
+		}),
 		helper.accessor('parameters', {
 			header: 'Parameters',
 			id: COLUMN_ID.PARAMETERS,
@@ -333,7 +323,38 @@ export const getColumns = ({
 					/>
 				);
 			},
-			filterFn: fitlerIncludesSome
+			filterFn: fitlerIncludesSome,
+			meta: { headerCellClassName: 'pl-[12px]' }
+		}),
+		helper.accessor('requirements', {
+			header: 'Requirements',
+			id: COLUMN_ID.REQUIREMENTS,
+			cell: (cell) => {
+				const requirements = cell.getValue() ?? [];
+				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
+
+				function handleRequirementClick(requirement: string) {
+					if (mode === 'diff') {
+						diffModeWarning();
+						return;
+					}
+
+					cell.column.setFilterValue(
+						filterValue.includes(requirement)
+							? filterValue.filter((v) => v !== requirement)
+							: [...filterValue, requirement]
+					);
+				}
+
+				return (
+					<RequirementsList
+						requirements={requirements}
+						onRequirementClick={handleRequirementClick}
+					/>
+				);
+			},
+			filterFn: fitlerIncludesSome,
+			meta: { headerCellClassName: 'pl-[12px]' }
 		})
 	] as ColumnDef<RunDataResults>[];
 };

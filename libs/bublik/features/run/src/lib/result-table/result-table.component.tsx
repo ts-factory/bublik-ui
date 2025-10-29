@@ -1,14 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties, memo, useCallback, useMemo } from 'react';
-import { ColumnFiltersState, Updater } from '@tanstack/react-table';
+import {
+	CSSProperties,
+	Fragment,
+	memo,
+	useCallback,
+	useMemo,
+	useRef
+} from 'react';
+import {
+	ColumnFiltersState,
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	Updater,
+	useReactTable
+} from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { RunDataResults } from '@/shared/types';
 import {
-	TwTable,
-	TableClassNames,
 	cn,
 	Skeleton,
 	TwTableProps,
@@ -25,6 +38,7 @@ import {
 	StringArraySchema
 } from './constants';
 import { useGlobalRequirements } from '../hooks';
+import { useIsSticky } from '@/shared/hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
@@ -50,26 +64,6 @@ export const ResultTableError = () => <div>Error...</div>;
 
 export const ResultTableEmpty = () => <div>Empty...</div>;
 
-const gridClassName = 'grid grid-cols-[140px,0.6fr,0.6fr,0.6fr,0.6fr,1fr]';
-
-const getBodyRowClassName = () => {
-	return cn(
-		gridClassName,
-		'py-2 px-1 transition-colors',
-		'border border-transparent hover:border-primary',
-		'bg-primary-wash rounded-md'
-	);
-};
-
-const classNames: TableClassNames<RunDataResults> = {
-	headerRow: `h-[38px] grid sticky bg-primary-wash rounded-b ${gridClassName} px-4`,
-	headerCell:
-		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center',
-	body: 'space-y-1 [&>:first-of-type]:mt-1',
-	bodyRow: getBodyRowClassName,
-	bodyCell: 'px-2'
-};
-
 export interface ResultTableProps {
 	rowId: string;
 	data: RunDataResults[];
@@ -86,7 +80,6 @@ export const ResultTable = memo(
 	({
 		data = [],
 		rowId,
-		getRowProps,
 		showLinkToRun = false,
 		height,
 		mode = 'default',
@@ -131,9 +124,31 @@ export const ResultTable = memo(
 			[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar]
 		);
 
-		const { stickyOffset, getHeaderProps } = useStickyHeader({
+		const { stickyOffset } = useStickyHeader({
 			hasFilters: hasToolbar,
 			height
+		});
+
+		const table = useReactTable<RunDataResults>({
+			data,
+			getRowId: (row) => String(row.result_id),
+			columns,
+			manualPagination: true,
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel(),
+			getFilteredRowModel: getFilteredRowModel(),
+			enableSorting: false,
+			state: { columnFilters },
+			onColumnFiltersChange: setColumnFilters
+		});
+
+		const gridTemplateColumns = columns
+			.map((col) => col.meta?.['width'] || 'minmax(0, 1fr)')
+			.join(' ');
+
+		const headerRef = useRef<HTMLDivElement | null>(null);
+		const { isSticky } = useIsSticky(headerRef, {
+			offset: stickyOffset
 		});
 
 		return (
@@ -142,7 +157,7 @@ export const ResultTable = memo(
 					<div
 						className={cn(
 							'flex items-center justify-between px-4',
-							'bg-white h-9 sticky border-x border-b border-border-primary z-[1]'
+							'bg-white h-9 sticky border-x border-b border-border-primary z-20'
 						)}
 						style={{ top: `${height + 102}px` }}
 					>
@@ -209,19 +224,81 @@ export const ResultTable = memo(
 						</div>
 					</div>
 				) : null}
-				<TwTable
-					data={data}
-					getRowId={(row) => String(row.result_id)}
-					columns={columns}
-					classNames={classNames}
-					stickyOffset={stickyOffset}
-					manualPagination
-					enableSorting={false}
-					getRowProps={getRowProps}
-					state={{ columnFilters }}
-					onColumnFiltersChange={setColumnFilters}
-					getHeaderProps={getHeaderProps}
-				/>
+				<div className="w-full">
+					<div className="grid relative" style={{ gridTemplateColumns }}>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<Fragment key={headerGroup.id}>
+								{headerGroup.headers.map((header, idx, headers) => {
+									const className = header.column.columnDef.meta?.['className'];
+									const headerCellClassName =
+										header.column.columnDef.meta?.['headerCellClassName'];
+
+									return (
+										<div
+											key={header.id}
+											className={cn(
+												'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+												'bg-primary-wash sticky',
+												'flex items-center',
+												idx === 0 && 'rounded-bl-md',
+												idx === headers.length - 1 && 'rounded-br-md',
+												className,
+												headerCellClassName
+											)}
+											style={{
+												top: Math.abs(stickyOffset) - 1,
+												boxShadow: isSticky
+													? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+													: 'none'
+											}}
+											ref={(el) => {
+												if (idx === 0) {
+													headerRef.current = el;
+												}
+											}}
+										>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+														header.column.columnDef.header,
+														header.getContext()
+												  )}
+										</div>
+									);
+								})}
+							</Fragment>
+						))}
+
+						{table.getRowModel().rows.map((row, idx, arr) => (
+							<Fragment key={row.id}>
+								{row.getVisibleCells().map((cell, cellIdx, cellArr) => {
+									const className = cell.column.columnDef.meta?.['className'];
+
+									return (
+										<div
+											key={cell.id}
+											className={cn(
+												'px-1 py-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
+												'flex items-start whitespace-pre-wrap',
+												'bg-primary-wash',
+												idx !== arr.length - 1 && 'mb-1',
+												cellIdx === 0 && 'rounded-l-md',
+												cellIdx === cellArr.length - 1 && 'rounded-r-md',
+												className
+											)}
+											style={{ overflowWrap: 'anywhere' }}
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</div>
+									);
+								})}
+							</Fragment>
+						))}
+					</div>
+				</div>
 			</div>
 		);
 	}
