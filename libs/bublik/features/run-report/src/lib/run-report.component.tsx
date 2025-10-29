@@ -16,6 +16,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 	Icon,
+	Separator,
 	Spinner,
 	toast
 } from '@/shared/tailwind-ui';
@@ -77,10 +78,13 @@ function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 	return (
 		<div className="bg-white flex flex-col rounded">
 			<CardHeader label="Table Of Contents" />
-			<ul className="flex flex-col gap-2 overflow-auto">
-				{contents.map((item) => (
+			<ul className="flex flex-col py-2">
+				{contents.map((item, idx, arr) => (
 					<li key={item.id}>
 						<TableOfContentsItem item={item} />
+						{idx < arr.length - 1 && (
+							<Separator orientation="horizontal" className="my-2" />
+						)}
 					</li>
 				))}
 			</ul>
@@ -117,32 +121,36 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 	return (
 		<Collapsible open={open} onOpenChange={setOpen} className="">
 			<div
-				className="px-4 py-1 flex items-center gap-1 text-sm"
+				className="flex items-center gap-1 h-[22px] pr-2"
 				style={{ paddingLeft: `${depth * 12 + 16}px` }}
 			>
-				{item.children ? (
-					<CollapsibleTrigger className="grid place-items-center p-0.5 hover:bg-primary-wash hover:text-text-primary">
-						<Icon
-							name="ChevronDown"
-							className={cn('size-4', open ? '' : '-rotate-90')}
-						/>
-					</CollapsibleTrigger>
-				) : (
-					<div className="size-5 rounded-full" />
-				)}
-				<LinkWithProject
-					to={{
-						search: `?config=${configid}`,
-						hash: encodeURIComponent(item.id)
-					}}
-					className={cn(
-						(item.type === 'test-block' || item.type === 'arg-val-block') &&
-							'font-semibold'
+				<div className="border h-full rounded border-transparent px-1 hover:border-primary flex items-center gap-1 w-full">
+					{item.children ? (
+						<CollapsibleTrigger className="grid place-items-center p-0.5 rounded hover:bg-primary-wash hover:text-text-primary">
+							<Icon
+								name="ChevronDown"
+								className={cn('size-3', open ? '' : '-rotate-90')}
+							/>
+						</CollapsibleTrigger>
+					) : (
+						<div className="size-4 rounded-full" />
 					)}
-					onClick={scrollToItem}
-				>
-					{item.label}
-				</LinkWithProject>
+					<LinkWithProject
+						to={{
+							search: `?config=${configid}`,
+							hash: encodeURIComponent(item.id)
+						}}
+						className={cn(
+							'text-text-primary leading-[0.875rem] font-medium text-[0.875rem]',
+							item.type === 'test-block' || item.type === 'arg-val-block'
+								? 'font-semibold'
+								: 'font-medium'
+						)}
+						onClick={scrollToItem}
+					>
+						{item.label}
+					</LinkWithProject>
+				</div>
 			</div>
 			{item.children && item.children.length ? (
 				<CollapsibleContent asChild>
