@@ -155,9 +155,11 @@ interface LogPreviewProps {
 function LogPreview(props: LogPreviewProps) {
 	const { runId, resultId } = props;
 	const [page, setPage] = useState<number | undefined>();
+	const resolvedPage = page === 1 ? undefined : page;
 	const { data, error, isLoading, isFetching } = useGetLogJsonQuery({
 		id: resultId,
-		page: typeof page !== 'undefined' ? page.toString() : undefined
+		page:
+			typeof resolvedPage !== 'undefined' ? resolvedPage.toString() : undefined
 	});
 	const {
 		data: runDetails,
