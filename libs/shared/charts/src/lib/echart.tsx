@@ -31,7 +31,7 @@ import {
 	TooltipComponent,
 	DataZoomComponentOption
 } from 'echarts/components';
-import { SVGRenderer } from 'echarts/renderers';
+import { CanvasRenderer } from 'echarts/renderers';
 import type {
 	SeriesOption,
 	XAXisComponentOption,
@@ -55,7 +55,7 @@ echarts.use([
 	LegendComponent,
 	PieChart,
 	BarChart,
-	SVGRenderer
+	CanvasRenderer
 ]);
 
 export type {
