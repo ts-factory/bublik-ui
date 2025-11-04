@@ -68,6 +68,15 @@ function LogPreviewContainer(
 		defaultProp: open,
 		onChange: onOpenChange
 	});
+	const [page, setPage] = useState<number | undefined>();
+	const resolvedPage = page === 1 ? undefined : page;
+
+	const handlePageClick = useCallback(
+		(_: string, page: number) => {
+			setPage(page);
+		},
+		[setPage]
+	);
 
 	return (
 		<DrawerRoot open={open} onOpenChange={_setOpen}>
@@ -133,7 +142,13 @@ function LogPreviewContainer(
 									</CardHeader>
 
 									{resultId ? (
-										<LogPreview runId={runId} resultId={resultId} />
+										<LogPreview
+											key={`${resultId}_${page}`}
+											runId={runId}
+											resultId={resultId}
+											page={resolvedPage}
+											onPageChange={handlePageClick}
+										/>
 									) : (
 										<div>No result ID provided!</div>
 									)}
@@ -150,29 +165,21 @@ function LogPreviewContainer(
 interface LogPreviewProps {
 	runId: number;
 	resultId: number;
+	page?: number;
+	onPageChange?: (_: string, page: number) => void;
 }
 
 function LogPreview(props: LogPreviewProps) {
-	const { runId, resultId } = props;
-	const [page, setPage] = useState<number | undefined>();
-	const resolvedPage = page === 1 ? undefined : page;
+	const { runId, resultId, page, onPageChange } = props;
 	const { data, error, isLoading, isFetching } = useGetLogJsonQuery({
 		id: resultId,
-		page:
-			typeof resolvedPage !== 'undefined' ? resolvedPage.toString() : undefined
+		page: typeof page !== 'undefined' ? page.toString() : undefined
 	});
 	const {
 		data: runDetails,
 		isLoading: runDetailsLoading,
 		error: runDetailsError
 	} = useGetRunDetailsQuery(runId ?? skipToken);
-
-	const handlePageClick = useCallback(
-		(_: string, page: number) => {
-			setPage(page);
-		},
-		[setPage]
-	);
 
 	if (isLoading || runDetailsLoading) {
 		return <SessionLoading />;
@@ -201,7 +208,7 @@ function LogPreview(props: LogPreviewProps) {
 				isFetching && 'pointer-events-none opacity-40'
 			)}
 		>
-			<LogTableContextProvider onPageClick={handlePageClick}>
+			<LogTableContextProvider onPageClick={onPageChange}>
 				<SessionRoot root={data} />
 			</LogTableContextProvider>
 		</div>
