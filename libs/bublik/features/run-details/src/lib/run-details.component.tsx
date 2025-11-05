@@ -39,7 +39,7 @@ export const RunDetailsError = ({ error = {} }: RunDetailsErrorProps) => {
 	const { description, status, title } = getErrorMessage(error);
 
 	return (
-		<div className="flex items-center justify-center flex-grow">
+		<div className="flex items-center justify-center flex-grow p-4">
 			<div className="flex items-center gap-4">
 				<Icon
 					name="TriangleExclamationMark"
