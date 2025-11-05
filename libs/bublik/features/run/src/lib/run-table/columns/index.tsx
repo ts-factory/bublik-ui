@@ -56,26 +56,26 @@ import { ColumnId } from '../types';
 import { COLUMN_GROUPS } from '../constants';
 
 function getHistoryViewLink(
-	name: string,
+	path: string[],
 	runIds: number[],
 	maybeDate?: string
 ): To {
-	const query = new HistorySearchBuilder(name).withRunIds(runIds);
+	const query = new HistorySearchBuilder(path.join('/')).withRunIds(runIds);
 	if (maybeDate) query.withAnchorDate(maybeDate);
 
 	return { pathname: '/history', search: stringifySearch(query.build()) };
 }
 
 interface HistoryRunLinksDropdownMenuProps {
-	testName: string;
 	runIds: number[];
+	path: string[];
 }
 
 function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
-	const { runIds, testName } = props;
+	const { runIds, path } = props;
 	const [open, setOpen] = useState(false);
 	const { data } = useGetRunDetailsQuery(props.runIds?.[0] ?? skipToken);
-	const historyLink = getHistoryViewLink(testName, runIds, data?.finish);
+	const historyLink = getHistoryViewLink(path, runIds, data?.finish);
 
 	return (
 		<DropdownMenu onOpenChange={setOpen}>
@@ -140,7 +140,10 @@ function getColumns({ projectId, runIds }: GetColumnsOptions) {
 					depth={row.depth}
 					trailing={
 						runIds && runIds.length === 1 && type === NodeEntity.Test ? (
-							<HistoryRunLinksDropdownMenu runIds={runIds} testName={name} />
+							<HistoryRunLinksDropdownMenu
+								runIds={runIds}
+								path={row.original.path}
+							/>
 						) : null
 					}
 				/>
