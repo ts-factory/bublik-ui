@@ -1,5 +1,39 @@
 
 
+## [2.4.0](https://github.com/ts-factory/bublik-ui/compare/v2.3.0...v2.4.0) (2025-11-18)
+
+
+### 🚀 New Feature
+
+* **import:** [form] add `project` field to form ([1378923](https://github.com/ts-factory/bublik-ui/commit/1378923ce147282ab463ee73336cb6c900b8b0be))
+* **import:** add "Try Again" button to trigger re-import of the run ([7baa22a](https://github.com/ts-factory/bublik-ui/commit/7baa22a5f16c18a46cd2eddd89781bfe8d8fbe46))
+* **run:** add comment form to run details page ([60386c0](https://github.com/ts-factory/bublik-ui/commit/60386c0dc9832d85395ed863b025e50c11769edf))
+
+
+### 💅 Polish
+
+* **report:** [TOC] change font size and spacing to improve clarity ([8f43850](https://github.com/ts-factory/bublik-ui/commit/8f43850b9b587bd90173299da1330959671af4e1))
+* **run:** [details] add padding to error state ([c5e96ab](https://github.com/ts-factory/bublik-ui/commit/c5e96ab8e74cfeb6b87809e53e75e610cc38a534))
+
+
+### 🐛 Bug Fix
+
+* **import:** open log modal with polling enabled in case of `STARTED` state ([024c609](https://github.com/ts-factory/bublik-ui/commit/024c6091fb389a36401cf30a0a9f40a96920669b))
+* **log:** [preview] fix incorrectly handling for first log page ([0320a17](https://github.com/ts-factory/bublik-ui/commit/0320a170462a3a742aab30b9deffda939abc51fe))
+* **log:** [preview] reset log table state on pagination change ([2156d47](https://github.com/ts-factory/bublik-ui/commit/2156d47b2ebb8ac0450f3cf8a4a88311113099fc))
+* **run:** use full test path for history search ([6a39791](https://github.com/ts-factory/bublik-ui/commit/6a397916406a1b0b349eaaa168fcda237dd282e1))
+
+
+### ♻ Code Refactoring
+
+* **import:** display timeline for each import task on row click ([456d0c7](https://github.com/ts-factory/bublik-ui/commit/456d0c70d3f0c99a8d934a8eaa9f5cc4cf4abef5))
+* **run:** reorder columns and align headers with badge placement ([2dd6b13](https://github.com/ts-factory/bublik-ui/commit/2dd6b13cdbe6525ce1fdbc435defb2f4e13e2df0))
+
+
+### ⚡ Performance Improvements
+
+* **measurements:** use canvas renderer for plots ([0bc05ce](https://github.com/ts-factory/bublik-ui/commit/0bc05ce4591890522e59697c5d99e748cadbedee))
+
 ## [2.3.0](https://github.com/ts-factory/bublik-ui/compare/v2.2.0...v2.3.0) (2025-10-08)
 
 

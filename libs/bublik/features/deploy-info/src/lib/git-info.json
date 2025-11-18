@@ -1,7 +1,7 @@
 {
-	"date": "2025.10.08",
-	"summary": "feat(run): [compare] support pasting full run URLs in comparison form",
-	"revision": "87976f41",
-	"branch": "release-2.3.0",
-	"latestTag": "v2.3.0"
+	"date": "2025.11.19",
+	"summary": "feat(import): add \"Try Again\" button to trigger re-import of the run",
+	"revision": "7baa22a5",
+	"branch": "release-2.4.0",
+	"latestTag": "v2.4.0"
 }
