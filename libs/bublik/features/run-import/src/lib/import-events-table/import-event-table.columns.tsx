@@ -5,17 +5,25 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { z } from 'zod';
 import { RocketIcon } from '@radix-ui/react-icons';
 
-import { LogEventWithChildren } from '@/shared/types';
+import { Facility, LogEventWithChildren, Severity } from '@/shared/types';
 import { config } from '@/bublik/config';
-import { Badge, ButtonTw, cn, Icon, Tooltip } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import { useImportRunsMutation } from '@/services/bublik-api';
+import {
+	Badge,
+	ButtonTw,
+	cn,
+	Icon,
+	toast,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { formatTimeToDot } from '@/shared/utils';
+import { routes } from '@/router';
 
 import { SEVERITY_MAP } from '../utils';
 import { getSeverityBgColor } from './import-event-table-utils';
 import { useImportLog } from './import-log.component';
 import { FacilityBadge } from './import-event-table.component';
-import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 
 export function getBgByStatus(status: string): string {
 	const statusMap: Record<string, string> = {
@@ -194,28 +202,57 @@ export const columns = [
 	columnHelper.display({
 		id: 'expand',
 		cell: ({ row }) => {
-			if (!row.getCanExpand()) return;
+			const isError =
+				row.original.severity === Severity.ERROR &&
+				row.original.facility === Facility.ImportRuns;
+
+			// eslint-disable-next-line react-hooks/rules-of-hooks
+			const [importRuns] = useImportRunsMutation();
 
 			return (
-				<Tooltip content="Expand/Collapse">
-					<button
-						className={cn(
-							'grid place-items-center p-1 rounded-md hover:bg-primary-wash text-primary',
-							row.getIsExpanded() &&
-								'bg-primary text-white hover:text-white hover:bg-primary'
-						)}
-						onClick={() => row.toggleExpanded()}
-					>
-						<Icon
-							name="ArrowShortTop"
+				<div className="flex items-center gap-2 w-full justify-end">
+					{isError ? (
+						<ButtonTw
+							variant="secondary"
+							size="xss"
+							onClick={async () => {
+								const promise = importRuns([
+									{ force: true, url: row.original.uri, range: null }
+								]);
+
+								toast.promise(promise, {
+									success: 'Triggered re-import successfully',
+									error: 'Failed to trigger re-import'
+								});
+
+								await promise;
+							}}
+						>
+							<Icon name="Refresh" size={20} className="mr-1.5" />
+							<span>Try Again</span>
+						</ButtonTw>
+					) : null}
+					<Tooltip content="Expand/Collapse">
+						<button
 							className={cn(
-								'size-5',
-								'rotate-90',
-								row.getIsExpanded() && 'rotate-180'
+								'grid place-items-center p-1 rounded-md hover:bg-primary-wash text-primary',
+								row.getIsExpanded() &&
+									'bg-primary text-white hover:text-white hover:bg-primary',
+								!row.getCanExpand() && 'hidden'
 							)}
-						/>
-					</button>
-				</Tooltip>
+							onClick={() => row.toggleExpanded()}
+						>
+							<Icon
+								name="ArrowShortTop"
+								className={cn(
+									'size-5',
+									'rotate-90',
+									row.getIsExpanded() && 'rotate-180'
+								)}
+							/>
+						</button>
+					</Tooltip>
+				</div>
 			);
 		},
 		meta: { width: 'min-content' }
