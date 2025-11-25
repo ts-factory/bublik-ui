@@ -1,168 +1,118 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-/* eslint-disable @nx/enforce-module-boundaries */
-import { forwardRef, useMemo } from 'react';
-
-import { getErrorMessage, useGetDeployInfoQuery } from '@/services/bublik-api';
-import { useProjectSearch } from '@/bublik/features/projects';
-import { cva, Tooltip } from '@/shared/tailwind-ui';
 import { formatTimeToDot } from '@/shared/utils';
+import { cva, Tooltip } from '@/shared/tailwind-ui';
+import {
+	bublikAPI,
+	getErrorMessage,
+	VersionSummary
+} from '@/services/bublik-api';
 
-import deployInfo from '../git-info.json';
+import frontendInfo from '../git-info.json';
 
-export const wrapperStyles = cva({
-	base: 'flex flex-col py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[76px] h-full',
+const frontendVersion: VersionSummary = {
+	branch: frontendInfo.branch,
+	revision: frontendInfo.revision,
+	date: new Date(frontendInfo.date),
+	tag: frontendInfo.latestTag,
+	summary: frontendInfo.summary
+};
+
+const wrapper = cva({
+	base: 'flex flex-col py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[40px] h-full',
 	variants: {
-		isLoading: { true: 'animate-pulse' },
-		isError: { true: 'bg-bg-fillError' }
-	},
-	compoundVariants: [
-		{ isError: false, isLoading: false, class: 'bg-[#FFDD86]' },
-		{ isError: false, isLoading: true, class: 'bg-[#FFDD86]' }
-	]
+		state: {
+			loading: 'animate-pulse bg-[#FFDD86]',
+			error: 'bg-bg-fillError',
+			success: 'bg-[#FFDD86]'
+		}
+	}
 });
 
-const textStyles = cva({
-	base: 'text-sm leading-6 text-text-secondary'
-});
+const text = cva({ base: 'text-sm leading-6 text-text-secondary' });
 
-const formatInfo = (projectName: string, summary: DeploySummary) => {
+const formatVersion = (name: string, summary: VersionSummary) => {
 	const branch = summary.branch ? `${summary.branch}: ` : '';
 	const revision = summary.revision ? summary.revision : '';
-	const date = summary.date ? `${summary.date}` : '';
-	const latestTag = summary.latestTag ? `${summary.latestTag}` : '';
+	const date = summary.date
+		? `${formatTimeToDot(summary.date.toISOString())}`
+		: '';
+	const latestTag = summary.tag ? `— ${summary.tag}` : '';
 
-	return `${projectName}: (${branch}${revision}), ${date} — ${latestTag}`;
+	return `${name}: (${branch}${revision}), ${date} ${latestTag}`;
 };
 
-export interface DeployInfoString {
-	summary: DeploySummary;
-	projectName: string;
+export interface FormattedVersionInfoProps {
+	version: VersionSummary;
+	name: string;
 }
 
-export const DeployInfoString = forwardRef<
-	HTMLAnchorElement | HTMLSpanElement,
-	DeployInfoString
->(({ summary, projectName }, ref) => {
-	const resultString = formatInfo(projectName, summary);
+function FormattedVersionInfo(props: FormattedVersionInfoProps) {
+	const { version, name } = props;
+	const formatted = formatVersion(name, version);
 
-	return (
-		<span className={textStyles()} ref={ref}>
-			{resultString}
-		</span>
-	);
-});
-
-export interface DeployInfoErrorProps {
-	error: unknown;
+	return <span className={text()}>{formatted}</span>;
 }
 
-export const DeployInfoError = ({ error }: DeployInfoErrorProps) => {
-	const { status, title, description } = getErrorMessage(error);
+function DeployInfoLoading() {
+	return <div className={wrapper({ state: 'loading' })} />;
+}
 
+interface VersionProps {
+	name: string;
+	version: VersionSummary;
+}
+
+function Version(props: VersionProps) {
+	const { name, version } = props;
 	return (
-		<div
-			className={`${wrapperStyles({
-				isError: true,
-				isLoading: false
-			})} max-w-[275px]`}
+		<Tooltip
+			content={version.summary ?? ''}
+			align="start"
+			disabled={!version.summary}
 		>
-			<div className="grid flex-grow place-items-center">
-				<div>
-					<h3 className={`font-bold mb-1 ${textStyles()}`}>
-						{status} {title}
-					</h3>
-					<p className={textStyles()}>{description}</p>
-				</div>
-			</div>
-		</div>
-	);
-};
-
-export const DeployInfoEmpty = () => {
-	return (
-		<div className={wrapperStyles({ isLoading: false, isError: false })}>
-			<div className="grid flex-grow place-items-center">
-				<span className={textStyles()}>No revisions found</span>
-			</div>
-		</div>
-	);
-};
-
-export const DeployInfoLoading = () => {
-	return <div className={wrapperStyles({ isLoading: true, isError: false })} />;
-};
-
-export interface DeploySummary {
-	branch?: string;
-	date: string;
-	revision: string;
-	summary: string;
-	latestTag?: string;
-}
-
-export interface DeployInfoProps {
-	projectName?: string;
-	frontend: DeploySummary;
-	backend?: DeploySummary;
-}
-
-export const DeployInfo = (props: DeployInfoProps) => {
-	const { projectName, frontend, backend } = props;
-
-	const backendGitInfo = backend ? (
-		<Tooltip content={backend.summary} align="start">
 			<div className="inline-flex">
-				<DeployInfoString projectName="Bublik API" summary={backend} />
+				<FormattedVersionInfo name={name} version={version} />
 			</div>
 		</Tooltip>
-	) : (
-		<span className={textStyles()}>Could not fetch backend revision info!</span>
 	);
+}
 
-	const projectNameNode = projectName ? (
-		<span className={textStyles()}>Project: {projectName}</span>
-	) : (
-		<span className={textStyles()}>Could not fetch project name!</span>
-	);
+function ApiVersion() {
+	const serverInfoQuery = bublikAPI.useGetServerVersionQuery(undefined, {
+		refetchOnMountOrArgChange: true
+	});
+
+	if (serverInfoQuery.error) {
+		const error = getErrorMessage(serverInfoQuery.error);
+		return <span className={text()}>API: {error.description}</span>;
+	}
+
+	if (!serverInfoQuery.data) {
+		return <span className={text()}>API: Not found</span>;
+	}
+
+	return <Version name="API" version={serverInfoQuery.data} />;
+}
+
+function UiVersion() {
+	return <Version name="UI" version={frontendVersion} />;
+}
+
+function DeployInfoContainer() {
+	const serverInfoQuery = bublikAPI.useGetServerVersionQuery();
+
+	const isLoading = serverInfoQuery.isLoading;
+	if (isLoading) {
+		return <DeployInfoLoading />;
+	}
 
 	return (
-		<div className={wrapperStyles({ isLoading: false, isError: false })}>
-			{projectNameNode}
-			{backendGitInfo}
-			<Tooltip content={frontend.summary} align="start">
-				<div className="inline-flex">
-					<DeployInfoString projectName="Bublik UI" summary={frontend} />
-				</div>
-			</Tooltip>
+		<div className={wrapper({ state: 'success' })}>
+			<ApiVersion />
+			<UiVersion />
 		</div>
 	);
-};
+}
 
-export const DeployInfoContainer = () => {
-	const { projectIds } = useProjectSearch();
-	const { data, isLoading } = useGetDeployInfoQuery({ projects: projectIds });
-
-	const backendGitInfo = useMemo(() => {
-		if (!data) return undefined;
-		if (!data?.backendGitInfo?.latestCommit?.commitRev) return undefined;
-
-		return {
-			branch: data.backendGitInfo.repoBranch,
-			date: formatTimeToDot(data?.backendGitInfo?.latestCommit?.commitDate),
-			revision: data?.backendGitInfo?.latestCommit?.commitRev,
-			summary: data?.backendGitInfo?.latestCommit?.commitSummary,
-			latestTag: data?.backendGitInfo?.repoTag
-		};
-	}, [data]);
-
-	if (isLoading) return <DeployInfoLoading />;
-
-	return (
-		<DeployInfo
-			projectName={data?.projectName}
-			frontend={deployInfo}
-			backend={backendGitInfo}
-		/>
-	);
-};
+export { DeployInfoContainer };

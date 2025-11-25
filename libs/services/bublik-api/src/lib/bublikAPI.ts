@@ -117,8 +117,6 @@ export const {
 	useGetRunFallingFreqQuery,
 	useLazyGetDashboardModeQuery,
 	useGetDashboardModeQuery,
-	// Version
-	useGetDeployInfoQuery,
 	// Run
 	useGetRunDetailsQuery,
 	useLazyGetRunDetailsQuery,

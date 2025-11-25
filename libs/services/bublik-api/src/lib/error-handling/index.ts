@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { z } from 'zod';
 import { HTTP_CODE_DESCRIPTIONS, HTTP_CODE_TO_ERROR_MAP } from './constants';
 import {
 	isHttpError,
@@ -17,6 +18,15 @@ import {
 
 export const createBublikError = (config: BublikError): BublikError => config;
 
+const ZodErrorSchema = z.object({
+	name: z.literal('SchemaError'),
+	message: z.string()
+});
+
+function isZodError(error: unknown): error is z.infer<typeof ZodErrorSchema> {
+	return ZodErrorSchema.safeParse(error).success;
+}
+
 /**
  * Retrieve error description from HTTP code or custom error
  * provided error title and description will overwrite default from HTTP code
@@ -24,6 +34,14 @@ export const createBublikError = (config: BublikError): BublikError => config;
 export const getErrorMessage = (error: unknown): BublikError => {
 	if (isBublikError(error)) {
 		return error;
+	}
+
+	if (isZodError(error)) {
+		return {
+			status: 400,
+			title: 'Validation error',
+			description: error.message
+		};
 	}
 
 	if (isValidationError(error)) {

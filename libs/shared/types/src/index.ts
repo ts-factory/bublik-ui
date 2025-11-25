@@ -6,7 +6,6 @@ export * from './lib/history';
 export * from './lib/log';
 export * from './lib/runs';
 export * from './lib/run';
-export * from './lib/deploy-info';
 export * from './lib/measurements';
 export * from './lib/run-import';
 export * from './lib/log-json-schema';
