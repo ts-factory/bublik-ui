@@ -79,14 +79,16 @@ function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 		<div className="bg-white flex flex-col rounded">
 			<CardHeader label="Table Of Contents" />
 			<ul className="flex flex-col py-2">
-				{contents.map((item, idx, arr) => (
-					<li key={item.id}>
-						<TableOfContentsItem item={item} />
-						{idx < arr.length - 1 && (
-							<Separator orientation="horizontal" className="my-2" />
-						)}
-					</li>
-				))}
+				{contents.map((item, idx, arr) => {
+					return (
+						<li key={item.id}>
+							<TableOfContentsItem item={item} />
+							{idx < arr.length - 1 && (
+								<Separator orientation="horizontal" className="my-2" />
+							)}
+						</li>
+					);
+				})}
 			</ul>
 		</div>
 	);
@@ -121,7 +123,11 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 	return (
 		<Collapsible open={open} onOpenChange={setOpen} className="">
 			<div
-				className="flex items-center gap-1 h-[22px] pr-2"
+				className={cn(
+					'flex items-center gap-1 h-[22px] pr-2',
+					// In case of an empty label, hide the item (argument values block might be empty)
+					!item.label && 'hidden'
+				)}
 				style={{ paddingLeft: `${depth * 12 + 16}px` }}
 			>
 				<div className="border h-full rounded border-transparent px-1 hover:border-primary flex items-center gap-1 w-full">

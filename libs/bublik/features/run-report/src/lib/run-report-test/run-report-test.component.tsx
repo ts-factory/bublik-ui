@@ -51,6 +51,10 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 					})
 				);
 
+				const isEmpty =
+					Object.keys(argsValBlock.args_vals).length === 0 &&
+					!argsValBlock.label;
+
 				return (
 					<li
 						id={encodeURIComponent(argsValBlock.id)}
@@ -63,7 +67,10 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 						/>
 						{/* LEVEL 2 */}
 						<div
-							className="border-y border-border-primary bg-white"
+							className={cn(
+								'border-y border-border-primary bg-white',
+								isEmpty && 'hidden'
+							)}
 							style={{ position: 'sticky', top: offsetTop, zIndex: 8 }}
 							ref={handleRef}
 						>
