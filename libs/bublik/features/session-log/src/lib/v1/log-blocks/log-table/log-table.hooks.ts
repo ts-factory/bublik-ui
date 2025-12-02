@@ -308,6 +308,14 @@ const getInitialExpandedState = (
 ): ExpandedState => {
 	const rowIdCreator = getRowIdCreator(id);
 
+	const hasDescendantWithMI = (row: LogTableData): boolean => {
+		if (row.level === 'MI') return true;
+		if (Array.isArray(row.children)) {
+			return row.children.some((child) => hasDescendantWithMI(child));
+		}
+		return false;
+	};
+
 	const getExpandedRowIds = (
 		rows: LogTableData[],
 		currentDepth = 0
@@ -315,14 +323,19 @@ const getInitialExpandedState = (
 		const filteredRows: LogTableData[] = [];
 
 		for (const row of rows) {
-			if (currentDepth <= levelToExpandTo - 1) filteredRows.push(row);
+			const shouldExpand =
+				currentDepth <= levelToExpandTo - 1 || hasDescendantWithMI(row);
+
+			if (shouldExpand && Array.isArray(row.children)) {
+				filteredRows.push(row);
+			}
 
 			if (Array.isArray(row.children)) {
 				filteredRows.push(...getExpandedRowIds(row.children, currentDepth + 1));
 			}
 		}
 
-		return filteredRows.filter((row) => Array.isArray(row.children));
+		return filteredRows;
 	};
 
 	const rowIdsToExpand = getExpandedRowIds(data).map((row) => [
