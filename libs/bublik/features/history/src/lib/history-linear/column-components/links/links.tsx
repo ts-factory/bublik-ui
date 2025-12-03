@@ -36,7 +36,12 @@ export const Links = ({ row }: LinksProps) => {
 				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild size="xss" variant="secondary">
-				<LinkWithProject to={routes.run({ runId: row.run_id })}>
+				<LinkWithProject
+					to={routes.run({
+						runId: row.run_id,
+						targetIterationId: Number(row.result_id)
+					})}
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</LinkWithProject>

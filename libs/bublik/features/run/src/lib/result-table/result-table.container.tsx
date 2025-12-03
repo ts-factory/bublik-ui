@@ -28,13 +28,11 @@ export interface ResultTableContainerProps {
 	runId: string | string[];
 	row: Row<RunData | MergedRun>;
 	height: number;
+	targetIterationId?: number;
 }
 
-export const ResultTableContainer = ({
-	runId,
-	row,
-	height
-}: ResultTableContainerProps) => {
+export function ResultTableContainer(props: ResultTableContainerProps) {
+	const { runId, row, height, targetIterationId } = props;
 	const { id: rowId } = row;
 	const rowState = useRunTableRowState().rowState[rowId];
 	const { updateRowState } = useRunTableRowState();
@@ -92,6 +90,7 @@ export const ResultTableContainer = ({
 		(_, row) => {
 			const className =
 				rowState?.referenceDiffRowId === row.id ? 'border-primary' : '';
+
 			return {
 				className,
 				onClick: () => {
@@ -137,6 +136,7 @@ export const ResultTableContainer = ({
 			setMode={setMode}
 			showToolbar={showToolbar}
 			setShowToolbar={setShowToolbar}
+			targetIterationId={targetIterationId}
 		/>
 	);
-};
+}

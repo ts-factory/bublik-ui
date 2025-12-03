@@ -46,7 +46,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					<li className="pl-2">
 						<LinkWithProject
 							className="flex items-center w-full gap-1"
-							to={routes.run({ runId })}
+							to={routes.run({ runId, targetIterationId: resultId })}
 						>
 							<Icon name="Paper" className="size-5" />
 							Run {runId}

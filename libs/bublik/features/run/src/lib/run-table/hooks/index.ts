@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
-import { Table } from '@tanstack/react-table';
+import { Row, Table } from '@tanstack/react-table';
 
 import { MergedRun, RunData } from '@/shared/types';
 
@@ -62,5 +62,46 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 		resetRowState();
 	}, [resetRowState, rootRowId, table]);
 
-	return { expandUnexpected, showUnexpected, reset } as const;
+	const expandToIteration = useCallback(
+		(iterationId: number) => {
+			const model = table.getPreFilteredRowModel();
+			const sortedIterations = model.flatRows.sort(
+				(a, b) => a.original.iteration_id - b.original.iteration_id
+			);
+
+			let testContainingIteration: Row<RunData | MergedRun> | null = null;
+
+			for (const iteration of sortedIterations) {
+				if (iteration.original.iteration_id <= iterationId) {
+					testContainingIteration = iteration;
+				} else {
+					break;
+				}
+			}
+
+			if (!testContainingIteration) {
+				console.warn(
+					'Failed to find test containing iteration ID',
+					iterationId
+				);
+				return;
+			}
+
+			const parents = testContainingIteration
+				.getParentRows()
+				.map((row) => row.id);
+
+			table.setExpanded(
+				toggleSubtree(true, [testContainingIteration.id, ...parents])
+			);
+		},
+		[table]
+	);
+
+	return {
+		expandUnexpected,
+		showUnexpected,
+		reset,
+		expandToIteration
+	} as const;
 };

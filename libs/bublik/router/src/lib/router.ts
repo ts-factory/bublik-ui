@@ -31,7 +31,11 @@ const buildRoute =
 
 export const routes = {
 	dashboard: buildRoute<DashboardConfig>({ getPathname: () => `/dashboard` }),
-	run: buildRoute<RunConfig>({ getPathname: ({ runId }) => `/runs/${runId}` }),
+	run: buildRoute<RunConfig>({
+		getPathname: ({ runId }) => `/runs/${runId}`,
+		getSearch: ({ targetIterationId }) =>
+			targetIterationId ? `targetIterationId=${targetIterationId}` : ''
+	}),
 	history: buildRoute<HistoryConfig>({ getPathname: () => `/history` }),
 	log: buildRoute<LogConfig>({
 		getPathname: ({ runId }) => `/log/${runId}`,

@@ -48,7 +48,8 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		setExpanded,
 		setGlobalFilter,
 		setSorting,
-		sorting
+		sorting,
+		targetIterationId
 	} = useRunTableQueryState(data);
 
 	if (error || detailsQuery.error) {
@@ -76,6 +77,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				columnVisibility={columnVisibility}
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}
+				targetIterationId={targetIterationId}
 			/>
 		</RunRowStateContextProvider>
 	);

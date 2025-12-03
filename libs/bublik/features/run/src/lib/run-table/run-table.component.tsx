@@ -101,6 +101,7 @@ export interface RunTableProps {
 	isFetching?: boolean;
 	runId: string | string[];
 	projectId?: number;
+	targetIterationId?: number;
 }
 
 export const RunTable = (props: RunTableProps) => {
@@ -118,7 +119,8 @@ export const RunTable = (props: RunTableProps) => {
 		onColumnVisibilityChange,
 		isFetching,
 		runId,
-		projectId
+		projectId,
+		targetIterationId
 	} = props;
 
 	const columns = useMemo(
@@ -151,11 +153,14 @@ export const RunTable = (props: RunTableProps) => {
 		autoResetAll: false
 	});
 
-	const { showUnexpected, expandUnexpected } = useExpandUnexpected({ table });
+	const { showUnexpected, expandUnexpected, expandToIteration } =
+		useExpandUnexpected({ table });
 
 	useMount(() => {
 		if (openUnexpected) showUnexpected();
 		if (openUnexpectedResults) expandUnexpected();
+		if (targetIterationId) expandToIteration(targetIterationId);
+
 		if (shouldMigrateExpandedState(expanded)) {
 			migrateExpandedStateUrl(expanded, table.getCoreRowModel().rowsById);
 		}
@@ -189,7 +194,12 @@ export const RunTable = (props: RunTableProps) => {
 					<RunHeader instance={table} />
 					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
 						{table.getRowModel().rows.map((row) => (
-							<RunRow key={row.id} row={row} runId={runId} />
+							<RunRow
+								key={row.id}
+								row={row}
+								runId={runId}
+								targetIterationId={targetIterationId}
+							/>
 						))}
 					</tbody>
 				</table>

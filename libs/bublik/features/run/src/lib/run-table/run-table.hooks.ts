@@ -2,7 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useQueryParam, JsonParam, withDefault } from 'use-query-params';
+import {
+	useQueryParam,
+	JsonParam,
+	withDefault,
+	NumberParam
+} from 'use-query-params';
 import {
 	ExpandedState,
 	Row,
@@ -118,18 +123,29 @@ export function migrateExpandedState(
 export function shouldMigrateExpandedState(expanded: ExpandedState): boolean {
 	return Object.keys(expanded).some((key) => key.includes('.'));
 }
+
 export function migrateExpandedStateUrl(
 	oldExpanded: ExpandedState,
 	rows: Record<string, Row<RunData | MergedRun>>
 ) {
 	const newExpanded = migrateExpandedState(oldExpanded, rows);
 	const currentUrl = new URL(window.location.href);
+
 	try {
 		const expandedJson = JSON.stringify(newExpanded);
 		currentUrl.searchParams.set('expanded', expandedJson);
 	} catch (error) {
 		console.error('Failed to stringify expanded state:', error, newExpanded);
 	}
+}
+
+export function useTargetIterationId() {
+	const [targetIterationId, setTargetIterationId] = useQueryParam(
+		'targetIterationId',
+		NumberParam
+	);
+
+	return { targetIterationId, setTargetIterationId };
 }
 
 export const useRunTableQueryState = (
@@ -139,6 +155,7 @@ export const useRunTableQueryState = (
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
 	};
+	const { targetIterationId } = useTargetIterationId();
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
@@ -181,7 +198,8 @@ export const useRunTableQueryState = (
 		setRowState,
 		columnVisibility,
 		setColumnVisibility,
-		rowStateContext
+		rowStateContext,
+		targetIterationId: targetIterationId ?? undefined
 	};
 };
 

@@ -27,7 +27,7 @@ export const MeasurementStatisticsLoading: FC<
 		<div className="flex-shrink-0 w-full bg-white rounded-md">
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} />
+					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
 					<LinkToHistory runId={runId} resultId={resultId} />
 					<LinkToLog runId={runId} resultId={resultId} />
 				</div>
@@ -105,7 +105,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 		<div className="flex-shrink-0 w-full bg-white rounded-md">
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} />
+					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
 					<LinkToHistory runId={runId} resultId={resultId} />
 					<LinkToLog runId={runId} resultId={resultId} />
 					<CopyShortUrlButtonContainer />

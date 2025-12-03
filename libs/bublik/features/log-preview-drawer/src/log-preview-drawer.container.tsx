@@ -111,7 +111,10 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.run({ runId })}
+														to={routes.run({
+															runId,
+															targetIterationId: resultId
+														})}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />

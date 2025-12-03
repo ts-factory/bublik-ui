@@ -14,12 +14,14 @@ import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
+	Row,
 	Updater,
 	useReactTable
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
+import { useIsSticky, useMount } from '@/shared/hooks';
 import { RunDataResults } from '@/shared/types';
 import {
 	cn,
@@ -38,7 +40,7 @@ import {
 	StringArraySchema
 } from './constants';
 import { useGlobalRequirements } from '../hooks';
-import { useIsSticky } from '@/shared/hooks';
+import { useTargetIterationId } from '../run-table/run-table.hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
@@ -74,10 +76,11 @@ export interface ResultTableProps {
 	setMode: (mode: 'default' | 'diff') => void;
 	showToolbar: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
+	targetIterationId?: number;
 }
 
-export const ResultTable = memo(
-	({
+export const ResultTable = memo((props: ResultTableProps) => {
+	const {
 		data = [],
 		rowId,
 		showLinkToRun = false,
@@ -85,224 +88,256 @@ export const ResultTable = memo(
 		mode = 'default',
 		setMode,
 		showToolbar,
-		setShowToolbar
-	}: ResultTableProps) => {
-		const {
-			columnFilters,
-			setColumnFilters,
-			hasFilters: hasColumnFilters
-		} = useColumnFilters(rowId);
-		const {
-			parameters,
-			verdicts,
-			artifacts,
-			requirementsFilter,
-			parametersFilter,
-			verdictsFilter,
-			artifactsFilter,
-			onClearFilters,
-			onFilterChange,
-			onVerdictsFilterChange
-		} = useDataTableFilters(rowId, data);
-		const { hasGlobalRequirements } = useGlobalRequirementsFilters({
-			localRequirements: requirementsFilter
-		});
-		const isDiffMode = mode === 'diff';
-		const hasFilters = hasColumnFilters || hasGlobalRequirements;
-		const hasToolbar = showToolbar || hasFilters || isDiffMode;
+		setShowToolbar,
+		targetIterationId
+	} = props;
+	const {
+		columnFilters,
+		setColumnFilters,
+		hasFilters: hasColumnFilters
+	} = useColumnFilters(rowId);
+	const {
+		parameters,
+		verdicts,
+		artifacts,
+		requirementsFilter,
+		parametersFilter,
+		verdictsFilter,
+		artifactsFilter,
+		onClearFilters,
+		onFilterChange,
+		onVerdictsFilterChange
+	} = useDataTableFilters(rowId, data);
+	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
+		localRequirements: requirementsFilter
+	});
+	const isDiffMode = mode === 'diff';
+	const hasFilters = hasColumnFilters || hasGlobalRequirements;
+	const hasToolbar = showToolbar || hasFilters || isDiffMode;
 
-		const columns = useMemo(
-			() =>
-				getColumns({
-					rowId,
-					showLinkToRun,
-					data,
-					mode,
-					showToolbar: hasToolbar,
-					setShowToolbar
-				}),
-			[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar]
-		);
+	const columns = useMemo(
+		() =>
+			getColumns({
+				rowId,
+				showLinkToRun,
+				data,
+				mode,
+				showToolbar: hasToolbar,
+				setShowToolbar
+			}),
+		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar]
+	);
 
-		const { stickyOffset } = useStickyHeader({
-			hasFilters: hasToolbar,
-			height
-		});
+	const { stickyOffset } = useStickyHeader({
+		hasFilters: hasToolbar,
+		height
+	});
 
-		const table = useReactTable<RunDataResults>({
-			data,
-			getRowId: (row) => String(row.result_id),
-			columns,
-			manualPagination: true,
-			getCoreRowModel: getCoreRowModel(),
-			getSortedRowModel: getSortedRowModel(),
-			getFilteredRowModel: getFilteredRowModel(),
-			enableSorting: false,
-			state: { columnFilters },
-			onColumnFiltersChange: setColumnFilters
-		});
+	const table = useReactTable<RunDataResults>({
+		data,
+		getRowId: (row) => String(row.result_id),
+		columns,
+		manualPagination: true,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		enableSorting: false,
+		state: { columnFilters },
+		onColumnFiltersChange: setColumnFilters
+	});
 
-		const gridTemplateColumns = columns
-			.map((col) => col.meta?.['width'] || 'minmax(0, 1fr)')
-			.join(' ');
+	const gridTemplateColumns = columns
+		.map((col) => col.meta?.['width'] || 'minmax(0, 1fr)')
+		.join(' ');
 
-		const headerRef = useRef<HTMLDivElement | null>(null);
-		const { isSticky } = useIsSticky(headerRef, {
-			offset: stickyOffset
-		});
+	const headerRef = useRef<HTMLDivElement | null>(null);
+	const { isSticky } = useIsSticky(headerRef, {
+		offset: stickyOffset
+	});
 
-		return (
-			<div className="px-4 pb-2">
-				{hasToolbar ? (
-					<div
-						className={cn(
-							'flex items-center justify-between px-4',
-							'bg-white h-9 sticky border-x border-b border-border-primary z-20'
-						)}
-						style={{ top: `${height + 102}px` }}
-					>
-						<div className="flex gap-2 items-center">
-							<DataTableFacetedFilter
-								title="Artifacts"
-								size="xss"
-								options={artifacts}
-								value={artifactsFilter}
-								onChange={(values) =>
-									onFilterChange(COLUMN_ID.ARTIFACTS, values)
-								}
-								disabled={!artifacts.length || isDiffMode}
-							/>
-							<DataTableFacetedFilter
-								title="Verdicts"
-								size="xss"
-								options={verdicts}
-								value={verdictsFilter}
-								onChange={onVerdictsFilterChange}
-								disabled={!verdicts.length || isDiffMode}
-							/>
-							<DataTableFacetedFilter
-								title="Parameters"
-								size="xss"
-								options={parameters}
-								value={parametersFilter}
-								onChange={(values) =>
-									onFilterChange(COLUMN_ID.PARAMETERS, values)
-								}
-								disabled={!parameters.length || isDiffMode}
-							/>
-							<Tooltip content="Reset">
-								<ButtonTw
-									variant="secondary"
-									size="xss"
-									onClick={onClearFilters}
-								>
-									<Icon name="Bin" size={18} className="mr-1.5" />
-									<span>Reset</span>
-								</ButtonTw>
-							</Tooltip>
-						</div>
-						<div className="flex gap-2 items-center">
-							<Tooltip content="Click on the row to compare parameters">
-								<ButtonTw
-									variant={mode === 'diff' ? 'primary' : 'secondary'}
-									size="xss"
-									onClick={() => {
-										const nextMode = mode === 'diff' ? 'default' : 'diff';
-										setMode(nextMode);
-
-										if (nextMode === 'diff') setColumnFilters([]);
-									}}
-								>
-									<Icon
-										name="SwapArrows"
-										size={18}
-										className="rotate-90 mr-1.5"
-									/>
-									<span>Parameters Compare</span>
-								</ButtonTw>
-							</Tooltip>
-						</div>
+	return (
+		<div className="px-4 pb-2">
+			{hasToolbar ? (
+				<div
+					className={cn(
+						'flex items-center justify-between px-4',
+						'bg-white h-9 sticky border-x border-b border-border-primary z-20'
+					)}
+					style={{ top: `${height + 102}px` }}
+				>
+					<div className="flex gap-2 items-center">
+						<DataTableFacetedFilter
+							title="Artifacts"
+							size="xss"
+							options={artifacts}
+							value={artifactsFilter}
+							onChange={(values) => onFilterChange(COLUMN_ID.ARTIFACTS, values)}
+							disabled={!artifacts.length || isDiffMode}
+						/>
+						<DataTableFacetedFilter
+							title="Verdicts"
+							size="xss"
+							options={verdicts}
+							value={verdictsFilter}
+							onChange={onVerdictsFilterChange}
+							disabled={!verdicts.length || isDiffMode}
+						/>
+						<DataTableFacetedFilter
+							title="Parameters"
+							size="xss"
+							options={parameters}
+							value={parametersFilter}
+							onChange={(values) =>
+								onFilterChange(COLUMN_ID.PARAMETERS, values)
+							}
+							disabled={!parameters.length || isDiffMode}
+						/>
+						<Tooltip content="Reset">
+							<ButtonTw variant="secondary" size="xss" onClick={onClearFilters}>
+								<Icon name="Bin" size={18} className="mr-1.5" />
+								<span>Reset</span>
+							</ButtonTw>
+						</Tooltip>
 					</div>
-				) : null}
-				<div className="w-full">
-					<div className="grid relative" style={{ gridTemplateColumns }}>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<Fragment key={headerGroup.id}>
-								{headerGroup.headers.map((header, idx, headers) => {
-									const className = header.column.columnDef.meta?.['className'];
-									const headerCellClassName =
-										header.column.columnDef.meta?.['headerCellClassName'];
+					<div className="flex gap-2 items-center">
+						<Tooltip content="Click on the row to compare parameters">
+							<ButtonTw
+								variant={mode === 'diff' ? 'primary' : 'secondary'}
+								size="xss"
+								onClick={() => {
+									const nextMode = mode === 'diff' ? 'default' : 'diff';
+									setMode(nextMode);
 
-									return (
-										<div
-											key={header.id}
-											className={cn(
-												'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
-												'bg-primary-wash sticky',
-												'flex items-center',
-												idx === 0 && 'rounded-bl-md',
-												idx === headers.length - 1 && 'rounded-br-md',
-												className,
-												headerCellClassName
-											)}
-											style={{
-												top: Math.abs(stickyOffset) - 1,
-												boxShadow: isSticky
-													? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
-													: 'none'
-											}}
-											ref={(el) => {
-												if (idx === 0) {
-													headerRef.current = el;
-												}
-											}}
-										>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext()
-												  )}
-										</div>
-									);
-								})}
-							</Fragment>
-						))}
-
-						{table.getRowModel().rows.map((row, idx, arr) => (
-							<Fragment key={row.id}>
-								{row.getVisibleCells().map((cell, cellIdx, cellArr) => {
-									const className = cell.column.columnDef.meta?.['className'];
-
-									return (
-										<div
-											key={cell.id}
-											className={cn(
-												'px-1 py-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
-												'flex items-start whitespace-pre-wrap',
-												'bg-primary-wash',
-												idx !== arr.length - 1 && 'mb-1',
-												cellIdx === 0 && 'rounded-l-md',
-												cellIdx === cellArr.length - 1 && 'rounded-r-md',
-												className
-											)}
-											style={{ overflowWrap: 'anywhere' }}
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</div>
-									);
-								})}
-							</Fragment>
-						))}
+									if (nextMode === 'diff') setColumnFilters([]);
+								}}
+							>
+								<Icon
+									name="SwapArrows"
+									size={18}
+									className="rotate-90 mr-1.5"
+								/>
+								<span>Parameters Compare</span>
+							</ButtonTw>
+						</Tooltip>
 					</div>
 				</div>
+			) : null}
+			<div className="w-full">
+				<div className="grid relative" style={{ gridTemplateColumns }}>
+					{table.getHeaderGroups().map((headerGroup) => (
+						<Fragment key={headerGroup.id}>
+							{headerGroup.headers.map((header, idx, headers) => {
+								const className = header.column.columnDef.meta?.['className'];
+								const headerCellClassName =
+									header.column.columnDef.meta?.['headerCellClassName'];
+
+								return (
+									<div
+										key={header.id}
+										className={cn(
+											'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+											'bg-primary-wash sticky',
+											'flex items-center',
+											idx === 0 && 'rounded-bl-md',
+											idx === headers.length - 1 && 'rounded-br-md',
+											className,
+											headerCellClassName
+										)}
+										style={{
+											top: Math.abs(stickyOffset) - 1,
+											boxShadow: isSticky
+												? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+												: 'none'
+										}}
+										ref={(el) => {
+											if (idx === 0) {
+												headerRef.current = el;
+											}
+										}}
+									>
+										{header.isPlaceholder
+											? null
+											: flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+											  )}
+									</div>
+								);
+							})}
+						</Fragment>
+					))}
+
+					{table.getRowModel().rows.map((row, idx, arr) => (
+						<ResultRow
+							key={row.id}
+							row={row}
+							idx={idx}
+							arr={arr}
+							targetIterationId={targetIterationId}
+						/>
+					))}
+				</div>
 			</div>
-		);
-	}
-);
+		</div>
+	);
+});
+
+interface ResultRowProps {
+	row: Row<RunDataResults>;
+	idx: number;
+	arr: Row<RunDataResults>[];
+	targetIterationId?: number;
+}
+
+function ResultRow(props: ResultRowProps) {
+	const { row, idx, arr, targetIterationId } = props;
+	const firstCellRef = useRef<HTMLDivElement>(null);
+	const isTarget = row.original.result_id === targetIterationId;
+	const { setTargetIterationId } = useTargetIterationId();
+
+	useMount(() => {
+		if (!isTarget) return;
+		firstCellRef.current?.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center'
+		});
+		setTimeout(() => setTargetIterationId(null), 5000);
+	});
+
+	return (
+		<Fragment>
+			{row.getVisibleCells().map((cell, cellIdx, cellArr) => {
+				const className = cell.column.columnDef.meta?.['className'];
+
+				return (
+					<div
+						key={cell.id}
+						className={cn(
+							'px-1 py-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
+							'flex items-start whitespace-pre-wrap',
+							'bg-primary-wash border-y border-y-transparent transition-colors',
+							idx !== arr.length - 1 && 'mb-1',
+							cellIdx === 0 && 'rounded-l-md',
+							cellIdx === cellArr.length - 1 && 'rounded-r-md',
+							className,
+							isReferenceDiffRow && 'border-y border-primary',
+							isReferenceDiffRow && cellIdx === 0 && 'border-primary',
+							isReferenceDiffRow &&
+								cellIdx === cellArr.length - 1 &&
+								'border-primary',
+							isTarget && 'animate-border-pulse',
+							hovered && 'border-y-primary border-l-primary border-r-primary'
+						)}
+						style={{ overflowWrap: 'anywhere' }}
+						ref={cellIdx === 0 ? firstCellRef : undefined}
+					>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</div>
+				);
+			})}
+		</Fragment>
+	);
+}
 
 interface StickyHeaderOptions {
 	hasFilters: boolean;

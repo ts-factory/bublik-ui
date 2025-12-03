@@ -9,6 +9,7 @@ import {
 
 export type RunConfig = {
 	runId: number | string;
+	targetIterationId?: number;
 };
 
 export type DashboardConfig = {

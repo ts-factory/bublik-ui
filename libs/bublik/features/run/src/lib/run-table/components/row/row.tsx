@@ -12,9 +12,10 @@ import { useMeasure } from 'react-use';
 export interface RowProps {
 	row: Row<RunData | MergedRun>;
 	runId: string | string[];
+	targetIterationId?: number;
 }
 
-export const RunRow = ({ row, runId }: RowProps) => {
+export const RunRow = ({ row, runId, targetIterationId }: RowProps) => {
 	const isExpanded = row.getIsExpanded();
 	const isTest = row.original?.type === NodeEntity.Test;
 	const isExpandedTest = isTest && isExpanded;
@@ -56,7 +57,12 @@ export const RunRow = ({ row, runId }: RowProps) => {
 				<tr role="row">
 					<td colSpan={row.getVisibleCells().length} className="p-0 bg-white">
 						<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
-							<ResultTableContainer runId={runId} row={row} height={height} />
+							<ResultTableContainer
+								runId={runId}
+								row={row}
+								height={height}
+								targetIterationId={targetIterationId}
+							/>
 						</div>
 					</td>
 				</tr>

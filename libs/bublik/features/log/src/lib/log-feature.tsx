@@ -96,7 +96,7 @@ function LogFeature(props: LogFeatureProps) {
 								runId={Number(runId)}
 								focusId={focusId}
 							/>
-							<LinkToRun runId={runId} />
+							<LinkToRun runId={runId} targetIterationId={focusId} />
 							<LinkToHistoryContainer runId={runId} focusId={focusId} />
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />
