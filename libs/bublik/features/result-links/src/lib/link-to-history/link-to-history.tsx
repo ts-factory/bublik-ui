@@ -35,7 +35,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 			</SplitButton.Button>
 			<SplitButton.Separator orientation="vertical" className="h-5" />
 			<SplitButton.Trigger>
-				<Icon name="ChevronDown" size={14} />
+				<Icon name="ArrowShortTop" size={18} className="rotate-180" />
 			</SplitButton.Trigger>
 			<SplitButton.Content align="start">
 				<SplitButton.Label>Open Direct Search</SplitButton.Label>

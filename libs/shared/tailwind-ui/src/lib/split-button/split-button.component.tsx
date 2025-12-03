@@ -25,7 +25,12 @@ const SplitButtonRoot = React.forwardRef<
 	return (
 		<div
 			ref={ref}
-			className={cn('inline-flex group items-center', className)}
+			className={cn(
+				'inline-flex group items-center',
+				variant === 'outline' && 'border rounded-md',
+				variant === 'secondary' && 'bg-primary-wash',
+				className
+			)}
 			{...props}
 		>
 			<SplitButtonContext.Provider value={value}>
@@ -45,7 +50,11 @@ const SplitButtonButton = React.forwardRef<
 	return (
 		<ButtonTw
 			ref={ref}
-			className={cn('rounded-r-none', isOutline && 'border-r-0', className)}
+			className={cn(
+				'rounded-r-none border-none',
+				isOutline && 'border-r-0',
+				className
+			)}
 			{...context}
 			{...props}
 		>
@@ -65,7 +74,12 @@ const SplitButtonTrigger = React.forwardRef<
 		<DropdownMenu.Trigger asChild>
 			<ButtonTw
 				ref={ref}
-				className={cn('rounded-l-none', isOutline && 'border-l-0', className)}
+				className={cn(
+					'rounded-l-none border-none',
+					isOutline && 'border-l-0',
+					'rdx-state-open:bg-primary rdx-state-open:text-white h-full',
+					className
+				)}
 				{...context}
 				{...props}
 			>
