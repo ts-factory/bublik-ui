@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
@@ -8,11 +8,13 @@ import { useMount, useUnmount } from '@/shared/hooks';
 
 import { HistoryGlobalSearchFormButton } from './history-global-search-button.component';
 import {
+	getResultTypeState,
 	selectIsGlobalSearchFormOpen,
 	useHistoryActions,
 	useHistoryFormSearchState
 } from '../slice';
 import { HistoryGlobalSearchFormValues } from './global-search-form';
+import { formToSearchState } from '../slice/history-slice.utils';
 
 export const HistoryGlobalSearchFormContainer = () => {
 	const actions = useHistoryActions();
@@ -34,9 +36,17 @@ export const HistoryGlobalSearchFormContainer = () => {
 	const handleFormSubmit = useCallback(
 		(form: HistoryGlobalSearchFormValues) => {
 			handleGlobalSearchSubmit(form);
+			const otherForm = formToSearchState(form);
+
+			actions.updateLinearGlobalFilter({
+				parameters: otherForm.parameters,
+				tags: otherForm.runData,
+				verdicts: otherForm.verdict,
+				...getResultTypeState(otherForm.results, otherForm.resultProperties)
+			});
 			close();
 		},
-		[close, handleGlobalSearchSubmit]
+		[actions, close, handleGlobalSearchSubmit]
 	);
 
 	useMount(() => {
@@ -44,7 +54,6 @@ export const HistoryGlobalSearchFormContainer = () => {
 			actions.toggleIsGlobalSearchOpen(true);
 		}
 	});
-
 	useUnmount(() => actions.toggleIsGlobalSearchOpen(false));
 
 	return (

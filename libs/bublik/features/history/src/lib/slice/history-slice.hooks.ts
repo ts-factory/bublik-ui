@@ -4,6 +4,8 @@ import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
+import { useMount } from '@/shared/hooks';
+import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { PROJECT_KEY } from '@/bublik/features/projects';
 
@@ -21,6 +23,25 @@ import {
 } from './history-slice.selectors';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
 
+export function getResultTypeState(
+	results: string[],
+	resultProperties: string[]
+) {
+	let isNotExpected = null;
+	if (resultProperties.length === 1) {
+		if (resultProperties[0] === RESULT_PROPERTIES.Expected) {
+			isNotExpected = false;
+		} else if (resultProperties[0] === RESULT_PROPERTIES.Unexpected) {
+			isNotExpected = true;
+		}
+	}
+
+	return {
+		resultType: results.length === 1 ? (results[0] as RESULT_TYPE) : null,
+		isNotExpected
+	};
+}
+
 export const useSyncHistoryQueryToState = () => {
 	const actions = useHistoryActions();
 	const { query } = useHistoryQuery();
@@ -29,6 +50,17 @@ export const useSyncHistoryQueryToState = () => {
 		const form = queryToHistorySearchState(query);
 		actions.updateSearchForm(form);
 	}, [actions, query]);
+
+	useMount(() => {
+		const form = queryToHistorySearchState(query);
+
+		actions.updateLinearGlobalFilter({
+			parameters: form.parameters,
+			tags: form.runData,
+			verdicts: form.verdict,
+			...getResultTypeState(form.results, form.resultProperties)
+		});
+	});
 };
 
 export const useHistoryFormSearchState = () => {
