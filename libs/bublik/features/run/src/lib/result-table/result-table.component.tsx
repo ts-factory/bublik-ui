@@ -6,7 +6,8 @@ import {
 	memo,
 	useCallback,
 	useMemo,
-	useRef
+	useRef,
+	useState
 } from 'react';
 import {
 	ColumnFiltersState,
@@ -39,8 +40,8 @@ import {
 	ObtainedResultFilterSchema,
 	StringArraySchema
 } from './constants';
-import { useGlobalRequirements } from '../hooks';
 import { useTargetIterationId } from '../run-table/run-table.hooks';
+import { RowState, useGlobalRequirements } from '../hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
@@ -69,7 +70,6 @@ export const ResultTableEmpty = () => <div>Empty...</div>;
 export interface ResultTableProps {
 	rowId: string;
 	data: RunDataResults[];
-	getRowProps: TwTableProps<RunDataResults>['getRowProps'];
 	showLinkToRun?: boolean;
 	height: number;
 	mode?: 'default' | 'diff';
@@ -77,6 +77,8 @@ export interface ResultTableProps {
 	showToolbar: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
 	targetIterationId?: number;
+	rowState?: RowState;
+	onRowClick?: (row: Row<RunDataResults>) => void;
 }
 
 export const ResultTable = memo((props: ResultTableProps) => {
@@ -89,7 +91,9 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		setMode,
 		showToolbar,
 		setShowToolbar,
-		targetIterationId
+		targetIterationId,
+		rowState,
+		onRowClick
 	} = props;
 	const {
 		columnFilters,
@@ -274,6 +278,8 @@ export const ResultTable = memo((props: ResultTableProps) => {
 							idx={idx}
 							arr={arr}
 							targetIterationId={targetIterationId}
+							rowState={rowState}
+							onRowClick={onRowClick}
 						/>
 					))}
 				</div>
@@ -287,10 +293,12 @@ interface ResultRowProps {
 	idx: number;
 	arr: Row<RunDataResults>[];
 	targetIterationId?: number;
+	rowState?: RowState;
+	onRowClick?: (row: Row<RunDataResults>) => void;
 }
 
 function ResultRow(props: ResultRowProps) {
-	const { row, idx, arr, targetIterationId } = props;
+	const { row, idx, arr, targetIterationId, rowState, onRowClick } = props;
 	const firstCellRef = useRef<HTMLDivElement>(null);
 	const isTarget = row.original.result_id === targetIterationId;
 	const { setTargetIterationId } = useTargetIterationId();
@@ -304,21 +312,27 @@ function ResultRow(props: ResultRowProps) {
 		setTimeout(() => setTargetIterationId(null), 5000);
 	});
 
+	const [hovered, setHovered] = useState(false);
+
 	return (
 		<Fragment>
 			{row.getVisibleCells().map((cell, cellIdx, cellArr) => {
 				const className = cell.column.columnDef.meta?.['className'];
+				const isReferenceDiffRow = rowState?.referenceDiffRowId === row.id;
 
 				return (
 					<div
 						key={cell.id}
+						onMouseEnter={() => setHovered(true)}
+						onMouseLeave={() => setHovered(false)}
 						className={cn(
 							'px-1 py-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
 							'flex items-start whitespace-pre-wrap',
 							'bg-primary-wash border-y border-y-transparent transition-colors',
 							idx !== arr.length - 1 && 'mb-1',
-							cellIdx === 0 && 'rounded-l-md',
-							cellIdx === cellArr.length - 1 && 'rounded-r-md',
+							cellIdx === 0 && 'rounded-l-md border-l border-l-transparent',
+							cellIdx === cellArr.length - 1 &&
+								'rounded-r-md border-r border-r-transparent',
 							className,
 							isReferenceDiffRow && 'border-y border-primary',
 							isReferenceDiffRow && cellIdx === 0 && 'border-primary',
@@ -328,8 +342,12 @@ function ResultRow(props: ResultRowProps) {
 							isTarget && 'animate-border-pulse',
 							hovered && 'border-y-primary border-l-primary border-r-primary'
 						)}
-						style={{ overflowWrap: 'anywhere' }}
+						style={{
+							overflowWrap: 'anywhere',
+							cursor: rowState?.mode === 'diff' ? 'pointer' : 'default'
+						}}
 						ref={cellIdx === 0 ? firstCellRef : undefined}
+						onClick={() => onRowClick?.(row)}
 					>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
 					</div>

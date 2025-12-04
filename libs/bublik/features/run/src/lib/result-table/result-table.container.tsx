@@ -84,39 +84,29 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 		[updateRowState, rowId, rowState]
 	);
 
-	const getRowProps = useCallback<
-		NonNullable<TwTableProps<RunDataResults>['getRowProps']>
-	>(
-		(_, row) => {
-			const className =
-				rowState?.referenceDiffRowId === row.id ? 'border-primary' : '';
+	const onRowClick = useCallback(
+		(row: Row<RunDataResults>) => {
+			if (rowState?.mode === 'default' || !rowState?.mode) return;
 
-			return {
-				className,
-				onClick: () => {
-					if (rowState?.mode === 'default' || !rowState?.mode) return;
-
-					if (rowState?.referenceDiffRowId === row.id) {
-						updateRowState({
-							...rowState,
-							rowId,
-							referenceDiffRowId: undefined,
-							requests: rowState?.requests,
-							mode: 'diff'
-						});
-					} else {
-						updateRowState({
-							...rowState,
-							rowId,
-							referenceDiffRowId: row.id,
-							requests: rowState?.requests,
-							mode: 'diff'
-						});
-					}
-				}
-			};
+			if (rowState?.referenceDiffRowId === row.id) {
+				updateRowState({
+					...rowState,
+					rowId,
+					referenceDiffRowId: undefined,
+					requests: rowState?.requests,
+					mode: 'diff'
+				});
+			} else {
+				updateRowState({
+					...rowState,
+					rowId,
+					referenceDiffRowId: row.id,
+					requests: rowState?.requests,
+					mode: 'diff'
+				});
+			}
 		},
-		[rowId, rowState, updateRowState]
+		[row.id, rowId, rowState, updateRowState]
 	);
 
 	if (isError) return <div className="">Something went wrong...</div>;
@@ -130,13 +120,14 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 			showLinkToRun={Array.isArray(runId)}
 			data={data}
 			rowId={rowId}
-			getRowProps={getRowProps}
 			height={height}
 			mode={rowState?.mode}
 			setMode={setMode}
 			showToolbar={showToolbar}
 			setShowToolbar={setShowToolbar}
 			targetIterationId={targetIterationId}
+			rowState={rowState}
+			onRowClick={onRowClick}
 		/>
 	);
 }
