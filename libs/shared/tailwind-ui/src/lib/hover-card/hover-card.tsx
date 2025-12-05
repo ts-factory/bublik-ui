@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import * as RadixHoverCard from '@radix-ui/react-hover-card';
 
 import { cva } from '../utils';
@@ -30,7 +30,7 @@ export interface HoverCardProps extends RadixHoverCard.HoverCardProps {
 	align?: RadixHoverCard.HoverCardContentProps['align'];
 }
 
-export const HoverCard: FC<HoverCardProps> = (props) => {
+export const HoverCard = (props: HoverCardProps) => {
 	const {
 		children,
 		content,
@@ -50,7 +50,7 @@ export const HoverCard: FC<HoverCardProps> = (props) => {
 
 			<RadixHoverCard.Portal container={container}>
 				<RadixHoverCard.Content
-					className={hoverCardContentStyles()}
+					className={hoverCardContentStyles({ className: 'p-1' })}
 					side={side}
 					sideOffset={sideOffset}
 					align={align}

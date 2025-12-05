@@ -1,40 +1,57 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
+import { format, parseISO } from 'date-fns';
 
-import { BadgeListItem, BadgeList, HoverCard } from '@/shared/tailwind-ui';
+import {
+	BadgeListItem,
+	BadgeList,
+	HoverCard,
+	Icon
+} from '@/shared/tailwind-ui';
 
-export interface BadgesCardList {
+interface BadgesCardListProps {
 	startDate: string;
 	badges: BadgeListItem[];
 }
 
-const BadgesCardList: FC<BadgesCardList> = (props) => {
+function BadgesCardList(props: BadgesCardListProps) {
 	const { startDate, badges } = props;
 
 	return (
-		<div className="flex flex-col max-w-md gap-2 p-2 bg-white rounded-lg shadow-popover">
-			<p className="text-[0.875rem] leading-[1.125rem]">
-				<span className="text-[0.875rem] font-semibold">Start Date:</span>
-				<span> {startDate}</span>
-			</p>
+		<div className="flex flex-col w-80 gap-3 p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+			<div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+				<Icon name="Clock" size={18} />
+				<p className="text-sm text-gray-600">
+					<span className="text-sm text-text-primary font-semibold">
+						Start Date:
+					</span>
+					<span className="ml-1.5 text-sm text-gray-800">
+						{format(parseISO(startDate), 'MMMM d, yyyy')}
+					</span>
+				</p>
+			</div>
 			<BadgeList badges={badges} />
 		</div>
 	);
-};
+}
 
-export interface AggregationTooltipProps {
-	badges: string[];
+interface AggregationTooltipProps {
+	relevantTags: string[];
+	importantTags: string[];
 	startDate: string;
 	children?: ReactNode;
 }
 
-export const AggregationTooltip: FC<AggregationTooltipProps> = (props) => {
-	const { badges, children, startDate } = props;
+function AggregationTooltip(props: AggregationTooltipProps) {
+	const { relevantTags, importantTags, startDate, children } = props;
 
-	const badgesWithColor = useMemo(
-		() => badges.map((badge) => ({ payload: badge })),
-		[badges]
+	const badgesWithColor = useMemo<BadgeListItem[]>(
+		() => [
+			...importantTags.map((tag) => ({ payload: tag, isImportant: true })),
+			...relevantTags.map((tag) => ({ payload: tag }))
+		],
+		[relevantTags, importantTags]
 	);
 
 	return (
@@ -46,4 +63,6 @@ export const AggregationTooltip: FC<AggregationTooltipProps> = (props) => {
 			{children}
 		</HoverCard>
 	);
-};
+}
+
+export { AggregationTooltip };

@@ -33,7 +33,8 @@ export const LinkList = ({ results }: LinkListProps) => {
 				return (
 					<AggregationTooltip
 						key={resultData.result_id}
-						badges={resultData.relevant_tags}
+						relevantTags={resultData.relevant_tags}
+						importantTags={resultData.important_tags}
 						startDate={resultData.start_date}
 					>
 						<LinkWithProject

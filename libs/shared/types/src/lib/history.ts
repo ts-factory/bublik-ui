@@ -135,6 +135,7 @@ export type ResultDataArrayObj = {
 	run_id: number;
 	start_date: string;
 	relevant_tags: string[];
+	important_tags: string[];
 };
 
 /**
