@@ -113,7 +113,7 @@ function ImportEventTable(props: ImportEventTableProps) {
 					))}
 
 					{table.getRowModel().rows.map((row, idx, arr) => (
-						<EventRow row={row} idx={idx} arr={arr} />
+						<EventRow key={row.id} row={row} idx={idx} arr={arr} />
 					))}
 				</div>
 			</div>
