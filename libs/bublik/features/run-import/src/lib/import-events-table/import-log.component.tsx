@@ -36,10 +36,16 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 import { ImportJsonLog } from '@/shared/types';
-import { useCopyToClipboard } from '@/shared/hooks';
+import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import { routes } from '@/router';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+	useReactTable
+} from '@tanstack/react-table';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -111,7 +117,7 @@ function JsonLogContainer(props: JsonLogContainerProps) {
 		>
 			<DialogPortal>
 				<DrawerContent
-					className="w-[60vw] flex flex-col"
+					className="w-[80vw] flex flex-col"
 					onInteractOutside={close}
 					onEscapeKeyDown={close}
 				>
@@ -156,6 +162,7 @@ export const ImportLogTableContainer = (
 	const { taskId } = props;
 	const [isAtBottom, setIsAtBottom] = useState(true);
 	const [shouldPoll, setShouldPoll] = useState(props.enablePolling);
+	const [textWrap, setTextWrap] = useLocalStorage('import-log-text-wrap', true);
 
 	const { data, isLoading, isFetching, error } = useGetImportLogQuery(
 		taskId ? taskId : skipToken,
@@ -208,7 +215,9 @@ export const ImportLogTableContainer = (
 		return <ImportLogError error={error} />;
 	}
 
-	if (isLoading) return <Skeleton className="w-full h-[90vh] trounded-md" />;
+	if (isLoading) {
+		return <Skeleton className="w-full h-full" />;
+	}
 
 	if (!data) {
 		return <div className="grid place-items-center h-full">Not Log Found</div>;
@@ -230,7 +239,7 @@ export const ImportLogTableContainer = (
 				}
 				className="px-4 py-2 flex gap-4 items-center justify-between"
 			>
-				<div className="flex gap-4 items-center">
+				<div className="flex gap-2 items-center">
 					<HeaderLinks runId={maybeRunId} />
 					<ButtonTw asChild variant="secondary" size="xss">
 						<a
@@ -242,21 +251,31 @@ export const ImportLogTableContainer = (
 							<span>Task</span>
 						</a>
 					</ButtonTw>
-					<button
-						className="p-0.5 rounded-md hover:bg-primary-wash text-primary"
+					<ButtonTw
+						variant="secondary"
+						size="xss"
 						onClick={async () => {
 							if (!data) return;
 							await copy(data.map((d) => d.message.trim()).join('\n'));
 						}}
 					>
-						<Icon name="PaperStack" size={20} />
-					</button>
+						<Icon name="PaperStack" size={20} className="mr-1.5" />
+						<span>Copy Log</span>
+					</ButtonTw>
+					<ButtonTw
+						variant={textWrap ? 'primary' : 'secondary'}
+						onClick={() => setTextWrap((v) => !v)}
+						size="xss"
+					>
+						<Icon name="TextWrap" size={18} className="mr-1.5" />
+						<span>Line Wrap</span>
+					</ButtonTw>
 					<DialogClose className="p-0.5 rounded-md hover:bg-primary-wash hover:text-primary text-text-menu">
 						<Icon name="CrossSimple" size={20} />
 					</DialogClose>
 				</div>
 			</CardHeader>
-			<div className="relative h-full">
+			<div className="relative flex-grow overflow-hidden">
 				<AnimatePresence>
 					{showPausedChip ? (
 						<motion.div
@@ -271,10 +290,10 @@ export const ImportLogTableContainer = (
 					) : null}
 				</AnimatePresence>
 				<div
-					className={cn('flex-grow overflow-auto h-full', BG_CLASS)}
+					className={cn('flex-grow overflow-hidden h-full', BG_CLASS)}
 					ref={scrollRef}
 				>
-					<ImportLogTable logs={data} />
+					<ImportLogTable logs={data} textWrap={textWrap} />
 				</div>
 			</div>
 		</>
@@ -356,31 +375,126 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 	);
 }
 
+const helper = createColumnHelper<ImportJsonLog>();
+
+interface GetColumnsConfig {
+	textWrap: boolean;
+}
+
+function getColumns({ textWrap }: GetColumnsConfig) {
+	return [
+		helper.display({
+			id: 'line-number',
+			header: '#',
+			cell: ({ row }) => row.index + 1,
+			meta: { className: 'text-[#8c959f] hover:text-primary hover:underline' }
+		}),
+		helper.accessor('asctime', {
+			header: 'Time',
+			cell: (info) => info.getValue()
+		}),
+		helper.accessor('levelname', {
+			header: 'Level',
+			cell: (info) => info.getValue()
+		}),
+		helper.accessor('module', {
+			header: 'Module',
+			cell: (info) => info.getValue()
+		}),
+		helper.accessor('message', {
+			header: 'Message',
+			cell: (info) => info.getValue(),
+			meta: {
+				className: textWrap
+					? 'whitespace-pre-wrap break-words'
+					: 'whitespace-nowrap'
+			}
+		})
+	];
+}
+
+const getRowClassName = (level: string) => {
+	const baseClasses = 'hover:bg-gray-600/20';
+
+	if (level === 'CRITICAL') {
+		return `${baseClasses} bg-red-950/30 text-red-100 hover:text-red-50 font-semibold`;
+	}
+	if (level === 'ERROR') {
+		return `${baseClasses} bg-red-900/20 text-red-200 hover:text-red-100`;
+	}
+	if (level === 'WARN' || level === 'WARNING') {
+		return `${baseClasses} bg-yellow-900/20 text-yellow-200 hover:text-yellow-100`;
+	}
+	if (level === 'DEBUG') {
+		return `${baseClasses} text-gray-400 hover:text-gray-300`;
+	}
+
+	return `${baseClasses} text-gray-200 hover:text-gray-50`;
+};
+
 export interface ImportLogTableProps {
 	logs: ImportJsonLog[];
+	textWrap?: boolean;
 }
 
 export const ImportLogTable = (props: ImportLogTableProps) => {
-	return (
-		<ul className={'font-mono text-xs leading-5 pb-12 pt-4 flex-1'}>
-			{props.logs.map((lg, idx) => {
-				const lineNumber = idx + 1;
+	const { textWrap = true, logs } = props;
 
-				return (
-					<li
-						key={lineNumber}
-						className="flex hover:bg-gray-600/20 text-gray-200 hover:text-gray-50"
-					>
-						<span className="shrink-0 w-12 overflow-hidden text-right overflow-ellipsis whitespace-nowrap select-none text-[#8c959f] hover:text-primary hover:underline">
-							{lineNumber}
-						</span>
-						<span className="ml-3 overflow-x-auto whitespace-pre-wrap">
-							{lg.message}
-						</span>
-					</li>
-				);
-			})}
-		</ul>
+	const table = useReactTable<ImportJsonLog>({
+		data: logs,
+		columns: getColumns({ textWrap }),
+		getCoreRowModel: getCoreRowModel()
+	});
+
+	return (
+		<div className="font-mono text-xs leading-5 pb-12 px-2 flex-1 h-full overflow-auto">
+			<table className="w-full border-collapse">
+				{table.getHeaderGroups().map((group) => (
+					<thead key={group.id}>
+						{group.headers.map((header) => (
+							<th
+								key={header.id}
+								className={cn(
+									'px-1 py-2 text-left text-gray-400 font-semibold sticky top-0',
+									BG_CLASS
+								)}
+							>
+								{flexRender(
+									header.column.columnDef.header,
+									header.getContext()
+								)}
+							</th>
+						))}
+					</thead>
+				))}
+				<tbody>
+					{table.getRowModel().rows.map((row) => {
+						return (
+							<tr
+								key={row.id}
+								className={getRowClassName(row.original.levelname)}
+							>
+								{row.getVisibleCells().map((cell) => {
+									const className = cell.column.columnDef.meta?.className ?? '';
+
+									return (
+										<td
+											key={cell.id}
+											className={cn(`px-1 whitespace-nowrap`, className)}
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</td>
+									);
+								})}
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
 	);
 };
 
