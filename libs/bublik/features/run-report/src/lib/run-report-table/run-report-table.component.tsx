@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { ReportTable } from '@/shared/types';
@@ -5,6 +6,7 @@ import { cn, cva } from '@/shared/tailwind-ui';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import { WarningsHoverCard } from '../run-report-test';
+import { useEnablePairGainColumns } from './run-report-table.hooks';
 
 const cellStyles = cva({
 	base: [
@@ -92,6 +94,7 @@ interface RunReportTableProps {
 
 function RunReportTable({ table }: RunReportTableProps) {
 	const { runId } = useParams<{ runId: string }>();
+	const [enablePairGainColumns] = useEnablePairGainColumns();
 
 	if (!table.data.length) return null;
 
@@ -99,7 +102,13 @@ function RunReportTable({ table }: RunReportTableProps) {
 		return <SingleSeriesTable table={table} runId={Number(runId)} />;
 	}
 
-	return <MultipleSeriesTable table={table} runId={Number(runId)} />;
+	return (
+		<MultipleSeriesTable
+			table={table}
+			runId={Number(runId)}
+			enablePairGainColumns={enablePairGainColumns}
+		/>
+	);
 }
 
 interface SingleSeriesTableProps {
@@ -192,10 +201,43 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 interface MultipleSeriesTableProps {
 	runId: number;
 	table: ReportTable;
+	enablePairGainColumns?: boolean;
 }
 
-function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
+function MultipleSeriesTable(props: MultipleSeriesTableProps) {
+	const { table, runId, enablePairGainColumns = false } = props;
 	const { xAxisKey, seriesNames, xValues } = getTableDerivedData(table);
+
+	const sortedSeriesNames = useMemo(() => {
+		if (!enablePairGainColumns) return seriesNames;
+
+		const GAIN_POSTFIX = ' gain';
+
+		const gainSeries: string[] = [];
+		const baseSeries: string[] = [];
+
+		seriesNames.forEach((name = '') => {
+			if (name.includes(GAIN_POSTFIX)) {
+				gainSeries.push(name);
+			} else {
+				baseSeries.push(name);
+			}
+		});
+
+		const gainMap = new Map<string, string>();
+		gainSeries.forEach((gain) => {
+			const baseKey = gain.replace(GAIN_POSTFIX, '');
+			gainMap.set(baseKey, gain);
+		});
+
+		const sorted: string[] = [];
+		baseSeries.forEach((base) => {
+			sorted.push(base);
+			if (gainMap.has(base)) sorted.push(gainMap.get(base)!);
+		});
+
+		return sorted;
+	}, [seriesNames, enablePairGainColumns]);
 
 	return (
 		<table className="w-full relative border-separate border-spacing-0">
@@ -224,7 +266,7 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 					</th>
 				</tr>
 				<tr>
-					{seriesNames.map((seriesName, idx, arr) => (
+					{sortedSeriesNames.map((seriesName, idx, arr) => (
 						<th
 							key={seriesName}
 							className={headerCellStyles({
@@ -259,7 +301,7 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 						>
 							{xValue}
 						</td>
-						{seriesNames.map((seriesName) => {
+						{sortedSeriesNames.map((seriesName) => {
 							const metadata = getMetadata(xValue, xAxisKey, table, seriesName);
 
 							return (
@@ -272,7 +314,8 @@ function MultipleSeriesTable({ table, runId }: MultipleSeriesTableProps) {
 									<td
 										className={cn(
 											cellStyles({ isCellWithMeta: Boolean(metadata) }),
-											seriesName !== seriesNames[seriesNames.length - 1] &&
+											seriesName !==
+												sortedSeriesNames[sortedSeriesNames.length - 1] &&
 												'border-r'
 										)}
 									>

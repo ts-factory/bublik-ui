@@ -18,7 +18,8 @@ import {
 	Icon,
 	Separator,
 	Spinner,
-	toast
+	toast,
+	Tooltip
 } from '@/shared/tailwind-ui';
 import {
 	NotProcessedPoint,
@@ -37,6 +38,7 @@ import {
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
+import { useEnablePairGainColumns } from './run-report-table/run-report-table.hooks';
 
 interface TableOfContentsItem {
 	type: string;
@@ -485,6 +487,8 @@ interface RunReportContentItemProps {
 
 function RunReportContentItem({ block }: RunReportContentItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
+	const [enablePairGainColumns, toggleEnablePairGainColumns] =
+		useEnablePairGainColumns();
 
 	const args = useMemo(
 		() =>
@@ -526,7 +530,28 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 						</LinkWithProject>
 					}
 					ref={ref}
-				/>
+				>
+					<div className="flex items-center gap-2">
+						<Tooltip
+							content={
+								enablePairGainColumns
+									? 'Show columns in original order'
+									: 'Place gain columns next to their base columns'
+							}
+						>
+							<ButtonTw
+								variant={enablePairGainColumns ? 'primary' : 'secondary'}
+								size="xss"
+								onClick={() => toggleEnablePairGainColumns()}
+							>
+								<Icon name="Aggregation" size={20} className="mr-1.5" />
+								<span>
+									{enablePairGainColumns ? 'Unpair' : 'Pair'} Gain Columns
+								</span>
+							</ButtonTw>
+						</Tooltip>
+					</div>
+				</CardHeader>
 				<div className="p-4">
 					<RunReportArgs label="Common Arguments" items={args} />
 				</div>
