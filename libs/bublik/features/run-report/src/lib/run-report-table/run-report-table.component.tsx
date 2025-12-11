@@ -20,7 +20,7 @@ const cellStyles = cva({
 const headerCellStyles = cva({
 	base: [
 		cn(
-			'border-b bg-primary-wash border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1 whitespace-nowrap'
+			'border-b bg-primary-wash border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] px-2 py-1'
 		)
 	]
 });
