@@ -258,7 +258,12 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 				/>
 				<div className="flex overflow-y-auto h-full overflow-x-hidden">
 					{chart ? (
-						<div className="flex-1">
+						<div
+							className={cn(
+								'flex flex-col',
+								enableTableView && table ? 'w-1/2' : 'w-full'
+							)}
+						>
 							<div className="relative pt-2 h-full">
 								<div className="absolute right-4 z-[1] top-2.5">
 									<WarningsHoverCard warnings={chart.warnings} />
@@ -270,12 +275,13 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 					{enableTableView && table ? (
 						<div
 							className={cn(
-								'flex-1 flex flex-col shrink-0',
+								'flex flex-col',
+								chart ? 'w-1/2' : 'w-full',
 								enableChartView && chart && 'border-l border-border-primary'
 							)}
 						>
 							<div
-								className={cn('flex-1', 'overflow-y-auto')}
+								className={cn('flex-1', 'overflow-y-auto overflow-x-auto')}
 								ref={tableScrollRef}
 							>
 								<RunReportTable table={table} />
