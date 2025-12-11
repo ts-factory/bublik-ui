@@ -1,7 +1,7 @@
 {
-	"date": "2025.11.19",
-	"summary": "feat(import): add \"Try Again\" button to trigger re-import of the run",
-	"revision": "7baa22a5",
-	"branch": "release-2.4.0",
-	"latestTag": "v2.4.0"
+	"date": "2025.12.11",
+	"summary": "feat(report): [table] add ability to pair \"gain\" columns to their base series",
+	"revision": "24052dd9",
+	"branch": "release-2.5.0",
+	"latestTag": "v2.5.0"
 }

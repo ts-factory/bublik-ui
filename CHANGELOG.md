@@ -1,5 +1,41 @@
 
 
+## [2.5.0](https://github.com/ts-factory/bublik-ui/compare/v2.4.1...v2.5.0) (2025-12-11)
+
+
+### 🚀 New Feature
+
+* **history:** [aggregation] add important tags to results hover card ([070e0b1](https://github.com/ts-factory/bublik-ui/commit/070e0b15794657280d3cc73610dc50dbd5859128))
+* **log:** expand level up to row with `MI` level by default ([57f1cb8](https://github.com/ts-factory/bublik-ui/commit/57f1cb8de6bebfc04697c27c7f83ef5acf9174ba))
+* **report:** [table] add ability to pair "gain" columns to their base series ([24052dd](https://github.com/ts-factory/bublik-ui/commit/24052dd9578efa70ebb7bc97788ffe6d113ff94f))
+* **run:** add link to run straight to iteration ([831652d](https://github.com/ts-factory/bublik-ui/commit/831652d9c1b2d0dcbb10639f98f816d18d774364))
+* **url:** add ability to copy short URL with page state or without ([816e8c8](https://github.com/ts-factory/bublik-ui/commit/816e8c8f8bdce555aaa45c88c1cf042dea4a5074))
+
+
+### 💅 Polish
+
+* **report:** [chart,table] ensure table and chart always take 50% width ([0dcb4a9](https://github.com/ts-factory/bublik-ui/commit/0dcb4a9a39b964eaff3a0fb86512e35870ae2274))
+* **report:** [table] allow table header to wrap for long header labels ([0ed18f6](https://github.com/ts-factory/bublik-ui/commit/0ed18f62040b43cc046904590e01c346fd7c4b41))
+
+
+### 🐛 Bug Fix
+
+* **history:** apply filter state on mount ([7acf814](https://github.com/ts-factory/bublik-ui/commit/7acf814b7d5280bc459f782d9e524f4ae4c44572))
+* **import:** add missing react `key` prop to import events table ([34a2b03](https://github.com/ts-factory/bublik-ui/commit/34a2b0372db0b655b2548a132507e223b2101bf6))
+* **report:** hide empty `arg-val-block` in report ([4f3fdbb](https://github.com/ts-factory/bublik-ui/commit/4f3fdbb1a038d4ce64a640f402018f5a4c1bb722))
+* **run:** [result-table] fix parameters diff ([2bdb7bc](https://github.com/ts-factory/bublik-ui/commit/2bdb7bc177aed919964ff680d308a17b771859dd))
+
+
+### ♻ Code Refactoring
+
+* **import:** [log] display log as a table with columns ([e7cde45](https://github.com/ts-factory/bublik-ui/commit/e7cde451a570c8ff7250d988ff75e4f195294e73))
+* **version:** fix missing API version information ([d0c71a2](https://github.com/ts-factory/bublik-ui/commit/d0c71a2c0c7a8c3bdaf364b0ef878d956b3cc981))
+
+
+### 📦 Chores
+
+* **deps:** upgrade node version to 24.11 LTS ([eb62198](https://github.com/ts-factory/bublik-ui/commit/eb62198f588213c2640d3131af6a7ccdc2de708a))
+
 ## [2.4.0](https://github.com/ts-factory/bublik-ui/compare/v2.3.0...v2.4.0) (2025-11-18)
 
 
