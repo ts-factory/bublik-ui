@@ -239,7 +239,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									<div
 										key={header.id}
 										className={cn(
-											'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+											'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] z-10',
 											'bg-primary-wash sticky',
 											'flex items-center',
 											idx === 0 && 'rounded-bl-md',
