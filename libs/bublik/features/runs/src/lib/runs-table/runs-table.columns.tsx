@@ -1,16 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CellContext, ColumnDef } from '@tanstack/react-table';
+import { CellContext, ColumnDef, RowData } from '@tanstack/react-table';
 
 import {
 	getRunStatusInfo,
 	BadgeList,
 	BadgeListItem,
-	ConclusionHoverCard
+	ConclusionHoverCard,
+	TableSort,
+	cn
 } from '@/shared/tailwind-ui';
 import { RunsData, RunsStatisticData, RUN_STATUS } from '@/shared/types';
 
 import { DatesHeader, ColumnDates, RunLinks, ColumnSummary } from './columns';
+
+declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface ColumnMeta<TData extends RowData, TValue> {
+		className?: string;
+		headerClassName?: string;
+	}
+}
 
 const onGlobalFilter =
 	(cell: CellContext<RunsData, unknown>) => (badge: BadgeListItem) => {
@@ -44,14 +54,17 @@ export const columns: ColumnDef<RunsData>[] = [
 					align="start"
 				>
 					<div
-						className={`flex flex-col items-center justify-start w-calc(100%+1px) h-[calc(100%+2px)] pt-3 -translate-y-px -translate-x-px rounded-l ${bg} ${color}`}
+						className={`flex flex-col items-center justify-start w-full h-full pt-3 rounded-l ${bg} ${color}`}
 					>
 						{icon}
 					</div>
 				</ConclusionHoverCard>
 			);
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: {
+			className: 'w-[24px] p-0 h-full'
+		}
 	},
 	{
 		header: 'Actions',
@@ -75,7 +88,21 @@ export const columns: ColumnDef<RunsData>[] = [
 	},
 	{
 		id: 'statistics_summary',
-		header: 'Statistic summary',
+		header: (header) => (
+			<div
+				onClick={header.column.getToggleSortingHandler()}
+				className={cn(
+					'flex items-center gap-2 cursor-pointer',
+					header.column.columnDef.meta?.headerClassName
+				)}
+			>
+				<span>Statistic Summary</span>
+				<TableSort
+					isSorted={!!header.column.getIsSorted()}
+					sortDescription={header.column.getIsSorted()}
+				/>
+			</div>
+		),
 		accessorFn: (data) => ({ stats: data.stats, runId: data.id }),
 		cell: (cell) => {
 			const { stats, runId } = cell.getValue<{
@@ -96,14 +123,14 @@ export const columns: ColumnDef<RunsData>[] = [
 			);
 		},
 		sortingFn: (a, b) =>
-			a.original.stats.tests_total_nok - b.original.stats.tests_total_nok
+			a.original.stats.tests_total_nok - b.original.stats.tests_total_nok,
+		meta: { headerClassName: 'pl-1.5' }
 	},
 	{
 		id: 'important_tags',
-		header: 'Important tags',
-		accessorFn: (data) => {
-			return data.important_tags.map((badge) => ({ payload: badge }));
-		},
+		header: 'Important Tags',
+		accessorFn: (data) =>
+			data.important_tags.map((badge) => ({ payload: badge })),
 		cell: (cell) => {
 			return (
 				<BadgeList
@@ -114,6 +141,7 @@ export const columns: ColumnDef<RunsData>[] = [
 				/>
 			);
 		},
+		meta: { headerClassName: 'pl-3' },
 		enableSorting: false
 	},
 	{
@@ -123,13 +151,14 @@ export const columns: ColumnDef<RunsData>[] = [
 			return (
 				<BadgeList
 					badges={cell.getValue<BadgeListItem[]>()}
-					className="bg-badge-4"
+					className="bg-badge-4 whitespace-nowrap"
 					selectedBadges={cell.table.getState().globalFilter}
 					onBadgeClick={onGlobalFilter(cell)}
 				/>
 			);
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: { headerClassName: 'pl-3' }
 	},
 	{
 		header: 'Tags',
@@ -143,6 +172,7 @@ export const columns: ColumnDef<RunsData>[] = [
 				/>
 			);
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: { headerClassName: 'pl-3' }
 	}
 ];

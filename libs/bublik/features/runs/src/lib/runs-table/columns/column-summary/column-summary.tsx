@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
 import { routes } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { SummaryBadge } from './summary-badge';
+import { useMedia } from 'react-use';
+import { cn } from '@/shared/tailwind-ui';
 
-export interface ColumnSummaryProps {
+interface ColumnSummaryProps {
 	runId: number;
 	totalCount: number;
 	totalPlannedPercentage: number;
@@ -17,21 +17,26 @@ export interface ColumnSummaryProps {
 	unexpectedPercentage: number;
 }
 
-export const ColumnSummary: FC<ColumnSummaryProps> = ({
-	runId,
-	totalCount,
-	totalPlannedPercentage,
-	expectedCount,
-	expectedPercentage,
-	unexpectedCount,
-	unexpectedPercentage
-}) => {
+function ColumnSummary(props: ColumnSummaryProps) {
+	const {
+		runId,
+		totalCount,
+		totalPlannedPercentage,
+		expectedCount,
+		expectedPercentage,
+		unexpectedCount,
+		unexpectedPercentage
+	} = props;
 	const navigate = useNavigateWithProject();
-
 	const to = routes.run({ runId });
 
 	return (
-		<div className="flex flex-wrap items-start justify-start gap-1">
+		<div
+			className={cn(
+				'flex items-start justify-start gap-1 flex-nowrap',
+				'max-2xl:flex-wrap max-2xl:flex-col'
+			)}
+		>
 			<SummaryBadge
 				to={to}
 				label="Total"
@@ -74,4 +79,6 @@ export const ColumnSummary: FC<ColumnSummaryProps> = ({
 			/>
 		</div>
 	);
-};
+}
+
+export { ColumnSummary };

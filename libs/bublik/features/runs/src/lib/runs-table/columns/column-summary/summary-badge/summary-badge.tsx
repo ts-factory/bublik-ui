@@ -6,7 +6,11 @@ import { cva } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 const linkStyles = cva({
-	base: 'flex items-center justify-center py-0.5 px-2 border border-transparent min-w-[115px] rounded hover:underline'
+	base: [
+		'grid grid-cols-3 gap-x-1',
+		'py-0.5 px-1 border border-transparent w-[132px] rounded ',
+		'text-[0.75rem] font-medium leading-[1.125rem] hover:underline whitespace-nowrap'
+	]
 });
 
 export interface SummaryBadgeProps extends LinkProps {
@@ -17,12 +21,14 @@ export interface SummaryBadgeProps extends LinkProps {
 
 export const SummaryBadge = (props: SummaryBadgeProps) => {
 	const { label, count, percentage, className, ...rest } = props;
-	const percentageStr = percentage ? `(${percentage}%)` : '(0%)';
+	const percentageStr = percentage ? `${percentage}%` : '0%';
 
 	return (
 		<LinkWithProject className={linkStyles({ className })} {...rest}>
-			<span className="text-[0.75rem] font-medium leading-[1.125rem]">
-				{label}: {count} {percentageStr}
+			<span>{label}:</span>
+			<span className="text-right border-l border-gray-500/30">{count}</span>
+			<span className="text-right border-l border-gray-500/30">
+				{percentageStr}
 			</span>
 		</LinkWithProject>
 	);
