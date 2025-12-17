@@ -1,5 +1,17 @@
 
 
+## [2.6.0](https://github.com/ts-factory/bublik-ui/compare/v2.5.0...v2.6.0) (2025-12-17)
+
+
+### 🚀 New Feature
+
+* **report:** [chart] add stacked charts support for report ([e4f4cc8](https://github.com/ts-factory/bublik-ui/commit/e4f4cc82bb91059ba200ded89164c960fb6b39c5))
+
+
+### 💅 Polish
+
+* **run:** [result-table] fix history split button icon being on top of header ([d47cd2e](https://github.com/ts-factory/bublik-ui/commit/d47cd2e88996021d2c07c81264366209d3e7f5fe))
+
 ## [2.5.0](https://github.com/ts-factory/bublik-ui/compare/v2.4.1...v2.5.0) (2025-12-11)
 
 
