@@ -20,6 +20,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
+import { StackedAdd } from '../run-report-stacked';
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report.component';
@@ -268,7 +269,10 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 								<div className="absolute right-4 z-[1] top-2.5">
 									<WarningsHoverCard warnings={chart.warnings} />
 								</div>
-								<RunReportChart chart={chart} />
+								<RunReportChart
+									chart={chart}
+									stackedButton={<StackedAdd id={id} />}
+								/>
 							</div>
 						</div>
 					) : null}

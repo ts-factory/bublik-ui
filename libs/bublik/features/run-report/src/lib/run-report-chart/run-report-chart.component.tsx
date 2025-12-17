@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
@@ -9,21 +9,22 @@ import { MeasurementChartToolbar, Plot } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
+import { DrawerContent, DrawerRoot } from '@/shared/tailwind-ui';
 
 import {
 	ParamsSchema,
 	resolveRunReportChartOptions
 } from './run-report-chart.utils';
 import { useRunReportChartState } from './run-report-chart.hooks';
-import { DrawerContent, DrawerRoot } from '@/shared/tailwind-ui';
 
 interface RunReportChartProps {
 	chart: ReportChart;
 	isFullScreen?: boolean;
+	stackedButton?: ReactNode;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const { chart, isFullScreen = false } = props;
+	const { chart, isFullScreen = false, stackedButton } = props;
 	const { runId } = useParams<{ runId: string }>();
 	const [resultId, setResultId] = useState<number>();
 	const [open, setOpen] = useState(false);
@@ -116,6 +117,7 @@ function RunReportChart(props: RunReportChartProps) {
 						changeMode={changeMode}
 						toggleFullScreen={toggleFullScreen}
 						isFullScreen={isFullScreen}
+						additionalToolBarItems={stackedButton}
 					/>
 				</div>
 				<Plot

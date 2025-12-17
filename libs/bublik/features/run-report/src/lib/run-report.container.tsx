@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useParams, useSearchParams } from 'react-router-dom';
-
 import {
 	useGetRunDetailsQuery,
 	useGetRunReportQuery
@@ -38,17 +36,18 @@ function useReportData({ runId, configId }: UseReportOptions) {
 	};
 }
 
-function RunReportContainer() {
-	const [searchParams] = useSearchParams();
-	const { runId } = useParams<{ runId: string }>();
-	const configId = searchParams.get('config');
-	const { details, blocks, error, isLoading } = useReportData({
-		runId: Number(runId),
-		configId: Number(configId)
-	});
+interface RunReportContainerProps {
+	runId: number;
+	configId: number;
+}
 
-	if (!configId) return <div>No config id found!</div>;
-	if (!runId) return <div>No run id found!</div>;
+function RunReportContainer(props: RunReportContainerProps) {
+	const { runId, configId } = props;
+
+	const { details, blocks, error, isLoading } = useReportData({
+		runId,
+		configId
+	});
 
 	if (isLoading) return <RunReportLoading />;
 
@@ -56,7 +55,11 @@ function RunReportContainer() {
 
 	if (!blocks || !details) return <RunReportEmpty />;
 
-	return <RunReport runId={Number(runId)} blocks={blocks} details={details} />;
+	return (
+		<>
+			<RunReport runId={Number(runId)} blocks={blocks} details={details} />;
+		</>
+	);
 }
 
 export { RunReportContainer };

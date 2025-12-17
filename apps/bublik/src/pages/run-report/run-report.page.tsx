@@ -1,21 +1,43 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
-import { RunReportContainer } from '@/bublik/features/run-report';
+import {
+	ReportStackedContextProvider,
+	RunReportContainer,
+	RunReportStackedSelectedContainer,
+	RunReportStackedChartContainer
+} from '@/bublik/features/run-report';
 import { formatTimeToDot } from '@/shared/utils';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 function RunReportPage() {
+	const [searchParams] = useSearchParams();
 	const { runId } = useParams<{ runId: string }>();
+	const configId = searchParams.get('config');
 	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
+
+	if (!configId) {
+		return <div className="flex flex-col gap-1 p-2">No config id found!</div>;
+	}
+
+	if (!runId) {
+		return <div className="flex flex-col gap-1 p-2">No run id found!</div>;
+	}
 
 	return (
 		<div className="flex flex-col gap-1 p-2">
-			<RunReportContainer />
+			<ReportStackedContextProvider
+				runId={Number(runId)}
+				configId={Number(configId)}
+			>
+				<RunReportContainer runId={Number(runId)} configId={Number(configId)} />
+				<RunReportStackedSelectedContainer />
+				<RunReportStackedChartContainer />
+			</ReportStackedContextProvider>
 		</div>
 	);
 }
