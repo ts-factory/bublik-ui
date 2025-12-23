@@ -181,6 +181,10 @@ interface ResolveStackedOptionsProps {
 	enableResultErrorHighlight?: boolean;
 }
 
+export type SingleMeasurementChartWithContext = SingleMeasurementChart & {
+	parameters?: string[];
+};
+
 function resolveStackedOptions(
 	plots: SingleMeasurementChart[],
 	options: ResolveStackedOptionsProps = {}
@@ -193,6 +197,8 @@ function resolveStackedOptions(
 		fontWeight: 500,
 		lineHeight: 18
 	};
+
+	console.log('FROM OPTIONS:', plots);
 
 	// Group plots by y-axis label
 	const yAxisGroups = new Map<string, number[]>();

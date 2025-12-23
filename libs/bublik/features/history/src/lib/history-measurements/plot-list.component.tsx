@@ -8,8 +8,7 @@ import {
 	cn,
 	Icon,
 	Skeleton,
-	ToolbarButton,
-	useSidebar
+	ToolbarButton
 } from '@/shared/tailwind-ui';
 import { ExportChart, getColorByIdx, MeasurementChart } from '@/shared/charts';
 import { SingleMeasurementChart } from '@/services/bublik-api';
@@ -21,10 +20,12 @@ import { resolvePoint } from './plot-list.utils';
 interface PlotListItemProps {
 	idx: number;
 	plot: SingleMeasurementChart;
+	parameters?: string[];
 	onAddChartClick: (args: {
 		plot: SingleMeasurementChart;
 		color: string;
 		group: 'trend' | 'measurement';
+		parameters?: string[];
 	}) => void;
 	combinedState: 'disabled' | 'active' | 'default' | 'waiting';
 	enableResultErrorHighlight?: boolean;
@@ -36,6 +37,7 @@ const PlotListItem = (props: PlotListItemProps) => {
 	const {
 		idx,
 		plot,
+		parameters,
 		combinedState,
 		onAddChartClick,
 		enableResultErrorHighlight,
@@ -56,7 +58,7 @@ const PlotListItem = (props: PlotListItemProps) => {
 	};
 
 	const handleChartAddClick = (plot: SingleMeasurementChart) => {
-		onAddChartClick({ plot, color: getColorByIdx(idx), group });
+		onAddChartClick({ plot, color: getColorByIdx(idx), group, parameters });
 	};
 
 	const isDisabled =
@@ -129,14 +131,21 @@ export const PlotListLoading = (props: PlotListLoadingProps) => {
 export interface PlotListProps {
 	label: string;
 	plots: SingleMeasurementChart[];
+	parameters?: string[];
 	isFetching?: boolean;
 	enableResultErrorHighlight?: boolean;
 	group: 'trend' | 'measurement';
 }
 
 export function PlotList(props: PlotListProps) {
-	const { plots, isFetching, label, enableResultErrorHighlight, group } = props;
-	const { isSidebarOpen } = useSidebar();
+	const {
+		plots,
+		isFetching,
+		label,
+		enableResultErrorHighlight,
+		group,
+		parameters
+	} = props;
 	const { handleAddChartClick, selectedCharts, selectedGroup } =
 		useCombinedView();
 
@@ -157,9 +166,7 @@ export function PlotList(props: PlotListProps) {
 			<ul
 				className={cn(
 					'[&>li]:border-b [&>li]:border-border-primary',
-					isSidebarOpen
-						? 'min-[1465px]:chart-mosaic'
-						: 'min-[1368px]:chart-mosaic'
+					plots.length !== 1 && 'min-[1465px]:chart-mosaic'
 				)}
 			>
 				{plots.map((plot, idx) => {
@@ -177,6 +184,7 @@ export function PlotList(props: PlotListProps) {
 							plot={plot}
 							onAddChartClick={handleAddChartClick}
 							combinedState={state}
+							parameters={parameters}
 							enableResultErrorHighlight={enableResultErrorHighlight}
 							group={group}
 							selectedGroup={selectedGroup}

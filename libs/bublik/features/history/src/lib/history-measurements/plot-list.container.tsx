@@ -121,8 +121,30 @@ export function PlotListContainerByResult() {
 		return all;
 	}, [data]);
 
-	const [selected = [], setSelected] = useQueryParam(
+	const uniqueNames = useMemo(() => {
+		return Array.from(
+			new Set(
+				data
+					?.map((d) =>
+						d.measurement_series_charts.map(
+							(c) => `${c.title} - ${c.axis_y.label}`
+						)
+					)
+					.flat()
+			) ?? []
+		)
+			.sort()
+			.map((name) => ({ label: name, value: name }));
+	}, [data]);
+
+	const [selectedByParam = [], setSelectedByParam] = useQueryParam(
 		'parametersByResultFilter',
+		withDefault(ArrayParam, []),
+		{ updateType: 'replaceIn' }
+	);
+
+	const [selectedByName = [], setSelectedByName] = useQueryParam(
+		'parametersByResultName',
 		withDefault(ArrayParam, []),
 		{ updateType: 'replaceIn' }
 	);
@@ -156,8 +178,8 @@ export function PlotListContainerByResult() {
 	}
 
 	const filteredByParams = data.filter((m) => {
-		if (!selected || !selected.length) return true;
-		return selected.every(
+		if (!selectedByParam || !selectedByParam.length) return true;
+		return selectedByParam.every(
 			(param) => typeof param === 'string' && m.parameters_list.includes(param)
 		);
 	});
@@ -173,11 +195,23 @@ export function PlotListContainerByResult() {
 							</span>
 							<DataTableFacetedFilter
 								size="xss"
+								title="Charts"
+								value={
+									selectedByName.filter((param) => typeof param === 'string') ??
+									[]
+								}
+								onChange={setSelectedByName}
+								options={uniqueNames}
+							/>
+							<DataTableFacetedFilter
+								size="xss"
 								title="Parameters"
 								value={
-									selected.filter((param) => typeof param === 'string') ?? []
+									selectedByParam.filter(
+										(param) => typeof param === 'string'
+									) ?? []
 								}
-								onChange={setSelected}
+								onChange={setSelectedByParam}
 								options={uniqueParameters}
 							/>
 						</div>
@@ -185,7 +219,13 @@ export function PlotListContainerByResult() {
 					enableStickyShadow
 				/>
 			</div>
-			<MeasurementsList measurements={filteredByParams} group="measurement" />
+			<MeasurementsList
+				measurements={filteredByParams}
+				nameFilter={
+					selectedByName.filter((param) => typeof param === 'string') ?? []
+				}
+				group="measurement"
+			/>
 			<SelectedChartsPopover
 				open={!!selectedCharts.length}
 				label="Combined"
@@ -200,16 +240,24 @@ export function PlotListContainerByResult() {
 
 interface MeasurementListProps {
 	measurements: HistoryMeasurementResult[];
+	nameFilter?: string[];
 }
 
 function MeasurementsList(
 	props: MeasurementListProps & { group: 'trend' | 'measurement' }
 ) {
-	const { measurements, group } = props;
+	const { measurements, group, nameFilter = [] } = props;
 
 	return (
 		<div className="flex flex-col">
 			{measurements.map((m, idx) => {
+				const filtered =
+					nameFilter.length > 0
+						? m.measurement_series_charts.filter((c) =>
+								nameFilter?.includes(`${c.title} - ${c.axis_y.label}`)
+						  )
+						: m.measurement_series_charts;
+
 				return (
 					<div
 						key={`${idx}-${m.id}`}
@@ -246,7 +294,8 @@ function MeasurementsList(
 						{m.measurement_series_charts.length ? (
 							<PlotList
 								label="Charts"
-								plots={m.measurement_series_charts}
+								plots={filtered}
+								parameters={m.parameters_list}
 								group={group}
 							/>
 						) : null}

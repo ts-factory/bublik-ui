@@ -11,8 +11,9 @@ import { useQueryParam } from 'use-query-params';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 
-interface SelectedChart {
+export interface SelectedChart {
 	plot: SingleMeasurementChart;
+	parameters?: string[];
 	color: string;
 }
 
@@ -50,11 +51,12 @@ export const CombinedChartsProvider = ({
 			plot: SingleMeasurementChart;
 			color: string;
 			group: 'trend' | 'measurement';
+			parameters?: string[];
 		}) => {
-			const { plot, color, group } = args;
+			const { plot, color, group, parameters } = args;
 			const plotId = String(plot.id);
 			if (!selectedCharts.find(({ plot: p }) => String(p.id) === plotId)) {
-				setSelectedCharts([...selectedCharts, { plot, color }]);
+				setSelectedCharts([...selectedCharts, { plot, color, parameters }]);
 				if (selectedCharts.length === 0) {
 					setSelectedGroup(group);
 				}
@@ -70,6 +72,8 @@ export const CombinedChartsProvider = ({
 		},
 		[selectedCharts, setSelectedGroup]
 	);
+
+	console.log('SELECTED CHARTS:', selectedCharts);
 
 	const handleRemoveClick = useCallback(
 		(plot: SingleMeasurementChart) => {

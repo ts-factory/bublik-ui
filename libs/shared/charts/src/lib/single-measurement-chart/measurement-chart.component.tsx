@@ -19,7 +19,8 @@ import { Plot } from '../plot';
 import {
 	ChartState,
 	resolveOptions,
-	resolveStackedOptions
+	resolveStackedOptions,
+	SingleMeasurementChartWithContext
 } from './measurement-chart.component.utils';
 import {
 	useChartState,
@@ -247,7 +248,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 }
 
 interface StackedMeasurementChartProps {
-	charts: SingleMeasurementChart[];
+	charts: SingleMeasurementChartWithContext[];
 	style?: CSSProperties;
 	onPointClick?: (config: ChartPointClickProps) => void;
 	enableResultErrorHighlight?: boolean;

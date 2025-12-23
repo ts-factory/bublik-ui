@@ -28,7 +28,7 @@ function HistoryMeasurementsCombinedContainer() {
 	} = useGetHistoryMeasurementsByResult();
 	const [point, setPoint] = useState<Point | null>(null);
 	const [isPointDialogOpen, setIsPointDialogOpen] = useState(false);
-	const { selectedGroup } = useCombinedView();
+	const { selectedGroup, selectedCharts } = useCombinedView();
 
 	const plots = useMemo(() => {
 		if (!data) return [];
@@ -45,8 +45,13 @@ function HistoryMeasurementsCombinedContainer() {
 
 		const plotIds = plotIdsStr.split(';').map(String);
 
-		return allCharts.filter((p) => plotIds.includes(String(p.id)));
-	}, [byResult, data, searchParams]);
+		return allCharts
+			.filter((p) => plotIds.includes(String(p.id)))
+			.map((p) => ({
+				...p,
+				parameters: selectedCharts.find((c) => c.plot.id === p.id)?.parameters
+			}));
+	}, [byResult, data, searchParams, selectedCharts]);
 
 	const handleCombinedPointClick: ComponentProps<
 		typeof StackedMeasurementChart
