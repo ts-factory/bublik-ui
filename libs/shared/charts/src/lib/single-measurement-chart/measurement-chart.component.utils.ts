@@ -5,6 +5,7 @@ import { SingleMeasurementChart } from '@/services/bublik-api';
 
 import { Plot } from '../plot';
 import { getColorByIdx } from '../utils';
+import { EChartsOption } from '../echart';
 
 function resolveXAxisType(
 	axis_x_key: string,
@@ -186,7 +187,6 @@ function resolveStackedOptions(
 ): ComponentProps<typeof Plot>['options'] {
 	const { enableResultErrorHighlight = false } = options;
 	const Y_AXIS_SPACING = 120;
-
 	const axisLabelStyles = {
 		fontFamily: 'Inter',
 		fontSize: 10,
@@ -194,11 +194,52 @@ function resolveStackedOptions(
 		lineHeight: 18
 	};
 
+	// Group plots by y-axis label
+	const yAxisGroups = new Map<string, number[]>();
+	const yAxisConfigs: EChartsOption['yAxis'] = [];
+
+	plots.forEach((plot, idx) => {
+		const yAxisLabel = plot.axis_y.label;
+		if (!yAxisGroups.has(yAxisLabel)) {
+			const yAxisIndex = yAxisConfigs.length;
+			yAxisGroups.set(yAxisLabel, [idx]);
+			yAxisConfigs.push({
+				type: 'value',
+				name: yAxisLabel,
+				nameGap: 20,
+				nameLocation: 'end',
+				axisLabel: axisLabelStyles,
+				nameTextStyle: { ...axisLabelStyles, align: 'left' },
+				position: yAxisIndex === 0 ? 'left' : 'right',
+				offset: yAxisIndex <= 1 ? 0 : (yAxisIndex - 1) * Y_AXIS_SPACING,
+				axisLine: {
+					show: true,
+					lineStyle: { color: getColorByIdx(yAxisIndex) }
+				},
+				axisTick: { show: true },
+				scale: true
+			});
+		} else {
+			yAxisGroups.get(yAxisLabel)!.push(idx);
+		}
+	});
+
+	const plotToYAxisIndex = new Map<number, number>();
+	yAxisGroups.forEach((plotIndices, _yAxisLabel) => {
+		const yAxisIndex = Array.from(yAxisGroups.keys()).indexOf(_yAxisLabel);
+		plotIndices.forEach((plotIdx) => {
+			plotToYAxisIndex.set(plotIdx, yAxisIndex);
+		});
+	});
+
 	return {
 		toolbox: {
 			top: 9999,
 			feature: {
-				dataZoom: { xAxisIndex: [0], yAxisIndex: plots.map((_, i) => i) }
+				dataZoom: {
+					xAxisIndex: [0],
+					yAxisIndex: Array.from({ length: yAxisConfigs.length }, (_, i) => i)
+				}
 			}
 		},
 		dataset: plots.map((plot, idx) => ({
@@ -213,34 +254,22 @@ function resolveStackedOptions(
 			nameTextStyle: axisLabelStyles,
 			axisLabel: axisLabelStyles
 		},
-		yAxis: plots.map((plot, idx) => ({
-			type: 'value',
-			name: plot.axis_y.label,
-			nameGap: 20,
-			nameLocation: 'end',
-			axisLabel: axisLabelStyles,
-			nameTextStyle: { ...axisLabelStyles, align: 'left' },
-			position: idx === 0 ? 'left' : 'right',
-			offset: idx <= 1 ? 0 : (idx - 1) * Y_AXIS_SPACING,
-			axisLine: { show: true, lineStyle: { color: getColorByIdx(idx) } },
-			axisTick: { show: true },
-			scale: true
-		})),
+		yAxis: yAxisConfigs,
 		series: plots.map((plot, idx) => {
 			const title = plot.title ?? plot.subtitle ?? '';
+			const yAxisIndex = plotToYAxisIndex.get(idx)!;
 
 			return {
 				type: 'line',
 				name: `${title.replace(/\u200B/g, '')}${`\u200B`.repeat(idx)}`,
 				datasetId: `dataset_${idx}`,
-				yAxisIndex: idx,
+				yAxisIndex: yAxisIndex,
 				color: getColorByIdx(idx),
 				encode: { x: plot.axis_x.key, y: plot.axis_y.key },
 				symbolSize: enableResultErrorHighlight
 					? (_: unknown, params: { dataIndex: number }) => {
 							const point = plot.dataset[params.dataIndex + 1];
 							if (!point) return 8;
-
 							const hasError = point[plot.dataset[0].indexOf('has_error')];
 							return hasError ? 16 : 8;
 					  }
@@ -249,7 +278,6 @@ function resolveStackedOptions(
 					? (_: unknown, params: { dataIndex: number }) => {
 							const point = plot.dataset[params.dataIndex + 1];
 							if (!point) return 'circle';
-
 							const hasError = point[plot.dataset[0].indexOf('has_error')];
 							return hasError ? 'diamond' : 'circle';
 					  }
@@ -259,7 +287,6 @@ function resolveStackedOptions(
 							color: (params: { dataIndex: number }) => {
 								const point = plot.dataset[params.dataIndex + 1];
 								if (!point) return getColorByIdx(idx);
-
 								const hasError = point[plot.dataset[0].indexOf('has_error')];
 								return hasError ? '#f95c78' : '#65cd84';
 							}
@@ -270,13 +297,16 @@ function resolveStackedOptions(
 		}),
 		dataZoom: [
 			{ type: 'inside', xAxisIndex: [0] },
-			{ type: 'inside', yAxisIndex: plots.map((_, i) => i) },
+			{
+				type: 'inside',
+				yAxisIndex: Array.from({ length: yAxisConfigs.length }, (_, i) => i)
+			},
 			{ type: 'slider', xAxisIndex: [0], bottom: 10 }
 		],
 		grid: {
 			top: 80,
 			left: '5%',
-			right: `${10 * plots.length}%`,
+			right: `${10 * yAxisConfigs.length}%`,
 			bottom: '15%'
 		},
 		tooltip: {
