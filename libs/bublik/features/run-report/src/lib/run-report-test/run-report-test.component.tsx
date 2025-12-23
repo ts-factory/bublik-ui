@@ -151,6 +151,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 														enableTableView={enableTableView}
 														block={record}
 														offset={offsetTop + headerOffsetTop + 36}
+														idx={idx}
 													/>
 												</li>
 											))}
@@ -169,10 +170,10 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 type RunReportEntityBlockProps = Pick<
 	RunReportTestBlockProps,
 	'enableChartView' | 'enableTableView'
-> & { block: RecordBlock; offset: number };
+> & { block: RecordBlock; offset: number; idx: number };
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
-	const { enableChartView, enableTableView, block, offset } = props;
+	const { enableChartView, enableTableView, block, offset, idx } = props;
 	const { id, chart, table, label } = block;
 	const [searchParams] = useSearchParams();
 	const ref = useRef<HTMLDivElement>(null);
@@ -275,6 +276,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 								<RunReportChart
 									chart={chart}
 									stackedButton={<StackedAdd id={id} />}
+									idx={idx}
 								/>
 							</div>
 						</div>

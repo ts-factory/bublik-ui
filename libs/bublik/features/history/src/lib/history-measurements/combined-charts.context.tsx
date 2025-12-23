@@ -34,11 +34,12 @@ const CombinedChartsContext = createContext<
 	CombinedChartsContextValue | undefined
 >(undefined);
 
-export const CombinedChartsProvider = ({
-	children
-}: {
+interface CombinedChartsProviderProps {
 	children: ReactNode;
-}) => {
+}
+
+export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
+	const { children } = props;
 	const [selectedCharts, setSelectedCharts] = useState<SelectedChart[]>([]);
 	const [selectedGroup, setSelectedGroup] = useQueryParam<
 		null | 'trend' | 'measurement'
@@ -57,23 +58,17 @@ export const CombinedChartsProvider = ({
 			const plotId = String(plot.id);
 			if (!selectedCharts.find(({ plot: p }) => String(p.id) === plotId)) {
 				setSelectedCharts([...selectedCharts, { plot, color, parameters }]);
-				if (selectedCharts.length === 0) {
-					setSelectedGroup(group);
-				}
+				if (selectedCharts.length === 0) setSelectedGroup(group);
 			} else {
 				const newCharts = selectedCharts.filter(
 					({ plot: p }) => String(p.id) !== plotId
 				);
 				setSelectedCharts(newCharts);
-				if (newCharts.length === 0) {
-					setSelectedGroup(null);
-				}
+				if (newCharts.length === 0) setSelectedGroup(null);
 			}
 		},
 		[selectedCharts, setSelectedGroup]
 	);
-
-	console.log('SELECTED CHARTS:', selectedCharts);
 
 	const handleRemoveClick = useCallback(
 		(plot: SingleMeasurementChart) => {
@@ -82,9 +77,7 @@ export const CombinedChartsProvider = ({
 				({ plot: p }) => String(p.id) !== plotId
 			);
 			setSelectedCharts(newCharts);
-			if (newCharts.length === 0) {
-				setSelectedGroup(null);
-			}
+			if (newCharts.length === 0) setSelectedGroup(null);
 		},
 		[selectedCharts, setSelectedGroup]
 	);

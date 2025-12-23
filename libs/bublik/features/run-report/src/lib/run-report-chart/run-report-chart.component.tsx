@@ -21,10 +21,11 @@ interface RunReportChartProps {
 	chart: ReportChart;
 	isFullScreen?: boolean;
 	stackedButton?: ReactNode;
+	idx: number;
 }
 
 function RunReportChart(props: RunReportChartProps) {
-	const { chart, isFullScreen = false, stackedButton } = props;
+	const { chart, isFullScreen = false, stackedButton, idx } = props;
 	const { runId } = useParams<{ runId: string }>();
 	const [resultId, setResultId] = useState<number>();
 	const [open, setOpen] = useState(false);
@@ -82,13 +83,20 @@ function RunReportChart(props: RunReportChartProps) {
 		changeMode,
 		toggleFullScreen,
 		toggleLimitYAxis
-	} = useRunReportChartState({ chart, chartRef, isCtrlPressed, isFullScreen });
+	} = useRunReportChartState({
+		chart,
+		chartRef,
+		isCtrlPressed,
+		isFullScreen,
+		idx
+	});
 
 	const options = resolveRunReportChartOptions({
 		chart,
 		state,
 		isCtrlPressed,
-		isFullScreen
+		isFullScreen,
+		idx
 	});
 
 	return (
@@ -102,7 +110,7 @@ function RunReportChart(props: RunReportChartProps) {
 			/>
 			<DrawerRoot open={state.isFullScreen} onOpenChange={toggleFullScreen}>
 				<DrawerContent className="w-[75vw] p-4">
-					<RunReportChart chart={chart} isFullScreen={true} />
+					<RunReportChart chart={chart} isFullScreen={true} idx={idx} />
 				</DrawerContent>
 			</DrawerRoot>
 			<div className="w-full flex flex-col gap-2 h-full pb-2">

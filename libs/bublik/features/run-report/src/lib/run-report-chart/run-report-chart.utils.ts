@@ -3,7 +3,13 @@
 import { ComponentProps } from 'react';
 import { z } from 'zod';
 
-import { ChartState, chartStyles, EChartsOption, Plot } from '@/shared/charts';
+import {
+	ChartState,
+	chartStyles,
+	EChartsOption,
+	getColorByIdx,
+	Plot
+} from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
 import { DataZoomComponentOption } from 'echarts';
 
@@ -17,49 +23,13 @@ interface RunReportChartConfigOptions {
 	state: ChartState;
 	isCtrlPressed: boolean;
 	isFullScreen: boolean;
-}
-
-function resolveDataZoom(
-	state: ChartState,
-	isModifierPressed = false,
-	isFullScreen = false
-) {
-	const dataZoom = [];
-
-	dataZoom.push({
-		type: 'inside',
-		xAxisIndex: [0],
-		zoomLock: !isModifierPressed
-	});
-	dataZoom.push({
-		type: 'inside',
-		yAxisIndex: [0],
-		zoomLock: !isModifierPressed
-	});
-
-	if (state.isSlidersVisible) {
-		dataZoom.push({
-			type: 'slider',
-			show: true,
-			xAxisIndex: [0],
-			bottom: isFullScreen ? 50 : 15
-		});
-		dataZoom.push({
-			type: 'slider',
-			show: true,
-			yAxisIndex: [0],
-			right: isFullScreen ? 70 : 0,
-			bottom: isFullScreen ? '15%' : '30%'
-		});
-	}
-
-	return dataZoom;
+	idx: number;
 }
 
 function resolveRunReportChartOptions(
 	options: RunReportChartConfigOptions
 ): EChartsOption {
-	const { chart, isCtrlPressed, state, isFullScreen } = options;
+	const { chart, isCtrlPressed, state, isFullScreen, idx } = options;
 
 	const dataZoom: DataZoomComponentOption[] = state.isSlidersVisible
 		? [{ left: '8%' }, { type: 'inside', zoomLock: !isCtrlPressed }]
@@ -82,7 +52,7 @@ function resolveRunReportChartOptions(
 					const hasError = point?.metadata?.has_error;
 
 					if (hasError) return '#f95c78';
-					return '#65cd84';
+					return getColorByIdx(idx);
 				}
 			},
 			symbol: (_, params: unknown) => {

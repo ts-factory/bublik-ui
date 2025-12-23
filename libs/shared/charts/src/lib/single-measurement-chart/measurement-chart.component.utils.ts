@@ -4,7 +4,7 @@ import { isDate } from 'date-fns';
 import { SingleMeasurementChart } from '@/services/bublik-api';
 
 import { Plot } from '../plot';
-import { getColorByIdx } from '../utils';
+import { getChartName, getColorByIdx } from '../utils';
 import { EChartsOption } from '../echart';
 
 function resolveXAxisType(
@@ -144,7 +144,7 @@ function resolveOptions(
 								if (!point) return additionalOptions.color ?? '#7283e2';
 
 								const hasError = point[chart.dataset[0].indexOf('has_error')];
-								return hasError ? '#f95c78' : '#65cd84';
+								return hasError ? '#f95c78' : additionalOptions.color ?? '';
 							}
 					  }
 					: undefined,
@@ -186,7 +186,7 @@ export type SingleMeasurementChartWithContext = SingleMeasurementChart & {
 };
 
 function resolveStackedOptions(
-	plots: SingleMeasurementChart[],
+	plots: SingleMeasurementChartWithContext[],
 	options: ResolveStackedOptionsProps = {}
 ): ComponentProps<typeof Plot>['options'] {
 	const { enableResultErrorHighlight = false } = options;
@@ -198,9 +198,45 @@ function resolveStackedOptions(
 		lineHeight: 18
 	};
 
-	console.log('FROM OPTIONS:', plots);
+	const getDifferingParams = (allParams: (string[] | undefined)[]) => {
+		if (allParams.length <= 1 || allParams.some((p) => !p || p.length === 0)) {
+			return new Set<string>();
+		}
 
-	// Group plots by y-axis label
+		const allParamSets = allParams.map((params) => new Set(params || []));
+
+		const differingParams = new Set<string>();
+		const allUniqueParams = new Set<string>();
+
+		allParamSets.forEach((paramSet) => {
+			paramSet.forEach((param) => allUniqueParams.add(param));
+		});
+
+		allUniqueParams.forEach((param) => {
+			const presentInAll = allParamSets.every((paramSet) =>
+				paramSet.has(param)
+			);
+			if (!presentInAll) {
+				differingParams.add(param);
+			}
+		});
+
+		return differingParams;
+	};
+
+	const formatParamsForDisplay = (
+		params: string[] | undefined,
+		differingParams: Set<string>
+	) => {
+		if (!params || params.length === 0 || differingParams.size === 0) return '';
+
+		const relevantParams = params.filter((param) => differingParams.has(param));
+
+		return relevantParams.length > 0 ? ` (${relevantParams.join(' | ')})` : '';
+	};
+
+	const differingParams = getDifferingParams(plots.map((p) => p.parameters));
+
 	const yAxisGroups = new Map<string, number[]>();
 	const yAxisConfigs: EChartsOption['yAxis'] = [];
 
@@ -215,6 +251,7 @@ function resolveStackedOptions(
 				nameGap: 20,
 				nameLocation: 'end',
 				axisLabel: axisLabelStyles,
+				nameTruncate: idx !== 0 ? { maxWidth: 125 } : undefined,
 				nameTextStyle: { ...axisLabelStyles, align: 'left' },
 				position: yAxisIndex === 0 ? 'left' : 'right',
 				offset: yAxisIndex <= 1 ? 0 : (yAxisIndex - 1) * Y_AXIS_SPACING,
@@ -229,7 +266,6 @@ function resolveStackedOptions(
 			yAxisGroups.get(yAxisLabel)!.push(idx);
 		}
 	});
-
 	const plotToYAxisIndex = new Map<number, number>();
 	yAxisGroups.forEach((plotIndices, _yAxisLabel) => {
 		const yAxisIndex = Array.from(yAxisGroups.keys()).indexOf(_yAxisLabel);
@@ -237,7 +273,6 @@ function resolveStackedOptions(
 			plotToYAxisIndex.set(plotIdx, yAxisIndex);
 		});
 	});
-
 	return {
 		toolbox: {
 			top: 9999,
@@ -262,12 +297,18 @@ function resolveStackedOptions(
 		},
 		yAxis: yAxisConfigs,
 		series: plots.map((plot, idx) => {
-			const title = plot.title ?? plot.subtitle ?? '';
+			const title = getChartName(plot);
 			const yAxisIndex = plotToYAxisIndex.get(idx)!;
+			const paramsSuffix = formatParamsForDisplay(
+				plot.parameters,
+				differingParams
+			);
 
 			return {
 				type: 'line',
-				name: `${title.replace(/\u200B/g, '')}${`\u200B`.repeat(idx)}`,
+				name: `${title.replace(/\u200B/g, '')}${paramsSuffix}${`\u200B`.repeat(
+					idx
+				)}`,
 				datasetId: `dataset_${idx}`,
 				yAxisIndex: yAxisIndex,
 				color: getColorByIdx(idx),
@@ -285,7 +326,7 @@ function resolveStackedOptions(
 							const point = plot.dataset[params.dataIndex + 1];
 							if (!point) return 'circle';
 							const hasError = point[plot.dataset[0].indexOf('has_error')];
-							return hasError ? 'diamond' : 'circle';
+							return hasError ? 'diamond' : 'emptyCircle';
 					  }
 					: 'emptyCircle',
 				itemStyle: enableResultErrorHighlight
@@ -294,7 +335,7 @@ function resolveStackedOptions(
 								const point = plot.dataset[params.dataIndex + 1];
 								if (!point) return getColorByIdx(idx);
 								const hasError = point[plot.dataset[0].indexOf('has_error')];
-								return hasError ? '#f95c78' : '#65cd84';
+								return hasError ? '#f95c78' : getColorByIdx(idx);
 							}
 					  }
 					: undefined,
@@ -312,7 +353,7 @@ function resolveStackedOptions(
 		grid: {
 			top: 80,
 			left: '5%',
-			right: `${10 * yAxisConfigs.length}%`,
+			right: `${7 * yAxisConfigs.length}%`,
 			bottom: '15%'
 		},
 		tooltip: {
@@ -321,7 +362,7 @@ function resolveStackedOptions(
 			extraCssText: 'shadow-popover rounded-lg',
 			axisPointer: { type: 'cross' }
 		},
-		legend: { left: 'left' }
+		legend: { left: 'left', type: 'scroll', pageButtonPosition: 'start' }
 	};
 }
 

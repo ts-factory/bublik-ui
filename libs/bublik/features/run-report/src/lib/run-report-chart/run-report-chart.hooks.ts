@@ -11,10 +11,11 @@ interface UseRunReportChartStateOptions {
 	chartRef: RefObject<ReactEChartsCore>;
 	isCtrlPressed: boolean;
 	isFullScreen: boolean;
+	idx: number;
 }
 
 function useRunReportChartState(options: UseRunReportChartStateOptions) {
-	const { chartRef, chart, isCtrlPressed, isFullScreen } = options;
+	const { chartRef, chart, isCtrlPressed, isFullScreen, idx } = options;
 	const [state, setState] = useState<ChartState>({
 		isGlobalZoomEnabled: false,
 		isFullScreen: false,
@@ -72,7 +73,8 @@ function useRunReportChartState(options: UseRunReportChartStateOptions) {
 				chart,
 				isCtrlPressed,
 				state,
-				isFullScreen
+				isFullScreen,
+				idx
 			}),
 			true
 		);
