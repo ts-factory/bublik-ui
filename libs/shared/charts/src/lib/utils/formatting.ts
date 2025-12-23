@@ -8,5 +8,7 @@ export const formatLabel = (label: string) => {
 };
 
 export const getChartName = (plot: SingleMeasurementChart): string => {
-	return plot.title ?? plot.subtitle;
+	return plot.title
+		? `${plot.title} - ${plot.axis_y.label}`
+		: plot.subtitle ?? '';
 };
