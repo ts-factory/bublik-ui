@@ -1,8 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrayParam, useQueryParam, withDefault } from 'use-query-params';
+
+import { routes } from '@/router';
 import { HistoryMeasurementResult } from '@/services/bublik-api';
 import { InfoBlock, SelectedChartsPopover } from '@/shared/charts';
-import { ButtonTw, CardHeader, Icon } from '@/shared/tailwind-ui';
+import {
+	ButtonTw,
+	CardHeader,
+	DataTableFacetedFilter,
+	Icon
+} from '@/shared/tailwind-ui';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from '../slice';
@@ -15,8 +25,6 @@ import {
 	useHistoryMeasurementsTitle
 } from './plot-list.hooks';
 import { PlotList, PlotListLoading } from './plot-list.component';
-import { Link } from 'react-router-dom';
-import { routes } from '@/router';
 
 export function PlotListContainer() {
 	const { query } = useHistoryQuery();
@@ -103,6 +111,22 @@ export function PlotListContainerByResult() {
 		handleOpenButtonClick
 	} = useCombinedView();
 
+	const uniqueParameters = useMemo(() => {
+		const all = Array.from(
+			new Set(data?.map((d) => d.parameters_list).flat()) ?? []
+		)
+			.sort()
+			.map((param) => ({ label: param, value: param }));
+
+		return all;
+	}, [data]);
+
+	const [selected = [], setSelected] = useQueryParam(
+		'parametersByResultFilter',
+		withDefault(ArrayParam, []),
+		{ updateType: 'replaceIn' }
+	);
+
 	if (!query.testName) {
 		return (
 			<HistoryEmpty
@@ -131,12 +155,37 @@ export function PlotListContainerByResult() {
 		);
 	}
 
+	const filteredByParams = data.filter((m) => {
+		if (!selected || !selected.length) return true;
+		return selected.every(
+			(param) => typeof param === 'string' && m.parameters_list.includes(param)
+		);
+	});
+
 	return (
 		<div className="bg-white rounded-md">
 			<div className="sticky top-0 z-10 bg-white rounded-md">
-				<CardHeader label="Series Charts" enableStickyShadow />
+				<CardHeader
+					label={
+						<div className="flex items-center gap-4">
+							<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+								Series Charts
+							</span>
+							<DataTableFacetedFilter
+								size="xss"
+								title="Parameters"
+								value={
+									selected.filter((param) => typeof param === 'string') ?? []
+								}
+								onChange={setSelected}
+								options={uniqueParameters}
+							/>
+						</div>
+					}
+					enableStickyShadow
+				/>
 			</div>
-			<MeasurementsList measurements={data} group="measurement" />
+			<MeasurementsList measurements={filteredByParams} group="measurement" />
 			<SelectedChartsPopover
 				open={!!selectedCharts.length}
 				label="Combined"
@@ -160,10 +209,10 @@ function MeasurementsList(
 
 	return (
 		<div className="flex flex-col">
-			{measurements.map((m) => {
+			{measurements.map((m, idx) => {
 				return (
 					<div
-						key={m.id}
+						key={`${idx}-${m.id}`}
 						className="[&:not(:last-child)]:border-b border-border-primary"
 					>
 						<CardHeader label={m.test_name}>
