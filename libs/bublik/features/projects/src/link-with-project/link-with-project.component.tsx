@@ -49,7 +49,11 @@ function _LinkWithProject(
 	const finalTo =
 		typeof to === 'string'
 			? getToFromString(to, searchParams)
-			: { pathname: to.pathname, search: searchParams.toString() };
+			: {
+					pathname: to.pathname,
+					search: searchParams.toString(),
+					hash: to.hash
+			  };
 
 	return (
 		<Link to={finalTo} {...props} ref={ref}>

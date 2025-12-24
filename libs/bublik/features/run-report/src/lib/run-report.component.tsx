@@ -1,12 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
-import { useLocation } from 'react-router';
+import {
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+	useReactTable
+} from '@tanstack/react-table';
 
-import { useMount } from '@/shared/hooks';
 import {
 	Badge,
 	ButtonTw,
@@ -18,7 +21,6 @@ import {
 	Icon,
 	Separator,
 	Spinner,
-	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
 import {
@@ -27,18 +29,32 @@ import {
 	RunDetailsAPIResponse,
 	TestBlock
 } from '@/shared/types';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { getErrorMessage } from '@/services/bublik-api';
+import { useMount } from '@/shared/hooks';
 
 import { List, RunReportHeader } from './run-report-header';
 import { RunReportTestBlock, WarningsHoverCard } from './run-report-test';
-import { LinkWithProject } from '@/bublik/features/projects';
-import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	useReactTable
-} from '@tanstack/react-table';
 import { useEnablePairGainColumns } from './run-report-table/run-report-table.hooks';
+
+function scrollToItem(id: string) {
+	const elem = document.getElementById(encodeURIComponent(id));
+	const scroller = document.getElementById('page-container');
+	const offset = Number(elem?.dataset.offset || 0);
+
+	if (!scroller || !elem) {
+		console.warn('Element or scroller not found', scroller, elem);
+		return;
+	}
+
+	const elemRect = elem.getBoundingClientRect();
+	const scrollerRect = scroller.getBoundingClientRect();
+
+	const relativeTop = elemRect.top - scrollerRect.top;
+	const targetScroll = scroller.scrollTop + relativeTop - offset;
+
+	scroller.scrollTo({ top: targetScroll, behavior: 'smooth' });
+}
 
 interface TableOfContentsItem {
 	type: string;
@@ -111,19 +127,8 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 	const [params] = useSearchParams();
 	const configid = params.get('config');
 
-	function scrollToItem() {
-		const elem = document.getElementById(encodeURIComponent(item.id));
-		const scroller = document.getElementById('page-container');
-
-		if (!scroller || !elem) return;
-
-		const y = elem.getBoundingClientRect().top + scroller.clientTop - 70;
-
-		scroller.scrollTo({ top: y, behavior: 'smooth' });
-	}
-
 	return (
-		<Collapsible open={open} onOpenChange={setOpen} className="">
+		<Collapsible open={open} onOpenChange={setOpen}>
 			<div
 				className={cn(
 					'flex items-center gap-1 h-[22px] pr-2',
@@ -154,7 +159,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 								? 'font-semibold'
 								: 'font-medium'
 						)}
-						onClick={scrollToItem}
+						onClick={() => scrollToItem(item.id)}
 					>
 						{item.label}
 					</LinkWithProject>
@@ -183,27 +188,18 @@ interface RunReportProps {
 
 function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
+	const location = useLocation();
 
 	const testBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
 	);
-	const location = useLocation();
 
 	useMount(() => {
-		try {
-			const id = location.hash;
-			const elem = document.getElementById(id.slice(1));
-			const scroller = document.getElementById('page-container');
-
-			if (!scroller || !elem) return;
-
-			const y = elem.getBoundingClientRect().top + scroller.clientTop - 70;
-
-			scroller.scrollTo({ top: y, behavior: 'smooth' });
-		} catch (_) {
-			toast.error('Failed to scroll to saved location!');
-		}
+		setTimeout(() => {
+			const id = decodeURIComponent(location.hash.slice(1));
+			scrollToItem(id);
+		}, 0);
 	});
 
 	return (
