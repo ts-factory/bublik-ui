@@ -61,6 +61,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 						id={encodeURIComponent(argsValBlock.id)}
 						key={argsValBlock.id}
 						className="relative"
+						data-offset={offsetTop}
 					>
 						<div
 							className="absolute left-0 top-0 w-1 h-full bg-indigo-400"
@@ -100,6 +101,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 										id={encodeURIComponent(measurement.id)}
 										key={measurement.id}
 										className="relative"
+										data-offset={headerOffsetTop + offsetTop}
 									>
 										{/* LEVEL 3 */}
 										<CardHeader
@@ -137,6 +139,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 														idx !== arr.length - 1 &&
 															'border-b border-border-primary'
 													)}
+													data-offset={headerOffsetTop + offsetTop + 36}
 												>
 													<div
 														className="absolute left-0 top-0 w-1 h-full bg-indigo-600"
