@@ -34,11 +34,13 @@ const text = cva({ base: 'text-sm leading-6 text-text-secondary' });
 const formatVersion = (name: string, summary: VersionSummary) => {
 	const branch = summary.branch ? `${summary.branch}: ` : '';
 	const revision = summary.revision ? summary.revision : '';
-	const date = summary.date
-		? `${formatTimeToDot(summary.date.toISOString())}`
-		: '';
+	const date =
+		summary.date &&
+		summary.date instanceof Date &&
+		!isNaN(summary.date.getTime())
+			? `${formatTimeToDot(summary.date.toISOString())}`
+			: '';
 	const latestTag = summary.tag ? `— ${summary.tag}` : '';
-
 	return `${name}: (${branch}${revision}), ${date} ${latestTag}`;
 };
 
