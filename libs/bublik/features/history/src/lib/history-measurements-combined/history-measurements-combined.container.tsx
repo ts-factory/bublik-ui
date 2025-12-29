@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps, useMemo, useState } from 'react';
+import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Point } from '@/shared/types';
@@ -28,7 +28,19 @@ function HistoryMeasurementsCombinedContainer() {
 	} = useGetHistoryMeasurementsByResult();
 	const [point, setPoint] = useState<Point | null>(null);
 	const [isPointDialogOpen, setIsPointDialogOpen] = useState(false);
-	const { selectedGroup, selectedCharts } = useCombinedView();
+	const { selectedGroup, selectedCharts, syncChartsFromData } =
+		useCombinedView();
+
+	useEffect(() => {
+		if (!data || !byResult) return;
+
+		const allCharts = [
+			...data,
+			...byResult.flatMap((c) => c.measurement_series_charts)
+		];
+
+		syncChartsFromData(allCharts);
+	}, [data, byResult, syncChartsFromData]);
 
 	const plots = useMemo(() => {
 		if (!data) return [];

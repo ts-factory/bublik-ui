@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrayParam, useQueryParam, withDefault } from 'use-query-params';
 
@@ -41,8 +41,13 @@ export function PlotListContainer() {
 		handleRemoveClick,
 		handleResetButtonClick,
 		selectedCharts,
-		handleOpenButtonClick
+		handleOpenButtonClick,
+		syncChartsFromData
 	} = useCombinedView();
+
+	useEffect(() => {
+		if (data) syncChartsFromData(data);
+	}, [data, syncChartsFromData]);
 
 	if (!query.testName) {
 		return (
@@ -108,8 +113,16 @@ export function PlotListContainerByResult() {
 		handleRemoveClick,
 		handleResetButtonClick,
 		selectedCharts,
-		handleOpenButtonClick
+		handleOpenButtonClick,
+		syncChartsFromData
 	} = useCombinedView();
+
+	useEffect(() => {
+		if (!data) return;
+
+		const allCharts = data.flatMap((d) => d.measurement_series_charts);
+		syncChartsFromData(allCharts);
+	}, [data, syncChartsFromData]);
 
 	const uniqueParameters = useMemo(() => {
 		const all = Array.from(

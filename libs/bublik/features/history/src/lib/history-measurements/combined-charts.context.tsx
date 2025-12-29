@@ -4,12 +4,14 @@ import {
 	useState,
 	useMemo,
 	ReactNode,
-	useCallback
+	useCallback,
+	useEffect
 } from 'react';
 import { useNavigate, useSearchParams, To } from 'react-router-dom';
 import { useQueryParam } from 'use-query-params';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
+import { getColorByIdx } from '@/shared/charts';
 
 export interface SelectedChart {
 	plot: SingleMeasurementChart;
@@ -28,6 +30,7 @@ interface CombinedChartsContextValue {
 	handleResetButtonClick: () => void;
 	handleOpenButtonClick: () => void;
 	selectedGroup: 'trend' | 'measurement' | null;
+	syncChartsFromData: (charts: SingleMeasurementChart[]) => void;
 }
 
 const CombinedChartsContext = createContext<
@@ -47,6 +50,57 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 
+	const syncChartsFromData = useCallback(
+		(charts: SingleMeasurementChart[]) => {
+			const plotIdsStr = searchParams.get('combinedPlots');
+			if (!plotIdsStr) return;
+
+			const plotIds = plotIdsStr.split(';').map(String);
+
+			if (plotIds.length > 0 && selectedCharts.length === 0) {
+				const restoredCharts: SelectedChart[] = [];
+
+				plotIds.forEach((id, idx) => {
+					const chart = charts.find((c) => String(c.id) === id);
+					if (chart) {
+						restoredCharts.push({ plot: chart, color: getColorByIdx(idx) });
+					}
+				});
+
+				if (restoredCharts.length > 0) setSelectedCharts(restoredCharts);
+			}
+		},
+		[searchParams, selectedCharts.length]
+	);
+
+	useEffect(() => {
+		const mode = searchParams.get('mode');
+		const plotIdsStr = searchParams.get('combinedPlots');
+
+		if (mode !== 'measurements-combined' && !plotIdsStr && selectedGroup) {
+			setSelectedGroup(null);
+		}
+	}, [searchParams, selectedGroup, setSelectedGroup]);
+
+	const updateUrlWithCharts = useCallback(
+		(charts: SelectedChart[]) => {
+			const params = new URLSearchParams(searchParams);
+
+			if (charts.length > 0) {
+				params.set(
+					'combinedPlots',
+					charts.map((c) => String(c.plot.id)).join(';')
+				);
+				return;
+			}
+
+			params.delete('combinedPlots');
+
+			navigate({ search: params.toString() }, { replace: true });
+		},
+		[searchParams, navigate]
+	);
+
 	const handleAddChartClick = useCallback(
 		(args: {
 			plot: SingleMeasurementChart;
@@ -57,35 +111,47 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			const { plot, color, group, parameters } = args;
 			const plotId = String(plot.id);
 			if (!selectedCharts.find(({ plot: p }) => String(p.id) === plotId)) {
-				setSelectedCharts([...selectedCharts, { plot, color, parameters }]);
+				const newCharts = [...selectedCharts, { plot, color, parameters }];
+
+				setSelectedCharts(newCharts);
+				updateUrlWithCharts(newCharts);
+
 				if (selectedCharts.length === 0) setSelectedGroup(group);
 			} else {
 				const newCharts = selectedCharts.filter(
 					({ plot: p }) => String(p.id) !== plotId
 				);
 				setSelectedCharts(newCharts);
+				updateUrlWithCharts(newCharts);
 				if (newCharts.length === 0) setSelectedGroup(null);
 			}
 		},
-		[selectedCharts, setSelectedGroup]
+		[selectedCharts, setSelectedGroup, updateUrlWithCharts]
 	);
 
 	const handleRemoveClick = useCallback(
 		(plot: SingleMeasurementChart) => {
 			const plotId = String(plot.id);
+
 			const newCharts = selectedCharts.filter(
 				({ plot: p }) => String(p.id) !== plotId
 			);
+
 			setSelectedCharts(newCharts);
+			updateUrlWithCharts(newCharts);
+
 			if (newCharts.length === 0) setSelectedGroup(null);
 		},
-		[selectedCharts, setSelectedGroup]
+		[selectedCharts, setSelectedGroup, updateUrlWithCharts]
 	);
 
 	const handleResetButtonClick = useCallback(() => {
 		setSelectedCharts([]);
 		setSelectedGroup(null);
-	}, [setSelectedGroup]);
+		const params = new URLSearchParams(searchParams);
+		params.delete('combinedPlots');
+		navigate({ search: params.toString() }, { replace: true });
+	}, [setSelectedGroup, searchParams, navigate]);
 
 	const linkToCombined = useMemo<To>(() => {
 		const params = new URLSearchParams(searchParams);
@@ -108,7 +174,8 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			handleRemoveClick,
 			handleResetButtonClick,
 			handleOpenButtonClick,
-			selectedGroup: selectedGroup ?? null
+			selectedGroup: selectedGroup ?? null,
+			syncChartsFromData
 		}),
 		[
 			selectedCharts,
@@ -116,7 +183,8 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			handleAddChartClick,
 			handleRemoveClick,
 			handleResetButtonClick,
-			selectedGroup
+			selectedGroup,
+			syncChartsFromData
 		]
 	);
 
