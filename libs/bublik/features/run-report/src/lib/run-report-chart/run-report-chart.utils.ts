@@ -29,20 +29,21 @@ interface RunReportChartConfigOptions {
 function resolveRunReportChartOptions(
 	options: RunReportChartConfigOptions
 ): EChartsOption {
-	const { chart, isCtrlPressed, state, isFullScreen, idx } = options;
+	const { chart, isCtrlPressed, state, isFullScreen } = options;
 
 	const dataZoom: DataZoomComponentOption[] = state.isSlidersVisible
 		? [{ left: '8%' }, { type: 'inside', zoomLock: !isCtrlPressed }]
 		: [{ left: -999999999999 }, { type: 'inside', zoomLock: !isCtrlPressed }];
 
 	const series: ComponentProps<typeof Plot>['options']['series'] =
-		chart.data.map((d) => ({
+		chart.data.map((d, idx) => ({
 			name:
 				chart.series_label === null && chart.data.length === 1
 					? chart.axis_y.label
 					: d.series,
 			type: state.mode === 'scatter' ? 'scatter' : 'line',
 			data: d.points.map((d) => [d?.[chart.axis_x.key], d?.[chart.axis_y.key]]),
+			color: getColorByIdx(idx),
 			itemStyle: {
 				color: (params: unknown) => {
 					const parsedParams = ParamsSchema.safeParse(params);
