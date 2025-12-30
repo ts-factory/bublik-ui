@@ -1,5 +1,27 @@
 
 
+## [2.7.0](https://github.com/ts-factory/bublik-ui/compare/v2.6.0...v2.7.0) (2025-12-30)
+
+
+### 🚀 New Feature
+
+* **history:** [measurements] add parameters filter to series charts ([9180fc5](https://github.com/ts-factory/bublik-ui/commit/9180fc59fd08e0e0fc495c071fa8c7e01500e0da))
+
+
+### 🐛 Bug Fix
+
+* **history:** restore selected charts from URL ([d9c1d60](https://github.com/ts-factory/bublik-ui/commit/d9c1d60ed59bf104104a4cbf59eb87d04635a295))
+* **measurements:** add y-axis label to chart name ([6022ccb](https://github.com/ts-factory/bublik-ui/commit/6022ccb2ccb80399f155f525235c225a4b09a89b))
+* **report:** improve scrolling to item when clickin on TOC item ([1162833](https://github.com/ts-factory/bublik-ui/commit/116283354d70245d5a4e74cd50ee15e0fe8cb9d3))
+* **version:** crash on safari for `NaN` date ([b06a215](https://github.com/ts-factory/bublik-ui/commit/b06a2158fea89b7f8cb36f42b274f0432208100b))
+
+
+### ♻ Code Refactoring
+
+* **history:** [measurements] generate unique names for series ([5b9baae](https://github.com/ts-factory/bublik-ui/commit/5b9baae52d6fd2f920dd95bfd6c8850a6a118489))
+* **history:** [measurements] merge y-axises with the same name ([c3682ce](https://github.com/ts-factory/bublik-ui/commit/c3682ce06452c8704e2a3cec00bfbae99ebb78db))
+* **measurements:** remove green circles to highlight expected results ([8df10a4](https://github.com/ts-factory/bublik-ui/commit/8df10a4384e34fe2273e94a79842b529e1e791d5))
+
 ## [2.6.0](https://github.com/ts-factory/bublik-ui/compare/v2.5.0...v2.6.0) (2025-12-17)
 
 

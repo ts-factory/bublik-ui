@@ -1,7 +1,7 @@
 {
-	"date": "2025.12.17",
-	"summary": "feat(report): [chart] add stacked charts support for report",
-	"revision": "e4f4cc82",
-	"branch": "release-2.6.0",
-	"latestTag": "v2.6.0"
+	"date": "2025.12.30",
+	"summary": "fix(history): restore selected charts from URL",
+	"revision": "d9c1d60e",
+	"branch": "release-2.7.0",
+	"latestTag": "v2.7.0"
 }
