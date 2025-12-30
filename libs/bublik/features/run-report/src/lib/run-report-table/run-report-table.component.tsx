@@ -5,7 +5,7 @@ import { ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
-import { WarningsHoverCard } from '../run-report-test';
+import { WarningsHoverCard } from '../run-report-warnings';
 import { useEnablePairGainColumns } from './run-report-table.hooks';
 
 const cellStyles = cva({

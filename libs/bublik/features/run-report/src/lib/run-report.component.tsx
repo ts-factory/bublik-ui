@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
@@ -33,9 +33,11 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import { getErrorMessage } from '@/services/bublik-api';
 import { useMount } from '@/shared/hooks';
 
-import { List, RunReportHeader } from './run-report-header';
-import { RunReportTestBlock, WarningsHoverCard } from './run-report-test';
+import { RunReportHeader } from './run-report-header';
+import { RunReportTestBlock } from './run-report-test';
+import { WarningsHoverCard } from './run-report-warnings';
 import { useEnablePairGainColumns } from './run-report-table/run-report-table.hooks';
+import { RunReportArgs } from './run-report-args';
 
 function scrollToItem(id: string) {
 	const elem = document.getElementById(encodeURIComponent(id));
@@ -562,19 +564,4 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 	);
 }
 
-interface RunReportCommonArgsProps {
-	items: ComponentProps<typeof List>['items'];
-	label: string;
-}
-
-function RunReportArgs(props: RunReportCommonArgsProps) {
-	return <List label={props.label} items={props.items} />;
-}
-
-export {
-	RunReport,
-	RunReportArgs,
-	RunReportError,
-	RunReportEmpty,
-	RunReportLoading
-};
+export { RunReport, RunReportError, RunReportEmpty, RunReportLoading };

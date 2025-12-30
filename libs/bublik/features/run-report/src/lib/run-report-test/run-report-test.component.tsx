@@ -2,28 +2,17 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardPortal,
-	HoverCardTrigger
-} from '@radix-ui/react-hover-card';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
 import { usePlatformSpecificCtrl } from '@/shared/hooks';
-import {
-	CardHeader,
-	Icon,
-	cn,
-	popoverContentStyles,
-	toast
-} from '@/shared/tailwind-ui';
+import { CardHeader, cn, toast } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { StackedAdd } from '../run-report-stacked';
 import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
-import { RunReportArgs } from '../run-report.component';
+import { RunReportArgs } from '../run-report-args';
+import { WarningsHoverCard } from '../run-report-warnings';
 
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
@@ -303,38 +292,4 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 	);
 }
 
-interface WarningsHoverCardProps {
-	warnings?: string[];
-}
-
-function WarningsHoverCard({ warnings = [] }: WarningsHoverCardProps) {
-	if (!warnings.length) return;
-
-	return (
-		<HoverCard openDelay={100}>
-			<HoverCardTrigger asChild>
-				<div className="text-text-unexpected rounded-md hover:bg-red-100 p-0.5 grid place-items-center">
-					<Icon name="TriangleExclamationMark" size={20} />
-				</div>
-			</HoverCardTrigger>
-			<HoverCardPortal>
-				<HoverCardContent asChild sideOffset={4} side="right" align="start">
-					<ul
-						className={cn(
-							'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
-							popoverContentStyles
-						)}
-					>
-						{warnings.map((w) => (
-							<li key={w} className="text-[0.875rem] leading-[1.125rem]">
-								{w}
-							</li>
-						))}
-					</ul>
-				</HoverCardContent>
-			</HoverCardPortal>
-		</HoverCard>
-	);
-}
-
-export { RunReportTestBlock, WarningsHoverCard };
+export { RunReportTestBlock };
