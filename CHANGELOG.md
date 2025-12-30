@@ -1,5 +1,18 @@
 
 
+### [2.7.1](https://github.com/ts-factory/bublik-ui/compare/v2.7.0...v2.7.1) (2025-12-30)
+
+
+### 💅 Polish
+
+* **ui:** fix ";" symbol at the end of run report ([22c0009](https://github.com/ts-factory/bublik-ui/commit/22c00091d838f3d837ea4a832594f7b5e4a34fc9))
+
+
+### 🐛 Bug Fix
+
+* **report:** [chart] mismatch between legend and line colors ([939158f](https://github.com/ts-factory/bublik-ui/commit/939158f0a46bb51adf533b80f31b34007fb51489))
+* **report:** circular imports for cause by report args and warning hover card ([1bb733f](https://github.com/ts-factory/bublik-ui/commit/1bb733f3d9ceca61e7a1c59c8580a7bacd36aa04))
+
 ## [2.7.0](https://github.com/ts-factory/bublik-ui/compare/v2.6.0...v2.7.0) (2025-12-30)
 
 

@@ -1,7 +1,7 @@
 {
 	"date": "2025.12.30",
-	"summary": "fix(history): restore selected charts from URL",
-	"revision": "d9c1d60e",
-	"branch": "release-2.7.0",
-	"latestTag": "v2.7.0"
+	"summary": "fix(report): circular imports for cause by report args and warning hover card",
+	"revision": "1bb733f3",
+	"branch": "release-2.7.1",
+	"latestTag": "v2.7.1"
 }
