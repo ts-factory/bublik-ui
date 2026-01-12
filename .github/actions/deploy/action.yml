@@ -1,0 +1,188 @@
+name: 'Deploy Bublik'
+description: 'Composite action to deploy or destroy Bublik environment'
+
+inputs:
+  action:
+    description: 'Action to perform: deploy or destroy'
+    required: true
+    default: 'deploy'
+
+  pr_id:
+    description: 'Pull Request ID'
+    required: false
+
+  environment_name:
+    description: 'Name for environment'
+    required: true
+
+  run_bootstrap:
+    description: 'Should run bootstrap'
+    required: false
+    default: 'false'
+
+  environment_domain:
+    description: 'Domain for environment'
+    required: true
+
+  docker_repo:
+    description: 'Docker repository URL'
+    required: false
+    default: 'https://github.com/ts-factory/bublik-docker'
+  docker_branch:
+    description: 'Docker branch to use'
+    required: false
+    default: 'main'
+  frontend_repo:
+    description: 'Frontend repository URL'
+    required: false
+    default: 'https://github.com/ts-factory/bublik-ui.git'
+  frontend_branch:
+    description: 'Frontend branch to use'
+    required: true
+  backend_repo:
+    description: 'Backend repository URL'
+    required: false
+    default: 'https://github.com/ts-factory/bublik.git'
+  backend_branch:
+    description: 'Backend branch to use'
+    required: false
+    default: 'main'
+
+  ssh_private_key:
+    description: 'SSH private key for deployment'
+    required: true
+  ansible_host:
+    description: 'Ansible host for deployment'
+    required: true
+  ansible_user:
+    description: 'Ansible user for deployment'
+    required: true
+  ansible_port:
+    description: 'Ansible port for deployment'
+    required: false
+    default: '22'
+
+  admin_email:
+    description: 'Django superuser email'
+    required: false
+  admin_password:
+    description: 'Django superuser password'
+    required: false
+
+outputs:
+  preview_url:
+    description: 'URL of the deployed preview environment'
+    value: https://${{ inputs.environment_domain }}
+  environment_name:
+    description: 'Name of the environment'
+    value: ${{ inputs.environment_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout bublik-docker
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository_owner }}/bublik-docker
+        path: bublik-docker
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      env:
+        RUNNER_TOOL_CACHE: ${{ github.workspace }}/_work/_tool
+        AGENT_TOOLSDIRECTORY: ${{ github.workspace }}/_work/_tool
+      with:
+        python-version: '3.11'
+
+    - name: Install Ansible
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible
+
+    - name: Install Ansible requirements
+      shell: bash
+      working-directory: bublik-docker/ansible
+      run: ansible-galaxy install -r requirements.yml
+
+    - name: Set up SSH configuration
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh_private_key }}" > ~/.ssh/preview
+        chmod 600 ~/.ssh/preview
+
+        ssh-keyscan -H -p ${{ inputs.ansible_port }} ${{ inputs.ansible_host }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+    - name: Generate Ansible inventory
+      shell: bash
+      working-directory: bublik-docker/ansible
+      run: |
+        cat > inventory/inventory.yml << EOF
+        all:
+          children:
+            preview_server:
+              hosts:
+                preview:
+                  ansible_host: ${{ inputs.ansible_host }}
+                  ansible_user: ${{ inputs.ansible_user }}
+                  ansible_ssh_private_key_file: ~/.ssh/preview
+                  ansible_command_timeout: 1200
+                  ansible_connect_timeout: 60
+                  ansible_port: ${{ inputs.ansible_port }}
+                  ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+        EOF
+
+    - name: Test SSH connection
+      shell: bash
+      run: |
+        echo "Testing SSH connection..."
+        ssh -i ~/.ssh/preview -p ${{ inputs.ansible_port }} -o ConnectTimeout=30 -o StrictHostKeyChecking=no ${{ inputs.ansible_user }}@${{ inputs.ansible_host }} "echo 'SSH connection successful'"
+
+    - name: Deploy preview environment
+      if: inputs.action == 'deploy'
+      shell: bash
+      working-directory: bublik-docker/ansible
+      run: |
+        echo "🚀 Deploying PR #${{ inputs.pr_id }} preview environment"
+        echo "📌 Configuration:"
+        echo "  Docker Repo: ${{ inputs.docker_repo }}"
+        echo "  Docker Branch: ${{ inputs.docker_branch }}"
+        echo "  Frontend Repo: ${{ inputs.frontend_repo }}"
+        echo "  Frontend Branch: ${{ inputs.frontend_branch }}"
+        echo "  Backend Branch: ${{ inputs.backend_repo }}"
+        echo "  Backend Branch: ${{ inputs.backend_branch }}"
+        echo "  Preview URL: https://${{ inputs.environment_domain }}"
+
+        ansible-playbook -i ./inventory/inventory.yml deploy.yml \
+          --extra-vars "pr_id=${{ inputs.pr_id }}" \
+          --extra-vars "environment_domain=${{ inputs.environment_domain }}" \
+          --extra-vars "environment_name=${{ inputs.environment_name }}" \
+          --extra-vars "run_bootstrap=${{ inputs.run_bootstrap }}" \
+          --extra-vars "docker_repo=${{ inputs.docker_repo }}" \
+          --extra-vars "docker_branch=${{ inputs.docker_branch }}" \
+          --extra-vars "frontend_repo=${{ inputs.frontend_repo }}" \
+          --extra-vars "frontend_branch=${{ inputs.frontend_branch }}" \
+          --extra-vars "backend_repo=${{ inputs.backend_repo }}" \
+          --extra-vars "backend_branch=${{ inputs.backend_branch }}" \
+          --extra-vars "django_superuser_email=${{ inputs.admin_email }}" \
+          --extra-vars "django_superuser_password=${{ inputs.admin_password }}" \
+          -vv
+
+    - name: Destroy preview environment
+      if: inputs.action == 'destroy'
+      shell: bash
+      working-directory: bublik-docker/ansible
+      run: |
+        echo "🗑️ Destroying PR #${{ inputs.pr_id }} preview environment"
+
+        ansible-playbook -i ./inventory/inventory.yml destroy.yml \
+          --extra-vars "environment_name=${{ inputs.environment_name }}" \
+          -vv
+
+    - name: Cleanup SSH keys
+      if: always()
+      shell: bash
+      run: |
+        rm -f ~/.ssh/preview
+        rm -f ~/.ssh/config

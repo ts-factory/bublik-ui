@@ -1,7 +1,13 @@
-name: CI
+name: CI / CD
+
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, closed]
+  push:
+    branches: [main]
+    tags: ['v*']
+
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
   NODE_OPTIONS: '--max-old-space-size=4096'
@@ -9,6 +15,7 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -21,12 +28,14 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
       - name: Code Linting
         run: pnpm run lint
 
   test:
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -39,12 +48,13 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Code Testing
         run: pnpm run test
 
   format-check:
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -57,12 +67,13 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Check code formatting
         run: pnpm run format:check
 
   check-build:
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -75,12 +86,13 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Check Bublik UI
         run: pnpm run build
 
   check-json-logs-build:
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -93,6 +105,382 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Check JSON App
         run: pnpm run bublik-json:build
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-preview]
+    if: always() && (needs.deploy-preview.result == 'success' || needs.deploy-staging.result == 'success')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set environment URL from job outputs
+        run: |
+          if [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+            echo "ENV_URL=${{ needs.deploy-staging.outputs.deployment_url }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT_TYPE=staging" >> $GITHUB_ENV
+          elif [[ "${{ needs.deploy-preview.result }}" == "success" ]]; then
+            echo "ENV_URL=${{ needs.deploy-preview.outputs.deployment_url }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT_TYPE=preview" >> $GITHUB_ENV
+          fi
+          echo "Testing environment: $ENV_URL"
+
+      - name: Wait for deployment to be ready
+        run: |
+          echo "Waiting for $ENV_URL to be ready..."
+          timeout 300 bash -c 'until curl -f -s -L "$ENV_URL" > /dev/null; do echo "Waiting for site to be ready..."; sleep 15; done'
+
+      - name: Run E2E Tests
+        run: |
+          echo "Running E2E tests against: $ENV_URL"
+          # pnpm run test:e2e --baseURL="$ENV_URL"
+        env:
+          BASE_URL: ${{ env.ENV_URL }}
+          ENVIRONMENT_TYPE: ${{ env.ENVIRONMENT_TYPE }}
+
+  prepare-preview:
+    runs-on: ubuntu-latest
+    needs: [lint, test, format-check, check-build, check-json-logs-build]
+    if: github.event.action != 'closed' && github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
+    outputs:
+      pr_id: ${{ steps.set_pr_id.outputs.pr_id }}
+      frontend_branch: ${{ steps.set_branches.outputs.frontend_branch }}
+      backend_branch: ${{ steps.set_branches.outputs.backend_branch }}
+      docker_branch: ${{ steps.set_branches.outputs.docker_branch }}
+      environment_url: ${{ steps.set_env_url.outputs.environment_url }}
+      is_staging: ${{ steps.check_staging.outputs.is_staging }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set PR ID
+        id: set_pr_id
+        run: |
+          PR_ID="${{ github.event.pull_request.number }}"
+          echo "pr_id=$PR_ID" >> $GITHUB_OUTPUT
+          echo "📋 PR ID: $PR_ID"
+
+      - name: Check if staging deployment
+        id: check_staging
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "is_staging=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_staging=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set environment URL
+        id: set_env_url
+        run: |
+          if [[ "${{ steps.check_staging.outputs.is_staging }}" == "true" ]]; then
+            ENV_URL="https://staging.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}"
+          else
+            ENV_URL="https://pr-${{ steps.set_pr_id.outputs.pr_id }}.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}"
+          fi
+          echo "environment_url=$ENV_URL" >> $GITHUB_OUTPUT
+
+      - name: Set Branch Variables
+        id: set_branches
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [[ "${{ steps.check_staging.outputs.is_staging }}" == "true" ]]; then
+            FRONTEND_BRANCH="main"
+            backend_branch="main"
+            docker_branch="main"
+          else
+            FRONTEND_BRANCH="${{ github.head_ref }}"
+
+            backend_branch=$(echo "$PR_BODY" | grep -oiE 'backend:\s*[A-Za-z0-9._/-]+' | awk '{print $2}' | head -1)
+            docker_branch=$(echo "$PR_BODY" | grep -oiE 'docker:\s*[A-Za-z0-9._/-]+' | awk '{print $2}' | head -1)
+
+            if [ -z "$backend_branch" ]; then
+              backend_branch="main"
+            fi
+            if [ -z "$docker_branch" ]; then
+              docker_branch="main"
+            fi
+          fi
+
+          echo "frontend_branch=$FRONTEND_BRANCH" >> $GITHUB_OUTPUT
+          echo "backend_branch=$backend_branch" >> $GITHUB_OUTPUT
+          echo "docker_branch=$docker_branch" >> $GITHUB_OUTPUT
+          echo "📌 Branches to checkout:"
+          echo "  Docker Branch: $docker_branch"
+          echo "  Frontend Branch: $FRONTEND_BRANCH"
+          echo "  Backend Branch: $backend_branch"
+
+  deploy-staging:
+    needs: [lint, test, format-check, check-build, check-json-logs-build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.action != 'closed'
+    timeout-minutes: 45
+
+    environment:
+      name: staging
+      url: https://staging.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}
+
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: true
+
+    outputs:
+      deployment_url: ${{ steps.set-url.outputs.deployment_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Deployment URL
+        id: set-url
+        run: |
+          STAGING_URL="https://staging.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}"
+          echo "STAGING_URL=$STAGING_URL" >> $GITHUB_ENV
+          echo "deployment_url=$STAGING_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $STAGING_URL"
+
+      - name: Deploy Staging
+        id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          action: 'deploy'
+          environment_name: staging
+          environment_domain: staging.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}
+          docker_repo: ${{ vars.PREVIEW_DOCKER_REPO || 'https://github.com/ts-factory/bublik-docker.git' }}
+          docker_branch: main
+          frontend_repo: ${{ vars.PREVIEW_FRONTEND_REPO || 'https://github.com/ts-factory/bublik-ui.git' }}
+          frontend_branch: main
+          backend_repo: ${{ vars.PREVIEW_BACKEND_REPO || 'https://github.com/ts-factory/bublik.git' }}
+          backend_branch: main
+          run_bootstrap: 'true'
+          ssh_private_key: ${{ secrets.PREVIEW_SSH_PRIVATE_KEY }}
+          ansible_host: ${{ secrets.PREVIEW_ANSIBLE_HOST }}
+          ansible_user: ${{ vars.PREVIEW_ANSIBLE_USER }}
+          ansible_port: ${{ secrets.PREVIEW_ANSIBLE_PORT || '22' }}
+          admin_email: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_EMAIL }}
+          admin_password: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_PASSWORD }}
+
+      - name: Notify staging deployment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}' === 'success' ? '✅ **Staging deployment successful!**' : '❌ **Staging deployment failed!**';
+            const emoji = '${{ job.status }}' === 'success' ? '🎉' : '⚠️';
+            const message = '${{ job.status }}' === 'success' ?
+              'Staging environment has been updated successfully!' :
+              'Please check the workflow logs for error details.';
+
+            console.log(`${status}\n\n🌐 **Staging URL:** ${{ env.STAGING_URL }}\n\n${emoji} ${message}`);
+
+  deploy-production:
+    needs: [lint, test, format-check, check-build, check-json-logs-build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 60
+
+    environment:
+      name: production
+      url: https://${{ vars.PREVIEW_TRAEFIK_DOMAIN }}
+
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment URL
+        run: echo "PROD_URL=${{ job.environment.url }}" >> $GITHUB_ENV
+
+      - name: Deploy Production
+        id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          action: 'deploy'
+          environment_name: production
+          environment_domain: ${{ vars.PREVIEW_TRAEFIK_DOMAIN }}
+          docker_repo: ${{ vars.PREVIEW_DOCKER_REPO }}
+          docker_branch: main
+          frontend_repo: ${{ vars.PREVIEW_FRONTEND_REPO }}
+          frontend_branch: main
+          backend_repo: ${{ vars.PREVIEW_BACKEND_REPO }}
+          backend_branch: main
+          ssh_private_key: ${{ secrets.PREVIEW_SSH_PRIVATE_KEY }}
+          ansible_host: ${{ secrets.PREVIEW_ANSIBLE_HOST }}
+          ansible_user: ${{ vars.PREVIEW_ANSIBLE_USER }}
+          ansible_port: ${{ secrets.PREVIEW_ANSIBLE_PORT || '22' }}
+          admin_email: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_EMAIL }}
+          admin_password: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_PASSWORD }}
+
+  deploy-preview:
+    needs: prepare-preview
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed' && needs.prepare-preview.outputs.is_staging == 'false'
+    timeout-minutes: 45
+
+    outputs:
+      deployment_url: ${{ steps.set-url.outputs.deployment_url }}
+
+    environment:
+      name: pr-${{ needs.prepare-preview.outputs.pr_id }}
+      url: ${{ needs.prepare-preview.outputs.environment_url }}
+
+    concurrency:
+      group: deploy-preview-${{ needs.prepare-preview.outputs.pr_id }}
+      cancel-in-progress: true
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Deployment URL
+        id: set-url
+        run: |
+          echo "PREVIEW_URL=${{ needs.prepare-preview.outputs.environment_url }}" >> $GITHUB_ENV
+          echo "deployment_url=${{ needs.prepare-preview.outputs.environment_url }}" >> $GITHUB_OUTPUT
+          echo "Deployment URL: ${{ needs.prepare-preview.outputs.environment_url }}"
+
+      - name: Deploy PR Preview
+        id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          action: 'deploy'
+          pr_id: ${{ needs.prepare-preview.outputs.pr_id }}
+          environment_name: pr-${{ needs.prepare-preview.outputs.pr_id }}
+          environment_domain: pr-${{ needs.prepare-preview.outputs.pr_id }}.${{ vars.PREVIEW_TRAEFIK_DOMAIN }}
+          run_bootstrap: 'true'
+          docker_repo: ${{ vars.PREVIEW_DOCKER_REPO || 'https://github.com/ts-factory/bublik-docker.git' }}
+          docker_branch: ${{ needs.prepare-preview.outputs.docker_branch }}
+          frontend_repo: ${{ vars.PREVIEW_FRONTEND_REPO || 'https://github.com/ts-factory/bublik-ui.git' }}
+          frontend_branch: ${{ needs.prepare-preview.outputs.frontend_branch }}
+          backend_repo: ${{ vars.PREVIEW_BACKEND_REPO || 'https://github.com/ts-factory/bublik.git' }}
+          backend_branch: ${{ needs.prepare-preview.outputs.backend_branch }}
+          ssh_private_key: ${{ secrets.PREVIEW_SSH_PRIVATE_KEY }}
+          ansible_host: ${{ secrets.PREVIEW_ANSIBLE_HOST }}
+          ansible_user: ${{ vars.PREVIEW_ANSIBLE_USER }}
+          ansible_port: ${{ secrets.PREVIEW_ANSIBLE_PORT || '22' }}
+          admin_email: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_EMAIL }}
+          admin_password: ${{ secrets.PREVIEW_DJANGO_SUPERUSER_PASSWORD }}
+
+      - name: Deployment result comment
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ needs.prepare-preview.outputs.pr_id }}
+          header: deploy-preview
+          message: |
+            ${{ job.status == 'success' && '✅ **Deployment successful!**' || '❌ **Deployment failed!**' }}
+
+            ### 🚀 Deployment Summary for PR #${{ needs.prepare-preview.outputs.pr_id }}
+
+            **🌐 Preview URL:** [${{ needs.prepare-preview.outputs.environment_url }}](${{ needs.prepare-preview.outputs.environment_url }})
+
+            **📦 Repository Configuration:**
+            - **Docker Repo:** `${{ vars.PREVIEW_DOCKER_REPO || 'https://github.com/ts-factory/bublik-docker.git' }}`
+            - **Docker Branch:** `${{ needs.prepare-preview.outputs.docker_branch }}`
+            - **Frontend Repo:** `${{ vars.PREVIEW_FRONTEND_REPO || 'https://github.com/ts-factory/bublik-ui.git' }}`
+            - **Frontend Branch:** `${{ needs.prepare-preview.outputs.frontend_branch }}`
+            - **Backend Repo:** `${{ vars.PREVIEW_BACKEND_REPO || 'https://github.com/ts-factory/bublik.git' }}`
+            - **Backend Branch:** `${{ needs.prepare-preview.outputs.backend_branch }}`
+
+            **🏷️ Environment:** `pr-${{ needs.prepare-preview.outputs.pr_id }}`
+
+            ${{ job.status == 'success' && '🎉 Your preview environment is ready for testing!' || '⚠️ Please check the workflow logs for error details.' }}
+
+            ---
+            <sub>This comment is automatically updated by the deployment workflow.</sub>
+
+  destroy-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    concurrency:
+      group: destroy-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    permissions:
+      pull-requests: write
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Destroy Preview
+        id: destroy
+        uses: ./.github/actions/deploy
+        with:
+          action: 'destroy'
+          pr_id: ${{ github.event.pull_request.number }}
+          environment_name: pr-${{ github.event.pull_request.number }}
+          ssh_private_key: ${{ secrets.PREVIEW_SSH_PRIVATE_KEY }}
+          ansible_host: ${{ secrets.PREVIEW_ANSIBLE_HOST }}
+          ansible_user: ${{ vars.PREVIEW_ANSIBLE_USER }}
+          ansible_port: ${{ secrets.PREVIEW_ANSIBLE_PORT || '22' }}
+
+      - name: List deployments for this PR
+        env:
+          GITHUB_TOKEN: '${{ github.token }}'
+        id: list
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/${{ github.repository }}/deployments
+          environment: pr-${{ github.event.pull_request.number }}
+
+      - name: Mark deployments as inactive
+        if: steps.list.outputs.data != '[]'
+        env:
+          GITHUB_TOKEN: '${{ github.token }}'
+        run: |
+          echo '${{ steps.list.outputs.data }}' | jq -r '.[].id' | while read dep_id; do
+            gh api \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/deployments/$dep_id/statuses \
+              -f state=inactive \
+              -f description="Deployment marked as inactive"
+          done
+
+      - name: Destroy result comment
+        if: always() && github.event_name != 'workflow_dispatch'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ github.event.pull_request.number }}
+          header: destroy-preview
+          message: |
+            ${{ job.status == 'success' && '🗑️ **Preview environment destroyed successfully!**' || '❌ **Failed to destroy preview environment!**' }}
+
+            ### 🧹 Cleanup Summary for PR #${{ github.event.pull_request.number }}
+
+            **🏷️ Environment:** `pr-${{ github.event.pull_request.number }}`
+            **📊 Status:** ${{ job.status == 'success' && '✅ Cleaned up' || '❌ Cleanup failed' }}
+
+            ${{ job.status == 'success' && '✨ All resources have been cleaned up successfully.' || '⚠️ Some resources may still be running. Please check manually.' }}
+
+            ---
+            <sub>This comment is automatically updated by the cleanup workflow.</sub>
