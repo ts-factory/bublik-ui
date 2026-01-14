@@ -5,7 +5,6 @@ import { Row } from '@tanstack/react-table';
 
 import { MergedRun, RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
-import { TwTableProps } from '@/shared/tailwind-ui';
 
 import { useRunTableRowState } from '../hooks';
 import { ColumnId } from '../run-table/types';
@@ -76,7 +75,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 				showToolbar: showToolbar
 			});
 		},
-		[rowState, updateRowState, rowId, showToolbar]
+		[updateRowState, rowState, rowId, showToolbar]
 	);
 
 	const setShowToolbar = useCallback(
@@ -108,7 +107,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 				});
 			}
 		},
-		[row.id, rowId, rowState, updateRowState]
+		[rowId, rowState, updateRowState]
 	);
 
 	if (isError) return <div className="">Something went wrong...</div>;

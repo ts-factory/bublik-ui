@@ -41,7 +41,7 @@ import {
 	StringArraySchema
 } from './constants';
 import { useTargetIterationId } from '../run-table/run-table.hooks';
-import { RowState, useGlobalRequirements, useRunTableRowState } from '../hooks';
+import { RowState, useGlobalRequirements } from '../hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
@@ -102,7 +102,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		setColumnFilters,
 		hasFilters: hasColumnFilters
 	} = useColumnFilters(rowId);
-	const { updateRowState } = useRunTableRowState();
 	const {
 		parameters,
 		verdicts,
@@ -218,14 +217,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									setMode(nextMode);
 
 									if (nextMode === 'diff') setColumnFilters([]);
-									// Clear dim mode when entering diff mode
-									if (nextMode === 'diff') {
-										updateRowState({
-											rowId,
-											mode: nextMode,
-											referenceDiffRowId: undefined
-										});
-									}
 								}}
 							>
 								<Icon
@@ -243,16 +234,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 								onClick={() => {
 									const nextMode = isDimMode ? 'default' : 'dim';
 									setMode(nextMode);
-									// Clear reference when toggling off
-									if (nextMode === 'default') {
-										updateRowState({
-											rowId,
-											mode: nextMode,
-											referenceDiffRowId: undefined
-										});
-									} else {
-										updateRowState({ rowId, mode: nextMode });
-									}
 								}}
 							>
 								<Icon name="EyeHide" size={18} className="mr-1.5" />
