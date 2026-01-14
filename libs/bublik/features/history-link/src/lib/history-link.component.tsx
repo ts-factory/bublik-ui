@@ -1,30 +1,60 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { getHistorySearch } from '@/shared/utils';
-import {
-	RunDetailsAPIResponse,
-	HistoryMode,
-	RunDataResults
-} from '@/shared/types';
-import { Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
+import { Icon, SplitButton, Tooltip, ButtonTw } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
+import type { HistorySearch } from '@/shared/utils';
 
-export interface LinkToHistoryProps {
-	result: RunDataResults;
-	runDetails: RunDetailsAPIResponse;
-	userPreferredHistoryMode?: HistoryMode;
+export interface HistoryLinkComponentProps {
+	search: {
+		direct: HistorySearch;
+		prefilled: HistorySearch;
+	} | null;
+	isLoading?: boolean;
+	isError?: boolean;
+	disabled?: boolean;
 }
 
-export const LinkToHistory = (props: LinkToHistoryProps) => {
-	const { runDetails, result, userPreferredHistoryMode = 'linear' } = props;
-	const search = getHistorySearch(runDetails, result, userPreferredHistoryMode);
+/**
+ * Loading state component - shows a spinner button
+ */
+const LoadingState = () => (
+	<ButtonTw variant="secondary" size="xss" state="loading" asChild>
+		<LinkWithProject to="/history">
+			<Icon
+				name="ProgressIndicator"
+				className="mr-1.5 animate-spin"
+				size={20}
+			/>
+			History
+		</LinkWithProject>
+	</ButtonTw>
+);
+
+/**
+ * Error/Disabled state component - shows a disabled button
+ */
+const ErrorState = () => (
+	<ButtonTw variant="secondary" size="xss" state="disabled" asChild>
+		<LinkWithProject to="/history">
+			<Icon name="BoxArrowRight" className="mr-1.5" size={20} />
+			History
+		</LinkWithProject>
+	</ButtonTw>
+);
+
+export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
+	const { search, isLoading, isError, disabled } = props;
+
+	if (isLoading) return <LoadingState />;
+
+	if (isError || disabled || !search) return <ErrorState />;
+
+	const { direct, prefilled } = search;
 
 	return (
 		<SplitButton.Root variant="secondary" size="xss">
 			<SplitButton.Button asChild>
-				<LinkWithProject
-					{...search.direct.testNameAndParametersAndImportantTags}
-				>
+				<LinkWithProject {...direct.testNameAndParametersAndImportantTags}>
 					<Icon
 						name="BoxArrowRight"
 						size={20}
@@ -46,7 +76,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...search.direct.testName}>
+						<LinkWithProject {...direct.testName}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name</span>
 						</LinkWithProject>
@@ -58,7 +88,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...search.direct.testNameAndVerdicts}>
+						<LinkWithProject {...direct.testNameAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Verdicts</span>
 						</LinkWithProject>
@@ -70,7 +100,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...search.direct.testNameAndParameters}>
+						<LinkWithProject {...direct.testNameAndParameters}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Parameters</span>
 						</LinkWithProject>
@@ -82,9 +112,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject
-							{...search.direct.testNameAndParametersAndImportantTags}
-						>
+						<LinkWithProject {...direct.testNameAndParametersAndImportantTags}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>
 								Test Name + Parameters + Important Tags{' '}
@@ -99,7 +127,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...search.direct.testNameAndParametersAndAllTags}>
+						<LinkWithProject {...direct.testNameAndParametersAndAllTags}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Parameters + All Tags</span>
 						</LinkWithProject>
@@ -114,7 +142,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...search.prefilled.testNameAndVerdicts}>
+						<LinkWithProject {...prefilled.testNameAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Verdicts</span>
 						</LinkWithProject>
@@ -126,9 +154,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject
-							{...search.prefilled.testNameAndParametersAndVerdicts}
-						>
+						<LinkWithProject {...prefilled.testNameAndParametersAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Parameters + Verdicts</span>
 						</LinkWithProject>
@@ -141,7 +167,7 @@ export const LinkToHistory = (props: LinkToHistoryProps) => {
 				>
 					<SplitButton.Item asChild>
 						<LinkWithProject
-							{...search.prefilled.testNameAndParametersAndImportantTags}
+							{...prefilled.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Name + Parameters + Important Tags</span>

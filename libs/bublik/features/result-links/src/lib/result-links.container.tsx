@@ -1,24 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	HistoryMode,
-	RunDataResults,
-	RunDetailsAPIResponse
-} from '@/shared/types';
-import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
+import { HistoryMode, RunDataResults } from '@/shared/types';
+import { usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { Icon } from '@/shared/tailwind-ui';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
-import { LinkToHistory } from './link-to-history';
+import { HistoryLinkContainer } from '@/bublik/features/history-link';
 
 export interface ResultLinksProps {
 	runId: string;
 	resultId: number;
 	result: RunDataResults;
-	runInfo: RunDetailsAPIResponse;
 	userPreferredHistoryMode?: HistoryMode;
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;
@@ -32,7 +27,6 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		resultId,
 		hasMeasurements,
 		result,
-		runInfo,
 		userPreferredHistoryMode = 'linear',
 		onLogLinkMouseEnter,
 		onMeasurementLinkMouseEnter,
@@ -64,9 +58,9 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					</LinkWithProject>
 				</li>
 				<li className="pl-0.5">
-					<LinkToHistory
-						result={result}
-						runDetails={runInfo}
+					<HistoryLinkContainer
+						runId={runId}
+						resultId={String(resultId)}
 						userPreferredHistoryMode={userPreferredHistoryMode}
 					/>
 				</li>
@@ -114,7 +108,6 @@ export interface ActionLinksProps {
 export const ResultLinksContainer = (props: ActionLinksProps) => {
 	const { runId, resultId, result, showLinkToRun = false } = props;
 	const { has_measurements: hasMeasurements } = result;
-	const { data: runInfo } = useGetRunDetailsQuery(runId);
 	const { userPreferences } = useUserPreferences();
 
 	const prefetchLogURL = usePrefetch('getLogUrlByResultId');
@@ -132,13 +125,10 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 		prefetchMeasurementsHeader(resultId);
 	};
 
-	if (!runInfo) return null;
-
 	return (
 		<ResultLinks
 			resultId={resultId}
 			runId={runId}
-			runInfo={runInfo}
 			result={result}
 			userPreferredHistoryMode={userPreferences.history.defaultMode}
 			hasMeasurements={hasMeasurements}

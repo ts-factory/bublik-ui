@@ -23,11 +23,11 @@ import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import {
-	LinkToHistoryContainer,
 	LinkToMeasurementsContainer,
 	LogPickerContainer,
 	TreeContainer
 } from './containers';
+import { HistoryLinkContainer } from '@/bublik/features/history-link';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
 
@@ -97,7 +97,11 @@ function LogFeature(props: LogFeatureProps) {
 								focusId={focusId}
 							/>
 							<LinkToRun runId={runId} targetIterationId={focusId} />
-							<LinkToHistoryContainer runId={runId} focusId={focusId} />
+							<HistoryLinkContainer
+								runId={runId}
+								resultId={String(focusId ?? runId)}
+								focusId={focusId}
+							/>
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />
 							<LinkToSourceContainer runId={runId} />
