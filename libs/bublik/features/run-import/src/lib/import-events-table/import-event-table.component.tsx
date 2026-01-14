@@ -112,8 +112,8 @@ function ImportEventTable(props: ImportEventTableProps) {
 						</Fragment>
 					))}
 
-					{table.getRowModel().rows.map((row, idx, arr) => (
-						<EventRow key={row.id} row={row} idx={idx} arr={arr} />
+					{table.getRowModel().rows.map((row) => (
+						<EventRow key={row.id} row={row} />
 					))}
 				</div>
 			</div>
@@ -133,8 +133,6 @@ function ImportEventTable(props: ImportEventTableProps) {
 
 interface EventRowProps {
 	row: Row<LogEventWithChildren>;
-	idx: number;
-	arr: Row<LogEventWithChildren>[];
 }
 
 function EventRow({ row }: EventRowProps) {

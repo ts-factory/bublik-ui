@@ -52,6 +52,68 @@ export function getIconByStatus(status: string) {
 
 const columnHelper = createColumnHelper<LogEventWithChildren>();
 
+interface ActionCellProps {
+	taskId?: string | null;
+	runId?: number | null;
+	status?: string;
+}
+
+function ActionsCell(props: ActionCellProps) {
+	const { runId, taskId, status } = props;
+	const { toggle } = useImportLog();
+
+	if (!taskId) {
+		return (
+			<div className="flex items-center gap-2 px-2">
+				<Tooltip content="No celery task available">
+					<Icon
+						name="TriangleExclamationMark"
+						size={20}
+						className="text-text-unexpected"
+					/>
+				</Tooltip>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col justify-center gap-1 w-fit">
+			{runId && (
+				<LinkWithProject to={routes.run({ runId })}>
+					<ButtonTw variant="secondary" size="xss" className="justify-start">
+						<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
+						<span>Run</span>
+					</ButtonTw>
+				</LinkWithProject>
+			)}
+			<ButtonTw
+				variant="secondary"
+				size="xss"
+				className="justify-start"
+				onClick={toggle(taskId, status === 'STARTED')}
+			>
+				<Icon name="Paper" size={20} className="mr-1.5" />
+				<span>Log</span>
+			</ButtonTw>
+			<ButtonTw
+				variant="secondary"
+				size="xss"
+				className="justify-start"
+				asChild
+			>
+				<a
+					href={`${config.oldBaseUrl}/flower/task/${taskId}`}
+					target="_blank"
+					rel="noreferrer"
+				>
+					<RocketIcon className="mr-1.5 size-4" />
+					<span>Task</span>
+				</a>
+			</ButtonTw>
+		</div>
+	);
+}
+
 export const columns = [
 	columnHelper.accessor('status', {
 		id: 'EVENT_TYPE',
@@ -79,67 +141,13 @@ export const columns = [
 	columnHelper.accessor('celery_task', {
 		id: 'ACTIONS',
 		header: () => <span className="pl-2">Actions</span>,
-		cell: (cell) => {
-			const taskId = cell.getValue();
-			// eslint-disable-next-line
-			const { toggle } = useImportLog();
-			const runId = cell.row.original.run_id;
-
-			if (!taskId) {
-				return (
-					<div className="flex items-center gap-2 px-2">
-						<Tooltip content="No celery task available">
-							<Icon
-								name="TriangleExclamationMark"
-								size={16}
-								className="text-warning"
-							/>
-						</Tooltip>
-					</div>
-				);
-			}
-
-			return (
-				<div className="flex flex-col justify-center gap-1 w-fit">
-					{runId && (
-						<LinkWithProject to={routes.run({ runId })}>
-							<ButtonTw
-								variant="secondary"
-								size="xss"
-								className="justify-start"
-							>
-								<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
-								<span>Run</span>
-							</ButtonTw>
-						</LinkWithProject>
-					)}
-					<ButtonTw
-						variant="secondary"
-						size="xss"
-						className="justify-start"
-						onClick={toggle(taskId, cell.row.original.status === 'STARTED')}
-					>
-						<Icon name="Paper" size={20} className="mr-1.5" />
-						<span>Log</span>
-					</ButtonTw>
-					<ButtonTw
-						variant="secondary"
-						size="xss"
-						className="justify-start"
-						asChild
-					>
-						<a
-							href={`${config.oldBaseUrl}/flower/task/${taskId}`}
-							target="_blank"
-							rel="noreferrer"
-						>
-							<RocketIcon className="mr-1.5 size-4" />
-							<span>Task</span>
-						</a>
-					</ButtonTw>
-				</div>
-			);
-		},
+		cell: (cell) => (
+			<ActionsCell
+				taskId={cell.getValue()}
+				runId={cell.row.original.run_id}
+				status={cell.row.original.status}
+			/>
+		),
 		meta: { width: 'min-content' }
 	}),
 	columnHelper.accessor('timestamp', {

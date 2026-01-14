@@ -451,20 +451,22 @@ export const ImportLogTable = (props: ImportLogTableProps) => {
 			<table className="w-full border-collapse">
 				{table.getHeaderGroups().map((group) => (
 					<thead key={group.id}>
-						{group.headers.map((header) => (
-							<th
-								key={header.id}
-								className={cn(
-									'px-1 py-2 text-left text-gray-400 font-semibold sticky top-0',
-									BG_CLASS
-								)}
-							>
-								{flexRender(
-									header.column.columnDef.header,
-									header.getContext()
-								)}
-							</th>
-						))}
+						<tr>
+							{group.headers.map((header) => (
+								<th
+									key={header.id}
+									className={cn(
+										'px-1 py-2 text-left text-gray-400 font-semibold sticky top-0',
+										BG_CLASS
+									)}
+								>
+									{flexRender(
+										header.column.columnDef.header,
+										header.getContext()
+									)}
+								</th>
+							))}
+						</tr>
 					</thead>
 				))}
 				<tbody>
