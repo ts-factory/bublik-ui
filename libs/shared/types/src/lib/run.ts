@@ -285,6 +285,7 @@ export type RunDetailsAPIResponse = {
 	labels: string[];
 	revisions: DetailsItem[];
 	special_categories: Record<string, string[]>;
+	configuration?: string;
 	status: string;
 	status_by_nok: string;
 	conclusion: RUN_STATUS;

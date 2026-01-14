@@ -127,6 +127,7 @@ function getBugProps(
 		path,
 		tags: {
 			specialCategories: details.special_categories ?? {},
+			configuration: details.configuration,
 			revisions: details.revisions ?? [],
 			branches: details.branches ?? [],
 			important: details.important_tags ?? [],
@@ -270,11 +271,17 @@ function getFormattedMarkdown(
 		const haveHashes = Boolean(options.hashes?.length);
 
 		if (haveHashes) {
-			const configurations = hasConfigurationKey
-				? options.tags.specialCategories['Configuration'] ||
-				  options.tags.specialCategories['configuration'] ||
-				  []
-				: Object.values(options.tags.specialCategories).flat();
+			let configurations: string[];
+
+			if (options.tags.configuration) {
+				configurations = [options.tags.configuration];
+			} else {
+				configurations = hasConfigurationKey
+					? options.tags.specialCategories['Configuration'] ||
+					  options.tags.specialCategories['configuration'] ||
+					  []
+					: Object.values(options.tags.specialCategories).flat();
+			}
 
 			const matches = findAllMatches(configurations, options.hashes ?? []);
 
@@ -415,6 +422,7 @@ type BugTags = {
 	revisions?: { name?: string; value: string; url?: string }[];
 	parameters?: { name: string; value: string }[];
 	specialCategories: Record<string, string[]>;
+	configuration?: string;
 };
 
 interface NewBugButtonProps {
