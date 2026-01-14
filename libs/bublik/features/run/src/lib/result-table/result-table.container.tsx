@@ -64,13 +64,15 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	}, [rowState?.showToolbar]);
 
 	const setMode = useCallback(
-		(mode: 'default' | 'diff') => {
+		(mode: 'default' | 'diff' | 'dim') => {
 			return updateRowState({
 				...rowState,
 				mode,
 				rowId,
 				referenceDiffRowId:
-					mode === 'diff' ? rowState?.referenceDiffRowId : undefined,
+					mode === 'diff' || mode === 'dim'
+						? rowState.referenceDiffRowId
+						: undefined,
 				showToolbar: showToolbar
 			});
 		},
@@ -86,23 +88,23 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	const onRowClick = useCallback(
 		(row: Row<RunDataResults>) => {
-			if (rowState?.mode === 'default' || !rowState?.mode) return;
+			if (!rowState || rowState.mode === 'default') return;
 
-			if (rowState?.referenceDiffRowId === row.id) {
+			if (rowState.referenceDiffRowId === row.id) {
 				updateRowState({
 					...rowState,
 					rowId,
 					referenceDiffRowId: undefined,
-					requests: rowState?.requests,
-					mode: 'diff'
+					requests: rowState.requests,
+					mode: rowState.mode
 				});
 			} else {
 				updateRowState({
 					...rowState,
 					rowId,
 					referenceDiffRowId: row.id,
-					requests: rowState?.requests,
-					mode: 'diff'
+					requests: rowState.requests,
+					mode: rowState.mode
 				});
 			}
 		},

@@ -46,7 +46,7 @@ export interface RowState {
 	rowId: string;
 	requests?: Record<string, ResultTableFilter>;
 	referenceDiffRowId?: string;
-	mode?: 'default' | 'diff';
+	mode?: 'default' | 'diff' | 'dim';
 	showToolbar?: boolean;
 }
 

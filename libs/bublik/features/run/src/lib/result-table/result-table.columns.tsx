@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties, Fragment } from 'react';
+import { CSSProperties, Fragment, useMemo } from 'react';
 import {
 	ColumnDef,
 	createColumnHelper,
@@ -22,7 +22,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { KeyList } from './key-list';
-import { highlightDifferences } from './matcher';
+import { highlightDifferences, getCommonParameters } from './matcher';
 import { useGlobalRequirements, useRunTableRowState } from '../hooks';
 import { COLUMN_ID, ObtainedResultFilterSchema } from './constants';
 
@@ -36,8 +36,8 @@ declare module '@tanstack/react-table' {
 	}
 }
 
-function diffModeWarning() {
-	toast.warning('Parameters diff mode is enabled. Filters are disabled.');
+function filterModeWarning() {
+	toast.warning('Parameters compare mode is enabled. Filters are disabled.');
 }
 
 const helper = createColumnHelper<RunDataResults>();
@@ -46,7 +46,7 @@ interface GetColumnsOptions {
 	rowId: string;
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
-	mode?: 'default' | 'diff';
+	mode?: 'default' | 'diff' | 'dim';
 	showToolbar?: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
 	path?: string;
@@ -64,6 +64,12 @@ export const getColumns = ({
 	const parametersDataset = Object.fromEntries(
 		data.map((item) => [String(item.result_id), item.parameters])
 	);
+
+	// Compute common parameters across all rows (only needed when in dim mode)
+	const commonParameters =
+		mode === 'dim'
+			? getCommonParameters(data.map((item) => item.parameters ?? []))
+			: undefined;
 
 	return [
 		helper.accessor((data) => data, {
@@ -136,7 +142,7 @@ export const getColumns = ({
 
 					function handleVerdictClick(verdict: string) {
 						if (mode === 'diff') {
-							diffModeWarning();
+							filterModeWarning();
 							return;
 						}
 
@@ -158,7 +164,7 @@ export const getColumns = ({
 
 					function handleResultClick(result: RESULT_TYPE) {
 						if (mode === 'diff') {
-							diffModeWarning();
+							filterModeWarning();
 							return;
 						}
 
@@ -264,7 +270,7 @@ export const getColumns = ({
 
 				function handleArtifactClick(artifact: string) {
 					if (mode === 'diff') {
-						diffModeWarning();
+						filterModeWarning();
 						return;
 					}
 
@@ -305,8 +311,8 @@ export const getColumns = ({
 					: parameters;
 
 				function handleParameterClick(value: string) {
-					if (mode === 'diff') {
-						diffModeWarning();
+					if (mode === 'diff' || mode === 'dim') {
+						filterModeWarning();
 						return;
 					}
 
@@ -323,6 +329,8 @@ export const getColumns = ({
 						reference={reference}
 						filterValue={filterValue}
 						onParameterClick={handleParameterClick}
+						mode={mode}
+						commonParameters={commonParameters}
 					/>
 				);
 			},
@@ -338,7 +346,7 @@ export const getColumns = ({
 
 				function handleRequirementClick(requirement: string) {
 					if (mode === 'diff') {
-						diffModeWarning();
+						filterModeWarning();
 						return;
 					}
 
@@ -446,26 +454,59 @@ interface ParametersProps {
 	parameters: string[];
 	reference: string[];
 	onParameterClick: (value: string) => void;
+	mode?: 'default' | 'diff' | 'dim';
+	commonParameters?: Set<string>;
 }
 
 function Parameters(props: ParametersProps) {
-	const { filterValue, parameters, reference, onParameterClick } = props;
+	const {
+		filterValue,
+		parameters,
+		reference,
+		onParameterClick,
+		mode,
+		commonParameters
+	} = props;
+
+	// Only compute differences in diff mode
+	const diffResults =
+		mode === 'diff' ? highlightDifferences(parameters, reference) : null;
+
+	// Pre-compute Set for O(1) lookups when in dim mode
+	const referenceSet = useMemo(() => new Set(reference), [reference]);
 
 	return (
 		<ul className="flex gap-1 flex-wrap">
-			{highlightDifferences(parameters, reference).map((item, index) => {
+			{(mode === 'diff' ? diffResults! : parameters).map((item, index) => {
+				// Handle different item types based on mode
+				const value = typeof item === 'string' ? item : item.value;
+				const isDifferent =
+					mode === 'diff' && (item as { isDifferent?: boolean }).isDifferent;
+
+				// Determine if this parameter should be dimmed (only in dim mode)
+				const shouldDim =
+					mode === 'dim' &&
+					// If reference === parameters (no row selected), dim globally common params
+					(reference === parameters
+						? commonParameters?.has(value)
+						: // If row selected, dim parameters that exist in reference (same value)
+						  referenceSet.has(value));
+
 				return (
 					<button
 						key={index}
 						className={cn(
 							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							filterValue.includes(item.value) || item.isDifferent
+							// Highlight logic for diff mode and filtered params
+							filterValue.includes(value) || isDifferent
 								? 'bg-primary-wash border-primary'
-								: 'bg-badge-1'
+								: 'bg-badge-1',
+							// Dim common parameters when in dim mode
+							shouldDim && 'opacity-40'
 						)}
-						onClick={() => onParameterClick(item.value)}
+						onClick={() => onParameterClick(value)}
 					>
-						{item.value}
+						{value}
 					</button>
 				);
 			})}
