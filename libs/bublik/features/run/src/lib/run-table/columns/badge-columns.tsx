@@ -13,7 +13,9 @@ import {
 	getSkippedExpected,
 	getSkippedUnexpected,
 	getTotalRunStats,
-	getRunRunStats
+	getRunRunStats,
+	getExpectedTotal,
+	getUnexpectedTotal
 } from '@/bublik/run-utils';
 
 import { createRunColumn } from './utils';
@@ -54,6 +56,44 @@ const columnConfigs: RunTableColumnConfig[] = [
 			RESULT_TYPE.Cored,
 			RESULT_TYPE.Incomplete
 		]
+	},
+	{
+		id: ColumnId.ExpectedTotal,
+		accessor: getExpectedTotal,
+		header: 'Total',
+		variant: BadgeVariants.ExpectedActive,
+		resultProperties: [RESULT_PROPERTIES.Expected],
+		results: [RESULT_TYPE.Passed, RESULT_TYPE.Failed, RESULT_TYPE.Skipped],
+		icon: (
+			<Icon
+				name="InformationCircleCheckmark"
+				size={16}
+				className="text-text-expected"
+			/>
+		)
+	},
+	{
+		id: ColumnId.UnexpectedTotal,
+		accessor: getUnexpectedTotal,
+		header: 'Total',
+		variant: BadgeVariants.UnexpectedActive,
+		resultProperties: [RESULT_PROPERTIES.Unexpected],
+		results: [
+			RESULT_TYPE.Passed,
+			RESULT_TYPE.Failed,
+			RESULT_TYPE.Killed,
+			RESULT_TYPE.Cored,
+			RESULT_TYPE.Skipped,
+			RESULT_TYPE.Incomplete,
+			RESULT_TYPE.Faked
+		],
+		icon: (
+			<Icon
+				name="InformationCircleExclamationMark"
+				size={16}
+				className="text-text-unexpected"
+			/>
+		)
 	},
 	{
 		id: ColumnId.PassedExpected,

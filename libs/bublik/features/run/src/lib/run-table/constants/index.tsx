@@ -13,6 +13,7 @@ import { Icon } from '@/shared/tailwind-ui';
 import { ColumnId } from '../types';
 
 export const UnexpectedColumns: string[] = [
+	ColumnId.UnexpectedTotal,
 	ColumnId.PassedUnexpected,
 	ColumnId.FailedUnexpected,
 	ColumnId.SkippedUnexpected,
@@ -27,6 +28,19 @@ export const getUnexpectedResultForColumnId = (
 	columnId: string
 ): ResultTableFilter => {
 	switch (columnId) {
+		case ColumnId.UnexpectedTotal:
+			return {
+				results: [
+					RESULT_TYPE.Passed,
+					RESULT_TYPE.Failed,
+					RESULT_TYPE.Killed,
+					RESULT_TYPE.Cored,
+					RESULT_TYPE.Skipped,
+					RESULT_TYPE.Incomplete,
+					RESULT_TYPE.Faked
+				],
+				resultProperties: [RESULT_PROPERTIES.Unexpected]
+			};
 		case ColumnId.PassedUnexpected:
 			return {
 				results: [RESULT_TYPE.Passed],
@@ -55,6 +69,8 @@ export const isUnexpectedColumn =
 
 export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	[ColumnId.Total]: false,
+	[ColumnId.ExpectedTotal]: false,
+	[ColumnId.UnexpectedTotal]: false,
 	[ColumnId.Objective]: false,
 	[ColumnId.Comments]: false
 };
@@ -87,7 +103,11 @@ export const COLUMN_GROUPS: ColumnGroup[] = [
 				/>
 			</div>
 		),
-		columns: [ColumnId.PassedExpected, ColumnId.FailedExpected],
+		columns: [
+			ColumnId.ExpectedTotal,
+			ColumnId.PassedExpected,
+			ColumnId.FailedExpected
+		],
 		className: 'bg-badge-3'
 	},
 	{
@@ -102,7 +122,11 @@ export const COLUMN_GROUPS: ColumnGroup[] = [
 				/>
 			</div>
 		),
-		columns: [ColumnId.PassedUnexpected, ColumnId.FailedUnexpected],
+		columns: [
+			ColumnId.UnexpectedTotal,
+			ColumnId.PassedUnexpected,
+			ColumnId.FailedUnexpected
+		],
 		className: 'bg-bg-fillError'
 	},
 	{

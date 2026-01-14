@@ -68,6 +68,19 @@ export const getAbnormal = (data?: RunData | MergedRun | null) => {
 	return getStats(['abnormal'])(data);
 };
 
+export const getExpectedTotal = (data?: RunData | MergedRun | null) => {
+	return getStats(['passed', 'failed', 'skipped'])(data);
+};
+
+export const getUnexpectedTotal = (data?: RunData | MergedRun | null) => {
+	return getStats([
+		'passed_unexpected',
+		'failed_unexpected',
+		'skipped_unexpected',
+		'abnormal'
+	])(data);
+};
+
 /** Return all aggregated stats for purpose of comparing */
 export const getCalculatedStats = (
 	data?: RunData | MergedRun | null
@@ -81,6 +94,8 @@ export const getCalculatedStats = (
 		failedUnexpected: getFailedUnexpected(data),
 		skippedExpected: getSkippedExpected(data),
 		skippedUnexpected: getSkippedUnexpected(data),
-		abnormal: getAbnormal(data)
+		abnormal: getAbnormal(data),
+		expectedTotal: getExpectedTotal(data),
+		unexpectedTotal: getUnexpectedTotal(data)
 	} as const;
 };

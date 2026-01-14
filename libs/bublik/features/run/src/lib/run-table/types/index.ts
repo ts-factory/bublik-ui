@@ -17,6 +17,8 @@ export const enum ColumnId {
 	Tree = 'TREE',
 	Total = 'TOTAL',
 	Run = 'RUN',
+	ExpectedTotal = 'EXPECTED_TOTAL',
+	UnexpectedTotal = 'UNEXPECTED_TOTAL',
 	PassedExpected = 'PASSED_EXPECTED',
 	FailedExpected = 'FAILED_EXPECTED',
 	PassedUnexpected = 'PASSED_UNEXPECTED',
