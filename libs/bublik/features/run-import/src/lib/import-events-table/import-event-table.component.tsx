@@ -137,6 +137,7 @@ interface EventRowProps {
 
 function EventRow({ row }: EventRowProps) {
 	const [isHovered, setIsHovered] = useState(false);
+	const { toggle } = useImportLog();
 
 	return (
 		<Fragment key={row.id}>
@@ -174,7 +175,7 @@ function EventRow({ row }: EventRowProps) {
 				);
 			})}
 			{row.getIsExpanded() && (
-				<div className={'col-span-full'}>{renderTimeline({ row })}</div>
+				<div className={'col-span-full'}>{renderTimeline({ row, toggle })}</div>
 			)}
 		</Fragment>
 	);
@@ -239,7 +240,10 @@ const ImportEventTableEmpty = () => {
 	);
 };
 
-type TimelineOptions = { row: Row<LogEventWithChildren> };
+type TimelineOptions = {
+	row: Row<LogEventWithChildren>;
+	toggle: ReturnType<typeof useImportLog>['toggle'];
+};
 
 const NO_TASK_GROUP = '__no-task__';
 
@@ -247,7 +251,8 @@ function renderTimeline(props: TimelineOptions) {
 	const {
 		row: {
 			original: { children: events }
-		}
+		},
+		toggle
 	} = props;
 	const groupedEvents = events.reduce<Record<string, typeof events>>(
 		(acc, evt) => {
@@ -258,9 +263,6 @@ function renderTimeline(props: TimelineOptions) {
 		},
 		{}
 	);
-
-	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const { toggle } = useImportLog();
 
 	return (
 		<div className="bg-white px-4 py-8 border-t border-border-primary mb-1">
