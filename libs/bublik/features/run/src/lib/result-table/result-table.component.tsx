@@ -364,19 +364,24 @@ function ResultRow(props: ResultRowProps) {
 						className={cn(
 							'px-1 py-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
 							'flex items-start whitespace-pre-wrap',
-							'bg-primary-wash border-y border-y-transparent transition-colors',
+							'bg-primary-wash transition-colors',
+							isReferenceDiffRow
+								? 'border-y border-primary'
+								: 'border-y border-y-transparent',
 							idx !== arr.length - 1 && 'mb-1',
-							cellIdx === 0 && 'rounded-l-md border-l border-l-transparent',
+							cellIdx === 0 &&
+								(isReferenceDiffRow
+									? 'rounded-l-md border-l border-primary'
+									: 'rounded-l-md border-l border-l-transparent'),
 							cellIdx === cellArr.length - 1 &&
-								'rounded-r-md border-r border-r-transparent',
+								(isReferenceDiffRow
+									? 'rounded-r-md border-r border-primary'
+									: 'rounded-r-md border-r border-r-transparent'),
 							className,
-							isReferenceDiffRow && 'border-y border-primary',
-							isReferenceDiffRow && cellIdx === 0 && 'border-primary',
-							isReferenceDiffRow &&
-								cellIdx === cellArr.length - 1 &&
-								'border-primary',
 							isTarget && 'animate-border-pulse',
-							hovered && 'border-y-primary border-l-primary border-r-primary'
+							!isReferenceDiffRow &&
+								hovered &&
+								'border-y-primary border-l-primary border-r-primary'
 						)}
 						style={{
 							overflowWrap: 'anywhere',
