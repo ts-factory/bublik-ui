@@ -243,6 +243,8 @@ const ImportEventTableEmpty = () => {
 
 type TimelineOptions = { row: Row<LogEventWithChildren> };
 
+const NO_TASK_GROUP = '__no-task__';
+
 function renderTimeline(props: TimelineOptions) {
 	const {
 		row: {
@@ -251,7 +253,7 @@ function renderTimeline(props: TimelineOptions) {
 	} = props;
 	const groupedEvents = events.reduce<Record<string, typeof events>>(
 		(acc, evt) => {
-			const taskId = evt.celery_task;
+			const taskId = evt.celery_task ?? NO_TASK_GROUP;
 			if (!acc[taskId]) acc[taskId] = [];
 			acc[taskId].push(evt);
 			return acc;
@@ -268,112 +270,130 @@ function renderTimeline(props: TimelineOptions) {
 				{/* Continuous vertical line across all groups */}
 				<div className="absolute left-10 top-12 bottom-16 z-10 w-0.5 bg-border-primary" />
 
-				{Object.entries(groupedEvents).map(([taskId, taskEvents], idx, arr) => (
-					<div
-						key={taskId}
-						className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors"
-					>
-						{idx !== arr.length - 1 && (
-							<div className="absolute left-7 top-[95%] size-6 bg-white z-0" />
-						)}
-						{idx !== 0 && (
-							<div className="absolute left-7 -top-[5%] size-6 bg-white z-0" />
-						)}
-						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
-							<span className="text-sm text-text-primary font-semibold">
-								Task:
-							</span>
-							<code className="text-sm text-gray-800 whitespace-pre-wrap">
-								{' '}
-								{taskId}
-							</code>
-							<span className="px-2">•</span>
-							<div className="flex items-center gap-2">
-								<ButtonTw
-									variant="secondary"
-									size="xss"
-									onClick={toggle(taskId)}
-								>
-									<Icon name="Paper" size={20} className="mr-1.5" />
-									<span>Log</span>
-								</ButtonTw>
-								<ButtonTw
-									variant="secondary"
-									size="xss"
-									className="justify-start"
-									asChild
-								>
-									<a
-										href={`${config.oldBaseUrl}/flower/task/${taskId}`}
-										target="_blank"
-										rel="noreferrer"
-									>
-										<RocketIcon className="mr-1.5 size-4" />
-										<span>Task</span>
-									</a>
-								</ButtonTw>
-							</div>
-						</div>
-						<div className="relative pl-8">
-							<div className="space-y-4">
-								{taskEvents.map((evt, _) => {
-									const StatusIcon = getIconByStatus(evt.status);
-									const bg = getBgByStatus(evt.status);
+				{Object.entries(groupedEvents).map(([taskId, taskEvents], idx, arr) => {
+					const isNoTask = taskId === NO_TASK_GROUP;
 
-									return (
-										<div key={evt.event_id} className="relative">
-											{/* Status icon circle */}
-											<div
-												className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white z-10`}
+					return (
+						<div
+							key={taskId}
+							className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors"
+						>
+							{idx !== arr.length - 1 && (
+								<div className="absolute left-7 top-[95%] size-6 bg-white z-0" />
+							)}
+							{idx !== 0 && (
+								<div className="absolute left-7 -top-[5%] size-6 bg-white z-0" />
+							)}
+							<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
+								<span className="text-sm text-text-primary font-semibold">
+									Task:
+								</span>
+								{isNoTask ? (
+									<>
+										<Badge variant="warning" className="ml-2">
+											No celery task available
+										</Badge>
+										<span className="text-xs text-text-secondary ml-2">
+											These events cannot be opened in Flower or have their logs
+											viewed
+										</span>
+									</>
+								) : (
+									<>
+										<code className="text-sm text-gray-800 whitespace-pre-wrap">
+											{' '}
+											{taskId}
+										</code>
+										<span className="px-2">•</span>
+										<div className="flex items-center gap-2">
+											<ButtonTw
+												variant="secondary"
+												size="xss"
+												onClick={toggle(taskId)}
 											>
-												<StatusIcon className="size-6" />
-											</div>
+												<Icon name="Paper" size={20} className="mr-1.5" />
+												<span>Log</span>
+											</ButtonTw>
+											<ButtonTw
+												variant="secondary"
+												size="xss"
+												className="justify-start"
+												asChild
+											>
+												<a
+													href={`${config.oldBaseUrl}/flower/task/${taskId}`}
+													target="_blank"
+													rel="noreferrer"
+												>
+													<RocketIcon className="mr-1.5 size-4" />
+													<span>Task</span>
+												</a>
+											</ButtonTw>
+										</div>
+									</>
+								)}
+							</div>
+							<div className="relative pl-8">
+								<div className="space-y-4">
+									{taskEvents.map((evt, _) => {
+										const StatusIcon = getIconByStatus(evt.status);
+										const bg = getBgByStatus(evt.status);
 
-											{/* Event content */}
-											<div className="space-y-3 rounded-lg ml-4 border border-border-primary bg-gray-50/70 p-4">
-												<div className="flex flex-col gap-2">
-													<div className="flex items-center gap-2">
-														<StatusBadge status={evt.status} />
-														<FacilityBadge facility={evt.facility} />
-														<SeverityBadge severity={evt.severity} />
-													</div>
-													<div>
-														<div className="flex items-center gap-2 text-xs leading-5 text-text-primary flex-wrap">
-															<div className="flex items-center gap-1">
-																<Icon name="Clock" className="size-4" />
-																<span>
-																	{format(
-																		parseISO(evt.timestamp),
-																		TIME_DOT_FORMAT_FULL
-																	)}
-																</span>
+										return (
+											<div key={evt.event_id} className="relative">
+												{/* Status icon circle */}
+												<div
+													className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white z-10`}
+												>
+													<StatusIcon className="size-6" />
+												</div>
+
+												{/* Event content */}
+												<div className="space-y-3 rounded-lg ml-4 border border-border-primary bg-gray-50/70 p-4">
+													<div className="flex flex-col gap-2">
+														<div className="flex items-center gap-2">
+															<StatusBadge status={evt.status} />
+															<FacilityBadge facility={evt.facility} />
+															<SeverityBadge severity={evt.severity} />
+														</div>
+														<div>
+															<div className="flex items-center gap-2 text-xs leading-5 text-text-primary flex-wrap">
+																<div className="flex items-center gap-1">
+																	<Icon name="Clock" className="size-4" />
+																	<span>
+																		{format(
+																			parseISO(evt.timestamp),
+																			TIME_DOT_FORMAT_FULL
+																		)}
+																	</span>
+																</div>
+																{evt.runtime && (
+																	<>
+																		<span>•</span>
+																		<div className="flex items-center gap-1">
+																			<span>
+																				Runtime: {formatRuntime(evt.runtime)}
+																			</span>
+																		</div>
+																	</>
+																)}
 															</div>
-															{evt.runtime && (
-																<>
-																	<span>•</span>
-																	<div className="flex items-center gap-1">
-																		<span>
-																			Runtime: {formatRuntime(evt.runtime)}
-																		</span>
-																	</div>
-																</>
-															)}
 														</div>
 													</div>
+													{evt.error_msg && (
+														<p className="font-medium text-xs bg-primary-wash p-4 rounded-md">
+															{evt.error_msg}
+														</p>
+													)}
 												</div>
-												{evt.error_msg && (
-													<p className="font-medium text-xs bg-primary-wash p-4 rounded-md">
-														{evt.error_msg}
-													</p>
-												)}
 											</div>
-										</div>
-									);
-								})}
+										);
+									})}
+								</div>
 							</div>
 						</div>
-					</div>
-				))}
+					);
+				})}
 			</div>
 		</div>
 	);

@@ -85,7 +85,19 @@ export const columns = [
 			const { toggle } = useImportLog();
 			const runId = cell.row.original.run_id;
 
-			if (!taskId) return null;
+			if (!taskId) {
+				return (
+					<div className="flex items-center gap-2 px-2">
+						<Tooltip content="No celery task available">
+							<Icon
+								name="TriangleExclamationMark"
+								size={16}
+								className="text-warning"
+							/>
+						</Tooltip>
+					</div>
+				);
+			}
 
 			return (
 				<div className="flex flex-col justify-center gap-1 w-fit">

@@ -20,7 +20,7 @@ export const LogEventSchema = z.object({
 	event_id: z.number(),
 	status: z.enum(['SUCCESS', 'FAILURE', 'STARTED']).or(z.string()),
 	uri: z.string(),
-	celery_task: z.string(),
+	celery_task: z.string().optional().nullable(),
 	facility: z.nativeEnum(Facility),
 	severity: z.nativeEnum(Severity),
 	timestamp: z.string(),
