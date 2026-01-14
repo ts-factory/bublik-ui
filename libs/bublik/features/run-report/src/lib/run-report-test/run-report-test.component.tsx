@@ -225,20 +225,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 			<div className="flex flex-col h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
 				<CardHeader
-					label={
-						<div className="flex items-center gap-2">
-							<LinkWithProject
-								to={{
-									hash: encodeURIComponent(id),
-									search: searchParams.toString()
-								}}
-								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-								onClick={() => toast.success('Saved location')}
-							>
-								{label}
-							</LinkWithProject>
-						</div>
-					}
+					label={label}
 					ref={ref}
 					className="bg-white"
 					style={{

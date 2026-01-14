@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
@@ -31,7 +31,7 @@ import {
 } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { getErrorMessage } from '@/services/bublik-api';
-import { useMount } from '@/shared/hooks';
+import { useMeasure, useMount } from '@/shared/hooks';
 
 import { RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
@@ -94,9 +94,10 @@ interface RunReportTableOfContentsProps {
 	contents: TableOfContentsItem[];
 }
 
-function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
+function RunReportTableOfContents(props: RunReportTableOfContentsProps) {
+	const { contents } = props;
 	return (
-		<div className="bg-white flex flex-col rounded">
+		<div className="bg-white flex flex-col rounded mb-1">
 			<CardHeader label="Table Of Contents" />
 			<ul className="flex flex-col py-2">
 				{contents.map((item, idx, arr) => {
@@ -192,27 +193,45 @@ function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
 	const location = useLocation();
 
+	const [headerRef, { height: mainHeaderHeight }] =
+		useMeasure<HTMLDivElement>();
+
 	const testBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
 	);
 
-	useMount(() => {
-		setTimeout(() => {
+	useEffect(() => {
+		if (mainHeaderHeight > 0 && location.hash) {
 			const id = decodeURIComponent(location.hash.slice(1));
 			scrollToItem(id);
-		}, 0);
+		}
+	}, [mainHeaderHeight, location.hash]);
+
+	useMount(() => {
+		if (mainHeaderHeight > 0 && location.hash) {
+			const id = decodeURIComponent(location.hash.slice(1));
+			scrollToItem(id);
+		}
 	});
 
 	return (
-		<div className="flex flex-col gap-1 relative">
-			<RunReportHeader label="Info" details={details} runId={runId} />
+		<div className="flex flex-col relative">
+			<RunReportHeader
+				ref={headerRef}
+				label="Info"
+				details={details}
+				runId={runId}
+			/>
 			<ReportConfigurationFrame
 				warnings={blocks.warnings}
 				config={blocks.config}
 			/>
 			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />
-			<RunReportContentList blocks={testBlocks} />
+			<RunReportContentList
+				blocks={testBlocks}
+				mainHeaderHeight={mainHeaderHeight}
+			/>
 			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
 		</div>
 	);
@@ -228,7 +247,7 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 	const [searchParams] = useSearchParams();
 
 	return (
-		<div className="bg-white rounded-md flex flex-col">
+		<div className="bg-white rounded-md flex flex-col mb-1">
 			<CardHeader
 				label={
 					<div className="flex items-center gap-2">
@@ -463,16 +482,24 @@ function RunReportEmpty() {
 
 interface RunReportContentListProps {
 	blocks: TestBlock[];
+	mainHeaderHeight: number;
 }
 
-function RunReportContentList(props: RunReportContentListProps) {
+function RunReportContentList({
+	blocks,
+	mainHeaderHeight
+}: RunReportContentListProps) {
 	return (
-		<ul className="flex flex-col gap-8">
-			{props.blocks.map((block) => (
+		<ul className="flex flex-col gap-8 mb-1">
+			{blocks.map((block) => (
 				<li key={block.id} className="relative">
 					{/* LEVEL 1 */}
 					<div className="absolute left-0 top-0 w-1 h-full bg-indigo-300 rounded-tl-md" />
-					<RunReportContentItem key={block.id} block={block} />
+					<RunReportContentItem
+						key={block.id}
+						block={block}
+						mainHeaderHeight={mainHeaderHeight}
+					/>
 				</li>
 			))}
 		</ul>
@@ -481,9 +508,13 @@ function RunReportContentList(props: RunReportContentListProps) {
 
 interface RunReportContentItemProps {
 	block: TestBlock;
+	mainHeaderHeight: number;
 }
 
-function RunReportContentItem({ block }: RunReportContentItemProps) {
+function RunReportContentItem({
+	block,
+	mainHeaderHeight
+}: RunReportContentItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
 	const [enablePairGainColumns, toggleEnablePairGainColumns] =
 		useEnablePairGainColumns();
@@ -501,9 +532,12 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 	const [params] = useSearchParams();
 	const [offsetTop, setOffsetTop] = useState(0);
 
-	const handleRef = useCallback((node: HTMLDivElement) => {
-		setOffsetTop(node?.clientHeight ?? 0);
-	}, []);
+	const handleRef = useCallback(
+		(node: HTMLDivElement) => {
+			setOffsetTop(mainHeaderHeight + (node?.clientHeight ?? 0));
+		},
+		[mainHeaderHeight]
+	);
 
 	return (
 		<div
@@ -511,7 +545,8 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 			className="flex flex-col bg-white rounded pl-1"
 		>
 			<div
-				className={cn('sticky top-0 bg-white z-[10] rounded-t')}
+				className={cn('sticky bg-white z-[10] rounded-t')}
+				style={{ top: mainHeaderHeight }}
 				ref={handleRef}
 			>
 				{/* LEVEL 1 */}
