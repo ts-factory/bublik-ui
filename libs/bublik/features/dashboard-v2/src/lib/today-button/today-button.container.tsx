@@ -10,7 +10,9 @@ import { DASHBOARD_MODE } from '@/shared/types';
 import {
 	DASHBOARD_TABLE_ID,
 	useDashboardDate,
-	useDashboardModeSearch
+	useDashboardLayout,
+	useDashboardModeSearch,
+	useRunDates
 } from '../hooks';
 
 export const TodayButtonContainer = () => {
@@ -21,13 +23,23 @@ export const TodayButtonContainer = () => {
 	const { setDate: setSecondDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Secondary
 	);
+	const { dates } = useRunDates();
+	const { reset: resetLayout } = useDashboardLayout();
 
 	const handleTodayButtonClick = () => {
 		if (mode === DASHBOARD_MODE.Columns) {
 			if (!data) return;
 
-			setFirstDate(new Date(data.date));
-			setSecondDate(addDays(new Date(data.date), -1));
+			// Reset layout so it gets recalculated based on new dates
+			resetLayout();
+
+			// dates[0] = most recent date with runs
+			// dates[1] = second most recent date with runs (or fallback to dates[0] - 1)
+			const mainDate = dates[0] || new Date(data.date);
+			const secondaryDate = dates[1] || addDays(mainDate, -1);
+
+			setFirstDate(mainDate);
+			setSecondDate(secondaryDate);
 			return;
 		}
 
