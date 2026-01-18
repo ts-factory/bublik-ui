@@ -89,7 +89,7 @@ export const DashboardPageV2 = () => {
 					</div>
 				</div>
 			</header>
-			<main className="flex-grow">
+			<main className="flex-grow isolate">
 				<LayoutHandlerContainer />
 			</main>
 		</div>

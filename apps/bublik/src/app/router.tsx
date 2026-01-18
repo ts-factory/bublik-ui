@@ -5,14 +5,14 @@ import {
 	Outlet,
 	createBrowserRouter,
 	RouterProvider,
-	useNavigate
+	useNavigate,
+	useLocation
 } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
 import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
-import { PrivateRoute } from '@/bublik/features/auth';
 
 import {
 	DevelopersLayout,
@@ -27,10 +27,7 @@ import {
 	RunDiffPage,
 	HistoryPageV2,
 	LoginPage,
-	SettingsProfilePage,
-	SettingsAppearancePage,
 	ForgotPage,
-	SettingsLayout,
 	AuthLayout,
 	ResetPasswordPage,
 	AdminUsersPage,
@@ -43,7 +40,6 @@ import {
 } from '../pages';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
-import { PerformancePage } from '../pages/performance-page';
 
 import { useEffect, useState } from 'react';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
@@ -62,6 +58,7 @@ import {
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {
@@ -110,7 +107,11 @@ function BublikCommand() {
 					<CommandSeparator />
 					<CommandGroup heading="Settings">
 						<CommandItem
-							onSelect={handleSelect(() => navigate('/settings/profile'))}
+							onSelect={handleSelect(() =>
+								navigate(
+									`${location.pathname}?settings-open=1&settings-tab=account`
+								)
+							)}
 						>
 							<Icon name="Profile" className="w-4 h-4 mr-2" />
 							<span>Profile</span>
@@ -209,7 +210,6 @@ const router = createBrowserRouter(
 							element: <DevelopersLayout />,
 							children: [
 								{ path: 'import', element: <ImportPage /> },
-								{ path: 'performance', element: <PerformancePage /> },
 								{ path: 'flower', element: <FlowerFeature /> },
 								{ path: 'users', element: <AdminUsersPage /> },
 								{ path: 'config', element: <ConfigsPage /> },
@@ -219,18 +219,6 @@ const router = createBrowserRouter(
 						{
 							path: '/help',
 							children: [{ path: 'faq', element: <HelpPage /> }]
-						},
-						{
-							path: '/settings',
-							element: (
-								<PrivateRoute>
-									<SettingsLayout />
-								</PrivateRoute>
-							),
-							children: [
-								{ path: 'profile', element: <SettingsProfilePage /> },
-								{ path: 'appearance', element: <SettingsAppearancePage /> }
-							]
 						},
 						{ path: '*', element: <NoMatchFeature /> }
 					]
