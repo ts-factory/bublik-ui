@@ -101,6 +101,9 @@
 			"@/shared/utils": ["libs/shared/utils/src/index.ts"],
 			"@/bublik/features/history-link": [
 				"libs/bublik/features/history-link/src/index.ts"
+			],
+			"@/bublik/features/settings": [
+				"libs/bublik/features/settings/src/index.ts"
 			]
 		}
 	},
