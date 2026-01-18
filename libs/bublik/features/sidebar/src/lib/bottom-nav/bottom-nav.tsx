@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
-
 import { Icon } from '@/shared/tailwind-ui';
 import { config } from '@/bublik/config';
+
+import { SettingsModal } from '@/bublik/features/settings';
 
 import { NavLink, SidebarItem } from '../nav-link';
 
@@ -27,12 +27,6 @@ const getNavSections = () => {
 				pattern: { path: '/admin/users' }
 			},
 			{
-				label: 'Performance',
-				icon: <Icon name="TimeCircle" size={24} />,
-				to: '/admin/performance',
-				pattern: { path: '/admin/performance' }
-			},
-			{
 				label: 'Import',
 				icon: <Icon name="Import" size={24} />,
 				to: '/admin/import',
@@ -48,12 +42,6 @@ const getNavSections = () => {
 	};
 
 	const bottomNav: SidebarItem[] = [
-		{
-			label: 'Account',
-			icon: <Icon name="Profile" size={28} />,
-			to: '/settings/profile',
-			pattern: { path: '/settings/*' }
-		},
 		{
 			label: 'Help',
 			icon: <Icon name="Bulb" size={28} />,
@@ -82,6 +70,9 @@ const links = getNavSections();
 export const BottomNavigation = () => {
 	return (
 		<ul className="flex flex-col gap-3">
+			<li>
+				<SettingsModal />
+			</li>
 			{links.map((item) => (
 				<li key={item.label}>
 					<NavLink {...item} />

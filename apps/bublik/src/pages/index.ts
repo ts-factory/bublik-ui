@@ -12,7 +12,6 @@ export * from './run-diff-page';
 export * from './run-page';
 export * from './runs-page';
 export * from './auth';
-export * from './settings';
 export * from './admin-users';
 export * from './run-report';
 export * from './configs';
