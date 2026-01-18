@@ -49,7 +49,7 @@ export const EditUserProfile = forwardRef<
 			</div>
 			<div className="self-start">
 				<ButtonTw type="submit" className="inline-flex">
-					Update profile
+					Update
 				</ButtonTw>
 			</div>
 		</form>

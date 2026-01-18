@@ -71,7 +71,11 @@ export const ChangePasswordForm = forwardRef<
 				placeholder="********"
 				control={form.control}
 			/>
-			<ButtonTw type="submit" disabled={form.formState.isSubmitting}>
+			<ButtonTw
+				type="submit"
+				className="w-fit"
+				disabled={form.formState.isSubmitting}
+			>
 				Change
 			</ButtonTw>
 		</form>
