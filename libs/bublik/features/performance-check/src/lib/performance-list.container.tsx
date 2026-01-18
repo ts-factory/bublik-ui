@@ -12,9 +12,10 @@ import {
 
 function PerformanceListContainer() {
 	const { projectIds } = useProjectSearch();
-	const { data, isLoading, error } = useGetPerformanceTimeoutsQuery({
-		projects: projectIds
-	});
+	const { data, isLoading, error } = useGetPerformanceTimeoutsQuery(
+		{ projects: projectIds },
+		{ refetchOnMountOrArgChange: true }
+	);
 
 	if (isLoading) return <PerformanceListLoading />;
 

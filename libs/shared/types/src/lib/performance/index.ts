@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const PerformanceResponseSchema = z.array(
 	z.object({
 		label: z.string(),
-		url: z.string().url().optional(),
+		url: z.string().url().optional().nullable(),
 		timeout: z.number().nonnegative()
 	})
 );

@@ -15,22 +15,13 @@ import { getErrorMessage } from '@/services/bublik-api';
 
 function PerformanceListEmpty() {
 	return (
-		<div className="flex flex-col gap-2">
-			<h2 className="text-xl font-semibold">Health Check</h2>
-			<div className="rounded-md grid place-items-center min-h-[80vh]">
-				<div className="grid place-items-center h-[calc(100vh-256px)]">
-					<div className="flex flex-col items-center text-center">
-						<Icon
-							name="TriangleExclamationMark"
-							size={24}
-							className="text-primary"
-						/>
-						<h3 className="mt-2 text-sm font-medium text-gray-900">
-							No results
-						</h3>
-						<p className="mt-1 text-sm text-gray-500">No URLs provided</p>
-					</div>
-				</div>
+		<div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-slate-6 bg-slate-1 p-10 text-center">
+			<Icon name="TriangleExclamationMark" size={24} className="text-primary" />
+			<div className="space-y-1">
+				<h3 className="text-base font-semibold text-text-primary">
+					No results
+				</h3>
+				<p className="text-sm text-text-menu">No URLs provided</p>
 			</div>
 		</div>
 	);
@@ -44,18 +35,15 @@ function PerformanceListError(props: PerformanceListErrorProps) {
 	const { title, description } = getErrorMessage(props.error);
 
 	return (
-		<div className="flex flex-col gap-2">
-			<h2 className="text-xl font-semibold">Health Check</h2>
-			<div className="grid place-items-center h-[calc(100vh-256px)]">
-				<div className="flex flex-col items-center text-center">
-					<Icon
-						name="TriangleExclamationMark"
-						size={24}
-						className="text-text-unexpected"
-					/>
-					<h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
-					<p className="mt-1 text-sm text-gray-500">{description}</p>
-				</div>
+		<div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-slate-6 bg-slate-1 p-10 text-center">
+			<Icon
+				name="TriangleExclamationMark"
+				size={24}
+				className="text-text-unexpected"
+			/>
+			<div className="space-y-1">
+				<h3 className="text-base font-semibold text-text-primary">{title}</h3>
+				<p className="text-sm text-text-menu">{description}</p>
 			</div>
 		</div>
 	);
@@ -63,14 +51,10 @@ function PerformanceListError(props: PerformanceListErrorProps) {
 
 function PerformanceListLoading() {
 	return (
-		<div className="flex flex-col gap-2 w-full">
-			<h2 className="text-xl font-semibold">Health Check</h2>
-			<ul className={'flex flex-col gap-2'}>
-				{Array.from({ length: 10 }).map((_, idx) => (
-					<Skeleton
-						key={idx}
-						className="flex items-center gap-2 justify-between border border-border-primary rounded px-4 py-2 h-[42px]"
-					/>
+		<div className="flex flex-col gap-4 w-full">
+			<ul className="flex flex-col gap-2">
+				{Array.from({ length: 5 }).map((_, idx) => (
+					<Skeleton key={idx} className="h-[38px] rounded" />
 				))}
 			</ul>
 			<ButtonTw>Check</ButtonTw>
@@ -102,9 +86,8 @@ function PerformanceList(props: PerformanceListProps) {
 	useMount(() => checkURLs());
 
 	return (
-		<div className="flex flex-col gap-2">
-			<h2 className="text-xl font-semibold">Health Check</h2>
-			<ul className={'flex flex-col gap-2'}>
+		<div className="flex flex-col gap-4">
+			<ul className="flex flex-col gap-2">
 				{props.urls
 					.filter(({ url }) => Boolean(url))
 					.map(({ label, url, timeout }) => (
@@ -128,18 +111,15 @@ function PerformanceList(props: PerformanceListProps) {
 	);
 }
 
-type TestURLResultCommon = { responseTime: number };
-type TestURLSuccess = TestURLResultCommon;
-type TestURLError = TestURLResultCommon;
-type TestURLResult = TestURLSuccess | TestURLError;
+type TestURLResult = { responseTime: number };
 type TestURLFetchStatus = 'passed' | 'failed' | 'idle' | 'loading';
 
 interface TestUrlConfig {
 	url: string;
 	/* In seconds */
 	timeout: number;
-	onError: (result: TestURLError) => void;
-	onSuccess: (result: TestURLSuccess) => void;
+	onError: (result: TestURLResult) => void;
+	onSuccess: (result: TestURLResult) => void;
 }
 
 async function testUrl(config: TestUrlConfig): Promise<TestURLResult> {
@@ -213,34 +193,34 @@ const PerformanceListItem = forwardRef<
 		<li
 			key={label}
 			className={cn(
-				'flex items-center gap-2 justify-between border border-border-primary rounded px-4 py-2',
+				'flex items-center gap-2 border border-border-primary rounded px-3 py-1.5 text-sm',
 				isFailed && 'bg-bg-fillError'
 			)}
 		>
+			<div
+				className={cn(
+					'w-3 h-3 rounded-full shrink-0',
+					isLoading && 'bg-gray-300',
+					isPassed && 'bg-bg-ok',
+					isFailed && 'bg-bg-error'
+				)}
+			/>
 			<a
-				className="flex-1 flex-shrink-0 hover:underline text-primary"
+				className="flex-1 hover:underline text-primary text-sm"
 				href={url}
 				target={'_blank'}
 				rel="noreferrer"
 			>
 				{label} ({timeout}s)
 			</a>
-			<span className="tabular-nums w-[8ch] flex-1">
+			<span className="tabular-nums text-xs text-text-menu w-[8ch] text-right">
 				{`${
 					fetchStatus.responseTime ? fetchStatus.responseTime.toFixed(2) : ''
 				}${fetchStatus.responseTime ? 's' : ''}`}
 				{isLoading ? (
-					<Skeleton className="rounded-md h-[16px] w-[8ch] flex-1" />
+					<Skeleton className="rounded-md h-[14px] w-[8ch]" />
 				) : null}
 			</span>
-			<div
-				className={cn(
-					'w-3 h-3 rounded-full relative',
-					isLoading && 'bg-gray-300',
-					isPassed && 'bg-bg-ok',
-					isFailed && 'bg-bg-error'
-				)}
-			/>
 		</li>
 	);
 });
