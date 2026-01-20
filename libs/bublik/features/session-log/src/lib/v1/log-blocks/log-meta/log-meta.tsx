@@ -18,7 +18,6 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-
 import { LogHeaderBlock } from '@/shared/types';
 import {
 	Clock,
@@ -33,6 +32,13 @@ import {
 	TargetIcon
 } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '@/shared/hooks';
+import {
+	calculateAbsoluteTestTimes,
+	formatTimestampToFull,
+	formatDurationWithMs
+} from '@/shared/utils';
+
+import { useLogMetaContext } from '../../log-meta-context';
 
 export const BlockLogMeta = (props: LogHeaderBlock) => {
 	const { parameters, artifacts, verdicts, requirements } = props.meta;
@@ -530,7 +536,10 @@ interface MetaDurationProps {
 
 function MetaDuration(props: MetaDurationProps) {
 	const { start, end, duration } = props;
+	const { runDetails } = useLogMetaContext();
 	const [, copy] = useCopyToClipboard();
+
+	const hasRequiredData = runDetails?.start && start;
 
 	const handleCopy = (text: string) => {
 		copy(text).then((success) => {
@@ -542,44 +551,91 @@ function MetaDuration(props: MetaDurationProps) {
 		});
 	};
 
+	let displayStart = start;
+	let displayEnd = end;
+	let displayDuration = duration;
+	let showWarning = false;
+
+	if (hasRequiredData) {
+		try {
+			const runStart = runDetails?.start;
+			if (runStart) {
+				const absoluteTimes = calculateAbsoluteTestTimes(runStart, start, end);
+				displayStart = formatTimestampToFull(absoluteTimes.start);
+				displayEnd =
+					end && absoluteTimes.end
+						? formatTimestampToFull(absoluteTimes.end)
+						: 'In progress';
+			}
+		} catch (error) {
+			showWarning = true;
+		}
+	} else if (start) {
+		showWarning = true;
+	}
+
+	if (duration) {
+		try {
+			displayDuration = formatDurationWithMs(duration);
+		} catch (error) {
+			displayDuration = duration;
+			showWarning = true;
+		}
+	}
+
 	return (
 		<div className="flex items-center px-1">
 			<Clock className="size-5" />
 			<div
 				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
-				onClick={() => handleCopy(duration)}
+				onClick={() => handleCopy(displayDuration)}
 			>
 				<span className="text-sm text-text-primary font-semibold">
 					Duration:&nbsp;
 				</span>
 				<span className="text-sm text-gray-800">
-					{duration}
+					{displayDuration}
+					{showWarning && (
+						<Tooltip content="Some values may be unformatted">
+							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
+						</Tooltip>
+					)}
 					<CopyIcon />
 				</span>
 			</div>
 			<Separator orientation="vertical" className="h-4 mx-2" />
 			<div
 				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
-				onClick={() => handleCopy(start)}
+				onClick={() => handleCopy(displayStart)}
 			>
 				<span className="text-sm text-text-primary font-semibold">
 					Start:&nbsp;
 				</span>
 				<span className="text-sm text-gray-800">
-					{start}
+					{displayStart}
+					{showWarning && (
+						<Tooltip content="Some values may be unformatted">
+							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
+						</Tooltip>
+					)}
 					<CopyIcon />
 				</span>
 			</div>
 			<Separator orientation="vertical" className="h-4 mx-2" />
 			<div
 				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
-				onClick={() => handleCopy(end)}
+				onClick={() => handleCopy(displayEnd)}
 			>
 				<span className="text-sm text-text-primary font-semibold">
 					End:&nbsp;
 				</span>
 				<span className="text-sm text-gray-800">
-					{end}
+					{displayEnd}
+					{showWarning && (
+						<Tooltip content="Some values may be unformatted">
+							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
+						</Tooltip>
+					)}
 					<CopyIcon />
 				</span>
 			</div>

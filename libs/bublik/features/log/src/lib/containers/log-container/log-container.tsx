@@ -11,6 +11,7 @@ import {
 import {
 	LogTableContext,
 	LogTableContextProvider,
+	LogMetaContextProvider,
 	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
@@ -219,7 +220,9 @@ const JsonLog = (props: JsonLogProps) => {
 			key={`${runId}_${focusId}_${page}_${isFetching}`}
 			className={cn(isFetching && 'opacity-40 pointer-events-none', 'p-4')}
 		>
-			<SessionRoot root={data} />
+			<LogMetaContextProvider runDetails={details}>
+				<SessionRoot root={data} />
+			</LogMetaContextProvider>
 		</div>
 	);
 };

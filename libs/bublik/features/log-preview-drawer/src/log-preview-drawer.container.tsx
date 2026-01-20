@@ -30,6 +30,7 @@ import {
 } from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
+	LogMetaContextProvider,
 	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
@@ -211,9 +212,11 @@ function LogPreview(props: LogPreviewProps) {
 				isFetching && 'pointer-events-none opacity-40'
 			)}
 		>
-			<LogTableContextProvider onPageClick={onPageChange}>
-				<SessionRoot root={data} />
-			</LogTableContextProvider>
+			<LogMetaContextProvider runDetails={runDetails}>
+				<LogTableContextProvider onPageClick={onPageChange}>
+					<SessionRoot root={data} />
+				</LogTableContextProvider>
+			</LogMetaContextProvider>
 		</div>
 	);
 }

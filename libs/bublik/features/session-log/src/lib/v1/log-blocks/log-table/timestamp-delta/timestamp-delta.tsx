@@ -7,6 +7,7 @@ import { LogJsonTimestamp, LogTableData } from '@/shared/types';
 
 import { useDeltaContext } from '../log-table.context';
 import { LOG_COLUMNS } from '../log-table.columns';
+import { formatUnixTimestampToTimezone } from '@/shared/utils';
 
 export type TimestampDeltaProps = {
 	data: LogTableData['timestamp'];
@@ -18,8 +19,13 @@ export const TimestampDelta = (props: TimestampDeltaProps) => {
 	const { data: value, row, showDelta } = props;
 	const { anchorRow, setAnchorRow } = useDeltaContext();
 
-	// eslint-disable-next-line react/jsx-no-useless-fragment
-	if (!showDelta) return <>{value.formatted}</>;
+	if (!showDelta) {
+		return (
+			<span className="inline-flex">
+				{formatUnixTimestampToTimezone(value.timestamp)}
+			</span>
+		);
+	}
 
 	const anchorSeconds = anchorRow.getValue<LogJsonTimestamp>(
 		LOG_COLUMNS.timestamp

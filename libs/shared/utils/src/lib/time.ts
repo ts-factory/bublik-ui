@@ -49,18 +49,30 @@ export const parseDetailDate = (dateString?: string) => {
 	return `${formatter.format(date)} ${gmtOffset}`;
 };
 
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getTimeFormatter(timeZone: string): Intl.DateTimeFormat {
+	if (!formatterCache.has(timeZone)) {
+		formatterCache.set(
+			timeZone,
+			new Intl.DateTimeFormat('en-US', {
+				timeZone,
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+				fractionalSecondDigits: 3,
+				hour12: false
+			})
+		);
+	}
+	return formatterCache.get(timeZone)!;
+}
+
 export function formatUnixTimestampToTimezone(timestamp: number): string {
 	const date = new Date(timestamp * 1000);
 	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
-	const timeFormatter = new Intl.DateTimeFormat('en-US', {
-		timeZone,
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		fractionalSecondDigits: 3,
-		hour12: false
-	});
+	const timeFormatter = getTimeFormatter(timeZone);
 
 	return timeFormatter.format(date);
 }
@@ -177,4 +189,117 @@ export function formatDurationToHMS(durationObject: Duration): string {
 
 	// Format with leading zeros
 	return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+
+export function calculateAbsoluteTimestamp(
+	runStartISO: string,
+	testTime: string
+): Date {
+	const runStart = new Date(runStartISO);
+
+	const [hours, minutes, seconds] = testTime.split(':').map(Number);
+	const msStr = seconds.toString().split('.')[1];
+	const ms = msStr ? parseFloat(`0.${msStr}`) * 1000 : 0;
+	const wholeSeconds = Math.floor(seconds);
+
+	const result = new Date(
+		Date.UTC(
+			runStart.getUTCFullYear(),
+			runStart.getUTCMonth(),
+			runStart.getUTCDate(),
+			hours,
+			minutes,
+			wholeSeconds,
+			ms
+		)
+	);
+
+	if (result < runStart) {
+		result.setUTCDate(result.getUTCDate() + 1);
+	}
+
+	return result;
+}
+
+export function calculateAbsoluteTestTimes(
+	runStartISO: string,
+	testStart: string,
+	testEnd?: string
+): { start: Date; end?: Date } {
+	const start = calculateAbsoluteTimestamp(runStartISO, testStart);
+	let end: Date | undefined;
+
+	if (testEnd) {
+		end = calculateAbsoluteTimestamp(runStartISO, testEnd);
+		if (end < start) {
+			end.setUTCDate(end.getUTCDate() + 1);
+		}
+	}
+
+	return { start, end };
+}
+
+export function formatTimestampToFull(dateString?: string | Date): string {
+	if (!dateString) return 'N/A';
+
+	const date =
+		typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+	if (Number.isNaN(date.getTime())) return 'N/A';
+
+	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		year: 'numeric',
+		month: 'long',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		fractionalSecondDigits: 3,
+		hour12: false
+	});
+
+	const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		timeZoneName: 'shortOffset'
+	});
+
+	const gmtOffset =
+		offsetFormatter
+			.formatToParts(date)
+			.find((part) => part.type === 'timeZoneName')?.value || timeZone;
+
+	const formatted = `${formatter.format(date)} ${gmtOffset}`;
+	return formatted;
+}
+
+export function formatDurationWithMs(durationString?: string): string {
+	if (!durationString) return 'N/A';
+
+	const parts = durationString.split(':');
+	if (parts.length !== 3) return durationString;
+
+	const hours = parseInt(parts[0] || '0', 10);
+	const minutes = parseInt(parts[1] || '0', 10);
+	const secondsStr = parts[2] || '0';
+	const secondsParts = secondsStr.split('.');
+	const seconds = parseInt(secondsParts[0] || '0', 10);
+	const msStr = secondsParts[1] || '000';
+	const ms = msStr.padEnd(3, '0');
+	const hasMs = parseInt(msStr, 10) > 0;
+
+	const result: string[] = [];
+
+	if (hours > 0) result.push(`${hours}h`);
+	if (minutes > 0 || hours > 0) result.push(`${minutes}m`);
+
+	if (hasMs) {
+		result.push(`${seconds}.${ms}s`);
+	} else {
+		result.push(`${seconds}s`);
+	}
+
+	return result.join(' ');
 }

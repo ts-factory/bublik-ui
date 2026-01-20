@@ -3,6 +3,7 @@
 import { describe, test, expect } from 'vitest';
 
 import { formatDelta } from './timestamp-delta';
+import { formatUnixTimestampToTimezone } from '@/shared/utils';
 
 describe('format delta', () => {
 	test('should display zero difference properly', () => {
@@ -47,5 +48,26 @@ describe('format delta', () => {
 
 	test('should display negative difference for', () => {
 		expect(formatDelta(4356.12, 0)).toBe('- 01:12:36.120');
+	});
+});
+
+describe('formatUnixTimestampToTimezone', () => {
+	test('should format timestamp to user timezone', () => {
+		const result = formatUnixTimestampToTimezone(1758662506.207647);
+		expect(result).toBeDefined();
+		expect(typeof result).toBe('string');
+		expect(result).toMatch(/^\d{2}:\d{2}:\d{2}/);
+	});
+
+	test('should handle timestamp 0 (Unix epoch)', () => {
+		const result = formatUnixTimestampToTimezone(0);
+		expect(result).toBeDefined();
+		expect(typeof result).toBe('string');
+	});
+
+	test('should handle fractional seconds', () => {
+		const result = formatUnixTimestampToTimezone(1758662506.123456);
+		expect(result).toBeDefined();
+		expect(typeof result).toBe('string');
 	});
 });
