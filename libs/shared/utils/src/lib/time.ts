@@ -19,14 +19,51 @@ export const formatTimeToDot = (date?: string): string => {
 };
 
 export const parseDetailDate = (dateString?: string) => {
-	const DATE_FORMAT = 'MMMM dd yyyy, HH:mm';
+	if (!dateString) return null;
 
-	if (!dateString || !isValid(parseISO(dateString))) return null;
+	const date = new Date(dateString);
+	if (Number.isNaN(date.getTime())) return null;
 
-	const date = format(parseISO(dateString), DATE_FORMAT);
+	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
-	return `${date} UTC`;
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone: timeZone,
+		year: 'numeric',
+		month: 'long',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false
+	});
+
+	const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+		timeZone: timeZone,
+		timeZoneName: 'shortOffset'
+	});
+
+	const gmtOffset =
+		offsetFormatter
+			.formatToParts(date)
+			.find((part) => part.type === 'timeZoneName')?.value || timeZone;
+
+	return `${formatter.format(date)} ${gmtOffset}`;
 };
+
+export function formatUnixTimestampToTimezone(timestamp: number): string {
+	const date = new Date(timestamp * 1000);
+	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+	const timeFormatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		fractionalSecondDigits: 3,
+		hour12: false
+	});
+
+	return timeFormatter.format(date);
+}
 
 const ISO_DURATION_REGEX =
 	/P(?:([\d]+\.?[\d]*|\.[\d]+)Y)?(?:([\d]+\.?[\d]*|\.[\d]+)M)?(?:([\d]+\.?[\d]*|\.[\d]+)W)?(?:([\d]+\.?[\d]*|\.[\d]+)D)?(?:T(?:([\d]+\.?[\d]*|\.[\d]+)H)?(?:([\d]+\.?[\d]*|\.[\d]+)M)?(?:([\d]+\.?[\d]*|\.[\d]+)S)?)?$/;
