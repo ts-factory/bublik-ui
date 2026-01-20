@@ -68,15 +68,32 @@ export const prepareInfoListItems =
 		return items.map(createInfoListItem(finalConfig));
 	};
 
+export const extractUrlFromLabel = (item: string): string | undefined => {
+	const parts = item.split('=');
+
+	if (parts.length >= 2) {
+		const value = parts.slice(1).join('=');
+
+		if (value.startsWith('https://') || value.startsWith('http://')) {
+			const urlMatch = value.match(/https?:\/\/[^\s,)\]}>]+/);
+			return urlMatch ? urlMatch[0] : undefined;
+		}
+	}
+
+	return undefined;
+};
+
 const createInfoListItem =
 	(config: InfoListItemConfig) =>
 	(item: string): InfoListItem => {
 		const value = config.formatter ? config.formatter(item) : item;
+		const url = extractUrlFromLabel(item);
 
 		return {
 			value,
 			isImportant: config.isImportant,
-			className: config.backgroundColor
+			className: config.backgroundColor,
+			url
 		};
 	};
 
