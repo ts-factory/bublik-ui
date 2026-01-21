@@ -8,14 +8,29 @@ export interface RunTimeProps {
 }
 
 export const RunTime: FC<RunTimeProps> = ({ dateTime, duration }) => {
-	const [date, time] = dateTime.split(',');
+	const dateObj = new Date(dateTime);
+
+	const formattedDate = dateObj.toLocaleDateString('en-US', {
+		month: 'short',
+		day: '2-digit',
+		year: 'numeric'
+	});
+
+	const hours = dateObj.getHours().toString().padStart(2, '0');
+	const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+	const seconds = dateObj.getSeconds().toString().padStart(2, '0');
+	const milliseconds = dateObj.getMilliseconds().toString().padStart(3, '0');
+
+	const formattedTime = `${hours}:${minutes}:${seconds}.${milliseconds}`;
 
 	return (
 		<div className="flex flex-col gap-1">
 			<span className="font-semibold text-[0.75rem] leading-[1.125rem]">
-				{date}
+				{formattedDate}
 			</span>
-			<span className="text-[0.75rem] leading-[1.125rem]">{time},</span>
+			<span className="text-[0.75rem] leading-[1.125rem]">
+				{formattedTime},
+			</span>
 			<span className="text-[0.75rem] leading-[1.125rem]">[{duration}]</span>
 		</div>
 	);

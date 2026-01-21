@@ -40,7 +40,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.StartDuration,
 		header: () => (
 			<div className="flex items-center gap-1.5">
-				<Tooltip content="Time zone: UTC">
+				<Tooltip content="Time zone: Browser's local timezone">
 					<Icon
 						name="InformationCircleQuestionMark"
 						size={16}
