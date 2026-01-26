@@ -24,6 +24,7 @@ export const GroupedStatsSchema = z.object({
 	[RUN_STATUS.Busy]: z.number(),
 	[RUN_STATUS.Compromised]: z.number(),
 	[RUN_STATUS.Error]: z.number(),
+	[RUN_STATUS.Interrupted]: z.number(),
 	[RUN_STATUS.Ok]: z.number(),
 	[RUN_STATUS.Running]: z.number(),
 	[RUN_STATUS.Stopped]: z.number(),

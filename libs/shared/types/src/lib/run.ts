@@ -46,7 +46,8 @@ export enum RUN_STATUS {
 	Running = 'run-running',
 	Compromised = 'run-compromised',
 	Busy = 'run-busy',
-	Stopped = 'run-stopped'
+	Stopped = 'run-stopped',
+	Interrupted = 'run-interrupted'
 }
 
 export type RunResult = {

@@ -14,6 +14,8 @@ export const getRunStatusIcon = (runStatus: RUN_STATUS) => {
 			return <Icon name="InformationCircleCrossMark" size={18} />;
 		case RUN_STATUS.Compromised:
 			return <Icon name="InformationCircleStop" size={18} />;
+		case RUN_STATUS.Interrupted:
+			return <Icon name="InformationCircleStop" size={18} />;
 		case RUN_STATUS.Running:
 			return <Icon name="InformationCircleProgress" size={18} />;
 		case RUN_STATUS.Busy:
@@ -35,6 +37,8 @@ export const getRunStatusBgColor = (runStatus: RUN_STATUS): string => {
 			return 'bg-bg-error';
 		case RUN_STATUS.Compromised:
 			return 'bg-bg-compromised';
+		case RUN_STATUS.Interrupted:
+			return 'bg-bg-interrupted';
 		case RUN_STATUS.Running:
 			return 'bg-bg-running';
 		case RUN_STATUS.Busy:
@@ -56,6 +60,8 @@ export const getRunStatusBgColorRaw = (runStatus: RUN_STATUS): string => {
 			return '#f95c78';
 		case RUN_STATUS.Compromised:
 			return '#aeaeb9';
+		case RUN_STATUS.Interrupted:
+			return '#f0a0a6';
 		case RUN_STATUS.Running:
 			return '#7283e2';
 		case RUN_STATUS.Busy:

@@ -69,6 +69,7 @@ body,
 	--colors-bg-compromised: 240 7% 70%;
 	--colors-bg-stopped: 0 74% 93%;
 	--colors-bg-busy: 47 100% 64%;
+	--colors-bg-interrupted: 354 80% 75%;
 	--colors-border-primary: 214 26% 89%;
 
 	/* BADGES */

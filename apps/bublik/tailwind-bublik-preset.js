@@ -33,6 +33,7 @@ module.exports = {
 				'bg-compromised': 'hsl(var(--colors-bg-compromised) / <alpha-value>)',
 				'bg-stopped': 'hsl(var(--colors-bg-stopped) / <alpha-value>)',
 				'bg-busy': 'hsl(var(--colors-bg-busy) / <alpha-value>)',
+				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',
 				'border-primary': 'hsl(var(--colors-border-primary) / <alpha-value>)',
 				'badge-0': 'hsl(var(--colors-badge-0) / <alpha-value>)',
 				'badge-1': 'hsl(var(--colors-badge-1) / <alpha-value>)',

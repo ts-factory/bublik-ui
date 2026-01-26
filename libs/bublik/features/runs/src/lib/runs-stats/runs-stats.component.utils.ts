@@ -82,6 +82,7 @@ export const getRunStatus = (stats: RunStats[], group: 'day' | 'week') => {
 				[RUN_STATUS.Busy]: 0,
 				[RUN_STATUS.Compromised]: 0,
 				[RUN_STATUS.Error]: 0,
+				[RUN_STATUS.Interrupted]: 0,
 				[RUN_STATUS.Ok]: 0,
 				[RUN_STATUS.Running]: 0,
 				[RUN_STATUS.Stopped]: 0,
