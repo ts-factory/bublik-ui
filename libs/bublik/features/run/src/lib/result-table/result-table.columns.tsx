@@ -73,36 +73,7 @@ export const getColumns = ({
 
 	return [
 		helper.accessor((data) => data, {
-			header: () => (
-				<div className="flex items-center gap-2">
-					<span>Actions</span>
-					<Tooltip content={showToolbar ? 'Hide toolbar' : 'Show toolbar'}>
-						<ButtonTw
-							variant={showToolbar ? 'primary' : 'secondary'}
-							size="xss"
-							onClick={() => setShowToolbar(!showToolbar)}
-							className={cn(
-								'border',
-								showToolbar
-									? 'border-primary hover:border-[#94b0ff]'
-									: 'border-border-primary hover:shadow-none hover:border-primary'
-							)}
-						>
-							<div
-								className={cn(
-									'flex items-center justify-center mr-1.5',
-									!showToolbar && 'rotate-180'
-								)}
-							>
-								<Icon name="ArrowLeanUp" size={18} />
-							</div>
-							<span className="w-[6ch] text-left">
-								{showToolbar ? 'Hide' : 'Expose'}
-							</span>
-						</ButtonTw>
-					</Tooltip>
-				</div>
-			),
+			header: 'Actions',
 			id: 'links',
 			cell: (cell) => {
 				const value = cell.getValue();
@@ -119,7 +90,7 @@ export const getColumns = ({
 					</div>
 				);
 			},
-			meta: { width: 'max-content' }
+			meta: { width: 'max-content', headerCellClassName: 'pl-9' }
 		}),
 		helper.accessor(
 			(data) => ({
@@ -295,7 +266,36 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('parameters', {
-			header: 'Parameters',
+			header: () => (
+				<div className="flex items-center gap-2">
+					<span>Parameters</span>
+					<Tooltip content={showToolbar ? 'Hide toolbar' : 'Show toolbar'}>
+						<ButtonTw
+							variant={showToolbar ? 'primary' : 'secondary'}
+							size="xss"
+							onClick={() => setShowToolbar(!showToolbar)}
+							className={cn(
+								'border',
+								showToolbar
+									? 'border-primary hover:border-[#94b0ff]'
+									: 'border-border-primary hover:shadow-none hover:border-primary'
+							)}
+						>
+							<div
+								className={cn(
+									'flex items-center justify-center mr-1.5',
+									!showToolbar && 'rotate-180'
+								)}
+							>
+								<Icon name="ArrowLeanUp" size={18} />
+							</div>
+							<span className="w-[6ch] text-left">
+								{showToolbar ? 'Hide' : 'Expose'}
+							</span>
+						</ButtonTw>
+					</Tooltip>
+				</div>
+			),
 			id: COLUMN_ID.PARAMETERS,
 			cell: ({ cell, getValue }) => {
 				const parameters = getValue();

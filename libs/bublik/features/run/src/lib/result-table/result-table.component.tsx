@@ -136,10 +136,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar, path]
 	);
 
-	const { stickyOffset } = useStickyHeader({
-		hasFilters: hasToolbar,
-		height
-	});
+	const { stickyOffset } = useStickyHeader({ height });
 
 	const table = useReactTable<RunDataResults>({
 		data,
@@ -163,88 +160,13 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		offset: stickyOffset
 	});
 
+	const HEADER_ROW_HEIGHT = 42;
+	const columnCount = columns.length;
+
 	return (
 		<div className="px-4 pb-2">
-			{hasToolbar ? (
-				<div
-					className={cn(
-						'flex items-center justify-between px-4',
-						'bg-white h-9 sticky border-x border-b border-border-primary z-20'
-					)}
-					style={{ top: `${height + 102}px` }}
-				>
-					<div className="flex gap-2 items-center">
-						<DataTableFacetedFilter
-							title="Artifacts"
-							size="xss"
-							options={artifacts}
-							value={artifactsFilter}
-							onChange={(values) => onFilterChange(COLUMN_ID.ARTIFACTS, values)}
-							disabled={!artifacts.length || isDiffMode || isDimMode}
-						/>
-						<DataTableFacetedFilter
-							title="Verdicts"
-							size="xss"
-							options={verdicts}
-							value={verdictsFilter}
-							onChange={onVerdictsFilterChange}
-							disabled={!verdicts.length || isDiffMode || isDimMode}
-						/>
-						<DataTableFacetedFilter
-							title="Parameters"
-							size="xss"
-							options={parameters}
-							value={parametersFilter}
-							onChange={(values) =>
-								onFilterChange(COLUMN_ID.PARAMETERS, values)
-							}
-							disabled={!parameters.length || isDiffMode || isDimMode}
-						/>
-						<Tooltip content="Reset">
-							<ButtonTw variant="secondary" size="xss" onClick={onClearFilters}>
-								<Icon name="Bin" size={18} className="mr-1.5" />
-								<span>Reset</span>
-							</ButtonTw>
-						</Tooltip>
-					</div>
-					<div className="flex gap-2 items-center">
-						<Tooltip content="Click on the row to compare parameters">
-							<ButtonTw
-								variant={mode === 'diff' ? 'primary' : 'secondary'}
-								size="xss"
-								onClick={() => {
-									const nextMode = mode === 'diff' ? 'default' : 'diff';
-									setMode(nextMode);
-
-									if (nextMode === 'diff') setColumnFilters([]);
-								}}
-							>
-								<Icon
-									name="SwapArrows"
-									size={18}
-									className="rotate-90 mr-1.5"
-								/>
-								<span>Parameters Compare</span>
-							</ButtonTw>
-						</Tooltip>
-						<Tooltip content="Dim parameters that are the same. Click a row to compare against it.">
-							<ButtonTw
-								variant={isDimMode ? 'primary' : 'secondary'}
-								size="xss"
-								onClick={() => {
-									const nextMode = isDimMode ? 'default' : 'dim';
-									setMode(nextMode);
-								}}
-							>
-								<Icon name="EyeHide" size={18} className="mr-1.5" />
-								<span>Dim Common</span>
-							</ButtonTw>
-						</Tooltip>
-					</div>
-				</div>
-			) : null}
 			<div className="w-full">
-				<div className="grid relative" style={{ gridTemplateColumns }}>
+				<div className="grid relative z-[5]" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
 							{headerGroup.headers.map((header, idx, headers) => {
@@ -256,19 +178,23 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									<div
 										key={header.id}
 										className={cn(
-											'mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] z-10',
+											'px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] z-20',
 											'bg-primary-wash sticky',
 											'flex items-center',
-											idx === 0 && 'rounded-bl-md',
-											idx === headers.length - 1 && 'rounded-br-md',
+											idx === 0 && !hasToolbar && 'rounded-bl-md',
+											idx === headers.length - 1 &&
+												!hasToolbar &&
+												'rounded-br-md',
+											!hasToolbar && 'mb-1',
 											className,
 											headerCellClassName
 										)}
 										style={{
-											top: Math.abs(stickyOffset) - 1,
-											boxShadow: isSticky
-												? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
-												: 'none'
+											top: height + HEADER_HEIGHT,
+											boxShadow:
+												isSticky && !hasToolbar
+													? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+													: 'none'
 										}}
 										ref={(el) => {
 											if (idx === 0) {
@@ -287,6 +213,94 @@ export const ResultTable = memo((props: ResultTableProps) => {
 							})}
 						</Fragment>
 					))}
+
+					{hasToolbar ? (
+						<div
+							className={cn(
+								'flex items-center justify-between px-4 mb-1',
+								'bg-white h-9 sticky shadow-sticky z-10 border-t border-border-primary'
+							)}
+							style={{
+								gridColumn: `1 / ${columnCount + 1}`,
+								top: `${height + HEADER_HEIGHT + HEADER_ROW_HEIGHT}px`
+							}}
+						>
+							<div className="flex gap-2 items-center">
+								<DataTableFacetedFilter
+									title="Artifacts"
+									size="xss"
+									options={artifacts}
+									value={artifactsFilter}
+									onChange={(values) =>
+										onFilterChange(COLUMN_ID.ARTIFACTS, values)
+									}
+									disabled={!artifacts.length || isDiffMode || isDimMode}
+								/>
+								<DataTableFacetedFilter
+									title="Verdicts"
+									size="xss"
+									options={verdicts}
+									value={verdictsFilter}
+									onChange={onVerdictsFilterChange}
+									disabled={!verdicts.length || isDiffMode || isDimMode}
+								/>
+								<DataTableFacetedFilter
+									title="Parameters"
+									size="xss"
+									options={parameters}
+									value={parametersFilter}
+									onChange={(values) =>
+										onFilterChange(COLUMN_ID.PARAMETERS, values)
+									}
+									disabled={!parameters.length || isDiffMode || isDimMode}
+								/>
+								<Tooltip content="Reset">
+									<ButtonTw
+										variant="secondary"
+										size="xss"
+										onClick={onClearFilters}
+									>
+										<Icon name="Bin" size={18} className="mr-1.5" />
+										<span>Reset</span>
+									</ButtonTw>
+								</Tooltip>
+							</div>
+							<div className="flex gap-2 items-center">
+								<Tooltip content="Click on the row to compare parameters">
+									<ButtonTw
+										variant={mode === 'diff' ? 'primary' : 'secondary'}
+										size="xss"
+										onClick={() => {
+											const nextMode = mode === 'diff' ? 'default' : 'diff';
+											setMode(nextMode);
+
+											if (nextMode === 'diff') setColumnFilters([]);
+										}}
+									>
+										<Icon
+											name="SwapArrows"
+											size={18}
+											className="rotate-90 mr-1.5"
+										/>
+										<span>Parameters Compare</span>
+									</ButtonTw>
+								</Tooltip>
+								<Tooltip content="Dim parameters that are the same. Click a row to compare against it.">
+									<ButtonTw
+										variant={isDimMode ? 'primary' : 'secondary'}
+										size="xss"
+										onClick={() => {
+											const nextMode = isDimMode ? 'default' : 'dim';
+											setMode(nextMode);
+										}}
+									>
+										<Icon name="EyeHide" size={18} className="mr-1.5" />
+										<span>Dim Common</span>
+									</ButtonTw>
+								</Tooltip>
+							</div>
+						</div>
+					) : null}
 
 					{table.getRowModel().rows.map((row, idx, arr) => (
 						<ResultRow
@@ -383,14 +397,13 @@ function ResultRow(props: ResultRowProps) {
 }
 
 interface StickyHeaderOptions {
-	hasFilters: boolean;
 	height: number;
 }
 
-function useStickyHeader({ hasFilters, height }: StickyHeaderOptions) {
-	const stickyOffset = hasFilters
-		? -(height * 2 + STICKY_OFFSET)
-		: -(height + STICKY_OFFSET);
+function useStickyHeader({ height }: StickyHeaderOptions) {
+	// Sticky offset is used for the useIsSticky hook to detect when header becomes sticky
+	// Now that toolbar is below header, offset doesn't depend on toolbar visibility
+	const stickyOffset = -(height + STICKY_OFFSET);
 
 	const getHeaderProps = useCallback<
 		NonNullable<TwTableProps<RunDataResults>['getHeaderProps']>
@@ -398,15 +411,13 @@ function useStickyHeader({ hasFilters, height }: StickyHeaderOptions) {
 		(_, { isSticky }) => {
 			return {
 				style: {
-					top: `${
-						hasFilters ? height * 2 + HEADER_HEIGHT : height + HEADER_HEIGHT
-					}px`,
+					top: `${height + HEADER_HEIGHT}px`,
 					position: 'sticky',
 					boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
 				} as CSSProperties
 			};
 		},
-		[hasFilters, height]
+		[height]
 	);
 
 	return { stickyOffset, getHeaderProps };
