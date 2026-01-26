@@ -51,6 +51,10 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 		<header className="flex flex-col bg-white rounded">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
+					<RunModeToggle
+						isFullMode={isModeFull}
+						onToggleClick={() => setIsModeFull(!isModeFull)}
+					/>
 					<Tooltip content="Copy identifier for comparison">
 						<ButtonTw variant="secondary" size="xss" onClick={handleCopyRunId}>
 							<Icon name="PaperStack" size={16} className="mr-1 text-primary" />
@@ -67,10 +71,6 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 							Log
 						</LinkWithProject>
 					</ButtonTw>
-					<RunModeToggle
-						isFullMode={isModeFull}
-						onToggleClick={() => setIsModeFull(!isModeFull)}
-					/>
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 					<CopyShortUrlButtonContainer />
 				</div>
