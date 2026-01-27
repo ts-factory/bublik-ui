@@ -7,7 +7,6 @@ import { ComponentProps } from 'react';
 import {
 	RunDetailsAPIResponse,
 	HistoryAPIQuery,
-	HistoryDefaultResultAPIResponse,
 	HistoryMode,
 	HistorySearchParams,
 	RESULT_PROPERTIES,
@@ -51,13 +50,10 @@ const getToDate = (maybeDate: string) => {
 };
 
 export const buildQuery = (config: {
-	result: HistoryDefaultResultAPIResponse;
+	result: RunDataResults;
 	details: RunDetailsAPIResponse;
 }): HistorySearchParams => {
-	const {
-		result: { result },
-		details
-	} = config;
+	const { result, details } = config;
 
 	const query = new HistorySearchBuilder(result.name)
 		.withAnchorDate(details.start)

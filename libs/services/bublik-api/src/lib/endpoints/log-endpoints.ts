@@ -10,7 +10,6 @@ import { createNextState } from '@reduxjs/toolkit';
 
 import {
 	GetLogJsonInputs,
-	HistoryDefaultResultAPIResponse,
 	ResultLogAPIResponse,
 	RootBlock,
 	TreeDataAPIResponse
@@ -162,10 +161,6 @@ export const logEndpoints = {
 		getLogUrlByResultId: build.query<ResultLogAPIResponse, number>({
 			query: (resultId) => withApiV2(`/logs/${resultId}/html`)
 		}),
-		getHistoryLinkDefaults: build.query<
-			HistoryDefaultResultAPIResponse,
-			number | string
-		>({ query: (resultId) => withApiV2(`/results/${resultId}`) }),
 		getLogAttachments: build.query<AttachmentsJsonResponse, number>({
 			queryFn: async (id, _api, _extraOptions, baseQuery) => {
 				try {

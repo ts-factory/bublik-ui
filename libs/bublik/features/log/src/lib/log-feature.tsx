@@ -61,6 +61,16 @@ function LogFeature(props: LogFeatureProps) {
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
 	const { focusId, page } = useLogPage();
 
+	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
+		selectFromResult: (state) => ({
+			node: !state.data || !focusId ? undefined : state.data.tree[focusId]
+		})
+	});
+
+	const isTestNode = node?.entity === 'test';
+	const validResultId = isTestNode && focusId ? Number(focusId) : undefined;
+	const disableHistoryLink = !isTestNode;
+
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	if (!runId) return null;
@@ -98,9 +108,9 @@ function LogFeature(props: LogFeatureProps) {
 							/>
 							<LinkToRun runId={runId} targetIterationId={focusId} />
 							<HistoryLinkContainer
-								runId={runId}
-								resultId={String(focusId ?? runId)}
-								focusId={focusId}
+								runId={Number(runId)}
+								resultId={validResultId}
+								disabled={disableHistoryLink}
 							/>
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />

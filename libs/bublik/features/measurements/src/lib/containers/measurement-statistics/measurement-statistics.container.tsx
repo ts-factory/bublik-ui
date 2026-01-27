@@ -28,7 +28,10 @@ export const MeasurementStatisticsLoading: FC<
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
 					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
-					<HistoryLinkContainer runId={runId} resultId={resultId} />
+					<HistoryLinkContainer
+						runId={Number(runId)}
+						resultId={Number(resultId)}
+					/>
 					<LinkToLog runId={runId} resultId={resultId} />
 				</div>
 			</CardHeader>
@@ -93,12 +96,10 @@ export const MeasurementStatisticsContainer: FC = () => {
 	if (!data) return <MeasurementStatisticsEmpty />;
 
 	const {
-		result: {
-			name,
-			obtained_result: { result_type },
-			parameters,
-			has_error
-		}
+		name,
+		obtained_result: { result_type },
+		parameters,
+		has_error
 	} = data;
 
 	return (
@@ -106,7 +107,10 @@ export const MeasurementStatisticsContainer: FC = () => {
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
 					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
-					<HistoryLinkContainer runId={runId} resultId={resultId} />
+					<HistoryLinkContainer
+						runId={Number(runId)}
+						resultId={Number(resultId)}
+					/>
 					<LinkToLog runId={runId} resultId={resultId} />
 					<CopyShortUrlButtonContainer />
 				</div>

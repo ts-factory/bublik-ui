@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { EndpointBuilder } from '@reduxjs/toolkit/query';
 
-import { ResultInfoAPIResponse } from '@/shared/types';
+import { RunDataResults } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
@@ -12,8 +12,14 @@ export const measurementsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getResultInfo: build.query<ResultInfoAPIResponse, string | number>({
-			query: (resultId) => withApiV2(`/results/${resultId}`)
+		getResultInfo: build.query<RunDataResults, string | number>({
+			query: (resultId) => withApiV2(`/results/${resultId}`),
+			transformResponse: (response: {
+				result: Omit<RunDataResults, 'run_id'> & { run_id: number };
+			}) => ({
+				...response.result,
+				run_id: String(response.result.run_id)
+			})
 		}),
 		getSingleMeasurement: build.query<SingleMeasurement, string | number>({
 			query: (resultId) => ({

@@ -27,35 +27,6 @@ export type MeasurementsSearch = {
 
 /**
  |--------------------------------------------------
- | TYPES
- |--------------------------------------------------
- */
-
-export type ResultInfoAPIResponse = {
-	result: ResultInfo;
-};
-
-export type ResultInfo = {
-	name: string;
-	result_id: number;
-	run_id: number;
-	iteration_id: number;
-	start: string;
-	obtained_result: Result;
-	expected_result: Result;
-	parameters: string[];
-	comments: string[];
-	has_error: boolean;
-	has_measurements: boolean;
-};
-
-export type Result = {
-	result_type: string;
-	verdict: string[];
-};
-
-/**
- |--------------------------------------------------
  | NEW
  |--------------------------------------------------
  */
@@ -68,4 +39,4 @@ export const PointSchema = z
 		iteration_id: z.number(),
 		run_id: z.number()
 	})
-	.nonstrict();
+	.passthrough();

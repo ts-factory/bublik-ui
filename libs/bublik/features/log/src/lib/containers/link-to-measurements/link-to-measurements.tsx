@@ -22,9 +22,9 @@ export const LinkToMeasurementsContainer = ({
 		focusId ?? skipToken
 	);
 
-	const resultId = data?.result?.result_id?.toString();
-	const runId = data?.result?.run_id;
-	const hasMeasurements = data?.result?.has_measurements;
+	const resultId = data?.result_id?.toString();
+	const runId = data?.run_id;
+	const hasMeasurements = data?.has_measurements;
 
 	usePrefetchMeasurementsPage({ resultId });
 

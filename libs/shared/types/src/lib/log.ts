@@ -23,17 +23,3 @@ export type LogPageSearch = {
 export type LogPageParams = {
 	runId: string;
 };
-
-export type HistoryDefaultResultAPIResponse = {
-	result: {
-		start: string;
-		expected_result: RunResult;
-		obtained_result: RunResult & { parameters: string[]; result_id: number };
-		comments: string[];
-		has_error: boolean;
-		has_measurements: boolean;
-		iteration_id: number;
-		name: string;
-		parameters: string[];
-	};
-};

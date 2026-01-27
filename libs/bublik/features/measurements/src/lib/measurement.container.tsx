@@ -21,8 +21,8 @@ export const MeasurementContainer = () => {
 	const { data } = useGetResultInfoQuery(resultId ?? skipToken);
 
 	useMeasurementTitle({
-		name: data?.result.name,
-		start: data?.result.start,
+		name: data?.name,
+		start: data?.start,
 		runId
 	});
 	usePrefetchRun({ runId });

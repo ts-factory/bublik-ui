@@ -143,7 +143,6 @@ export const {
 	useGetLogJsonQuery,
 	useGetTreeByRunIdQuery,
 	useGetLogUrlByResultIdQuery,
-	useGetHistoryLinkDefaultsQuery,
 	useGetResultsAndVerdictsForIterationQuery,
 	// Auth
 	useMeQuery,

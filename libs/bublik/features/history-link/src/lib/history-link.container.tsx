@@ -24,7 +24,7 @@ export type HistoryLinkContainerProps =
 			result: RunDataResults;
 			resultId?: never;
 	  })
-	| (HistoryLinkContainerPropsCommon & { resultId: number; result?: never });
+	| (HistoryLinkContainerPropsCommon & { resultId?: number; result?: never });
 
 function HistoryLinkContainer(props: HistoryLinkContainerProps) {
 	const { runId, userPreferredHistoryMode, disabled: propsDisabled } = props;
