@@ -26,7 +26,8 @@ import { routes } from '@/router';
 import {
 	getErrorMessage,
 	useGetLogJsonQuery,
-	useGetRunDetailsQuery
+	useGetRunDetailsQuery,
+	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import {
 	LogTableContextProvider,
@@ -38,6 +39,7 @@ import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { HistoryLinkContainer } from '@/bublik/features/history-link';
 
 import { NewBugContainer } from './log-preview-new-bug.container';
 
@@ -71,6 +73,13 @@ function LogPreviewContainer(
 	});
 	const [page, setPage] = useState<number | undefined>();
 	const resolvedPage = page === 1 ? undefined : page;
+
+	const { node } = useGetTreeByRunIdQuery(runId ? String(runId) : skipToken, {
+		selectFromResult: (state) => ({
+			node: !state.data || !resultId ? undefined : state.data.tree[resultId]
+		})
+	});
+	const path = node?.path ?? undefined;
 
 	const handlePageClick = useCallback(
 		(_: string, page: number) => {
@@ -133,6 +142,13 @@ function LogPreviewContainer(
 														Result
 													</LinkWithProject>
 												</ButtonTw>
+											) : null}
+											{resultId && runId ? (
+												<HistoryLinkContainer
+													runId={runId}
+													resultId={resultId}
+													path={path}
+												/>
 											) : null}
 											{resultId && runId ? (
 												<NewBugContainer runId={runId} resultId={resultId} />
