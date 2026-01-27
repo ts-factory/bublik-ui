@@ -6,8 +6,16 @@ import {
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import { RootBlock } from '@/shared/types';
+import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
 import { getBugProps, NewBugButton } from './new-bug.component';
+
+const LoadingState = () => (
+	<ButtonTw variant="secondary" size="xss" state="loading">
+		<Icon name="ProgressIndicator" className="size-5 mr-1.5 animate-spin" />
+		<span>New Bug</span>
+	</ButtonTw>
+);
 
 function getLogTablesFromLog(data?: RootBlock) {
 	if (!data) return [];
@@ -31,7 +39,7 @@ function NewBugContainer(props: NewBugProps) {
 	const { data: tree } = useGetTreeByRunIdQuery(String(props.runId));
 	const tables = getLogTablesFromLog(log);
 
-	if (!details || !tree || !log) return null;
+	if (!details || !tree || !log) return <LoadingState />;
 
 	return (
 		<NewBugButton
