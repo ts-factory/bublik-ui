@@ -194,28 +194,32 @@ interface GetHistorySearchOutput {
 function getHistorySearch(
 	run: RunDetailsAPIResponse,
 	result: RunDataResults,
-	userPreferredHistoryMode: HistoryMode
+	userPreferredHistoryMode: HistoryMode,
+	path?: string
 ): GetHistorySearchOutput {
 	const { relevant_tags, important_tags } = run;
+	const testNameOrPath = path ?? result.name;
 
-	const testName = new HistorySearchBuilder(result.name)
+	const testName = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndVerdicts = new HistorySearchBuilder(result.name)
+	const testNameAndVerdicts = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
 		.withVerdicts(result.obtained_result.verdicts)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParameters = new HistorySearchBuilder(result.name)
+	const testNameAndParameters = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(result.name)
+	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(
+		testNameOrPath
+	)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withVerdicts(result.obtained_result.verdicts)
@@ -223,7 +227,7 @@ function getHistorySearch(
 		.build();
 
 	const testNameAndParametersAndImportantTags = new HistorySearchBuilder(
-		result.name
+		testNameOrPath
 	)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
@@ -231,7 +235,9 @@ function getHistorySearch(
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
-	const testNameAndParametersAndAllTags = new HistorySearchBuilder(result.name)
+	const testNameAndParametersAndAllTags = new HistorySearchBuilder(
+		testNameOrPath
+	)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)

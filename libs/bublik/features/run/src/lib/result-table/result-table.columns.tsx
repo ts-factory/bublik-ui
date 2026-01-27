@@ -49,6 +49,7 @@ interface GetColumnsOptions {
 	mode?: 'default' | 'diff';
 	showToolbar?: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
+	path?: string;
 }
 
 export const getColumns = ({
@@ -57,7 +58,8 @@ export const getColumns = ({
 	showLinkToRun = false,
 	mode = 'default',
 	showToolbar = false,
-	setShowToolbar
+	setShowToolbar,
+	path
 }: GetColumnsOptions) => {
 	const parametersDataset = Object.fromEntries(
 		data.map((item) => [String(item.result_id), item.parameters])
@@ -106,6 +108,7 @@ export const getColumns = ({
 							resultId={value.result_id}
 							result={value}
 							showLinkToRun={showLinkToRun}
+							path={path}
 						/>
 					</div>
 				);

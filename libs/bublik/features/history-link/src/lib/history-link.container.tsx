@@ -17,6 +17,7 @@ type HistoryLinkContainerPropsCommon = {
 	runId: number;
 	userPreferredHistoryMode?: HistoryMode;
 	disabled?: boolean;
+	path?: string;
 };
 
 export type HistoryLinkContainerProps =
@@ -44,8 +45,13 @@ function HistoryLinkContainer(props: HistoryLinkContainerProps) {
 	const search = useMemo(() => {
 		if (!resultData || !detailsQuery.data) return null;
 
-		return getHistorySearch(detailsQuery.data, resultData, historyMode);
-	}, [resultData, detailsQuery.data, historyMode]);
+		return getHistorySearch(
+			detailsQuery.data,
+			resultData,
+			historyMode,
+			props.path
+		);
+	}, [resultData, detailsQuery.data, historyMode, props.path]);
 
 	const isLoading = detailsQuery.isLoading || resultQuery.isFetching;
 	const isError = resultQuery.isError || detailsQuery.isError;

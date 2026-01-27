@@ -19,6 +19,7 @@ export interface ResultLinksProps {
 	onMeasurementLinkMouseEnter?: () => void;
 	onLogLinkMouseEnter?: () => void;
 	showLinkToRun?: boolean;
+	path?: string;
 }
 
 export const ResultLinks = (props: ResultLinksProps) => {
@@ -30,7 +31,8 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		userPreferredHistoryMode = 'linear',
 		onLogLinkMouseEnter,
 		onMeasurementLinkMouseEnter,
-		showLinkToRun = false
+		showLinkToRun = false,
+		path
 	} = props;
 
 	return (
@@ -62,6 +64,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						runId={Number(runId)}
 						result={result}
 						userPreferredHistoryMode={userPreferredHistoryMode}
+						path={path}
 					/>
 				</li>
 				{hasMeasurements && (
@@ -103,10 +106,11 @@ export interface ActionLinksProps {
 	resultId: number;
 	result: RunDataResults;
 	showLinkToRun?: boolean;
+	path?: string;
 }
 
 export const ResultLinksContainer = (props: ActionLinksProps) => {
-	const { runId, resultId, result, showLinkToRun = false } = props;
+	const { runId, resultId, result, showLinkToRun = false, path } = props;
 	const { has_measurements: hasMeasurements } = result;
 	const { userPreferences } = useUserPreferences();
 
@@ -134,6 +138,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 			onLogLinkMouseEnter={handleLogLinkMouseEnter}
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}
 			showLinkToRun={showLinkToRun}
+			path={path}
 		/>
 	);
 };

@@ -6,7 +6,11 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import { MeasurementsRouterParams } from '@/shared/types';
 
-import { getErrorMessage, useGetResultInfoQuery } from '@/services/bublik-api';
+import {
+	getErrorMessage,
+	useGetResultInfoQuery,
+	useGetTreeByRunIdQuery
+} from '@/services/bublik-api';
 import { InfoBlock } from '@/shared/charts';
 import { CardHeader, Icon, Skeleton } from '@/shared/tailwind-ui';
 
@@ -18,11 +22,12 @@ import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 export interface MeasurementStatisticsLoadingProps {
 	runId: string;
 	resultId: string;
+	path?: string;
 }
 
 export const MeasurementStatisticsLoading: FC<
 	MeasurementStatisticsLoadingProps
-> = ({ runId, resultId }) => {
+> = ({ runId, resultId, path }) => {
 	return (
 		<div className="flex-shrink-0 w-full bg-white rounded-md">
 			<CardHeader label="Test result">
@@ -31,6 +36,7 @@ export const MeasurementStatisticsLoading: FC<
 					<HistoryLinkContainer
 						runId={Number(runId)}
 						resultId={Number(resultId)}
+						path={path}
 					/>
 					<LinkToLog runId={runId} resultId={resultId} />
 				</div>
@@ -84,13 +90,24 @@ export const MeasurementStatisticsContainer: FC = () => {
 	const { data, isLoading, error } = useGetResultInfoQuery(
 		resultId ?? skipToken
 	);
+	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
+		selectFromResult: (state) => ({
+			node: !state.data || !resultId ? undefined : state.data.tree[resultId]
+		})
+	});
 
 	if (!resultId || !runId) return <div>No run id or result id</div>;
 
 	if (error) return <MeasurementStatisticsError error={error} />;
 
 	if (isLoading) {
-		return <MeasurementStatisticsLoading runId={runId} resultId={resultId} />;
+		return (
+			<MeasurementStatisticsLoading
+				runId={runId}
+				resultId={resultId}
+				path={node?.path ?? undefined}
+			/>
+		);
 	}
 
 	if (!data) return <MeasurementStatisticsEmpty />;
@@ -110,6 +127,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 					<HistoryLinkContainer
 						runId={Number(runId)}
 						resultId={Number(resultId)}
+						path={node?.path ?? undefined}
 					/>
 					<LinkToLog runId={runId} resultId={resultId} />
 					<CopyShortUrlButtonContainer />

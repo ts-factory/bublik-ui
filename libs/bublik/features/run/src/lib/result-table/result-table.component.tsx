@@ -79,6 +79,7 @@ export interface ResultTableProps {
 	targetIterationId?: number;
 	rowState?: RowState;
 	onRowClick?: (row: Row<RunDataResults>) => void;
+	path?: string;
 }
 
 export const ResultTable = memo((props: ResultTableProps) => {
@@ -93,7 +94,8 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		setShowToolbar,
 		targetIterationId,
 		rowState,
-		onRowClick
+		onRowClick,
+		path
 	} = props;
 	const {
 		columnFilters,
@@ -127,9 +129,10 @@ export const ResultTable = memo((props: ResultTableProps) => {
 				data,
 				mode,
 				showToolbar: hasToolbar,
-				setShowToolbar
+				setShowToolbar,
+				path
 			}),
-		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar]
+		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar, path]
 	);
 
 	const { stickyOffset } = useStickyHeader({

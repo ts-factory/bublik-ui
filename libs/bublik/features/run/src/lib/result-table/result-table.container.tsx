@@ -115,6 +115,8 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	if (!data) return <div>No data...</div>;
 
+	const path = row.original.path.join('/');
+
 	return (
 		<ResultTable
 			showLinkToRun={Array.isArray(runId)}
@@ -128,6 +130,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 			targetIterationId={targetIterationId}
 			rowState={rowState}
 			onRowClick={onRowClick}
+			path={path}
 		/>
 	);
 }

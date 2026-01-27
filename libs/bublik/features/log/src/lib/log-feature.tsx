@@ -111,6 +111,7 @@ function LogFeature(props: LogFeatureProps) {
 								runId={Number(runId)}
 								resultId={validResultId}
 								disabled={disableHistoryLink}
+								path={node?.path ?? undefined}
 							/>
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />
