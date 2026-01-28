@@ -97,7 +97,7 @@ const SplitButtonContent = React.forwardRef<
 		<DropdownMenu.Content
 			ref={ref}
 			className={cn(
-				'min-w-[220px] bg-white rounded-lg p-1 shadow-popover',
+				'z-[100] min-w-[220px] bg-white rounded-lg p-1 shadow-popover',
 				'rdx-state-open:rdx-side-top:animate-slide-down-fade',
 				'rdx-state-open:rdx-side-right:animate-slide-left-fade',
 				'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',
