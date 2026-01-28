@@ -83,11 +83,12 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 								onCheckedChange={column.toggleVisibility}
 								className="text-xs"
 							>
-								{`${column.id.charAt(0).toUpperCase()}${column.id
+								{column.id
 									.toLowerCase()
-									.replace(/_expected|_unexpected/i, '')
-									.slice(1)
-									.trim()}`}
+									.replace(/_/g, ' ')
+									.replace(/ expected$| unexpected$/i, '')
+									.replace(/\b\w/g, (c) => c.toUpperCase())
+									.trim()}
 								{column.id.toLowerCase().includes('unexpected')
 									? toolbarIcon['unexpected']
 									: column.id.toLowerCase().includes('expected')
