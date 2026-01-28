@@ -41,7 +41,7 @@ type BugPropsOptions = {
 	runId: number;
 	tree: TreeDataAPIResponse;
 	details: RunDetailsAPIResponse;
-	log: RootBlock;
+	log?: RootBlock;
 };
 
 function getBugProps(
@@ -65,37 +65,40 @@ function getBugProps(
 
 	const path = `/${tree.tree[id ?? tree.main_package]?.path ?? ''}`;
 
-	const parameters = log.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((meta) => meta.meta.parameters)
-		.filter((v) => !!v)
-		.flat();
+	const parameters =
+		log?.root
+			.flatMap((b) => b.content)
+			.filter((b) => b.type === 'te-log-meta')
+			.map((meta) => meta.meta.parameters)
+			.filter((v) => !!v)
+			.flat() ?? [];
 
-	const verdicts = log.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((meta) => meta.meta.verdicts)
-		.filter((v) => !!v)
-		.flat()
-		.map((v) => v.verdict);
+	const verdicts =
+		log?.root
+			.flatMap((b) => b.content)
+			.filter((b) => b.type === 'te-log-meta')
+			.map((meta) => meta.meta.verdicts)
+			.filter((v) => !!v)
+			.flat()
+			.map((v) => v.verdict) ?? [];
 
-	const artifacts = log.root
-		.flatMap((b) => b.content)
-		.filter((b) => b.type === 'te-log-meta')
-		.map((meta) => meta.meta.artifacts)
-		.filter((v) => !!v)
-		.flat()
-		.map((v) => v.artifact);
+	const artifacts =
+		log?.root
+			.flatMap((b) => b.content)
+			.filter((b) => b.type === 'te-log-meta')
+			.map((meta) => meta.meta.artifacts)
+			.filter((v) => !!v)
+			.flat()
+			.map((v) => v.artifact) ?? [];
 
-	const objectives = (log.root
+	const objectives = (log?.root
 		.flatMap((b) => b.content)
 		.filter((b) => b.type === 'te-log-meta')
 		.map((m) => m.meta.objective)
 		.filter((v) => !!v)
 		.flat() ?? []) as string[];
 
-	const hashes = (log.root
+	const hashes = (log?.root
 		.flatMap((b) => b.content)
 		.filter((b) => b.type === 'te-log-meta')
 		.map((m) => m.entity_model.extended_properties?.['hash'])

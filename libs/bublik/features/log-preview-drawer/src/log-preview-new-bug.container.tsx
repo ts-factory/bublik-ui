@@ -39,10 +39,11 @@ function NewBugContainer(props: NewBugProps) {
 	const { data: tree } = useGetTreeByRunIdQuery(String(props.runId));
 	const tables = getLogTablesFromLog(log);
 
-	if (!details || !tree || !log) return <LoadingState />;
+	if (!details || !tree) return <LoadingState />;
 
 	return (
 		<NewBugButton
+			key={log ? 'with-logs' : 'no-logs'}
 			{...getBugProps({
 				runId: props.runId,
 				id: props.resultId ?? Number(props.runId),
