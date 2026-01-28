@@ -1,5 +1,62 @@
 
 
+## [2.8.0](https://github.com/ts-factory/bublik-ui/compare/v2.7.1...v2.8.0) (2026-01-28)
+
+
+### 🚀 New Feature
+
+* **log:** [preview] add history link to log preview drawer modal ([7f71547](https://github.com/ts-factory/bublik-ui/commit/7f71547c7d48f85fcf5b8ca9e0b38ff86fa5edb0))
+* **log:** add full path to test when navigating to history ([709916d](https://github.com/ts-factory/bublik-ui/commit/709916d3f4826c49f95042616926b673e7cf52b9))
+* **run:** [details] support URL links in labels to allow users open new tab ([6fe12db](https://github.com/ts-factory/bublik-ui/commit/6fe12dba636cc36697f5eecd7fd83d7ce0a09d74)), closes [#468](https://github.com/ts-factory/bublik-ui/issues/468)
+* **run:** add dim mode to visually highlight common parameters ([f97f5d5](https://github.com/ts-factory/bublik-ui/commit/f97f5d564d46cdb20a6635874da1182f42b467b3)), closes [#449](https://github.com/ts-factory/bublik-ui/issues/449)
+* **run:** add Expected/Unexpected total columns ([a902b9e](https://github.com/ts-factory/bublik-ui/commit/a902b9ea441865ce763bd7853a7d8b3b3a893a0e)), closes [#54](https://github.com/ts-factory/bublik-ui/issues/54)
+* **run:** add interrupted run status handling ([d92eee0](https://github.com/ts-factory/bublik-ui/commit/d92eee0321c40dc5487bf381fc7803d8c2a07e9e))
+* **settings:** initialize settings library ([c3f2cb7](https://github.com/ts-factory/bublik-ui/commit/c3f2cb70b4c7a97c97fb18406f7342d68772a84f))
+
+
+### 💅 Polish
+
+* **run:** [details] make "Expose" button the most left button ([1f83306](https://github.com/ts-factory/bublik-ui/commit/1f83306888bff9c782fa0b22259eed72b2074947))
+* **run:** [results] move filter toolbar below result's table header ([df3e344](https://github.com/ts-factory/bublik-ui/commit/df3e34427b061a5c512f66a651418ebac86d261b))
+* **runs:** improve layout of `Statistic Summary` columns ([fd6baf3](https://github.com/ts-factory/bublik-ui/commit/fd6baf36619abeb189dd573be63dbd782269080a))
+* **ui:** update checkbox and radio-group components ([fc26942](https://github.com/ts-factory/bublik-ui/commit/fc26942d97cbc1bf9a03c7fd45188857d56016dd))
+
+
+### 🐛 Bug Fix
+
+* **bublik-logs:** align TypeScript lib config with bublik for ESNext support ([e705bbd](https://github.com/ts-factory/bublik-ui/commit/e705bbdebfde617dedec635a0ff9bbcf8c358223))
+* **history:** format date based on user timezone for history ([1f56e7c](https://github.com/ts-factory/bublik-ui/commit/1f56e7ced32ed488f08622a72b1e96b981378cbe))
+* **import:** fix React Hooks order violation in EventRow ([f4c22b6](https://github.com/ts-factory/bublik-ui/commit/f4c22b6bcc6df717e0000363a1c7515293a1b483))
+* **import:** handle `null` celery_task in events table ([2bc21de](https://github.com/ts-factory/bublik-ui/commit/2bc21def5963b93a84af75ebcd9d2edafa1503af)), closes [#459](https://github.com/ts-factory/bublik-ui/issues/459)
+* **import:** resolve React Hooks order violation ([6a2eb40](https://github.com/ts-factory/bublik-ui/commit/6a2eb40da3a43a422c3ecc67a2315ba995bd59c4))
+* **log:** [new-bug] fix layout shift for "new bug" button ([814a0f6](https://github.com/ts-factory/bublik-ui/commit/814a0f601c533b2f011caa6eb53d501cad8ee44a))
+* **log:** [new-bug] generate CMD based on top level `config` key ([78417ac](https://github.com/ts-factory/bublik-ui/commit/78417acd9ba2abcbac7444f85d709fc686323039)), closes [#174](https://github.com/ts-factory/bublik-ui/issues/174)
+* **log:** [new-bug] make log data optional for NewBugContainer ([bfcd1ef](https://github.com/ts-factory/bublik-ui/commit/bfcd1efae81750b5101032635890799d26a87648))
+* **log:** display test start and end in user timezone ([2c1fbad](https://github.com/ts-factory/bublik-ui/commit/2c1fbad239e0a5f0a68a5f5d16686125b5f57e3f)), closes [#470](https://github.com/ts-factory/bublik-ui/issues/470)
+* **log:** not showing pagination when viewing full log ([5e4fc44](https://github.com/ts-factory/bublik-ui/commit/5e4fc44f253a7a0e9a4a4d32cdce552526001908)), closes [#176](https://github.com/ts-factory/bublik-ui/issues/176)
+* **run:** [details] format start, finish dates of test run ([86e7d29](https://github.com/ts-factory/bublik-ui/commit/86e7d294ce59df331daa9bf0d23294ae2fd0ea1d)), closes [#470](https://github.com/ts-factory/bublik-ui/issues/470)
+* **run:** ensure reference rows have visible borders in diff/dim mode ([5c8ba2d](https://github.com/ts-factory/bublik-ui/commit/5c8ba2d1371091701af2857c59c97d2eccc9d333))
+* **run:** incorrectly formatted column labels for Unexpected/Expected total ([042df12](https://github.com/ts-factory/bublik-ui/commit/042df12f26c5b4a75c915aea1c988e98085255d5))
+* **run:** preserve toolbar visibility when toggling dim/diff mode ([5af2ac1](https://github.com/ts-factory/bublik-ui/commit/5af2ac11323503ca9d125fafb582053d5ebcb027))
+
+
+### ♻ Code Refactoring
+
+* **history:** generate history-link library ([6c29b4b](https://github.com/ts-factory/bublik-ui/commit/6c29b4b4072120f926b491432107afce19a481be))
+* **history:** unify history link component into shared library ([310cf27](https://github.com/ts-factory/bublik-ui/commit/310cf27d7e590d85f4746e67f6e6670b2c28564e)), closes [#414](https://github.com/ts-factory/bublik-ui/issues/414)
+* **performance:** remove page and update component ([71a0cb8](https://github.com/ts-factory/bublik-ui/commit/71a0cb8fab92da0ab28f61d6d5f986ea10b439b3))
+* **router:** update router and navigation ([73e4468](https://github.com/ts-factory/bublik-ui/commit/73e4468fcc4b30d87cfd330fe4605312377bbd29))
+* **run,log,measurements:** use single result type across all code ([fb6a8c0](https://github.com/ts-factory/bublik-ui/commit/fb6a8c0c769e0e72aca76ceef69b343d2cd814fb))
+* **settings:** migrate to modal-based UI ([a547df8](https://github.com/ts-factory/bublik-ui/commit/a547df8ace8663916d11644e058e89e1a4d45f62))
+* **settings:** split and simplify forms ([da4e402](https://github.com/ts-factory/bublik-ui/commit/da4e402c5e74beaa6c3b8be85c468626ddea555a))
+
+
+### 📦 Chores
+
+* **ci:** upgrade CI actions to latest versions ([9cb1cf1](https://github.com/ts-factory/bublik-ui/commit/9cb1cf1e2439a190f25db51f8086335c249a9a53))
+* **deps:** add lucide-react dependency ([82586ef](https://github.com/ts-factory/bublik-ui/commit/82586ef6e14aaf3bb2e8604b89d9e07854eda661))
+* **docs:** add AGENTS.md file for AI agent usage instructions ([e6bd184](https://github.com/ts-factory/bublik-ui/commit/e6bd18427229ec7712b46ec3ad67e59f762e53ce))
+
 ### [2.7.1](https://github.com/ts-factory/bublik-ui/compare/v2.7.0...v2.7.1) (2025-12-30)
 
 

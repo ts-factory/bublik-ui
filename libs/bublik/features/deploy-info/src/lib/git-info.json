@@ -1,7 +1,7 @@
 {
-	"date": "2025.12.30",
-	"summary": "fix(report): circular imports for cause by report args and warning hover card",
-	"revision": "1bb733f3",
-	"branch": "release-2.7.1",
-	"latestTag": "v2.7.1"
+	"date": "2026.01.28",
+	"summary": "fix(log): [new-bug] make log data optional for NewBugContainer",
+	"revision": "bfcd1efa",
+	"branch": "release-2.8.0",
+	"latestTag": "v2.8.0"
 }
