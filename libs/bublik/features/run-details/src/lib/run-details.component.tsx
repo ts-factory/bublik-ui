@@ -22,7 +22,7 @@ import { RunCommentFormContainer } from './run-comment.container';
 
 export const RunDetailsLoading = () => {
 	return (
-		<div className="flex flex-grow h-full p-2">
+		<div className="flex flex-grow h-full p-2 min-h-52">
 			<Skeleton className="flex-grow rounded" />
 		</div>
 	);
