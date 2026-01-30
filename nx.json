@@ -102,5 +102,6 @@
 			},
 			"include": ["apps/bublik/**/*"]
 		}
-	]
+	],
+	"useLegacyCache": true
 }

@@ -42,6 +42,9 @@
 			"@/bublik/features/history": [
 				"libs/bublik/features/history/src/index.ts"
 			],
+			"@/bublik/features/history-link": [
+				"libs/bublik/features/history-link/src/index.ts"
+			],
 			"@/bublik/features/link-to-source": [
 				"libs/bublik/features/link-to-source/src/index.ts"
 			],
@@ -84,6 +87,9 @@
 			"@/bublik/features/session-log": [
 				"libs/bublik/features/session-log/src/index.ts"
 			],
+			"@/bublik/features/settings": [
+				"libs/bublik/features/settings/src/index.ts"
+			],
 			"@/bublik/features/sidebar": [
 				"libs/bublik/features/sidebar/src/index.ts"
 			],
@@ -98,13 +104,7 @@
 			"@/shared/hooks": ["libs/shared/hooks/src/index.ts"],
 			"@/shared/tailwind-ui": ["libs/shared/tailwind-ui/src/index.ts"],
 			"@/shared/types": ["libs/shared/types/src/index.ts"],
-			"@/shared/utils": ["libs/shared/utils/src/index.ts"],
-			"@/bublik/features/history-link": [
-				"libs/bublik/features/history-link/src/index.ts"
-			],
-			"@/bublik/features/settings": [
-				"libs/bublik/features/settings/src/index.ts"
-			]
+			"@/shared/utils": ["libs/shared/utils/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]
