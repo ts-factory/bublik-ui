@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { PropsWithChildren, ReactNode, useCallback } from 'react';
-import { StoryFn } from '@storybook/react';
+import {
+	PropsWithChildren,
+	ReactNode,
+	useCallback,
+	ComponentType
+} from 'react';
 
 import { useLocalStorage, useKey } from '@/shared/hooks';
 import { isFocusInInput } from '@/shared/utils';
@@ -23,7 +27,7 @@ const SidebarStory = () => {
 };
 
 export const withSidebar = (hideSidebar?: boolean) => {
-	return (Story: StoryFn) => (
+	return (Story: ComponentType) => (
 		<AppShell sidebar={hideSidebar ? null : <SidebarStory />}>
 			<Story />
 		</AppShell>

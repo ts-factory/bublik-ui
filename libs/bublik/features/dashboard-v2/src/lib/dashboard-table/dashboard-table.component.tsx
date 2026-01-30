@@ -164,7 +164,7 @@ export const DashboardTable = (props: DashboardTableProps) => {
 						label="Date"
 						value={fromDate(date, getLocalTimeZone())}
 						onChange={(value) =>
-							onDateChange?.(value.toDate(getLocalTimeZone()))
+							value && onDateChange?.(value.toDate(getLocalTimeZone()))
 						}
 					/>
 				</div>

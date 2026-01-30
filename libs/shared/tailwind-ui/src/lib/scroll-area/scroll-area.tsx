@@ -28,7 +28,7 @@ const StyledScrollbar = forwardRef<
 
 const StyledThumb = forwardRef<
 	HTMLDivElement,
-	ScrollAreaPrimitive.ScrollAreaThumbImplProps
+	ScrollAreaPrimitive.ScrollAreaThumbProps
 >((props, ref) => (
 	<ScrollAreaPrimitive.Thumb
 		className="flex-1 bg-text-menu rounded-[10px] relative before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:transform before:-translate-y-1/2 before:w-full before:h-full before:min-w-[44px] before:min-h-[44px]"

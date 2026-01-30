@@ -27,7 +27,7 @@ function getToFromString(
 	return to;
 }
 
-function _LinkWithProject(
+function LinkWithProjectImpl(
 	{ to, children, ...props }: LinkWithProjectProps,
 	ref: Ref<HTMLAnchorElement>
 ) {
@@ -62,6 +62,6 @@ function _LinkWithProject(
 	);
 }
 
-const LinkWithProject = forwardRef(_LinkWithProject);
+const LinkWithProject = forwardRef(LinkWithProjectImpl);
 
 export { LinkWithProject };

@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ChangeEvent, ComponentProps, FC, forwardRef, useRef } from 'react';
+import {
+	ChangeEvent,
+	ComponentProps,
+	FC,
+	forwardRef,
+	useRef,
+	LegacyRef
+} from 'react';
 import { AriaButtonProps, useButton } from 'react-aria';
 import {
 	CalendarState,
@@ -30,7 +37,7 @@ export const Button = forwardRef<
 		<button
 			className={className}
 			{...buttonProps}
-			ref={mergeRefs(buttonRef, ref)}
+			ref={mergeRefs(buttonRef, ref) as LegacyRef<HTMLButtonElement>}
 		>
 			{children}
 		</button>
