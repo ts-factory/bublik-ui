@@ -1,35 +1,27 @@
 import { describe, it, expect } from 'vitest';
-
 import { DiffValue, highlightDifferences } from './matcher';
-
 describe('highlightDifference', () => {
 	it('should handle empty input and reference', () => {
 		const input = { current: [], reference: [] };
 		const expected: DiffValue[] = [];
-
 		expect(highlightDifferences(input.current, input.reference)).toMatchObject(
 			expected
 		);
 	});
-
 	it('should handle when reference has one additional param', () => {
 		const input = { current: ['1=1'], reference: ['1=1', '2=2'] };
 		const expected: DiffValue[] = [{ value: '1=1' }];
-
 		expect(highlightDifferences(input.current, input.reference)).toMatchObject(
 			expected
 		);
 	});
-
 	it('should handle when reference has missing params', () => {
 		const input = { current: [], reference: ['1=1'] };
 		const expected: DiffValue[] = [];
-
 		expect(highlightDifferences(input.current, input.reference)).toMatchObject(
 			expected
 		);
 	});
-
 	it('should handle diff', () => {
 		const input = {
 			current: [
@@ -60,7 +52,6 @@ describe('highlightDifference', () => {
 				'wrk_threads=auto'
 			]
 		};
-
 		const expected: DiffValue[] = [
 			{ value: 'bad_reqs_p=10' },
 			{ value: 'cps=1000' },
@@ -74,7 +65,6 @@ describe('highlightDifference', () => {
 			{ value: 'test_proto=http' },
 			{ value: 'tot_reqs=1000' }
 		];
-
 		expect(highlightDifferences(input.current, input.reference)).toMatchObject(
 			expected
 		);

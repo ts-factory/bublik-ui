@@ -39,10 +39,6 @@
 			"cache": true,
 			"inputs": ["default", "^production"]
 		},
-		"@nx/vite:test": {
-			"inputs": ["default", "^default"],
-			"cache": true
-		},
 		"@nx/jest:jest": {
 			"inputs": ["default", "^default"],
 			"cache": true,
@@ -64,6 +60,10 @@
 			"cache": true,
 			"dependsOn": ["^build"],
 			"inputs": ["production", "^production"]
+		},
+		"@nx/vitest:test": {
+			"inputs": ["default", "^default"],
+			"cache": true
 		}
 	},
 	"namedInputs": {
@@ -80,17 +80,5 @@
 	"parallel": 3,
 	"useInferencePlugins": false,
 	"defaultBase": "main",
-	"plugins": [
-		{
-			"plugin": "@nx/storybook/plugin",
-			"options": {
-				"buildStorybookTargetName": "build-storybook",
-				"serveStorybookTargetName": "storybook",
-				"staticStorybookTargetName": "static-storybook",
-				"testStorybookTargetName": "test-storybook"
-			},
-			"include": ["apps/bublik/**/*"]
-		}
-	],
-	"useLegacyCache": true
+	"plugins": []
 }

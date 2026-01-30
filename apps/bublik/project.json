@@ -30,7 +30,7 @@
 			"executor": "@nx/eslint:lint"
 		},
 		"test": {
-			"executor": "@nx/vite:test",
+			"executor": "@nx/vitest:test",
 			"outputs": ["{workspaceRoot}/coverage/apps/bublik"],
 			"options": {
 				"passWithNoTests": true
