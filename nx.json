@@ -35,15 +35,6 @@
 			"inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
 			"cache": true
 		},
-		"build-storybook": {
-			"inputs": [
-				"default",
-				"^production",
-				"{projectRoot}/.storybook/**/*",
-				"{projectRoot}/tsconfig.storybook.json"
-			],
-			"cache": true
-		},
 		"e2e": {
 			"cache": true,
 			"inputs": ["default", "^production"]
@@ -81,8 +72,6 @@
 		"production": [
 			"default",
 			"!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)",
-			"!{projectRoot}/.storybook/**/*",
-			"!{projectRoot}/tsconfig.storybook.json",
 			"!{projectRoot}/src/test-setup.[jt]s",
 			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
 			"!{projectRoot}/tsconfig.spec.json"
