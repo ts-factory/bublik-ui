@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { ImportEventResponse, ImportRunsFormValues } from '@/shared/types';
 import { bublikAPI, useImportRunsMutation } from '@/services/bublik-api';
+import { setErrorsOnForm } from '@/shared/utils';
 
 import {
 	ImportRunForm,
@@ -42,12 +43,7 @@ export const useImportTasks = () => {
 			setStep('result');
 			setCeleryTasks(results);
 		} catch (e: unknown) {
-			if (e instanceof Error) {
-				form.setError('root', { message: String(e.message) });
-				return;
-			}
-
-			form.setError('root', { message: 'Unknown error' });
+			setErrorsOnForm(e, { handle: form });
 		}
 	};
 
