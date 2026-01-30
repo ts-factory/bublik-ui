@@ -13,7 +13,8 @@ import {
 	isBublikAuthError,
 	isHistoryParsingError,
 	BublikError,
-	isValidationError
+	isValidationError,
+	isUnifiedError
 } from './validation';
 
 export const createBublikError = (config: BublikError): BublikError => config;
@@ -34,6 +35,36 @@ function isZodError(error: unknown): error is z.infer<typeof ZodErrorSchema> {
 export const getErrorMessage = (error: unknown): BublikError => {
 	if (isBublikError(error)) {
 		return error;
+	}
+
+	if (isUnifiedError(error)) {
+		const { status, data } = error;
+		const messages = data.messages;
+
+		let description: string;
+		let title: string;
+
+		if (Array.isArray(messages)) {
+			title = 'Error';
+			description = messages.join(', ');
+		} else if (typeof messages === 'string') {
+			title = 'Error';
+			description = messages;
+		} else {
+			title = 'Validation error';
+			description = Object.entries(messages)
+				.map(
+					([field, error]) =>
+						`${field}: ${Array.isArray(error) ? error.join(', ') : error}`
+				)
+				.join('\n');
+		}
+
+		return {
+			status: typeof status === 'number' ? status : parseInt(status, 10) || 500,
+			title,
+			description
+		};
 	}
 
 	if (isZodError(error)) {
