@@ -6,8 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
 	bublikAPI,
 	CreateProject,
-	CreateProjectSchema,
-	getErrorMessage
+	CreateProjectSchema
 } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -22,6 +21,7 @@ import {
 	FormAlertError,
 	DialogPortal
 } from '@/shared/tailwind-ui';
+import { setErrorsOnForm } from '@/shared/utils';
 
 interface UpdateProjectModalProps {
 	children: React.ReactNode;
@@ -85,14 +85,14 @@ function UpdateProjectForm({
 			toast.promise(promise, {
 				loading: 'Updating project...',
 				success: 'Project updated successfully',
-				error: (e) => getErrorMessage(e).description
+				error: 'Failed to update project'
 			});
 
 			await promise;
 			form.reset({ name: data.name });
 			onSuccess?.();
 		} catch (e) {
-			return form.setError('root', { message: getErrorMessage(e).description });
+			setErrorsOnForm(e, { handle: form });
 		}
 	}
 

@@ -5,13 +5,13 @@ import { UseFormReturn } from 'react-hook-form';
 
 import {
 	ConfigExistsError,
-	ConfigValidationErrorSchema,
 	ConfigWithSameNameErrorResponseSchema,
 	EditConfigBody
 } from '@/services/bublik-api';
 import { useConfirm } from '@/shared/hooks';
-import { ButtonTw, ConfirmDialog, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { ConfirmDialog, Skeleton } from '@/shared/tailwind-ui';
 import { useAuth } from '@/bublik/features/auth';
+import { setErrorsOnForm } from '@/shared/utils';
 
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
 import { ConfigEditorForm } from './update-config-form.component';
@@ -72,30 +72,16 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 				setConfigId(e.configId);
 			}
 
-			const validationError = ConfigValidationErrorSchema.safeParse(e);
-			if (!validationError.success) {
-				form?.setError('root', {
-					message: `Unknown error occured: ${String(e)}`
-				});
-				return;
-			}
-
-			if (typeof validationError.data.data.message === 'object') {
-				Object.entries(validationError?.data.data.message).forEach(
-					([key, error]) => {
+			if (form) {
+				setErrorsOnForm(e, {
+					handle: form,
+					onSetError: (key, error, form) => {
 						if (key === 'content') {
-							form?.setError('root', { message: error.join('\n') });
-							return;
+							form.setError('root', error);
 						}
-
-						// @ts-expect-error mapped frontend form field names to frontend so should be fine
-						return form?.setError(key, { message: error.join('\n') });
 					}
-				);
-				return;
+				});
 			}
-
-			form?.setError('root', { message: validationError.data.data.message });
 		}
 	};
 
