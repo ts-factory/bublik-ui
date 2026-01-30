@@ -88,7 +88,21 @@ const HistoryParsingErrorSchema = z.object({
 	})
 });
 
+const UnifiedErrorSchema = z.object({
+	status: z.union([z.string(), z.number()]),
+	data: z.object({
+		messages: z.union([
+			z.string(),
+			z.array(z.string()),
+			z.record(z.union([z.string(), z.array(z.string())]))
+		])
+	})
+});
+
+export type UnifiedError = z.infer<typeof UnifiedErrorSchema>;
+
 export const BublikParsableErrorSchema = z.union([
+	UnifiedErrorSchema,
 	HttpErrorSchema,
 	FetchErrorSchema,
 	ParsingErrorSchema,
@@ -111,6 +125,12 @@ export const isValidationError = (
 	error: unknown
 ): error is z.infer<typeof ValidationErrorSchema> => {
 	return ValidationErrorSchema.safeParse(error).success;
+};
+
+export const isUnifiedError = (
+	error: unknown
+): error is z.infer<typeof UnifiedErrorSchema> => {
+	return UnifiedErrorSchema.safeParse(error).success;
 };
 
 export const isBublikAuthError = (
