@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useRef, useState, KeyboardEvent, useEffect, forwardRef } from 'react';
+import {
+	useRef,
+	useState,
+	KeyboardEvent,
+	useEffect,
+	forwardRef,
+	LegacyRef
+} from 'react';
 import { mergeRefs } from '@react-aria/utils';
 
 import { useHorizontalScroll } from '@/shared/hooks';
@@ -84,7 +91,7 @@ export const BadgesHeaderInput = forwardRef<
 			onMouseEnter={() => setIsAddShown(true)}
 			onMouseLeave={() => setIsAddShown(false)}
 			onClick={handleClickOutside}
-			ref={mergeRefs(containerRef, ref)}
+			ref={mergeRefs(containerRef, ref) as LegacyRef<HTMLDivElement>}
 		>
 			<div className="flex items-center justify-center py-1.5 px-3 border border-border-primary rounded-md">
 				<div className="flex items-center gap-2">

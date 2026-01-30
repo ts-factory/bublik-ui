@@ -3,7 +3,6 @@
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 import { PerformanceList } from './performance-list.component';
-
 describe('<PerformanceList />', () => {
 	it('should match snapshot', () => {
 		const { asFragment } = render(
@@ -11,7 +10,6 @@ describe('<PerformanceList />', () => {
 				urls={[{ url: 'https://google.com', timeout: 1, label: 'Google' }]}
 			/>
 		);
-
 		expect(asFragment()).toMatchSnapshot();
 	});
 });

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { forwardRef, useRef } from 'react';
+import { forwardRef, useRef, LegacyRef } from 'react';
 import { useDatePickerState } from '@react-stately/datepicker';
 import { useButton } from 'react-aria';
 import { AriaDatePickerProps, useDatePicker } from '@react-aria/datepicker';
@@ -38,11 +38,15 @@ export const SwitchDatePicker = forwardRef<
 	const { buttonProps } = useButton(ariaButtonProps, buttonRef);
 
 	const handlePrevClick = () => {
-		state.setValue(state.dateValue.add({ days: -1 }));
+		if (state.dateValue) {
+			state.setValue(state.dateValue.add({ days: -1 }));
+		}
 	};
 
 	const handleNextClick = () => {
-		state.setValue(state.dateValue.add({ days: 1 }));
+		if (state.dateValue) {
+			state.setValue(state.dateValue.add({ days: 1 }));
+		}
 	};
 
 	return (
@@ -62,7 +66,7 @@ export const SwitchDatePicker = forwardRef<
 				</Tooltip>
 				<div
 					{...groupProps}
-					ref={mergeRefs(groupRef, ref)}
+					ref={mergeRefs(groupRef, ref) as LegacyRef<HTMLDivElement>}
 					className="flex gap-2"
 				>
 					<DateField {...fieldProps} />

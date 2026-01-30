@@ -23,10 +23,9 @@ export const AriaDateRangeField = <T extends FieldValues>(
 		control: props.control
 	});
 
-	const handleDatesChange: DateRangePickerProps['onChange'] = ({
-		start,
-		end
-	}) => {
+	const handleDatesChange: DateRangePickerProps['onChange'] = (value) => {
+		if (!value) return;
+		const { start, end } = value;
 		field.onChange({
 			startDate: start.toDate(getLocalTimeZone()),
 			endDate: end.toDate(getLocalTimeZone())

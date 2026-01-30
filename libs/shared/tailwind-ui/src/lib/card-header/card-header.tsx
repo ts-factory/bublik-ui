@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, ReactNode, forwardRef, useRef } from 'react';
+import {
+	ComponentPropsWithRef,
+	ReactNode,
+	forwardRef,
+	useRef,
+	LegacyRef
+} from 'react';
 import { mergeRefs } from '@react-aria/utils';
 
 import { cn } from '../utils';
@@ -25,7 +31,7 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 					isSticky && enableStickyShadow && 'shadow-sticky border-transparent',
 					className
 				)}
-				ref={mergeRefs(ref, headerRef)}
+				ref={mergeRefs(ref, headerRef) as LegacyRef<HTMLDivElement>}
 				style={props.style}
 			>
 				{typeof label === 'string' ? (

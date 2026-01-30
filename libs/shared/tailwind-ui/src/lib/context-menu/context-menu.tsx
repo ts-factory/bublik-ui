@@ -15,7 +15,7 @@ const itemMenuStyles = cva({
 
 export const ContextMenuItem = forwardRef<
 	HTMLDivElement,
-	ContextMenuPrimitive.MenuItemProps & {
+	ContextMenuPrimitive.ContextMenuItemProps & {
 		icon?: ReactNode;
 		label: string;
 		shortcut?: string;
@@ -40,7 +40,7 @@ export const ContextMenuItem = forwardRef<
 
 export const ContextMenuCheckboxItem = forwardRef<
 	HTMLDivElement,
-	ContextMenuPrimitive.MenuCheckboxItemProps
+	ContextMenuPrimitive.ContextMenuCheckboxItemProps
 >((props, ref) => (
 	<ContextMenuPrimitive.Item
 		{...props}
@@ -77,7 +77,7 @@ export const ContextMenuContent = forwardRef<
 
 export const ContextMenuSeparator = forwardRef<
 	HTMLDivElement,
-	ContextMenuPrimitive.MenuSeparatorProps
+	ContextMenuPrimitive.ContextMenuSeparatorProps
 >((props, ref) => (
 	<ContextMenuPrimitive.Separator
 		{...props}
@@ -88,7 +88,7 @@ export const ContextMenuSeparator = forwardRef<
 
 export const ContextMenuLabel = forwardRef<
 	HTMLDivElement,
-	ContextMenuPrimitive.MenuLabelProps & { label: string }
+	ContextMenuPrimitive.ContextMenuLabelProps & { label: string }
 >((props, ref) => {
 	return (
 		<ContextMenuPrimitive.Label

@@ -38,5 +38,5 @@
 			}
 		}
 	],
-	"extends": ["plugin:storybook/recommended"]
+	"extends": []
 }

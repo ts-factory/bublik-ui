@@ -86,7 +86,11 @@ export const ToolbarToggleItem = forwardRef<
 
 export const ToolbarToggleGroup = forwardRef<
 	HTMLDivElement,
-	RadixToolbar.ToggleGroupProps & VariantProps<typeof toolbarToggleGroupStyles>
+	(
+		| RadixToolbar.ToolbarToggleGroupSingleProps
+		| RadixToolbar.ToolbarToggleGroupMultipleProps
+	) &
+		VariantProps<typeof toolbarToggleGroupStyles>
 >(({ className, variant, size, ...props }, ref) => (
 	<RadixToolbar.ToggleGroup
 		{...props}

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { forwardRef, useMemo, useRef } from 'react';
+import { forwardRef, useMemo, useRef, LegacyRef } from 'react';
 import { useDatePickerState } from '@react-stately/datepicker';
 import { useButton } from 'react-aria';
 import { AriaDatePickerProps, useDatePicker } from '@react-aria/datepicker';
@@ -39,7 +39,7 @@ export const DatePickerField = <T extends FieldValues>(
 
 	const handleDatesChange: AriaDatePickerProps<DateValue>['onChange'] = (
 		date
-	) => field.onChange(date.toDate(getLocalTimeZone()));
+	) => date && field.onChange(date.toDate(getLocalTimeZone()));
 
 	const value = useMemo(() => {
 		return field.value
@@ -98,7 +98,7 @@ export const DatePicker = forwardRef<
 
 				<div
 					{...groupProps}
-					ref={mergeRefs(groupRef, ref)}
+					ref={mergeRefs(groupRef, ref) as LegacyRef<HTMLDivElement>}
 					className="flex gap-2"
 				>
 					<DateField {...fieldProps} />
