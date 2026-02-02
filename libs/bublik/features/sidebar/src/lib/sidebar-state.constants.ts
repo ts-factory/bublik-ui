@@ -45,6 +45,22 @@ export type LogSidebarMode =
 	| 'treeAndinfoAndlog'
 	| 'treeAndlog';
 
+export const HISTORY_SIDEBAR_KEYS = {
+	LAST_LINEAR: `${SIDEBAR_PREFIX}.history.lastLinear`,
+	LAST_AGGREGATION: `${SIDEBAR_PREFIX}.history.lastAggregation`,
+	LAST_TREND: `${SIDEBAR_PREFIX}.history.lastTrend`,
+	LAST_SERIES: `${SIDEBAR_PREFIX}.history.lastSeries`,
+	LAST_STACKED: `${SIDEBAR_PREFIX}.history.lastStacked`,
+	LAST_MODE: `${SIDEBAR_PREFIX}.history.lastMode`
+} as const;
+
+export type HistorySidebarMode =
+	| 'linear'
+	| 'aggregation'
+	| 'trend'
+	| 'series'
+	| 'stacked';
+
 export const SHARED_SIDEBAR_KEYS = {
 	CURRENT_RUN_ID: `${SIDEBAR_PREFIX}.shared.currentRunId`,
 	LAST_LOG_RUN_ID: `${SIDEBAR_PREFIX}.shared.lastLogRunId`,
