@@ -1,0 +1,208 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { useEffect, useState } from 'react';
+import { useLocation, matchPath } from 'react-router-dom';
+
+import { Dialog, DialogPortal, Icon, ModalContent } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	SidebarNavLinkWrapper,
+	SidebarNavInternalLink,
+	SidebarNavToggle,
+	SidebarAccordionLink,
+	SidebarNavCollapsibleContainer
+} from '@/bublik/features/sidebar-nav';
+import { useRunsSidebarState } from './use-runs-sidebar-state';
+
+import {
+	RunsDialog,
+	RunsChartsDialog,
+	MultipleRunsDialog,
+	CompareRunsDialog
+} from './runs-dialogs';
+
+function useIsActive(patterns: { path: string }[]) {
+	const location = useLocation();
+	return patterns.some((p) => matchPath(p.path, location.pathname));
+}
+
+export function RunsSidebarNav() {
+	const location = useLocation();
+	const {
+		isCompareAvailable,
+		isMultipleAvailable,
+		lastCompareUrl,
+		lastMultipleUrl,
+		mainLinkUrl,
+		listUrl,
+		chartsUrl,
+		compareUrl,
+		multipleUrl,
+		setLastVisited
+	} = useRunsSidebarState();
+
+	const isActive = useIsActive([
+		{ path: '/runs' },
+		{ path: '/compare' },
+		{ path: '/multiple' }
+	]);
+
+	useEffect(() => {
+		const isRunsPage = matchPath('/runs', location.pathname);
+		const isMultiplePage = matchPath('/multiple', location.pathname);
+		const isComparePage = matchPath('/compare', location.pathname);
+
+		if (isRunsPage) {
+			const searchParams = new URLSearchParams(location.search);
+			const mode = searchParams.get('mode');
+
+			if (mode === 'charts') {
+				setLastVisited('charts', location.pathname + location.search);
+				return;
+			} else {
+				setLastVisited('list', location.pathname + location.search);
+				return;
+			}
+		}
+
+		if (isComparePage) {
+			setLastVisited('compare', location.pathname + location.search);
+			return;
+		}
+
+		if (isMultiplePage) {
+			setLastVisited('multiple', location.pathname + location.search);
+			return;
+		}
+	}, [location.pathname, location.search, setLastVisited]);
+
+	const finalCompareUrl = compareUrl || lastCompareUrl || '/compare';
+	const finalMultipleUrl = multipleUrl || lastMultipleUrl || '/multiple';
+
+	const hasCompareUrl = isCompareAvailable || !!lastCompareUrl;
+	const hasMultipleUrl = isMultipleAvailable || !!lastMultipleUrl;
+
+	return (
+		<SidebarNavCollapsibleContainer isActive={isActive}>
+			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+				<SidebarNavLinkWrapper label="Runs">
+					<SidebarNavInternalLink
+						label="Runs"
+						icon={<Icon name="Play" />}
+						to={mainLinkUrl}
+						isActive={isActive}
+						linkComponent={LinkWithProject}
+					/>
+				</SidebarNavLinkWrapper>
+				<SidebarNavToggle isActive={isActive} />
+			</SidebarNavCollapsibleContainer.Item>
+
+			<SidebarNavCollapsibleContainer.Submenu>
+				<SubmenuItem
+					label="List"
+					to={listUrl}
+					icon={<Icon name="PaperListText" size={24} />}
+					pattern={{ path: '/runs', mode: null }}
+					dialogContent={<RunsDialog />}
+				/>
+				<SubmenuItem
+					label="Charts"
+					to={chartsUrl}
+					icon={<Icon name="LineChartMultiple" />}
+					pattern={{ path: '/runs', mode: 'charts' }}
+					dialogContent={<RunsChartsDialog />}
+				/>
+				<SubmenuItem
+					label="Multiple"
+					to={finalMultipleUrl}
+					icon={<Icon name="PaperStack" className="w-6 h-6" />}
+					disabled={!hasMultipleUrl}
+					dialogContent={<MultipleRunsDialog />}
+					pattern={{ path: '/multiple' }}
+				/>
+				<SubmenuItem
+					label="Compare"
+					to={finalCompareUrl}
+					icon={<Icon name="SwapArrows" className="rotate-90" />}
+					disabled={!hasCompareUrl}
+					dialogContent={<CompareRunsDialog />}
+					pattern={{ path: '/compare' }}
+				/>
+			</SidebarNavCollapsibleContainer.Submenu>
+		</SidebarNavCollapsibleContainer>
+	);
+}
+
+interface SubmenuItemProps {
+	label: string;
+	to: string;
+	icon: React.ReactNode;
+	disabled?: boolean;
+	dialogContent?: React.ReactNode;
+	pattern?: { path: string; mode?: string | null };
+}
+
+function SubmenuItem({
+	label,
+	to,
+	icon,
+	disabled,
+	dialogContent,
+	pattern
+}: SubmenuItemProps) {
+	const location = useLocation();
+
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
+
+	const searchParams = new URLSearchParams(location.search);
+	const currentMode = searchParams.get('mode');
+	const modeMatch =
+		pattern?.mode !== undefined
+			? pattern.mode === null
+				? !currentMode || currentMode === 'table'
+				: currentMode === pattern.mode
+			: true;
+
+	const isActive = !!pathMatch && modeMatch;
+
+	const shouldShowDialog = disabled;
+
+	const handleClick = (e: React.MouseEvent) => {
+		if (shouldShowDialog) {
+			e.preventDefault();
+			setIsDialogOpen(true);
+		}
+	};
+
+	return (
+		<>
+			<SidebarAccordionLink
+				label={label}
+				icon={icon}
+				to={to}
+				isActive={isActive}
+				disabled={disabled}
+				linkComponent={LinkWithProject}
+				onClick={handleClick}
+				dialogContent={dialogContent}
+				onDialogOpen={
+					disabled && dialogContent ? () => setIsDialogOpen(true) : undefined
+				}
+			/>
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogPortal>
+					<ModalContent>
+						{dialogContent || (
+							<div className="bg-white p-6 rounded-lg">
+								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
+								<p>This section is not available yet.</p>
+							</div>
+						)}
+					</ModalContent>
+				</DialogPortal>
+			</Dialog>
+		</>
+	);
+}
