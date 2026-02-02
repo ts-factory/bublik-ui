@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom';
 
 import { bublikAPI } from '@/services/bublik-api';
+import { SIDEBAR_PREFIX } from '@/bublik/features/sidebar';
 
 import { PROJECT_KEY } from '../constants';
 
@@ -36,23 +37,78 @@ function useProjectSearch() {
 	};
 }
 
+/**
+ * Preserves sidebar state params from current URL into target params.
+ * Rules:
+ * - Preserve all params starting with `sidebar.`
+ * - Don't append if the key already exists in target params (allow explicit overrides)
+ * - Add project IDs
+ */
+function mergeParamsWithSidebarState(
+	targetParams: URLSearchParams,
+	currentSearchParams: URLSearchParams,
+	projectIds: number[]
+): URLSearchParams {
+	const result = new URLSearchParams(targetParams);
+
+	// Preserve sidebar.* params from current URL (if not already in target)
+	// Use getAll() to handle params with multiple values (like sidebar.runs.selected)
+	const keysToPreserve: string[] = [];
+	currentSearchParams.forEach((_, key) => {
+		if (key.startsWith(SIDEBAR_PREFIX + '.') && !keysToPreserve.includes(key)) {
+			keysToPreserve.push(key);
+		}
+	});
+
+	keysToPreserve.forEach((key) => {
+		if (!result.has(key)) {
+			const values = currentSearchParams.getAll(key);
+			values.forEach((value) => result.append(key, value));
+		}
+	});
+
+	// Add/merge project IDs
+	result.delete(PROJECT_KEY);
+	projectIds.forEach((id) => result.append(PROJECT_KEY, id.toString()));
+
+	return result;
+}
+
 function useNavigateWithProject() {
 	const { projectIds } = useProjectSearch();
+	const [currentSearchParams] = useSearchParams();
 	const _navigate = useNavigate();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
-		const params =
-			typeof to.search === 'string'
-				? new URLSearchParams(to.search)
-				: new URLSearchParams();
+		// Build target params from the 'to' object
+		const targetSearchStr =
+			typeof to === 'string'
+				? to.includes('?')
+					? to.split('?')[1]
+					: ''
+				: to.search || '';
 
-		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
+		const targetParams = new URLSearchParams(targetSearchStr);
+
+		// Merge with sidebar state and project IDs
+		const mergedParams = mergeParamsWithSidebarState(
+			targetParams,
+			currentSearchParams,
+			projectIds
+		);
 
 		if (typeof to === 'string') {
-			_navigate(to, options);
+			const pathname = to.includes('?') ? to.split('?')[0] : to;
+			const mergedSearch = mergedParams.toString();
+			const finalTo = mergedSearch ? `${pathname}?${mergedSearch}` : pathname;
+			_navigate(finalTo, options);
 		} else {
 			_navigate(
-				{ pathname: to.pathname, search: params.toString(), hash: to.hash },
+				{
+					pathname: to.pathname,
+					search: mergedParams.toString(),
+					hash: to.hash
+				},
 				options
 			);
 		}
