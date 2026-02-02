@@ -88,15 +88,11 @@ function getBaseUrl(url: string): string {
  */
 function addModeToUrl(baseUrl: string, mode: LogSidebarMode): string {
 	if (!baseUrl.includes('?')) {
-		return mode === 'treeAndinfoAndlog' ? baseUrl : `${baseUrl}?mode=${mode}`;
+		return `${baseUrl}?mode=${mode}`;
 	}
 	const [pathname, searchStr] = baseUrl.split('?');
 	const params = new URLSearchParams(searchStr);
-	if (mode === 'treeAndinfoAndlog') {
-		params.delete('mode');
-	} else {
-		params.set('mode', mode);
-	}
+	params.set('mode', mode);
 	const search = params.toString();
 	return search ? `${pathname}?${search}` : pathname;
 }
@@ -113,10 +109,7 @@ export function useLogSidebarState(): UseLogSidebarStateReturn {
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	const lastLogUrl = useMemo(
-		() =>
-			decodeUrlFromParam(
-				searchParams.get(LOG_SIDEBAR_KEYS.LAST_LOG)
-			),
+		() => decodeUrlFromParam(searchParams.get(LOG_SIDEBAR_KEYS.LAST_LOG)),
 		[searchParams]
 	);
 
