@@ -133,8 +133,9 @@ export const SidebarNavInfoButton = (
 ) => {
 	const { children, disabled } = props;
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const { isSidebarOpen } = useSidebar();
 
-	if (!children) return null;
+	if (!children || !isSidebarOpen) return null;
 
 	return (
 		<>
