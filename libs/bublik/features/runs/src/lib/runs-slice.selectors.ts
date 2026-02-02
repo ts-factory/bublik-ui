@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import {
 	createEntityAdapter,
 	createSelector,
@@ -9,7 +9,10 @@ import {
 import type { RunsData } from '@/shared/types';
 import type { BoxValue } from '@/shared/tailwind-ui';
 
-import { type AppStateWithRunsSlice, RUNS_PAGE_SLICE } from './runs-slice';
+import {
+	type AppStateWithRunsSlice,
+	RUNS_PAGE_SLICE
+} from './runs-slice';
 
 export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()
@@ -21,15 +24,6 @@ const getRunsPageState = (state: AppStateWithRunsSlice) =>
 export const selectGlobalFilter = createSelector(
 	getRunsPageState,
 	(state) => state.globalFilter
-);
-
-export const selectRowSelection = createSelector(getRunsPageState, (state) =>
-	Object.fromEntries(state.rowSelection.map((id) => [id, true]))
-);
-
-export const selectCompareIds = createSelector(
-	getRunsPageState,
-	(state) => state.rowSelection
 );
 
 export const getResults = createSelector(
