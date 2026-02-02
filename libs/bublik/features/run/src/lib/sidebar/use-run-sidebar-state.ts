@@ -7,7 +7,11 @@ import { useSearchParams } from 'react-router-dom';
 import {
 	RUN_SIDEBAR_KEYS,
 	RunMode,
-	SHARED_SIDEBAR_KEYS
+	SHARED_SIDEBAR_KEYS,
+	decodeUrlFromParam,
+	encodeUrlForParam,
+	stripSidebarParamsFromUrl,
+	extractRunIdFromUrl
 } from '@/bublik/features/sidebar';
 
 export interface UseRunSidebarStateReturn {
@@ -31,56 +35,6 @@ export interface UseRunSidebarStateReturn {
 
 	// Update last visited state
 	setLastVisited: (mode: RunMode, url: string, runId?: string) => void;
-}
-
-/**
- * Strips sidebar.* params from a URL to avoid recursive state growth.
- * Keeps project params.
- */
-function stripSidebarParamsFromUrl(url: string): string {
-	if (!url.includes('?')) return url;
-
-	const [pathname, searchStr] = url.split('?');
-	const params = new URLSearchParams(searchStr);
-
-	// Remove all sidebar.* params
-	const keysToRemove: string[] = [];
-	params.forEach((_, key) => {
-		if (key.startsWith('sidebar.')) {
-			keysToRemove.push(key);
-		}
-	});
-	keysToRemove.forEach((key) => params.delete(key));
-
-	const cleanedSearch = params.toString();
-	return cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
-}
-
-/**
- * Encodes a URL for storage in a URL param (URL-encode the path and query).
- */
-function encodeUrlForParam(url: string): string {
-	return encodeURIComponent(url);
-}
-
-/**
- * Decodes a URL from a URL param.
- */
-function decodeUrlFromParam(encoded: string | null): string | null {
-	if (!encoded) return null;
-	try {
-		return decodeURIComponent(encoded);
-	} catch {
-		return null;
-	}
-}
-
-/**
- * Extracts runId from a run URL like /runs/86793 or /runs/86793/report
- */
-function extractRunIdFromRunUrl(url: string): string | null {
-	const match = url.match(/\/runs\/(\d+)/);
-	return match ? match[1] : null;
 }
 
 export function useRunSidebarState(): UseRunSidebarStateReturn {
@@ -129,9 +83,14 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	const mainLinkUrl = useMemo(() => {
 		switch (lastMode) {
 			case 'details':
-				return lastDetailsUrl || (currentRunId ? `/runs/${currentRunId}` : '/runs');
+				return (
+					lastDetailsUrl || (currentRunId ? `/runs/${currentRunId}` : '/runs')
+				);
 			case 'report':
-				return lastReportUrl || (currentRunId ? `/runs/${currentRunId}/report` : '/runs');
+				return (
+					lastReportUrl ||
+					(currentRunId ? `/runs/${currentRunId}/report` : '/runs')
+				);
 			default:
 				return currentRunId ? `/runs/${currentRunId}` : '/runs';
 		}
@@ -156,7 +115,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 			}
 
 			// Update shared run context
-			const extractedRunId = runId || extractRunIdFromRunUrl(url);
+			const extractedRunId = runId || extractRunIdFromUrl(url);
 			if (extractedRunId) {
 				newParams.set(SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID, extractedRunId);
 				newParams.set(SHARED_SIDEBAR_KEYS.LAST_RUN_RUN_ID, extractedRunId);

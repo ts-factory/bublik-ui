@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Dialog, DialogPortal, Icon, ModalContent } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -152,8 +152,6 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
 	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
 
 	const searchParams = new URLSearchParams(location.search);
@@ -167,42 +165,23 @@ function SubmenuItem({
 
 	const isActive = !!pathMatch && modeMatch;
 
-	const shouldShowDialog = disabled;
-
 	const handleClick = (e: React.MouseEvent) => {
-		if (shouldShowDialog) {
+		if (disabled) {
 			e.preventDefault();
-			setIsDialogOpen(true);
 		}
 	};
 
 	return (
-		<>
-			<SidebarAccordionLink
-				label={label}
-				icon={icon}
-				to={to}
-				isActive={isActive}
-				disabled={disabled}
-				linkComponent={LinkWithProject}
-				onClick={handleClick}
-				dialogContent={dialogContent}
-				onDialogOpen={
-					disabled && dialogContent ? () => setIsDialogOpen(true) : undefined
-				}
-			/>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<ModalContent>
-						{dialogContent || (
-							<div className="bg-white p-6 rounded-lg">
-								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-								<p>This section is not available yet.</p>
-							</div>
-						)}
-					</ModalContent>
-				</DialogPortal>
-			</Dialog>
-		</>
+		<SidebarAccordionLink
+			label={label}
+			icon={icon}
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			linkComponent={LinkWithProject}
+			onClick={handleClick}
+			dialogContent={dialogContent}
+			onDialogOpen={undefined}
+		/>
 	);
 }
