@@ -66,3 +66,7 @@ export const SHARED_SIDEBAR_KEYS = {
 	LAST_LOG_RUN_ID: `${SIDEBAR_PREFIX}.shared.lastLogRunId`,
 	LAST_RUN_RUN_ID: `${SIDEBAR_PREFIX}.shared.lastRunRunId`
 } as const;
+
+export const DASHBOARD_SIDEBAR_KEYS = {
+	LAST_URL: `${SIDEBAR_PREFIX}.dashboard.lastUrl`
+} as const;
