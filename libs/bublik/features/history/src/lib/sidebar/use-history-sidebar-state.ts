@@ -7,7 +7,10 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	HISTORY_SIDEBAR_KEYS,
-	HistorySidebarMode
+	HistorySidebarMode,
+	decodeUrlFromParam,
+	encodeUrlForParam,
+	stripSidebarParamsFromUrl
 } from '@/bublik/features/sidebar';
 import {
 	useGetHistoryLinearQuery,
@@ -42,37 +45,6 @@ export interface UseHistorySidebarStateReturn {
 	setLastVisited: (mode: HistorySidebarMode, url: string) => void;
 }
 
-function stripSidebarParamsFromUrl(url: string): string {
-	if (!url.includes('?')) return url;
-
-	const [pathname, searchStr] = url.split('?');
-	const params = new URLSearchParams(searchStr);
-
-	const keysToRemove: string[] = [];
-	params.forEach((_, key) => {
-		if (key.startsWith('sidebar.')) {
-			keysToRemove.push(key);
-		}
-	});
-	keysToRemove.forEach((key) => params.delete(key));
-
-	const cleanedSearch = params.toString();
-	return cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
-}
-
-function encodeUrlForParam(url: string): string {
-	return encodeURIComponent(url);
-}
-
-function decodeUrlFromParam(encoded: string | null): string | null {
-	if (!encoded) return null;
-	try {
-		return decodeURIComponent(encoded);
-	} catch {
-		return null;
-	}
-}
-
 export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const { query } = useHistoryQuery();
@@ -100,7 +72,8 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 
 	// Decode stored URLs
 	const lastLinearUrl = useMemo(
-		() => decodeUrlFromParam(searchParams.get(HISTORY_SIDEBAR_KEYS.LAST_LINEAR)),
+		() =>
+			decodeUrlFromParam(searchParams.get(HISTORY_SIDEBAR_KEYS.LAST_LINEAR)),
 		[searchParams]
 	);
 	const lastAggregationUrl = useMemo(
@@ -115,7 +88,8 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 		[searchParams]
 	);
 	const lastSeriesUrl = useMemo(
-		() => decodeUrlFromParam(searchParams.get(HISTORY_SIDEBAR_KEYS.LAST_SERIES)),
+		() =>
+			decodeUrlFromParam(searchParams.get(HISTORY_SIDEBAR_KEYS.LAST_SERIES)),
 		[searchParams]
 	);
 	const lastStackedUrl = useMemo(

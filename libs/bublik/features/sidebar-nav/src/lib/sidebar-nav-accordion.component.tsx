@@ -5,13 +5,7 @@ import type { To } from 'react-router-dom';
 
 import { cn, Icon, Tooltip, useSidebar } from '@/shared/tailwind-ui';
 import { accordionLinkStyles, paddingTransition } from './sidebar-nav.styles';
-
-function toString(to: To): string {
-	if (typeof to === 'string') return to;
-	return `${to.pathname}${to.search ? `?${to.search}` : ''}${
-		to.hash ? `#${to.hash}` : ''
-	}`;
-}
+import { toString } from './sidebar-nav.utils';
 
 type SidebarAccordionLinkLocalProps = {
 	label: string;

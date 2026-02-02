@@ -9,7 +9,7 @@ import {
 } from 'react-router-dom';
 
 import { bublikAPI } from '@/services/bublik-api';
-import { SIDEBAR_PREFIX } from '@/bublik/features/sidebar';
+import { SIDEBAR_PREFIX } from '@/shared/types';
 
 import { PROJECT_KEY } from '../constants';
 

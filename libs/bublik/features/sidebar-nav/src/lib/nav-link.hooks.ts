@@ -31,7 +31,8 @@ const toHooksMatchPatterns = (
 ): HooksMatchPattern | HooksMatchPattern[] | undefined => {
 	if (!pattern) return undefined;
 	if (Array.isArray(pattern)) {
-		return pattern.map((p) => toHooksMatchPattern(p)!).filter(Boolean);
+		const result = pattern.map((p) => toHooksMatchPattern(p));
+		return result.filter((p): p is HooksMatchPattern => p !== undefined);
 	}
 	return toHooksMatchPattern(pattern);
 };

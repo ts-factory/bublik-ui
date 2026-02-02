@@ -7,7 +7,13 @@ import { useSearchParams } from 'react-router-dom';
 import {
 	LOG_SIDEBAR_KEYS,
 	LogSidebarMode,
-	SHARED_SIDEBAR_KEYS
+	SHARED_SIDEBAR_KEYS,
+	decodeUrlFromParam,
+	encodeUrlForParam,
+	stripSidebarParamsFromUrl,
+	getBaseUrl,
+	addModeToUrl,
+	extractRunIdFromLogUrl
 } from '@/bublik/features/sidebar';
 
 export interface UseLogSidebarStateReturn {
@@ -27,82 +33,6 @@ export interface UseLogSidebarStateReturn {
 
 	// Update last visited state
 	setLastVisited: (mode: LogSidebarMode, url: string, runId?: string) => void;
-}
-
-/**
- * Strips sidebar.* params from a URL to avoid recursive state growth.
- * Keeps project params.
- */
-function stripSidebarParamsFromUrl(url: string): string {
-	if (!url.includes('?')) return url;
-
-	const [pathname, searchStr] = url.split('?');
-	const params = new URLSearchParams(searchStr);
-
-	// Remove all sidebar.* params
-	const keysToRemove: string[] = [];
-	params.forEach((_, key) => {
-		if (key.startsWith('sidebar.')) {
-			keysToRemove.push(key);
-		}
-	});
-	keysToRemove.forEach((key) => params.delete(key));
-
-	const cleanedSearch = params.toString();
-	return cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
-}
-
-/**
- * Encodes a URL for storage in a URL param.
- */
-function encodeUrlForParam(url: string): string {
-	return encodeURIComponent(url);
-}
-
-/**
- * Decodes a URL from a URL param.
- */
-function decodeUrlFromParam(encoded: string | null): string | null {
-	if (!encoded) return null;
-	try {
-		return decodeURIComponent(encoded);
-	} catch {
-		return null;
-	}
-}
-
-/**
- * Gets base URL without mode parameter.
- */
-function getBaseUrl(url: string): string {
-	if (!url.includes('?')) return url;
-	const [pathname, searchStr] = url.split('?');
-	const params = new URLSearchParams(searchStr);
-	params.delete('mode');
-	const search = params.toString();
-	return search ? `${pathname}?${search}` : pathname;
-}
-
-/**
- * Adds mode parameter to URL.
- */
-function addModeToUrl(baseUrl: string, mode: LogSidebarMode): string {
-	if (!baseUrl.includes('?')) {
-		return `${baseUrl}?mode=${mode}`;
-	}
-	const [pathname, searchStr] = baseUrl.split('?');
-	const params = new URLSearchParams(searchStr);
-	params.set('mode', mode);
-	const search = params.toString();
-	return search ? `${pathname}?${search}` : pathname;
-}
-
-/**
- * Extracts runId from a log URL like /log/86793 or /log/86793?mode=...
- */
-function extractRunIdFromLogUrl(url: string): string | null {
-	const match = url.match(/\/log\/(\d+)/);
-	return match ? match[1] : null;
 }
 
 export function useLogSidebarState(): UseLogSidebarStateReturn {

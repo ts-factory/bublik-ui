@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { PropsWithChildren, ReactNode, useState, forwardRef } from 'react';
-import type { To } from 'react-router-dom';
 
 import {
 	cn,
@@ -18,13 +17,7 @@ import {
 	SidebarNavLinkExternalProps
 } from './sidebar-nav.types';
 import { linkStyles, paddingTransition } from './sidebar-nav.styles';
-
-function toString(to: To): string {
-	if (typeof to === 'string') return to;
-	return `${to.pathname}${to.search ? `?${to.search}` : ''}${
-		to.hash ? `#${to.hash}` : ''
-	}`;
-}
+import { toString } from './sidebar-nav.utils';
 
 export const SidebarNavInternalLink = forwardRef<
 	HTMLAnchorElement | HTMLDivElement,
@@ -33,7 +26,15 @@ export const SidebarNavInternalLink = forwardRef<
 	}
 >(
 	(
-		{ label, icon, to, linkComponent: LinkComponent, onClick, children, disabled },
+		{
+			label,
+			icon,
+			to,
+			linkComponent: LinkComponent,
+			onClick,
+			children,
+			disabled
+		},
 		ref
 	) => {
 		const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
@@ -66,7 +67,11 @@ export const SidebarNavInternalLink = forwardRef<
 
 		if (disabled) {
 			return (
-				<div ref={ref as React.Ref<HTMLDivElement>} className={cn(className)} style={style}>
+				<div
+					ref={ref as React.Ref<HTMLDivElement>}
+					className={cn(className)}
+					style={style}
+				>
 					{content}
 				</div>
 			);

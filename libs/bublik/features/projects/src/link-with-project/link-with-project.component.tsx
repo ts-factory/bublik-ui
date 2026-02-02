@@ -1,7 +1,7 @@
 import { ComponentPropsWithRef, forwardRef, Ref, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { SIDEBAR_PREFIX } from '@/bublik/features/sidebar';
+import { SIDEBAR_PREFIX } from '@/shared/types';
 
 import { useProjectSearch } from '../hooks';
 import { PROJECT_KEY } from '../constants';

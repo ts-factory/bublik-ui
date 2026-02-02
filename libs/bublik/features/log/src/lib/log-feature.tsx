@@ -68,7 +68,8 @@ function LogFeature(props: LogFeatureProps) {
 
 	useEffect(() => {
 		if (runId) {
-			const logMode: LogSidebarMode = mode || 'treeAndinfoAndlog';
+			const logMode: LogSidebarMode = (mode ||
+				'treeAndinfoAndlog') as LogSidebarMode;
 			setLastVisited(logMode, location.pathname + location.search, runId);
 		}
 	}, [runId, mode, location.pathname, location.search, setLastVisited]);
