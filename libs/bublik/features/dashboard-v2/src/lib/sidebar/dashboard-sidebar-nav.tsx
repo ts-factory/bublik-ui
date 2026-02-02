@@ -1,18 +1,47 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { Icon } from '@/shared/tailwind-ui';
-import { NavLink } from '@/bublik/features/sidebar-nav';
+import { useEffect } from 'react';
+import { useLocation, matchPath } from 'react-router-dom';
 
-import { DashboardDialog } from './dashboard-dialog';
+import { Icon } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	SidebarNavLinkWrapper,
+	SidebarNavInternalLink,
+	SidebarNavCollapsibleContainer
+} from '@/bublik/features/sidebar-nav';
+import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
+
+function useIsActive(patterns: { path: string }[]) {
+	const location = useLocation();
+	return patterns.some((p) => matchPath(p.path, location.pathname));
+}
 
 export function DashboardSidebarNav() {
+	const location = useLocation();
+	const { mainLinkUrl, setLastUrl } = useDashboardSidebarState();
+
+	const isActive = useIsActive([{ path: '/dashboard' }]);
+
+	useEffect(() => {
+		const isDashboardPage = matchPath('/dashboard', location.pathname);
+
+		if (isDashboardPage) {
+			setLastUrl(location.pathname + location.search);
+		}
+	}, [location.pathname, location.search, setLastUrl]);
+
 	return (
-		<NavLink
-			label="Dashboard"
-			to="/dashboard"
-			icon={<Icon name="Category" />}
-			pattern={{ path: '/dashboard' }}
-			dialogContent={<DashboardDialog />}
-		/>
+		<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+			<SidebarNavLinkWrapper label="Dashboard">
+				<SidebarNavInternalLink
+					label="Dashboard"
+					icon={<Icon name="Category" />}
+					to={mainLinkUrl}
+					isActive={isActive}
+					linkComponent={LinkWithProject}
+				/>
+			</SidebarNavLinkWrapper>
+		</SidebarNavCollapsibleContainer.Item>
 	);
 }
