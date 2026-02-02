@@ -4,5 +4,7 @@ export { HistorySidebarNav } from './history-sidebar-nav';
 export {
 	HistoryHelpDialog,
 	HistoryHelpTrendChartsDialog,
-	HistoryHelpMeasurementSeriesDialog
+	HistoryHelpMeasurementSeriesDialog,
+	HistoryHelpStackedChartsDialog
 } from './history-dialogs';
+export { useHistorySidebarState } from './use-history-sidebar-state';
