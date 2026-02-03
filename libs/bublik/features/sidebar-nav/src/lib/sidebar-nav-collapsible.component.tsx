@@ -11,10 +11,12 @@ import {
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
 import { wrapperStyles } from './sidebar-nav.styles';
+import { useIsActivePaths, type ActivePattern } from './use-is-active';
 
 interface SidebarCollapsibleContextValue {
 	isSubmenuOpen: boolean;
 	onToggle: () => void;
+	isActive: boolean;
 }
 
 const SidebarCollapsibleContext = createContext<
@@ -27,16 +29,17 @@ export const useSidebarCollapsible = () => {
 };
 
 export interface SidebarNavCollapsibleContainerProps {
-	isActive: boolean;
+	patterns: ActivePattern[];
 	children: ReactNode;
 }
 
 export const SidebarNavCollapsibleContainer = ({
-	isActive,
+	patterns,
 	children
 }: SidebarNavCollapsibleContainerProps) => {
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
+	const isActive = useIsActivePaths(patterns);
 	const [isSubmenuOpen, setIsSubmenuOpen] = useState(isActive);
 
 	const onToggle = () => setIsSubmenuOpen(!isSubmenuOpen);
@@ -52,7 +55,9 @@ export const SidebarNavCollapsibleContainer = ({
 	}, [isSidebarOpen, isActive]);
 
 	return (
-		<SidebarCollapsibleContext.Provider value={{ isSubmenuOpen, onToggle }}>
+		<SidebarCollapsibleContext.Provider
+			value={{ isSubmenuOpen, onToggle, isActive }}
+		>
 			<div className="relative">{children}</div>
 		</SidebarCollapsibleContext.Provider>
 	);
@@ -83,14 +88,13 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 };
 
 SidebarNavCollapsibleContainer.Item = function SidebarNavCollapsibleItem({
-	isActive,
 	children
 }: {
-	isActive: boolean;
 	children: ReactNode;
 }) {
 	const context = useSidebarCollapsible();
 	const isSubmenuOpen = context?.isSubmenuOpen ?? false;
+	const isActive = context?.isActive ?? false;
 
 	return (
 		<div

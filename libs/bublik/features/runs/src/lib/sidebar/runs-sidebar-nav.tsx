@@ -11,7 +11,6 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavSubmenuItem,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 
@@ -23,6 +22,12 @@ import {
 	MultipleRunsDialog,
 	CompareRunsDialog
 } from './runs-dialogs';
+
+const RUNS_SIDEBAR_PATTERNS = [
+	{ path: '/runs' },
+	{ path: '/compare' },
+	{ path: '/multiple' }
+];
 
 export function RunsSidebarNav() {
 	const location = useLocation();
@@ -38,12 +43,6 @@ export function RunsSidebarNav() {
 		multipleUrl,
 		setLastVisited
 	} = useRunsSidebarState();
-
-	const isActive = useIsActivePaths([
-		{ path: '/runs' },
-		{ path: '/compare' },
-		{ path: '/multiple' }
-	]);
 
 	useEffect(() => {
 		const isRunsPage = matchPath('/runs', location.pathname);
@@ -81,18 +80,17 @@ export function RunsSidebarNav() {
 	const hasMultipleUrl = isMultipleAvailable || !!lastMultipleUrl;
 
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={RUNS_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Runs">
 					<SidebarNavInternalLink
 						label="Runs"
 						icon={<Icon name="Play" />}
 						to={mainLinkUrl}
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 					/>
 				</SidebarNavLinkWrapper>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

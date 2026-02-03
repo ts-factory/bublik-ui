@@ -8,16 +8,15 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
-	SidebarNavCollapsibleContainer,
-	useIsActivePaths
+	SidebarNavCollapsibleContainer
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
+
+const DASHBOARD_SIDEBAR_PATTERNS = [{ path: '/dashboard' }];
 
 export function DashboardSidebarNav() {
 	const location = useLocation();
 	const { mainLinkUrl, setLastUrl } = useDashboardSidebarState();
-
-	const isActive = useIsActivePaths([{ path: '/dashboard' }]);
 
 	useEffect(() => {
 		const isDashboardPage = matchPath('/dashboard', location.pathname);
@@ -28,16 +27,17 @@ export function DashboardSidebarNav() {
 	}, [location.pathname, location.search, setLastUrl]);
 
 	return (
-		<SidebarNavCollapsibleContainer.Item isActive={isActive}>
-			<SidebarNavLinkWrapper label="Dashboard">
-				<SidebarNavInternalLink
-					label="Dashboard"
-					icon={<Icon name="Category" />}
-					to={mainLinkUrl}
-					isActive={isActive}
-					linkComponent={LinkWithProject}
-				/>
-			</SidebarNavLinkWrapper>
-		</SidebarNavCollapsibleContainer.Item>
+		<SidebarNavCollapsibleContainer patterns={DASHBOARD_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
+				<SidebarNavLinkWrapper label="Dashboard">
+					<SidebarNavInternalLink
+						label="Dashboard"
+						icon={<Icon name="Category" />}
+						to={mainLinkUrl}
+						linkComponent={LinkWithProject}
+					/>
+				</SidebarNavLinkWrapper>
+			</SidebarNavCollapsibleContainer.Item>
+		</SidebarNavCollapsibleContainer>
 	);
 }

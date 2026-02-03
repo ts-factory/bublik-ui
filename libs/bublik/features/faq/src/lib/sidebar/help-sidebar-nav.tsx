@@ -7,30 +7,28 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavLinkWrapper,
 	SidebarNavSubmenuItem,
-	SidebarNavToggle,
-	useIsActivePaths
+	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { config } from '@/bublik/config';
 
-export function HelpSidebarNav() {
-	const isActive = useIsActivePaths([
-		{ path: '/help', end: false },
-		{ path: '/help/faq' }
-	]);
+const HELP_SIDEBAR_PATTERNS = [
+	{ path: '/help', end: false },
+	{ path: '/help/faq' }
+];
 
+export function HelpSidebarNav() {
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={HELP_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Help">
 					<SidebarNavInternalLink
 						label="Help"
 						icon={<Icon name="Bulb" size={28} />}
 						to="/help/faq"
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 					/>
 				</SidebarNavLinkWrapper>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

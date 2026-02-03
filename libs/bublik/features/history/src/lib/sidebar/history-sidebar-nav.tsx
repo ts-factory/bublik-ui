@@ -11,7 +11,6 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavSubmenuItem,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
@@ -22,6 +21,8 @@ import {
 	HistoryHelpMeasurementSeriesDialog,
 	HistoryHelpStackedChartsDialog
 } from './history-dialogs';
+
+const HISTORY_SIDEBAR_PATTERNS = [{ path: '/history' }];
 
 export function HistorySidebarNav() {
 	const location = useLocation();
@@ -39,8 +40,6 @@ export function HistorySidebarNav() {
 		mainLinkUrl,
 		setLastVisited
 	} = useHistorySidebarState();
-
-	const isActive = useIsActivePaths([{ path: '/history' }]);
 
 	useEffect(() => {
 		if (location.pathname === '/history') {
@@ -72,18 +71,17 @@ export function HistorySidebarNav() {
 	const hasStackedUrl = isStackedAvailable;
 
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={HISTORY_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="History">
 					<SidebarNavInternalLink
 						label="History"
 						icon={<Icon name="TimeCircle" />}
 						to={mainLinkUrl}
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 					/>
 				</SidebarNavLinkWrapper>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

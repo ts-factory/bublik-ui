@@ -45,7 +45,10 @@ export {
 
 export { SidebarNavSubmenuItem } from './lib/sidebar-nav-submenu-item.component';
 
-export { useIsActivePaths } from './lib/use-is-active';
+export {
+	useIsActivePaths,
+	type ActivePattern
+} from './lib/use-is-active';
 
 export {
 	getSubmenuIsActive,

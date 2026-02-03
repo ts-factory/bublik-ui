@@ -12,7 +12,6 @@ import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItem,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { LogPageParams } from '@/shared/types';
@@ -36,13 +35,13 @@ function getModeFromSearch(search: string): LogSidebarMode {
 	}
 }
 
+const LOG_SIDEBAR_PATTERNS = [{ path: '/log/:runId' }];
+
 export function LogSidebarNav() {
 	const location = useLocation();
 	const { runId } = useParams<LogPageParams>();
 	const { isAvailable, getModeUrl, mainLinkUrl, setLastVisited } =
 		useLogSidebarState();
-
-	const isActive = useIsActivePaths([{ path: '/log/:runId' }]);
 
 	useEffect(() => {
 		const pathMatch = matchPath('/log/:runId', location.pathname);
@@ -53,14 +52,13 @@ export function LogSidebarNav() {
 	}, [location.pathname, location.search, runId, setLastVisited]);
 
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={LOG_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Log">
 					<SidebarNavInternalLink
 						label="Log"
 						icon={<Icon name="Paper" size={28} />}
 						to={mainLinkUrl}
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 						disabled={!isAvailable}
 					/>
@@ -68,7 +66,7 @@ export function LogSidebarNav() {
 				<SidebarNavInfoButton disabled={!isAvailable}>
 					<LogDialog />
 				</SidebarNavInfoButton>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

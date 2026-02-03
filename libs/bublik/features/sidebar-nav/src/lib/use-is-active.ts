@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { matchPath, useLocation, type PathPattern } from 'react-router-dom';
 
-type ActivePattern = Pick<PathPattern, 'path' | 'end' | 'caseSensitive'>;
+export type ActivePattern = Pick<PathPattern, 'path' | 'end' | 'caseSensitive'>;
 
 export function useIsActivePaths(patterns: ActivePattern[]) {
 	const location = useLocation();
