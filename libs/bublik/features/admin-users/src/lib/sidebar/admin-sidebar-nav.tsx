@@ -11,26 +11,24 @@ import {
 	SidebarNavLinkWrapper,
 	SidebarNavSubmenuItem,
 	SidebarNavToggle,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 
-export function AdminSidebarNav() {
-	const isActive = useIsActivePaths([{ path: '/admin/*' }]);
+const ADMIN_SIDEBAR_PATTERNS = [{ path: '/admin/*' }];
 
+export function AdminSidebarNav() {
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={ADMIN_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Admin">
 					<SidebarNavInternalLink
 						label="Admin"
 						icon={<Icon name="Edit" />}
 						to="/admin/import"
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 					/>
 				</SidebarNavLinkWrapper>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

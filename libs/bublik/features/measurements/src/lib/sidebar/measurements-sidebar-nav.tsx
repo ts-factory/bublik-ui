@@ -12,7 +12,6 @@ import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItem,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
@@ -37,14 +36,14 @@ function getModeFromSearch(search: string): MeasurementsSidebarMode {
 	}
 }
 
+const MEASUREMENTS_SIDEBAR_PATTERNS = [
+	{ path: '/runs/:runId/results/:resultId/measurements' }
+];
+
 export function MeasurementsSidebarNav() {
 	const location = useLocation();
 	const { isAvailable, getModeUrl, mainLinkUrl, setLastVisited } =
 		useMeasurementsSidebarState();
-
-	const isActive = useIsActivePaths([
-		{ path: '/runs/:runId/results/:resultId/measurements' }
-	]);
 
 	useEffect(() => {
 		const pathMatch = matchPath(
@@ -58,14 +57,13 @@ export function MeasurementsSidebarNav() {
 	}, [location.pathname, location.search, setLastVisited]);
 
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={MEASUREMENTS_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Result">
 					<SidebarNavInternalLink
 						label="Result"
 						icon={<Icon name="LineGraph" />}
 						to={mainLinkUrl}
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 						disabled={!isAvailable}
 					/>
@@ -73,7 +71,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavInfoButton disabled={!isAvailable}>
 					<ResultMeasurementsDialog />
 				</SidebarNavInfoButton>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

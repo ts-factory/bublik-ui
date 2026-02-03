@@ -13,7 +13,6 @@ import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItem,
-	useIsActivePaths,
 	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { useRunSidebarState } from './use-run-sidebar-state';
@@ -23,6 +22,11 @@ import {
 	RunReportDialog,
 	RunMainDialog
 } from './run-dialogs';
+
+const RUN_SIDEBAR_PATTERNS = [
+	{ path: '/runs/:runId' },
+	{ path: '/runs/:runId/report' }
+];
 
 export function RunSidebarNav() {
 	const location = useLocation();
@@ -39,11 +43,6 @@ export function RunSidebarNav() {
 		setLastVisited
 	} = useRunSidebarState();
 
-	const isActive = useIsActivePaths([
-		{ path: '/runs/:runId' },
-		{ path: '/runs/:runId/report' }
-	]);
-
 	useEffect(() => {
 		if (matchPath('/runs/:runId/report', location.pathname) && runId) {
 			setLastVisited('report', location.pathname + location.search, runId);
@@ -56,14 +55,13 @@ export function RunSidebarNav() {
 	const finalReportUrl = reportUrl || lastReportUrl || '/runs';
 
 	return (
-		<SidebarNavCollapsibleContainer isActive={isActive}>
-			<SidebarNavCollapsibleContainer.Item isActive={isActive}>
+		<SidebarNavCollapsibleContainer patterns={RUN_SIDEBAR_PATTERNS}>
+			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Run">
 					<SidebarNavInternalLink
 						label="Run"
 						icon={<Icon name="PieChart" />}
 						to={mainLinkUrl}
-						isActive={isActive}
 						linkComponent={LinkWithProject}
 						disabled={!isMainLinkAvailable}
 					/>
@@ -71,7 +69,7 @@ export function RunSidebarNav() {
 				<SidebarNavInfoButton disabled={!isMainLinkAvailable}>
 					<RunMainDialog />
 				</SidebarNavInfoButton>
-				<SidebarNavToggle isActive={isActive} />
+				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>

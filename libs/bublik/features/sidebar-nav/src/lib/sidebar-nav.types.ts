@@ -8,7 +8,7 @@ export type { LinkProps } from 'react-router-dom';
 export type SidebarNavLinkBaseProps = {
 	label: string;
 	icon: ReactNode;
-	isActive: boolean;
+	isActive?: boolean;
 	isSidebarOpen: boolean;
 	isSubmenuOpen?: boolean;
 	dialogContent?: ReactNode;

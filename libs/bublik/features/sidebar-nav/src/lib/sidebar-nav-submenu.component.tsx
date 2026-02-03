@@ -13,13 +13,13 @@ import { useSidebarCollapsible } from './sidebar-nav-collapsible.component';
 
 export interface SidebarNavToggleLocalProps {
 	isSubmenuOpen?: boolean;
-	isActive: boolean;
+	isActive?: boolean;
 	onToggle?: () => void;
 }
 
 export const SidebarNavToggle = ({
 	isSubmenuOpen: isSubmenuOpenProp,
-	isActive,
+	isActive: isActiveProp,
 	onToggle: onToggleProp
 }: SidebarNavToggleLocalProps) => {
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
@@ -30,6 +30,7 @@ export const SidebarNavToggle = ({
 	const isSubmenuOpen =
 		isSubmenuOpenProp ?? collapsibleContext?.isSubmenuOpen ?? false;
 	const onToggle = onToggleProp ?? collapsibleContext?.onToggle;
+	const isActive = isActiveProp ?? collapsibleContext?.isActive ?? false;
 
 	return (
 		<button
