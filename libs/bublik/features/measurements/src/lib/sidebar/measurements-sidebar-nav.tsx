@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -16,6 +15,7 @@ import {
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
 
 import { ResultMeasurementsDialog } from './measurements-dialog';
+import { Icon } from '@/shared/tailwind-ui';
 
 function getModeFromSearch(search: string): MeasurementsSidebarMode {
 	const params = new URLSearchParams(search);
@@ -84,8 +84,13 @@ export function MeasurementsSidebarNav() {
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChart" />
-					<SidebarNavSubmenuItemContainer.Label>Charts + Tables</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.Icon name="LineChart" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Charts + Tables
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<ResultMeasurementsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('split')}
@@ -96,8 +101,13 @@ export function MeasurementsSidebarNav() {
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LayoutSidebarHeader" />
-					<SidebarNavSubmenuItemContainer.Label>Charts || Tables</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.Icon name="LayoutSidebarHeader" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Charts || Tables
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<ResultMeasurementsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('tables')}
@@ -108,8 +118,13 @@ export function MeasurementsSidebarNav() {
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="PaperListText" />
-					<SidebarNavSubmenuItemContainer.Label>Measurement Tables</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.Icon name="PaperListText" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Measurement Tables
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<ResultMeasurementsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('overlay')}
@@ -120,8 +135,13 @@ export function MeasurementsSidebarNav() {
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChartMultiple" />
-					<SidebarNavSubmenuItemContainer.Label>Stacked Charts</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.Icon name="LineChartMultiple" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Stacked Charts
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<ResultMeasurementsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

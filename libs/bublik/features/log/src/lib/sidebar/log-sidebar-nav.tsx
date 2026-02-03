@@ -79,11 +79,11 @@ export function LogSidebarNav() {
 				disabled={!isAvailable}
 				linkComponent={LinkWithProject}
 			>
-				<Icon name="LayoutLogHeaderSidebar" />
+				<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeaderSidebar" />
 				<SidebarNavSubmenuItemContainer.Label>Tree+info+log</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
+				<SidebarNavSubmenuItemContainer.InfoButton>
 					<LogDialog />
-				</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer.InfoButton>
 			</SidebarNavSubmenuItemContainer>
 			<SidebarNavSubmenuItemContainer
 				to={getModeUrl('treeAndlog')}
@@ -94,11 +94,11 @@ export function LogSidebarNav() {
 				disabled={!isAvailable}
 				linkComponent={LinkWithProject}
 			>
-				<Icon name="LayoutLogSidebar" />
+				<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSidebar" />
 				<SidebarNavSubmenuItemContainer.Label>Tree+log</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
+				<SidebarNavSubmenuItemContainer.InfoButton>
 					<LogDialog />
-				</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer.InfoButton>
 			</SidebarNavSubmenuItemContainer>
 			<SidebarNavSubmenuItemContainer
 				to={getModeUrl('infoAndlog')}
@@ -109,11 +109,11 @@ export function LogSidebarNav() {
 				disabled={!isAvailable}
 				linkComponent={LinkWithProject}
 			>
-				<Icon name="LayoutLogHeader" />
+				<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeader" />
 				<SidebarNavSubmenuItemContainer.Label>Info+log</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
+				<SidebarNavSubmenuItemContainer.InfoButton>
 					<LogDialog />
-				</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer.InfoButton>
 			</SidebarNavSubmenuItemContainer>
 			<SidebarNavSubmenuItemContainer
 				to={getModeUrl('log')}
@@ -124,11 +124,11 @@ export function LogSidebarNav() {
 				disabled={!isAvailable}
 				linkComponent={LinkWithProject}
 			>
-				<Icon name="LayoutLogSingle" />
+				<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSingle" />
 				<SidebarNavSubmenuItemContainer.Label>Log</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
+				<SidebarNavSubmenuItemContainer.InfoButton>
 					<LogDialog />
-				</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

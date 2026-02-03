@@ -78,13 +78,16 @@ export function RunSidebarNav() {
 					disabled={!isDetailsAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="Paper" className="size-4" />
+					<SidebarNavSubmenuItemContainer.Icon
+						name="Paper"
+						className="size-6"
+					/>
 					<SidebarNavSubmenuItemContainer.Label>
 						Details
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunDetailsDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalReportUrl}
@@ -92,13 +95,13 @@ export function RunSidebarNav() {
 					disabled={!isReportAvailable}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChart" />
+					<SidebarNavSubmenuItemContainer.Icon name="LineChart" />
 					<SidebarNavSubmenuItemContainer.Label>
 						Report
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunReportDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

@@ -3,15 +3,13 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
-	SidebarNavSubmenuItemContainer,
-	SidebarNavInfoButton
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 
 import { useRunsSidebarState } from './use-runs-sidebar-state';
@@ -22,6 +20,7 @@ import {
 	MultipleRunsDialog,
 	CompareRunsDialog
 } from './runs-dialogs';
+import { Icon } from '@/shared/tailwind-ui';
 
 const RUNS_SIDEBAR_PATTERNS = [
 	{ path: '/runs' },
@@ -99,22 +98,32 @@ export function RunsSidebarNav() {
 					pattern={{ path: '/runs', mode: null, emptyModeMatches: ['table'] }}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="PaperListText" size={24} />
-					<SidebarNavSubmenuItemContainer.Label>List</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="PaperListText"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						List
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunsDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={chartsUrl}
 					pattern={{ path: '/runs', mode: 'charts' }}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChartMultiple" />
-					<SidebarNavSubmenuItemContainer.Label>Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="LineChartMultiple"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Charts
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunsChartsDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalMultipleUrl}
@@ -122,11 +131,16 @@ export function RunsSidebarNav() {
 					pattern={{ path: '/multiple' }}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="PaperStack" className="w-6 h-6" />
-					<SidebarNavSubmenuItemContainer.Label>Multiple</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
-					<MultipleRunsDialog />
-				</SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="PaperStack"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Multiple
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<MultipleRunsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalCompareUrl}
@@ -134,11 +148,17 @@ export function RunsSidebarNav() {
 					pattern={{ path: '/compare' }}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="SwapArrows" className="rotate-90" />
-					<SidebarNavSubmenuItemContainer.Label>Compare</SidebarNavSubmenuItemContainer.Label>
-				<SidebarNavInfoButton>
-					<CompareRunsDialog />
-				</SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="SwapArrows"
+						className="rotate-90"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Compare
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<CompareRunsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
