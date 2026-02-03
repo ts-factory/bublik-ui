@@ -12,7 +12,8 @@ import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItem,
-	useIsActivePaths
+	useIsActivePaths,
+	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { LogPageParams } from '@/shared/types';
 import { useLogSidebarState } from './use-log-sidebar-state';
@@ -141,13 +142,13 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
-
-	const searchParams = new URLSearchParams(location.search);
-	const currentMode = searchParams.get('mode') || 'log';
-	const modeMatch = pattern?.mode ? currentMode === pattern.mode : true;
-
-	const isActive = !!pathMatch && modeMatch;
+	const isActive = pattern
+		? getSubmenuIsActive(location, {
+				path: pattern.path,
+				mode: pattern.mode,
+				defaultMode: 'log'
+		  })
+		: true;
 
 	return (
 		<SidebarNavSubmenuItem

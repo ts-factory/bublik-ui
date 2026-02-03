@@ -11,7 +11,8 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavSubmenuItem,
-	useIsActivePaths
+	useIsActivePaths,
+	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
 
@@ -148,18 +149,13 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
-
-	const searchParams = new URLSearchParams(location.search);
-	const currentMode = searchParams.get('mode');
-	const modeMatch =
-		pattern?.mode !== undefined
-			? pattern.mode === null
-				? !currentMode || currentMode === 'linear'
-				: currentMode === pattern.mode
-			: true;
-
-	const isActive = !!pathMatch && modeMatch;
+	const isActive = pattern
+		? getSubmenuIsActive(location, {
+				path: pattern.path,
+				mode: pattern.mode,
+				emptyModeMatches: ['linear']
+		  })
+		: true;
 
 	return (
 		<SidebarNavSubmenuItem
