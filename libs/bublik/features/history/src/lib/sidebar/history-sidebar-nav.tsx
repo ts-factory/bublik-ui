@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -21,6 +20,7 @@ import {
 	HistoryHelpMeasurementSeriesDialog,
 	HistoryHelpStackedChartsDialog
 } from './history-dialogs';
+import { Icon } from '@/shared/tailwind-ui';
 
 const HISTORY_SIDEBAR_PATTERNS = [{ path: '/history' }];
 
@@ -87,25 +87,33 @@ export function HistorySidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={linearUrl}
-					pattern={{ path: '/history', mode: 'linear', emptyModeMatches: ['linear'] }}
+					pattern={{
+						path: '/history',
+						mode: 'linear',
+						emptyModeMatches: ['linear']
+					}}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="PaperListText" size={24} />
-					<SidebarNavSubmenuItemContainer.Label>List Of Results</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon name="PaperListText" size={22} />
+					<SidebarNavSubmenuItemContainer.Label>
+						List Of Results
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<HistoryHelpDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={aggregationUrl}
 					pattern={{ path: '/history', mode: 'aggregation' }}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="Aggregation" />
-					<SidebarNavSubmenuItemContainer.Label>Groups Of Results</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon name="Aggregation" size={22} />
+					<SidebarNavSubmenuItemContainer.Label>
+						Groups Of Results
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<HistoryHelpDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalTrendUrl}
@@ -113,11 +121,13 @@ export function HistorySidebarNav() {
 					disabled={!hasTrendUrl}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChartSingle" />
-					<SidebarNavSubmenuItemContainer.Label>Trend Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon name="LineChartSingle" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Trend Charts
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<HistoryHelpTrendChartsDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalSeriesUrl}
@@ -125,11 +135,13 @@ export function HistorySidebarNav() {
 					disabled={!hasSeriesUrl}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChartSingle" />
-					<SidebarNavSubmenuItemContainer.Label>Series Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon name="LineChartSingle" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Series Charts
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<HistoryHelpMeasurementSeriesDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalStackedUrl}
@@ -137,11 +149,13 @@ export function HistorySidebarNav() {
 					disabled={!hasStackedUrl}
 					linkComponent={LinkWithProject}
 				>
-					<Icon name="LineChartMultiple" />
-					<SidebarNavSubmenuItemContainer.Label>Stacked Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton>
+					<SidebarNavSubmenuItemContainer.Icon name="LineChartMultiple" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Stacked Charts
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
 						<HistoryHelpStackedChartsDialog />
-					</SidebarNavInfoButton>
+					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

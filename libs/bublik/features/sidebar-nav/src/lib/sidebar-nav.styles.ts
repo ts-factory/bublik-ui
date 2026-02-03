@@ -59,7 +59,7 @@ export const accordionLinkStyles = cva({
 			true: 'bg-[#ecf1ff] text-[#385bf9]',
 			false: 'text-text-menu hover:text-primary'
 		},
-		disabled: { true: 'hover:text-text-menu' }
+		disabled: { true: 'cursor-not-allowed hover:text-text-menu' }
 	}
 });
 
