@@ -2,11 +2,12 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import type { ComponentType, MouseEventHandler, ReactNode } from 'react';
 import { useState } from 'react';
-import type { To } from 'react-router-dom';
+import { useLocation, type To } from 'react-router-dom';
 
 import { Dialog, DialogPortal, ModalContent } from '@/shared/tailwind-ui';
 
 import { SidebarAccordionLink } from './sidebar-nav-accordion.component';
+import { getSubmenuIsActive, type SubmenuMatchPattern } from './sidebar-nav.matchers';
 
 type SidebarNavSubmenuItemProps = {
 	label: string;
@@ -79,5 +80,50 @@ export function SidebarNavSubmenuItem(props: SidebarNavSubmenuItemProps) {
 				</Dialog>
 			) : null}
 		</>
+	);
+}
+
+interface SidebarNavSubmenuItemContainerProps {
+	label: string;
+	to: string;
+	icon: ReactNode;
+	disabled?: boolean;
+	dialogContent?: ReactNode;
+	openDialogOnDisabled?: boolean;
+	pattern?: SubmenuMatchPattern;
+	linkComponent?: ComponentType<{
+		to: To;
+		className?: string;
+		style?: React.CSSProperties;
+		children: ReactNode;
+		onClick?: MouseEventHandler<HTMLAnchorElement>;
+	}>;
+}
+
+export function SidebarNavSubmenuItemContainer({
+	label,
+	to,
+	icon,
+	disabled,
+	dialogContent,
+	openDialogOnDisabled = true,
+	pattern,
+	linkComponent
+}: SidebarNavSubmenuItemContainerProps) {
+	const location = useLocation();
+
+	const isActive = pattern ? getSubmenuIsActive(location, pattern) : true;
+
+	return (
+		<SidebarNavSubmenuItem
+			label={label}
+			icon={icon}
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			dialogContent={dialogContent}
+			openDialogOnDisabled={openDialogOnDisabled}
+			linkComponent={linkComponent}
+		/>
 	);
 }

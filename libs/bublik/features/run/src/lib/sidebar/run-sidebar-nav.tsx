@@ -12,8 +12,7 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
-	SidebarNavSubmenuItem,
-	getSubmenuIsActive
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { useRunSidebarState } from './use-run-sidebar-state';
 
@@ -73,59 +72,25 @@ export function RunSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Details"
 					to={finalDetailsUrl}
 					icon={<Icon name="Paper" className="w-6 h-6" />}
 					pattern={{ path: '/runs/:runId' }}
 					dialogContent={<RunDetailsDialog />}
 					disabled={!isDetailsAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Report"
 					to={finalReportUrl}
 					icon={<Icon name="LineChart" />}
 					pattern={{ path: '/runs/:runId/report' }}
 					dialogContent={<RunReportDialog />}
 					disabled={!isReportAvailable}
+					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
-	);
-}
-
-interface SubmenuItemProps {
-	label: string;
-	to: string;
-	icon: React.ReactNode;
-	disabled?: boolean;
-	dialogContent?: React.ReactNode;
-	pattern?: { path: string };
-}
-
-function SubmenuItem({
-	label,
-	to,
-	icon,
-	disabled,
-	dialogContent,
-	pattern
-}: SubmenuItemProps) {
-	const location = useLocation();
-
-	const isActive = pattern
-		? getSubmenuIsActive(location, { path: pattern.path })
-		: true;
-
-	return (
-		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={LinkWithProject}
-			dialogContent={dialogContent}
-		/>
 	);
 }

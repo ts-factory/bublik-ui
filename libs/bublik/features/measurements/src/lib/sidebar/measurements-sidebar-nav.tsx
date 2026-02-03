@@ -11,8 +11,7 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
-	SidebarNavSubmenuItem,
-	getSubmenuIsActive
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
 
@@ -75,17 +74,19 @@ export function MeasurementsSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Charts + Tables"
 					to={getModeUrl('default')}
 					icon={<Icon name="LineChart" />}
 					pattern={{
 						path: '/runs/:runId/results/:resultId/measurements',
-						mode: 'default'
+						mode: 'default',
+						defaultMode: 'default'
 					}}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Charts || Tables"
 					to={getModeUrl('split')}
 					icon={<Icon name="LayoutSidebarHeader" />}
@@ -94,8 +95,9 @@ export function MeasurementsSidebarNav() {
 						mode: 'split'
 					}}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Measurement Tables"
 					to={getModeUrl('tables')}
 					icon={<Icon name="PaperListText" />}
@@ -104,8 +106,9 @@ export function MeasurementsSidebarNav() {
 						mode: 'tables'
 					}}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Stacked Charts"
 					to={getModeUrl('overlay')}
 					icon={<Icon name="LineChartMultiple" />}
@@ -114,6 +117,7 @@ export function MeasurementsSidebarNav() {
 						mode: 'overlay'
 					}}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
@@ -126,43 +130,3 @@ type MeasurementsSidebarMode =
 	| 'tables'
 	| 'split'
 	| 'overlay';
-
-interface SubmenuItemProps {
-	label: string;
-	to: string;
-	icon: React.ReactNode;
-	disabled?: boolean;
-	dialogContent?: React.ReactNode;
-	pattern?: { path: string; mode?: MeasurementsSidebarMode };
-}
-
-function SubmenuItem({
-	label,
-	to,
-	icon,
-	disabled,
-	dialogContent,
-	pattern
-}: SubmenuItemProps) {
-	const location = useLocation();
-
-	const isActive = pattern
-		? getSubmenuIsActive(location, {
-				path: pattern.path,
-				mode: pattern.mode,
-				defaultMode: 'default'
-		  })
-		: true;
-
-	return (
-		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={LinkWithProject}
-			dialogContent={dialogContent}
-		/>
-	);
-}

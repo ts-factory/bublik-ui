@@ -11,8 +11,7 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
-	SidebarNavSubmenuItem,
-	getSubmenuIsActive
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { LogPageParams } from '@/shared/types';
 import { useLogSidebarState } from './use-log-sidebar-state';
@@ -70,18 +69,20 @@ export function LogSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Tree+info+log"
 					to={getModeUrl('treeAndinfoAndlog')}
 					icon={<Icon name="LayoutLogHeaderSidebar" />}
 					pattern={{
 						path: '/log/:runId',
-						mode: 'treeAndinfoAndlog'
+						mode: 'treeAndinfoAndlog',
+						defaultMode: 'log'
 					}}
 					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Tree+log"
 					to={getModeUrl('treeAndlog')}
 					icon={<Icon name="LayoutLogSidebar" />}
@@ -91,8 +92,9 @@ export function LogSidebarNav() {
 					}}
 					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Info+log"
 					to={getModeUrl('infoAndlog')}
 					icon={<Icon name="LayoutLogHeader" />}
@@ -102,8 +104,9 @@ export function LogSidebarNav() {
 					}}
 					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Log"
 					to={getModeUrl('log')}
 					icon={<Icon name="LayoutLogSingle" />}
@@ -113,6 +116,7 @@ export function LogSidebarNav() {
 					}}
 					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
+					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
@@ -120,43 +124,3 @@ export function LogSidebarNav() {
 }
 
 type LogSidebarMode = 'log' | 'infoAndlog' | 'treeAndinfoAndlog' | 'treeAndlog';
-
-interface SubmenuItemProps {
-	label: string;
-	to: string;
-	icon: React.ReactNode;
-	disabled?: boolean;
-	dialogContent?: React.ReactNode;
-	pattern?: { path: string; mode?: LogSidebarMode };
-}
-
-function SubmenuItem({
-	label,
-	to,
-	icon,
-	disabled,
-	dialogContent,
-	pattern
-}: SubmenuItemProps) {
-	const location = useLocation();
-
-	const isActive = pattern
-		? getSubmenuIsActive(location, {
-				path: pattern.path,
-				mode: pattern.mode,
-				defaultMode: 'log'
-		  })
-		: true;
-
-	return (
-		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={LinkWithProject}
-			dialogContent={dialogContent}
-		/>
-	);
-}
