@@ -73,23 +73,33 @@ export function RunSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="Details"
 					to={finalDetailsUrl}
-					icon={<Icon name="Paper" className="w-6 h-6" />}
 					pattern={{ path: '/runs/:runId' }}
-					dialogContent={<RunDetailsDialog />}
 					disabled={!isDetailsAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="Paper" className="size-4" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Details
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isDetailsAvailable}>
+						<RunDetailsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Report"
 					to={finalReportUrl}
-					icon={<Icon name="LineChart" />}
 					pattern={{ path: '/runs/:runId/report' }}
-					dialogContent={<RunReportDialog />}
 					disabled={!isReportAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChart" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Report
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isReportAvailable}>
+						<RunReportDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

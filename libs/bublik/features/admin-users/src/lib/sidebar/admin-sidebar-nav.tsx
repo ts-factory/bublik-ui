@@ -29,33 +29,37 @@ export function AdminSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="Configs"
-					icon={<Icon name="SettingsSliders" size={24} />}
 					to="/admin/config"
 					pattern={{ path: '/admin/config' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="SettingsSliders" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>Configs</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Users"
-					icon={<Icon name="TwoUsers" size={24} />}
 					to="/admin/users"
 					pattern={{ path: '/admin/users' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="TwoUsers" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>Users</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Import"
-					icon={<Icon name="Import" size={24} />}
 					to="/admin/import"
 					pattern={{ path: '/admin/import' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="Import" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>Import</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Flower"
-					icon={<Icon name="LineChartOnline" size={24} />}
 					to="/admin/flower"
 					pattern={{ path: '/admin/flower' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartOnline" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>Flower</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

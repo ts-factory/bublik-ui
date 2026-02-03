@@ -48,6 +48,8 @@ export {
 	SidebarNavSubmenuItemContainer
 } from './lib/sidebar-nav-submenu-item.component';
 
+export { SidebarAccordionLabel } from './lib/sidebar-nav-accordion.component';
+
 export {
 	useIsActivePaths,
 	type ActivePattern
