@@ -5,26 +5,12 @@
 // Types
 // ============================
 export type {
-	SearchPattern,
-	MatchPattern,
-	NavLinkCommon,
-	NavLinkInternal,
-	NavLinkExternal,
-	NavLinkProps,
-	AccordionLinkProps,
-	SidebarItem,
 	SidebarNavLinkBaseProps,
 	SidebarNavLinkInternalProps,
 	SidebarNavLinkExternalProps,
-	SidebarAccordionLinkProps,
 	SidebarNavSubmenuProps,
 	SidebarNavToggleProps
 } from './lib/sidebar-nav.types';
-
-// ============================
-// Utilities
-// ============================
-export { isExternalLink, isInternalLink } from './lib/sidebar-nav.utils';
 
 // ============================
 // Styles
@@ -37,23 +23,6 @@ export {
 	accordionLinkStyles,
 	paddingTransition
 } from './lib/sidebar-nav.styles';
-
-// ============================
-// Hooks
-// ============================
-export {
-	useNavLink,
-	useAccordionLink,
-	useMatchPathPattern,
-	useMatchSearchPattern,
-	matchMultiple
-} from './lib/nav-link.hooks';
-export type {
-	UseAccordionLinkConfig,
-	UseNavLinkConfig,
-	HooksMatchPattern,
-	SearchPattern as HooksSearchPattern
-} from './lib/nav-link.hooks';
 
 // ============================
 // Presentational Components (Primitives)
@@ -74,10 +43,9 @@ export {
 	SidebarNavListWrapper
 } from './lib/sidebar-nav-submenu.component';
 
-// ============================
-// Connected Components (Containers)
-// ============================
-export { NavLink } from './lib/nav-link.container';
+export { SidebarNavSubmenuItem } from './lib/sidebar-nav-submenu-item.component';
+
+export { useIsActivePaths } from './lib/use-is-active';
 
 export {
 	SidebarNavCollapsibleContainer,

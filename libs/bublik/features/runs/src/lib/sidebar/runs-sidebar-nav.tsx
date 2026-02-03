@@ -9,8 +9,9 @@ import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
-	SidebarAccordionLink,
-	SidebarNavCollapsibleContainer
+	SidebarNavCollapsibleContainer,
+	SidebarNavSubmenuItem,
+	useIsActivePaths
 } from '@/bublik/features/sidebar-nav';
 import { useRunsSidebarState } from './use-runs-sidebar-state';
 
@@ -20,11 +21,6 @@ import {
 	MultipleRunsDialog,
 	CompareRunsDialog
 } from './runs-dialogs';
-
-function useIsActive(patterns: { path: string }[]) {
-	const location = useLocation();
-	return patterns.some((p) => matchPath(p.path, location.pathname));
-}
 
 export function RunsSidebarNav() {
 	const location = useLocation();
@@ -41,7 +37,7 @@ export function RunsSidebarNav() {
 		setLastVisited
 	} = useRunsSidebarState();
 
-	const isActive = useIsActive([
+	const isActive = useIsActivePaths([
 		{ path: '/runs' },
 		{ path: '/compare' },
 		{ path: '/multiple' }
@@ -165,23 +161,16 @@ function SubmenuItem({
 
 	const isActive = !!pathMatch && modeMatch;
 
-	const handleClick = (e: React.MouseEvent) => {
-		if (disabled) {
-			e.preventDefault();
-		}
-	};
-
 	return (
-		<SidebarAccordionLink
+		<SidebarNavSubmenuItem
 			label={label}
 			icon={icon}
 			to={to}
 			isActive={isActive}
 			disabled={disabled}
 			linkComponent={LinkWithProject}
-			onClick={handleClick}
 			dialogContent={dialogContent}
-			onDialogOpen={undefined}
+			openDialogOnDisabled={false}
 		/>
 	);
 }
