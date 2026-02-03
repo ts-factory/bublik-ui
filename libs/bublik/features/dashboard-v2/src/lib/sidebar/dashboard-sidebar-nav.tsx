@@ -8,7 +8,7 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
-	SidebarNavCollapsibleContainer
+	SidebarNavItem
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
 
@@ -27,17 +27,15 @@ export function DashboardSidebarNav() {
 	}, [location.pathname, location.search, setLastUrl]);
 
 	return (
-		<SidebarNavCollapsibleContainer patterns={DASHBOARD_SIDEBAR_PATTERNS}>
-			<SidebarNavCollapsibleContainer.Item>
-				<SidebarNavLinkWrapper label="Dashboard">
-					<SidebarNavInternalLink
-						label="Dashboard"
-						icon={<Icon name="Category" />}
-						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
-					/>
-				</SidebarNavLinkWrapper>
-			</SidebarNavCollapsibleContainer.Item>
-		</SidebarNavCollapsibleContainer>
+		<SidebarNavItem patterns={DASHBOARD_SIDEBAR_PATTERNS}>
+			<SidebarNavLinkWrapper label="Dashboard">
+				<SidebarNavInternalLink
+					label="Dashboard"
+					icon={<Icon name="Category" />}
+					to={mainLinkUrl}
+					linkComponent={LinkWithProject}
+				/>
+			</SidebarNavLinkWrapper>
+		</SidebarNavItem>
 	);
 }

@@ -116,3 +116,30 @@ SidebarNavCollapsibleContainer.Item = function SidebarNavCollapsibleItem({
 		</div>
 	);
 };
+
+export interface SidebarNavItemProps {
+	patterns: ActivePattern[];
+	children: ReactNode;
+}
+
+export const SidebarNavItem = ({ patterns, children }: SidebarNavItemProps) => {
+	const isActive = useIsActivePaths(patterns);
+
+	return (
+		<div
+			className={cn(
+				'relative transition-all rounded-lg delay-500 duration-500',
+				isActive ? 'z-10' : ''
+			)}
+		>
+			<div
+				className={cn(
+					wrapperStyles({ isActive, isSubmenuOpen: false }),
+					'transition-[margin-bottom] group relative mb-0'
+				)}
+			>
+				{children}
+			</div>
+		</div>
+	);
+};
