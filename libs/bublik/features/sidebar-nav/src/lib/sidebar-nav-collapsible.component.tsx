@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
+
 import { wrapperStyles } from './sidebar-nav.styles';
 
 interface SidebarCollapsibleContextValue {
@@ -36,7 +37,6 @@ export const SidebarNavCollapsibleContainer = ({
 }: SidebarNavCollapsibleContainerProps) => {
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
-
 	const [isSubmenuOpen, setIsSubmenuOpen] = useState(isActive);
 
 	const onToggle = () => setIsSubmenuOpen(!isSubmenuOpen);
@@ -58,7 +58,6 @@ export const SidebarNavCollapsibleContainer = ({
 	);
 };
 
-// Compound component for submenu
 SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 	children
 }: {
@@ -83,7 +82,6 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 	);
 };
 
-// Compound component for the main item wrapper (includes list wrapper styles)
 SidebarNavCollapsibleContainer.Item = function SidebarNavCollapsibleItem({
 	isActive,
 	children

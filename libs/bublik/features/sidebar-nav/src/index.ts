@@ -48,6 +48,11 @@ export { SidebarNavSubmenuItem } from './lib/sidebar-nav-submenu-item.component'
 export { useIsActivePaths } from './lib/use-is-active';
 
 export {
+	getSubmenuIsActive,
+	type SubmenuMatchPattern
+} from './lib/sidebar-nav.matchers';
+
+export {
 	SidebarNavCollapsibleContainer,
 	type SidebarNavCollapsibleContainerProps
 } from './lib/sidebar-nav-collapsible.component';
