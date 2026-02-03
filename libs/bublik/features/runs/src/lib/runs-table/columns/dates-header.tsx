@@ -1,13 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
 import { Icon, Tooltip } from '@/shared/tailwind-ui';
+import { formatTimezoneOffset } from '@/shared/utils';
 
-export const DatesHeader: FC = () => {
+function DatesHeader() {
+	const timeZone = formatTimezoneOffset();
+
 	return (
 		<div className="flex items-center gap-1">
-			<Tooltip content="Time zone: UTC">
+			<Tooltip content={`Time zone: ${timeZone}`}>
 				<Icon
 					name="InformationCircleQuestionMark"
 					size={16}
@@ -17,4 +18,6 @@ export const DatesHeader: FC = () => {
 			<span>Dates</span>
 		</div>
 	);
-};
+}
+
+export { DatesHeader };

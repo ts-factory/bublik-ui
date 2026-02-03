@@ -18,6 +18,22 @@ export const formatTimeToDot = (date?: string): string => {
 	return format(parseISO(date), TIME_DOT_FORMAT);
 };
 
+export function formatTimezoneOffset(): string {
+	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+	const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		timeZoneName: 'shortOffset'
+	});
+
+	const gmtOffset =
+		offsetFormatter
+			.formatToParts(new Date())
+			.find((part) => part.type === 'timeZoneName')?.value || 'GMT';
+
+	return gmtOffset;
+}
+
 export const parseDetailDate = (dateString?: string) => {
 	if (!dateString) return null;
 
