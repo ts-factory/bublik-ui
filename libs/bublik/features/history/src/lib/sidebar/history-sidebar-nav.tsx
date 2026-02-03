@@ -92,7 +92,7 @@ export function HistorySidebarNav() {
 				>
 					<Icon name="PaperListText" size={24} />
 					<SidebarNavSubmenuItemContainer.Label>List Of Results</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={false}>
+					<SidebarNavInfoButton>
 						<HistoryHelpDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
@@ -103,7 +103,7 @@ export function HistorySidebarNav() {
 				>
 					<Icon name="Aggregation" />
 					<SidebarNavSubmenuItemContainer.Label>Groups Of Results</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={false}>
+					<SidebarNavInfoButton>
 						<HistoryHelpDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
@@ -115,7 +115,7 @@ export function HistorySidebarNav() {
 				>
 					<Icon name="LineChartSingle" />
 					<SidebarNavSubmenuItemContainer.Label>Trend Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!hasTrendUrl}>
+					<SidebarNavInfoButton>
 						<HistoryHelpTrendChartsDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
@@ -127,7 +127,7 @@ export function HistorySidebarNav() {
 				>
 					<Icon name="LineChartSingle" />
 					<SidebarNavSubmenuItemContainer.Label>Series Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!hasSeriesUrl}>
+					<SidebarNavInfoButton>
 						<HistoryHelpMeasurementSeriesDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
@@ -139,7 +139,7 @@ export function HistorySidebarNav() {
 				>
 					<Icon name="LineChartMultiple" />
 					<SidebarNavSubmenuItemContainer.Label>Stacked Charts</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!hasStackedUrl}>
+					<SidebarNavInfoButton>
 						<HistoryHelpStackedChartsDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>

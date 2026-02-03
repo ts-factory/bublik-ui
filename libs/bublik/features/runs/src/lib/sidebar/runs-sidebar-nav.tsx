@@ -124,9 +124,9 @@ export function RunsSidebarNav() {
 				>
 					<Icon name="PaperStack" className="w-6 h-6" />
 					<SidebarNavSubmenuItemContainer.Label>Multiple</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!hasMultipleUrl}>
-						<MultipleRunsDialog />
-					</SidebarNavInfoButton>
+				<SidebarNavInfoButton>
+					<MultipleRunsDialog />
+				</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalCompareUrl}
@@ -136,9 +136,9 @@ export function RunsSidebarNav() {
 				>
 					<Icon name="SwapArrows" className="rotate-90" />
 					<SidebarNavSubmenuItemContainer.Label>Compare</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!hasCompareUrl}>
-						<CompareRunsDialog />
-					</SidebarNavInfoButton>
+				<SidebarNavInfoButton>
+					<CompareRunsDialog />
+				</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
