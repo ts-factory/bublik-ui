@@ -8,20 +8,16 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
-	SidebarNavCollapsibleContainer
+	SidebarNavCollapsibleContainer,
+	useIsActivePaths
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
-
-function useIsActive(patterns: { path: string }[]) {
-	const location = useLocation();
-	return patterns.some((p) => matchPath(p.path, location.pathname));
-}
 
 export function DashboardSidebarNav() {
 	const location = useLocation();
 	const { mainLinkUrl, setLastUrl } = useDashboardSidebarState();
 
-	const isActive = useIsActive([{ path: '/dashboard' }]);
+	const isActive = useIsActivePaths([{ path: '/dashboard' }]);
 
 	useEffect(() => {
 		const isDashboardPage = matchPath('/dashboard', location.pathname);

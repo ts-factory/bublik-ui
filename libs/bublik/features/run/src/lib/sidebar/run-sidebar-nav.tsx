@@ -1,27 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, matchPath, useParams } from 'react-router-dom';
 
-import { Dialog, DialogPortal, Icon, ModalContent } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { RunPageParams } from '@/shared/types';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
-	SidebarAccordionLink,
 	SidebarNavCollapsibleContainer,
-	SidebarNavInfoButton
+	SidebarNavInfoButton,
+	SidebarNavSubmenuItem,
+	useIsActivePaths
 } from '@/bublik/features/sidebar-nav';
 import { useRunSidebarState } from './use-run-sidebar-state';
 
-import { RunDetailsDialog, RunReportDialog, RunMainDialog } from './run-dialogs';
-
-function useIsActive(patterns: { path: string }[]) {
-	const location = useLocation();
-	return patterns.some((p) => matchPath(p.path, location.pathname));
-}
+import {
+	RunDetailsDialog,
+	RunReportDialog,
+	RunMainDialog
+} from './run-dialogs';
 
 export function RunSidebarNav() {
 	const location = useLocation();
@@ -38,7 +38,7 @@ export function RunSidebarNav() {
 		setLastVisited
 	} = useRunSidebarState();
 
-	const isActive = useIsActive([
+	const isActive = useIsActivePaths([
 		{ path: '/runs/:runId' },
 		{ path: '/runs/:runId/report' }
 	]);
@@ -114,47 +114,18 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
 	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
 	const isActive = !!pathMatch;
 
-	const shouldShowDialog = disabled;
-
-	const handleClick = (e: React.MouseEvent) => {
-		if (shouldShowDialog) {
-			e.preventDefault();
-			setIsDialogOpen(true);
-		}
-	};
-
 	return (
-		<>
-			<SidebarAccordionLink
-				label={label}
-				icon={icon}
-				to={to}
-				isActive={isActive}
-				disabled={disabled}
-				linkComponent={LinkWithProject}
-				onClick={handleClick}
-				dialogContent={dialogContent}
-				onDialogOpen={
-					disabled && dialogContent ? () => setIsDialogOpen(true) : undefined
-				}
-			/>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<ModalContent>
-						{dialogContent || (
-							<div className="bg-white p-6 rounded-lg">
-								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-								<p>This section is not available yet.</p>
-							</div>
-						)}
-					</ModalContent>
-				</DialogPortal>
-			</Dialog>
-		</>
+		<SidebarNavSubmenuItem
+			label={label}
+			icon={icon}
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			linkComponent={LinkWithProject}
+			dialogContent={dialogContent}
+		/>
 	);
 }

@@ -9,9 +9,8 @@ import {
 } from 'react-router-dom';
 
 import { bublikAPI } from '@/services/bublik-api';
-import { SIDEBAR_PREFIX } from '@/shared/types';
-
 import { PROJECT_KEY } from '../constants';
+import { mergeParamsWithSidebarState } from '../lib/sidebar-params.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -35,43 +34,6 @@ function useProjectSearch() {
 		projectIds,
 		setProjectsIds: setProjectIds
 	};
-}
-
-/**
- * Preserves sidebar state params from current URL into target params.
- * Rules:
- * - Preserve all params starting with `sidebar.`
- * - Don't append if the key already exists in target params (allow explicit overrides)
- * - Add project IDs
- */
-function mergeParamsWithSidebarState(
-	targetParams: URLSearchParams,
-	currentSearchParams: URLSearchParams,
-	projectIds: number[]
-): URLSearchParams {
-	const result = new URLSearchParams(targetParams);
-
-	// Preserve sidebar.* params from current URL (if not already in target)
-	// Use getAll() to handle params with multiple values (like sidebar.runs.selected)
-	const keysToPreserve: string[] = [];
-	currentSearchParams.forEach((_, key) => {
-		if (key.startsWith(SIDEBAR_PREFIX + '.') && !keysToPreserve.includes(key)) {
-			keysToPreserve.push(key);
-		}
-	});
-
-	keysToPreserve.forEach((key) => {
-		if (!result.has(key)) {
-			const values = currentSearchParams.getAll(key);
-			values.forEach((value) => result.append(key, value));
-		}
-	});
-
-	// Add/merge project IDs
-	result.delete(PROJECT_KEY);
-	projectIds.forEach((id) => result.append(PROJECT_KEY, id.toString()));
-
-	return result;
 }
 
 function useNavigateWithProject() {

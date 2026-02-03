@@ -1,26 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Dialog, DialogPortal, Icon, ModalContent } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
-	SidebarAccordionLink,
 	SidebarNavCollapsibleContainer,
-	SidebarNavInfoButton
+	SidebarNavInfoButton,
+	SidebarNavSubmenuItem,
+	useIsActivePaths
 } from '@/bublik/features/sidebar-nav';
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
 
 import { ResultMeasurementsDialog } from './measurements-dialog';
-
-function useIsActive(patterns: { path: string }[]) {
-	const location = useLocation();
-	return patterns.some((p) => matchPath(p.path, location.pathname));
-}
 
 function getModeFromSearch(search: string): MeasurementsSidebarMode {
 	const params = new URLSearchParams(search);
@@ -45,7 +41,7 @@ export function MeasurementsSidebarNav() {
 	const { isAvailable, getModeUrl, mainLinkUrl, setLastVisited } =
 		useMeasurementsSidebarState();
 
-	const isActive = useIsActive([
+	const isActive = useIsActivePaths([
 		{ path: '/runs/:runId/results/:resultId/measurements' }
 	]);
 
@@ -151,8 +147,6 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
 	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
 
 	const searchParams = new URLSearchParams(location.search);
@@ -161,42 +155,15 @@ function SubmenuItem({
 
 	const isActive = !!pathMatch && modeMatch;
 
-	const shouldShowDialog = disabled;
-
-	const handleClick = (e: React.MouseEvent) => {
-		if (shouldShowDialog) {
-			e.preventDefault();
-			setIsDialogOpen(true);
-		}
-	};
-
 	return (
-		<>
-			<SidebarAccordionLink
-				label={label}
-				icon={icon}
-				to={to}
-				isActive={isActive}
-				disabled={disabled}
-				linkComponent={LinkWithProject}
-				onClick={handleClick}
-				dialogContent={dialogContent}
-				onDialogOpen={
-					disabled && dialogContent ? () => setIsDialogOpen(true) : undefined
-				}
-			/>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<ModalContent>
-						{dialogContent || (
-							<div className="bg-white p-6 rounded-lg">
-								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-								<p>This section is not available yet.</p>
-							</div>
-						)}
-					</ModalContent>
-				</DialogPortal>
-			</Dialog>
-		</>
+		<SidebarNavSubmenuItem
+			label={label}
+			icon={icon}
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			linkComponent={LinkWithProject}
+			dialogContent={dialogContent}
+		/>
 	);
 }

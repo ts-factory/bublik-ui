@@ -1,16 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Dialog, DialogPortal, Icon, ModalContent } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
-	SidebarAccordionLink,
-	SidebarNavCollapsibleContainer
+	SidebarNavCollapsibleContainer,
+	SidebarNavSubmenuItem,
+	useIsActivePaths
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
 
@@ -20,11 +21,6 @@ import {
 	HistoryHelpMeasurementSeriesDialog,
 	HistoryHelpStackedChartsDialog
 } from './history-dialogs';
-
-function useIsActive(patterns: { path: string }[]) {
-	const location = useLocation();
-	return patterns.some((p) => matchPath(p.path, location.pathname));
-}
 
 export function HistorySidebarNav() {
 	const location = useLocation();
@@ -43,7 +39,7 @@ export function HistorySidebarNav() {
 		setLastVisited
 	} = useHistorySidebarState();
 
-	const isActive = useIsActive([{ path: '/history' }]);
+	const isActive = useIsActivePaths([{ path: '/history' }]);
 
 	useEffect(() => {
 		if (location.pathname === '/history') {
@@ -64,7 +60,8 @@ export function HistorySidebarNav() {
 		}
 	}, [location.pathname, location.search, setLastVisited]);
 
-	const finalTrendUrl = trendUrl || lastTrendUrl || '/history?mode=measurements';
+	const finalTrendUrl =
+		trendUrl || lastTrendUrl || '/history?mode=measurements';
 	const finalSeriesUrl =
 		seriesUrl || lastSeriesUrl || '/history?mode=measurements-by-iteration';
 	const finalStackedUrl = stackedUrl || '/history?mode=measurements-combined';
@@ -151,8 +148,6 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
 	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
 
 	const searchParams = new URLSearchParams(location.search);
@@ -166,42 +161,15 @@ function SubmenuItem({
 
 	const isActive = !!pathMatch && modeMatch;
 
-	const shouldShowDialog = disabled;
-
-	const handleClick = (e: React.MouseEvent) => {
-		if (shouldShowDialog) {
-			e.preventDefault();
-			setIsDialogOpen(true);
-		}
-	};
-
 	return (
-		<>
-			<SidebarAccordionLink
-				label={label}
-				icon={icon}
-				to={to}
-				isActive={isActive}
-				disabled={disabled}
-				linkComponent={LinkWithProject}
-				onClick={handleClick}
-				dialogContent={dialogContent}
-				onDialogOpen={
-					disabled && dialogContent ? () => setIsDialogOpen(true) : undefined
-				}
-			/>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<ModalContent>
-						{dialogContent || (
-							<div className="bg-white p-6 rounded-lg">
-								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-								<p>This section is not available yet.</p>
-							</div>
-						)}
-					</ModalContent>
-				</DialogPortal>
-			</Dialog>
-		</>
+		<SidebarNavSubmenuItem
+			label={label}
+			icon={icon}
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			linkComponent={LinkWithProject}
+			dialogContent={dialogContent}
+		/>
 	);
 }
