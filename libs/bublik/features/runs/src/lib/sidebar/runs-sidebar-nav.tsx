@@ -99,7 +99,6 @@ export function RunsSidebarNav() {
 					icon={<Icon name="PaperListText" size={24} />}
 					pattern={{ path: '/runs', mode: null, emptyModeMatches: ['table'] }}
 					dialogContent={<RunsDialog />}
-					openDialogOnDisabled={false}
 					linkComponent={LinkWithProject}
 				/>
 				<SidebarNavSubmenuItemContainer
@@ -108,7 +107,6 @@ export function RunsSidebarNav() {
 					icon={<Icon name="LineChartMultiple" />}
 					pattern={{ path: '/runs', mode: 'charts' }}
 					dialogContent={<RunsChartsDialog />}
-					openDialogOnDisabled={false}
 					linkComponent={LinkWithProject}
 				/>
 				<SidebarNavSubmenuItemContainer
@@ -118,7 +116,6 @@ export function RunsSidebarNav() {
 					disabled={!hasMultipleUrl}
 					dialogContent={<MultipleRunsDialog />}
 					pattern={{ path: '/multiple' }}
-					openDialogOnDisabled={false}
 					linkComponent={LinkWithProject}
 				/>
 				<SidebarNavSubmenuItemContainer
@@ -128,7 +125,6 @@ export function RunsSidebarNav() {
 					disabled={!hasCompareUrl}
 					dialogContent={<CompareRunsDialog />}
 					pattern={{ path: '/compare' }}
-					openDialogOnDisabled={false}
 					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
