@@ -1,13 +1,35 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import type { ComponentType, MouseEventHandler, ReactNode } from 'react';
-import { Children, isValidElement } from 'react';
+import { Children, createContext, isValidElement, useContext } from 'react';
 import { useLocation, type To } from 'react-router-dom';
 
 import { cn } from '@/shared/tailwind-ui';
 
 import { SidebarAccordionLink, SidebarAccordionLabel } from './sidebar-nav-accordion.component';
 import { getSubmenuIsActive, type SubmenuMatchPattern } from './sidebar-nav.matchers';
+
+// ============================
+// Submenu Item Context
+// ============================
+
+interface SidebarNavSubmenuItemContextValue {
+	disabled: boolean;
+}
+
+const SidebarNavSubmenuItemContext = createContext<SidebarNavSubmenuItemContextValue | undefined>(
+	undefined
+);
+
+export function useSidebarNavSubmenuItem(): SidebarNavSubmenuItemContextValue {
+	const context = useContext(SidebarNavSubmenuItemContext);
+	if (context === undefined) {
+		throw new Error(
+			'useSidebarNavSubmenuItem must be used within SidebarNavSubmenuItemContainer'
+		);
+	}
+	return context;
+}
 
 // ============================
 // Submenu Item Compound Components
@@ -24,19 +46,6 @@ function SidebarNavSubmenuIcon({ children }: { children: ReactNode }) {
 function SidebarNavSubmenuLabel({ children }: { children: ReactNode }) {
 	return (
 		<span className="truncate text-[0.875rem] leading-[1.5rem]">
-			{children}
-		</span>
-	);
-}
-
-interface SidebarNavSubmenuInfoButtonProps {
-	children: ReactNode;
-	disabled?: boolean;
-}
-
-function SidebarNavSubmenuInfoButton({ children, disabled }: SidebarNavSubmenuInfoButtonProps) {
-	return (
-		<span data-info-button className={cn(disabled && 'disabled')}>
 			{children}
 		</span>
 	);
@@ -64,7 +73,7 @@ type SidebarNavSubmenuItemProps = {
 	| { href: string }
 );
 
-export function SidebarNavSubmenuItem(props: SidebarNavSubmenuItemProps) {
+function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 	const { children, isActive, disabled } = props;
 
 	const linkProps =
@@ -100,7 +109,7 @@ interface SidebarNavSubmenuItemContainerProps {
 export function SidebarNavSubmenuItemContainer({
 	children,
 	to,
-	disabled,
+	disabled = false,
 	pattern,
 	linkComponent
 }: SidebarNavSubmenuItemContainerProps) {
@@ -147,14 +156,26 @@ export function SidebarNavSubmenuItemContainer({
 	});
 
 	return (
-		<SidebarNavSubmenuItem
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={linkComponent}
-		>
-			{processedChildren}
-		</SidebarNavSubmenuItem>
+		<SidebarNavSubmenuItemContext.Provider value={{ disabled }}>
+			<SidebarNavSubmenuItemComponent
+				to={to}
+				isActive={isActive}
+				disabled={disabled}
+				linkComponent={linkComponent}
+			>
+				{processedChildren}
+			</SidebarNavSubmenuItemComponent>
+		</SidebarNavSubmenuItemContext.Provider>
+	);
+}
+
+// SidebarNavSubmenuInfoButton component that reads from context
+function SidebarNavSubmenuInfoButton({ children }: { children: ReactNode }) {
+	const { disabled } = useSidebarNavSubmenuItem();
+	return (
+		<span data-info-button className={cn(disabled && 'disabled')}>
+			{children}
+		</span>
 	);
 }
 
@@ -163,3 +184,11 @@ SidebarNavSubmenuItemContainer.Icon = SidebarNavSubmenuIcon;
 SidebarNavSubmenuItemContainer.Label = SidebarNavSubmenuLabel;
 SidebarNavSubmenuItemContainer.InfoButton = SidebarNavSubmenuInfoButton;
 SidebarNavSubmenuItemContainer.SidebarAccordionLabel = SidebarAccordionLabel;
+
+// Export the component with compound components attached
+export const SidebarNavSubmenuItem = Object.assign(SidebarNavSubmenuItemComponent, {
+	Icon: SidebarNavSubmenuIcon,
+	Label: SidebarNavSubmenuLabel,
+	InfoButton: SidebarNavSubmenuInfoButton,
+	SidebarAccordionLabel: SidebarAccordionLabel
+});

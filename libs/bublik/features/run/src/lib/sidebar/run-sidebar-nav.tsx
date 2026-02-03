@@ -82,7 +82,7 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Details
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isDetailsAvailable}>
+					<SidebarNavInfoButton>
 						<RunDetailsDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
@@ -96,7 +96,7 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Report
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isReportAvailable}>
+					<SidebarNavInfoButton>
 						<RunReportDialog />
 					</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>

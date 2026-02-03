@@ -69,66 +69,66 @@ export function LogSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SidebarNavSubmenuItemContainer
-					to={getModeUrl('treeAndinfoAndlog')}
-					pattern={{
-						path: '/log/:runId',
-						mode: 'treeAndinfoAndlog',
-						defaultMode: 'log'
-					}}
-					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
-				>
-					<Icon name="LayoutLogHeaderSidebar" />
-					<SidebarNavSubmenuItemContainer.Label>Tree+info+log</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isAvailable}>
-						<LogDialog />
-					</SidebarNavInfoButton>
-				</SidebarNavSubmenuItemContainer>
-				<SidebarNavSubmenuItemContainer
-					to={getModeUrl('treeAndlog')}
-					pattern={{
-						path: '/log/:runId',
-						mode: 'treeAndlog'
-					}}
-					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
-				>
-					<Icon name="LayoutLogSidebar" />
-					<SidebarNavSubmenuItemContainer.Label>Tree+log</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isAvailable}>
-						<LogDialog />
-					</SidebarNavInfoButton>
-				</SidebarNavSubmenuItemContainer>
-				<SidebarNavSubmenuItemContainer
-					to={getModeUrl('infoAndlog')}
-					pattern={{
-						path: '/log/:runId',
-						mode: 'infoAndlog'
-					}}
-					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
-				>
-					<Icon name="LayoutLogHeader" />
-					<SidebarNavSubmenuItemContainer.Label>Info+log</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isAvailable}>
-						<LogDialog />
-					</SidebarNavInfoButton>
-				</SidebarNavSubmenuItemContainer>
-				<SidebarNavSubmenuItemContainer
-					to={getModeUrl('log')}
-					pattern={{
-						path: '/log/:runId',
-						mode: 'log'
-					}}
-					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
-				>
-					<Icon name="LayoutLogSingle" />
-					<SidebarNavSubmenuItemContainer.Label>Log</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavInfoButton disabled={!isAvailable}>
-						<LogDialog />
-					</SidebarNavInfoButton>
+			<SidebarNavSubmenuItemContainer
+				to={getModeUrl('treeAndinfoAndlog')}
+				pattern={{
+					path: '/log/:runId',
+					mode: 'treeAndinfoAndlog',
+					defaultMode: 'log'
+				}}
+				disabled={!isAvailable}
+				linkComponent={LinkWithProject}
+			>
+				<Icon name="LayoutLogHeaderSidebar" />
+				<SidebarNavSubmenuItemContainer.Label>Tree+info+log</SidebarNavSubmenuItemContainer.Label>
+				<SidebarNavInfoButton>
+					<LogDialog />
+				</SidebarNavInfoButton>
+			</SidebarNavSubmenuItemContainer>
+			<SidebarNavSubmenuItemContainer
+				to={getModeUrl('treeAndlog')}
+				pattern={{
+					path: '/log/:runId',
+					mode: 'treeAndlog'
+				}}
+				disabled={!isAvailable}
+				linkComponent={LinkWithProject}
+			>
+				<Icon name="LayoutLogSidebar" />
+				<SidebarNavSubmenuItemContainer.Label>Tree+log</SidebarNavSubmenuItemContainer.Label>
+				<SidebarNavInfoButton>
+					<LogDialog />
+				</SidebarNavInfoButton>
+			</SidebarNavSubmenuItemContainer>
+			<SidebarNavSubmenuItemContainer
+				to={getModeUrl('infoAndlog')}
+				pattern={{
+					path: '/log/:runId',
+					mode: 'infoAndlog'
+				}}
+				disabled={!isAvailable}
+				linkComponent={LinkWithProject}
+			>
+				<Icon name="LayoutLogHeader" />
+				<SidebarNavSubmenuItemContainer.Label>Info+log</SidebarNavSubmenuItemContainer.Label>
+				<SidebarNavInfoButton>
+					<LogDialog />
+				</SidebarNavInfoButton>
+			</SidebarNavSubmenuItemContainer>
+			<SidebarNavSubmenuItemContainer
+				to={getModeUrl('log')}
+				pattern={{
+					path: '/log/:runId',
+					mode: 'log'
+				}}
+				disabled={!isAvailable}
+				linkComponent={LinkWithProject}
+			>
+				<Icon name="LayoutLogSingle" />
+				<SidebarNavSubmenuItemContainer.Label>Log</SidebarNavSubmenuItemContainer.Label>
+				<SidebarNavInfoButton>
+					<LogDialog />
+				</SidebarNavInfoButton>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
