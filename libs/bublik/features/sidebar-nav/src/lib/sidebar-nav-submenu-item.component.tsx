@@ -1,21 +1,55 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import type { ComponentType, MouseEventHandler, ReactNode } from 'react';
-import { useState } from 'react';
+import { Children, isValidElement } from 'react';
 import { useLocation, type To } from 'react-router-dom';
 
-import { Dialog, DialogPortal, ModalContent } from '@/shared/tailwind-ui';
+import { cn } from '@/shared/tailwind-ui';
 
-import { SidebarAccordionLink } from './sidebar-nav-accordion.component';
+import { SidebarAccordionLink, SidebarAccordionLabel } from './sidebar-nav-accordion.component';
 import { getSubmenuIsActive, type SubmenuMatchPattern } from './sidebar-nav.matchers';
 
+// ============================
+// Submenu Item Compound Components
+// ============================
+
+function SidebarNavSubmenuIcon({ children }: { children: ReactNode }) {
+	return (
+		<div className="grid flex-shrink-0 place-items-center">
+			{children}
+		</div>
+	);
+}
+
+function SidebarNavSubmenuLabel({ children }: { children: ReactNode }) {
+	return (
+		<span className="truncate text-[0.875rem] leading-[1.5rem]">
+			{children}
+		</span>
+	);
+}
+
+interface SidebarNavSubmenuInfoButtonProps {
+	children: ReactNode;
+	disabled?: boolean;
+}
+
+function SidebarNavSubmenuInfoButton({ children, disabled }: SidebarNavSubmenuInfoButtonProps) {
+	return (
+		<span data-info-button className={cn(disabled && 'disabled')}>
+			{children}
+		</span>
+	);
+}
+
+// ============================
+// Submenu Item Presentational Component
+// ============================
+
 type SidebarNavSubmenuItemProps = {
-	label: string;
-	icon: ReactNode;
+	children: ReactNode;
 	isActive: boolean;
 	disabled?: boolean;
-	dialogContent?: ReactNode;
-	openDialogOnDisabled?: boolean;
 } & (
 	| {
 			to: To;
@@ -31,29 +65,7 @@ type SidebarNavSubmenuItemProps = {
 );
 
 export function SidebarNavSubmenuItem(props: SidebarNavSubmenuItemProps) {
-	const {
-		label,
-		icon,
-		isActive,
-		disabled,
-		dialogContent,
-		openDialogOnDisabled = true
-	} = props;
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-	const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
-		if (disabled) {
-			event.preventDefault();
-			if (openDialogOnDisabled && dialogContent) {
-				setIsDialogOpen(true);
-			}
-		}
-	};
-
-	const onDialogOpen =
-		openDialogOnDisabled && disabled && dialogContent
-			? () => setIsDialogOpen(true)
-			: undefined;
+	const { children, isActive, disabled } = props;
 
 	const linkProps =
 		'href' in props
@@ -61,35 +73,20 @@ export function SidebarNavSubmenuItem(props: SidebarNavSubmenuItemProps) {
 			: { to: props.to, linkComponent: props.linkComponent };
 
 	return (
-		<>
-			<SidebarAccordionLink
-				label={label}
-				icon={icon}
-				isActive={isActive}
-				disabled={disabled}
-				onClick={handleClick}
-				dialogContent={dialogContent}
-				onDialogOpen={onDialogOpen}
-				{...linkProps}
-			/>
-			{openDialogOnDisabled && dialogContent ? (
-				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-					<DialogPortal>
-						<ModalContent>{dialogContent}</ModalContent>
-					</DialogPortal>
-				</Dialog>
-			) : null}
-		</>
+		<SidebarAccordionLink isActive={isActive} disabled={disabled} {...linkProps}>
+			{children}
+		</SidebarAccordionLink>
 	);
 }
 
+// ============================
+// Submenu Item Container Component
+// ============================
+
 interface SidebarNavSubmenuItemContainerProps {
-	label: string;
+	children: ReactNode;
 	to: string;
-	icon: ReactNode;
 	disabled?: boolean;
-	dialogContent?: ReactNode;
-	openDialogOnDisabled?: boolean;
 	pattern?: SubmenuMatchPattern;
 	linkComponent?: ComponentType<{
 		to: To;
@@ -101,29 +98,68 @@ interface SidebarNavSubmenuItemContainerProps {
 }
 
 export function SidebarNavSubmenuItemContainer({
-	label,
+	children,
 	to,
-	icon,
 	disabled,
-	dialogContent,
-	openDialogOnDisabled = true,
 	pattern,
 	linkComponent
 }: SidebarNavSubmenuItemContainerProps) {
 	const location = useLocation();
-
 	const isActive = pattern ? getSubmenuIsActive(location, pattern) : true;
+
+	// Process children to wrap components properly
+	const processedChildren = Children.toArray(children).map((child) => {
+		// If it's text/number content, wrap it as a label
+		if (typeof child === 'string' || typeof child === 'number') {
+			return <SidebarNavSubmenuLabel>{child}</SidebarNavSubmenuLabel>;
+		}
+
+		if (!isValidElement(child)) return child;
+
+		// If it's already a label, return as is
+		if (child.type === SidebarNavSubmenuLabel) {
+			return child;
+		}
+
+		// If it's a SidebarAccordionLabel, we need to wrap it with proper styling
+		if (child.type === SidebarAccordionLabel) {
+			return (
+				<SidebarNavSubmenuLabel>
+					{child.props.children}
+				</SidebarNavSubmenuLabel>
+			);
+		}
+
+		// If it's a SidebarNavSubmenuInfoButton, pass it through as-is
+		// It handles its own hover behavior using group classes
+		if (child.type === SidebarNavSubmenuInfoButton) {
+			return child;
+		}
+
+		// If it's an Icon component, wrap in icon container for consistent styling
+		const childType = child.type as { displayName?: string; name?: string };
+		if (childType?.displayName === 'Icon' || childType?.name === 'Icon') {
+			return <SidebarNavSubmenuIcon>{child}</SidebarNavSubmenuIcon>;
+		}
+
+		// For all other elements, pass through as-is
+		return child;
+	});
 
 	return (
 		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
 			to={to}
 			isActive={isActive}
 			disabled={disabled}
-			dialogContent={dialogContent}
-			openDialogOnDisabled={openDialogOnDisabled}
 			linkComponent={linkComponent}
-		/>
+		>
+			{processedChildren}
+		</SidebarNavSubmenuItem>
 	);
 }
+
+// Attach compound components to the container
+SidebarNavSubmenuItemContainer.Icon = SidebarNavSubmenuIcon;
+SidebarNavSubmenuItemContainer.Label = SidebarNavSubmenuLabel;
+SidebarNavSubmenuItemContainer.InfoButton = SidebarNavSubmenuInfoButton;
+SidebarNavSubmenuItemContainer.SidebarAccordionLabel = SidebarAccordionLabel;

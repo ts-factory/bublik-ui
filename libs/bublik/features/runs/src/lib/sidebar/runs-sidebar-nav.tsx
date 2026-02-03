@@ -10,7 +10,8 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
-	SidebarNavSubmenuItemContainer
+	SidebarNavSubmenuItemContainer,
+	SidebarNavInfoButton
 } from '@/bublik/features/sidebar-nav';
 
 import { useRunsSidebarState } from './use-runs-sidebar-state';
@@ -94,39 +95,51 @@ export function RunsSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="List"
 					to={listUrl}
-					icon={<Icon name="PaperListText" size={24} />}
 					pattern={{ path: '/runs', mode: null, emptyModeMatches: ['table'] }}
-					dialogContent={<RunsDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="PaperListText" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>List</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton>
+						<RunsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Charts"
 					to={chartsUrl}
-					icon={<Icon name="LineChartMultiple" />}
 					pattern={{ path: '/runs', mode: 'charts' }}
-					dialogContent={<RunsChartsDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartMultiple" />
+					<SidebarNavSubmenuItemContainer.Label>Charts</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton>
+						<RunsChartsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Multiple"
 					to={finalMultipleUrl}
-					icon={<Icon name="PaperStack" className="w-6 h-6" />}
 					disabled={!hasMultipleUrl}
-					dialogContent={<MultipleRunsDialog />}
 					pattern={{ path: '/multiple' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="PaperStack" className="w-6 h-6" />
+					<SidebarNavSubmenuItemContainer.Label>Multiple</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!hasMultipleUrl}>
+						<MultipleRunsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Compare"
 					to={finalCompareUrl}
-					icon={<Icon name="SwapArrows" className="rotate-90" />}
 					disabled={!hasCompareUrl}
-					dialogContent={<CompareRunsDialog />}
 					pattern={{ path: '/compare' }}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="SwapArrows" className="rotate-90" />
+					<SidebarNavSubmenuItemContainer.Label>Compare</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!hasCompareUrl}>
+						<CompareRunsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

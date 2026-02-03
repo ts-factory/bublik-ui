@@ -10,6 +10,7 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
+	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
@@ -85,48 +86,63 @@ export function HistorySidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="List Of Results"
 					to={linearUrl}
-					icon={<Icon name="PaperListText" size={24} />}
 					pattern={{ path: '/history', mode: 'linear', emptyModeMatches: ['linear'] }}
-					dialogContent={<HistoryHelpDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="PaperListText" size={24} />
+					<SidebarNavSubmenuItemContainer.Label>List Of Results</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={false}>
+						<HistoryHelpDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Groups Of Results"
 					to={aggregationUrl}
-					icon={<Icon name="Aggregation" />}
 					pattern={{ path: '/history', mode: 'aggregation' }}
-					dialogContent={<HistoryHelpDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="Aggregation" />
+					<SidebarNavSubmenuItemContainer.Label>Groups Of Results</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={false}>
+						<HistoryHelpDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Trend Charts"
 					to={finalTrendUrl}
-					icon={<Icon name="LineChartSingle" />}
 					pattern={{ path: '/history', mode: 'measurements' }}
 					disabled={!hasTrendUrl}
-					dialogContent={<HistoryHelpTrendChartsDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartSingle" />
+					<SidebarNavSubmenuItemContainer.Label>Trend Charts</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!hasTrendUrl}>
+						<HistoryHelpTrendChartsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Series Charts"
 					to={finalSeriesUrl}
-					icon={<Icon name="LineChartSingle" />}
 					pattern={{ path: '/history', mode: 'measurements-by-iteration' }}
 					disabled={!hasSeriesUrl}
-					dialogContent={<HistoryHelpMeasurementSeriesDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartSingle" />
+					<SidebarNavSubmenuItemContainer.Label>Series Charts</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!hasSeriesUrl}>
+						<HistoryHelpMeasurementSeriesDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Stacked Charts"
 					to={finalStackedUrl}
-					icon={<Icon name="LineChartMultiple" />}
 					pattern={{ path: '/history', mode: 'measurements-combined' }}
 					disabled={!hasStackedUrl}
-					dialogContent={<HistoryHelpStackedChartsDialog />}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartMultiple" />
+					<SidebarNavSubmenuItemContainer.Label>Stacked Charts</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!hasStackedUrl}>
+						<HistoryHelpStackedChartsDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

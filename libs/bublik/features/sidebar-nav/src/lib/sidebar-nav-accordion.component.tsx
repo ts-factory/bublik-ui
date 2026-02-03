@@ -1,18 +1,32 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import type { MouseEventHandler, ReactNode, ComponentType } from 'react';
+import { Children, isValidElement, type MouseEventHandler, type ReactNode, type ComponentType } from 'react';
 import type { To } from 'react-router-dom';
 
-import { cn, Icon, Tooltip, useSidebar } from '@/shared/tailwind-ui';
+import { cn, Tooltip, useSidebar } from '@/shared/tailwind-ui';
 import { accordionLinkStyles, paddingTransition } from './sidebar-nav.styles';
 import { toString } from './sidebar-nav.utils';
 
+function getLabelTextFromChildren(children: ReactNode): string {
+	let labelText = '';
+
+	Children.forEach(children, (child) => {
+		if (isValidElement(child) && child.type === SidebarAccordionLabel) {
+			const labelContent = child.props.children;
+			if (typeof labelContent === 'string') {
+				labelText = labelContent;
+			} else if (typeof labelContent === 'number') {
+				labelText = String(labelContent);
+			}
+		}
+	});
+
+	return labelText;
+}
+
 type SidebarAccordionLinkLocalProps = {
-	label: string;
-	icon: ReactNode;
+	children: ReactNode;
 	isActive: boolean;
-	dialogContent?: ReactNode;
-	onDialogOpen?: () => void;
 	disabled?: boolean;
 } & (
 	| {
@@ -30,8 +44,7 @@ type SidebarAccordionLinkLocalProps = {
 );
 
 export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
-	const { label, icon, isActive, dialogContent, onDialogOpen, disabled } =
-		props;
+	const { children, isActive, disabled } = props;
 
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
@@ -39,55 +52,18 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 	const className = accordionLinkStyles({ isActive, isSidebarOpen, disabled });
 	const style = paddingTransition;
 
-	const content = (
-		<>
-			<div
-				className={cn(
-					'grid place-items-center',
-					disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
-				)}
-			>
-				{icon}
-			</div>
-			<span
-				className={cn(
-					'truncate text-[0.875rem] leading-[1.5rem]',
-					disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
-				)}
-			>
-				{label}
-			</span>
-			{dialogContent && onDialogOpen && (
-				<button
-					onClick={(e) => {
-						e.stopPropagation();
-						onDialogOpen();
-					}}
-					className={[
-						'rounded ml-auto p-0.5 hover:bg-primary-wash hover:text-primary',
-						disabled
-							? 'text-primary visible pointer-events-auto'
-							: 'opacity-0 invisible group-hover:visible group-hover:opacity-100',
-						'transition-opacity duration-300 delay-0',
-						'group-hover:pointer-events-auto'
-					].join(' ')}
-				>
-					<Icon name="InformationCircleQuestionMark" size={20} />
-				</button>
-			)}
-		</>
-	);
+	const labelText = getLabelTextFromChildren(children);
 
 	if (disabled) {
 		return (
 			<Tooltip
-				content={label}
+				content={labelText}
 				side="right"
 				delayDuration={isSidebarOpen ? 1400 : 700}
 				sideOffset={15}
 			>
-				<div className={className} style={style}>
-					{content}
+				<div className={cn(className, 'group')} style={style}>
+					{children}
 				</div>
 			</Tooltip>
 		);
@@ -96,7 +72,7 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 	if ('href' in props) {
 		return (
 			<Tooltip
-				content={label}
+				content={labelText}
 				side="right"
 				delayDuration={isSidebarOpen ? 1400 : 700}
 				sideOffset={15}
@@ -105,10 +81,10 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 					href={props.href}
 					target="_blank"
 					rel="noopener noreferrer"
-					className={className}
+					className={cn(className, 'group')}
 					style={style}
 				>
-					{content}
+					{children}
 				</a>
 			</Tooltip>
 		);
@@ -119,18 +95,18 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 	if (LinkComponent) {
 		return (
 			<Tooltip
-				content={label}
+				content={labelText}
 				side="right"
 				delayDuration={isSidebarOpen ? 1400 : 700}
 				sideOffset={15}
 			>
 				<LinkComponent
 					to={props.to}
-					className={className}
+					className={cn(className, 'group')}
 					style={style}
 					onClick={props.onClick}
 				>
-					{content}
+					{children}
 				</LinkComponent>
 			</Tooltip>
 		);
@@ -138,19 +114,37 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 
 	return (
 		<Tooltip
-			content={label}
+			content={labelText}
 			side="right"
 			delayDuration={isSidebarOpen ? 1400 : 700}
 			sideOffset={15}
 		>
 			<a
 				href={toString(props.to)}
-				className={className}
+				className={cn(className, 'group')}
 				style={style}
 				onClick={props.onClick}
 			>
-				{content}
+				{children}
 			</a>
 		</Tooltip>
 	);
 };
+
+interface SidebarAccordionLabelProps {
+	children: ReactNode;
+	className?: string;
+}
+
+export function SidebarAccordionLabel({ children, className }: SidebarAccordionLabelProps) {
+	return (
+		<span
+			className={cn(
+				'truncate text-[0.875rem] leading-[1.5rem]',
+				className
+			)}
+		>
+			{children}
+		</span>
+	);
+}

@@ -70,54 +70,66 @@ export function LogSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="Tree+info+log"
 					to={getModeUrl('treeAndinfoAndlog')}
-					icon={<Icon name="LayoutLogHeaderSidebar" />}
 					pattern={{
 						path: '/log/:runId',
 						mode: 'treeAndinfoAndlog',
 						defaultMode: 'log'
 					}}
-					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LayoutLogHeaderSidebar" />
+					<SidebarNavSubmenuItemContainer.Label>Tree+info+log</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isAvailable}>
+						<LogDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Tree+log"
 					to={getModeUrl('treeAndlog')}
-					icon={<Icon name="LayoutLogSidebar" />}
 					pattern={{
 						path: '/log/:runId',
 						mode: 'treeAndlog'
 					}}
-					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LayoutLogSidebar" />
+					<SidebarNavSubmenuItemContainer.Label>Tree+log</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isAvailable}>
+						<LogDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Info+log"
 					to={getModeUrl('infoAndlog')}
-					icon={<Icon name="LayoutLogHeader" />}
 					pattern={{
 						path: '/log/:runId',
 						mode: 'infoAndlog'
 					}}
-					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LayoutLogHeader" />
+					<SidebarNavSubmenuItemContainer.Label>Info+log</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isAvailable}>
+						<LogDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Log"
 					to={getModeUrl('log')}
-					icon={<Icon name="LayoutLogSingle" />}
 					pattern={{
 						path: '/log/:runId',
 						mode: 'log'
 					}}
-					dialogContent={<LogDialog />}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LayoutLogSingle" />
+					<SidebarNavSubmenuItemContainer.Label>Log</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavInfoButton disabled={!isAvailable}>
+						<LogDialog />
+					</SidebarNavInfoButton>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

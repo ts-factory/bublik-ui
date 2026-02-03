@@ -75,9 +75,7 @@ export function MeasurementsSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					label="Charts + Tables"
 					to={getModeUrl('default')}
-					icon={<Icon name="LineChart" />}
 					pattern={{
 						path: '/runs/:runId/results/:resultId/measurements',
 						mode: 'default',
@@ -85,40 +83,46 @@ export function MeasurementsSidebarNav() {
 					}}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChart" />
+					<SidebarNavSubmenuItemContainer.Label>Charts + Tables</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Charts || Tables"
 					to={getModeUrl('split')}
-					icon={<Icon name="LayoutSidebarHeader" />}
 					pattern={{
 						path: '/runs/:runId/results/:resultId/measurements',
 						mode: 'split'
 					}}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LayoutSidebarHeader" />
+					<SidebarNavSubmenuItemContainer.Label>Charts || Tables</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Measurement Tables"
 					to={getModeUrl('tables')}
-					icon={<Icon name="PaperListText" />}
 					pattern={{
 						path: '/runs/:runId/results/:resultId/measurements',
 						mode: 'tables'
 					}}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="PaperListText" />
+					<SidebarNavSubmenuItemContainer.Label>Measurement Tables</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					label="Stacked Charts"
 					to={getModeUrl('overlay')}
-					icon={<Icon name="LineChartMultiple" />}
 					pattern={{
 						path: '/runs/:runId/results/:resultId/measurements',
 						mode: 'overlay'
 					}}
 					disabled={!isAvailable}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<Icon name="LineChartMultiple" />
+					<SidebarNavSubmenuItemContainer.Label>Stacked Charts</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

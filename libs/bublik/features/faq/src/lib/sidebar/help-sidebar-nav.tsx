@@ -33,17 +33,19 @@ export function HelpSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItem
-					label="Documentation"
-					icon={<Icon name="PaperText" />}
 					href={`${config.oldBaseUrl}/docs`}
 					isActive={false}
-				/>
+				>
+					<Icon name="PaperText" />
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">Documentation</span>
+				</SidebarNavSubmenuItem>
 				<SidebarNavSubmenuItem
-					label="Changelog"
-					icon={<Icon name="PaperChangelog" />}
 					href={`${config.oldBaseUrl}/docs/blog`}
 					isActive={false}
-				/>
+				>
+					<Icon name="PaperChangelog" />
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">Changelog</span>
+				</SidebarNavSubmenuItem>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);
