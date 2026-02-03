@@ -10,8 +10,7 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
-	SidebarNavSubmenuItem,
-	getSubmenuIsActive
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
 
@@ -85,85 +84,50 @@ export function HistorySidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="List Of Results"
 					to={linearUrl}
 					icon={<Icon name="PaperListText" size={24} />}
-					pattern={{ path: '/history', mode: 'linear' }}
+					pattern={{ path: '/history', mode: 'linear', emptyModeMatches: ['linear'] }}
 					dialogContent={<HistoryHelpDialog />}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Groups Of Results"
 					to={aggregationUrl}
 					icon={<Icon name="Aggregation" />}
 					pattern={{ path: '/history', mode: 'aggregation' }}
 					dialogContent={<HistoryHelpDialog />}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Trend Charts"
 					to={finalTrendUrl}
 					icon={<Icon name="LineChartSingle" />}
 					pattern={{ path: '/history', mode: 'measurements' }}
 					disabled={!hasTrendUrl}
 					dialogContent={<HistoryHelpTrendChartsDialog />}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Series Charts"
 					to={finalSeriesUrl}
 					icon={<Icon name="LineChartSingle" />}
 					pattern={{ path: '/history', mode: 'measurements-by-iteration' }}
 					disabled={!hasSeriesUrl}
 					dialogContent={<HistoryHelpMeasurementSeriesDialog />}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Stacked Charts"
 					to={finalStackedUrl}
 					icon={<Icon name="LineChartMultiple" />}
 					pattern={{ path: '/history', mode: 'measurements-combined' }}
 					disabled={!hasStackedUrl}
 					dialogContent={<HistoryHelpStackedChartsDialog />}
+					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
-	);
-}
-
-interface SubmenuItemProps {
-	label: string;
-	to: string;
-	icon: React.ReactNode;
-	disabled?: boolean;
-	dialogContent?: React.ReactNode;
-	pattern?: { path: string; mode?: string | null };
-}
-
-function SubmenuItem({
-	label,
-	to,
-	icon,
-	disabled,
-	dialogContent,
-	pattern
-}: SubmenuItemProps) {
-	const location = useLocation();
-
-	const isActive = pattern
-		? getSubmenuIsActive(location, {
-				path: pattern.path,
-				mode: pattern.mode,
-				emptyModeMatches: ['linear']
-		  })
-		: true;
-
-	return (
-		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={LinkWithProject}
-			dialogContent={dialogContent}
-		/>
 	);
 }

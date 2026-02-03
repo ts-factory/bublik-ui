@@ -10,8 +10,7 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
-	SidebarNavSubmenuItem,
-	getSubmenuIsActive
+	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 
 import { useRunsSidebarState } from './use-runs-sidebar-state';
@@ -94,78 +93,45 @@ export function RunsSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="List"
 					to={listUrl}
 					icon={<Icon name="PaperListText" size={24} />}
-					pattern={{ path: '/runs', mode: null }}
+					pattern={{ path: '/runs', mode: null, emptyModeMatches: ['table'] }}
 					dialogContent={<RunsDialog />}
+					openDialogOnDisabled={false}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Charts"
 					to={chartsUrl}
 					icon={<Icon name="LineChartMultiple" />}
 					pattern={{ path: '/runs', mode: 'charts' }}
 					dialogContent={<RunsChartsDialog />}
+					openDialogOnDisabled={false}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Multiple"
 					to={finalMultipleUrl}
 					icon={<Icon name="PaperStack" className="w-6 h-6" />}
 					disabled={!hasMultipleUrl}
 					dialogContent={<MultipleRunsDialog />}
 					pattern={{ path: '/multiple' }}
+					openDialogOnDisabled={false}
+					linkComponent={LinkWithProject}
 				/>
-				<SubmenuItem
+				<SidebarNavSubmenuItemContainer
 					label="Compare"
 					to={finalCompareUrl}
 					icon={<Icon name="SwapArrows" className="rotate-90" />}
 					disabled={!hasCompareUrl}
 					dialogContent={<CompareRunsDialog />}
 					pattern={{ path: '/compare' }}
+					openDialogOnDisabled={false}
+					linkComponent={LinkWithProject}
 				/>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
-	);
-}
-
-interface SubmenuItemProps {
-	label: string;
-	to: string;
-	icon: React.ReactNode;
-	disabled?: boolean;
-	dialogContent?: React.ReactNode;
-	pattern?: { path: string; mode?: string | null };
-}
-
-function SubmenuItem({
-	label,
-	to,
-	icon,
-	disabled,
-	dialogContent,
-	pattern
-}: SubmenuItemProps) {
-	const location = useLocation();
-
-	const isActive = pattern
-		? getSubmenuIsActive(location, {
-				path: pattern.path,
-				mode: pattern.mode,
-				emptyModeMatches: ['table']
-		  })
-		: true;
-
-	return (
-		<SidebarNavSubmenuItem
-			label={label}
-			icon={icon}
-			to={to}
-			isActive={isActive}
-			disabled={disabled}
-			linkComponent={LinkWithProject}
-			dialogContent={dialogContent}
-			openDialogOnDisabled={false}
-		/>
 	);
 }
