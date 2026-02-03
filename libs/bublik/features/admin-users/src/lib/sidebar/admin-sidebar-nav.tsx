@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import type { ReactNode } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -11,7 +11,8 @@ import {
 	SidebarNavLinkWrapper,
 	SidebarNavSubmenuItem,
 	SidebarNavToggle,
-	useIsActivePaths
+	useIsActivePaths,
+	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 
 export function AdminSidebarNav() {
@@ -71,7 +72,7 @@ interface AdminSubmenuItemProps {
 
 function AdminSubmenuItem({ label, icon, to, pattern }: AdminSubmenuItemProps) {
 	const location = useLocation();
-	const isActive = !!matchPath(pattern.path, location.pathname);
+	const isActive = getSubmenuIsActive(location, { path: pattern.path });
 
 	return (
 		<SidebarNavSubmenuItem

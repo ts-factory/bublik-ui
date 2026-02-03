@@ -13,7 +13,8 @@ import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItem,
-	useIsActivePaths
+	useIsActivePaths,
+	getSubmenuIsActive
 } from '@/bublik/features/sidebar-nav';
 import { useRunSidebarState } from './use-run-sidebar-state';
 
@@ -114,8 +115,9 @@ function SubmenuItem({
 }: SubmenuItemProps) {
 	const location = useLocation();
 
-	const pathMatch = pattern ? matchPath(pattern.path, location.pathname) : null;
-	const isActive = !!pathMatch;
+	const isActive = pattern
+		? getSubmenuIsActive(location, { path: pattern.path })
+		: true;
 
 	return (
 		<SidebarNavSubmenuItem
