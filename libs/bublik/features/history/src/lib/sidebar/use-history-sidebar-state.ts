@@ -25,6 +25,10 @@ export interface UseHistorySidebarStateReturn {
 	hasSeriesData: boolean;
 	isStackedAvailable: boolean;
 
+	// Loading states
+	isTrendLoading: boolean;
+	isSeriesLoading: boolean;
+
 	// Last visited URLs
 	lastLinearUrl: string | null;
 	lastAggregationUrl: string | null;
@@ -53,14 +57,16 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 	const { data: linearData } = useGetHistoryLinearQuery(
 		query.testName ? query : skipToken
 	);
-	const { data: trendData } = bublikAPI.useGetTrendChartsQuery(
-		linearData ? linearData.results_ids : skipToken
-	);
+	const { data: trendData, isLoading: isTrendLoading } =
+		bublikAPI.useGetTrendChartsQuery(
+			linearData ? linearData.results_ids : skipToken
+		);
 
 	// Fetch series charts data
-	const { data: seriesData } = useGetMeasurementsQuery(
-		linearData ? linearData.results_ids : skipToken
-	);
+	const { data: seriesData, isLoading: isSeriesLoading } =
+		useGetMeasurementsQuery(
+			linearData ? linearData.results_ids : skipToken
+		);
 
 	// Check if stacked charts are available (has selected charts)
 	const combinedPlots = searchParams.get('combinedPlots');
@@ -227,6 +233,8 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 		hasTrendData,
 		hasSeriesData,
 		isStackedAvailable,
+		isTrendLoading,
+		isSeriesLoading,
 		lastLinearUrl,
 		lastAggregationUrl,
 		lastTrendUrl,
