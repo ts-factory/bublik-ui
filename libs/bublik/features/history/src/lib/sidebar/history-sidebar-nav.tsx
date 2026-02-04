@@ -30,6 +30,8 @@ export function HistorySidebarNav() {
 		hasTrendData,
 		hasSeriesData,
 		isStackedAvailable,
+		isTrendLoading,
+		isSeriesLoading,
 		lastTrendUrl,
 		lastSeriesUrl,
 		linearUrl,
@@ -125,9 +127,16 @@ export function HistorySidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Trend Charts
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<HistoryHelpTrendChartsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					{isTrendLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : (
+						<SidebarNavSubmenuItemContainer.InfoButton>
+							<HistoryHelpTrendChartsDialog />
+						</SidebarNavSubmenuItemContainer.InfoButton>
+					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalSeriesUrl}
@@ -139,9 +148,16 @@ export function HistorySidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Series Charts
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<HistoryHelpMeasurementSeriesDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					{isSeriesLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : (
+						<SidebarNavSubmenuItemContainer.InfoButton>
+							<HistoryHelpMeasurementSeriesDialog />
+						</SidebarNavSubmenuItemContainer.InfoButton>
+					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalStackedUrl}

@@ -151,7 +151,6 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Icon
 						name="SwapArrows"
 						className="rotate-90"
-						className="size-6"
 					/>
 					<SidebarNavSubmenuItemContainer.Label>
 						Compare
