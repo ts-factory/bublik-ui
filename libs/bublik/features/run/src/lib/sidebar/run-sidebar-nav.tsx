@@ -39,6 +39,7 @@ export function RunSidebarNav() {
 		detailsUrl,
 		reportUrl,
 		mainLinkUrl,
+		isReportLoading,
 		setLastVisited
 	} = useRunSidebarState();
 
@@ -99,9 +100,16 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Report
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<RunReportDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					{isReportLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : (
+						<SidebarNavSubmenuItemContainer.InfoButton>
+							<RunReportDialog />
+						</SidebarNavSubmenuItemContainer.InfoButton>
+					)}
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

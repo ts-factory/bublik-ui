@@ -3,6 +3,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	RUN_SIDEBAR_KEYS,
@@ -13,6 +14,7 @@ import {
 	stripSidebarParamsFromUrl,
 	extractRunIdFromUrl
 } from '@/bublik/features/sidebar';
+import { useGetRunReportConfigsQuery } from '@/services/bublik-api';
 
 export interface UseRunSidebarStateReturn {
 	// Last visited URLs (decoded from URL params)
@@ -32,6 +34,9 @@ export interface UseRunSidebarStateReturn {
 	isDetailsAvailable: boolean;
 	isReportAvailable: boolean;
 	isMainLinkAvailable: boolean;
+
+	// Loading states
+	isReportLoading: boolean;
 
 	// Update last visited state
 	setLastVisited: (mode: RunMode, url: string, runId?: string) => void;
@@ -62,9 +67,23 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		[searchParams]
 	);
 
+	const { data: reportConfigsData, isLoading: isReportLoading } =
+		useGetRunReportConfigsQuery(
+			currentRunId ? currentRunId : skipToken
+		);
+
+	const newestReportConfig = useMemo(() => {
+		if (!reportConfigsData?.run_report_configs?.length) return null;
+		return reportConfigsData.run_report_configs.reduce((max, config) =>
+			config.id > max.id ? config : max
+		);
+	}, [reportConfigsData]);
+
 	const isDetailsAvailable = !!lastDetailsUrl;
-	const isReportAvailable = !!lastReportUrl;
-	// Main link available if we have details/report URLs OR a current run context
+	const isReportAvailable =
+		!!lastReportUrl ||
+		(!!currentRunId &&
+			!!reportConfigsData?.run_report_configs?.length);
 	const isMainLinkAvailable =
 		isDetailsAvailable || isReportAvailable || !!currentRunId;
 
@@ -76,9 +95,14 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 
 	const reportUrl = useMemo(() => {
 		if (lastReportUrl) return lastReportUrl;
-		if (currentRunId) return `/runs/${currentRunId}/report`;
+		if (currentRunId) {
+			if (newestReportConfig) {
+				return `/runs/${currentRunId}/report?config=${newestReportConfig.id}`;
+			}
+			return `/runs/${currentRunId}/report`;
+		}
 		return null;
-	}, [lastReportUrl, currentRunId]);
+	}, [lastReportUrl, currentRunId, newestReportConfig]);
 
 	const mainLinkUrl = useMemo(() => {
 		switch (lastMode) {
@@ -137,6 +161,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		isDetailsAvailable,
 		isReportAvailable,
 		isMainLinkAvailable,
+		isReportLoading,
 		setLastVisited
 	};
 }
