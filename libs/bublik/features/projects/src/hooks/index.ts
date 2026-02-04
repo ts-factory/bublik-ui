@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
 	NavigateOptions,
 	To,
+	useLocation,
 	useNavigate,
 	useSearchParams
 } from 'react-router-dom';
@@ -38,8 +39,8 @@ function useProjectSearch() {
 
 function useNavigateWithProject() {
 	const { projectIds } = useProjectSearch();
-	const [currentSearchParams] = useSearchParams();
 	const _navigate = useNavigate();
+	const location = useLocation();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
 		// Build target params from the 'to' object
@@ -52,10 +53,13 @@ function useNavigateWithProject() {
 
 		const targetParams = new URLSearchParams(targetSearchStr);
 
+		// Read fresh search params from current location to avoid stale closure
+		const freshSearchParams = new URLSearchParams(location.search);
+
 		// Merge with sidebar state and project IDs
 		const mergedParams = mergeParamsWithSidebarState(
 			targetParams,
-			currentSearchParams,
+			freshSearchParams,
 			projectIds
 		);
 
