@@ -29,7 +29,7 @@ function RunReportPage() {
 	}
 
 	return (
-		<div className="flex flex-col gap-1 p-2">
+		<div className="flex flex-col p-2">
 			<ReportStackedContextProvider
 				runId={Number(runId)}
 				configId={Number(configId)}
