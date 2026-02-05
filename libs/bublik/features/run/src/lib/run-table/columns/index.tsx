@@ -203,7 +203,7 @@ function getColumns({ projectId, runIds }: GetColumnsOptions) {
 		}),
 		helper.accessor('comments', {
 			id: ColumnId.Comments,
-			header: () => <div className="px-2">Notes</div>,
+			header: () => <div className="px-2 text-left">Notes</div>,
 			cell: ({ cell, row }) => {
 				const comments = cell.getValue();
 
