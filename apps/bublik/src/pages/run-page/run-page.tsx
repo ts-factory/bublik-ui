@@ -14,15 +14,12 @@ import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
 import { usePrefetchLogPage } from '@/services/bublik-api';
-import { useCopyToClipboard } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
 	Icon,
 	RunModeToggle,
-	ScrollToTopPage,
-	toast,
-	Tooltip
+	ScrollToTopPage
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
@@ -35,14 +32,6 @@ export interface RunHeaderProps {
 
 const RunHeader = ({ runId }: RunHeaderProps) => {
 	const [isModeFull, setIsModeFull] = useState(false);
-	const [, copy] = useCopyToClipboard({
-		onSuccess: () =>
-			toast.success('Copied run ID to clipboard', { position: 'top-center' }),
-		onError: () =>
-			toast.error('Failed to copy run ID', { position: 'top-center' })
-	});
-
-	const handleCopyRunId = () => copy(runId);
 
 	const link = new URL(window.location.href);
 	link.searchParams.delete('rowState');
@@ -55,12 +44,6 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						isFullMode={isModeFull}
 						onToggleClick={() => setIsModeFull(!isModeFull)}
 					/>
-					<Tooltip content="Copy identifier for comparison">
-						<ButtonTw variant="secondary" size="xss" onClick={handleCopyRunId}>
-							<Icon name="PaperStack" size={16} className="mr-1 text-primary" />
-							Copy ID
-						</ButtonTw>
-					</Tooltip>
 					<DefineCompromiseContainer runId={runId} />
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
 					<RunReportConfigsContainer runId={runId} />

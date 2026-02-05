@@ -88,6 +88,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 	if (!isFullMode) {
 		return (
 			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
+				<DetailItem label="Id" value={runId} isCopyable />
 				<DetailItem label="Start" value={runStartDate} />
 				<DetailItem
 					label="Conclusion"
@@ -99,7 +100,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 
 	return (
 		<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
-			<DetailItem label="Identifier" value={runId} />
+			<DetailItem label="Id" value={runId} isCopyable />
 			<DetailItem label="Main package" value={mainPackage} />
 			<DetailItem label="Start" value={runStartDate} />
 			<DetailItem label="Finish" value={runFinishDate} />
