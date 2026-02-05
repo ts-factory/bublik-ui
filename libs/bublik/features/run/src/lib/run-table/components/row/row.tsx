@@ -25,7 +25,7 @@ export const RunRow = ({ row, runId, targetIterationId }: RowProps) => {
 		<Fragment>
 			<tr
 				className={cn(
-					'[&>*]:hover:bg-gray-50 h-full relative z-10',
+					'[&>*]:hover:bg-gray-50 h-full relative',
 					isExpandedTest &&
 						'[&>*]:bg-gray-50 h-full [&>*]:sticky [&>*]:top-[102px]'
 				)}
@@ -43,7 +43,7 @@ export const RunRow = ({ row, runId, targetIterationId }: RowProps) => {
 						<td
 							key={cell.id}
 							className={cn(
-								'px-2 py-0 bg-white',
+								'px-2 py-0 bg-white z-10',
 								isLast && 'border-r',
 								cell.column.columnDef.meta?.className
 							)}
