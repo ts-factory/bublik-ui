@@ -99,7 +99,7 @@ const DiffForm = (props: DiffFormProps) => {
 							<span className="text-[0.875rem] leading-[1.125rem] font-semibold">
 								Compare Runs
 							</span>
-							<Tooltip content="You can provide run id as a number or provide URL to a run">
+							<Tooltip content="You can provide run ID as a number or provide URL to a run">
 								<div className="mr-auto text-primary hover:bg-primary-wash rounded-sm p-0.5">
 									<Icon
 										name="InformationCircleQuestionMark"
