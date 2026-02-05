@@ -47,13 +47,28 @@ export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
 		[stats]
 	);
 
-	const handleBarChartClick = useCallback((params: ECElementEvent) => {
-		const { ids: rawIds } = GroupedStatsSchema.parse(params.data);
-		const ids = rawIds.split(',');
+	const handleBarChartClick = useCallback(
+		(params: ECElementEvent) => {
+			if (!params.seriesName) return;
 
-		setIsModalOpen(true);
-		setRunIds(ids);
-	}, []);
+			const { ids: rawIds } = GroupedStatsSchema.parse(params.data);
+			const allIdsInGroup = rawIds.split(',');
+
+			const clickedStatus =
+				`run-${params.seriesName.toLowerCase()}` as RUN_STATUS;
+
+			const filteredIds = stats
+				.filter(
+					(s) =>
+						s.runStatus === clickedStatus && allIdsInGroup.includes(s.runId)
+				)
+				.map((s) => s.runId);
+
+			setIsModalOpen(true);
+			setRunIds(filteredIds);
+		},
+		[stats]
+	);
 
 	useEffect(() => {
 		pieRef.current?.getEchartsInstance()?.on('click', handlePieChartClick);
