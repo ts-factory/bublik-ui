@@ -205,6 +205,11 @@ function SelectionPopoverFloatingButton(
 				<>
 					<Icon name={icon} size={16} />
 					<span>{label}</span>
+					{isOpen ? (
+						<Icon name="ChevronDown" size={16} className="" />
+					) : (
+						<Icon name="ChevronDown" size={16} className="rotate-180" />
+					)}
 				</>
 			)}
 		</ButtonTw>

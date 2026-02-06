@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import { RUN_STATUS } from '@/shared/types';
 import {
@@ -26,20 +26,8 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 
 	const hasSelection = compareIds.length > 0;
 	const [isOpen, setIsOpen] = useState(hasSelection);
-	const [hasEverSelected, setHasEverSelected] = useState(hasSelection);
-	const prevCountRef = useRef(compareIds.length);
 
-	useEffect(() => {
-		const wasEmpty = prevCountRef.current === 0;
-		if (compareIds.length === 0) {
-			setIsOpen(false);
-		} else if (wasEmpty) {
-			setIsOpen(true);
-			setHasEverSelected(true);
-		}
-		if (compareIds.length > 0) setHasEverSelected(true);
-		prevCountRef.current = compareIds.length;
-	}, [compareIds.length]);
+	const label = `${compareIds.length} runs selected`;
 
 	return (
 		<SelectionPopoverLayout
@@ -47,9 +35,9 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 			onOpenChange={setIsOpen}
 			layout="size"
 		>
-			{hasEverSelected ? (
+			{hasSelection ? (
 				<SelectionPopoverFloatingButton
-					label="Selected Runs"
+					label={label}
 					icon="ExpandSelection"
 					disabled={!hasSelection}
 				/>
@@ -80,7 +68,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 						<ButtonTw
 							variant="primary"
 							rounded="lg"
-							size="md"
+							size="sm/2"
 							className="w-full justify-center"
 							disabled={compareIds.length !== 2}
 						>
@@ -96,18 +84,18 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 								search: `left=${compareIds[0]}&right=${compareIds[1]}`
 							}}
 						>
-							Compare
 							<Icon
 								name="SwapArrows"
 								size={20}
 								className="text-white rotate-90"
 							/>
+							Compare
 						</LinkWithProject>
 					) : (
 						<ButtonTw
 							variant="primary"
 							rounded="lg"
-							size="md"
+							size="sm/2"
 							className="w-full justify-center"
 							disabled={compareIds.length !== 2}
 						>
@@ -119,7 +107,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 				<ButtonTw
 					variant="outline"
 					rounded="lg"
-					size="md"
+					size="sm/2"
 					className="w-full justify-center"
 					onClick={onResetClick}
 				>
