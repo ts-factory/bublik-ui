@@ -88,7 +88,7 @@ export function PlotListContainer() {
 			/>
 			<SelectedChartsPopover
 				open={!!selectedCharts.length}
-				label="Combined"
+				label="Selected Charts"
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}
@@ -241,7 +241,7 @@ export function PlotListContainerByResult() {
 			/>
 			<SelectedChartsPopover
 				open={!!selectedCharts.length}
-				label="Combined"
+				label="Selected Charts"
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}
