@@ -14,6 +14,12 @@ import {
 	SelectionPopoverFloatingButton
 } from '@/shared/tailwind-ui';
 
+const pluralRules = new Intl.PluralRules('en-US');
+const suffixes = {
+	one: '',
+	other: 's'
+} as const satisfies Record<'one' | 'other', string>;
+
 interface SelectedItem {
 	id: string;
 	label: string;
@@ -31,20 +37,9 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 
 	const hasItems = items.length > 0;
 	const [isOpen, setIsOpen] = useState(hasItems);
-	const [hasEverSelected, setHasEverSelected] = useState(hasItems);
-	const prevCountRef = useRef(items.length);
-
-	useEffect(() => {
-		const wasEmpty = prevCountRef.current === 0;
-		if (items.length === 0) {
-			setIsOpen(false);
-		} else if (wasEmpty) {
-			setIsOpen(true);
-			setHasEverSelected(true);
-		}
-		if (items.length > 0) setHasEverSelected(true);
-		prevCountRef.current = items.length;
-	}, [items.length]);
+	const count = items.length;
+	const rule = pluralRules.select(count) as 'one' | 'other';
+	const label = `${count} chart${suffixes[rule]} selected`;
 
 	return (
 		<SelectionPopover
@@ -52,9 +47,9 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 			onOpenChange={setIsOpen}
 			layout="size"
 		>
-			{hasEverSelected ? (
+			{items.length ? (
 				<SelectionPopoverFloatingButton
-					label="Selected Charts"
+					label={label}
 					icon="ExpandSelection"
 					disabled={!hasItems}
 				/>
@@ -95,18 +90,18 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 					<ButtonTw
 						variant="primary"
 						rounded="lg"
-						size="md"
+						size="sm/2"
 						className="w-full justify-center"
 						onClick={onOpenClick}
 						disabled={items.length <= 1}
 					>
-						<Icon name="LineChartMultiple" className="size-6 mr-2" />
+						<Icon name="LineChartMultiple" className="size-5 mr-2" />
 						<span>Stacked</span>
 					</ButtonTw>
 					<ButtonTw
 						variant="outline"
 						rounded="lg"
-						size="md"
+						size="sm/2"
 						className="w-full justify-center"
 						onClick={onResetClick}
 					>

@@ -28,20 +28,6 @@ interface SelectedChartsPopoverProps {
 function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 	const hasSelection = props.plots.length > 0;
 	const [isOpen, setIsOpen] = useState(hasSelection);
-	const [hasEverSelected, setHasEverSelected] = useState(hasSelection);
-	const prevCountRef = useRef(props.plots.length);
-
-	useEffect(() => {
-		const wasEmpty = prevCountRef.current === 0;
-		if (props.plots.length === 0) {
-			setIsOpen(false);
-		} else if (wasEmpty) {
-			setIsOpen(true);
-			setHasEverSelected(true);
-		}
-		if (props.plots.length > 0) setHasEverSelected(true);
-		prevCountRef.current = props.plots.length;
-	}, [props.plots.length]);
 
 	return (
 		<SelectionPopover
@@ -49,15 +35,13 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 			onOpenChange={setIsOpen}
 			className="z-30"
 		>
-			{hasEverSelected ? (
-				<SelectionPopoverFloatingButton
-					label={props.label}
-					icon="ExpandSelection"
-					disabled={!hasSelection}
-				/>
-			) : null}
+			<SelectionPopoverFloatingButton
+				label={props.label}
+				icon="ExpandSelection"
+				disabled={!hasSelection}
+			/>
 			<SelectionPopoverBody>
-				<SelectionPopoverTitle>{props.label}</SelectionPopoverTitle>
+				<SelectionPopoverTitle>Selected Charts</SelectionPopoverTitle>
 				<SelectionPopoverList>
 					{props.plots.map(({ plot }) => {
 						return (
@@ -91,16 +75,17 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 				<div className="flex items-center gap-2">
 					<ButtonTw
 						variant="primary"
-						size="md"
 						rounded="lg"
+						size="sm/2"
 						className="flex-1"
 						onClick={props.onOpenButtonClick}
 					>
-						Open
+						<Icon name="LineChartMultiple" className="size-5 mr-2" />
+						<span>Stacked</span>
 					</ButtonTw>
 					<ButtonTw
 						variant="outline"
-						size="md"
+						size="sm/2"
 						rounded="lg"
 						className="flex-1"
 						onClick={props.onResetButtonClick}
