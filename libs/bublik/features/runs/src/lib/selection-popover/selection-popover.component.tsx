@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 
 import { RUN_STATUS } from '@/shared/types';
 import {
@@ -25,23 +25,18 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 	const { compareIds, renderItem, onResetClick } = props;
 
 	const hasSelection = compareIds.length > 0;
-	const [isOpen, setIsOpen] = useState(hasSelection);
+
+	if (!hasSelection) return null;
 
 	const label = `${compareIds.length} runs selected`;
 
 	return (
-		<SelectionPopoverLayout
-			open={isOpen && hasSelection}
-			onOpenChange={setIsOpen}
-			layout="size"
-		>
-			{hasSelection ? (
-				<SelectionPopoverFloatingButton
-					label={label}
-					icon="ExpandSelection"
-					disabled={!hasSelection}
-				/>
-			) : null}
+		<SelectionPopoverLayout defaultOpen layout="size">
+			<SelectionPopoverFloatingButton
+				label={label}
+				icon="ExpandSelection"
+				disabled={!hasSelection}
+			/>
 			<SelectionPopoverBody>
 				<SelectedResultList
 					label="Selected Runs"

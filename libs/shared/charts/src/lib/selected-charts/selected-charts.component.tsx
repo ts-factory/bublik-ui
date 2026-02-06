@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useRef, useState } from 'react';
-
 import {
 	ButtonTw,
 	Icon,
@@ -27,21 +25,16 @@ interface SelectedChartsPopoverProps {
 
 function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 	const hasSelection = props.selectionCount > 0;
-	const [isOpen, setIsOpen] = useState(hasSelection);
+
+	if (!hasSelection) return null;
 
 	return (
-		<SelectionPopover
-			open={isOpen && hasSelection}
-			onOpenChange={setIsOpen}
-			className="z-30"
-		>
-			{hasSelection && (
-				<SelectionPopoverFloatingButton
-					label={props.label}
-					icon="ExpandSelection"
-					disabled={!hasSelection}
-				/>
-			)}
+		<SelectionPopover defaultOpen className="z-30">
+			<SelectionPopoverFloatingButton
+				label={props.label}
+				icon="ExpandSelection"
+				disabled={!hasSelection}
+			/>
 			<SelectionPopoverBody>
 				<SelectionPopoverTitle>Selected Charts</SelectionPopoverTitle>
 				<SelectionPopoverList>
