@@ -11,6 +11,7 @@ export * from './not-found-page';
 export * from './run-diff-page';
 export * from './run-page';
 export * from './runs-page';
+export * from './runs-layout';
 export * from './auth';
 export * from './admin-users';
 export * from './run-report';
