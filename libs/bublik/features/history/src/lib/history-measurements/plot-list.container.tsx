@@ -97,8 +97,8 @@ export function PlotListContainer() {
 				group="trend"
 			/>
 			<SelectedChartsPopover
-				open={!!selectedCharts.length}
 				label={label}
+				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}
@@ -250,8 +250,8 @@ export function PlotListContainerByResult() {
 				group="measurement"
 			/>
 			<SelectedChartsPopover
-				open={!!selectedCharts.length}
 				label="Selected Charts"
+				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}

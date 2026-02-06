@@ -18,7 +18,7 @@ import { getChartName } from '../utils';
 
 interface SelectedChartsPopoverProps {
 	label: string;
-	open: boolean;
+	selectionCount: number;
 	plots: { plot: SingleMeasurementChart; color: string }[];
 	onResetButtonClick?: () => void;
 	onRemoveClick?: (plot: SingleMeasurementChart) => void;
@@ -26,7 +26,7 @@ interface SelectedChartsPopoverProps {
 }
 
 function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
-	const hasSelection = props.plots.length > 0;
+	const hasSelection = props.selectionCount > 0;
 	const [isOpen, setIsOpen] = useState(hasSelection);
 
 	return (
@@ -35,11 +35,13 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 			onOpenChange={setIsOpen}
 			className="z-30"
 		>
-			<SelectionPopoverFloatingButton
-				label={props.label}
-				icon="ExpandSelection"
-				disabled={!hasSelection}
-			/>
+			{hasSelection && (
+				<SelectionPopoverFloatingButton
+					label={props.label}
+					icon="ExpandSelection"
+					disabled={!hasSelection}
+				/>
+			)}
 			<SelectionPopoverBody>
 				<SelectionPopoverTitle>Selected Charts</SelectionPopoverTitle>
 				<SelectionPopoverList>
