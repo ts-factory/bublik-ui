@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
-import { useEffect, useRef, useState } from 'react';
-
 import {
 	ButtonTw,
 	Icon,
@@ -36,24 +34,19 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 	const { items = [], onResetClick, onRemoveClick, onOpenClick } = props;
 
 	const hasItems = items.length > 0;
-	const [isOpen, setIsOpen] = useState(hasItems);
+
+	if (!hasItems) return null;
 	const count = items.length;
 	const rule = pluralRules.select(count) as 'one' | 'other';
 	const label = `${count} chart${suffixes[rule]} selected`;
 
 	return (
-		<SelectionPopover
-			open={isOpen && hasItems}
-			onOpenChange={setIsOpen}
-			layout="size"
-		>
-			{items.length ? (
-				<SelectionPopoverFloatingButton
-					label={label}
-					icon="ExpandSelection"
-					disabled={!hasItems}
-				/>
-			) : null}
+		<SelectionPopover defaultOpen layout="size">
+			<SelectionPopoverFloatingButton
+				label={label}
+				icon="ExpandSelection"
+				disabled={!hasItems}
+			/>
 			<SelectionPopoverBody>
 				<SelectionPopoverTitle>Selected Charts</SelectionPopoverTitle>
 				<SelectionPopoverList>
