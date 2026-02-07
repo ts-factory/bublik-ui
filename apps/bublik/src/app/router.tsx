@@ -14,34 +14,11 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
 
-import {
-	DevelopersLayout,
-	FlowerFeature,
-	ImportPage,
-	NoMatchFeature,
-	LogPage,
-	RunPage,
-	MeasurementsPage,
-	HelpPage,
-	RunsPage,
-	RunDiffPage,
-	HistoryPageV2,
-	LoginPage,
-	ForgotPage,
-	AuthLayout,
-	ResetPasswordPage,
-	AdminUsersPage,
-	DashboardPageV2,
-	EmailActivationPage,
-	RunReportPage,
-	ConfigsPage,
-	RunMultiplePage,
-	NetPacketAnalyzerPage
-} from '../pages';
+import { AuthLayout } from '../pages/auth/auth.layout';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
 
-import { useEffect, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import {
 	Command,
@@ -54,6 +31,134 @@ import {
 	CommandSeparator,
 	Icon
 } from '@/shared/tailwind-ui';
+
+const AdminUsersPage = lazy(() =>
+	import('../pages/admin-users/admin-users.page').then((module) => ({
+		default: module.AdminUsersPage
+	}))
+);
+
+const ConfigsPage = lazy(() =>
+	import('../pages/configs/configs.page').then((module) => ({
+		default: module.ConfigsPage
+	}))
+);
+
+const DashboardPageV2 = lazy(() =>
+	import('../pages/dashboard-page/dashboard-page-v2').then((module) => ({
+		default: module.DashboardPageV2
+	}))
+);
+
+const DevelopersLayout = lazy(() =>
+	import('../pages/developers-page/developers-page').then((module) => ({
+		default: module.DevelopersLayout
+	}))
+);
+
+const EmailActivationPage = lazy(() =>
+	import('../pages/auth/email-activation.page').then((module) => ({
+		default: module.EmailActivationPage
+	}))
+);
+
+const FlowerFeature = lazy(() =>
+	import('../pages/developers-page/developers-page').then((module) => ({
+		default: module.FlowerFeature
+	}))
+);
+
+const ForgotPage = lazy(() =>
+	import('../pages/auth/forgot.page').then((module) => ({
+		default: module.ForgotPage
+	}))
+);
+
+const HelpPage = lazy(() =>
+	import('../pages/help-page/help-page').then((module) => ({
+		default: module.HelpPage
+	}))
+);
+
+const HistoryPageV2 = lazy(() =>
+	import('../pages/history-page/history-page').then((module) => ({
+		default: module.HistoryPageV2
+	}))
+);
+
+const ImportPage = lazy(() =>
+	import('../pages/import-page/import-page').then((module) => ({
+		default: module.ImportPage
+	}))
+);
+
+const LoginPage = lazy(() =>
+	import('../pages/auth/login.page').then((module) => ({
+		default: module.LoginPage
+	}))
+);
+
+const LogPage = lazy(() =>
+	import('../pages/log-page/log-page').then((module) => ({
+		default: module.LogPage
+	}))
+);
+
+const MeasurementsPage = lazy(() =>
+	import('../pages/measurements-page/measurements-page').then((module) => ({
+		default: module.MeasurementsPage
+	}))
+);
+
+const NetPacketAnalyzerPage = lazy(() =>
+	import('../pages/net-packet-analyzer/net-packet-analyzer.page').then(
+		(module) => ({
+			default: module.NetPacketAnalyzerPage
+		})
+	)
+);
+
+const NoMatchFeature = lazy(() =>
+	import('../pages/not-found-page/not-found-page').then((module) => ({
+		default: module.NoMatchFeature
+	}))
+);
+
+const ResetPasswordPage = lazy(() =>
+	import('../pages/auth/reset-password.page').then((module) => ({
+		default: module.ResetPasswordPage
+	}))
+);
+
+const RunDiffPage = lazy(() =>
+	import('../pages/run-diff-page/run-diff-page').then((module) => ({
+		default: module.RunDiffPage
+	}))
+);
+
+const RunMultiplePage = lazy(() =>
+	import('../pages/run-multiple').then((module) => ({
+		default: module.RunMultiplePage
+	}))
+);
+
+const RunPage = lazy(() =>
+	import('../pages/run-page/run-page').then((module) => ({
+		default: module.RunPage
+	}))
+);
+
+const RunReportPage = lazy(() =>
+	import('../pages/run-report/run-report.page').then((module) => ({
+		default: module.RunReportPage
+	}))
+);
+
+const RunsPage = lazy(() =>
+	import('../pages/runs-page/runs-page').then((module) => ({
+		default: module.RunsPage
+	}))
+);
 
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
