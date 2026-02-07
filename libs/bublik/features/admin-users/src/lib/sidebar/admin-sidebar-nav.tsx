@@ -8,7 +8,6 @@ import {
 	SidebarNavSubmenuItemContainer,
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
-import { Icon } from '@/shared/tailwind-ui';
 
 const ADMIN_SIDEBAR_PATTERNS = [{ path: '/admin/*' }];
 
@@ -18,11 +17,12 @@ export function AdminSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Admin">
 					<SidebarNavInternalLink
-						label="Admin"
-						icon={<Icon name="Edit" />}
 						to="/admin/import"
 						linkComponent={LinkWithProject}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="Edit" />
+						<SidebarNavInternalLink.Label>Admin</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>

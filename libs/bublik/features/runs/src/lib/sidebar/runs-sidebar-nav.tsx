@@ -20,7 +20,6 @@ import {
 	MultipleRunsDialog,
 	CompareRunsDialog
 } from './runs-dialogs';
-import { Icon } from '@/shared/tailwind-ui';
 
 const RUNS_SIDEBAR_PATTERNS = [
 	{ path: '/runs' },
@@ -83,11 +82,12 @@ export function RunsSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Runs">
 					<SidebarNavInternalLink
-						label="Runs"
-						icon={<Icon name="Play" />}
 						to={mainLinkUrl}
 						linkComponent={LinkWithProject}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="Play" />
+						<SidebarNavInternalLink.Label>Runs</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>

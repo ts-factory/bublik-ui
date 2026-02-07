@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { PropsWithChildren, ReactNode, useState, forwardRef } from 'react';
+import {
+	PropsWithChildren,
+	ReactNode,
+	useState,
+	forwardRef,
+	createContext,
+	useContext
+} from 'react';
 
 import {
 	cn,
@@ -9,7 +16,8 @@ import {
 	useSidebar,
 	Dialog,
 	DialogPortal,
-	ModalContent
+	ModalContent,
+	type IconProps
 } from '@/shared/tailwind-ui';
 
 import {
@@ -19,89 +27,120 @@ import {
 import { linkStyles, paddingTransition } from './sidebar-nav.styles';
 import { toString } from './sidebar-nav.utils';
 
-export const SidebarNavInternalLink = forwardRef<
-	HTMLAnchorElement | HTMLDivElement,
-	Omit<SidebarNavLinkInternalProps, 'isSidebarOpen'> & {
-		children?: ReactNode;
-	}
->(
-	(
-		{
-			label,
-			icon,
-			to,
-			linkComponent: LinkComponent,
-			onClick,
-			children,
-			disabled
-		},
-		ref
-	) => {
-		const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
-		const isSidebarOpen = !!isSidebarOpenRaw;
+interface SidebarNavInternalLinkContextValue {
+	disabled: boolean;
+}
 
-		const content = (
-			<>
-				<div
-					className={cn(
-						'grid flex-shrink-0 place-items-center',
-						disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
-					)}
-				>
-					{icon}
-				</div>
-				<span
-					className={cn(
-						'text-[1.125rem] truncate',
-						disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
-					)}
-				>
-					{label}
-				</span>
-				{children}
-			</>
+const SidebarNavInternalLinkContext = createContext<
+	SidebarNavInternalLinkContextValue | undefined
+>(undefined);
+
+export function useSidebarNavInternalLink(): SidebarNavInternalLinkContextValue {
+	const context = useContext(SidebarNavInternalLinkContext);
+	if (context === undefined) {
+		throw new Error(
+			'useSidebarNavInternalLink must be used within SidebarNavInternalLink'
 		);
+	}
+	return context;
+}
 
-		const className = linkStyles({ isSidebarOpen, disabled });
-		const style = paddingTransition;
+function SidebarNavInternalLinkIcon(props: Omit<IconProps, 'ref'>) {
+	const { disabled } = useSidebarNavInternalLink();
+	return (
+		<div
+			className={cn(
+				'grid flex-shrink-0 place-items-center',
+				disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
+			)}
+		>
+			<Icon {...props} />
+		</div>
+	);
+}
 
-		if (disabled) {
-			return (
-				<div
-					ref={ref as React.Ref<HTMLDivElement>}
-					className={cn(className)}
-					style={style}
-				>
-					{content}
-				</div>
-			);
-		}
+function SidebarNavInternalLinkLabel({ children }: { children: ReactNode }) {
+	const { disabled } = useSidebarNavInternalLink();
+	return (
+		<span
+			className={cn(
+				'text-[1.125rem] truncate',
+				disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
+			)}
+		>
+			{children}
+		</span>
+	);
+}
 
-		if (LinkComponent) {
-			return (
-				<LinkComponent
-					ref={ref as React.Ref<HTMLAnchorElement>}
-					to={to}
-					className={className}
-					style={style}
-					onClick={onClick}
-				>
-					{content}
-				</LinkComponent>
-			);
-		}
+type SidebarNavInternalLinkProps = Omit<
+	SidebarNavLinkInternalProps,
+	'isSidebarOpen'
+> & {
+	children?: ReactNode;
+};
 
+const SidebarNavInternalLinkComponent = forwardRef<
+	HTMLAnchorElement | HTMLDivElement,
+	SidebarNavInternalLinkProps
+>(({ to, linkComponent: LinkComponent, onClick, children, disabled }, ref) => {
+	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
+	const isSidebarOpen = !!isSidebarOpenRaw;
+	const isDisabled = !!disabled;
+
+	const content = (
+		<SidebarNavInternalLinkContext.Provider value={{ disabled: isDisabled }}>
+			{children}
+		</SidebarNavInternalLinkContext.Provider>
+	);
+
+	const className = linkStyles({ isSidebarOpen, disabled: isDisabled });
+	const style = paddingTransition;
+
+	if (isDisabled) {
 		return (
-			<a
+			<div
+				ref={ref as React.Ref<HTMLDivElement>}
+				className={cn(className)}
+				style={style}
+			>
+				{content}
+			</div>
+		);
+	}
+
+	if (LinkComponent) {
+		return (
+			<LinkComponent
 				ref={ref as React.Ref<HTMLAnchorElement>}
-				href={toString(to)}
+				to={to}
 				className={className}
 				style={style}
 				onClick={onClick}
 			>
 				{content}
-			</a>
+			</LinkComponent>
 		);
+	}
+
+	return (
+		<a
+			ref={ref as React.Ref<HTMLAnchorElement>}
+			href={toString(to)}
+			className={className}
+			style={style}
+			onClick={onClick}
+		>
+			{content}
+		</a>
+	);
+});
+
+export const SidebarNavInternalLink = Object.assign(
+	SidebarNavInternalLinkComponent,
+	{
+		Icon: SidebarNavInternalLinkIcon,
+		Label: SidebarNavInternalLinkLabel
 	}
 );
 

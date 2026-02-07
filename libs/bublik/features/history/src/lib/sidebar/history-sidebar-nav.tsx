@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -9,7 +9,6 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
-	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
@@ -77,11 +76,12 @@ export function HistorySidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="History">
 					<SidebarNavInternalLink
-						label="History"
-						icon={<Icon name="TimeCircle" />}
 						to={mainLinkUrl}
 						linkComponent={LinkWithProject}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="TimeCircle" />
+						<SidebarNavInternalLink.Label>History</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>

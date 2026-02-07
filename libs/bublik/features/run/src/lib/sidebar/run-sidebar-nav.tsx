@@ -59,12 +59,13 @@ export function RunSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Run">
 					<SidebarNavInternalLink
-						label="Run"
-						icon={<Icon name="PieChart" />}
 						to={mainLinkUrl}
 						linkComponent={LinkWithProject}
 						disabled={!isMainLinkAvailable}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="PieChart" />
+						<SidebarNavInternalLink.Label>Run</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavInfoButton disabled={!isMainLinkAvailable}>
 					<RunMainDialog />

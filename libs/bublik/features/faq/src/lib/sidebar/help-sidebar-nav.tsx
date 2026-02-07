@@ -22,11 +22,12 @@ export function HelpSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Help">
 					<SidebarNavInternalLink
-						label="Help"
-						icon={<Icon name="Bulb" size={28} />}
 						to="/help/faq"
 						linkComponent={LinkWithProject}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="Bulb" size={28} />
+						<SidebarNavInternalLink.Label>Help</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
@@ -37,14 +38,18 @@ export function HelpSidebarNav() {
 					isActive={false}
 				>
 					<Icon name="PaperText" />
-					<span className="truncate text-[0.875rem] leading-[1.5rem]">Documentation</span>
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">
+						Documentation
+					</span>
 				</SidebarNavSubmenuItem>
 				<SidebarNavSubmenuItem
 					href={`${config.oldBaseUrl}/docs/blog`}
 					isActive={false}
 				>
 					<Icon name="PaperChangelog" />
-					<span className="truncate text-[0.875rem] leading-[1.5rem]">Changelog</span>
+					<span className="truncate text-[0.875rem] leading-[1.5rem]">
+						Changelog
+					</span>
 				</SidebarNavSubmenuItem>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
