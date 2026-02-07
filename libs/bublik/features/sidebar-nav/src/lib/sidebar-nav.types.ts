@@ -17,7 +17,10 @@ export type SidebarNavLinkBaseProps = {
 	disabled?: boolean;
 };
 
-export type SidebarNavLinkInternalProps = SidebarNavLinkBaseProps & {
+export type SidebarNavLinkInternalProps = Omit<
+	SidebarNavLinkBaseProps,
+	'label' | 'icon'
+> & {
 	to: To;
 	linkComponent?: React.ForwardRefExoticComponent<
 		{

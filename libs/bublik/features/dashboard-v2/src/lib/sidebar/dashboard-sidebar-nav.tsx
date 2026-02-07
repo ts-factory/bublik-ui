@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -30,11 +29,12 @@ export function DashboardSidebarNav() {
 		<SidebarNavItem patterns={DASHBOARD_SIDEBAR_PATTERNS}>
 			<SidebarNavLinkWrapper label="Dashboard">
 				<SidebarNavInternalLink
-					label="Dashboard"
-					icon={<Icon name="Category" />}
 					to={mainLinkUrl}
 					linkComponent={LinkWithProject}
-				/>
+				>
+					<SidebarNavInternalLink.Icon name="Category" />
+					<SidebarNavInternalLink.Label>Dashboard</SidebarNavInternalLink.Label>
+				</SidebarNavInternalLink>
 			</SidebarNavLinkWrapper>
 		</SidebarNavItem>
 	);

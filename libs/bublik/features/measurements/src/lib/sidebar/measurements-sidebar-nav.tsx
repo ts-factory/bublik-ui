@@ -72,12 +72,13 @@ export function MeasurementsSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Result">
 					<SidebarNavInternalLink
-						label="Result"
-						icon={<Icon name="LineGraph" />}
 						to={mainLinkUrl}
 						linkComponent={LinkWithProject}
 						disabled={!isAvailable}
-					/>
+					>
+						<SidebarNavInternalLink.Icon name="LineGraph" />
+						<SidebarNavInternalLink.Label>Result</SidebarNavInternalLink.Label>
+					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
 				<SidebarNavInfoButton disabled={!isAvailable}>
 					<ResultMeasurementsDialog />
