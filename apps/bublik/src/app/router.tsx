@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { lazy, useEffect, useState, Suspense } from 'react';
 import {
 	Navigate,
 	Outlet,
@@ -14,34 +15,29 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
 
-import {
-	DevelopersLayout,
-	FlowerFeature,
-	ImportPage,
-	NoMatchFeature,
-	LogPage,
-	RunPage,
-	MeasurementsPage,
-	HelpPage,
-	RunsPage,
-	RunDiffPage,
-	HistoryPageV2,
-	LoginPage,
-	ForgotPage,
-	AuthLayout,
-	ResetPasswordPage,
-	AdminUsersPage,
-	DashboardPageV2,
-	EmailActivationPage,
-	RunReportPage,
-	ConfigsPage,
-	RunMultiplePage,
-	NetPacketAnalyzerPage
-} from '../pages';
+import { AuthLayout } from '../pages/auth/auth.layout';
 import { Layout } from './layout';
 import { RedirectToLogPage } from './redirects';
 
-import { useEffect, useState } from 'react';
+import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
+import { ConfigsPage } from '../pages/configs/configs.page';
+import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
+import {
+	DevelopersLayout,
+	FlowerFeature
+} from '../pages/developers-page/developers-page';
+import { EmailActivationPage } from '../pages/auth/email-activation.page';
+import { ForgotPage } from '../pages/auth/forgot.page';
+import { HelpPage } from '../pages/help-page/help-page';
+import { LoginPage } from '../pages/auth/login.page';
+import { LogPage } from '../pages/log-page/log-page';
+import { NoMatchFeature } from '../pages/not-found-page/not-found-page';
+import { ResetPasswordPage } from '../pages/auth/reset-password.page';
+import { RunDiffPage } from '../pages/run-diff-page/run-diff-page';
+import { RunMultiplePage } from '../pages/run-multiple';
+import { RunPage } from '../pages/run-page/run-page';
+import { HistoryPageV2 } from '../pages/history-page/history-page';
+
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import {
 	Command,
@@ -52,8 +48,36 @@ import {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-	Icon
+	Icon,
+	Spinner
 } from '@/shared/tailwind-ui';
+import { RunsPage } from '../pages/runs-page';
+
+const ImportPage = lazy(() =>
+	import('../pages/import-page/import-page').then((module) => ({
+		default: module.ImportPage
+	}))
+);
+
+const MeasurementsPage = lazy(() =>
+	import('../pages/measurements-page/measurements-page').then((module) => ({
+		default: module.MeasurementsPage
+	}))
+);
+
+const NetPacketAnalyzerPage = lazy(() =>
+	import('../pages/net-packet-analyzer/net-packet-analyzer.page').then(
+		(module) => ({
+			default: module.NetPacketAnalyzerPage
+		})
+	)
+);
+
+const RunReportPage = lazy(() =>
+	import('../pages/run-report/run-report.page').then((module) => ({
+		default: module.RunReportPage
+	}))
+);
 
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
@@ -138,6 +162,12 @@ function BublikCommand() {
 	);
 }
 
+function LazyRoute({ children }: { children: React.ReactNode }) {
+	return (
+		<Suspense fallback={<Spinner className="h-48" />}>{children}</Suspense>
+	);
+}
+
 const router = createBrowserRouter(
 	[
 		{
@@ -184,21 +214,42 @@ const router = createBrowserRouter(
 						{ path: '/dashboard', element: <DashboardPageV2 /> },
 						{
 							path: '/tools/packet-viewer',
-							element: <NetPacketAnalyzerPage />
+							element: (
+								<LazyRoute>
+									<NetPacketAnalyzerPage />
+								</LazyRoute>
+							)
 						},
-						{ path: '/history', element: <HistoryPageV2 /> },
-						{ path: '/history/v2', element: <HistoryPageV2 /> },
+						{
+							path: '/history',
+							element: <HistoryPageV2 />
+						},
+						{
+							path: '/history/v2',
+							element: <HistoryPageV2 />
+						},
 						{ path: '/log/:runId/:old', element: <RedirectToLogPage /> },
 						{ path: '/log/:runId', element: <LogPage /> },
 						{
 							path: '/runs/:runId/report',
-							element: <RunReportPage />
+							element: (
+								<LazyRoute>
+									<RunReportPage />
+								</LazyRoute>
+							)
 						},
 						{
 							path: '/runs/:runId/results/:resultId/measurements',
-							element: <MeasurementsPage />
+							element: (
+								<LazyRoute>
+									<MeasurementsPage />
+								</LazyRoute>
+							)
 						},
-						{ path: '/runs', element: <RunsPage /> },
+						{
+							path: '/runs',
+							element: <RunsPage />
+						},
 						{ path: '/compare', element: <RunDiffPage /> },
 						{ path: '/multiple', element: <RunMultiplePage /> },
 						{
@@ -209,10 +260,31 @@ const router = createBrowserRouter(
 							path: '/admin',
 							element: <DevelopersLayout />,
 							children: [
-								{ path: 'import', element: <ImportPage /> },
+								{
+									path: 'import',
+									element: (
+										<LazyRoute>
+											<ImportPage />
+										</LazyRoute>
+									)
+								},
 								{ path: 'flower', element: <FlowerFeature /> },
-								{ path: 'users', element: <AdminUsersPage /> },
-								{ path: 'config', element: <ConfigsPage /> },
+								{
+									path: 'users',
+									element: (
+										<LazyRoute>
+											<AdminUsersPage />
+										</LazyRoute>
+									)
+								},
+								{
+									path: 'config',
+									element: (
+										<LazyRoute>
+											<ConfigsPage />
+										</LazyRoute>
+									)
+								},
 								{ element: <NoMatchFeature /> }
 							]
 						},
