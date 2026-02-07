@@ -99,7 +99,11 @@ export default defineConfig(({ mode }) => {
 				output: {
 					manualChunks: {
 						echarts: ['echarts'],
-						react: ['react', 'react-dom', 'react-router-dom']
+						react: ['react', 'react-dom', 'react-router-dom'],
+						monaco: ['monaco-editor', '@monaco-editor/react'],
+						shiki: ['react-shiki'],
+						prettier: ['prettier', 'prettier/parser-babel'],
+						reactJsonView: ['react-json-view']
 					}
 				}
 			}
