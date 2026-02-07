@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { getColorByIdx, SelectedChartsPopover } from '@/shared/charts';
@@ -37,24 +37,38 @@ export const ModePicker = ({ mode }: ModePickerProps) => {
 	);
 };
 
+const pluralRules = new Intl.PluralRules('en-US');
+const suffixes = {
+	one: '',
+	other: 's'
+} as const satisfies Record<'one' | 'other', string>;
+
 function SelectedChartsContainer() {
 	const { resultId } = useParams<MeasurementsRouterParams>();
 	const { selectedCharts, resetCharts, removeChart, handleOpenButtonClick } =
 		useResultSelectCharts();
-	const { data } = useGetSingleMeasurementQuery(resultId ?? skipToken);
+	const { data, isLoading } = useGetSingleMeasurementQuery(
+		resultId ?? skipToken
+	);
+
+	const count = selectedCharts.length;
+	const rule = pluralRules.select(count) as 'one' | 'other';
+	const label = `${count} chart${suffixes[rule]} selected`;
+	const plots =
+		data?.charts
+			?.filter((chart) => selectedCharts.includes(chart.id))
+			?.map((chart, idx) => ({
+				plot: chart,
+				color: getColorByIdx(idx)
+			})) ?? [];
+
+	if (isLoading) return;
 
 	return (
 		<SelectedChartsPopover
-			open={!!selectedCharts.length}
-			label="Combined"
-			plots={
-				data?.charts
-					?.filter((chart) => selectedCharts.includes(chart.id))
-					?.map((chart, idx) => ({
-						plot: chart,
-						color: getColorByIdx(idx)
-					})) ?? []
-			}
+			label={label}
+			selectionCount={selectedCharts.length}
+			plots={plots}
 			onResetButtonClick={resetCharts}
 			onRemoveClick={(plot) => removeChart(plot.id)}
 			onOpenButtonClick={handleOpenButtonClick}
