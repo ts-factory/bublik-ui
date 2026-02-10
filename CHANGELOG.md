@@ -1,5 +1,62 @@
 
 
+## [2.9.0](https://github.com/ts-factory/bublik-ui/compare/v2.8.0...v2.9.0) (2026-02-10)
+
+
+### 🚀 New Feature
+
+* **run:** change run ID copy method to clickable value ([4982085](https://github.com/ts-factory/bublik-ui/commit/49820853cd282e9b88253b06b749a56aae6f7b32)), closes [#486](https://github.com/ts-factory/bublik-ui/issues/486)
+
+
+### 💅 Polish
+
+* **report:** improve color contrast for charts ([9164a0d](https://github.com/ts-factory/bublik-ui/commit/9164a0d30feb355216de35591b94eb7e6d6c06d3))
+* **run:** replace "id" with "ID" in Compare Runs form instruction ([f338115](https://github.com/ts-factory/bublik-ui/commit/f338115fdbca47802b510614238295ebe45ffa04)), closes [#497](https://github.com/ts-factory/bublik-ui/issues/497)
+
+
+### 🐛 Bug Fix
+
+* **log:** [preview] fix history link dropdown not visible ([847d541](https://github.com/ts-factory/bublik-ui/commit/847d541c47d122609d3eee9dd8ecd2a7a7a5cb93))
+* **run:** [details] not showing skeleton while details loading ([492e72e](https://github.com/ts-factory/bublik-ui/commit/492e72eccfa7eec6e772be584764fa1353b914a8))
+* **run:** left-align Notes column header for consistency ([0f37864](https://github.com/ts-factory/bublik-ui/commit/0f37864f5e3c7fe42579991ea0a30b74954d703e)), closes [#490](https://github.com/ts-factory/bublik-ui/issues/490)
+* **run:** make result table header cells visible when scrolling in safari ([61e7c3c](https://github.com/ts-factory/bublik-ui/commit/61e7c3cbf4359140a91d6981f5f009b41073b167)), closes [#489](https://github.com/ts-factory/bublik-ui/issues/489)
+* **runs:** filter runs by clicked conclusion in bar chart modal ([489dfb0](https://github.com/ts-factory/bublik-ui/commit/489dfb06ac43119aa950923ec6ef3c6eeea7fe8c))
+* **run:** show timezone offset in GMT format for dates column header ([80cd576](https://github.com/ts-factory/bublik-ui/commit/80cd57605c5a021cc5c3405ac4b580b3097e81d8))
+* **types:** update component types for React 19 compatibility and fix lint issues ([6429c60](https://github.com/ts-factory/bublik-ui/commit/6429c60fe47a90d8c4f915837362440e8674259b))
+
+
+### ♻ Code Refactoring
+
+* **api:** add support for backend unified error format ([5dbd1a7](https://github.com/ts-factory/bublik-ui/commit/5dbd1a735122147240648b709b1adf91c79615aa))
+* **form:** update `setErrorsOnForm` to handle new API error format ([ae3d6d1](https://github.com/ts-factory/bublik-ui/commit/ae3d6d1c0693961a3e7e6c4a8984086f253ab440))
+* **form:** use `setErrorsOnForm` in create-config-form ([d7b7319](https://github.com/ts-factory/bublik-ui/commit/d7b73196b791191db9be22dadc7b71f6d9e0008a))
+* **form:** use `setErrorsOnForm` in create-project-modal ([aa575bb](https://github.com/ts-factory/bublik-ui/commit/aa575bbbafb6d9d78c480f0578940594b72cf2eb))
+* **form:** use `setErrorsOnForm` in import-run-form ([4165f4b](https://github.com/ts-factory/bublik-ui/commit/4165f4bbf3825ef087adb73f909c73efe67e7345))
+* **form:** use `setErrorsOnForm` in update-config-form ([ed5f1fa](https://github.com/ts-factory/bublik-ui/commit/ed5f1fa398f0d9029872b337650596740e862f0f))
+* **form:** use `setErrorsOnForm` in update-project-modal ([2cd40cc](https://github.com/ts-factory/bublik-ui/commit/2cd40cc0a6e3985105ac0516caecd3d9c0eff728))
+
+
+### 📦 Chores
+
+* add github issue and feature request templates ([ebeadd1](https://github.com/ts-factory/bublik-ui/commit/ebeadd192fe271e4fe87e0cddf116ac261bb5a0a))
+* **build:** remove deprecated cacheDir from vite configurations ([699528f](https://github.com/ts-factory/bublik-ui/commit/699528fda69da0b47a6076c892bb8ab71b2e84fa))
+* **build:** rename vite.config.ts to vite.config.mts for ESM compatibility ([d6d2d2f](https://github.com/ts-factory/bublik-ui/commit/d6d2d2fa8414489751554b8a83769a9dd20d0a61))
+* **deps:** upgrade Nx to 20.8.0 and related dependencies ([8de3c93](https://github.com/ts-factory/bublik-ui/commit/8de3c937a05d629afdb5812dd9f78ed9a9f8325a))
+* **lint:** update ESLint configurations for Nx 20 compatibility ([64fcb2e](https://github.com/ts-factory/bublik-ui/commit/64fcb2edfd76f1e235f23538e08ab3eb5087cdbf))
+* **run:** [details] remove unused import ([e8c6598](https://github.com/ts-factory/bublik-ui/commit/e8c659837b41e8d6e6eaa8e1b4cd27b932d3c3c2))
+* **storybook:** remove storybook configuration and all story files ([557ae8a](https://github.com/ts-factory/bublik-ui/commit/557ae8a9fdd96cfb766101036cd1b17683cb2faa))
+
+
+### ⚡ Performance Improvements
+
+* improve initial loading for application ([bfdc78f](https://github.com/ts-factory/bublik-ui/commit/bfdc78fc1145dff218e6c5fc624d39485135387d))
+
+
+### ✅ Tests
+
+* **deps:** upgrade tests for compatability with nx 22 ([904549f](https://github.com/ts-factory/bublik-ui/commit/904549f0dbaee9f3a411a572ba40b764e9f60f32))
+* **form:** add comprehensive tests for setErrorsOnForm ([e16c63e](https://github.com/ts-factory/bublik-ui/commit/e16c63e09a885a2568a29045f97f2d010b6a9773))
+
 ## [2.8.0](https://github.com/ts-factory/bublik-ui/compare/v2.7.1...v2.8.0) (2026-01-28)
 
 

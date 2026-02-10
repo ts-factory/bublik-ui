@@ -1,7 +1,7 @@
 {
-	"date": "2026.01.28",
-	"summary": "fix(log): [new-bug] make log data optional for NewBugContainer",
-	"revision": "bfcd1efa",
-	"branch": "release-2.8.0",
-	"latestTag": "v2.8.0"
+	"date": "2026.02.10",
+	"summary": "perf: improve initial loading for application",
+	"revision": "bfdc78fc",
+	"branch": "release-2.9.0",
+	"latestTag": "v2.9.0"
 }
