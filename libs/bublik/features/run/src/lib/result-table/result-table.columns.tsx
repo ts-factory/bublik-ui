@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
-import { RESULT_TYPE, RunDataResults } from '@/shared/types';
+import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
@@ -99,6 +99,18 @@ export const getColumns = ({
 					);
 
 					const verdicts = filterValue?.verdicts ?? [];
+					const resultProperty = obtainedResult.isNotExpected
+						? RESULT_PROPERTIES.Unexpected
+						: RESULT_PROPERTIES.Expected;
+					const hasResultFilter =
+						filterValue.results.length > 0 ||
+						filterValue.resultProperties.length > 0;
+					const isResultSelected =
+						hasResultFilter &&
+						(!filterValue.results.length ||
+							filterValue.results.includes(obtainedResult.result)) &&
+						(!filterValue.resultProperties.length ||
+							filterValue.resultProperties.includes(resultProperty));
 
 					if (!obtainedResult.result || !obtainedResult.verdicts) return;
 
@@ -122,16 +134,20 @@ export const getColumns = ({
 					function handleResultClick(result: RESULT_TYPE) {
 						cell.column.setFilterValue(
 							createNextState(filterValue ?? {}, (draft) => {
-								if (
-									draft.result === result &&
-									draft.isNotExpected === obtainedResult.isNotExpected
-								) {
-									draft.result = undefined;
-									draft.isNotExpected = undefined;
-								} else {
-									draft.result = result;
-									draft.isNotExpected = obtainedResult.isNotExpected;
+								const isAlreadySelected =
+									draft.results.length === 1 &&
+									draft.resultProperties.length === 1 &&
+									draft.results[0] === result &&
+									draft.resultProperties[0] === resultProperty;
+
+								if (isAlreadySelected) {
+									draft.results = [];
+									draft.resultProperties = [];
+									return;
 								}
+
+								draft.results = [result];
+								draft.resultProperties = [resultProperty];
 							})
 						);
 					}
@@ -145,10 +161,7 @@ export const getColumns = ({
 							onVerdictClick={handleVerdictClick}
 							selectedVerdicts={verdicts}
 							onResultClick={handleResultClick}
-							isResultSelected={
-								obtainedResult.result === filterValue?.result &&
-								obtainedResult.isNotExpected === filterValue?.isNotExpected
-							}
+							isResultSelected={isResultSelected}
 						/>
 					);
 				},
@@ -156,9 +169,9 @@ export const getColumns = ({
 					row,
 					column,
 					filterValue: {
-						result?: RESULT_TYPE;
+						results?: RESULT_TYPE[];
+						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
-						isNotExpected?: boolean;
 					}
 				) => {
 					const value = row.getValue(column) as {
@@ -166,20 +179,34 @@ export const getColumns = ({
 						result?: RESULT_TYPE;
 						verdicts?: string[];
 					};
+					const rowResultProperty =
+						typeof value.isNotExpected === 'boolean'
+							? value.isNotExpected
+								? RESULT_PROPERTIES.Unexpected
+								: RESULT_PROPERTIES.Expected
+							: undefined;
 
-					if (!filterValue?.result && !filterValue?.verdicts?.length) {
+					if (
+						!filterValue?.results?.length &&
+						!filterValue?.resultProperties?.length &&
+						!filterValue?.verdicts?.length
+					) {
 						return true;
 					}
 
 					const matchesResult =
-						!filterValue.result ||
-						(value.result === filterValue.result &&
-							value.isNotExpected === filterValue.isNotExpected);
+						!filterValue.results?.length ||
+						(value.result ? filterValue.results.includes(value.result) : false);
+					const matchesResultProperties =
+						!filterValue.resultProperties?.length ||
+						(rowResultProperty
+							? filterValue.resultProperties.includes(rowResultProperty)
+							: false);
 					const matchesVerdicts =
 						!filterValue.verdicts?.length ||
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
 
-					return matchesResult && matchesVerdicts;
+					return matchesResult && matchesResultProperties && matchesVerdicts;
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
 			}
