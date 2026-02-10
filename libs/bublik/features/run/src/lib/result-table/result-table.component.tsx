@@ -3,6 +3,7 @@
 import {
 	CSSProperties,
 	Fragment,
+	MouseEvent as ReactMouseEvent,
 	memo,
 	useCallback,
 	useMemo,
@@ -292,6 +293,8 @@ function ResultRow(props: ResultRowProps) {
 	const firstCellRef = useRef<HTMLDivElement>(null);
 	const isTarget = row.original.result_id === targetIterationId;
 	const { setTargetIterationId } = useTargetIterationId();
+	const INTERACTIVE_SELECTOR =
+		'button, a, input, select, textarea, [role="button"], [data-stop-row-click="true"]';
 
 	useMount(() => {
 		if (!isTarget) return;
@@ -303,6 +306,15 @@ function ResultRow(props: ResultRowProps) {
 	});
 
 	const [hovered, setHovered] = useState(false);
+
+	function handleRowClick(event: ReactMouseEvent<HTMLDivElement>) {
+		const target = event.target as HTMLElement;
+		const interactiveParent = target.closest(INTERACTIVE_SELECTOR);
+
+		if (interactiveParent) return;
+
+		onRowClick?.(row);
+	}
 
 	return (
 		<Fragment>
@@ -342,7 +354,7 @@ function ResultRow(props: ResultRowProps) {
 							cursor: onRowClick ? 'pointer' : 'default'
 						}}
 						ref={cellIdx === 0 ? firstCellRef : undefined}
-						onClick={() => onRowClick?.(row)}
+						onClick={handleRowClick}
 					>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
 					</div>
@@ -523,13 +535,26 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	}
 
 	function handleFilterChange(id: string, values: string[] | undefined) {
-		setColumnFilters((prev) => {
-			const filter = prev.find((filter) => filter.id === id);
+		setColumnFilters((prev) =>
+			createNextState(prev, (draft) => {
+				const index = draft.findIndex((filter) => filter.id === id);
+				const nextValue = values ?? [];
 
-			if (filter) filter.value = values ?? [];
+				if (nextValue.length === 0) {
+					if (index !== -1) {
+						draft.splice(index, 1);
+					}
+					return;
+				}
 
-			return [...prev, { id, value: values ?? [] }];
-		});
+				if (index === -1) {
+					draft.push({ id, value: nextValue });
+					return;
+				}
+
+				draft[index].value = nextValue;
+			})
+		);
 	}
 
 	function handleVerdictsFilterChange(values: string[] | undefined) {

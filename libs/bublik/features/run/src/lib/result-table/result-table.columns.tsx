@@ -280,12 +280,13 @@ export const getColumns = ({
 				const referenceDiffRowId =
 					// eslint-disable-next-line react-hooks/rules-of-hooks
 					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
-				const hasReferenceRow = Boolean(referenceDiffRowId);
+				const referenceParameters = referenceDiffRowId
+					? parametersDataset[referenceDiffRowId]
+					: undefined;
+				const hasReferenceRow = Boolean(referenceParameters);
 				const filterValue = (column.getFilterValue() ?? []) as string[];
 
-				const reference = referenceDiffRowId
-					? parametersDataset[referenceDiffRowId]
-					: parameters;
+				const reference = referenceParameters ?? parameters;
 
 				function handleParameterClick(value: string) {
 					column.setFilterValue(
@@ -344,7 +345,7 @@ function fitlerIncludesSome<T extends Record<string, unknown>>(
 ) {
 	const cellValue = (row.original[column] ?? []) as string[];
 
-	return filterValue.every((value) => cellValue.some((v) => v.includes(value)));
+	return filterValue.every((value) => cellValue.includes(value));
 }
 
 interface ArtifactsListProps {
@@ -441,6 +442,7 @@ function Parameters(props: ParametersProps) {
 	return (
 		<ul className="flex gap-1 flex-wrap">
 			{parameters.map((value, index) => {
+				const isSelected = filterValue.includes(value);
 				const shouldDim = hasReferenceRow
 					? referenceSet.has(value)
 					: commonParameters?.has(value);
@@ -450,10 +452,8 @@ function Parameters(props: ParametersProps) {
 						key={index}
 						className={cn(
 							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							filterValue.includes(value)
-								? 'bg-primary-wash border-primary'
-								: 'bg-badge-1',
-							shouldDim && 'opacity-60'
+							isSelected ? 'bg-primary-wash border-primary' : 'bg-badge-1',
+							shouldDim && !isSelected && 'opacity-60'
 						)}
 						onClick={() => onParameterClick(value)}
 					>
