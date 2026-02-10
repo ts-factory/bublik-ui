@@ -67,22 +67,6 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 		return rowState?.showToolbar ?? false;
 	}, [rowState?.showToolbar]);
 
-	const setMode = useCallback(
-		(mode: 'default' | 'diff' | 'dim') => {
-			return updateRowState({
-				...rowState,
-				mode,
-				rowId,
-				referenceDiffRowId:
-					mode === 'diff' || mode === 'dim'
-						? rowState.referenceDiffRowId
-						: undefined,
-				showToolbar: showToolbar
-			});
-		},
-		[updateRowState, rowState, rowId, showToolbar]
-	);
-
 	const setShowToolbar = useCallback(
 		(showToolbar: boolean) => {
 			return updateRowState({ ...rowState, showToolbar, rowId });
@@ -92,25 +76,14 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	const onRowClick = useCallback(
 		(row: Row<RunDataResults>) => {
-			if (!rowState || rowState.mode === 'default') return;
+			const referenceDiffRowId =
+				rowState?.referenceDiffRowId === row.id ? undefined : row.id;
 
-			if (rowState.referenceDiffRowId === row.id) {
-				updateRowState({
-					...rowState,
-					rowId,
-					referenceDiffRowId: undefined,
-					requests: rowState.requests,
-					mode: rowState.mode
-				});
-			} else {
-				updateRowState({
-					...rowState,
-					rowId,
-					referenceDiffRowId: row.id,
-					requests: rowState.requests,
-					mode: rowState.mode
-				});
-			}
+			updateRowState({
+				...rowState,
+				rowId,
+				referenceDiffRowId
+			});
 		},
 		[rowId, rowState, updateRowState]
 	);
@@ -129,8 +102,6 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 			data={data}
 			rowId={rowId}
 			height={height}
-			mode={rowState?.mode}
-			setMode={setMode}
 			showToolbar={showToolbar}
 			setShowToolbar={setShowToolbar}
 			targetIterationId={targetIterationId}

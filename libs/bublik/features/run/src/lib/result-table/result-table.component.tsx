@@ -86,8 +86,6 @@ export interface ResultTableProps {
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
 	height: number;
-	mode?: 'default' | 'diff' | 'dim';
-	setMode: (mode: 'default' | 'diff' | 'dim') => void;
 	showToolbar: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
 	targetIterationId?: number;
@@ -102,8 +100,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		rowId,
 		showLinkToRun = false,
 		height,
-		mode = 'default',
-		setMode,
 		showToolbar,
 		setShowToolbar,
 		targetIterationId,
@@ -131,10 +127,8 @@ export const ResultTable = memo((props: ResultTableProps) => {
 	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
 		localRequirements: requirementsFilter
 	});
-	const isDiffMode = mode === 'diff';
-	const isDimMode = mode === 'dim';
 	const hasFilters = hasColumnFilters || hasGlobalRequirements;
-	const hasToolbar = showToolbar || hasFilters || isDiffMode || isDimMode;
+	const hasToolbar = showToolbar || hasFilters;
 
 	const columns = useMemo(
 		() =>
@@ -142,12 +136,11 @@ export const ResultTable = memo((props: ResultTableProps) => {
 				rowId,
 				showLinkToRun,
 				data,
-				mode,
 				showToolbar: hasToolbar,
 				setShowToolbar,
 				path
 			}),
-		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar, path]
+		[rowId, showLinkToRun, data, hasToolbar, setShowToolbar, path]
 	);
 
 	const { stickyOffset } = useStickyHeader({ height });
@@ -248,7 +241,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									onChange={(values) =>
 										onFilterChange(COLUMN_ID.ARTIFACTS, values)
 									}
-									disabled={!artifacts.length || isDiffMode || isDimMode}
+									disabled={!artifacts.length}
 								/>
 								<DataTableFacetedFilter
 									title="Verdicts"
@@ -256,7 +249,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									options={verdicts}
 									value={verdictsFilter}
 									onChange={onVerdictsFilterChange}
-									disabled={!verdicts.length || isDiffMode || isDimMode}
+									disabled={!verdicts.length}
 								/>
 								<DataTableFacetedFilter
 									title="Parameters"
@@ -266,7 +259,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									onChange={(values) =>
 										onFilterChange(COLUMN_ID.PARAMETERS, values)
 									}
-									disabled={!parameters.length || isDiffMode || isDimMode}
+									disabled={!parameters.length}
 								/>
 								<Tooltip content="Reset">
 									<ButtonTw
@@ -276,40 +269,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									>
 										<Icon name="Bin" size={18} className="mr-1.5" />
 										<span>Reset</span>
-									</ButtonTw>
-								</Tooltip>
-							</div>
-							<div className="flex gap-2 items-center">
-								<Tooltip content="Click on the row to compare parameters">
-									<ButtonTw
-										variant={mode === 'diff' ? 'primary' : 'secondary'}
-										size="xss"
-										onClick={() => {
-											const nextMode = mode === 'diff' ? 'default' : 'diff';
-											setMode(nextMode);
-
-											if (nextMode === 'diff') setColumnFilters([]);
-										}}
-									>
-										<Icon
-											name="SwapArrows"
-											size={18}
-											className="rotate-90 mr-1.5"
-										/>
-										<span>Parameters Compare</span>
-									</ButtonTw>
-								</Tooltip>
-								<Tooltip content="Dim parameters that are the same. Click a row to compare against it.">
-									<ButtonTw
-										variant={isDimMode ? 'primary' : 'secondary'}
-										size="xss"
-										onClick={() => {
-											const nextMode = isDimMode ? 'default' : 'dim';
-											setMode(nextMode);
-										}}
-									>
-										<Icon name="EyeHide" size={18} className="mr-1.5" />
-										<span>Dim Common</span>
 									</ButtonTw>
 								</Tooltip>
 							</div>
@@ -394,10 +353,7 @@ function ResultRow(props: ResultRowProps) {
 						)}
 						style={{
 							overflowWrap: 'anywhere',
-							cursor:
-								rowState?.mode === 'diff' || rowState?.mode === 'dim'
-									? 'pointer'
-									: 'default'
+							cursor: onRowClick ? 'pointer' : 'default'
 						}}
 						ref={cellIdx === 0 ? firstCellRef : undefined}
 						onClick={() => onRowClick?.(row)}

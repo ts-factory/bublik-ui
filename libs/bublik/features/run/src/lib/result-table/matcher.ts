@@ -32,14 +32,18 @@ export function calculateGroupSize(
 }
 
 export function getCommonParameters(allParameters: string[][]): Set<string> {
-	if (allParameters.length === 0) return new Set();
+	const comparableRows = allParameters.filter(
+		(parameters) => parameters.length > 0
+	);
 
-	// Start with all parameters from first row
-	const commonSet = new Set(allParameters[0]);
+	if (comparableRows.length < 2) return new Set();
+
+	// Start with all parameters from the first comparable row
+	const commonSet = new Set(comparableRows[0]);
 
 	// Intersect with each subsequent row
-	for (let i = 1; i < allParameters.length; i++) {
-		const currentSet = new Set(allParameters[i]);
+	for (let i = 1; i < comparableRows.length; i++) {
+		const currentSet = new Set(comparableRows[i]);
 		// Collect items to delete first, then remove them after iteration
 		const toDelete: string[] = [];
 		for (const param of commonSet) {
