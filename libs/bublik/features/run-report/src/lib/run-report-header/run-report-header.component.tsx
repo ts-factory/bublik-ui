@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
+import { forwardRef } from 'react';
 
 import { routes } from '@/router';
 import { RunDetailsAPIResponse } from '@/shared/types';
@@ -25,65 +26,72 @@ interface RunReportHeaderProps {
 	details: RunDetailsAPIResponse;
 }
 
-function RunReportHeader(props: RunReportHeaderProps) {
-	const { label, runId, details } = props;
-	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
+export const RunReportHeader = forwardRef<HTMLDivElement, RunReportHeaderProps>(
+	function RunReportHeaderFn(props, ref) {
+		const { label, runId, details } = props;
+		const [isModeFull, setIsModeFull] = useQueryParam(
+			'isFullMode',
+			IsOpenParam
+		);
 
-	return (
-		<div className="flex flex-col bg-white rounded">
-			<CardHeader
-				label={
-					<div className="flex items-center gap-2">
-						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
-							{label}
-						</span>
-					</div>
-				}
-			>
-				<div className="flex items-center gap-2">
-					<RunModeToggle
-						isFullMode={isModeFull}
-						onToggleClick={() => setIsModeFull(!isModeFull)}
-					/>
-					<LinkToSourceContainer runId={runId.toString()} />
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.run({ runId })}>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Run
-						</LinkWithProject>
-					</ButtonTw>
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.log({ runId })}>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Log
-						</LinkWithProject>
-					</ButtonTw>
-					<CopyShortUrlButtonContainer />
+		return (
+			<>
+				<div ref={ref} className="sticky top-0 z-[20] bg-white rounded-t">
+					<CardHeader
+						label={
+							<div className="flex items-center gap-2">
+								<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+									{label}
+								</span>
+							</div>
+						}
+					>
+						<div className="flex items-center gap-2">
+							<RunModeToggle
+								isFullMode={isModeFull}
+								onToggleClick={() => setIsModeFull(!isModeFull)}
+							/>
+							<LinkToSourceContainer runId={runId.toString()} />
+							<ButtonTw asChild variant="secondary" size="xss">
+								<LinkWithProject to={routes.run({ runId })}>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Run
+								</LinkWithProject>
+							</ButtonTw>
+							<ButtonTw asChild variant="secondary" size="xss">
+								<LinkWithProject to={routes.log({ runId })}>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Log
+								</LinkWithProject>
+							</ButtonTw>
+							<CopyShortUrlButtonContainer />
+						</div>
+					</CardHeader>
 				</div>
-			</CardHeader>
-			<div className="flex flex-col gap-2">
-				<RunDetails
-					isFullMode={isModeFull}
-					runId={runId}
-					mainPackage={details.main_package}
-					start={details.start}
-					finish={details.finish}
-					duration={details.duration}
-					isCompromised={details.is_compromised}
-					importantTags={details.important_tags}
-					relevantTags={details.relevant_tags}
-					branches={details.branches}
-					labels={details.labels}
-					revisions={details.revisions}
-					specialCategories={details.special_categories}
-					runStatus={details.conclusion}
-					status={details.status}
-					statusByNok={details.status_by_nok}
-				/>
-			</div>
-		</div>
-	);
-}
+				<div className="flex flex-col gap-2 bg-white rounded-b mb-1">
+					<RunDetails
+						isFullMode={isModeFull}
+						runId={runId}
+						mainPackage={details.main_package}
+						start={details.start}
+						finish={details.finish}
+						duration={details.duration}
+						isCompromised={details.is_compromised}
+						importantTags={details.important_tags}
+						relevantTags={details.relevant_tags}
+						branches={details.branches}
+						labels={details.labels}
+						revisions={details.revisions}
+						specialCategories={details.special_categories}
+						runStatus={details.conclusion}
+						status={details.status}
+						statusByNok={details.status_by_nok}
+					/>
+				</div>
+			</>
+		);
+	}
+);
 
 type Item = {
 	name: string;
@@ -138,4 +146,4 @@ function List(props: ListProps) {
 	);
 }
 
-export { RunReportHeader, List };
+export { List };
