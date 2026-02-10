@@ -11,7 +11,16 @@ export const twTheme = {
 		textColorShow: false,
 		textColor: '#333',
 		markTextColor: '#454c58',
-		color: ['#7283e2', '#ca75ff', '#ffd645', '#ff951c', '#3fb1e3', '#6270a1'],
+		color: [
+			'#7283e2',
+			'#65cd84',
+			'#e6b600',
+			'#3fb1e3',
+			'#ff951c',
+			'#005eaa',
+			'#579d80',
+			'#aa47bc'
+		],
 		borderColor: 'transparent',
 		borderWidth: 0,
 		visualMapColor: ['#00afff', '#afe8ff'],
