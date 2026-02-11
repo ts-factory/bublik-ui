@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { Point } from '@/shared/types';
 import {
@@ -10,6 +10,7 @@ import {
 	Skeleton,
 	ToolbarButton
 } from '@/shared/tailwind-ui';
+import { usePageContainer, useRenderWhenVisible } from '@/shared/hooks';
 import { ExportChart, getColorByIdx, MeasurementChart } from '@/shared/charts';
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
@@ -31,6 +32,8 @@ interface PlotListItemProps {
 	enableResultErrorHighlight?: boolean;
 	group: 'trend' | 'measurement';
 	selectedGroup: 'trend' | 'measurement' | null;
+	deferUntilVisible?: boolean;
+	pageContainer: HTMLElement | null;
 }
 
 const PlotListItem = (props: PlotListItemProps) => {
@@ -42,10 +45,20 @@ const PlotListItem = (props: PlotListItemProps) => {
 		onAddChartClick,
 		enableResultErrorHighlight,
 		group,
-		selectedGroup
+		selectedGroup,
+		deferUntilVisible = false,
+		pageContainer
 	} = props;
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [point, setPoint] = useState<Point | null>(null);
+	const contentRef = useRef<HTMLDivElement>(null);
+	const isVisible = useRenderWhenVisible(contentRef, {
+		root: pageContainer,
+		rootMargin: '1536px 0px',
+		threshold: 0,
+		freezeOnceVisible: true
+	});
+	const shouldRenderChart = !deferUntilVisible || isVisible;
 
 	const handleChartPointClick = async (opts: { dataIndex: number }) => {
 		const { dataIndex } = opts;
@@ -77,28 +90,35 @@ const PlotListItem = (props: PlotListItemProps) => {
 				/>
 			)}
 			<li className="py-2.5 px-4">
-				<MeasurementChart
-					chart={plot}
-					color={getColorByIdx(idx)}
-					onChartPointClick={handleChartPointClick}
-					enableResultErrorHighlight={enableResultErrorHighlight}
-					additionalToolBarItems={
-						<ToolbarButton
-							aria-label="Add to combined chart"
-							state={
-								isDisabled
-									? 'disabled'
-									: combinedState === 'active'
-									? 'active'
-									: 'default'
+				<div ref={contentRef}>
+					{shouldRenderChart ? (
+						<MeasurementChart
+							chart={plot}
+							color={getColorByIdx(idx)}
+							onChartPointClick={handleChartPointClick}
+							enableResultErrorHighlight={enableResultErrorHighlight}
+							disableTooltips={deferUntilVisible}
+							additionalToolBarItems={
+								<ToolbarButton
+									aria-label="Add to combined chart"
+									state={
+										isDisabled
+											? 'disabled'
+											: combinedState === 'active'
+											? 'active'
+											: 'default'
+									}
+									disabled={isDisabled}
+									onClick={() => handleChartAddClick(plot)}
+								>
+									<Icon name="AddSymbol" className="size-5" />
+								</ToolbarButton>
 							}
-							disabled={isDisabled}
-							onClick={() => handleChartAddClick(plot)}
-						>
-							<Icon name="AddSymbol" className="size-5" />
-						</ToolbarButton>
-					}
-				/>
+						/>
+					) : (
+						<Skeleton className="h-[334px] rounded" />
+					)}
+				</div>
 			</li>
 		</>
 	);
@@ -135,6 +155,7 @@ export interface PlotListProps {
 	isFetching?: boolean;
 	enableResultErrorHighlight?: boolean;
 	group: 'trend' | 'measurement';
+	deferUntilVisible?: boolean;
 }
 
 export function PlotList(props: PlotListProps) {
@@ -144,10 +165,17 @@ export function PlotList(props: PlotListProps) {
 		label,
 		enableResultErrorHighlight,
 		group,
-		parameters
+		parameters,
+		deferUntilVisible = false
 	} = props;
 	const { handleAddChartClick, selectedCharts, selectedGroup } =
 		useCombinedView();
+	const pageContainer = usePageContainer();
+
+	const selectedChartIds = useMemo(
+		() => new Set(selectedCharts.map(({ plot }) => String(plot.id))),
+		[selectedCharts]
+	);
 
 	return (
 		<div
@@ -172,14 +200,14 @@ export function PlotList(props: PlotListProps) {
 				{plots.map((plot, idx) => {
 					const plotId = String(plot.id);
 					const state = selectedCharts.length
-						? selectedCharts.find(({ plot: p }) => String(p.id) === plotId)
+						? selectedChartIds.has(plotId)
 							? 'active'
 							: 'waiting'
 						: 'default';
 
 					return (
 						<PlotListItem
-							key={`${idx}_${plotId}`}
+							key={plotId}
 							idx={idx}
 							plot={plot}
 							onAddChartClick={handleAddChartClick}
@@ -188,6 +216,8 @@ export function PlotList(props: PlotListProps) {
 							enableResultErrorHighlight={enableResultErrorHighlight}
 							group={group}
 							selectedGroup={selectedGroup}
+							deferUntilVisible={deferUntilVisible}
+							pageContainer={pageContainer}
 						/>
 					);
 				})}

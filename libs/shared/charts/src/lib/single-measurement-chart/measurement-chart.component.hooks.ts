@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { RefObject, useEffect, useState } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
@@ -119,6 +121,7 @@ function useChartClick(props: UseChartClickProps) {
 		instance.on('click', handleChartClick);
 		window.addEventListener('resize', resize);
 		return () => {
+			instance.off('click', handleChartClick);
 			window.removeEventListener('resize', resize);
 		};
 	}, [onChartPointClick, ref]);

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { CSSProperties, ReactNode, useRef } from 'react';
+import { CSSProperties, ReactNode, useMemo, useRef } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
@@ -39,6 +39,7 @@ interface MeasurementChartProps {
 	additionalToolBarItems?: ReactNode;
 	isFullScreen?: boolean;
 	enableResultErrorHighlight?: boolean;
+	disableTooltips?: boolean;
 }
 
 const MeasurementChart = (props: MeasurementChartProps) => {
@@ -47,7 +48,8 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 		color,
 		additionalToolBarItems,
 		isFullScreen = false,
-		enableResultErrorHighlight = false
+		enableResultErrorHighlight = false,
+		disableTooltips = false
 	} = props;
 	const ref = useRef<ReactEChartsCore>(null);
 	const {
@@ -63,27 +65,34 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 	useChartClick({ ref, onChartPointClick: props.onChartPointClick });
 
 	const isPressed = usePlatformSpecificCtrl();
-	const options = resolveOptions(chart, state, {
-		color,
-		isModifierPressed: isPressed,
-		isFullScreen,
-		enableResultErrorHighlight
-	});
+	const options = useMemo(
+		() =>
+			resolveOptions(chart, state, {
+				color,
+				isModifierPressed: isPressed,
+				isFullScreen,
+				enableResultErrorHighlight
+			}),
+		[chart, color, enableResultErrorHighlight, isFullScreen, isPressed, state]
+	);
 
 	return (
 		<>
 			<DrawerRoot open={state.isFullScreen} onOpenChange={toggleFullScreen}>
-				<DrawerContent className="w-[75vw] p-4">
-					<MeasurementChart
-						chart={chart}
-						color={color}
-						onChartPointClick={props.onChartPointClick}
-						style={{ height: '100%' }}
-						additionalToolBarItems={additionalToolBarItems}
-						isFullScreen={true}
-						enableResultErrorHighlight={enableResultErrorHighlight}
-					/>
-				</DrawerContent>
+				{state.isFullScreen ? (
+					<DrawerContent className="w-[75vw] p-4">
+						<MeasurementChart
+							chart={chart}
+							color={color}
+							onChartPointClick={props.onChartPointClick}
+							style={{ height: '100%' }}
+							additionalToolBarItems={additionalToolBarItems}
+							isFullScreen={true}
+							enableResultErrorHighlight={enableResultErrorHighlight}
+							disableTooltips={disableTooltips}
+						/>
+					</DrawerContent>
+				) : null}
 			</DrawerRoot>
 			<MeasurementChartToolbar
 				title={chart.title ?? chart.subtitle}
@@ -96,6 +105,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 				toggleFullScreen={toggleFullScreen}
 				additionalToolBarItems={additionalToolBarItems}
 				isFullScreen={isFullScreen}
+				disableTooltips={disableTooltips}
 			/>
 			<Plot options={options} notMerge={false} ref={ref} style={props.style} />
 		</>
@@ -176,10 +186,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						</ToolbarButton>
 					</ChartControlTooltip>
 
-					<ChartControlTooltip
-						content="Reset zoom"
-						disabled={disableTooltips}
-					>
+					<ChartControlTooltip content="Reset zoom" disabled={disableTooltips}>
 						<ToolbarButton aria-label="Reset zoom" onClick={resetZoom}>
 							<Icon name="ResetZoom" className="size-5" />
 						</ToolbarButton>
