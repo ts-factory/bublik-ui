@@ -73,12 +73,16 @@ function LogPreviewContainer(
 	});
 	const [page, setPage] = useState<number | undefined>();
 	const resolvedPage = page === 1 ? undefined : page;
+	const shouldFetchTree = Boolean(_open && resultId && runId);
 
-	const { node } = useGetTreeByRunIdQuery(runId ? String(runId) : skipToken, {
-		selectFromResult: (state) => ({
-			node: !state.data || !resultId ? undefined : state.data.tree[resultId]
-		})
-	});
+	const { node } = useGetTreeByRunIdQuery(
+		shouldFetchTree ? String(runId) : skipToken,
+		{
+			selectFromResult: (state) => ({
+				node: !state.data || !resultId ? undefined : state.data.tree[resultId]
+			})
+		}
+	);
 	const path = node?.path ?? undefined;
 
 	const handlePageClick = useCallback(
@@ -89,8 +93,8 @@ function LogPreviewContainer(
 	);
 
 	return (
-		<DrawerRoot open={open} onOpenChange={_setOpen}>
-			<DrawerTrigger asChild>{children}</DrawerTrigger>
+		<DrawerRoot open={_open} onOpenChange={_setOpen}>
+			{children ? <DrawerTrigger asChild>{children}</DrawerTrigger> : null}
 			{resultId ? <DialogOverlay className={dialogOverlayStyles()} /> : null}
 			{resultId ? (
 				<DialogPortal>

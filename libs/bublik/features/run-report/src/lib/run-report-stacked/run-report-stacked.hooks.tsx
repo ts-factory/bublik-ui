@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
-import { useMemo, createContext, useContext } from 'react';
+import { useMemo, createContext, useContext, useCallback } from 'react';
 import {
 	ArrayParam,
 	BooleanParam,
@@ -22,18 +22,23 @@ import {
 	ReportChart
 } from '@/shared/types';
 
-interface RunReportStackedContext {
-	runId: number;
-	configId: number;
-}
-
-const stackedContext = createContext<RunReportStackedContext | null>(null);
-
 export type RecordWithContext = RecordBlock & {
 	chart?: ReportChart;
 	argsVals: ArgsValBlock;
 	measurement: MeasurementBlock;
 };
+
+interface RunReportStackedContextValue {
+	selectedIds: string[];
+	selectedIdSet: Set<string>;
+	selectedRecords: RecordWithContext[];
+	isStackedOpen: boolean;
+	addId: (id: string) => void;
+	removeId: (id: string) => void;
+	clearIds: () => void;
+	toggleId: (id: string) => void;
+	toggleStacked: (open?: boolean) => void;
+}
 
 type ReportStackedContextProviderProps = {
 	runId: number;
@@ -41,22 +46,7 @@ type ReportStackedContextProviderProps = {
 	children: React.ReactNode;
 };
 
-function ReportStackedContextProvider(
-	props: ReportStackedContextProviderProps
-) {
-	const { children, configId, runId } = props;
-
-	const value = useMemo<RunReportStackedContext>(() => {
-		return {
-			runId,
-			configId
-		};
-	}, [runId, configId]);
-
-	return (
-		<stackedContext.Provider value={value}>{children}</stackedContext.Provider>
-	);
-}
+const stackedContext = createContext<RunReportStackedContextValue | null>(null);
 
 function useRunReportStackedContext() {
 	const context = useContext(stackedContext);
@@ -70,8 +60,7 @@ function useRunReportStackedContext() {
 	return context;
 }
 
-function useRunReportStacked() {
-	const { runId, configId } = useRunReportStackedContext();
+function useRunReportStackedState(runId: number, configId: number) {
 	const [_selectedIds = [], _setSelectedIds] = useQueryParam(
 		SELECTED_RECORDS_FOR_STACKED_KEY,
 		withDefault(ArrayParam, [])
@@ -80,73 +69,127 @@ function useRunReportStacked() {
 		STACKED_DRAWER_KEY,
 		withDefault(BooleanParam, false)
 	);
-	const selectedIds = _selectedIds.filter((id): id is string => id !== null);
-	const data = useGetRunReportQuery({ runId, configId });
+	const selectedIds = useMemo(
+		() => _selectedIds.filter((id): id is string => id !== null),
+		[_selectedIds]
+	);
+	const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+	const { data } = useGetRunReportQuery({ runId, configId });
 
 	const records = useMemo<RecordWithContext[]>(() => {
-		if (typeof data?.data === 'undefined') return [];
+		if (!data) return [];
 
-		return data.data.content
-			.map((b) =>
-				b.content.map((argsVals) =>
-					argsVals.content.map((measurement) =>
-						measurement.content.map((r) => ({
-							...r,
-							argsVals: argsVals,
-							measurement: measurement
-						}))
-					)
-				)
-			)
-			.flat(3)
-			.filter((b) => typeof b.chart !== 'undefined');
-	}, [data.data]);
+		const recordsWithContext: RecordWithContext[] = [];
 
-	function toggleStacked(open?: boolean) {
-		if (open === undefined) {
-			setIsStackedOpen(!isStackedOpen);
-		} else {
+		for (const testBlock of data.content) {
+			for (const argsVals of testBlock.content) {
+				for (const measurement of argsVals.content) {
+					for (const record of measurement.content) {
+						if (!record.chart) continue;
+
+						recordsWithContext.push({
+							...record,
+							argsVals,
+							measurement
+						});
+					}
+				}
+			}
+		}
+
+		return recordsWithContext;
+	}, [data]);
+
+	const toggleStacked = useCallback(
+		(open?: boolean) => {
+			if (open === undefined) {
+				setIsStackedOpen(!isStackedOpen);
+				return;
+			}
+
 			setIsStackedOpen(open);
-		}
-	}
+		},
+		[isStackedOpen, setIsStackedOpen]
+	);
 
-	function addId(id: string) {
-		if (!selectedIds.includes(id)) {
+	const addId = useCallback(
+		(id: string) => {
+			if (selectedIdSet.has(id)) return;
+
 			_setSelectedIds([...selectedIds, id]);
-		}
-	}
+		},
+		[_setSelectedIds, selectedIdSet, selectedIds]
+	);
 
-	function removeId(id: string) {
-		if (selectedIds.includes(id)) {
+	const removeId = useCallback(
+		(id: string) => {
+			if (!selectedIdSet.has(id)) return;
+
 			_setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-		}
-	}
+		},
+		[_setSelectedIds, selectedIdSet, selectedIds]
+	);
 
-	function clearIds() {
+	const clearIds = useCallback(() => {
 		_setSelectedIds([]);
-	}
+	}, [_setSelectedIds]);
 
-	function toggleId(id: string) {
-		if (selectedIds.includes(id)) {
-			removeId(id);
-		} else {
+	const toggleId = useCallback(
+		(id: string) => {
+			if (selectedIdSet.has(id)) {
+				removeId(id);
+				return;
+			}
+
 			addId(id);
-		}
-	}
+		},
+		[addId, removeId, selectedIdSet]
+	);
 
-	const selectedRecords =
-		records?.filter((record) => selectedIds.includes(record.id)) ?? [];
+	const selectedRecords = useMemo(
+		() => records.filter((record) => selectedIdSet.has(record.id)),
+		[records, selectedIdSet]
+	);
 
-	return {
-		selectedIds,
-		addId,
-		removeId,
-		clearIds,
-		toggleId,
-		selectedRecords,
-		isStackedOpen,
-		toggleStacked
-	};
+	return useMemo<RunReportStackedContextValue>(
+		() => ({
+			selectedIds,
+			selectedIdSet,
+			selectedRecords,
+			isStackedOpen,
+			addId,
+			removeId,
+			clearIds,
+			toggleId,
+			toggleStacked
+		}),
+		[
+			selectedIds,
+			selectedIdSet,
+			selectedRecords,
+			isStackedOpen,
+			addId,
+			removeId,
+			clearIds,
+			toggleId,
+			toggleStacked
+		]
+	);
+}
+
+function ReportStackedContextProvider(
+	props: ReportStackedContextProviderProps
+) {
+	const { children, configId, runId } = props;
+	const value = useRunReportStackedState(runId, configId);
+
+	return (
+		<stackedContext.Provider value={value}>{children}</stackedContext.Provider>
+	);
+}
+
+function useRunReportStacked() {
+	return useRunReportStackedContext();
 }
 
 interface StackedAddProps {
@@ -154,13 +197,13 @@ interface StackedAddProps {
 }
 
 function StackedAdd(props: StackedAddProps) {
-	const { toggleId, selectedIds } = useRunReportStacked();
+	const { toggleId, selectedIdSet } = useRunReportStacked();
 
 	return (
 		<Tooltip content="Add for stacked mode">
 			<ToolbarButton
 				onClick={() => toggleId(props.id)}
-				state={selectedIds.includes(props.id) ? 'active' : 'default'}
+				state={selectedIdSet.has(props.id) ? 'active' : 'default'}
 			>
 				<Icon name="AddSymbol" className="size-5" />
 			</ToolbarButton>

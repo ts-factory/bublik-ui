@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { CSSProperties, ReactNode, useRef } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
@@ -111,6 +113,21 @@ interface MeasurementChartToolbarProps {
 	toggleFullScreen: (open?: boolean) => void;
 	additionalToolBarItems?: ReactNode;
 	isFullScreen?: boolean;
+	disableTooltips?: boolean;
+}
+
+interface ChartControlTooltipProps {
+	content: string;
+	disabled?: boolean;
+	children: ReactNode;
+}
+
+function ChartControlTooltip(props: ChartControlTooltipProps) {
+	const { content, disabled = false, children } = props;
+
+	if (disabled) return children;
+
+	return <Tooltip content={content}>{children}</Tooltip>;
 }
 
 function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
@@ -124,7 +141,8 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 		changeMode,
 		toggleFullScreen,
 		additionalToolBarItems,
-		isFullScreen
+		isFullScreen,
+		disableTooltips = false
 	} = props;
 
 	return (
@@ -143,8 +161,9 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						size: 'default'
 					})}
 				>
-					<Tooltip
+					<ChartControlTooltip
 						content={state.isGlobalZoomEnabled ? 'Disable zoom' : 'Enable zoom'}
+						disabled={disableTooltips}
 					>
 						<ToolbarButton
 							aria-label={
@@ -155,15 +174,21 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						>
 							<Icon name="MagnifyingGlass" className="size-5" />
 						</ToolbarButton>
-					</Tooltip>
+					</ChartControlTooltip>
 
-					<Tooltip content="Reset zoom">
+					<ChartControlTooltip
+						content="Reset zoom"
+						disabled={disableTooltips}
+					>
 						<ToolbarButton aria-label="Reset zoom" onClick={resetZoom}>
 							<Icon name="ResetZoom" className="size-5" />
 						</ToolbarButton>
-					</Tooltip>
+					</ChartControlTooltip>
 
-					<Tooltip content={state ? 'Hide sliders' : 'Show sliders'}>
+					<ChartControlTooltip
+						content={state.isSlidersVisible ? 'Hide sliders' : 'Show sliders'}
+						disabled={disableTooltips}
+					>
 						<ToolbarButton
 							aria-label={
 								state.isSlidersVisible ? 'Hide sliders' : 'Show sliders'
@@ -173,14 +198,15 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						>
 							<Icon name="SettingsSliders" className="size-5" />
 						</ToolbarButton>
-					</Tooltip>
+					</ChartControlTooltip>
 
-					<Tooltip
+					<ChartControlTooltip
 						content={
 							state.limitYAxis
 								? 'Remove y-axis limit'
 								: 'Limit y-axis to max/min values'
 						}
+						disabled={disableTooltips}
 					>
 						<ToolbarButton
 							aria-label={
@@ -193,7 +219,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 						>
 							<Icon name="SwapArrows" className="size-5" />
 						</ToolbarButton>
-					</Tooltip>
+					</ChartControlTooltip>
 				</div>
 
 				<ToolbarToggleGroup
@@ -205,14 +231,20 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 					aria-label="Chart modes"
 					className={toolbarToggleGroupStyles({ variant: 'primary' })}
 				>
-					<Tooltip content="Line chart mode">
+					<ChartControlTooltip
+						content="Line chart mode"
+						disabled={disableTooltips}
+					>
 						<div>
 							<ToolbarToggleItem value="line" aria-label="Line chart mode">
 								<Icon name="LineChartMode" className="size-5" />
 							</ToolbarToggleItem>
 						</div>
-					</Tooltip>
-					<Tooltip content="Scatter chart mode">
+					</ChartControlTooltip>
+					<ChartControlTooltip
+						content="Scatter chart mode"
+						disabled={disableTooltips}
+					>
 						<div>
 							<ToolbarToggleItem
 								value="scatter"
@@ -221,7 +253,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 								<Icon name="ScatterChartMode" className="size-5" />
 							</ToolbarToggleItem>
 						</div>
-					</Tooltip>
+					</ChartControlTooltip>
 				</ToolbarToggleGroup>
 				{isFullScreen ? null : (
 					<div
