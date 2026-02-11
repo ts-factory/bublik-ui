@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
-import { usePlatformSpecificCtrl } from '@/shared/hooks';
+import { useIntersectionObserver, usePlatformSpecificCtrl } from '@/shared/hooks';
 import { CardHeader, cn, toast } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -13,6 +13,9 @@ import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report-args';
 import { WarningsHoverCard } from '../run-report-warnings';
+
+const INITIAL_RECORDS_RENDER_COUNT = 10;
+const RECORDS_RENDER_CHUNK_SIZE = 10;
 
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
@@ -25,6 +28,41 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 	const { enableChartView, enableTableView, argsValBlocks, offsetTop } = props;
 	const [searchParams] = useSearchParams();
 	const [headerOffsetTop, setHeaderOffsetTop] = useState(0);
+	const [pageContainer, setPageContainer] = useState<HTMLElement | null>(null);
+	const isPressed = usePlatformSpecificCtrl();
+
+	useEffect(() => {
+		setPageContainer(document.getElementById('page-container'));
+	}, []);
+
+	useEffect(() => {
+		if (!pageContainer) return;
+
+		function handleWheel(event: WheelEvent) {
+			if (isPressed) return;
+
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+
+			const tableElement = target.closest(
+				'[data-run-report-table-scroll="true"]'
+			);
+			if (!tableElement) return;
+
+			pageContainer.scrollBy({
+				top: event.deltaY,
+				left: event.deltaX,
+				behavior: 'auto'
+			});
+			event.preventDefault();
+		}
+
+		pageContainer.addEventListener('wheel', handleWheel, { passive: false });
+
+		return () => {
+			pageContainer.removeEventListener('wheel', handleWheel);
+		};
+	}, [isPressed, pageContainer]);
 
 	const handleRef = useCallback((node: HTMLDivElement) => {
 		setHeaderOffsetTop(node?.clientHeight ?? 0);
@@ -119,32 +157,13 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 											className="absolute left-0 top-0  w-1 h-full bg-indigo-500"
 											style={{ zIndex: 6 }}
 										/>
-										<ul className="pl-1">
-											{measurement.content.map((record, idx, arr) => (
-												<li
-													key={record.id}
-													className={cn(
-														'relative',
-														idx !== arr.length - 1 &&
-															'border-b border-border-primary'
-													)}
-													data-offset={headerOffsetTop + offsetTop + 36}
-												>
-													<div
-														className="absolute left-0 top-0 w-1 h-full bg-indigo-600"
-														style={{ zIndex: 4 }}
-													/>
-													<MeasurementBlock
-														key={record.id}
-														enableChartView={enableChartView}
-														enableTableView={enableTableView}
-														block={record}
-														offset={offsetTop + headerOffsetTop + 36}
-														idx={idx}
-													/>
-												</li>
-											))}
-										</ul>
+										<MeasurementRecordList
+											records={measurement.content}
+											enableChartView={enableChartView}
+											enableTableView={enableTableView}
+											offset={headerOffsetTop + offsetTop + 36}
+											pageContainer={pageContainer}
+										/>
 									</li>
 								);
 							})}
@@ -159,69 +178,112 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 type RunReportEntityBlockProps = Pick<
 	RunReportTestBlockProps,
 	'enableChartView' | 'enableTableView'
-> & { block: RecordBlock; offset: number; idx: number };
+> & {
+	block: RecordBlock;
+	offset: number;
+	idx: number;
+	pageContainer: HTMLElement | null;
+};
+
+interface MeasurementRecordListProps
+	extends Pick<
+		RunReportEntityBlockProps,
+		'enableChartView' | 'enableTableView' | 'offset' | 'pageContainer'
+	> {
+	records: RecordBlock[];
+}
+
+function MeasurementRecordList(props: MeasurementRecordListProps) {
+	const {
+		records,
+		enableChartView,
+		enableTableView,
+		offset,
+		pageContainer
+	} = props;
+	const [visibleCount, setVisibleCount] = useState(() =>
+		Math.min(records.length, INITIAL_RECORDS_RENDER_COUNT)
+	);
+
+	useEffect(() => {
+		setVisibleCount(Math.min(records.length, INITIAL_RECORDS_RENDER_COUNT));
+	}, [records]);
+
+	useEffect(() => {
+		if (visibleCount >= records.length) return;
+
+		const timerId = window.setTimeout(() => {
+			setVisibleCount((current) =>
+				Math.min(current + RECORDS_RENDER_CHUNK_SIZE, records.length)
+			);
+		}, 16);
+
+		return () => {
+			window.clearTimeout(timerId);
+		};
+	}, [records.length, visibleCount]);
+
+	const visibleRecords = useMemo(
+		() => records.slice(0, visibleCount),
+		[records, visibleCount]
+	);
+
+	return (
+		<ul className="pl-1">
+			{visibleRecords.map((record, idx) => (
+				<li
+					key={record.id}
+					className={cn(
+						'relative',
+						idx !== visibleRecords.length - 1 && 'border-b border-border-primary'
+					)}
+					data-offset={offset}
+				>
+					<div
+						className="absolute left-0 top-0 w-1 h-full bg-indigo-600"
+						style={{ zIndex: 4 }}
+					/>
+					<MeasurementBlock
+						enableChartView={enableChartView}
+						enableTableView={enableTableView}
+						block={record}
+						offset={offset}
+						idx={idx}
+						pageContainer={pageContainer}
+					/>
+				</li>
+			))}
+			{visibleCount < records.length ? (
+				<li className="px-2 py-3" aria-hidden="true">
+					<div className="h-10 rounded bg-primary-wash/60 animate-pulse" />
+				</li>
+			) : null}
+		</ul>
+	);
+}
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
 	const { enableChartView, enableTableView, block, offset, idx } = props;
 	const { id, chart, table, label } = block;
 	const [searchParams] = useSearchParams();
 	const ref = useRef<HTMLDivElement>(null);
-	const [isSticky, setIsSticky] = useState(false);
+	const contentRef = useRef<HTMLDivElement>(null);
+	const { pageContainer } = props;
 
-	useEffect(() => {
-		const handleScroll = () => {
-			if (ref.current) {
-				const { top } = ref.current.getBoundingClientRect();
-				setIsSticky(top <= offset);
-			}
-		};
+	const blockVisibility = useIntersectionObserver(contentRef, {
+		root: pageContainer,
+		rootMargin: '600px 0px',
+		threshold: 0,
+		freezeOnceVisible: true
+	});
 
-		document
-			.getElementById('page-container')
-			?.addEventListener('scroll', handleScroll);
-		return () =>
-			document
-				.getElementById('page-container')
-				?.removeEventListener('scroll', handleScroll);
-	}, [offset]);
-
-	const tableScrollRef = useRef<HTMLDivElement>(null);
-	const isPressed = usePlatformSpecificCtrl();
-
-	useEffect(() => {
-		function handleTableScroll(event: WheelEvent) {
-			const tableElement = tableScrollRef.current;
-			const pageContainer = document.getElementById('page-container');
-
-			if (!tableElement || !pageContainer) return;
-
-			// Determine whether to scroll the table or propagate to the page container
-			if (isPressed) {
-				// Allow table to scroll when modifier is pressed
-				return;
-			} else {
-				// Scroll page container instead
-				pageContainer.scrollBy({
-					top: event.deltaY,
-					left: event.deltaX,
-					behavior: 'auto'
-				});
-				event.preventDefault(); // Prevent the table from handling the scroll
-			}
-		}
-
-		const tableElement = tableScrollRef.current;
-		tableElement?.addEventListener('wheel', handleTableScroll, {
-			passive: false
-		});
-
-		return () => {
-			tableElement?.removeEventListener('wheel', handleTableScroll);
-		};
-	}, [isPressed]);
+	const supportsIntersectionObserver =
+		typeof window !== 'undefined' && 'IntersectionObserver' in window;
+	const shouldRenderHeavyContent =
+		!supportsIntersectionObserver || Boolean(blockVisibility?.isIntersecting);
 
 	return (
-		<div className="flex flex-col pl-1">
+		<div className="flex flex-col pl-1" ref={contentRef}>
 			<div className="flex flex-col h-[412px]" id={encodeURIComponent(id)}>
 				{/* LEVEL 4 */}
 				<CardHeader
@@ -241,51 +303,59 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 					}
 					ref={ref}
 					className="bg-white"
+					enableStickyShadow={true}
 					style={{
 						position: 'sticky',
 						top: offset,
-						zIndex: 5,
-						boxShadow: isSticky
-							? 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px'
-							: undefined
+						zIndex: 5
 					}}
 				/>
 				<div className="flex overflow-y-auto h-full overflow-x-hidden">
-					{chart ? (
-						<div
-							className={cn(
-								'flex flex-col',
-								enableTableView && table ? 'w-1/2' : 'w-full'
-							)}
-						>
-							<div className="relative pt-2 h-full">
-								<div className="absolute right-4 z-[1] top-2.5">
-									<WarningsHoverCard warnings={chart.warnings} />
+					{shouldRenderHeavyContent ? (
+						<>
+							{chart ? (
+								<div
+									className={cn(
+										'flex flex-col',
+										enableTableView && table ? 'w-1/2' : 'w-full'
+									)}
+								>
+									<div className="relative pt-2 h-full">
+										<div className="absolute right-4 z-[1] top-2.5">
+											<WarningsHoverCard warnings={chart.warnings} />
+										</div>
+										<RunReportChart
+											chart={chart}
+											stackedButton={<StackedAdd id={id} />}
+											idx={idx}
+										/>
+									</div>
 								</div>
-								<RunReportChart
-									chart={chart}
-									stackedButton={<StackedAdd id={id} />}
-									idx={idx}
-								/>
-							</div>
+							) : null}
+							{enableTableView && table ? (
+								<div
+									className={cn(
+										'flex flex-col',
+										chart ? 'w-1/2' : 'w-full',
+										enableChartView &&
+											chart &&
+											'border-l border-border-primary'
+									)}
+								>
+									<div
+										className={cn('flex-1', 'overflow-y-auto overflow-x-auto')}
+										data-run-report-table-scroll="true"
+									>
+										<RunReportTable table={table} />
+									</div>
+								</div>
+							) : null}
+						</>
+					) : (
+						<div className="w-full h-full p-2">
+							<div className="w-full h-full rounded bg-primary-wash/60 animate-pulse" />
 						</div>
-					) : null}
-					{enableTableView && table ? (
-						<div
-							className={cn(
-								'flex flex-col',
-								chart ? 'w-1/2' : 'w-full',
-								enableChartView && chart && 'border-l border-border-primary'
-							)}
-						>
-							<div
-								className={cn('flex-1', 'overflow-y-auto overflow-x-auto')}
-								ref={tableScrollRef}
-							>
-								<RunReportTable table={table} />
-							</div>
-						</div>
-					) : null}
+					)}
 				</div>
 			</div>
 		</div>

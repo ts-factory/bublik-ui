@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { ReportTable } from '@/shared/types';
+import { ReportPoint, ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
@@ -39,52 +41,45 @@ function formatValue(
 	return `${Number(value)}${formatter}`;
 }
 
-function getValue(
+type PointIndex = Map<string, Map<string, ReportPoint>>;
+
+function getPoint(
 	xValue: number | string,
-	xAxisKey: string,
-	table: ReportTable,
-	seriesName?: string
-): string | number | undefined {
-	const series = table.data.find((s) => s.series === seriesName);
-
-	return series?.points.find((p) => {
-		const value = p[xAxisKey!];
-
-		return value.toString() === xValue.toString();
-	})?.['y_value'];
-}
-
-function getMetadata(
-	xValue: number | string,
-	xAxisKey: string,
-	table: ReportTable,
+	pointIndex: PointIndex,
 	seriesName?: string
 ) {
-	const series = table.data.find((s) => s.series === seriesName);
-
-	return series?.points.find((p) => {
-		const value = p[xAxisKey!];
-
-		return value.toString() === xValue.toString();
-	})?.metadata;
+	return pointIndex.get(seriesName ?? '')?.get(xValue.toString());
 }
 
 function getTableDerivedData(table: ReportTable) {
 	const X_AXIS_KEY = 'x_value';
+	const xValues = new Set<number | string>();
+	const pointIndex: PointIndex = new Map();
 
-	const xValues = Array.from(
-		new Set(
-			table.data.flatMap((series) =>
-				series.points.map((point) => point[X_AXIS_KEY])
-			)
-		)
-	);
-	const seriesNames = table.data.map((series) => series.series);
+	for (const series of table.data) {
+		const seriesName = series.series ?? '';
+
+		if (pointIndex.has(seriesName)) continue;
+
+		const pointsByXValue = new Map<string, ReportPoint>();
+
+		for (const point of series.points) {
+			const xValue = point[X_AXIS_KEY];
+
+			xValues.add(xValue);
+			pointsByXValue.set(xValue.toString(), point);
+		}
+
+		pointIndex.set(seriesName, pointsByXValue);
+	}
+
+	const seriesNames = table.data.map((series) => series.series ?? '');
 
 	return {
 		seriesNames,
-		xValues,
-		xAxisKey: X_AXIS_KEY
+		xValues: Array.from(xValues),
+		xAxisKey: X_AXIS_KEY,
+		pointIndex
 	};
 }
 
@@ -95,29 +90,67 @@ interface RunReportTableProps {
 function RunReportTable({ table }: RunReportTableProps) {
 	const { runId } = useParams<{ runId: string }>();
 	const [enablePairGainColumns] = useEnablePairGainColumns();
+	const [previewResultId, setPreviewResultId] = useState<number>();
+	const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+	const handlePreviewOpen = useCallback((resultId?: number) => {
+		if (!resultId) return;
+
+		setPreviewResultId(resultId);
+		setIsPreviewOpen(true);
+	}, []);
+
+	const handlePreviewOpenChange = useCallback((open: boolean) => {
+		setIsPreviewOpen(open);
+
+		if (!open) {
+			setPreviewResultId(undefined);
+		}
+	}, []);
 
 	if (!table.data.length) return null;
 
 	if (table.data.length === 1) {
-		return <SingleSeriesTable table={table} runId={Number(runId)} />;
+		return (
+			<>
+				<LogPreviewContainer
+					runId={Number(runId)}
+					resultId={previewResultId}
+					measurementId={previewResultId}
+					open={isPreviewOpen}
+					onOpenChange={handlePreviewOpenChange}
+				/>
+				<SingleSeriesTable table={table} onPreviewOpen={handlePreviewOpen} />
+			</>
+		);
 	}
 
 	return (
-		<MultipleSeriesTable
-			table={table}
-			runId={Number(runId)}
-			enablePairGainColumns={enablePairGainColumns}
-		/>
+		<>
+			<LogPreviewContainer
+				runId={Number(runId)}
+				resultId={previewResultId}
+				measurementId={previewResultId}
+				open={isPreviewOpen}
+				onOpenChange={handlePreviewOpenChange}
+			/>
+			<MultipleSeriesTable
+				table={table}
+				enablePairGainColumns={enablePairGainColumns}
+				onPreviewOpen={handlePreviewOpen}
+			/>
+		</>
 	);
 }
 
 interface SingleSeriesTableProps {
-	runId: number;
 	table: ReportTable;
+	onPreviewOpen?: (resultId?: number) => void;
 }
 
-function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
-	const { seriesNames, xValues, xAxisKey } = getTableDerivedData(table);
+function SingleSeriesTable(props: SingleSeriesTableProps) {
+	const { table, onPreviewOpen } = props;
+	const { seriesNames, xValues, pointIndex } = getTableDerivedData(table);
 
 	return (
 		<table className="w-full relative border-separate border-spacing-0">
@@ -165,30 +198,39 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 							{xValue}
 						</td>
 						{seriesNames.map((seriesName) => {
-							const metadata = getMetadata(xValue, xAxisKey, table, seriesName);
+							const point = getPoint(xValue, pointIndex, seriesName);
+							const resultId = point?.metadata?.result_id;
+							const isCellWithMeta = Boolean(resultId);
 
 							return (
-								<LogPreviewContainer
+								<td
 									key={`${xValue}-${seriesName}`}
-									runId={runId}
-									resultId={metadata?.result_id}
-									measurementId={metadata?.result_id}
+									className={cn(
+										cellStyles({ isCellWithMeta }),
+										seriesName !== seriesNames[seriesNames.length - 1] &&
+											'border-r',
+										'w-1/2'
+									)}
+									onClick={
+										isCellWithMeta ? () => onPreviewOpen?.(resultId) : undefined
+									}
+									onKeyDown={
+										isCellWithMeta
+											? (event) => {
+													if (event.key !== 'Enter' && event.key !== ' ') {
+														return;
+													}
+
+													event.preventDefault();
+													onPreviewOpen?.(resultId);
+											  }
+											: undefined
+									}
+									tabIndex={isCellWithMeta ? 0 : undefined}
+									role={isCellWithMeta ? 'button' : undefined}
 								>
-									<td
-										className={cn(
-											cellStyles({ isCellWithMeta: Boolean(metadata) }),
-											seriesName !== seriesNames[seriesNames.length - 1] &&
-												'border-r',
-											'w-1/2'
-										)}
-									>
-										{formatValue(
-											getValue(xValue, xAxisKey, table, seriesName),
-											seriesName,
-											table.formatters
-										)}
-									</td>
-								</LogPreviewContainer>
+									{formatValue(point?.y_value, seriesName, table.formatters)}
+								</td>
 							);
 						})}
 					</tr>
@@ -199,14 +241,15 @@ function SingleSeriesTable({ table, runId }: SingleSeriesTableProps) {
 }
 
 interface MultipleSeriesTableProps {
-	runId: number;
 	table: ReportTable;
 	enablePairGainColumns?: boolean;
+	onPreviewOpen?: (resultId?: number) => void;
 }
 
 function MultipleSeriesTable(props: MultipleSeriesTableProps) {
-	const { table, runId, enablePairGainColumns = false } = props;
-	const { xAxisKey, seriesNames, xValues } = getTableDerivedData(table);
+	const { table, enablePairGainColumns = false, onPreviewOpen } = props;
+	const { xAxisKey, seriesNames, xValues, pointIndex } =
+		getTableDerivedData(table);
 
 	const sortedSeriesNames = useMemo(() => {
 		if (!enablePairGainColumns) return seriesNames;
@@ -233,7 +276,9 @@ function MultipleSeriesTable(props: MultipleSeriesTableProps) {
 		const sorted: string[] = [];
 		baseSeries.forEach((base) => {
 			sorted.push(base);
-			if (gainMap.has(base)) sorted.push(gainMap.get(base)!);
+
+			const gain = gainMap.get(base);
+			if (gain) sorted.push(gain);
 		});
 
 		return sorted;
@@ -286,7 +331,7 @@ function MultipleSeriesTable(props: MultipleSeriesTableProps) {
 							className: 'h-9 border-r text-right'
 						})}
 					>
-						{table.labels?.[xAxisKey!] || ''}
+						{table.labels?.[xAxisKey] || ''}
 					</th>
 				</tr>
 			</thead>
@@ -302,30 +347,39 @@ function MultipleSeriesTable(props: MultipleSeriesTableProps) {
 							{xValue}
 						</td>
 						{sortedSeriesNames.map((seriesName) => {
-							const metadata = getMetadata(xValue, xAxisKey, table, seriesName);
+							const point = getPoint(xValue, pointIndex, seriesName);
+							const resultId = point?.metadata?.result_id;
+							const isCellWithMeta = Boolean(resultId);
 
 							return (
-								<LogPreviewContainer
+								<td
 									key={`${xValue}-${seriesName}`}
-									runId={runId}
-									resultId={metadata?.result_id}
-									measurementId={metadata?.result_id}
+									className={cn(
+										cellStyles({ isCellWithMeta }),
+										seriesName !==
+											sortedSeriesNames[sortedSeriesNames.length - 1] &&
+											'border-r'
+									)}
+									onClick={
+										isCellWithMeta ? () => onPreviewOpen?.(resultId) : undefined
+									}
+									onKeyDown={
+										isCellWithMeta
+											? (event) => {
+													if (event.key !== 'Enter' && event.key !== ' ') {
+														return;
+													}
+
+													event.preventDefault();
+													onPreviewOpen?.(resultId);
+											  }
+											: undefined
+									}
+									tabIndex={isCellWithMeta ? 0 : undefined}
+									role={isCellWithMeta ? 'button' : undefined}
 								>
-									<td
-										className={cn(
-											cellStyles({ isCellWithMeta: Boolean(metadata) }),
-											seriesName !==
-												sortedSeriesNames[sortedSeriesNames.length - 1] &&
-												'border-r'
-										)}
-									>
-										{formatValue(
-											getValue(xValue, xAxisKey, table, seriesName),
-											seriesName,
-											table.formatters
-										)}
-									</td>
-								</LogPreviewContainer>
+									{formatValue(point?.y_value, seriesName, table.formatters)}
+								</td>
 							);
 						})}
 					</tr>

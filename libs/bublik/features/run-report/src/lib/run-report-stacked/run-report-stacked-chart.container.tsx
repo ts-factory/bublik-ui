@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
+import { useMemo } from 'react';
+
 import {
 	CardHeader,
 	DrawerContent,
@@ -55,6 +57,12 @@ function formatDifferingParams(
 	});
 
 	return parts.length > 0 ? parts.join(' | ') : '';
+}
+
+function getRecordValue(record: unknown, key: string): unknown {
+	if (typeof record !== 'object' || record === null) return undefined;
+
+	return (record as Record<string, unknown>)[key];
 }
 
 function createStackedOptions(records: ChartWithContext[]): EChartsOption {
@@ -206,28 +214,37 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 			extraCssText: 'shadow-popover rounded-lg',
 			textStyle: axisLabelStyles,
 			axisPointer: { type: 'line' },
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			formatter: (params: any) => {
-				if (!Array.isArray(params) || params.length === 0) return '';
+			formatter: (rawParams: unknown) => {
+				if (!Array.isArray(rawParams) || rawParams.length === 0) return '';
+
+				const params = rawParams as Array<Record<string, unknown>>;
 
 				// Get x value - it could be at different positions
 				const firstParam = params[0];
+				const firstValue = getRecordValue(firstParam, 'value');
 				const xValue =
-					firstParam.value?.x_value ??
-					firstParam.value?.[0] ??
-					firstParam.axisValue;
+					getRecordValue(firstValue, 'x_value') ??
+					(Array.isArray(firstValue) ? firstValue[0] : undefined) ??
+					getRecordValue(firstParam, 'axisValue');
 				let tooltip = `<strong>${charts[0].axis_x.label}: ${xValue}</strong><br/>`;
 
-				params.forEach((param: any) => {
+				params.forEach((param) => {
+					const value = getRecordValue(param, 'value');
+					const dataValue = getRecordValue(param, 'data');
+					const marker = getRecordValue(param, 'marker');
+					const seriesName = getRecordValue(param, 'seriesName');
+
 					// Try multiple ways to get the y value
-					let yValue;
-					if (param.value && typeof param.value === 'object') {
+					let yValue: unknown;
+					if (typeof value === 'object' && value !== null) {
 						yValue =
-							param.value.y_value ?? param.value[1] ?? param.data?.y_value;
-					} else if (Array.isArray(param.value)) {
-						yValue = param.value[1];
+							getRecordValue(value, 'y_value') ??
+							(Array.isArray(value) ? value[1] : undefined) ??
+							getRecordValue(dataValue, 'y_value');
+					} else if (Array.isArray(value)) {
+						yValue = value[1];
 					} else {
-						yValue = param.value;
+						yValue = value;
 					}
 
 					const formattedValue =
@@ -235,7 +252,9 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 							? yValue.toLocaleString(undefined, { maximumFractionDigits: 2 })
 							: yValue;
 
-					tooltip += `${param.marker} ${param.seriesName}: <strong>${formattedValue}</strong><br/>`;
+					tooltip += `${typeof marker === 'string' ? marker : ''} ${
+						typeof seriesName === 'string' ? seriesName : ''
+					}: <strong>${formattedValue}</strong><br/>`;
 				});
 
 				return tooltip;
@@ -257,20 +276,22 @@ function RunReportStackedChartContainer() {
 	const { selectedRecords, isStackedOpen, toggleStacked } =
 		useRunReportStacked();
 
-	const charts: ChartWithContext[] = selectedRecords.reduce<ChartWithContext[]>(
-		(acc, r) => {
-			if (!r?.chart) return acc;
+	const charts = useMemo<ChartWithContext[]>(
+		() =>
+			selectedRecords.reduce<ChartWithContext[]>((acc, record) => {
+				if (!record?.chart) return acc;
 
-			acc.push({
-				chart: r.chart,
-				argsVals: r.argsVals.args_vals,
-				measurementLabel: r.measurement.label
-			});
+				acc.push({
+					chart: record.chart,
+					argsVals: record.argsVals.args_vals,
+					measurementLabel: record.measurement.label
+				});
 
-			return acc;
-		},
-		[]
+				return acc;
+			}, []),
+		[selectedRecords]
 	);
+	const options = useMemo(() => createStackedOptions(charts), [charts]);
 
 	if (!charts.length) return null;
 
@@ -283,10 +304,7 @@ function RunReportStackedChartContainer() {
 			>
 				<CardHeader label="Stacked Chart" />
 				<div className="p-1 flex-1">
-					<Plot
-						options={createStackedOptions(charts)}
-						style={{ height: '100%', width: '100%' }}
-					/>
+					<Plot options={options} style={{ height: '100%', width: '100%' }} />
 				</div>
 			</DrawerContent>
 		</DrawerRoot>
