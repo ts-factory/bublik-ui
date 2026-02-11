@@ -50,10 +50,7 @@ export {
 
 export { SidebarAccordionLabel } from './lib/sidebar-nav-accordion.component';
 
-export {
-	useIsActivePaths,
-	type ActivePattern
-} from './lib/use-is-active';
+export { useIsActivePaths, type ActivePattern } from './lib/use-is-active';
 
 export {
 	getSubmenuIsActive,

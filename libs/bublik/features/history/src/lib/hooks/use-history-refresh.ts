@@ -17,7 +17,10 @@ import {
 
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import { historySearchStateToQuery } from '../slice/history-slice.utils';
-import { PROJECT_KEY, useNavigateWithProject } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 const globalFilterToQueryAdapter = (
 	globalFilter: HistoryGlobalFilter,
@@ -101,11 +104,14 @@ export const useHistoryRefresh = () => {
 			params.set('mode', mode);
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
-			
+
 			// Use navigateWithProject to properly preserve sidebar params
 			const searchString = params.toString();
 			navigateWithProject(
-				{ pathname: '/history', search: searchString ? `?${searchString}` : '' },
+				{
+					pathname: '/history',
+					search: searchString ? `?${searchString}` : ''
+				},
 				{ replace: true }
 			);
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));

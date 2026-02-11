@@ -68,9 +68,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	);
 
 	const { data: reportConfigsData, isLoading: isReportLoading } =
-		useGetRunReportConfigsQuery(
-			currentRunId ? currentRunId : skipToken
-		);
+		useGetRunReportConfigsQuery(currentRunId ? currentRunId : skipToken);
 
 	const newestReportConfig = useMemo(() => {
 		if (!reportConfigsData?.run_report_configs?.length) return null;
@@ -82,8 +80,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	const isDetailsAvailable = !!lastDetailsUrl;
 	const isReportAvailable =
 		!!lastReportUrl ||
-		(!!currentRunId &&
-			!!reportConfigsData?.run_report_configs?.length);
+		(!!currentRunId && !!reportConfigsData?.run_report_configs?.length);
 	const isMainLinkAvailable =
 		isDetailsAvailable || isReportAvailable || !!currentRunId;
 

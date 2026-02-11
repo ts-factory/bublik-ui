@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { Children, isValidElement, type MouseEventHandler, type ReactNode, type ComponentType } from 'react';
+import {
+	Children,
+	isValidElement,
+	type MouseEventHandler,
+	type ReactNode,
+	type ComponentType
+} from 'react';
 import type { To } from 'react-router-dom';
 
 import { cn, Tooltip, useSidebar } from '@/shared/tailwind-ui';
@@ -136,13 +142,13 @@ interface SidebarAccordionLabelProps {
 	className?: string;
 }
 
-export function SidebarAccordionLabel({ children, className }: SidebarAccordionLabelProps) {
+export function SidebarAccordionLabel({
+	children,
+	className
+}: SidebarAccordionLabelProps) {
 	return (
 		<span
-			className={cn(
-				'truncate text-[0.875rem] leading-[1.5rem]',
-				className
-			)}
+			className={cn('truncate text-[0.875rem] leading-[1.5rem]', className)}
 		>
 			{children}
 		</span>

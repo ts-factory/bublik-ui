@@ -5,7 +5,10 @@ import { useSearchParams } from 'react-router-dom';
 
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw } from '@/shared/tailwind-ui';
-import { PROJECT_KEY, useNavigateWithProject } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 import {
 	DEFAULT_SEARCH_FORM_STATE,

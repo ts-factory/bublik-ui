@@ -7,7 +7,10 @@ import { useSearchParams } from 'react-router-dom';
 import { useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
-import { PROJECT_KEY, useNavigateWithProject } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from './history-slice';
@@ -110,7 +113,10 @@ export const useHistoryFormSearchState = () => {
 			// Use navigateWithProject to properly preserve sidebar params
 			const searchString = newSearchParams.toString();
 			navigateWithProject(
-				{ pathname: '/history', search: searchString ? `?${searchString}` : '' },
+				{
+					pathname: '/history',
+					search: searchString ? `?${searchString}` : ''
+				},
 				{ replace: true }
 			);
 			actions.resetGlobalFilter();

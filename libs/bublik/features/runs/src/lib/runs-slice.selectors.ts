@@ -9,10 +9,7 @@ import {
 import type { RunsData } from '@/shared/types';
 import type { BoxValue } from '@/shared/tailwind-ui';
 
-import {
-	type AppStateWithRunsSlice,
-	RUNS_PAGE_SLICE
-} from './runs-slice';
+import { type AppStateWithRunsSlice, RUNS_PAGE_SLICE } from './runs-slice';
 
 export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()

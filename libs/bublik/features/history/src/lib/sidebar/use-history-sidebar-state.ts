@@ -64,9 +64,7 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 
 	// Fetch series charts data
 	const { data: seriesData, isLoading: isSeriesLoading } =
-		useGetMeasurementsQuery(
-			linearData ? linearData.results_ids : skipToken
-		);
+		useGetMeasurementsQuery(linearData ? linearData.results_ids : skipToken);
 
 	// Check if stacked charts are available (has selected charts)
 	const combinedPlots = searchParams.get('combinedPlots');
