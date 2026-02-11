@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
-import { RESULT_TYPE, RunDataResults } from '@/shared/types';
+import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
@@ -17,12 +17,11 @@ import {
 	ButtonTw,
 	VerdictList,
 	cn,
-	Tooltip,
-	toast
+	Tooltip
 } from '@/shared/tailwind-ui';
 
 import { KeyList } from './key-list';
-import { highlightDifferences, getCommonParameters } from './matcher';
+import { getCommonParameters } from './matcher';
 import { useGlobalRequirements, useRunTableRowState } from '../hooks';
 import { COLUMN_ID, ObtainedResultFilterSchema } from './constants';
 
@@ -36,17 +35,12 @@ declare module '@tanstack/react-table' {
 	}
 }
 
-function filterModeWarning() {
-	toast.warning('Parameters compare mode is enabled. Filters are disabled.');
-}
-
 const helper = createColumnHelper<RunDataResults>();
 
 interface GetColumnsOptions {
 	rowId: string;
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
-	mode?: 'default' | 'diff' | 'dim';
 	showToolbar?: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
 	path?: string;
@@ -56,7 +50,6 @@ export const getColumns = ({
 	rowId,
 	data,
 	showLinkToRun = false,
-	mode = 'default',
 	showToolbar = false,
 	setShowToolbar,
 	path
@@ -65,11 +58,9 @@ export const getColumns = ({
 		data.map((item) => [String(item.result_id), item.parameters])
 	);
 
-	// Compute common parameters across all rows (only needed when in dim mode)
-	const commonParameters =
-		mode === 'dim'
-			? getCommonParameters(data.map((item) => item.parameters ?? []))
-			: undefined;
+	const commonParameters = getCommonParameters(
+		data.map((item) => item.parameters ?? [])
+	);
 
 	return [
 		helper.accessor((data) => data, {
@@ -108,15 +99,22 @@ export const getColumns = ({
 					);
 
 					const verdicts = filterValue?.verdicts ?? [];
+					const resultProperty = obtainedResult.isNotExpected
+						? RESULT_PROPERTIES.Unexpected
+						: RESULT_PROPERTIES.Expected;
+					const hasResultFilter =
+						filterValue.results.length > 0 ||
+						filterValue.resultProperties.length > 0;
+					const isResultSelected =
+						hasResultFilter &&
+						(!filterValue.results.length ||
+							filterValue.results.includes(obtainedResult.result)) &&
+						(!filterValue.resultProperties.length ||
+							filterValue.resultProperties.includes(resultProperty));
 
 					if (!obtainedResult.result || !obtainedResult.verdicts) return;
 
 					function handleVerdictClick(verdict: string) {
-						if (mode === 'diff') {
-							filterModeWarning();
-							return;
-						}
-
 						cell.column.setFilterValue(
 							createNextState(filterValue ?? {}, (draft) => {
 								if (!draft.verdicts) {
@@ -134,23 +132,22 @@ export const getColumns = ({
 					}
 
 					function handleResultClick(result: RESULT_TYPE) {
-						if (mode === 'diff') {
-							filterModeWarning();
-							return;
-						}
-
 						cell.column.setFilterValue(
 							createNextState(filterValue ?? {}, (draft) => {
-								if (
-									draft.result === result &&
-									draft.isNotExpected === obtainedResult.isNotExpected
-								) {
-									draft.result = undefined;
-									draft.isNotExpected = undefined;
-								} else {
-									draft.result = result;
-									draft.isNotExpected = obtainedResult.isNotExpected;
+								const isAlreadySelected =
+									draft.results.length === 1 &&
+									draft.resultProperties.length === 1 &&
+									draft.results[0] === result &&
+									draft.resultProperties[0] === resultProperty;
+
+								if (isAlreadySelected) {
+									draft.results = [];
+									draft.resultProperties = [];
+									return;
 								}
+
+								draft.results = [result];
+								draft.resultProperties = [resultProperty];
 							})
 						);
 					}
@@ -164,10 +161,7 @@ export const getColumns = ({
 							onVerdictClick={handleVerdictClick}
 							selectedVerdicts={verdicts}
 							onResultClick={handleResultClick}
-							isResultSelected={
-								obtainedResult.result === filterValue?.result &&
-								obtainedResult.isNotExpected === filterValue?.isNotExpected
-							}
+							isResultSelected={isResultSelected}
 						/>
 					);
 				},
@@ -175,9 +169,9 @@ export const getColumns = ({
 					row,
 					column,
 					filterValue: {
-						result?: RESULT_TYPE;
+						results?: RESULT_TYPE[];
+						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
-						isNotExpected?: boolean;
 					}
 				) => {
 					const value = row.getValue(column) as {
@@ -185,20 +179,34 @@ export const getColumns = ({
 						result?: RESULT_TYPE;
 						verdicts?: string[];
 					};
+					const rowResultProperty =
+						typeof value.isNotExpected === 'boolean'
+							? value.isNotExpected
+								? RESULT_PROPERTIES.Unexpected
+								: RESULT_PROPERTIES.Expected
+							: undefined;
 
-					if (!filterValue?.result && !filterValue?.verdicts?.length) {
+					if (
+						!filterValue?.results?.length &&
+						!filterValue?.resultProperties?.length &&
+						!filterValue?.verdicts?.length
+					) {
 						return true;
 					}
 
 					const matchesResult =
-						!filterValue.result ||
-						(value.result === filterValue.result &&
-							value.isNotExpected === filterValue.isNotExpected);
+						!filterValue.results?.length ||
+						(value.result ? filterValue.results.includes(value.result) : false);
+					const matchesResultProperties =
+						!filterValue.resultProperties?.length ||
+						(rowResultProperty
+							? filterValue.resultProperties.includes(rowResultProperty)
+							: false);
 					const matchesVerdicts =
 						!filterValue.verdicts?.length ||
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
 
-					return matchesResult && matchesVerdicts;
+					return matchesResult && matchesResultProperties && matchesVerdicts;
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
 			}
@@ -240,11 +248,6 @@ export const getColumns = ({
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
 
 				function handleArtifactClick(artifact: string) {
-					if (mode === 'diff') {
-						filterModeWarning();
-						return;
-					}
-
 					cell.column.setFilterValue(
 						filterValue.includes(artifact)
 							? filterValue.filter((v) => v !== artifact)
@@ -266,36 +269,7 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('parameters', {
-			header: () => (
-				<div className="flex items-center gap-2">
-					<span>Parameters</span>
-					<Tooltip content={showToolbar ? 'Hide toolbar' : 'Show toolbar'}>
-						<ButtonTw
-							variant={showToolbar ? 'primary' : 'secondary'}
-							size="xss"
-							onClick={() => setShowToolbar(!showToolbar)}
-							className={cn(
-								'border',
-								showToolbar
-									? 'border-primary hover:border-[#94b0ff]'
-									: 'border-border-primary hover:shadow-none hover:border-primary'
-							)}
-						>
-							<div
-								className={cn(
-									'flex items-center justify-center mr-1.5',
-									!showToolbar && 'rotate-180'
-								)}
-							>
-								<Icon name="ArrowLeanUp" size={18} />
-							</div>
-							<span className="w-[6ch] text-left">
-								{showToolbar ? 'Hide' : 'Expose'}
-							</span>
-						</ButtonTw>
-					</Tooltip>
-				</div>
-			),
+			header: 'Parameters',
 			id: COLUMN_ID.PARAMETERS,
 			cell: ({ cell, getValue }) => {
 				const parameters = getValue();
@@ -304,18 +278,15 @@ export const getColumns = ({
 				const referenceDiffRowId =
 					// eslint-disable-next-line react-hooks/rules-of-hooks
 					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
+				const referenceParameters = referenceDiffRowId
+					? parametersDataset[referenceDiffRowId]
+					: undefined;
+				const hasReferenceRow = Boolean(referenceParameters);
 				const filterValue = (column.getFilterValue() ?? []) as string[];
 
-				const reference = referenceDiffRowId
-					? parametersDataset[referenceDiffRowId]
-					: parameters;
+				const reference = referenceParameters ?? parameters;
 
 				function handleParameterClick(value: string) {
-					if (mode === 'diff' || mode === 'dim') {
-						filterModeWarning();
-						return;
-					}
-
 					column.setFilterValue(
 						filterValue?.includes(value)
 							? filterValue.filter((v) => v !== value)
@@ -329,8 +300,8 @@ export const getColumns = ({
 						reference={reference}
 						filterValue={filterValue}
 						onParameterClick={handleParameterClick}
-						mode={mode}
 						commonParameters={commonParameters}
+						hasReferenceRow={hasReferenceRow}
 					/>
 				);
 			},
@@ -338,18 +309,33 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('requirements', {
-			header: 'Requirements',
+			header: () => (
+				<div className="flex items-center justify-between gap-2 w-full">
+					<span>Requirements</span>
+					<Tooltip content={showToolbar ? 'Hide filters' : 'Show filters'}>
+						<ButtonTw
+							variant={showToolbar ? 'primary' : 'secondary'}
+							size="xss"
+							onClick={() => setShowToolbar(!showToolbar)}
+							className={cn(
+								'border ml-auto',
+								showToolbar
+									? 'border-primary hover:border-[#94b0ff]'
+									: 'border-border-primary hover:shadow-none hover:border-primary'
+							)}
+						>
+							<Icon name="Filter" size={16} className="mr-1.5" />
+							<span>Filters</span>
+						</ButtonTw>
+					</Tooltip>
+				</div>
+			),
 			id: COLUMN_ID.REQUIREMENTS,
 			cell: (cell) => {
 				const requirements = cell.getValue() ?? [];
 				const filterValue = (cell.column.getFilterValue() ?? []) as string[];
 
 				function handleRequirementClick(requirement: string) {
-					if (mode === 'diff') {
-						filterModeWarning();
-						return;
-					}
-
 					cell.column.setFilterValue(
 						filterValue.includes(requirement)
 							? filterValue.filter((v) => v !== requirement)
@@ -377,7 +363,7 @@ function fitlerIncludesSome<T extends Record<string, unknown>>(
 ) {
 	const cellValue = (row.original[column] ?? []) as string[];
 
-	return filterValue.every((value) => cellValue.some((v) => v.includes(value)));
+	return filterValue.every((value) => cellValue.includes(value));
 }
 
 interface ArtifactsListProps {
@@ -454,8 +440,8 @@ interface ParametersProps {
 	parameters: string[];
 	reference: string[];
 	onParameterClick: (value: string) => void;
-	mode?: 'default' | 'diff' | 'dim';
 	commonParameters?: Set<string>;
+	hasReferenceRow: boolean;
 }
 
 function Parameters(props: ParametersProps) {
@@ -464,45 +450,28 @@ function Parameters(props: ParametersProps) {
 		parameters,
 		reference,
 		onParameterClick,
-		mode,
-		commonParameters
+		commonParameters,
+		hasReferenceRow
 	} = props;
 
-	// Only compute differences in diff mode
-	const diffResults =
-		mode === 'diff' ? highlightDifferences(parameters, reference) : null;
-
-	// Pre-compute Set for O(1) lookups when in dim mode
+	// Pre-compute Set for O(1) lookups when reference row is selected
 	const referenceSet = useMemo(() => new Set(reference), [reference]);
 
 	return (
 		<ul className="flex gap-1 flex-wrap">
-			{(mode === 'diff' ? diffResults! : parameters).map((item, index) => {
-				// Handle different item types based on mode
-				const value = typeof item === 'string' ? item : item.value;
-				const isDifferent =
-					mode === 'diff' && (item as { isDifferent?: boolean }).isDifferent;
-
-				// Determine if this parameter should be dimmed (only in dim mode)
-				const shouldDim =
-					mode === 'dim' &&
-					// If reference === parameters (no row selected), dim globally common params
-					(reference === parameters
-						? commonParameters?.has(value)
-						: // If row selected, dim parameters that exist in reference (same value)
-						  referenceSet.has(value));
+			{parameters.map((value, index) => {
+				const isSelected = filterValue.includes(value);
+				const shouldDim = hasReferenceRow
+					? referenceSet.has(value)
+					: commonParameters?.has(value);
 
 				return (
 					<button
 						key={index}
 						className={cn(
 							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							// Highlight logic for diff mode and filtered params
-							filterValue.includes(value) || isDifferent
-								? 'bg-primary-wash border-primary'
-								: 'bg-badge-1',
-							// Dim common parameters when in dim mode
-							shouldDim && 'opacity-40'
+							isSelected ? 'bg-primary-wash border-primary' : 'bg-badge-1',
+							shouldDim && !isSelected && 'opacity-60'
 						)}
 						onClick={() => onParameterClick(value)}
 					>

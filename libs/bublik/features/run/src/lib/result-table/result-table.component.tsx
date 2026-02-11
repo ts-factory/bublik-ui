@@ -3,6 +3,7 @@
 import {
 	CSSProperties,
 	Fragment,
+	MouseEvent as ReactMouseEvent,
 	memo,
 	useCallback,
 	useMemo,
@@ -23,7 +24,7 @@ import { createNextState } from '@reduxjs/toolkit';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
 import { useIsSticky, useMount } from '@/shared/hooks';
-import { RunDataResults } from '@/shared/types';
+import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import {
 	cn,
 	Skeleton,
@@ -45,6 +46,11 @@ import { RowState, useGlobalRequirements } from '../hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
+const RESULT_PROPERTIES_LABEL: Record<RESULT_PROPERTIES, string> = {
+	[RESULT_PROPERTIES.Expected]: 'Expected',
+	[RESULT_PROPERTIES.Unexpected]: 'Unexpected',
+	[RESULT_PROPERTIES.NotRun]: 'Not Run'
+};
 
 export interface SkeletonProps {
 	rowCount?: number;
@@ -72,8 +78,6 @@ export interface ResultTableProps {
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
 	height: number;
-	mode?: 'default' | 'diff' | 'dim';
-	setMode: (mode: 'default' | 'diff' | 'dim') => void;
 	showToolbar: boolean;
 	setShowToolbar: (showToolbar: boolean) => void;
 	targetIterationId?: number;
@@ -88,8 +92,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		rowId,
 		showLinkToRun = false,
 		height,
-		mode = 'default',
-		setMode,
 		showToolbar,
 		setShowToolbar,
 		targetIterationId,
@@ -105,22 +107,26 @@ export const ResultTable = memo((props: ResultTableProps) => {
 	const {
 		parameters,
 		verdicts,
+		results,
+		resultProperties,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
+		resultsFilter,
+		resultPropertiesFilter,
 		artifactsFilter,
 		onClearFilters,
 		onFilterChange,
-		onVerdictsFilterChange
+		onVerdictsFilterChange,
+		onResultsFilterChange,
+		onResultPropertiesFilterChange
 	} = useDataTableFilters(rowId, data);
 	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
 		localRequirements: requirementsFilter
 	});
-	const isDiffMode = mode === 'diff';
-	const isDimMode = mode === 'dim';
 	const hasFilters = hasColumnFilters || hasGlobalRequirements;
-	const hasToolbar = showToolbar || hasFilters || isDiffMode || isDimMode;
+	const hasToolbar = showToolbar || hasFilters;
 
 	const columns = useMemo(
 		() =>
@@ -128,12 +134,11 @@ export const ResultTable = memo((props: ResultTableProps) => {
 				rowId,
 				showLinkToRun,
 				data,
-				mode,
 				showToolbar: hasToolbar,
 				setShowToolbar,
 				path
 			}),
-		[rowId, showLinkToRun, data, mode, hasToolbar, setShowToolbar, path]
+		[rowId, showLinkToRun, data, hasToolbar, setShowToolbar, path]
 	);
 
 	const { stickyOffset } = useStickyHeader({ height });
@@ -227,14 +232,20 @@ export const ResultTable = memo((props: ResultTableProps) => {
 						>
 							<div className="flex gap-2 items-center">
 								<DataTableFacetedFilter
-									title="Artifacts"
+									title="Obtained Result"
 									size="xss"
-									options={artifacts}
-									value={artifactsFilter}
-									onChange={(values) =>
-										onFilterChange(COLUMN_ID.ARTIFACTS, values)
-									}
-									disabled={!artifacts.length || isDiffMode || isDimMode}
+									options={results}
+									value={resultsFilter}
+									onChange={onResultsFilterChange}
+									disabled={!results.length}
+								/>
+								<DataTableFacetedFilter
+									title="Result Type"
+									size="xss"
+									options={resultProperties}
+									value={resultPropertiesFilter}
+									onChange={onResultPropertiesFilterChange}
+									disabled={!resultProperties.length}
 								/>
 								<DataTableFacetedFilter
 									title="Verdicts"
@@ -242,7 +253,17 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									options={verdicts}
 									value={verdictsFilter}
 									onChange={onVerdictsFilterChange}
-									disabled={!verdicts.length || isDiffMode || isDimMode}
+									disabled={!verdicts.length}
+								/>
+								<DataTableFacetedFilter
+									title="Artifacts"
+									size="xss"
+									options={artifacts}
+									value={artifactsFilter}
+									onChange={(values) =>
+										onFilterChange(COLUMN_ID.ARTIFACTS, values)
+									}
+									disabled={!artifacts.length}
 								/>
 								<DataTableFacetedFilter
 									title="Parameters"
@@ -252,7 +273,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									onChange={(values) =>
 										onFilterChange(COLUMN_ID.PARAMETERS, values)
 									}
-									disabled={!parameters.length || isDiffMode || isDimMode}
+									disabled={!parameters.length}
 								/>
 								<Tooltip content="Reset">
 									<ButtonTw
@@ -262,40 +283,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									>
 										<Icon name="Bin" size={18} className="mr-1.5" />
 										<span>Reset</span>
-									</ButtonTw>
-								</Tooltip>
-							</div>
-							<div className="flex gap-2 items-center">
-								<Tooltip content="Click on the row to compare parameters">
-									<ButtonTw
-										variant={mode === 'diff' ? 'primary' : 'secondary'}
-										size="xss"
-										onClick={() => {
-											const nextMode = mode === 'diff' ? 'default' : 'diff';
-											setMode(nextMode);
-
-											if (nextMode === 'diff') setColumnFilters([]);
-										}}
-									>
-										<Icon
-											name="SwapArrows"
-											size={18}
-											className="rotate-90 mr-1.5"
-										/>
-										<span>Parameters Compare</span>
-									</ButtonTw>
-								</Tooltip>
-								<Tooltip content="Dim parameters that are the same. Click a row to compare against it.">
-									<ButtonTw
-										variant={isDimMode ? 'primary' : 'secondary'}
-										size="xss"
-										onClick={() => {
-											const nextMode = isDimMode ? 'default' : 'dim';
-											setMode(nextMode);
-										}}
-									>
-										<Icon name="EyeHide" size={18} className="mr-1.5" />
-										<span>Dim Common</span>
 									</ButtonTw>
 								</Tooltip>
 							</div>
@@ -333,6 +320,8 @@ function ResultRow(props: ResultRowProps) {
 	const firstCellRef = useRef<HTMLDivElement>(null);
 	const isTarget = row.original.result_id === targetIterationId;
 	const { setTargetIterationId } = useTargetIterationId();
+	const INTERACTIVE_SELECTOR =
+		'button, a, input, select, textarea, [role="button"], [data-stop-row-click="true"]';
 
 	useMount(() => {
 		if (!isTarget) return;
@@ -344,6 +333,15 @@ function ResultRow(props: ResultRowProps) {
 	});
 
 	const [hovered, setHovered] = useState(false);
+
+	function handleRowClick(event: ReactMouseEvent<HTMLDivElement>) {
+		const target = event.target as HTMLElement;
+		const interactiveParent = target.closest(INTERACTIVE_SELECTOR);
+
+		if (interactiveParent) return;
+
+		onRowClick?.(row);
+	}
 
 	return (
 		<Fragment>
@@ -380,13 +378,10 @@ function ResultRow(props: ResultRowProps) {
 						)}
 						style={{
 							overflowWrap: 'anywhere',
-							cursor:
-								rowState?.mode === 'diff' || rowState?.mode === 'dim'
-									? 'pointer'
-									: 'default'
+							cursor: onRowClick ? 'pointer' : 'default'
 						}}
 						ref={cellIdx === 0 ? firstCellRef : undefined}
-						onClick={() => onRowClick?.(row)}
+						onClick={handleRowClick}
 					>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
 					</div>
@@ -461,6 +456,12 @@ function useGlobalRequirementsFilters({
 function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const { columnFilters, setColumnFilters, resetLocalRequirements } =
 		useColumnFilters(rowId);
+	const resultValues = new Set(Object.values(RESULT_TYPE));
+	const resultPropertiesValues = new Set<RESULT_PROPERTIES>([
+		RESULT_PROPERTIES.Expected,
+		RESULT_PROPERTIES.Unexpected,
+		RESULT_PROPERTIES.NotRun
+	]);
 
 	const requirementsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.REQUIREMENTS)
@@ -472,50 +473,95 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			?.value ?? []) as string[];
 	}, [columnFilters]);
 
-	const verdictsFilter = useMemo(() => {
-		return (
-			(
-				columnFilters.find((filter) => filter.id === COLUMN_ID.OBTAINED_RESULT)
-					?.value as { verdicts?: string[] }
-			)?.verdicts ?? []
+	const obtainedResultFilter = useMemo(() => {
+		return ObtainedResultFilterSchema.parse(
+			columnFilters.find((filter) => filter.id === COLUMN_ID.OBTAINED_RESULT)
+				?.value
 		);
 	}, [columnFilters]);
+
+	const verdictsFilter = obtainedResultFilter.verdicts;
+	const resultsFilter = obtainedResultFilter.results;
+	const resultPropertiesFilter = obtainedResultFilter.resultProperties;
 
 	const artifactsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
 			?.value ?? []) as string[];
 	}, [columnFilters]);
 
-	const filteredData = useMemo(() => {
-		return data.filter((row) => {
+	const {
+		filteredData,
+		filteredDataWithoutResults,
+		filteredDataWithoutResultProperties
+	} = useMemo(() => {
+		const matchesRow = (
+			row: RunDataResults,
+			{
+				includeResults,
+				includeResultProperties
+			}: { includeResults: boolean; includeResultProperties: boolean }
+		) => {
+			const rowResultProperty = row.has_error
+				? RESULT_PROPERTIES.Unexpected
+				: RESULT_PROPERTIES.Expected;
 			const hasEveryParameter = parametersFilter.every((parameter) =>
 				row.parameters?.includes(parameter)
 			);
-
 			const hasEveryVerdict = verdictsFilter.every((verdict) =>
 				row.obtained_result.verdicts?.includes(verdict)
 			);
-
 			const hasEveryArtifact = artifactsFilter.every((artifact) =>
 				row.artifacts?.includes(artifact)
 			);
-
 			const hasEveryRequirement = requirementsFilter.every((requirement) =>
 				row.requirements?.includes(requirement)
 			);
+			const matchesResult =
+				!includeResults ||
+				!resultsFilter.length ||
+				resultsFilter.includes(row.obtained_result.result_type);
+			const matchesResultProperties =
+				!includeResultProperties ||
+				!resultPropertiesFilter.length ||
+				resultPropertiesFilter.includes(rowResultProperty);
 
 			return (
 				hasEveryParameter &&
 				hasEveryVerdict &&
 				hasEveryArtifact &&
-				hasEveryRequirement
+				hasEveryRequirement &&
+				matchesResult &&
+				matchesResultProperties
 			);
-		});
+		};
+
+		return {
+			filteredData: data.filter((row) =>
+				matchesRow(row, {
+					includeResults: true,
+					includeResultProperties: true
+				})
+			),
+			filteredDataWithoutResults: data.filter((row) =>
+				matchesRow(row, {
+					includeResults: false,
+					includeResultProperties: true
+				})
+			),
+			filteredDataWithoutResultProperties: data.filter((row) =>
+				matchesRow(row, {
+					includeResults: true,
+					includeResultProperties: false
+				})
+			)
+		};
 	}, [
 		artifactsFilter,
 		data,
 		parametersFilter,
 		requirementsFilter,
+		resultPropertiesFilter,
+		resultsFilter,
 		verdictsFilter
 	]);
 
@@ -551,6 +597,41 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			}));
 	}, [filteredData]);
 
+	const results = useMemo(() => {
+		const orderedResultTypes = Object.values(RESULT_TYPE);
+
+		return Array.from(
+			new Set(
+				filteredDataWithoutResults.map((row) => row.obtained_result.result_type)
+			)
+		)
+			.filter(Boolean)
+			.sort(
+				(a, b) => orderedResultTypes.indexOf(a) - orderedResultTypes.indexOf(b)
+			)
+			.map((result) => ({
+				label: result,
+				value: result
+			}));
+	}, [filteredDataWithoutResults]);
+
+	const resultProperties = useMemo(() => {
+		return Array.from(
+			new Set(
+				filteredDataWithoutResultProperties.map((row) =>
+					row.has_error
+						? RESULT_PROPERTIES.Unexpected
+						: RESULT_PROPERTIES.Expected
+				)
+			)
+		)
+			.filter((resultProperty) => resultProperty !== undefined)
+			.map((resultProperty) => ({
+				label: RESULT_PROPERTIES_LABEL[resultProperty],
+				value: resultProperty
+			}));
+	}, [filteredDataWithoutResultProperties]);
+
 	const artifacts = useMemo(() => {
 		return Array.from(new Set(filteredData.map((row) => row.artifacts).flat()))
 			.filter(Boolean)
@@ -567,50 +648,109 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	}
 
 	function handleFilterChange(id: string, values: string[] | undefined) {
-		setColumnFilters((prev) => {
-			const filter = prev.find((filter) => filter.id === id);
+		setColumnFilters((prev) =>
+			createNextState(prev, (draft) => {
+				const index = draft.findIndex((filter) => filter.id === id);
+				const nextValue = values ?? [];
 
-			if (filter) filter.value = values ?? [];
+				if (nextValue.length === 0) {
+					if (index !== -1) {
+						draft.splice(index, 1);
+					}
+					return;
+				}
 
-			return [...prev, { id, value: values ?? [] }];
-		});
+				if (index === -1) {
+					draft.push({ id, value: nextValue });
+					return;
+				}
+
+				draft[index].value = nextValue;
+			})
+		);
+	}
+
+	function handleObtainedResultFilterChange(
+		updater: (
+			filter: ReturnType<typeof ObtainedResultFilterSchema.parse>
+		) => ReturnType<typeof ObtainedResultFilterSchema.parse>
+	) {
+		setColumnFilters((prev) =>
+			createNextState(prev, (draft) => {
+				const index = draft.findIndex(
+					(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
+				);
+				const currentFilter =
+					index === -1
+						? ObtainedResultFilterSchema.parse(undefined)
+						: ObtainedResultFilterSchema.parse(draft[index].value);
+				const nextFilter = updater(currentFilter);
+				const hasValues =
+					nextFilter.verdicts.length > 0 ||
+					nextFilter.results.length > 0 ||
+					nextFilter.resultProperties.length > 0;
+
+				if (!hasValues) {
+					if (index !== -1) {
+						draft.splice(index, 1);
+					}
+					return;
+				}
+
+				if (index === -1) {
+					draft.push({ id: COLUMN_ID.OBTAINED_RESULT, value: nextFilter });
+					return;
+				}
+
+				draft[index].value = nextFilter;
+			})
+		);
 	}
 
 	function handleVerdictsFilterChange(values: string[] | undefined) {
-		setColumnFilters((prev) =>
-			createNextState(prev, (draft) => {
-				const filter = draft.find(
-					(filter) => filter.id === COLUMN_ID.OBTAINED_RESULT
-				) as { value?: { verdicts?: string[] } };
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			verdicts: values ?? []
+		}));
+	}
 
-				if (filter) {
-					if (!values?.length) {
-						filter.value = { ...filter.value, verdicts: undefined };
-					} else {
-						filter.value = { ...filter.value, verdicts: values };
-					}
-				} else {
-					draft.push({
-						id: COLUMN_ID.OBTAINED_RESULT,
-						value: { verdicts: values }
-					});
-				}
-			})
-		);
+	function handleResultsFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			results: (values ?? []).filter((value): value is RESULT_TYPE =>
+				resultValues.has(value as RESULT_TYPE)
+			)
+		}));
+	}
+
+	function handleResultPropertiesFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			resultProperties: (values ?? []).filter(
+				(value): value is RESULT_PROPERTIES =>
+					resultPropertiesValues.has(value as RESULT_PROPERTIES)
+			)
+		}));
 	}
 
 	return {
 		requirements,
 		parameters,
 		verdicts,
+		results,
+		resultProperties,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
+		resultsFilter,
+		resultPropertiesFilter,
 		artifactsFilter,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
-		onVerdictsFilterChange: handleVerdictsFilterChange
+		onVerdictsFilterChange: handleVerdictsFilterChange,
+		onResultsFilterChange: handleResultsFilterChange,
+		onResultPropertiesFilterChange: handleResultPropertiesFilterChange
 	};
 }
 
@@ -655,12 +795,14 @@ function useColumnFilters(rowId: string) {
 		if (value.success) return value.data.length > 0;
 
 		if (filter.id === COLUMN_ID.OBTAINED_RESULT) {
-			const verdicts = ObtainedResultFilterSchema.safeParse(filter.value);
+			const obtainedResult = ObtainedResultFilterSchema.safeParse(filter.value);
 
-			if (!verdicts.success) return false;
+			if (!obtainedResult.success) return false;
 
 			return (
-				verdicts.data.verdicts.length > 0 || verdicts.data.result !== undefined
+				obtainedResult.data.verdicts.length > 0 ||
+				obtainedResult.data.results.length > 0 ||
+				obtainedResult.data.resultProperties.length > 0
 			);
 		}
 

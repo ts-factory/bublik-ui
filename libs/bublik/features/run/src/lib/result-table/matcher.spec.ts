@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { DiffValue, highlightDifferences } from './matcher';
+import {
+	DiffValue,
+	getCommonParameters,
+	highlightDifferences
+} from './matcher';
+
 describe('highlightDifference', () => {
 	it('should handle empty input and reference', () => {
 		const input = { current: [], reference: [] };
@@ -68,5 +73,34 @@ describe('highlightDifference', () => {
 		expect(highlightDifferences(input.current, input.reference)).toMatchObject(
 			expected
 		);
+	});
+});
+
+describe('getCommonParameters', () => {
+	it('returns common parameters for comparable rows', () => {
+		const result = getCommonParameters([
+			['a=1', 'b=2', 'c=3'],
+			['a=1', 'b=2', 'x=9'],
+			['a=1', 'b=2', 'y=8']
+		]);
+
+		expect([...result]).toEqual(['a=1', 'b=2']);
+	});
+
+	it('ignores rows without parameters', () => {
+		const result = getCommonParameters([
+			['a=1', 'b=2'],
+			[],
+			['a=1', 'c=3'],
+			[]
+		]);
+
+		expect([...result]).toEqual(['a=1']);
+	});
+
+	it('returns empty set when fewer than two comparable rows exist', () => {
+		const result = getCommonParameters([['a=1', 'b=2'], [], []]);
+
+		expect([...result]).toEqual([]);
 	});
 });
