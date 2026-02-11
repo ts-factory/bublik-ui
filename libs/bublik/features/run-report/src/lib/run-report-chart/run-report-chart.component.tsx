@@ -34,7 +34,7 @@ function RunReportChart(props: RunReportChartProps) {
 
 	useEffect(() => {
 		const instance = chartRef.current?.getEchartsInstance();
-		if (!instance) return;
+		if (!instance || instance.isDisposed()) return;
 
 		function handleClick(rawParams: unknown) {
 			const paramsResult = ParamsSchema.safeParse(rawParams);
@@ -59,13 +59,19 @@ function RunReportChart(props: RunReportChartProps) {
 
 		instance.on('click', handleClick);
 		return () => {
+			if (instance.isDisposed()) return;
+
 			instance.off('click', handleClick);
 		};
 	}, [chart.data]);
 
 	useEffect(() => {
 		function handleResize() {
-			chartRef.current?.getEchartsInstance().resize();
+			const instance = chartRef.current?.getEchartsInstance();
+
+			if (!instance || instance.isDisposed()) return;
+
+			instance.resize();
 		}
 
 		window.addEventListener('resize', handleResize);

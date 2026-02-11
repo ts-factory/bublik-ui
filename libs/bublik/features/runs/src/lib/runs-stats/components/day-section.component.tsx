@@ -16,9 +16,9 @@ function useHandlePointClick() {
 
 	useEffect(() => {
 		const instance = ref.current?.getEchartsInstance();
-		if (!instance) return;
+		if (!instance || instance.isDisposed()) return;
 
-		instance.on('click', (params) => {
+		const handleClick = (params: { data: unknown }) => {
 			const result = RunsStatsSchema.safeParse(params.data);
 
 			if (!result.success) {
@@ -27,7 +27,15 @@ function useHandlePointClick() {
 			}
 
 			navigate({ pathname: `/runs/${result.data.runId}` });
-		});
+		};
+
+		instance.on('click', handleClick);
+
+		return () => {
+			if (instance.isDisposed()) return;
+
+			instance.off('click', handleClick);
+		};
 	}, [navigate]);
 
 	return { ref };

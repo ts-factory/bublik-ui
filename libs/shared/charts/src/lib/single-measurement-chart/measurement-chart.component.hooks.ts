@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { RefObject, useEffect, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
@@ -105,26 +105,31 @@ interface UseChartClickProps {
 
 function useChartClick(props: UseChartClickProps) {
 	const { ref, onChartPointClick } = props;
+	const onChartPointClickRef = useRef(onChartPointClick);
+
+	useEffect(() => {
+		onChartPointClickRef.current = onChartPointClick;
+	}, [onChartPointClick]);
 
 	useEffect(() => {
 		const instance = ref.current?.getEchartsInstance();
 
-		if (!instance) return;
+		if (!instance || instance.isDisposed()) return;
 
-		const resize = () => instance.resize();
 		const handleChartClick = (props: ECElementEvent) => {
 			const { componentIndex, dataIndex } = props;
 
-			onChartPointClick?.({ componentIndex, dataIndex });
+			onChartPointClickRef.current?.({ componentIndex, dataIndex });
 		};
 
 		instance.on('click', handleChartClick);
-		window.addEventListener('resize', resize);
+
 		return () => {
+			if (instance.isDisposed()) return;
+
 			instance.off('click', handleChartClick);
-			window.removeEventListener('resize', resize);
 		};
-	}, [onChartPointClick, ref]);
+	}, [ref]);
 }
 
 export { useChartState, useChartClick };
