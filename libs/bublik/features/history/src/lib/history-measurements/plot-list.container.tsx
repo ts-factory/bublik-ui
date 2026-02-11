@@ -263,7 +263,7 @@ function MeasurementsList(
 
 	return (
 		<div className="flex flex-col">
-			{measurements.map((m, idx) => {
+			{measurements.map((m) => {
 				const filtered =
 					nameFilter.length > 0
 						? m.measurement_series_charts.filter((c) =>
@@ -273,7 +273,7 @@ function MeasurementsList(
 
 				return (
 					<div
-						key={`${idx}-${m.id}`}
+						key={`${m.run_id}-${m.result_id}-${m.id}`}
 						className="[&:not(:last-child)]:border-b border-border-primary"
 					>
 						<CardHeader label={m.test_name}>
@@ -310,6 +310,7 @@ function MeasurementsList(
 								plots={filtered}
 								parameters={m.parameters_list}
 								group={group}
+								deferUntilVisible={true}
 							/>
 						) : null}
 					</div>
