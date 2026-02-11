@@ -22,7 +22,7 @@ function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
 
 	useEffect(() => {
 		const instance = ref.current?.getEchartsInstance();
-		if (!instance) return;
+		if (!instance || instance.isDisposed()) return;
 
 		const handleClick = (params: ECElementEvent) => {
 			const result = TestByWeekDaySchema.safeParse(params.data ?? params.value);
@@ -32,19 +32,14 @@ function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
 				return;
 			}
 
-			const runIds = result.data.ids.split(',').filter(Boolean);
-
-			if (runIds.length === 1) {
-				navigate({ pathname: `/runs/${runIds[0]}` });
-				return;
-			}
-
-			onRunListOpen(runIds);
+			onRunListOpen(result.data.ids.split(','));
 		};
 
 		instance.on('click', handleClick);
 
 		return () => {
+			if (instance.isDisposed()) return;
+
 			instance.off('click', handleClick);
 		};
 	}, [navigate, onRunListOpen]);
