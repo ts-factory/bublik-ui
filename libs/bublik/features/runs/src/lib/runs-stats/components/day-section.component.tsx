@@ -1,16 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ECElementEvent } from 'echarts';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 import { toast } from 'sonner';
 
 import { BarChart, LineChart } from '@/shared/charts';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
-import { COLOR_MAP } from '../runs-stats.component.utils';
-import { RunsStatsSchema, RunStats } from '../runs-stats.types';
+import { COLOR_MAP, getGroupedByDay } from '../runs-stats.component.utils';
+import { RunStats, TestByWeekDaySchema } from '../runs-stats.types';
+import { RunsListModal } from './runs-list.component';
 
-function useHandlePointClick() {
+interface HandlePointClickProps {
+	onRunListOpen: (ids: string[]) => void;
+}
+
+function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
 	const navigate = useNavigateWithProject();
 	const ref = useRef<ReactEChartsCore>(null);
 
@@ -18,17 +24,30 @@ function useHandlePointClick() {
 		const instance = ref.current?.getEchartsInstance();
 		if (!instance) return;
 
-		instance.on('click', (params) => {
-			const result = RunsStatsSchema.safeParse(params.data);
+		const handleClick = (params: ECElementEvent) => {
+			const result = TestByWeekDaySchema.safeParse(params.data ?? params.value);
 
 			if (!result.success) {
 				toast.error('Failed to parse run stat data');
 				return;
 			}
 
-			navigate({ pathname: `/runs/${result.data.runId}` });
-		});
-	}, [navigate]);
+			const runIds = result.data.ids.split(',').filter(Boolean);
+
+			if (runIds.length === 1) {
+				navigate({ pathname: `/runs/${runIds[0]}` });
+				return;
+			}
+
+			onRunListOpen(runIds);
+		};
+
+		instance.on('click', handleClick);
+
+		return () => {
+			instance.off('click', handleClick);
+		};
+	}, [navigate, onRunListOpen]);
 
 	return { ref };
 }
@@ -38,15 +57,39 @@ interface DaySectionProps {
 }
 
 export const DaySection = ({ stats }: DaySectionProps) => {
-	const { ref: lineRef } = useHandlePointClick();
-	const { ref: barRef } = useHandlePointClick();
+	const groupedByDay = getGroupedByDay(stats);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [runIds, setRunIds] = useState<string[]>([]);
+
+	const handleOpenChange = (open: boolean) => {
+		if (!open) setRunIds([]);
+
+		setIsModalOpen(open);
+	};
+
+	const handleRunListOpen = (ids: string[]) => {
+		setRunIds(ids);
+		setIsModalOpen(true);
+	};
+
+	const { ref: lineRef } = useHandlePointClick({
+		onRunListOpen: handleRunListOpen
+	});
+	const { ref: barRef } = useHandlePointClick({
+		onRunListOpen: handleRunListOpen
+	});
 
 	return (
 		<section className="">
+			<RunsListModal
+				ids={runIds}
+				open={isModalOpen}
+				onOpenChange={handleOpenChange}
+			/>
 			<div className="px-4 py-2 border-b border-b-border-primary">
 				<BarChart
 					title="Tests by day"
-					dataset={{ source: stats }}
+					dataset={{ source: groupedByDay }}
 					tooltip={{ trigger: 'axis' }}
 					legend={{}}
 					dataZoom={[{}, { type: 'inside' }]}
@@ -86,7 +129,7 @@ export const DaySection = ({ stats }: DaySectionProps) => {
 			<div className="px-4 py-2">
 				<LineChart
 					title="Tests by day"
-					dataset={{ source: stats }}
+					dataset={{ source: groupedByDay }}
 					tooltip={{ trigger: 'axis' }}
 					legend={{}}
 					dataZoom={[{}, { type: 'inside' }]}

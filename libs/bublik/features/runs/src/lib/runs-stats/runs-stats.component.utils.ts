@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { startOfWeek } from 'date-fns';
+import { startOfDay, startOfWeek } from 'date-fns';
 import { groupBy } from 'remeda';
 
 import { getRunStatusInfo } from '@/shared/tailwind-ui';
@@ -13,6 +13,12 @@ export const COLOR_MAP = new Map<string, string>([
 	['nok', '#f95c78'],
 	['total', '#7283e2']
 ]);
+
+const getPassRate = (ok: number, total: number) => {
+	if (total === 0) return 0;
+
+	return Number(((ok / total) * 100).toFixed(2));
+};
 
 export const getPieChartDataForResults = (runStats: RunStats[]) => {
 	type ObjectKeysWithType<T, U> = {
@@ -59,7 +65,28 @@ export const getGroupedByWeek = (stats: RunStats[]): TestGroupedByWeek[] => {
 			total: totalNumber,
 			ok: okNumber,
 			nok: nokNumber,
-			passrate: Number(((okNumber / totalNumber) * 100).toFixed(2)),
+			passrate: getPassRate(okNumber, totalNumber),
+			ids: stats.map((s) => s.runId).join(',')
+		};
+	});
+};
+
+export const getGroupedByDay = (stats: RunStats[]): TestGroupedByWeek[] => {
+	const groupedBy = groupBy(stats, (stats) =>
+		startOfDay(stats.date).toISOString()
+	);
+
+	return Object.entries(groupedBy).map(([date, stats]) => {
+		const nokNumber = stats.reduce((acc, curr) => acc + curr.nok, 0);
+		const totalNumber = stats.reduce((acc, curr) => acc + curr.total, 0);
+		const okNumber = stats.reduce((acc, curr) => acc + curr.ok, 0);
+
+		return {
+			date: new Date(date),
+			total: totalNumber,
+			ok: okNumber,
+			nok: nokNumber,
+			passrate: getPassRate(okNumber, totalNumber),
 			ids: stats.map((s) => s.runId).join(',')
 		};
 	});
