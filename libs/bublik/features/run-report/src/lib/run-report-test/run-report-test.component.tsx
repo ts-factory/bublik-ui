@@ -4,7 +4,12 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
-import { useIntersectionObserver, usePlatformSpecificCtrl } from '@/shared/hooks';
+import {
+	usePageContainer,
+	usePlatformSpecificCtrl,
+	useProgressiveVisibleCount,
+	useRenderWhenVisible
+} from '@/shared/hooks';
 import { CardHeader, cn, toast } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -13,6 +18,7 @@ import { RunReportChart } from '../run-report-chart';
 import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report-args';
 import { WarningsHoverCard } from '../run-report-warnings';
+import { useDelegatedTableWheelScroll } from './run-report-test.hooks';
 
 const INITIAL_RECORDS_RENDER_COUNT = 10;
 const RECORDS_RENDER_CHUNK_SIZE = 10;
@@ -28,41 +34,13 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 	const { enableChartView, enableTableView, argsValBlocks, offsetTop } = props;
 	const [searchParams] = useSearchParams();
 	const [headerOffsetTop, setHeaderOffsetTop] = useState(0);
-	const [pageContainer, setPageContainer] = useState<HTMLElement | null>(null);
+	const pageContainer = usePageContainer();
 	const isPressed = usePlatformSpecificCtrl();
 
-	useEffect(() => {
-		setPageContainer(document.getElementById('page-container'));
-	}, []);
-
-	useEffect(() => {
-		if (!pageContainer) return;
-
-		function handleWheel(event: WheelEvent) {
-			if (isPressed) return;
-
-			const target = event.target;
-			if (!(target instanceof Element)) return;
-
-			const tableElement = target.closest(
-				'[data-run-report-table-scroll="true"]'
-			);
-			if (!tableElement) return;
-
-			pageContainer.scrollBy({
-				top: event.deltaY,
-				left: event.deltaX,
-				behavior: 'auto'
-			});
-			event.preventDefault();
-		}
-
-		pageContainer.addEventListener('wheel', handleWheel, { passive: false });
-
-		return () => {
-			pageContainer.removeEventListener('wheel', handleWheel);
-		};
-	}, [isPressed, pageContainer]);
+	useDelegatedTableWheelScroll({
+		pageContainer,
+		isModifierPressed: isPressed
+	});
 
 	const handleRef = useCallback((node: HTMLDivElement) => {
 		setHeaderOffsetTop(node?.clientHeight ?? 0);
@@ -194,34 +172,14 @@ interface MeasurementRecordListProps
 }
 
 function MeasurementRecordList(props: MeasurementRecordListProps) {
-	const {
-		records,
-		enableChartView,
-		enableTableView,
-		offset,
-		pageContainer
-	} = props;
-	const [visibleCount, setVisibleCount] = useState(() =>
-		Math.min(records.length, INITIAL_RECORDS_RENDER_COUNT)
-	);
-
-	useEffect(() => {
-		setVisibleCount(Math.min(records.length, INITIAL_RECORDS_RENDER_COUNT));
-	}, [records]);
-
-	useEffect(() => {
-		if (visibleCount >= records.length) return;
-
-		const timerId = window.setTimeout(() => {
-			setVisibleCount((current) =>
-				Math.min(current + RECORDS_RENDER_CHUNK_SIZE, records.length)
-			);
-		}, 16);
-
-		return () => {
-			window.clearTimeout(timerId);
-		};
-	}, [records.length, visibleCount]);
+	const { records, enableChartView, enableTableView, offset, pageContainer } =
+		props;
+	const visibleCount = useProgressiveVisibleCount({
+		totalCount: records.length,
+		initialCount: INITIAL_RECORDS_RENDER_COUNT,
+		chunkSize: RECORDS_RENDER_CHUNK_SIZE,
+		idleTimeoutMs: 180
+	});
 
 	const visibleRecords = useMemo(
 		() => records.slice(0, visibleCount),
@@ -235,7 +193,8 @@ function MeasurementRecordList(props: MeasurementRecordListProps) {
 					key={record.id}
 					className={cn(
 						'relative',
-						idx !== visibleRecords.length - 1 && 'border-b border-border-primary'
+						idx !== visibleRecords.length - 1 &&
+							'border-b border-border-primary'
 					)}
 					data-offset={offset}
 				>
@@ -269,18 +228,12 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 	const ref = useRef<HTMLDivElement>(null);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const { pageContainer } = props;
-
-	const blockVisibility = useIntersectionObserver(contentRef, {
+	const shouldRenderHeavyContent = useRenderWhenVisible(contentRef, {
 		root: pageContainer,
 		rootMargin: '600px 0px',
 		threshold: 0,
 		freezeOnceVisible: true
 	});
-
-	const supportsIntersectionObserver =
-		typeof window !== 'undefined' && 'IntersectionObserver' in window;
-	const shouldRenderHeavyContent =
-		!supportsIntersectionObserver || Boolean(blockVisibility?.isIntersecting);
 
 	return (
 		<div className="flex flex-col pl-1" ref={contentRef}>
@@ -337,9 +290,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 									className={cn(
 										'flex flex-col',
 										chart ? 'w-1/2' : 'w-full',
-										enableChartView &&
-											chart &&
-											'border-l border-border-primary'
+										enableChartView && chart && 'border-l border-border-primary'
 									)}
 								>
 									<div
