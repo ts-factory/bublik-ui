@@ -269,36 +269,7 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('parameters', {
-			header: () => (
-				<div className="flex items-center gap-2">
-					<span>Parameters</span>
-					<Tooltip content={showToolbar ? 'Hide toolbar' : 'Show toolbar'}>
-						<ButtonTw
-							variant={showToolbar ? 'primary' : 'secondary'}
-							size="xss"
-							onClick={() => setShowToolbar(!showToolbar)}
-							className={cn(
-								'border',
-								showToolbar
-									? 'border-primary hover:border-[#94b0ff]'
-									: 'border-border-primary hover:shadow-none hover:border-primary'
-							)}
-						>
-							<div
-								className={cn(
-									'flex items-center justify-center mr-1.5',
-									!showToolbar && 'rotate-180'
-								)}
-							>
-								<Icon name="ArrowLeanUp" size={18} />
-							</div>
-							<span className="w-[6ch] text-left">
-								{showToolbar ? 'Hide' : 'Expose'}
-							</span>
-						</ButtonTw>
-					</Tooltip>
-				</div>
-			),
+			header: 'Parameters',
 			id: COLUMN_ID.PARAMETERS,
 			cell: ({ cell, getValue }) => {
 				const parameters = getValue();
@@ -338,7 +309,27 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('requirements', {
-			header: 'Requirements',
+			header: () => (
+				<div className="flex items-center justify-between gap-2 w-full">
+					<span>Requirements</span>
+					<Tooltip content={showToolbar ? 'Hide filters' : 'Show filters'}>
+						<ButtonTw
+							variant={showToolbar ? 'primary' : 'secondary'}
+							size="xss"
+							onClick={() => setShowToolbar(!showToolbar)}
+							className={cn(
+								'border ml-auto',
+								showToolbar
+									? 'border-primary hover:border-[#94b0ff]'
+									: 'border-border-primary hover:shadow-none hover:border-primary'
+							)}
+						>
+							<Icon name="Filter" size={16} className="mr-1.5" />
+							<span>Filters</span>
+						</ButtonTw>
+					</Tooltip>
+				</div>
+			),
 			id: COLUMN_ID.REQUIREMENTS,
 			cell: (cell) => {
 				const requirements = cell.getValue() ?? [];
