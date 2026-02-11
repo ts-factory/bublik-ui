@@ -45,6 +45,8 @@ export const RunDetailsError = ({ error = {} }: RunDetailsErrorProps) => {
 	return <BublikErrorState error={error} iconSize={48} />;
 };
 
+const RUN_ID_LABEL = 'Run ID';
+
 export interface RunDetailsMainInfoProps {
 	isFullMode?: RunDetailsProps['isFullMode'];
 	runStartDate: string | null;
@@ -75,7 +77,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 	if (!isFullMode) {
 		return (
 			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
-				<DetailItem label="Id" value={runId} isCopyable />
+				<DetailItem label={RUN_ID_LABEL} value={runId} isCopyable />
 				<DetailItem label="Start" value={runStartDate} />
 				<DetailItem
 					label="Conclusion"
@@ -87,7 +89,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 
 	return (
 		<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
-			<DetailItem label="Id" value={runId} isCopyable />
+			<DetailItem label={RUN_ID_LABEL} value={runId} isCopyable />
 			<DetailItem label="Main package" value={mainPackage} />
 			<DetailItem label="Start" value={runStartDate} />
 			<DetailItem label="Finish" value={runFinishDate} />
