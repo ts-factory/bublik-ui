@@ -14,6 +14,12 @@ export const COLOR_MAP = new Map<string, string>([
 	['total', '#7283e2']
 ]);
 
+const getPassRate = (ok: number, total: number) => {
+	if (total === 0) return 0;
+
+	return Number(((ok / total) * 100).toFixed(2));
+};
+
 export const getPieChartDataForResults = (runStats: RunStats[]) => {
 	type ObjectKeysWithType<T, U> = {
 		[K in keyof T]: T[K] extends U ? K : never;
@@ -59,7 +65,7 @@ export const getGroupedByWeek = (stats: RunStats[]): TestGroupedByWeek[] => {
 			total: totalNumber,
 			ok: okNumber,
 			nok: nokNumber,
-			passrate: Number(((okNumber / totalNumber) * 100).toFixed(2)),
+			passrate: getPassRate(okNumber, totalNumber),
 			ids: stats.map((s) => s.runId).join(',')
 		};
 	});
@@ -80,7 +86,7 @@ export const getGroupedByDay = (stats: RunStats[]): TestGroupedByWeek[] => {
 			total: totalNumber,
 			ok: okNumber,
 			nok: nokNumber,
-			passrate: Number(((okNumber / totalNumber) * 100).toFixed(2)),
+			passrate: getPassRate(okNumber, totalNumber),
 			ids: stats.map((s) => s.runId).join(',')
 		};
 	});

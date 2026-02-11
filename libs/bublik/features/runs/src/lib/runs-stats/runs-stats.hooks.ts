@@ -23,6 +23,12 @@ export const useRunsStats = () => {
 
 	const finalQuery = useGetRunsTablePageQuery(calculatedQuery);
 
+	const getPassRate = (ok: number, total: number) => {
+		if (total === 0) return 0;
+
+		return Number(((ok / total) * 100).toFixed(2));
+	};
+
 	const data = useMemo(() => {
 		if (!finalQuery.data) return undefined;
 
@@ -36,9 +42,7 @@ export const useRunsStats = () => {
 				ok: stats.tests_total_ok,
 				okPercent: stats.tests_total_ok_percent,
 				planPercent: stats.tests_total_plan_percent,
-				passrate: Number(
-					((stats.tests_total_ok / stats.tests_total) * 100).toFixed(2)
-				),
+				passrate: getPassRate(stats.tests_total_ok, stats.tests_total),
 				date: new Date(start)
 			};
 		});
