@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
@@ -191,7 +191,6 @@ interface RunReportProps {
 function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
 	const location = useLocation();
-	const [showDeferredSections, setShowDeferredSections] = useState(false);
 
 	const testBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'test-block'),
@@ -209,16 +208,6 @@ function RunReport(props: RunReportProps) {
 		}, 0);
 	});
 
-	useEffect(() => {
-		const timerId = window.setTimeout(() => {
-			setShowDeferredSections(true);
-		}, 0);
-
-		return () => {
-			window.clearTimeout(timerId);
-		};
-	}, []);
-
 	return (
 		<div className="flex flex-col gap-1 relative">
 			<RunReportHeader label="Info" details={details} runId={runId} />
@@ -226,13 +215,9 @@ function RunReport(props: RunReportProps) {
 				warnings={blocks.warnings}
 				config={blocks.config}
 			/>
+			<RunReportTableOfContents contents={tableOfContents} />
 			<RunReportContentList blocks={testBlocks} />
-			{showDeferredSections ? (
-				<RunReportTableOfContents contents={tableOfContents} />
-			) : null}
-			{showDeferredSections ? (
-				<NotProcessedPointsTable points={blocks.unprocessed_iters} />
-			) : null}
+			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
 		</div>
 	);
 }
