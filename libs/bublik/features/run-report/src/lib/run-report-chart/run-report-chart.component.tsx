@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
@@ -34,7 +34,7 @@ function RunReportChart(props: RunReportChartProps) {
 
 	useEffect(() => {
 		const instance = chartRef.current?.getEchartsInstance();
-		if (!instance) return;
+		if (!instance || instance.isDisposed()) return;
 
 		function handleClick(rawParams: unknown) {
 			const paramsResult = ParamsSchema.safeParse(rawParams);
@@ -59,13 +59,19 @@ function RunReportChart(props: RunReportChartProps) {
 
 		instance.on('click', handleClick);
 		return () => {
+			if (instance.isDisposed()) return;
+
 			instance.off('click', handleClick);
 		};
 	}, [chart.data]);
 
 	useEffect(() => {
 		function handleResize() {
-			chartRef.current?.getEchartsInstance().resize();
+			const instance = chartRef.current?.getEchartsInstance();
+
+			if (!instance || instance.isDisposed()) return;
+
+			instance.resize();
 		}
 
 		window.addEventListener('resize', handleResize);
@@ -91,13 +97,17 @@ function RunReportChart(props: RunReportChartProps) {
 		idx
 	});
 
-	const options = resolveRunReportChartOptions({
-		chart,
-		state,
-		isCtrlPressed,
-		isFullScreen,
-		idx
-	});
+	const options = useMemo(
+		() =>
+			resolveRunReportChartOptions({
+				chart,
+				state,
+				isCtrlPressed,
+				isFullScreen,
+				idx
+			}),
+		[chart, idx, isCtrlPressed, isFullScreen, state]
+	);
 
 	return (
 		<>
@@ -109,9 +119,11 @@ function RunReportChart(props: RunReportChartProps) {
 				onOpenChange={setOpen}
 			/>
 			<DrawerRoot open={state.isFullScreen} onOpenChange={toggleFullScreen}>
-				<DrawerContent className="w-[75vw] p-4">
-					<RunReportChart chart={chart} isFullScreen={true} idx={idx} />
-				</DrawerContent>
+				{state.isFullScreen ? (
+					<DrawerContent className="w-[75vw] p-4">
+						<RunReportChart chart={chart} isFullScreen={true} idx={idx} />
+					</DrawerContent>
+				) : null}
 			</DrawerRoot>
 			<div className="w-full flex flex-col gap-2 h-full pb-2">
 				<div className="pr-12">
@@ -125,6 +137,7 @@ function RunReportChart(props: RunReportChartProps) {
 						changeMode={changeMode}
 						toggleFullScreen={toggleFullScreen}
 						isFullScreen={isFullScreen}
+						disableTooltips={true}
 						additionalToolBarItems={stackedButton}
 					/>
 				</div>

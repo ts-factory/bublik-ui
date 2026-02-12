@@ -196,6 +196,10 @@ function RunReport(props: RunReportProps) {
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
 	);
+	const tableOfContents = useMemo(
+		() => generateTableOfContents(blocks),
+		[blocks]
+	);
 
 	useMount(() => {
 		setTimeout(() => {
@@ -211,7 +215,7 @@ function RunReport(props: RunReportProps) {
 				warnings={blocks.warnings}
 				config={blocks.config}
 			/>
-			<RunReportTableOfContents contents={generateTableOfContents(blocks)} />
+			<RunReportTableOfContents contents={tableOfContents} />
 			<RunReportContentList blocks={testBlocks} />
 			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
 		</div>

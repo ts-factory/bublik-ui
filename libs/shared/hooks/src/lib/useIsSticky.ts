@@ -4,6 +4,7 @@ import { RefObject, useEffect, useState } from 'react';
 
 export interface UseIsStickyOptions {
 	offset?: number;
+	enabled?: boolean;
 }
 
 export const useIsSticky = (
@@ -13,6 +14,11 @@ export const useIsSticky = (
 	const [isSticky, setIsSticky] = useState(false);
 
 	useEffect(() => {
+		if (options.enabled === false) {
+			setIsSticky(false);
+			return;
+		}
+
 		const offset = options.offset ?? -1;
 		const el = ref.current;
 
@@ -34,7 +40,7 @@ export const useIsSticky = (
 
 		observer.observe(el);
 		return () => observer.unobserve(el);
-	}, [ref, options.offset]);
+	}, [ref, options.enabled, options.offset]);
 
 	return { isSticky };
 };

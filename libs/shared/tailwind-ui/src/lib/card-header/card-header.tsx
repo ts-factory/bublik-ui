@@ -22,7 +22,9 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 	(props, ref) => {
 		const { label, className, enableStickyShadow, children } = props;
 		const headerRef = useRef<HTMLDivElement>(null);
-		const { isSticky } = useIsSticky(headerRef);
+		const { isSticky } = useIsSticky(headerRef, {
+			enabled: Boolean(enableStickyShadow)
+		});
 
 		return (
 			<div
