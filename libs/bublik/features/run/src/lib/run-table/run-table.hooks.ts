@@ -85,7 +85,7 @@ function useColumnVisibility() {
 		const newState =
 			typeof state === 'function' ? state(columnVisibility) : state;
 
-		setQueryColumnVisibility(newState, 'replace');
+		setQueryColumnVisibility(newState, 'replaceIn');
 		setLocalColumnVisibility(newState);
 	};
 
