@@ -247,10 +247,6 @@ const router = createBrowserRouter(
 							)
 						},
 						{
-							path: '/runs',
-							element: <RunsPage />
-						},
-						{
 							element: <RunsLayout />,
 							children: [
 								{ path: '/runs', element: <RunsPage /> },
