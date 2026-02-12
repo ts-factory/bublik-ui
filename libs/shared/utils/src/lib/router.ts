@@ -202,19 +202,16 @@ function getHistorySearch(
 
 	const testName = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndVerdicts = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
 		.withVerdicts(result.obtained_result.verdicts)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndParameters = new HistorySearchBuilder(testNameOrPath)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(
@@ -223,7 +220,6 @@ function getHistorySearch(
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withVerdicts(result.obtained_result.verdicts)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndParametersAndImportantTags = new HistorySearchBuilder(
@@ -232,7 +228,6 @@ function getHistorySearch(
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withTags(important_tags)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	const testNameAndParametersAndAllTags = new HistorySearchBuilder(
@@ -240,7 +235,6 @@ function getHistorySearch(
 	)
 		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
-		.withResultPropertiesBasedOnError(result.has_error)
 		.withTags(relevant_tags)
 		.withTags(important_tags)
 		.build();
