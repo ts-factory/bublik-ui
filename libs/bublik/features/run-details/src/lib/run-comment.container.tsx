@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +16,6 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { de } from 'date-fns/locale';
 
 const RunCommentFormSchema = z.object({
 	comment: z.string()
@@ -28,6 +28,7 @@ interface RunCommentFormContainerProps {
 
 function RunCommentFormContainer(props: RunCommentFormContainerProps) {
 	const { runId, defaultValues } = props;
+	const [isOpen, setIsOpen] = useState(false);
 	const form = useForm({
 		defaultValues: defaultValues,
 		resolver: zodResolver(RunCommentFormSchema)
@@ -37,10 +38,8 @@ function RunCommentFormContainer(props: RunCommentFormContainerProps) {
 	const [deleteRunComment] = bublikAPI.useDeleteRunCommentMutation();
 
 	async function onSubmit(data: z.infer<typeof RunCommentFormSchema>) {
-		let promise: Promise<unknown>;
-
 		if (data.comment === '') {
-			promise = deleteRunComment({ runId });
+			const promise = deleteRunComment({ runId }).unwrap();
 
 			toast.promise(promise, {
 				loading: 'Deleting comment...',
@@ -49,26 +48,29 @@ function RunCommentFormContainer(props: RunCommentFormContainerProps) {
 			});
 
 			await promise;
+			setIsOpen(false);
 			return;
 		}
 
-		if (defaultValues.comment === '') {
-			promise = createRunComment({ runId, comment: data.comment });
-		} else {
-			promise = updateRunComment({ runId, comment: data.comment });
-		}
+		const isCreate = defaultValues.comment === '';
+		const promise = isCreate
+			? createRunComment({ runId, comment: data.comment }).unwrap()
+			: updateRunComment({ runId, comment: data.comment }).unwrap();
 
 		toast.promise(promise, {
-			loading: 'Updating comment...',
-			success: 'Comment updated successfully',
-			error: 'Failed to update comment'
+			loading: isCreate ? 'Creating comment...' : 'Updating comment...',
+			success: isCreate
+				? 'Comment created successfully'
+				: 'Comment updated successfully',
+			error: isCreate ? 'Failed to create comment' : 'Failed to update comment'
 		});
 
 		await promise;
+		setIsOpen(false);
 	}
 
 	return (
-		<Popover>
+		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<div className="flex items-center gap-2">
 				<span className="text-text-menu text-[0.6875rem] font-medium leading-[0.875rem] mr-20">
 					Comment
