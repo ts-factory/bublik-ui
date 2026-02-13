@@ -1,7 +1,7 @@
 {
-	"date": "2026.02.10",
-	"summary": "perf: improve initial loading for application",
-	"revision": "bfdc78fc",
-	"branch": "release-2.9.0",
-	"latestTag": "v2.9.0"
+	"date": "2026.02.13",
+	"summary": "fix(result): crash caused by incorrect import from react-router",
+	"revision": "a9ce75c2",
+	"branch": "release-2.9.1",
+	"latestTag": "v2.9.1"
 }

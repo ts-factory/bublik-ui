@@ -1,5 +1,12 @@
 
 
+### [2.9.1](https://github.com/ts-factory/bublik-ui/compare/v2.9.0...v2.9.1) (2026-02-13)
+
+
+### 🐛 Bug Fix
+
+* **result:** crash caused by incorrect import from react-router ([a9ce75c](https://github.com/ts-factory/bublik-ui/commit/a9ce75c20836134db1af29b765f33dcee609f4b5))
+
 ## [2.9.0](https://github.com/ts-factory/bublik-ui/compare/v2.8.0...v2.9.0) (2026-02-10)
 
 
