@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { getColorByIdx, SelectedChartsPopover } from '@/shared/charts';
