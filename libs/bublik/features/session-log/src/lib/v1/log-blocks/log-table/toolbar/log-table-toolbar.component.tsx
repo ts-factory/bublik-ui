@@ -7,7 +7,7 @@ import {
 	useRef,
 	useState
 } from 'react';
-import { Table } from '@tanstack/react-table';
+import { ExpandedState, Table } from '@tanstack/react-table';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 
 import { LogTableData } from '@/shared/types';
@@ -28,7 +28,8 @@ import {
 	useToolbarPosition,
 	useTableDepth,
 	useFilterHandlers,
-	ERROR_LEVEL_NAME
+	ERROR_LEVEL_NAME,
+	expandRowsToErrorDepth
 } from './log-table-toolbar.hooks';
 import { ColumnToggle } from './column-toggle';
 import { FloatingExpandButton } from './expand-button';
@@ -166,6 +167,7 @@ interface ToggleGroupFilterProps {
 
 function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 	const { table, scenario = [], test = [], filters = [], levels = [] } = props;
+	const expandedStateBeforeErrorRef = useRef<ExpandedState | null>(null);
 
 	const state = table.getState().globalFilter as LogTableFilterValue;
 
@@ -201,6 +203,17 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 	const handleToggle = (type: FilterType, filters: string[]) => {
 		if (!type) return;
 
+		const clearExpandedStateSnapshot = () => {
+			expandedStateBeforeErrorRef.current = null;
+		};
+
+		const restoreExpandedState = () => {
+			if (expandedStateBeforeErrorRef.current === null) return;
+
+			table.setExpanded(expandedStateBeforeErrorRef.current);
+			clearExpandedStateSnapshot();
+		};
+
 		const typeToFilter: Record<string, string[]> = {
 			scenario: scenario ?? [],
 			test: test ?? [],
@@ -208,12 +221,31 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 		};
 
 		if (type === 'error') {
+			const isErrorModeEnabled = !isErrorActive;
+
+			if (isErrorModeEnabled) {
+				expandedStateBeforeErrorRef.current = table.getState().expanded;
+			}
+
 			table.setGlobalFilter((prev: LogTableFilterValue) => ({
 				...prev,
 				filters: typeToFilter['all'],
-				levels: isErrorActive ? levels : [ERROR_LEVEL_NAME]
+				levels: isErrorModeEnabled ? [ERROR_LEVEL_NAME] : levels
 			}));
+
+			if (isErrorModeEnabled) {
+				expandRowsToErrorDepth(table);
+			} else {
+				restoreExpandedState();
+			}
+
 			return;
+		}
+
+		if (isErrorActive) {
+			restoreExpandedState();
+		} else {
+			clearExpandedStateSnapshot();
 		}
 
 		table.setGlobalFilter(() => ({

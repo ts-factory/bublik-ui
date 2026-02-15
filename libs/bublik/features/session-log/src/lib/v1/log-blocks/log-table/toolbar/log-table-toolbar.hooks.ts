@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Table } from '@tanstack/react-table';
+import { ExpandedState, Row, Table } from '@tanstack/react-table';
 import { useMeasure } from 'react-use';
 import { UseMeasureRef } from 'react-use/lib/useMeasure';
 import { CSSProperties, useMemo, useState } from 'react';
@@ -11,6 +11,45 @@ import { cn } from '@/shared/tailwind-ui';
 import { LogTableFilterValue } from '../log-table.types';
 
 export const ERROR_LEVEL_NAME = 'ERROR';
+
+export function getExpandedStateForErrorRows(
+	flatRows: Row<LogTableData>[],
+	currentExpanded: ExpandedState
+): ExpandedState {
+	if (currentExpanded === true) return currentExpanded;
+
+	const nextExpanded: Record<string, boolean> = {
+		...(typeof currentExpanded === 'object' && currentExpanded
+			? currentExpanded
+			: {})
+	};
+
+	let isUpdated = false;
+
+	flatRows.forEach((row) => {
+		if (row.original.level !== ERROR_LEVEL_NAME) return;
+
+		row.getParentRows().forEach((parentRow) => {
+			if (nextExpanded[parentRow.id]) return;
+
+			nextExpanded[parentRow.id] = true;
+			isUpdated = true;
+		});
+	});
+
+	return isUpdated ? nextExpanded : currentExpanded;
+}
+
+export function expandRowsToErrorDepth(table: Table<LogTableData>) {
+	const expandedState = getExpandedStateForErrorRows(
+		table.getCoreRowModel().flatRows,
+		table.getState().expanded
+	);
+
+	if (expandedState !== table.getState().expanded) {
+		table.setExpanded(expandedState);
+	}
+}
 
 export function useTableDepth(table: Table<LogTableData>) {
 	const maximumDepth = useMemo(
