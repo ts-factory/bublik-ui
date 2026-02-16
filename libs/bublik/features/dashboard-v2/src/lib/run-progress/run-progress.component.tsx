@@ -33,14 +33,14 @@ export const RunProgress = (props: RunProgressProps) => {
 
 	if (data) {
 		return (
-			<ul className="relative flex items-center justify-center gap-1 flex-wrap">
+			<ul className="relative flex w-full min-w-0 flex-nowrap items-center gap-1 overflow-hidden">
 				{getStatusAndBasis(data).map(({ status, basis }, idx) => (
 					<li
 						key={idx}
 						className={`relative rounded-[10px] h-2 overflow-hidden opacity-70 ${
 							status === 'ok' ? 'bg-bg-ok' : 'bg-bg-error'
 						}`}
-						style={{ flexBasis: `${basis}%` }}
+						style={{ flexBasis: 0, flexGrow: basis }}
 					/>
 				))}
 			</ul>
