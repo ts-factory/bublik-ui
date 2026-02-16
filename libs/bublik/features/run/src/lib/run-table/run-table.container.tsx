@@ -109,6 +109,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				data={data ?? []}
 				openUnexpected={locationState?.openUnexpected}
 				openUnexpectedResults={locationState?.openUnexpectedResults}
+				openUnexpectedIntentId={locationState?.openUnexpectedIntentId}
 				expanded={expanded}
 				globalFilter={globalFilter}
 				onExpandedChange={setExpanded}
