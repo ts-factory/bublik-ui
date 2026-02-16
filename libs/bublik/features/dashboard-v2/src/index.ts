@@ -12,3 +12,4 @@ export * from './lib/tv-mode';
 export * from './lib/run-progress';
 export * from './lib/utils';
 export * from './lib/hooks';
+export * from './lib/sidebar';
