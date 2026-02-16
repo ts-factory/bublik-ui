@@ -248,6 +248,9 @@ importers:
       xlsx:
         specifier: https://cdn.sheetjs.com/xlsx-0.18.9/xlsx-0.18.9.tgz
         version: https://cdn.sheetjs.com/xlsx-0.18.9/xlsx-0.18.9.tgz
+      zipson:
+        specifier: ^0.2.12
+        version: 0.2.12
       zod:
         specifier: ^3.24.3
         version: 3.24.3
@@ -12836,6 +12839,9 @@ packages:
   yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+
+  zipson@0.2.12:
+    resolution: {integrity: sha512-+u+fyZQXJUJDTf4NGCChW+LoWGqCrhwHAfvtCtcmE0e40KmQt4YSP4l3TOay1WjRNv+VfODgBD/vNwaSSGnDwA==}
 
   zod-to-json-schema@3.24.5:
     resolution: {integrity: sha512-/AuWwMP+YqiPbsJx5D6TfgRTc4kTLjsh5SOcd4bLsfUg2RcEXrFMJl1DGgdHy2aCfsIA/cr/1JM0xcB2GZji8g==}
@@ -28275,6 +28281,8 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.0.0: {}
+
+  zipson@0.2.12: {}
 
   zod-to-json-schema@3.24.5(zod@3.24.3):
     dependencies:
