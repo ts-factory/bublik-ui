@@ -80,10 +80,7 @@ export interface DashboardTableProps {
 	rows?: DashboardAPIResponse['rows'];
 	context: Record<string, string>;
 	onDateChange?: (newDate: Date) => void;
-	renderSubrow?: (
-		row: Row<DashboardData>,
-		context: DashboardAPIResponse['payload']
-	) => ReactNode;
+	renderSubrow?: (row: Row<DashboardData>) => ReactNode;
 	layout?: DashboardLayoutType;
 	isFetching?: boolean;
 	globalFilter?: string;
@@ -109,8 +106,8 @@ export const DashboardTable = (props: DashboardTableProps) => {
 		state: { globalFilter, expanded },
 		data: useMemo(() => rows, [rows]),
 		columns: useMemo(
-			() => createColumns(headers, rows, date),
-			[date, headers, rows]
+			() => createColumns(headers, rows, date, context),
+			[context, date, headers, rows]
 		),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
@@ -128,7 +125,6 @@ export const DashboardTable = (props: DashboardTableProps) => {
 				layout={layout}
 				isFetching={isFetching}
 				renderSubrow={renderSubrow}
-				context={context}
 			/>
 		)
 	};
@@ -255,17 +251,10 @@ interface TableLayoutProps {
 	layout?: DashboardLayoutType;
 	isFetching?: boolean;
 	renderSubrow: DashboardTableProps['renderSubrow'];
-	context: DashboardTableProps['context'];
 }
 
 const TableBody = (props: TableLayoutProps) => {
-	const {
-		table,
-		layout = 'row',
-		isFetching = false,
-		renderSubrow,
-		context
-	} = props;
+	const { table, layout = 'row', isFetching = false, renderSubrow } = props;
 
 	const rows = table.getRowModel().rows;
 	const [first, second] = splitInHalf(rows);
@@ -316,7 +305,7 @@ const TableBody = (props: TableLayoutProps) => {
 							>
 								{row.getVisibleCells().map(renderCells)}
 							</div>
-							{row.getIsExpanded() ? renderSubrow?.(row, context) : null}
+							{row.getIsExpanded() ? renderSubrow?.(row) : null}
 						</div>
 					);
 				})}
@@ -350,7 +339,7 @@ const TableBody = (props: TableLayoutProps) => {
 							>
 								{left.getVisibleCells().map(renderCells)}
 							</div>
-							{left.getIsExpanded() ? renderSubrow?.(left, context) : null}
+							{left.getIsExpanded() ? renderSubrow?.(left) : null}
 						</div>
 					);
 				})}
@@ -374,7 +363,7 @@ const TableBody = (props: TableLayoutProps) => {
 							>
 								{right.getVisibleCells().map(renderCells)}
 							</div>
-							{right.getIsExpanded() ? renderSubrow?.(right, context) : null}
+							{right.getIsExpanded() ? renderSubrow?.(right) : null}
 						</div>
 					);
 				})}

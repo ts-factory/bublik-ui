@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { DashboardCellArray } from '@/shared/types';
-import { Tooltip } from '@/shared/tailwind-ui';
+
+import { CellText } from './cell-text.component';
 
 export interface CellArrayProps {
 	data: DashboardCellArray[];
@@ -13,9 +14,5 @@ export const CellList = ({ data }: CellArrayProps) => {
 		.filter(Boolean)
 		.join(', ');
 
-	return (
-		<Tooltip content={string}>
-			<span className="truncate">{string}</span>
-		</Tooltip>
-	);
+	return <CellText value={string} />;
 };

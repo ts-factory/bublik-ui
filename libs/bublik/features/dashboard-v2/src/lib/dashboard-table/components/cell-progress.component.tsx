@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { forwardRef, SVGProps } from 'react';
+
 import { Tooltip } from '@/shared/tailwind-ui';
 
 const Arrow = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
@@ -33,7 +34,7 @@ export const CellProgress = (props: CellProgressProps) => {
 
 	return (
 		<Tooltip content={formatted}>
-			<div className="flex items-center flex-1 gap-1.5">
+			<div className="flex min-w-0 items-center gap-1.5">
 				{props.progress === 100 ? null : (
 					<div className="text-primary bg-bg-running/20 p-1 rounded-full">
 						<Arrow width={8} height={8} />

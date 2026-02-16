@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useNavigate } from 'react-router-dom';
+import { ReactElement } from 'react';
 import { z } from 'zod';
 
 import { DashboardCellData } from '@/shared/types';
@@ -26,17 +26,20 @@ export interface CellLinkProps {
 	cellKey: string;
 	data: DashboardCellData;
 	bgColor?: string;
+	hint?: string;
 }
 
-export const CellLink = ({
+export function CellLink({
 	data,
 	bgColor = 'bg-badge-0',
-	cellKey
-}: CellLinkProps) => {
+	cellKey,
+	hint
+}: CellLinkProps) {
 	const cellString = data.value ?? '';
+	const destination = getDestinationHint(hint);
 
 	if (!data.payload?.url) {
-		return <span className={cn(linkStyles, bgColor)}>{cellString}</span>;
+		return <span className={cn(linkStyles(), bgColor)}>{cellString}</span>;
 	}
 
 	const isAbsoluteUrl = z.string().url().safeParse(data.payload.url).success;
@@ -50,6 +53,7 @@ export const CellLink = ({
 				cellString={cellString}
 				url={data.payload.url}
 				bgColor={bgColor}
+				destination={destination}
 			/>
 		);
 	}
@@ -58,33 +62,42 @@ export const CellLink = ({
 
 	// 2. Link to run with unexpected open on CTRL click
 	if (isLinkToRun) {
-		return <LinkToRun to={to} cellString={cellString} bgColor={bgColor} />;
+		return (
+			<LinkToRun
+				to={to}
+				cellString={cellString}
+				bgColor={bgColor}
+				destination={destination}
+			/>
+		);
 	}
 
 	// 3. Relative URL
 	return (
-		<Tooltip content={cellString}>
+		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				to={getUrl(data.payload.url, data.payload?.params)}
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
 			</LinkWithProject>
-		</Tooltip>
+		</LinkHintCard>
 	);
-};
+}
 
 interface LinkToRunProps {
 	cellString: string | number;
 	to: string;
 	bgColor?: string;
+	destination?: string;
 }
 
-const LinkToRun = ({ cellString, to, bgColor }: LinkToRunProps) => {
+function LinkToRun(props: LinkToRunProps) {
+	const { cellString, to, bgColor, destination } = props;
 	const navigate = useNavigateWithProject();
 
 	return (
-		<Tooltip content={cellString}>
+		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				to={to}
 				state={{ openUnexpected: true }}
@@ -108,18 +121,22 @@ const LinkToRun = ({ cellString, to, bgColor }: LinkToRunProps) => {
 			>
 				{cellString}
 			</LinkWithProject>
-		</Tooltip>
+		</LinkHintCard>
 	);
-};
+}
+
 interface AbsoluteLinkProps {
 	cellString: string | number;
 	url: string;
 	bgColor?: string;
+	destination?: string;
 }
 
-const AbsoluteLink = ({ cellString, bgColor, url }: AbsoluteLinkProps) => {
+function AbsoluteLink(props: AbsoluteLinkProps) {
+	const { cellString, bgColor, url, destination } = props;
+
 	return (
-		<Tooltip content={cellString}>
+		<LinkHintCard destination={destination}>
 			<a
 				rel="noopener noreferrer"
 				href={url}
@@ -128,6 +145,25 @@ const AbsoluteLink = ({ cellString, bgColor, url }: AbsoluteLinkProps) => {
 			>
 				{cellString}
 			</a>
+		</LinkHintCard>
+	);
+}
+
+interface LinkHintCardProps {
+	destination?: string;
+	children: ReactElement;
+}
+
+function LinkHintCard({ destination, children }: LinkHintCardProps) {
+	return (
+		<Tooltip content={destination ?? ''} disabled={!destination}>
+			{children}
 		</Tooltip>
 	);
-};
+}
+
+function getDestinationHint(hint: string | undefined) {
+	if (!hint) return undefined;
+
+	return hint.trim();
+}

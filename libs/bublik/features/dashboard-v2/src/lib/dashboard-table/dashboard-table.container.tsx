@@ -3,6 +3,7 @@
 import { useGetDashboardByDateQuery } from '@/services/bublik-api';
 import { DASHBOARD_MODE, DashboardMode } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import {
 	DashboardTable,
@@ -17,7 +18,6 @@ import {
 	usePrefetchNextAndPreviousDay
 } from '../hooks';
 import { renderSubrow } from '../subrow';
-import { useProjectSearch } from '@/bublik/features/projects';
 
 const modeToLayout = new Map<DASHBOARD_MODE | DashboardMode, 'row' | 'column'>([
 	[DASHBOARD_MODE.Rows, 'row'],

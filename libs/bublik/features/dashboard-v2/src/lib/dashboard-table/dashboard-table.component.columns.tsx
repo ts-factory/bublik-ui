@@ -4,9 +4,14 @@ import { CSSProperties } from 'react';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 
 import { DashboardAPIResponse, DashboardData } from '@/shared/types';
-import { Tooltip } from '@/shared/tailwind-ui';
 
-import { CellList, CellLink, RunIcon, CellProgress } from './components';
+import {
+	CellList,
+	CellLink,
+	RunIcon,
+	CellProgress,
+	CellText
+} from './components';
 import {
 	createColorMap,
 	getColumnWidth
@@ -25,7 +30,8 @@ declare module '@tanstack/react-table' {
 export const createColumns = (
 	headers: DashboardAPIResponse['header'],
 	rows: DashboardAPIResponse['rows'],
-	date: Date
+	date: Date,
+	payload: DashboardAPIResponse['payload']
 ): ColumnDef<DashboardData>[] => {
 	const map = createColorMap(rows);
 
@@ -74,17 +80,14 @@ export const createColumns = (
 							data={cell}
 							cellKey={key}
 							bgColor={map.getColorByKey(key)}
+							hint={payload[key]}
 						/>
 					);
 				}
 
 				if (!value) return null;
 
-				return (
-					<Tooltip content={value}>
-						<span className="truncate">{value}</span>
-					</Tooltip>
-				);
+				return <CellText value={value} />;
 			},
 			meta: { style }
 		};
