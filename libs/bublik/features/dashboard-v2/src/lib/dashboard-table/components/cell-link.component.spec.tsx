@@ -141,13 +141,25 @@ describe('<CellLink />', () => {
 		const link = screen.getByRole('link', { name: '31' });
 
 		await user.click(link);
-		expect(navigateWithProjectMock).toHaveBeenCalledWith('/runs/42', {
-			state: { openUnexpected: true }
-		});
+		expect(navigateWithProjectMock).toHaveBeenCalledWith(
+			'/runs/42',
+			expect.objectContaining({
+				state: expect.objectContaining({
+					openUnexpected: true,
+					openUnexpectedIntentId: expect.any(String)
+				})
+			})
+		);
 
 		fireEvent.click(link, { ctrlKey: true });
-		expect(navigateWithProjectMock).toHaveBeenCalledWith('/runs/42', {
-			state: { openUnexpectedResults: true }
-		});
+		expect(navigateWithProjectMock).toHaveBeenCalledWith(
+			'/runs/42',
+			expect.objectContaining({
+				state: expect.objectContaining({
+					openUnexpectedResults: true,
+					openUnexpectedIntentId: expect.any(String)
+				})
+			})
+		);
 	});
 });
