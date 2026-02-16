@@ -75,9 +75,9 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 					<Controller
 						render={({ field }) => (
 							<TagsBoxInput
-								label="Tags"
-								valueLabel="Tag"
-								placeholder="Tags"
+								label="Metas"
+								valueLabel="Meta"
+								placeholder="Metas"
 								startIcon={
 									<Icon
 										name="Filter"
