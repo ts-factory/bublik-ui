@@ -5,7 +5,10 @@ import { useSearchParams } from 'react-router-dom';
 
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw } from '@/shared/tailwind-ui';
-import { PROJECT_KEY } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 import {
 	DEFAULT_SEARCH_FORM_STATE,
@@ -17,8 +20,9 @@ import { historySearchStateToQuery } from '../slice/history-slice.utils';
 export const HistoryResetGlobalFilterContainer = () => {
 	const actions = useHistoryActions();
 	const form = useSelector(selectSearchState);
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 	const dispatch = useDispatch();
+	const navigateWithProject = useNavigateWithProject();
 
 	const handleResetClick = () => {
 		actions.resetGlobalFilter();
@@ -41,7 +45,12 @@ export const HistoryResetGlobalFilterContainer = () => {
 			nextSearchParams.append(PROJECT_KEY, value);
 		}
 
-		setSearchParams(nextSearchParams, { replace: true });
+		// Use navigateWithProject to properly preserve sidebar params
+		const searchString = nextSearchParams.toString();
+		navigateWithProject(
+			{ pathname: '/history', search: searchString ? `?${searchString}` : '' },
+			{ replace: true }
+		);
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 	};
 
