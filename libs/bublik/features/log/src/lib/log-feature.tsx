@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useRef } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { useLocation } from 'react-router-dom';
 
 import { formatTimeToDot } from '@/shared/utils';
 import {
@@ -30,6 +31,8 @@ import {
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
+import { useLogSidebarState } from './sidebar';
+import { LogSidebarMode } from '@/bublik/features/sidebar';
 
 function useLogTitle() {
 	const { runId, focusId } = useLogPage();
@@ -59,7 +62,17 @@ function LogFeature(props: LogFeatureProps) {
 
 	const { runId, children, isTreeShown } = props;
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
-	const { focusId, page } = useLogPage();
+	const { focusId, page, mode } = useLogPage();
+	const location = useLocation();
+	const { setLastVisited } = useLogSidebarState();
+
+	useEffect(() => {
+		if (runId) {
+			const logMode: LogSidebarMode = (mode ||
+				'treeAndinfoAndlog') as LogSidebarMode;
+			setLastVisited(logMode, location.pathname + location.search, runId);
+		}
+	}, [runId, mode, location.pathname, location.search, setLastVisited]);
 
 	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
 		selectFromResult: (state) => ({
