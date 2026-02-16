@@ -11,7 +11,10 @@ import {
 
 import { bublikAPI } from '@/services/bublik-api';
 import { PROJECT_KEY } from '../constants';
-import { mergeParamsWithSidebarState } from '../lib/sidebar-params.utils';
+import {
+	mergeParamsWithSidebarState,
+	mergeStringUrlWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -43,16 +46,19 @@ function useNavigateWithProject() {
 	const location = useLocation();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
-		const targetSearchStr =
-			typeof to === 'string'
-				? to.includes('?')
-					? to.split('?')[1]
-					: ''
-				: to.search || '';
-
-		const targetParams = new URLSearchParams(targetSearchStr);
-
 		const freshSearchParams = new URLSearchParams(location.search);
+
+		if (typeof to === 'string') {
+			const finalTo = mergeStringUrlWithSidebarState(
+				to,
+				freshSearchParams,
+				projectIds
+			);
+			_navigate(finalTo, options);
+			return;
+		}
+
+		const targetParams = new URLSearchParams(to.search || '');
 
 		const mergedParams = mergeParamsWithSidebarState(
 			targetParams,
@@ -60,21 +66,14 @@ function useNavigateWithProject() {
 			projectIds
 		);
 
-		if (typeof to === 'string') {
-			const pathname = to.includes('?') ? to.split('?')[0] : to;
-			const mergedSearch = mergedParams.toString();
-			const finalTo = mergedSearch ? `${pathname}?${mergedSearch}` : pathname;
-			_navigate(finalTo, options);
-		} else {
-			_navigate(
-				{
-					pathname: to.pathname,
-					search: mergedParams.toString(),
-					hash: to.hash
-				},
-				options
-			);
-		}
+		_navigate(
+			{
+				pathname: to.pathname,
+				search: mergedParams.toString(),
+				hash: to.hash
+			},
+			options
+		);
 	};
 
 	return navigate;

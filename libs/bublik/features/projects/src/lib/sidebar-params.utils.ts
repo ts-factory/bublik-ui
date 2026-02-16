@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { createPath, parsePath } from 'react-router-dom';
+
 import { SIDEBAR_PREFIX } from '@/shared/types';
 
 import { PROJECT_KEY } from '../constants';
@@ -36,4 +38,26 @@ export function mergeParamsWithSidebarState(
 	projectIds.forEach((id) => result.append(PROJECT_KEY, id.toString()));
 
 	return result;
+}
+
+export function mergeStringUrlWithSidebarState(
+	to: string,
+	currentSearchParams: URLSearchParams,
+	projectIds: number[]
+): string {
+	const parsed = parsePath(to);
+	const targetParams = new URLSearchParams(parsed.search || '');
+	const mergedParams = mergeParamsWithSidebarState(
+		targetParams,
+		currentSearchParams,
+		projectIds
+	);
+
+	const mergedSearch = mergedParams.toString();
+
+	return createPath({
+		pathname: parsed.pathname ?? '',
+		search: mergedSearch ? `?${mergedSearch}` : '',
+		hash: parsed.hash
+	});
 }

@@ -3,6 +3,38 @@
 
 import { SIDEBAR_PREFIX } from '@/shared/types';
 
+export function parseModeParam<T extends string>(
+	searchParams: URLSearchParams,
+	key: string,
+	allowedModes: readonly T[]
+): T | null {
+	const mode = searchParams.get(key);
+	if (!mode) {
+		return null;
+	}
+
+	return allowedModes.includes(mode as T) ? (mode as T) : null;
+}
+
+export function setEncodedUrlParam(
+	searchParams: URLSearchParams,
+	key: string,
+	rawUrl: string
+): void {
+	const cleanedUrl = stripSidebarParamsFromUrl(rawUrl);
+	searchParams.set(key, encodeUrlForParam(cleanedUrl));
+}
+
+export function getUpdatedSearchParams(
+	searchParams: URLSearchParams,
+	updater: (newParams: URLSearchParams) => void
+): URLSearchParams | null {
+	const newParams = new URLSearchParams(searchParams);
+	updater(newParams);
+
+	return newParams.toString() === searchParams.toString() ? null : newParams;
+}
+
 /**
  * Strips sidebar params from a URL to avoid recursive state growth.
  * Keeps project params.

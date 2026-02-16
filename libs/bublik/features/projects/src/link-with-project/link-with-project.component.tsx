@@ -2,7 +2,10 @@ import { ComponentPropsWithRef, forwardRef, Ref, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { useProjectSearch } from '../hooks';
-import { mergeParamsWithSidebarState } from '../lib/sidebar-params.utils';
+import {
+	mergeParamsWithSidebarState,
+	mergeStringUrlWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 export type LinkWithProjectProps = ComponentPropsWithRef<typeof Link>;
 
@@ -11,27 +14,7 @@ function getToFromString(
 	currentSearchParams: URLSearchParams,
 	projectIds: number[]
 ): string {
-	if (to.includes('?')) {
-		const [pathname, searchStr] = to.split('?');
-		const targetParams = new URLSearchParams(searchStr);
-
-		const mergedParams = mergeParamsWithSidebarState(
-			targetParams,
-			currentSearchParams,
-			projectIds
-		);
-
-		return `${pathname}?${mergedParams.toString()}`;
-	}
-
-	const mergedParams = mergeParamsWithSidebarState(
-		new URLSearchParams(),
-		currentSearchParams,
-		projectIds
-	);
-
-	const paramsString = mergedParams.toString();
-	return paramsString ? `${to}?${paramsString}` : to;
+	return mergeStringUrlWithSidebarState(to, currentSearchParams, projectIds);
 }
 
 function LinkWithProjectImpl(
