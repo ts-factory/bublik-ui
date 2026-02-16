@@ -3,8 +3,7 @@
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 import {
 	RunsFormContainer,
-	RunsModePickerContainer,
-	SelectionPopoverContainer
+	RunsModePickerContainer
 } from '@/bublik/features/runs';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
@@ -49,7 +48,6 @@ function RunsPage() {
 				<RunsModePickerContainer />
 				<ScrollToTopPage />
 			</div>
-			<SelectionPopoverContainer />
 		</>
 	);
 }
