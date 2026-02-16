@@ -113,7 +113,7 @@ function HistoryMeasurementsCombinedContainer() {
 				/>
 			)}
 			<div className="bg-white rounded-md">
-				<CardHeader label="Combined" />
+				<CardHeader label="Charts" />
 				<div
 					className={cn(
 						'p-4 h-[78vh]',
