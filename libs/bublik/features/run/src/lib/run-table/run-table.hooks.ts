@@ -29,6 +29,18 @@ import { skipToken } from '@reduxjs/toolkit/query';
 const GlobalFilterParam = withDefault(JsonParam, []);
 const RowStateParam = withDefault(JsonParam, {});
 const SortingParam = withDefault(JsonParam, []);
+const RUN_TABLE_PERSISTED_QUERY_KEYS = [
+	'expanded',
+	'globalFilter',
+	'rowState',
+	'columnFilters'
+] as const;
+
+export function hasPersistedRunTableState(search: string): boolean {
+	const searchParams = new URLSearchParams(search);
+
+	return RUN_TABLE_PERSISTED_QUERY_KEYS.some((key) => searchParams.has(key));
+}
 
 export function getRowId(
 	original: RunData | MergedRun,
@@ -151,10 +163,15 @@ export function useTargetIterationId() {
 export const useRunTableQueryState = (
 	data: RunData[] | MergedRun[] | undefined | null
 ) => {
-	const locationState = useLocation().state as {
+	const location = useLocation();
+	const navigationState = location.state as {
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
+		openUnexpectedIntentId?: string;
 	};
+	const locationState = hasPersistedRunTableState(location.search)
+		? undefined
+		: navigationState;
 	const { targetIterationId } = useTargetIterationId();
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
