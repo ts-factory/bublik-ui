@@ -10,6 +10,7 @@ import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import { updateGlobalFilter } from '../runs-slice';
@@ -18,7 +19,8 @@ import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
 function RunsFormContainer() {
 	const dispatch = useDispatch();
 	const location = useLocation();
-	const [searchParams, setSearchParams] = useSearchParams(location.search);
+	const [searchParams] = useSearchParams(location.search);
+	const navigateWithProject = useNavigateWithProject();
 	const localGlobalFilter = useSelector(selectGlobalFilter);
 	const allTags = useSelector(selectAllTags);
 
@@ -35,9 +37,12 @@ function RunsFormContainer() {
 	);
 
 	function handleFormSubmit(newForm: RunsFormValues) {
-		setSearchParams(formToSearchParams(searchParams, newForm), {
-			replace: true
-		});
+		const params = formToSearchParams(searchParams, newForm);
+		const searchString = params.toString();
+		navigateWithProject(
+			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
+			{ replace: true }
+		);
 		dispatch(
 			updateGlobalFilter(
 				newForm.runData.filter((v) => v.isSelected).map((v) => v.value)
@@ -53,7 +58,11 @@ function RunsFormContainer() {
 		const params = formToSearchParams(searchParams, resettedForm);
 		params.delete('duration');
 
-		setSearchParams(params, { replace: true });
+		const searchString = params.toString();
+		navigateWithProject(
+			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
+			{ replace: true }
+		);
 	}
 
 	return (
