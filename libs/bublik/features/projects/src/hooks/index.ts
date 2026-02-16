@@ -5,24 +5,15 @@ import {
 	NavigateOptions,
 	parsePath,
 	To,
+	useLocation,
 	useNavigate,
 	useSearchParams
 } from 'react-router-dom';
 
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
-import { HIDE_SIDEBAR_QUERY_KEY, PROJECT_KEY } from '../constants';
-
-function toStringWithSearchParams(to: string, params: URLSearchParams): string {
-	const parsedTo = parsePath(to);
-	const search = params.toString();
-
-	return createPath({
-		pathname: parsedTo.pathname,
-		search: search ? `?${search}` : '',
-		hash: parsedTo.hash
-	});
-}
+import { PROJECT_KEY } from '../constants';
+import { mergeParamsWithSidebarState } from '../lib/sidebar-params.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -51,29 +42,29 @@ function useProjectSearch() {
 function useNavigateWithProject() {
 	const { projectIds } = useProjectSearch();
 	const _navigate = useNavigate();
-	const [currentSearchParams] = useSearchParams();
+	const location = useLocation();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
-		const params =
-			typeof to === 'string'
-				? new URLSearchParams(parsePath(to).search ?? '')
-				: typeof to.search === 'string'
-				? new URLSearchParams(to.search)
-				: new URLSearchParams();
-		const hideSidebar = currentSearchParams.get(HIDE_SIDEBAR_QUERY_KEY);
-
-		params.delete(PROJECT_KEY);
-		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
-
-		if (!params.has(HIDE_SIDEBAR_QUERY_KEY) && hideSidebar) {
-			params.set(HIDE_SIDEBAR_QUERY_KEY, hideSidebar);
-		}
+		const parsedTo = typeof to === 'string' ? parsePath(to) : to;
+		const targetParams = new URLSearchParams(parsedTo.search ?? '');
+		const freshSearchParams = new URLSearchParams(location.search);
+		const mergedParams = mergeParamsWithSidebarState(
+			targetParams,
+			freshSearchParams,
+			projectIds
+		);
+		const search = mergedParams.toString();
 
 		if (typeof to === 'string') {
-			_navigate(toStringWithSearchParams(to, params), options);
+			_navigate(
+				createPath({
+					pathname: parsedTo.pathname,
+					search: search ? `?${search}` : '',
+					hash: parsedTo.hash
+				}),
+				options
+			);
 		} else {
-			const search = params.toString();
-
 			_navigate(
 				{
 					pathname: to.pathname,
