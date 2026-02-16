@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
-import { SIDEBAR_PREFIX as SHARED_SIDEBAR_PREFIX } from '@/shared/types';
+import {
+	SIDEBAR_PREFIX as SHARED_SIDEBAR_PREFIX,
+	SIDEBAR_STATE_PARAM as SHARED_SIDEBAR_STATE_PARAM
+} from '@/shared/types';
 
 export const SIDEBAR_PREFIX = SHARED_SIDEBAR_PREFIX;
+export const SIDEBAR_STATE_PARAM = SHARED_SIDEBAR_STATE_PARAM;
 
 export const RUNS_SIDEBAR_KEYS = {
 	SELECTED: `${SIDEBAR_PREFIX}.runs.selected`,

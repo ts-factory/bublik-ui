@@ -1,9 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
-	createPath,
 	NavigateOptions,
-	parsePath,
 	To,
 	useLocation,
 	useNavigate,
@@ -13,7 +11,10 @@ import {
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
 import { PROJECT_KEY } from '../constants';
-import { mergeParamsWithSidebarState } from '../lib/sidebar-params.utils';
+import {
+	mergeParamsWithSidebarState,
+	mergeStringUrlWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -45,9 +46,19 @@ function useNavigateWithProject() {
 	const location = useLocation();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
-		const parsedTo = typeof to === 'string' ? parsePath(to) : to;
-		const targetParams = new URLSearchParams(parsedTo.search ?? '');
 		const freshSearchParams = new URLSearchParams(location.search);
+
+		if (typeof to === 'string') {
+			const finalTo = mergeStringUrlWithSidebarState(
+				to,
+				freshSearchParams,
+				projectIds
+			);
+			_navigate(finalTo, options);
+			return;
+		}
+
+		const targetParams = new URLSearchParams(to.search || '');
 		const mergedParams = mergeParamsWithSidebarState(
 			targetParams,
 			freshSearchParams,
@@ -55,25 +66,14 @@ function useNavigateWithProject() {
 		);
 		const search = mergedParams.toString();
 
-		if (typeof to === 'string') {
-			_navigate(
-				createPath({
-					pathname: parsedTo.pathname,
-					search: search ? `?${search}` : '',
-					hash: parsedTo.hash
-				}),
-				options
-			);
-		} else {
-			_navigate(
-				{
-					pathname: to.pathname,
-					search: search ? `?${search}` : '',
-					hash: to.hash
-				},
-				options
-			);
-		}
+		_navigate(
+			{
+				pathname: to.pathname,
+				search: search ? `?${search}` : '',
+				hash: to.hash
+			},
+			options
+		);
 	};
 
 	return navigate;
