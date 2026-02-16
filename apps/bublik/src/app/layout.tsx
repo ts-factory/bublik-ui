@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
 import { HIDE_SIDEBAR_QUERY_KEY } from '@/bublik/features/projects';
-import { Sidebar } from '@/bublik/features/sidebar';
+import { SidebarContainer } from './sidebar-container';
 
 const parseHideSidebarQuery = (value: string | null) => {
 	if (!value) return null;
@@ -25,7 +25,7 @@ export const Layout = (props: PropsWithChildren) => {
 	const hideSidebar = parsedQueryValue ?? false;
 
 	return (
-		<AppShell sidebar={<Sidebar />} hideSidebar={hideSidebar}>
+		<AppShell sidebar={<SidebarContainer />} hideSidebar={hideSidebar}>
 			<ErrorBoundary>
 				<Suspense fallback={<Spinner className="h-screen" />}>
 					{props.children}
