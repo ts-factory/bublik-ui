@@ -20,12 +20,11 @@ import {
 } from '@/shared/tailwind-ui';
 import { LogHeaderBlock } from '@/shared/types';
 import {
-	Clock,
-	HashSymbol,
 	InformationCircleExclamationMark,
 	TriangleExclamationMark,
 	TwoUsers
 } from '@/icons';
+import { Flag, Play, HashIcon } from 'lucide-react';
 import {
 	EnvelopeClosedIcon,
 	ExternalLinkIcon,
@@ -465,42 +464,39 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 	return (
 		<div
 			className={cn(
-				'flex items-center gap-1 px-1 group w-fit relative',
+				'grid grid-cols-[140px_minmax(0,1fr)] items-start gap-x-2 px-1 py-0.5 rounded group relative',
 				!href && 'cursor-pointer hover:bg-gray-50',
 				withBorder && isLong && 'border-t border-b border-border-primary'
 			)}
 			onClick={() => handleCopy(value.toString())}
 		>
-			{icon}
-			<span className="text-sm text-text-primary font-semibold">{label}:</span>
+			<div className="flex items-center gap-1 text-sm text-text-primary font-semibold min-w-0 self-center">
+				{icon ? (
+					<span className="inline-flex w-5 shrink-0 justify-center pt-0.5">
+						{icon}
+					</span>
+				) : null}
+				<span>{label}:</span>
+			</div>
 			{href ? (
 				<a
 					href={href}
-					className="text-sm flex items-center gap-1 hover:underline"
+					className="text-sm text-gray-800 flex items-start gap-1 hover:underline break-all min-w-0"
 				>
 					{value}
-					<ExternalLinkIcon className="size-4" />
+					<ExternalLinkIcon className="size-5 shrink-0 mt-0.5" />
 				</a>
 			) : (
-				<div
-					className={cn(
-						'flex items-center gap-1',
-						withBorder && isLong && 'border-l border-border-primary px-2'
-					)}
-				>
+				<div className={cn('flex items-start gap-1 min-w-0 pr-8')}>
 					<pre
 						className={cn(
-							'text-sm text-gray-800 whitespace-pre-wrap',
+							'text-sm text-gray-800 whitespace-pre-wrap break-all',
 							className
 						)}
 					>
 						{value}
 					</pre>
-					<Icon
-						name="PaperStack"
-						size={16}
-						className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
-					/>
+					<CopyIcon />
 				</div>
 			)}
 		</div>
@@ -584,62 +580,68 @@ function MetaDuration(props: MetaDurationProps) {
 	}
 
 	return (
-		<div className="flex items-center px-1">
-			<Clock className="size-5" />
+		<>
 			<div
-				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
-				onClick={() => handleCopy(displayDuration)}
-			>
-				<span className="text-sm text-text-primary font-semibold">
-					Duration:&nbsp;
-				</span>
-				<span className="text-sm text-gray-800">
-					{displayDuration}
-					{showWarning && (
-						<Tooltip content="Some values may be unformatted">
-							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
-						</Tooltip>
-					)}
-					<CopyIcon />
-				</span>
-			</div>
-			<Separator orientation="vertical" className="h-4 mx-2" />
-			<div
-				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
+				className="grid grid-cols-[140px_minmax(0,1fr)] items-start gap-x-2 hover:bg-gray-50 rounded px-1 py-0.5 cursor-pointer relative group"
 				onClick={() => handleCopy(displayStart)}
 			>
-				<span className="text-sm text-text-primary font-semibold">
-					Start:&nbsp;
-				</span>
-				<span className="text-sm text-gray-800">
+				<div className="flex items-start gap-1 text-sm text-text-primary font-semibold min-w-0">
+					<span className="inline-flex w-5 shrink-0 justify-center">
+						<Play className="size-5" strokeWidth={1.5} />
+					</span>
+					<span>Start:</span>
+				</div>
+				<span className="text-sm text-gray-800 whitespace-pre-wrap break-all min-w-0 pr-8">
 					{displayStart}
 					{showWarning && (
 						<Tooltip content="Some values may be unformatted">
-							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
+							<TriangleExclamationMark className="inline size-5 ml-1 text-yellow-600" />
 						</Tooltip>
 					)}
 					<CopyIcon />
 				</span>
 			</div>
-			<Separator orientation="vertical" className="h-4 mx-2" />
 			<div
-				className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer relative group"
+				className="grid grid-cols-[140px_minmax(0,1fr)] items-start gap-x-2 hover:bg-gray-50 rounded px-1 py-0.5 cursor-pointer relative group"
 				onClick={() => handleCopy(displayEnd)}
 			>
-				<span className="text-sm text-text-primary font-semibold">
-					End:&nbsp;
-				</span>
-				<span className="text-sm text-gray-800">
+				<div className="flex items-start gap-1 text-sm text-text-primary font-semibold min-w-0">
+					<span className="inline-flex w-5 shrink-0 justify-center">
+						<Flag className="size-5" strokeWidth={1.5} />
+					</span>
+					<span>End:</span>
+				</div>
+				<span className="text-sm text-gray-800 whitespace-pre-wrap break-all min-w-0 pr-8">
 					{displayEnd}
 					{showWarning && (
 						<Tooltip content="Some values may be unformatted">
-							<TriangleExclamationMark className="inline size-4 ml-1 text-yellow-600" />
+							<TriangleExclamationMark className="inline size-5 ml-1 text-yellow-600" />
 						</Tooltip>
 					)}
 					<CopyIcon />
 				</span>
 			</div>
-		</div>
+			<div
+				className="grid grid-cols-[140px_minmax(0,1fr)] items-start gap-x-2 hover:bg-gray-50 rounded px-1 py-0.5 cursor-pointer relative group"
+				onClick={() => handleCopy(displayDuration)}
+			>
+				<div className="flex items-start gap-1 text-sm text-text-primary font-semibold min-w-0">
+					<span className="inline-flex w-5 shrink-0 justify-center">
+						<Icon name="Clock" className="size-5" />
+					</span>
+					<span>Duration:</span>
+				</div>
+				<span className="text-sm text-gray-800 whitespace-pre-wrap break-all min-w-0 pr-8">
+					{displayDuration}
+					{showWarning && (
+						<Tooltip content="Some values may be unformatted">
+							<TriangleExclamationMark className="inline size-5 ml-1 text-yellow-600" />
+						</Tooltip>
+					)}
+					<CopyIcon />
+				</span>
+			</div>
+		</>
 	);
 }
 
@@ -667,49 +669,57 @@ function MetaAuthors({ authors }: MetaAuthorsProps) {
 	};
 
 	return (
-		<div className="flex items-center px-1 flex-wrap">
-			<TwoUsers className="size-5" />
-			<span className="text-sm text-text-primary font-semibold px-1">
-				Authors:
-			</span>
-			{authors.map((author, index) => (
-				<Fragment key={author.email}>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<div className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer">
-								<span className="text-sm text-gray-800">{author.email}</span>
-							</div>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="bg-white rounded-md shadow-popover flex flex-col min-w-[160px]">
-							<DropdownMenuLabel className="text-xs">Author</DropdownMenuLabel>
-							<Separator className="h-px my-1" />
-							<DropdownMenuGroup className="flex flex-col gap-1">
-								<DropdownMenuItem
-									onClick={() => handleCopy(author.email)}
-									className="pl-2"
-								>
-									<Icon
-										name="PaperStack"
-										size={16}
-										className="shrink-0 scale-125 mr-1.5"
-									/>
-									Copy email
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() => handleMailTo(author.email)}
-									className="pl-2"
-								>
-									<EnvelopeClosedIcon className="size-4 mr-1.5" />
-									Send email
-								</DropdownMenuItem>
-							</DropdownMenuGroup>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					{index < authors.length - 1 && (
-						<Separator orientation="vertical" className="h-4 mx-1" />
-					)}
-				</Fragment>
-			))}
+		<div className="grid grid-cols-[140px_minmax(0,1fr)] items-start gap-x-2 px-1 py-0.5">
+			<div className="flex items-start gap-1 text-sm text-text-primary font-semibold min-w-0">
+				<span className="inline-flex w-5 shrink-0 justify-center pt-0.5">
+					<TwoUsers className="size-5" />
+				</span>
+				<span>Authors:</span>
+			</div>
+			<div className="flex items-center flex-wrap gap-1 min-w-0">
+				{authors.map((author, index) => (
+					<Fragment key={author.email}>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<div className="flex items-center hover:bg-gray-50 rounded px-1 cursor-pointer">
+									<span className="text-sm text-gray-800 break-all">
+										{author.email}
+									</span>
+								</div>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="bg-white rounded-md shadow-popover flex flex-col min-w-[160px]">
+								<DropdownMenuLabel className="text-xs">
+									Author
+								</DropdownMenuLabel>
+								<Separator className="h-px my-1" />
+								<DropdownMenuGroup className="flex flex-col gap-1">
+									<DropdownMenuItem
+										onClick={() => handleCopy(author.email)}
+										className="pl-2"
+									>
+										<Icon
+											name="PaperStack"
+											size={16}
+											className="shrink-0 scale-125 mr-1.5"
+										/>
+										Copy email
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => handleMailTo(author.email)}
+										className="pl-2"
+									>
+										<EnvelopeClosedIcon className="size-5 mr-1.5" />
+										Send email
+									</DropdownMenuItem>
+								</DropdownMenuGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						{index < authors.length - 1 ? (
+							<span className="text-sm text-gray-400">,</span>
+						) : null}
+					</Fragment>
+				))}
+			</div>
 		</div>
 	);
 }
@@ -730,46 +740,34 @@ function MetaInformation(props: MetaInformationProps) {
 	const authors = header.meta.authors;
 
 	return (
-		<ul className="flex flex-col gap-1 py-1">
+		<div className="grid py-1 w-full">
 			{hash ? (
-				<li>
-					<MetaInfoItem
-						icon={<HashSymbol className="size-5" />}
-						label="Hash"
-						value={hash}
-					/>
-				</li>
+				<MetaInfoItem
+					icon={<HashIcon className="size-5" strokeWidth={1.5} />}
+					label="Hash"
+					value={hash}
+				/>
 			) : null}
-			<li>
-				<MetaDuration start={start} end={end} duration={duration} />
-			</li>
+			<MetaDuration start={start} end={end} duration={duration} />
 			{objective ? (
-				<li>
-					<MetaInfoItem
-						icon={<TargetIcon className="size-5" />}
-						label="Objective"
-						value={objective}
-						className="max-w-2xl"
-						withBorder
-					/>
-				</li>
+				<MetaInfoItem
+					icon={<TargetIcon className="size-5" strokeWidth={1.5} />}
+					label="Objective"
+					value={objective}
+					className="max-w-2xl"
+					withBorder
+				/>
 			) : null}
 			{description ? (
-				<li>
-					<MetaInfoItem
-						icon={<InformationCircleExclamationMark className="size-5" />}
-						label="Description"
-						value={description.text}
-						href={description.url}
-					/>
-				</li>
+				<MetaInfoItem
+					icon={<InformationCircleExclamationMark className="size-5" />}
+					label="Description"
+					value={description.text}
+					href={description.url}
+				/>
 			) : null}
-			{authors?.length ? (
-				<li>
-					<MetaAuthors authors={authors} />
-				</li>
-			) : null}
-		</ul>
+			{authors?.length ? <MetaAuthors authors={authors} /> : null}
+		</div>
 	);
 }
 
