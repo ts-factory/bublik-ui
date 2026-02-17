@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMount } from 'react-use';
 import { useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -20,6 +22,7 @@ import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 function useIsModeFull() {
 	const [isModeFull, setIsModeFull] = useQueryParam('isModeFull', BooleanParam);
@@ -52,7 +55,11 @@ function RunMultiplePage() {
 
 	usePrefetchRunDetails(runIds);
 
-	if (!runIds.length) return <div>No run ids found!</div>;
+	if (!runIds.length) {
+		return (
+			<BublikEmptyState title="No data" description="Run IDs are missing" />
+		);
+	}
 
 	return (
 		<div className="p-2 flex flex-col gap-1">

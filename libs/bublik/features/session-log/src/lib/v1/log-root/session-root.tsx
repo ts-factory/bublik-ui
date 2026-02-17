@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { RootBlockSchema, RootBlock, GetBlocksMap } from '@/shared/types';
 import { Skeleton } from '@/shared/tailwind-ui';
+import { BublikErrorState } from '@/bublik/features/ui-state';
 
 import { BlockLogPage } from '../log-block-picker';
 
@@ -30,11 +31,21 @@ export interface SessionRootProps {
 }
 
 export const SessionRoot = ({ root }: SessionRootProps) => {
-	if (!RootBlockSchema.parse(root)) {
-		return <div>Not valid schema!</div>;
+	const parseResult = RootBlockSchema.safeParse(root);
+
+	if (!parseResult.success) {
+		return (
+			<BublikErrorState
+				error={{
+					status: 400,
+					title: 'Invalid log schema',
+					description: 'Log payload has unsupported format'
+				}}
+			/>
+		);
 	}
 
-	return <SessionBlockPicker blocks={root.root} />;
+	return <SessionBlockPicker blocks={parseResult.data.root} />;
 };
 
 export function SessionLoading() {

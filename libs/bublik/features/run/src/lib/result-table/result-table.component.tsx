@@ -33,6 +33,7 @@ import {
 	DataTableFacetedFilter,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getColumns } from './result-table.columns';
 import {
@@ -63,9 +64,22 @@ export const ResultTableLoading = ({ rowCount = 25 }: SkeletonProps) => {
 	);
 };
 
-export const ResultTableError = () => <div>Error...</div>;
+export interface ResultTableErrorProps {
+	error: unknown;
+}
 
-export const ResultTableEmpty = () => <div>Empty...</div>;
+export const ResultTableError = ({ error }: ResultTableErrorProps) => {
+	return <BublikErrorState error={error} />;
+};
+
+export const ResultTableEmpty = () => {
+	return (
+		<BublikEmptyState
+			title="No data"
+			description="No result table data available"
+		/>
+	);
+};
 
 export interface ResultTableProps {
 	rowId: string;

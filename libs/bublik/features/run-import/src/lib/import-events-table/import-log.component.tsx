@@ -21,7 +21,7 @@ import { PauseIcon, RocketIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { getErrorMessage, useGetImportLogQuery } from '@/services/bublik-api';
+import { useGetImportLogQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	CardHeader,
@@ -39,6 +39,7 @@ import { ImportJsonLog } from '@/shared/types';
 import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import { routes } from '@/router';
 import { config } from '@/bublik/config';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	createColumnHelper,
@@ -220,7 +221,13 @@ export const ImportLogTableContainer = (
 	}
 
 	if (!data) {
-		return <div className="grid place-items-center h-full">Not Log Found</div>;
+		return (
+			<BublikEmptyState
+				title="No log found"
+				description="Import log is empty"
+				hideIcon
+			/>
+		);
 	}
 
 	const maybeRunId = getRunIdFromLogs(data);
@@ -305,23 +312,7 @@ interface ImportLogErrorProps {
 }
 
 function ImportLogError({ error }: ImportLogErrorProps) {
-	const { status, title, description } = getErrorMessage(error);
-
-	return (
-		<div className="grid place-items-center h-full">
-			<div className="flex flex-col items-center text-center">
-				<Icon
-					name="TriangleExclamationMark"
-					size={24}
-					className="text-text-unexpected"
-				/>
-				<h3 className="mt-2 text-sm font-medium text-gray-900">
-					{status} {title}
-				</h3>
-				<p className="mt-1 text-sm text-gray-500">{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} />;
 }
 
 interface SpinnerProps {

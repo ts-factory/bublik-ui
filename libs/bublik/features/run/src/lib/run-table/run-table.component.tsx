@@ -15,7 +15,7 @@ import {
 
 import { MergedRun, RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
-import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
+import { bublikAPI } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	cn,
@@ -24,6 +24,7 @@ import {
 	Skeleton,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { globalFilterFn } from './filter';
 import { getRowCanExpand } from './utils';
@@ -47,42 +48,16 @@ export interface RunTableErrorProps {
 }
 
 export const RunTableError = ({ error = {} }: RunTableErrorProps) => {
-	const { description, status, title } = getErrorMessage(error);
-
-	return (
-		<div className="mx-auto mt-72">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div className="">
-					<h1 className="text-2xl font-semibold">
-						{status} {title}
-					</h1>
-					<p>{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} />;
 };
 
 export const RunTableEmpty = () => {
 	return (
-		<div className="mx-auto mt-80">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="self-start text-primary"
-				/>
-				<div>
-					<h1 className="text-2xl font-bold mb-0.5">No data found</h1>
-					<p className="text-lg">No data found</p>
-				</div>
-			</div>
-		</div>
+		<BublikEmptyState
+			title="No data found"
+			description="No run data is available"
+			iconSize={48}
+		/>
 	);
 };
 

@@ -10,6 +10,7 @@ import { LogFeature, useLogPage } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 export interface LogHeaderProps {
 	runId: string;
@@ -68,7 +69,9 @@ export const LogPage = () => {
 	const isHeaderShown =
 		mode === LogPageMode.InfoAndLog || mode === LogPageMode.TreeAndInfoAndLog;
 
-	if (!runId) return <div>No Run ID!</div>;
+	if (!runId) {
+		return <BublikEmptyState title="No data" description="Run ID is missing" />;
+	}
 
 	if (shouldRedirect) return <Navigate to={location} />;
 

@@ -30,7 +30,7 @@ import {
 	TestBlock
 } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { getErrorMessage } from '@/services/bublik-api';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { useMount } from '@/shared/hooks';
 
 import { RunReportHeader } from './run-report-header';
@@ -437,28 +437,16 @@ function RunReportLoading() {
 }
 
 function RunReportError(props: { error: unknown }) {
-	const { error = {} } = props;
-	const { title, description, status } = getErrorMessage(error);
-
-	return (
-		<div className="grid place-items-center h-[calc(100vh-256px)]">
-			<div className="flex flex-col items-center text-center">
-				<Icon
-					name="TriangleExclamationMark"
-					size={24}
-					className="text-text-unexpected"
-				/>
-				<h3 className="mt-2 text-sm font-medium text-gray-900">
-					{status} {title}
-				</h3>
-				<p className="mt-1 text-sm text-gray-500">{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={props.error} />;
 }
 
 function RunReportEmpty() {
-	return <div>Empty...</div>;
+	return (
+		<BublikEmptyState
+			title="No data"
+			description="Run report content is empty"
+		/>
+	);
 }
 
 interface RunReportContentListProps {

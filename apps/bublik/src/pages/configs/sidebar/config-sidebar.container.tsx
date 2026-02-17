@@ -6,6 +6,7 @@ import { Skeleton } from '@/shared/tailwind-ui';
 import { bublikAPI, ConfigSchemaParams } from '@/services/bublik-api';
 import { useAuth } from '@/bublik/features/auth';
 import { useProjectSearch } from '@/bublik/features/projects';
+import { BublikErrorState } from '@/bublik/features/ui-state';
 
 import { useConfigPageSearchParams } from '../hooks';
 import { SidebarHeader } from './config-sidebar';
@@ -54,7 +55,21 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	}
 
 	if (configsQuery.error) {
-		return <div>Error...</div>;
+		return (
+			<div className="flex flex-col h-full">
+				<SidebarHeader
+					onCreateNewConfigClick={handleCreateNewConfigClick}
+					configId={configId}
+					createProjectButton={createProjectButton}
+					isAdmin={isAdmin}
+				/>
+				<div className="flex-1 p-4">
+					<div className="mx-auto h-full w-full max-w-[280px]">
+						<BublikErrorState error={configsQuery.error} />
+					</div>
+				</div>
+			</div>
+		);
 	}
 
 	if (configsQuery.isLoading) {

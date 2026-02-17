@@ -1,9 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	getErrorMessage,
-	useGetSingleMeasurementQuery
-} from '@/services/bublik-api';
+import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
 import {
 	Skeleton,
@@ -13,10 +10,15 @@ import {
 	ToolbarButton
 } from '@/shared/tailwind-ui';
 import { MeasurementChart } from '@/shared/charts';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { useResultSelectCharts } from '../../hooks';
 
-export const ChartsEmpty = () => <div>Chart is empty</div>;
+export const ChartsEmpty = () => {
+	return (
+		<BublikEmptyState title="No data" description="Chart is empty" hideIcon />
+	);
+};
 
 export const ChartsLoading = ({ layout }: { layout: ChartsTiling }) => {
 	return (
@@ -42,23 +44,7 @@ export interface ChartsErrorProps {
 }
 
 export function ChartsError({ error = {} }: ChartsErrorProps) {
-	const { status, title, description } = getErrorMessage(error);
-
-	return (
-		<div className="flex items-center justify-center gap-4 mx-4 my-20">
-			<Icon
-				name="TriangleExclamationMark"
-				size={48}
-				className="text-text-unexpected"
-			/>
-			<div>
-				<h2 className="text-2xl font-bold">
-					{status} {title}
-				</h2>
-				<p>{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} className="my-20" />;
 }
 
 export type ChartsTiling = 'row' | 'mosaic';

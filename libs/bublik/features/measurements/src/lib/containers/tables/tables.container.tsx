@@ -1,11 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	getErrorMessage,
-	useGetSingleMeasurementQuery
-} from '@/services/bublik-api';
+import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { MeasurementsTable } from '@/shared/charts';
-import { Icon, Skeleton } from '@/shared/tailwind-ui';
+import { Skeleton } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 export const TableLoading = () => (
 	<div className="p-4">
@@ -13,30 +11,18 @@ export const TableLoading = () => (
 	</div>
 );
 
-export const TableEmpty = () => <div>Table is empty</div>;
+export const TableEmpty = () => {
+	return (
+		<BublikEmptyState title="No data" description="Table is empty" hideIcon />
+	);
+};
 
 export interface TableErrorProps {
 	error: unknown;
 }
 
 export const TableError = ({ error }: TableErrorProps) => {
-	const { status, title, description } = getErrorMessage(error);
-
-	return (
-		<div className="flex items-center justify-center gap-4 mx-4 my-20">
-			<Icon
-				name="TriangleExclamationMark"
-				size={48}
-				className="text-text-unexpected"
-			/>
-			<div>
-				<h2 className="text-2xl font-bold">
-					{status} {title}
-				</h2>
-				<p>{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} className="my-20" />;
 };
 
 export interface TablesProps {

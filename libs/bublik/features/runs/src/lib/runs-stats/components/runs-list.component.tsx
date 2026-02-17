@@ -11,6 +11,7 @@ import {
 	ModalContent,
 	Skeleton
 } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { parseDetailDate } from '@/shared/utils';
 
 import { useRunsStats } from '../runs-stats.hooks';
@@ -66,7 +67,13 @@ const RunsListModalItemContainer = ({
 	const query = useGetRunDetailsQuery(runId);
 
 	if (query.error) {
-		return <div>Something went wrong!</div>;
+		return (
+			<BublikErrorState
+				error={query.error}
+				className="h-16 rounded-md border border-border-primary"
+				iconSize={16}
+			/>
+		);
 	}
 
 	if (query.isLoading) {
@@ -74,7 +81,17 @@ const RunsListModalItemContainer = ({
 	}
 
 	if (!query.data) {
-		return <div>No data present!</div>;
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Run details are unavailable"
+				className="h-16 rounded-md border border-border-primary"
+				contentClassName="px-2"
+				hideIcon
+				titleClassName="mt-0 text-xs"
+				descriptionClassName="text-xs"
+			/>
+		);
 	}
 
 	const { bg, color, icon } = getRunStatusInfo(query.data.conclusion);

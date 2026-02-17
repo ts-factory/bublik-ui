@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Skeleton } from '@/shared/tailwind-ui';
+import { BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getStatusAndBasis } from './run-progress.utils';
 
@@ -8,17 +9,16 @@ export interface RunProgressProps {
 	data?: boolean[];
 	isError: boolean;
 	isLoading: boolean;
+	error?: unknown;
 }
 
 export const RunProgress = (props: RunProgressProps) => {
-	const { data, isLoading, isError } = props;
+	const { data, isLoading, isError, error } = props;
 
 	if (isError) {
 		return (
-			<div className="flex items-center justify-center">
-				<span className="leading-[1.5rem] text-[0.875rem]">
-					Something went wrong...
-				</span>
+			<div className="overflow-hidden">
+				<BublikErrorState error={error} className="h-auto" iconSize={16} />
 			</div>
 		);
 	}

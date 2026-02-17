@@ -13,6 +13,7 @@ import { formatTimeToDot } from '@/shared/utils';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 function RunReportPage() {
 	const [searchParams] = useSearchParams();
@@ -21,11 +22,13 @@ function RunReportPage() {
 	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
 
 	if (!configId) {
-		return <div className="flex flex-col gap-1 p-2">No config id found!</div>;
+		return (
+			<BublikEmptyState title="No data" description="Config ID is missing" />
+		);
 	}
 
 	if (!runId) {
-		return <div className="flex flex-col gap-1 p-2">No run id found!</div>;
+		return <BublikEmptyState title="No data" description="Run ID is missing" />;
 	}
 
 	return (

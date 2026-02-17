@@ -25,6 +25,7 @@ import { RunPageParams } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 export interface RunHeaderProps {
 	runId: string;
@@ -67,7 +68,9 @@ export const RunPage = () => {
 	const { runId } = useParams<RunPageParams>();
 	usePrefetchLogPage({ runId });
 
-	if (!runId) return <div>No run ID!</div>;
+	if (!runId) {
+		return <BublikEmptyState title="No data" description="Run ID is missing" />;
+	}
 
 	return (
 		<div className="flex flex-col gap-1 p-2">

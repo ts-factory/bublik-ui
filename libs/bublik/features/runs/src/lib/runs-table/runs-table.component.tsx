@@ -15,8 +15,8 @@ import {
 } from '@tanstack/react-table';
 
 import { RunsData } from '@/shared/types';
-import { getErrorMessage } from '@/services/bublik-api';
-import { Skeleton, Icon, cn, Pagination } from '@/shared/tailwind-ui';
+import { Skeleton, cn, Pagination } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { columns } from './runs-table.columns';
 import { globalFilterFn } from './runs-table.utils';
@@ -213,42 +213,17 @@ export interface RunsTableErrorProps {
 
 export const RunsTableError = (props: RunsTableErrorProps) => {
 	const { error = {} } = props;
-	const { title, description, status } = getErrorMessage(error);
 
-	return (
-		<div className="grid place-items-center h-[calc(100vh-256px)]">
-			<div className="flex flex-col items-center text-center">
-				<Icon
-					name="TriangleExclamationMark"
-					size={24}
-					className="text-text-unexpected"
-				/>
-				<h3 className="mt-2 text-sm font-medium text-gray-900">
-					{status} {title}
-				</h3>
-				<p className="mt-1 text-sm text-gray-500">{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} className="h-[calc(100vh-256px)]" />;
 };
 
 export const RunsTableEmpty = () => {
 	return (
-		<div className="grid place-items-center h-[calc(100vh-256px)]">
-			<div className="flex flex-col items-center text-center">
-				<Icon
-					name="TriangleExclamationMark"
-					size={24}
-					className="text-primary"
-				/>
-				<h3 className="mt-2 text-sm font-medium text-gray-900">
-					No runs found!
-				</h3>
-				<p className="mt-1 text-sm text-gray-500">
-					Try changing your search or filter to find what you are looking for.
-				</p>
-			</div>
-		</div>
+		<BublikEmptyState
+			title="No runs found"
+			description="Try changing your search or filter to find what you are looking for"
+			className="h-[calc(100vh-256px)]"
+		/>
 	);
 };
 

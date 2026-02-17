@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Buffer } from 'buffer';
@@ -14,6 +16,7 @@ import {
 	Spinner
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 import {
 	Data,
@@ -416,9 +419,12 @@ function PacketTable(props: PacketTableProps) {
 
 	if (!data.length) {
 		return (
-			<div className="px-6 py-4 grid place-items-center text-center text-gray-500 h-full">
-				No Data
-			</div>
+			<BublikEmptyState
+				title="No data"
+				description="No packets available"
+				className="h-full"
+				hideIcon
+			/>
 		);
 	}
 

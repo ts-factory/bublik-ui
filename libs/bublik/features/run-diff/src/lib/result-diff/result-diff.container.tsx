@@ -6,6 +6,7 @@ import { Row } from '@tanstack/react-table';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useGetResultsTableQuery } from '@/services/bublik-api';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 import {
 	MergedRunDataWithDiff,
@@ -62,19 +63,22 @@ const useResultDiffState = ({
 	const {
 		data: leftData,
 		isLoading: isLeftLoading,
-		isError: isLeftErrorLoading
+		isError: isLeftErrorLoading,
+		error: leftError
 	} = useGetResultsTableQuery(leftQuery || skipToken);
 	const {
 		data: rightData,
 		isLoading: isRightLoading,
-		isError: isRightErrorLoading
+		isError: isRightErrorLoading,
+		error: rightError
 	} = useGetResultsTableQuery(rightQuery || skipToken);
 
 	return {
 		leftData,
 		rightData,
 		isLoading: isLeftLoading || isRightLoading,
-		isError: isLeftErrorLoading || isRightErrorLoading
+		isError: isLeftErrorLoading || isRightErrorLoading,
+		error: leftError ?? rightError
 	};
 };
 
@@ -87,16 +91,21 @@ export const ResultDiffContainer: FC<ResultDiffContainerProps> = ({ row }) => {
 		leftData = [],
 		rightData = [],
 		isError,
-		isLoading
+		isLoading,
+		error
 	} = useResultDiffState(row.original);
 	const [searchParams] = useSearchParams();
 
 	const leftRunId = searchParams.get('left');
 	const rightRunId = searchParams.get('right');
 
-	if (!leftRunId || !rightRunId) return <div>No run ids!</div>;
+	if (!leftRunId || !rightRunId) {
+		return (
+			<BublikEmptyState title="No data" description="Run IDs are missing" />
+		);
+	}
 
-	if (isError) return <ResultDiffError />;
+	if (isError) return <ResultDiffError error={error} />;
 
 	if (isLoading) {
 		return <ResultDiffLoading count={25} />;

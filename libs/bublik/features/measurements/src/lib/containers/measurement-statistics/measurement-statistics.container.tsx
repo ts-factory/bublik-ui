@@ -7,12 +7,12 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { MeasurementsRouterParams } from '@/shared/types';
 
 import {
-	getErrorMessage,
 	useGetResultInfoQuery,
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import { InfoBlock } from '@/shared/charts';
-import { CardHeader, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 import { LinkToRun } from './link-to-run';
@@ -55,35 +55,30 @@ export interface MeasurementStatisticsErrorProps {
 export const MeasurementStatisticsError = ({
 	error = {}
 }: MeasurementStatisticsErrorProps) => {
-	const { status, title, description } = getErrorMessage(error);
-
 	return (
 		<div className="flex-shrink-0 w-full bg-white rounded-md">
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3"></div>
 			</CardHeader>
 			<div className="py-2.5 px-4">
-				<div className="flex items-center justify-center min-h-[140px]">
-					<div className="flex gap-4">
-						<Icon
-							name="TriangleExclamationMark"
-							size={48}
-							className="text-text-unexpected"
-						/>
-						<div>
-							<h2 className="text-2xl font-bold">
-								{status} {title}
-							</h2>
-							<p>{description}</p>
-						</div>
-					</div>
-				</div>
+				<BublikErrorState
+					error={error}
+					iconSize={48}
+					className="min-h-[140px]"
+				/>
 			</div>
 		</div>
 	);
 };
 
-export const MeasurementStatisticsEmpty = () => <div>No data</div>;
+export const MeasurementStatisticsEmpty = () => {
+	return (
+		<BublikEmptyState
+			title="No data"
+			description="Measurement statistics are not available"
+		/>
+	);
+};
 
 export const MeasurementStatisticsContainer: FC = () => {
 	const { resultId, runId } = useParams<MeasurementsRouterParams>();
@@ -96,7 +91,14 @@ export const MeasurementStatisticsContainer: FC = () => {
 		})
 	});
 
-	if (!resultId || !runId) return <div>No run id or result id</div>;
+	if (!resultId || !runId) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Run id or result id is missing"
+			/>
+		);
+	}
 
 	if (error) return <MeasurementStatisticsError error={error} />;
 

@@ -3,6 +3,7 @@
 import { FC } from 'react';
 
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { parseDetailDate } from '@/shared/utils';
 
@@ -22,7 +23,7 @@ export const SelectedResultItemContainer: FC<
 	SelectedResultItemContainerProps
 > = ({ runId }) => {
 	const { removeSelection } = useRunsSelection();
-	const { data, isLoading, isError } = useGetRunDetailsQuery(runId);
+	const { data, isLoading, isError, error } = useGetRunDetailsQuery(runId);
 
 	const handleRemove = () => removeSelection(runId);
 
@@ -30,13 +31,27 @@ export const SelectedResultItemContainer: FC<
 
 	if (isError) {
 		return (
-			<div className="h-[32px] border border-border-primary">
-				Something went wrong...
-			</div>
+			<BublikErrorState
+				error={error}
+				className="h-[54px] rounded-md border border-border-primary"
+				iconSize={16}
+			/>
 		);
 	}
 
-	if (!data) return <div>No data!</div>;
+	if (!data) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Run details are unavailable"
+				className="h-[54px] rounded-md border border-border-primary"
+				contentClassName="px-2"
+				hideIcon
+				titleClassName="mt-0 text-xs"
+				descriptionClassName="text-xs"
+			/>
+		);
+	}
 
 	const { main_package, conclusion, start } = data;
 

@@ -9,7 +9,14 @@ interface RunProgressContainerProps {
 }
 
 export const RunProgressContainer = ({ runId }: RunProgressContainerProps) => {
-	const { data, isLoading, isError } = useGetRunFallingFreqQuery(runId);
+	const { data, isLoading, isError, error } = useGetRunFallingFreqQuery(runId);
 
-	return <RunProgress data={data} isError={isError} isLoading={isLoading} />;
+	return (
+		<RunProgress
+			data={data}
+			isError={isError}
+			isLoading={isLoading}
+			error={error}
+		/>
+	);
 };

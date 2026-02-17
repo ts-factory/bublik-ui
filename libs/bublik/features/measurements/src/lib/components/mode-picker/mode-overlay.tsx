@@ -1,9 +1,12 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useParams } from 'react-router-dom';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { MeasurementsRouterParams } from '@/shared/types';
 import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 import { StackedMeasurementChart } from '@/shared/charts';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { MeasurementStatisticsContainer } from '../../containers';
 import { useResultSelectCharts } from '../../hooks';
@@ -42,7 +45,7 @@ function OverlayContainer({ resultId }: OverlayContainerProps) {
 		return data?.charts?.filter((chart) => selectedCharts.includes(chart.id));
 	}, [data?.charts, selectedCharts]);
 
-	if (error) return <div>Error...</div>;
+	if (error) return <BublikErrorState error={error} />;
 
 	if (isLoading) {
 		return (
@@ -52,7 +55,14 @@ function OverlayContainer({ resultId }: OverlayContainerProps) {
 		);
 	}
 
-	if (!data || !charts?.length) return <div>No Data!</div>;
+	if (!data || !charts?.length) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="No charts available for this result"
+			/>
+		);
+	}
 
 	return <StackedMeasurementChart charts={charts} style={{ height: '100%' }} />;
 }

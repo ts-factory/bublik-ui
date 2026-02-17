@@ -5,6 +5,7 @@ import { Row } from '@tanstack/react-table';
 
 import { RunDataResults } from '@/shared/types';
 import { TableClassNames, cn, TwTable, Skeleton } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import {
 	computeResultsDiff,
@@ -28,12 +29,18 @@ export const ResultDiffLoading = (props: { count?: number }) => {
 	);
 };
 
-export const ResultDiffError = () => {
-	return <div>Something went wrong...</div>;
+interface ResultDiffErrorProps {
+	error: unknown;
+}
+
+export const ResultDiffError = ({ error }: ResultDiffErrorProps) => {
+	return <BublikErrorState error={error} />;
 };
 
 export const ResultDiffEmpty = () => {
-	return <div>No data!</div>;
+	return (
+		<BublikEmptyState title="No data" description="No diff data available" />
+	);
 };
 
 const gridClassName =

@@ -19,7 +19,6 @@ import { format, parseISO } from 'date-fns';
 import { RocketIcon } from '@radix-ui/react-icons';
 
 import { Facility, LogEventWithChildren, Severity } from '@/shared/types';
-import { getErrorMessage } from '@/services/bublik-api';
 import {
 	Badge,
 	ButtonTw,
@@ -31,6 +30,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { TIME_DOT_FORMAT_FULL } from '@/shared/utils';
 import { config } from '@/bublik/config';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import {
 	columns,
@@ -199,44 +199,20 @@ interface ImportEventTableErrorProps {
 }
 
 const ImportEventTableError = (props: ImportEventTableErrorProps) => {
-	const { description, status, title } = getErrorMessage(props.error);
-
 	return (
-		<div className="flex items-center justify-center flex-grow h-screen">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div className="flex flex-col gap-0.5">
-					<h2 className="text-2xl font-bold">
-						{status} {title}
-					</h2>
-					<p className="text-lg">{description}</p>
-				</div>
-			</div>
-		</div>
+		<BublikErrorState error={props.error} iconSize={48} className="h-screen" />
 	);
 };
 
 const ImportEventTableEmpty = () => {
 	return (
-		<div className="grid place-items-center h-[calc(100vh-176px)]">
-			<div className="flex flex-col items-center text-center">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<h3 className="mt-2 text-sm font-medium text-gray-900">
-					No results found
-				</h3>
-				<p className="mt-1 text-sm text-gray-500">
-					No results found, please try another search.
-				</p>
-			</div>
-		</div>
+		<BublikEmptyState
+			title="No results found"
+			description="No results found, please try another search"
+			className="h-[calc(100vh-176px)]"
+			iconSize={48}
+			iconClassName="text-text-unexpected"
+		/>
 	);
 };
 

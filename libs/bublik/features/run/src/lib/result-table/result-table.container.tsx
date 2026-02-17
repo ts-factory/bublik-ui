@@ -8,7 +8,12 @@ import { useGetResultsTableQuery } from '@/services/bublik-api';
 
 import { useRunTableRowState } from '../hooks';
 import { ColumnId } from '../run-table/types';
-import { ResultTableLoading, ResultTable } from './result-table.component';
+import {
+	ResultTable,
+	ResultTableEmpty,
+	ResultTableError,
+	ResultTableLoading
+} from './result-table.component';
 import { getRowValues } from '../run-table';
 
 function getParentId(row: Row<RunData | MergedRun>) {
@@ -44,7 +49,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	const values = useMemo(() => getRowValues(row), [row]);
 
-	const { data, isFetching, isError } = useGetResultsTableQuery({
+	const { data, isFetching, isError, error } = useGetResultsTableQuery({
 		parentId: getParentId(row),
 		testName: row.original.name,
 		requests
@@ -110,11 +115,11 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 		[rowId, rowState, updateRowState]
 	);
 
-	if (isError) return <div className="">Something went wrong...</div>;
+	if (isError) return <ResultTableError error={error} />;
 
 	if (isFetching) return <ResultTableLoading rowCount={skeletonCount} />;
 
-	if (!data) return <div>No data...</div>;
+	if (!data) return <ResultTableEmpty />;
 
 	const path = row.original.path.join('/');
 

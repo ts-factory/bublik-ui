@@ -3,7 +3,7 @@
 exports[`ImportEventTableComponent > should render empty state 1`] = `
 <DocumentFragment>
   <div
-    class="grid place-items-center h-[calc(100vh-176px)]"
+    class="grid w-full place-items-center h-[calc(100vh-176px)]"
   >
     <div
       class="flex flex-col items-center text-center"
@@ -31,7 +31,7 @@ exports[`ImportEventTableComponent > should render empty state 1`] = `
       <p
         class="mt-1 text-sm text-gray-500"
       >
-        No results found, please try another search.
+        No results found, please try another search
       </p>
     </div>
   </div>
@@ -41,10 +41,10 @@ exports[`ImportEventTableComponent > should render empty state 1`] = `
 exports[`ImportEventTableComponent > should render error state 1`] = `
 <DocumentFragment>
   <div
-    class="flex items-center justify-center flex-grow h-screen"
+    class="grid w-full place-items-center h-screen"
   >
     <div
-      class="flex items-center gap-4"
+      class="flex flex-col items-center text-center w-full max-w-[420px]"
     >
       <svg
         class="text-text-unexpected"
@@ -61,20 +61,16 @@ exports[`ImportEventTableComponent > should render error state 1`] = `
           fill-rule="evenodd"
         />
       </svg>
-      <div
-        class="flex flex-col gap-0.5"
+      <h3
+        class="mt-2 text-sm font-medium text-gray-900"
       >
-        <h2
-          class="text-2xl font-bold"
-        >
-          404 Not found
-        </h2>
-        <p
-          class="text-lg"
-        >
-          The requested resource could not be found
-        </p>
-      </div>
+        404 Not found
+      </h3>
+      <p
+        class="mt-1 text-sm text-gray-500"
+      >
+        The requested resource could not be found
+      </p>
     </div>
   </div>
 </DocumentFragment>

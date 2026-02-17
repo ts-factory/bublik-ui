@@ -4,8 +4,8 @@ import { useMemo } from 'react';
 
 import { DetailsItem, RUN_STATUS } from '@/shared/types';
 import { parseDetailDate, trimBranch } from '@/shared/utils';
-import { getErrorMessage } from '@/services/bublik-api';
-import { Skeleton, Icon, ConclusionBadge } from '@/shared/tailwind-ui';
+import { Skeleton, ConclusionBadge } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import {
 	prepareRevisions,
@@ -29,7 +29,12 @@ export const RunDetailsLoading = () => {
 };
 
 export const RunDetailsEmpty = () => {
-	return <div>No data!</div>;
+	return (
+		<BublikEmptyState
+			title="No data"
+			description="Run details are not available"
+		/>
+	);
 };
 
 export interface RunDetailsErrorProps {
@@ -37,25 +42,7 @@ export interface RunDetailsErrorProps {
 }
 
 export const RunDetailsError = ({ error = {} }: RunDetailsErrorProps) => {
-	const { description, status, title } = getErrorMessage(error);
-
-	return (
-		<div className="flex items-center justify-center flex-grow p-4">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div className="flex flex-col gap-0.5">
-					<h2 className="text-2xl font-bold">
-						{status} {title}
-					</h2>
-					<p className="text-lg">{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} />;
 };
 
 export interface RunDetailsMainInfoProps {

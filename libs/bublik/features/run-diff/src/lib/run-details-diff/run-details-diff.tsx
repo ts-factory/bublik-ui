@@ -3,8 +3,9 @@
 import { useMemo } from 'react';
 import { ArrayChange, diffArrays, diffWords } from 'diff';
 
-import { getErrorMessage, useGetRunDetailsQuery } from '@/services/bublik-api';
-import { cn, Icon, infoListItemStyles, Skeleton } from '@/shared/tailwind-ui';
+import { useGetRunDetailsQuery } from '@/services/bublik-api';
+import { cn, infoListItemStyles, Skeleton } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getDiffProps } from './run-details-diff.utils';
 import { MetadataValue, MetaDiff } from './run-details-diff.types';
@@ -38,7 +39,14 @@ export const RunDetailsDiffContainer = (props: RunDetailsContainerProps) => {
 
 	if (error) return <RunDetailsDiffError error={error} />;
 
-	if (!leftData || !rightData) return <div>No data!</div>;
+	if (!leftData || !rightData) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Run details are not available"
+			/>
+		);
+	}
 
 	return <RunDetailsDiff {...diffProps} />;
 };
@@ -52,25 +60,7 @@ export const RunDetailsDiffLoading = () => {
 };
 
 export const RunDetailsDiffError = (props: { error: unknown }) => {
-	const { description, status, title } = getErrorMessage(props.error);
-
-	return (
-		<div className="flex items-center justify-center flex-grow">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div className="flex flex-col gap-0.5">
-					<h2 className="text-2xl font-bold">
-						{status} {title}
-					</h2>
-					<p className="text-lg">{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={props.error} iconSize={48} />;
 };
 
 export interface RunDetailsDiffProps {

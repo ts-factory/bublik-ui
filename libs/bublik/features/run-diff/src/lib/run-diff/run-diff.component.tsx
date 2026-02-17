@@ -28,8 +28,8 @@ import {
 	cn,
 	ButtonTw
 } from '@/shared/tailwind-ui';
-import { getErrorMessage } from '@/services/bublik-api';
 import { toolbarIcon } from '@/bublik/run-utils';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { DiffType, MergedRunDataWithDiff } from './run-diff.types';
 import { computeDiff, getRowCanExpand } from './run-diff.utils';
@@ -132,27 +132,16 @@ export interface RunDiffErrorProps {
 }
 
 export const RunDiffError: FC<RunDiffErrorProps> = ({ error = {} }) => {
-	const { status, title, description } = getErrorMessage(error);
-
-	return (
-		<div className="flex items-center justify-center gap-4 mx-4 my-72">
-			<Icon
-				name="TriangleExclamationMark"
-				size={48}
-				className="text-text-unexpected"
-			/>
-			<div>
-				<h2 className="text-2xl font-bold">
-					{status} {title}
-				</h2>
-				<p>{description}</p>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} />;
 };
 
 export const RunDiffEmpty = () => {
-	return <div>No data found!</div>;
+	return (
+		<BublikEmptyState
+			title="No data found"
+			description="No data available to compare selected runs"
+		/>
+	);
 };
 
 export interface RunDiffProps {

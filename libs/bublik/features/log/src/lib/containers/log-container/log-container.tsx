@@ -3,7 +3,6 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
-	getErrorMessage,
 	useGetLogJsonQuery,
 	useGetLogUrlByResultIdQuery,
 	useGetRunDetailsQuery
@@ -15,7 +14,8 @@ import {
 	SessionLoading,
 	SessionRoot
 } from '@/bublik/features/session-log';
-import { cn, Icon, RunRunning } from '@/shared/tailwind-ui';
+import { cn, RunRunning } from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { RUN_STATUS } from '@/shared/types';
 
 import { useIsLogLegacy, useLogPage } from '../../hooks';
@@ -34,28 +34,16 @@ export interface LogFrameErrorProps {
 }
 
 export const LogFrameError = ({ error = {} }: LogFrameErrorProps) => {
-	const { title, status, description } = getErrorMessage(error);
-	return (
-		<div className="grid w-full h-full place-items-center">
-			<div className="flex gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div>
-					<h1 className="text-2xl font-bold">
-						{title} {status}
-					</h1>
-					<p className="mt-1 text-xl">{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} />;
 };
 
 export const LogFrameEmpty = () => {
-	return <div>No log found!</div>;
+	return (
+		<BublikEmptyState
+			title="No log found"
+			description="No log data is available for selected result"
+		/>
+	);
 };
 
 export function LogPickerContainer() {
@@ -70,7 +58,9 @@ export function LogPickerContainer() {
 		setPage
 	} = useLogPage();
 
-	if (!runId) return <div>No run ID!</div>;
+	if (!runId) {
+		return <BublikEmptyState title="No data" description="Run ID is missing" />;
+	}
 
 	const handlePageClick = (_: string, page: number) => {
 		setPage(page);

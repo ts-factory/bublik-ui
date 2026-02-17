@@ -24,7 +24,6 @@ import {
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import {
-	getErrorMessage,
 	useGetLogJsonQuery,
 	useGetRunDetailsQuery,
 	useGetTreeByRunIdQuery
@@ -39,6 +38,7 @@ import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 
 import { NewBugContainer } from './log-preview-new-bug.container';
@@ -170,7 +170,11 @@ function LogPreviewContainer(
 											onPageChange={handlePageClick}
 										/>
 									) : (
-										<div>No result ID provided!</div>
+										<BublikEmptyState
+											title="No data"
+											description="Result ID is missing"
+											hideIcon
+										/>
 									)}
 								</div>
 							) : null}
@@ -242,29 +246,13 @@ interface LogPreviewErrorProps {
 }
 
 function LogPreviewError({ error }: LogPreviewErrorProps) {
-	const { description, status, title } = getErrorMessage(error);
-
-	return (
-		<div className="mx-auto w-full h-full grid place-items-center">
-			<div className="flex items-center gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={48}
-					className="text-text-unexpected"
-				/>
-				<div className="">
-					<h1 className="text-2xl font-semibold">
-						{status} {title}
-					</h1>
-					<p>{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={48} />;
 }
 
 function LogPreviewEmpty() {
-	return <div>No log data...</div>;
+	return (
+		<BublikEmptyState title="No data" description="No log data available" />
+	);
 }
 
 export { LogPreviewContainer };

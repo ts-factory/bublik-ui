@@ -11,6 +11,7 @@ import {
 import { useConfirm } from '@/shared/hooks';
 import { ConfirmDialog, Skeleton } from '@/shared/tailwind-ui';
 import { useAuth } from '@/bublik/features/auth';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { setErrorsOnForm } from '@/shared/utils';
 
 import { useConfigPageSearchParams, useConfigById } from '../hooks';
@@ -108,9 +109,22 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		}
 	}
 
-	if (error) return <div>Error...</div>;
-	if (isLoading) return <Skeleton className="h-full" />;
-	if (!config) return <div>No Data...</div>;
+	if (error) {
+		return <BublikErrorState error={error} />;
+	}
+
+	if (isLoading) {
+		return <Skeleton className="h-full" />;
+	}
+
+	if (!config) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Configuration is not available"
+			/>
+		);
+	}
 
 	const defaultValues = {
 		name: config.name,

@@ -2,13 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback, useMemo, useRef, useState } from 'react';
 
-import { getErrorMessage, useGetTreeByRunIdQuery } from '@/services/bublik-api';
-import {
-	CardHeader,
-	Icon,
-	Skeleton,
-	TooltipProvider
-} from '@/shared/tailwind-ui';
+import { useGetTreeByRunIdQuery } from '@/services/bublik-api';
+import { CardHeader, Skeleton, TooltipProvider } from '@/shared/tailwind-ui';
+import { BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getTreeOnlyWithErrors } from './utils';
 
@@ -43,25 +39,7 @@ export interface TreeErrorProps {
 }
 
 export const TreeError = ({ error = { status: 400 } }: TreeErrorProps) => {
-	const { status, title, description } = getErrorMessage(error);
-
-	return (
-		<div className="flex items-center w-full h-full p-4">
-			<div className="flex items-start gap-4">
-				<Icon
-					name="TriangleExclamationMark"
-					size={36}
-					className="flex-shrink-0 text-text-unexpected"
-				/>
-				<div>
-					<h2 className="text-lg font-bold">
-						{status} {title}
-					</h2>
-					<p className="text-base">{description}</p>
-				</div>
-			</div>
-		</div>
-	);
+	return <BublikErrorState error={error} iconSize={36} className="h-full" />;
 };
 
 export interface TreeContainerProps {
