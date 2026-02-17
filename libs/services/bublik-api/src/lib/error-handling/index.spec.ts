@@ -1,7 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, it, expect } from 'vitest';
-import { getErrorMessage, isUnifiedError } from './index';
+import {
+	getErrorDetails,
+	getErrorMessage,
+	getErrorViewModel,
+	isUnifiedError
+} from './index';
 
 describe('Unified Error Handling', () => {
 	describe('isUnifiedError', () => {
@@ -107,6 +112,55 @@ describe('Unified Error Handling', () => {
 				title: 'Error',
 				description:
 					'Unexpected server error. Try refreshing and let us know if it keeps happening.'
+			});
+		});
+	});
+
+	describe('getErrorDetails', () => {
+		it('should return details list for array messages', () => {
+			const error = {
+				status: 400,
+				data: { messages: ['Error 1', 'Error 2'] }
+			};
+
+			expect(getErrorDetails(error)).toEqual(['Error 1', 'Error 2']);
+		});
+
+		it('should return flattened details list for object messages', () => {
+			const error = {
+				status: 422,
+				data: {
+					messages: {
+						name: ['Name required'],
+						email: ['Invalid email']
+					}
+				}
+			};
+
+			expect(getErrorDetails(error)).toEqual([
+				'name: Name required',
+				'email: Invalid email'
+			]);
+		});
+	});
+
+	describe('getErrorViewModel', () => {
+		it('should combine parsed error message and details', () => {
+			const error = {
+				status: 422,
+				data: {
+					messages: {
+						name: ['Name required'],
+						email: ['Invalid email']
+					}
+				}
+			};
+
+			expect(getErrorViewModel(error)).toEqual({
+				status: 422,
+				title: 'Validation error',
+				description: 'name: Name required\nemail: Invalid email',
+				details: ['name: Name required', 'email: Invalid email']
 			});
 		});
 	});

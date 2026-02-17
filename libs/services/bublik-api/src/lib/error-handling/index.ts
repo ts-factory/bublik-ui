@@ -19,6 +19,72 @@ import {
 
 export const createBublikError = (config: BublikError): BublikError => config;
 
+const normalizeUnifiedMessages = (
+	messages: string | string[] | Record<string, string | string[]>
+): string[] => {
+	if (typeof messages === 'string') {
+		return [messages];
+	}
+
+	if (Array.isArray(messages)) {
+		return messages;
+	}
+
+	return Object.entries(messages).flatMap(([field, value]) => {
+		if (Array.isArray(value)) {
+			return value.map((message) => `${field}: ${message}`);
+		}
+
+		return [`${field}: ${value}`];
+	});
+};
+
+export const getErrorDetails = (error: unknown): string[] => {
+	if (isUnifiedError(error)) {
+		return normalizeUnifiedMessages(error.data.messages);
+	}
+
+	if (isValidationError(error)) {
+		return Object.entries(error.data.message).flatMap(([field, messages]) =>
+			messages.map((message) => `${field}: ${message}`)
+		);
+	}
+
+	if (isHistoryParsingError(error)) {
+		return error.data.message;
+	}
+
+	if (isBublikApiCustomError(error)) {
+		return [error.data.message];
+	}
+
+	if (isBublikAuthError(error)) {
+		return [error.data.message];
+	}
+
+	if (isBublikError(error)) {
+		return error.description
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
+	}
+
+	return [];
+};
+
+export interface BublikErrorViewModel extends BublikError {
+	details: string[];
+}
+
+export const getErrorViewModel = (error: unknown): BublikErrorViewModel => {
+	const details = getErrorDetails(error);
+
+	return {
+		...getErrorMessage(error),
+		details
+	};
+};
+
 const ZodErrorSchema = z.object({
 	name: z.literal('SchemaError'),
 	message: z.string()
@@ -40,24 +106,20 @@ export const getErrorMessage = (error: unknown): BublikError => {
 	if (isUnifiedError(error)) {
 		const { status, data } = error;
 		const messages = data.messages;
+		const details = normalizeUnifiedMessages(messages);
 
 		let description: string;
 		let title: string;
 
 		if (Array.isArray(messages)) {
 			title = 'Error';
-			description = messages.join(', ');
+			description = details.join(', ');
 		} else if (typeof messages === 'string') {
 			title = 'Error';
 			description = messages;
 		} else {
 			title = 'Validation error';
-			description = Object.entries(messages)
-				.map(
-					([field, error]) =>
-						`${field}: ${Array.isArray(error) ? error.join(', ') : error}`
-				)
-				.join('\n');
+			description = details.join('\n');
 		}
 
 		return {
