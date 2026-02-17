@@ -84,13 +84,13 @@ export const HistoryLegendCountLoading = () => {
 		<div className="flex flex-wrap gap-14">
 			<HistoryLegendCountItemLoading label="Runs" />
 			<HistoryLegendCountItemLoading label="Iterations" />
-			<HistoryLegendCountItemLoading label="Test results" />
+			<HistoryLegendCountItemLoading label="Test Results" />
 			<HistoryLegendCountItemLoading
-				label="Expected results"
+				label="Expected Results"
 				resultType="expected"
 			/>
 			<HistoryLegendCountItemLoading
-				label="Unexpected results"
+				label="Unexpected Results"
 				resultType="unexpected"
 			/>
 		</div>
@@ -118,14 +118,14 @@ export const HistoryLegendCount = (props: HeaderStatsProps) => {
 		<div className="flex flex-wrap gap-14">
 			<HistoryLegendCountItem label="Runs" count={runs} />
 			<HistoryLegendCountItem label="Iterations" count={iterations} />
-			<HistoryLegendCountItem label="Test results" count={results} />
+			<HistoryLegendCountItem label="Test Results" count={results} />
 			<HistoryLegendCountItem
-				label="Expected results"
+				label="Expected Results"
 				count={expected}
 				resultType="expected"
 			/>
 			<HistoryLegendCountItem
-				label="Unexpected results"
+				label="Unexpected Results"
 				count={unexpected}
 				resultType="unexpected"
 			/>
