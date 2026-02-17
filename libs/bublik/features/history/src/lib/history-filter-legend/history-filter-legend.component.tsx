@@ -3,15 +3,7 @@
 import { Badge, BadgeVariants, Icon, IconProps } from '@/shared/tailwind-ui';
 
 const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
-	if (!value || !value.length) {
-		return (
-			<Badge variant={BadgeVariants.Primary} className="bg-primary-wash">
-				<span className="text-[0.6875rem] leading-[0.875rem] text-text-secondary">
-					&#8212;
-				</span>
-			</Badge>
-		);
-	}
+	if (!value) return null;
 
 	if (!Array.isArray(value)) {
 		return (
@@ -22,6 +14,8 @@ const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
 			</Badge>
 		);
 	}
+
+	if (!value.length) return null;
 
 	return (
 		<>

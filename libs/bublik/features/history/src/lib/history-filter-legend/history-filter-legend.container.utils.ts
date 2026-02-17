@@ -6,6 +6,28 @@ import { formatTimeToDot } from '@/shared/utils';
 import { LegendItem } from './history-filter-legend.component';
 import { queryToHistorySearchState } from '../slice/history-slice.utils';
 
+const normalizeLegendItemValue = (
+	value?: LegendItem['value']
+): LegendItem['value'] => {
+	if (!value) return null;
+
+	if (!Array.isArray(value)) {
+		const trimmedValue = value.trim();
+
+		return trimmedValue.length ? trimmedValue : null;
+	}
+
+	const normalizedArray = value
+		.map((item) => item.trim())
+		.filter((item) => item.length > 0);
+
+	return normalizedArray.length ? normalizedArray : null;
+};
+
+const hasLegendItemValue = (item: LegendItem): boolean => {
+	return normalizeLegendItemValue(item.value) !== null;
+};
+
 export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 	const state = queryToHistorySearchState(search);
 
@@ -13,11 +35,11 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		state.startDate.toISOString()
 	)} — ${formatTimeToDot(state.finishDate.toISOString())}`;
 
-	return [
+	const items: LegendItem[] = [
 		{
 			iconName: 'Paper',
 			iconSize: 24,
-			label: 'Test name',
+			label: 'Test Name',
 			value: state.testName
 		},
 		{
@@ -35,7 +57,7 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'BoxCheckmark',
 			iconSize: 24,
-			label: 'Obtained result',
+			label: 'Obtained Result',
 			value: state.results
 		},
 		{
@@ -47,7 +69,7 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Branches expression',
+			label: 'Branches Expression',
 			value: state.branchExpr
 		},
 		{
@@ -59,13 +81,13 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Revision expressions',
+			label: 'Revision Expression',
 			value: state.revisionExpr
 		},
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Tags expressions',
+			label: 'Tags Expression',
 			value: state.tagExpr
 		},
 		{
@@ -77,25 +99,25 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Result type classification',
+			label: 'Result Type Classification',
 			value: state.resultProperties
 		},
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Verdict mode',
+			label: 'Verdict Mode',
 			value: state.verdictLookup
 		},
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Verdict value',
+			label: 'Verdict Value',
 			value: state.verdict
 		},
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Verdict expressions',
+			label: 'Verdict Expression',
 			value: state.verdictExpr
 		},
 		{
@@ -107,8 +129,15 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Parameters expression',
+			label: 'Parameters Expression',
 			value: state.testArgExpr
 		}
 	];
+
+	return items
+		.map((item) => ({
+			...item,
+			value: normalizeLegendItemValue(item.value)
+		}))
+		.filter(hasLegendItemValue);
 };
