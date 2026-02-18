@@ -43,7 +43,7 @@ exports[`LoginForm > should match snapshot 1`] = `
           </label>
           <input
             autocomplete="off"
-            class="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent placeholder:text-text-menu font-medium text-[0.875rem]"
+            class="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem]"
             data-testid="input"
             id="email"
             name="email"
@@ -69,7 +69,7 @@ exports[`LoginForm > should match snapshot 1`] = `
           </label>
           <input
             autocomplete="off"
-            class="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent placeholder:text-text-menu font-medium text-[0.875rem]"
+            class="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem]"
             data-testid="input"
             id="password"
             name="password"
