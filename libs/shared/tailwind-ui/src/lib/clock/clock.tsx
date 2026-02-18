@@ -20,7 +20,7 @@ export const Clock = forwardRef<HTMLButtonElement, ClockProps>(
 		return (
 			<button
 				className={cn(
-					'flex items-center justify-center gap-1 border border-border-primary rounded-md px-3 py-[7px] hover:bg-gray-50 transition-colors w-28',
+					'flex items-center justify-center gap-1 border-y border-l border-border-primary rounded-md px-3 py-[7px] transition-colors w-28',
 					className
 				)}
 				{...props}
