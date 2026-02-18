@@ -39,7 +39,7 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'Paper',
 			iconSize: 24,
-			label: 'Test Name',
+			label: 'Test Path',
 			value: state.testName
 		},
 		{

@@ -78,7 +78,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...direct.testName}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name</span>
+							<span>Test Path</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -90,7 +90,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...direct.testNameAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Verdicts</span>
+							<span>Test Path + Verdicts</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -102,7 +102,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...direct.testNameAndParameters}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters</span>
+							<span>Test Path + Parameters</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -115,7 +115,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 						<LinkWithProject {...direct.testNameAndParametersAndImportantTags}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>
-								Test Name + Parameters + Important Tags{' '}
+								Test Path + Parameters + Important Tags{' '}
 								<strong>(Default)</strong>
 							</span>
 						</LinkWithProject>
@@ -129,7 +129,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...direct.testNameAndParametersAndAllTags}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + All Tags</span>
+							<span>Test Path + Parameters + All Tags</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -144,7 +144,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...prefilled.testNameAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Verdicts</span>
+							<span>Test Path + Verdicts</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -156,7 +156,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject {...prefilled.testNameAndParametersAndVerdicts}>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + Verdicts</span>
+							<span>Test Path + Parameters + Verdicts</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>
@@ -170,7 +170,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 							{...prefilled.testNameAndParametersAndImportantTags}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
-							<span>Test Name + Parameters + Important Tags</span>
+							<span>Test Path + Parameters + Important Tags</span>
 						</LinkWithProject>
 					</SplitButton.Item>
 				</Tooltip>

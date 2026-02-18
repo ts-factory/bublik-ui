@@ -40,7 +40,7 @@ export const TestSection = (props: TestSectionProps) => {
 				<div className="grid gap-4 md:grid-cols-2">
 					<TextField
 						name="testName"
-						label="Test Name"
+						label="Test Path"
 						type="text"
 						placeholder="default_buff"
 						showEndOnMount
