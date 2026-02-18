@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentPropsWithRef, forwardRef } from 'react';
+import { ComponentPropsWithRef, forwardRef, useRef } from 'react';
+import { mergeRefs } from '@react-aria/utils';
+
+import { useMount } from '@/shared/hooks';
 
 import { cva, cn } from '../utils';
 import { ErrorMessage } from '../error-message';
@@ -25,7 +28,7 @@ const inputStyles = cva({
 		'focus:shadow-text-field',
 		'active:shadow-none',
 		'focus:ring-transparent',
-		'placeholder:text-text-menu',
+		'placeholder:text-text-menu placeholder:font-normal',
 		'leading-[1.5rem] font-medium text-[0.875rem]'
 	]
 });
@@ -49,10 +52,31 @@ const inputStyle = (props: Pick<InputProps, 'error'>) => {
 export interface InputProps extends ComponentPropsWithRef<'input'> {
 	label?: string;
 	error?: string;
+	showEndOnMount?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
-	const { name, label, error, className, disabled, ...rest } = props;
+	const { name, label, error, className, disabled, showEndOnMount, ...rest } =
+		props;
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	useMount(() => {
+		if (!showEndOnMount || !inputRef.current) {
+			return;
+		}
+
+		const inputElement = inputRef.current;
+
+		try {
+			const valueLength = inputElement.value.length;
+
+			inputElement.setSelectionRange(valueLength, valueLength);
+		} catch {
+			// no-op for input types that do not support selection ranges
+		}
+
+		inputElement.scrollLeft = inputElement.scrollWidth;
+	});
 
 	return (
 		<div className="relative">
@@ -77,7 +101,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
 					spellCheck="false"
 					name={name}
 					{...rest}
-					ref={ref}
+					ref={mergeRefs(inputRef, ref)}
 					data-testid="input"
 				/>
 				{error && (
