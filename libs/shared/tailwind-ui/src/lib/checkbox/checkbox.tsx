@@ -31,6 +31,8 @@ const SimpleCheckbox = forwardRef<HTMLButtonElement, SimpleCheckboxProps>(
 	(props, ref) => {
 		const checked = props.checked;
 
+		const controlId = props.id ?? props.name;
+
 		return (
 			<div className="flex items-center">
 				<RadixCheckbox.Root
@@ -68,7 +70,7 @@ const SimpleCheckbox = forwardRef<HTMLButtonElement, SimpleCheckboxProps>(
 						)}
 					</RadixCheckbox.Indicator>
 				</RadixCheckbox.Root>
-				<label htmlFor={props.name} className="pl-2">
+				<label htmlFor={controlId} className="pl-2">
 					{props.label}
 				</label>
 			</div>
@@ -107,11 +109,12 @@ type BoxedCheckboxProps = RadixCheckbox.CheckboxProps & {
 	label: string;
 	iconName: IconProps['name'];
 	iconSize: IconProps['size'];
+	iconClassName?: string;
 };
 
 const BoxedCheckbox = forwardRef<HTMLButtonElement, BoxedCheckboxProps>(
 	(props, ref) => {
-		const { iconName, iconSize, label, ...restProps } = props;
+		const { iconName, iconSize, label, iconClassName, ...restProps } = props;
 
 		return (
 			<RadixCheckbox.Root
@@ -122,15 +125,15 @@ const BoxedCheckbox = forwardRef<HTMLButtonElement, BoxedCheckboxProps>(
 				data-testid="tw-checkbox"
 				ref={ref}
 			>
-				<RadixCheckbox.CheckboxIndicator forceMount className={iconStyles()}>
+				<RadixCheckbox.CheckboxIndicator
+					forceMount
+					className={cn(iconStyles(), iconClassName)}
+				>
 					<Icon name={iconName} size={iconSize} />
 				</RadixCheckbox.CheckboxIndicator>
-				<label
-					htmlFor={props.id}
-					className="text-[0.75rem] font-medium leading-[0.875rem]"
-				>
+				<span className="pointer-events-none text-[0.75rem] font-medium leading-[0.875rem]">
 					{label}
-				</label>
+				</span>
 			</RadixCheckbox.Root>
 		);
 	}
