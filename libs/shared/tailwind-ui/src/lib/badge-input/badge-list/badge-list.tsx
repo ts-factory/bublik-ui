@@ -39,7 +39,7 @@ export interface BadgeProps {
 export const Badge = ({ badge, listRef }: BadgeProps) => {
 	return (
 		<EditPopover badge={badge} listRef={listRef}>
-			<li className="relative inline-flex items-center py-0.5 px-1 rounded bg-badge-0 text-[0.875rem] font-medium leading-[1.125rem]">
+			<li className="relative inline-flex items-center py-0.5 px-1 rounded bg-badge-0 text-[0.7875rem] font-medium leading-[1.125rem]">
 				{badge.value}
 			</li>
 		</EditPopover>

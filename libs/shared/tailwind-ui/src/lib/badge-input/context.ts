@@ -6,7 +6,7 @@ import { BadgeItem } from './types';
 
 export interface BadgeInputContext {
 	onDeleteClick: (badgeIdToDelete: string) => void;
-	onBadgeEdit: (editedBadge: BadgeItem, newValue: string) => void;
+	onBadgeEdit: (badgeToEdit: BadgeItem) => void;
 }
 
 export const BadgeInputContext = createContext<BadgeInputContext | null>(null);

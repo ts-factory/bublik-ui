@@ -26,17 +26,29 @@ import { cn } from '../utils';
 
 export interface BadgeInputProps {
 	label?: string;
+	labelTrailingContent?: ReactNode;
 	onBadgesChange?: (badges: BadgeItem[]) => void;
 	badges?: BadgeItem[];
 	placeholder?: string;
 	disabled?: boolean;
 	icon?: ReactNode;
+	trailingContent?: ReactNode;
 	name?: string;
 }
 
 export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 	(
-		{ label, onBadgesChange, badges = [], placeholder, icon, disabled, name },
+		{
+			label,
+			labelTrailingContent,
+			onBadgesChange,
+			badges = [],
+			placeholder,
+			icon,
+			trailingContent,
+			disabled,
+			name
+		},
 		ref
 	) => {
 		const [value, setValue] = useState('');
@@ -121,16 +133,10 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
     */
 
 		const handleBadgeEdit = useCallback(
-			(editedBadge: BadgeItem, newValue: string) => {
-				const copyArr = badges.slice();
-
-				const indexOfItem = copyArr.findIndex(
-					(badge) => badge.id === editedBadge.id
-				);
-
-				copyArr[indexOfItem] = { ...copyArr[indexOfItem], value: newValue };
-
-				onBadgesChange?.(copyArr.filter((badge) => badge.value));
+			(badgeToEdit: BadgeItem) => {
+				setValue(badgeToEdit.value);
+				onBadgesChange?.(badges.filter((badge) => badge.id !== badgeToEdit.id));
+				queueMicrotask(() => inputRef.current?.focus());
 			},
 			[onBadgesChange, badges]
 		);
@@ -175,6 +181,11 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 							{label}
 						</InputLabel>
 					) : null}
+					{labelTrailingContent ? (
+						<div className="absolute -top-3 right-2 flex items-center bg-white px-1">
+							{labelTrailingContent}
+						</div>
+					) : null}
 					{icon ? (
 						<div className="grid pl-2 place-items-center text-primary">
 							{icon}
@@ -184,7 +195,7 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 					<div className="flex flex-wrap flex-grow h-full">
 						{!disabled ? <BadgeList label={label} badges={badges} /> : null}
 						<input
-							className="flex w-full outline-none disabled:bg-bg-body pr-2 pl-4 py-2 cursor-[inherit] bg-transparent placeholder:text-text-menu border-none text-text-secondary leading-[1.5rem] font-medium text-[0.875rem] focus:ring-transparent"
+							className="flex w-full outline-none placeholder:font-normal disabled:bg-bg-body pr-2 pl-4 py-2 cursor-[inherit] bg-transparent placeholder:text-text-menu border-none text-text-secondary leading-[1.5rem] font-medium text-[0.875rem] focus:ring-transparent"
 							value={value}
 							id={label}
 							onChange={handleChange}
@@ -199,6 +210,11 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 							autoComplete="off"
 						/>
 					</div>
+					{trailingContent ? (
+						<div className="flex h-full shrink-0 items-center border-l border-border-primary px-1.5">
+							{trailingContent}
+						</div>
+					) : null}
 				</div>
 			</BadgeInputContext.Provider>
 		);
