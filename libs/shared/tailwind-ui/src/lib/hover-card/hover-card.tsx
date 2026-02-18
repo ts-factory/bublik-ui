@@ -50,7 +50,7 @@ export const HoverCard = (props: HoverCardProps) => {
 
 			<RadixHoverCard.Portal container={container}>
 				<RadixHoverCard.Content
-					className={hoverCardContentStyles({ className: 'p-1' })}
+					className={hoverCardContentStyles()}
 					side={side}
 					sideOffset={sideOffset}
 					align={align}
