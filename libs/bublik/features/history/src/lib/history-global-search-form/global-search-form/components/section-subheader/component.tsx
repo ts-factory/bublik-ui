@@ -10,8 +10,10 @@ export const FormSectionSubheader: FC<FormSectionSubheaderProps> = ({
 	name
 }) => {
 	return (
-		<div className="mb-2">
-			<span className="text-[0.6875rem] leading-[0.875rem]">{name}</span>
+		<div className="mb-3">
+			<span className="inline-flex pl-2 text-[0.75rem] font-semibold uppercase leading-[0.875rem] tracking-[0.1em] text-text-menu">
+				{name}
+			</span>
 		</div>
 	);
 };

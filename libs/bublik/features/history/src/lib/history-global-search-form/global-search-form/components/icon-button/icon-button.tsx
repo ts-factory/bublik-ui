@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps } from 'react';
+import { ComponentProps, MouseEventHandler } from 'react';
 
 import { cn, Icon, Tooltip } from '@/shared/tailwind-ui';
 
-export type IconButtonProps = ComponentProps<typeof Icon> & {
-	onClick: () => void;
+export type IconButtonProps = Omit<ComponentProps<typeof Icon>, 'onClick'> & {
+	onClick: MouseEventHandler<HTMLButtonElement>;
 	helpMessage: string;
 };
 
@@ -20,7 +20,7 @@ export const IconButton = ({
 		<Tooltip content={helpMessage}>
 			<button
 				className={cn(
-					'rounded text-bg-compromised hover:bg-primary-wash hover:text-primary p-0.5 transition-colors',
+					'inline-flex h-7 w-7 items-center justify-center rounded-md text-text-menu hover:bg-primary-wash hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
 					className
 				)}
 				onClick={onClick}

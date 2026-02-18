@@ -41,7 +41,12 @@ export const HistoryGlobalSearchFormButton = (
 	return (
 		<DrawerRoot open={isGlobalSearchOpen} onOpenChange={onOpenChange}>
 			<DrawerTrigger asChild>
-				<ButtonTw variant="outline" size="md" rounded="lg">
+				<ButtonTw
+					variant="outline"
+					size="md"
+					rounded="lg"
+					className="border-border-primary bg-white hover:border-primary hover:bg-primary-wash"
+				>
 					<div className="flex items-center gap-2">
 						<Icon name="GlobalSearch" className="grid place-items-center" />
 						<span className="text-[0.875rem] leading-[1.5rem]">

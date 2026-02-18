@@ -28,6 +28,16 @@ export const useHistoryGlobalSearchForm = (
 	});
 
 	const resetTestSection = () => {
+		methods.reset({
+			...methods.getValues(),
+			testName: '',
+			hash: '',
+			parameters: [],
+			testArgExpr: ''
+		});
+	};
+
+	const resetTestSectionToDefault = () => {
 		methods.reset({ ...methods.getValues(), hash: '', parameters: [] });
 	};
 
@@ -39,6 +49,23 @@ export const useHistoryGlobalSearchForm = (
 	}, [config, methods]);
 
 	const resetRunSection = () => {
+		methods.reset({
+			...methods.getValues(),
+			dates: undefined,
+			revisions: [],
+			revisionExpr: '',
+			runData: [],
+			runIds: '',
+			branchExpr: '',
+			labelExpr: '',
+			labels: [],
+			branches: [],
+			tagExpr: '',
+			runProperties: []
+		});
+	};
+
+	const resetRunSectionToDefault = () => {
 		methods.reset({
 			...methods.getValues(),
 			revisions: [],
@@ -53,7 +80,15 @@ export const useHistoryGlobalSearchForm = (
 		});
 	};
 
-	const resetVerdictSection = () => {
+	const resetResultSection = () => {
+		methods.reset({
+			...methods.getValues(),
+			results: [],
+			resultProperties: []
+		});
+	};
+
+	const resetResultSectionToDefault = () => {
 		methods.reset({
 			...methods.getValues(),
 			results: HISTORY_CONSTANTS.results,
@@ -66,10 +101,29 @@ export const useHistoryGlobalSearchForm = (
 		});
 	};
 
+	const resetVerdictSection = () => {
+		methods.reset({
+			...methods.getValues(),
+			verdict: [],
+			verdictLookup: VERDICT_TYPE.None,
+			verdictExpr: ''
+		});
+	};
+
+	const resetVerdictSectionToDefault = () => {
+		methods.reset({
+			...methods.getValues(),
+			verdict: [],
+			verdictLookup: VERDICT_TYPE.String,
+			verdictExpr: ''
+		});
+	};
+
 	const resetForm = () => {
-		resetTestSection();
-		resetRunSection();
-		resetVerdictSection();
+		resetTestSectionToDefault();
+		resetRunSectionToDefault();
+		resetResultSectionToDefault();
+		resetVerdictSectionToDefault();
 	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
@@ -79,9 +133,14 @@ export const useHistoryGlobalSearchForm = (
 	return {
 		methods,
 		resetForm,
+		resetResultSection,
+		resetResultSectionToDefault,
 		resetRunSection,
+		resetRunSectionToDefault,
 		resetTestSection,
+		resetTestSectionToDefault,
 		resetVerdictSection,
+		resetVerdictSectionToDefault,
 		handleKeyDown
 	};
 };
@@ -96,7 +155,12 @@ export const useCtrlEnterSubmit = (config: UseCtrlEnterSubmitConfig) => {
 
 	useEffect(() => {
 		const handleSubmitShortcut = (e: globalThis.KeyboardEvent) => {
-			if (e.key === 'Enter' && e.ctrlKey) methods.handleSubmit(onSubmit)();
+			if (e.key !== 'Enter') return;
+			if (!e.ctrlKey && !e.metaKey) return;
+			if (e.isComposing || e.repeat) return;
+
+			e.preventDefault();
+			methods.handleSubmit(onSubmit)();
 		};
 
 		document?.addEventListener('keydown', handleSubmitShortcut);

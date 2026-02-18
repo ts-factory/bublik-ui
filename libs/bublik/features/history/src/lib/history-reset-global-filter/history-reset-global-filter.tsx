@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
-import { ButtonTw } from '@/shared/tailwind-ui';
+import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { PROJECT_KEY } from '@/bublik/features/projects';
 
 import {
@@ -52,7 +52,8 @@ export const HistoryResetGlobalFilterContainer = () => {
 			rounded="lg"
 			onClick={handleResetClick}
 		>
-			Reset Filter
+			<Icon name="Refresh" className="size-6 -scale-x-90 mr-1.5" />
+			<span>Reset Filter</span>
 		</ButtonTw>
 	);
 };

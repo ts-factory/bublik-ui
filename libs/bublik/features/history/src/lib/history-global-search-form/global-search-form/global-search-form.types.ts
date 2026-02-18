@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { z } from 'zod';
 
 import { BadgeItem } from '@/shared/tailwind-ui';
@@ -12,16 +12,16 @@ import {
 
 export const ValidationSchema = z
 	.object({
-		testName: z.string().min(1, { message: 'Test name is required!' }),
+		testName: z.string().min(1, { message: 'Test name is required' }),
 		runProperties: z
 			.array(z.string())
-			.min(1, { message: 'Please specify is run compromised or not' }),
+			.min(1, { message: 'Select at least one run property option' }),
 		resultProperties: z
 			.array(z.string())
-			.min(1, { message: 'Please specify result type' }),
+			.min(1, { message: 'Select at least one result type classification' }),
 		results: z
 			.array(z.string())
-			.min(1, { message: 'Please specify obtained results' })
+			.min(1, { message: 'Select at least one obtained result type' })
 	})
 	.catchall(z.any());
 
@@ -29,7 +29,7 @@ export interface HistoryGlobalSearchFormValues {
 	testName: string;
 	hash: string;
 	parameters: BadgeItem[];
-	dates: { startDate: Date; endDate: Date };
+	dates?: { startDate: Date; endDate: Date };
 	runData: BadgeItem[];
 	runIds: string;
 	tagExpr: string;

@@ -188,6 +188,11 @@ export const historySearchStateToQuery = (
 export const formToSearchState = (
 	form: HistoryGlobalSearchFormValues
 ): Omit<HistorySearchFormState, 'page' | 'pageSize'> => {
+	const dates = form.dates ?? {
+		startDate: DEFAULT_HISTORY_START_DATE,
+		endDate: DEFAULT_HISTORY_END_DATE
+	};
+
 	return {
 		labels: badgeItemToArray(form.labels),
 		labelExpr: form.labelExpr,
@@ -198,8 +203,8 @@ export const formToSearchState = (
 		revisions: badgeItemToArray(form.revisions),
 		branches: badgeItemToArray(form.branches),
 		/* Run section */
-		startDate: form.dates.startDate,
-		finishDate: form.dates.endDate,
+		startDate: dates.startDate,
+		finishDate: dates.endDate,
 		runData: badgeItemToArray(form.runData),
 		runIds: form.runIds.split(config.queryDelimiter),
 		tagExpr: form.tagExpr,

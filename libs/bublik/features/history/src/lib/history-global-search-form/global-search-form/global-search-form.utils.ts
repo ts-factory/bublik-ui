@@ -66,10 +66,10 @@ export const convertHistoryFormToQuery = (
 	const [simpleVerdicts] = badgesToValues(verdict);
 	const [simpleLabels] = badgesToValues(labels);
 
-	const startDate = dates.startDate
+	const startDate = dates?.startDate
 		? format(dates.startDate, API_DATE_FORMAT)
 		: '';
-	const finishDate = dates.endDate
+	const finishDate = dates?.endDate
 		? format(dates.endDate, API_DATE_FORMAT)
 		: '';
 
@@ -109,6 +109,7 @@ export const getInitialGlobalSearch = (
 		runData: queryRunData,
 		startDate: queryStartDate,
 		finishDate: queryFinishDate,
+		runIds: queryRunIds,
 		runProperties: queryRunProperties,
 		resultProperties: queryResultProperties,
 		results: queryResults,
@@ -151,6 +152,7 @@ export const getInitialGlobalSearch = (
 		testArgExpr,
 		verdictExpr,
 		runData,
+		runIds: queryRunIds ?? '',
 		dates: { startDate, endDate },
 		tagExpr: queryRunDataExpr ?? '',
 		runProperties: split(queryRunProperties, HISTORY_CONSTANTS.runProperties),

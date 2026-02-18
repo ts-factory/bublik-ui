@@ -123,7 +123,7 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 		{
 			iconName: 'PaperShort',
 			iconSize: 24,
-			label: 'Label expressions',
+			label: 'Label Expression',
 			value: state.labelExpr
 		},
 		{
