@@ -4,13 +4,17 @@ import { z } from 'zod';
 import {
 	NavigateOptions,
 	To,
+	useLocation,
 	useNavigate,
 	useSearchParams
 } from 'react-router-dom';
 
 import { bublikAPI } from '@/services/bublik-api';
-
 import { PROJECT_KEY } from '../constants';
+import {
+	mergeParamsWithSidebarState,
+	mergeStringUrlWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -39,23 +43,37 @@ function useProjectSearch() {
 function useNavigateWithProject() {
 	const { projectIds } = useProjectSearch();
 	const _navigate = useNavigate();
+	const location = useLocation();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
-		const params =
-			typeof to.search === 'string'
-				? new URLSearchParams(to.search)
-				: new URLSearchParams();
-
-		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
+		const freshSearchParams = new URLSearchParams(location.search);
 
 		if (typeof to === 'string') {
-			_navigate(to, options);
-		} else {
-			_navigate(
-				{ pathname: to.pathname, search: params.toString(), hash: to.hash },
-				options
+			const finalTo = mergeStringUrlWithSidebarState(
+				to,
+				freshSearchParams,
+				projectIds
 			);
+			_navigate(finalTo, options);
+			return;
 		}
+
+		const targetParams = new URLSearchParams(to.search || '');
+
+		const mergedParams = mergeParamsWithSidebarState(
+			targetParams,
+			freshSearchParams,
+			projectIds
+		);
+
+		_navigate(
+			{
+				pathname: to.pathname,
+				search: mergedParams.toString(),
+				hash: to.hash
+			},
+			options
+		);
 	};
 
 	return navigate;

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactElement } from 'react';
+import { ReactNode } from 'react';
 import { z } from 'zod';
 
 import { DashboardCellData } from '@/shared/types';
@@ -14,6 +14,18 @@ import { getUrl } from '../../utils';
 
 const UNEXPECTED_COLUMN_KEY = 'unexpected';
 const PATH_TO_RUN = 'runs';
+
+function getUnexpectedNavigationState(openUnexpectedResults = false) {
+	const openUnexpectedIntentId = `${Date.now()}-${Math.random()
+		.toString(36)
+		.slice(2)}`;
+
+	if (openUnexpectedResults) {
+		return { openUnexpectedResults: true, openUnexpectedIntentId };
+	}
+
+	return { openUnexpected: true, openUnexpectedIntentId };
+}
 
 export const linkStyles = cva({
 	base: [
@@ -100,21 +112,25 @@ function LinkToRun(props: LinkToRunProps) {
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				to={to}
-				state={{ openUnexpected: true }}
+				state={getUnexpectedNavigationState()}
 				onClick={(e) => {
 					e.preventDefault();
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState(true)
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate(to, { state: getUnexpectedNavigationState() });
 					}
 				}}
 				onContextMenu={(e) => {
 					e.preventDefault();
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState(true)
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate(to, { state: getUnexpectedNavigationState() });
 					}
 				}}
 				className={cn(linkStyles(), bgColor)}
@@ -151,7 +167,7 @@ function AbsoluteLink(props: AbsoluteLinkProps) {
 
 interface LinkHintCardProps {
 	destination?: string;
-	children: ReactElement;
+	children: ReactNode;
 }
 
 function LinkHintCard({ destination, children }: LinkHintCardProps) {

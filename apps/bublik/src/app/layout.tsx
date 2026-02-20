@@ -3,11 +3,11 @@
 import { PropsWithChildren, Suspense } from 'react';
 
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
-import { Sidebar } from '@/bublik/features/sidebar';
+import { SidebarContainer } from './sidebar-container';
 
 export const Layout = (props: PropsWithChildren) => {
 	return (
-		<AppShell sidebar={<Sidebar />}>
+		<AppShell sidebar={<SidebarContainer />}>
 			<ErrorBoundary>
 				<Suspense fallback={<Spinner className="h-screen" />}>
 					{props.children}

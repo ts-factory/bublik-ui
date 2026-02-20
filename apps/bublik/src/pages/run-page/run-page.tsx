@@ -1,13 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
 	GlobalRequirementsProvider,
-	RunTableContainer
+	RunTableContainer,
+	useRunSidebarState
 } from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
@@ -66,7 +67,15 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 
 export const RunPage = () => {
 	const { runId } = useParams<RunPageParams>();
+	const location = useLocation();
+	const { setLastVisited } = useRunSidebarState();
 	usePrefetchLogPage({ runId });
+
+	useEffect(() => {
+		if (runId) {
+			setLastVisited('details', location.pathname + location.search, runId);
+		}
+	}, [runId, location.pathname, location.search, setLastVisited]);
 
 	if (!runId) {
 		return <BublikEmptyState title="No data" description="Run ID is missing" />;

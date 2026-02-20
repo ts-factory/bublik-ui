@@ -1,13 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
+import { matchPath, useLocation } from 'react-router-dom';
 
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { parseDetailDate } from '@/shared/utils';
 
 import { useRunsSelection } from '../hooks';
+import { useRunsSidebarState } from '../sidebar';
 import {
 	SelectedResultItem,
 	SelectionPopover
@@ -66,12 +69,36 @@ export const SelectedResultItemContainer: FC<
 };
 
 export const SelectionPopoverContainer = () => {
+	const location = useLocation();
+	const navigateWithProject = useNavigateWithProject();
 	const { compareIds, resetSelect } = useRunsSelection();
+	const { lastListUrl } = useRunsSidebarState();
+	const [shouldRedirectToRuns, setShouldRedirectToRuns] = useState(false);
+
+	const handleResetClick = useCallback(() => {
+		const isComparePage = !!matchPath('/compare', location.pathname);
+		const isMultiplePage = !!matchPath('/multiple', location.pathname);
+
+		if (isComparePage || isMultiplePage) {
+			setShouldRedirectToRuns(true);
+		}
+
+		resetSelect();
+	}, [location.pathname, resetSelect]);
+
+	useEffect(() => {
+		if (!shouldRedirectToRuns || compareIds.length > 0) {
+			return;
+		}
+
+		navigateWithProject(lastListUrl || '/runs', { replace: true });
+		setShouldRedirectToRuns(false);
+	}, [compareIds.length, lastListUrl, navigateWithProject, shouldRedirectToRuns]);
 
 	return (
 		<SelectionPopover
 			compareIds={compareIds}
-			onResetClick={resetSelect}
+			onResetClick={handleResetClick}
 			renderItem={(runId) => <SelectedResultItemContainer runId={runId} />}
 		/>
 	);

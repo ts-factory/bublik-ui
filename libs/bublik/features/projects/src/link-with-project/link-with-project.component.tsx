@@ -1,30 +1,20 @@
 import { ComponentPropsWithRef, forwardRef, Ref, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { useProjectSearch } from '../hooks';
-import { PROJECT_KEY } from '../constants';
+import {
+	mergeParamsWithSidebarState,
+	mergeStringUrlWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 export type LinkWithProjectProps = ComponentPropsWithRef<typeof Link>;
 
 function getToFromString(
 	to: string,
-	searchParamsWithProject: URLSearchParams
+	currentSearchParams: URLSearchParams,
+	projectIds: number[]
 ): string {
-	if (to.includes('?')) {
-		const split = to.split('?');
-
-		const pathname = split?.[0];
-		const searchStr = split?.[1];
-
-		const rawParams = new URLSearchParams(searchStr);
-		rawParams.delete(PROJECT_KEY);
-		const projectParams = searchParamsWithProject.getAll(PROJECT_KEY);
-		projectParams.forEach((id) => rawParams.append(PROJECT_KEY, id));
-
-		return `${pathname}?${rawParams.toString()}`;
-	}
-
-	return to;
+	return mergeStringUrlWithSidebarState(to, currentSearchParams, projectIds);
 }
 
 function LinkWithProjectImpl(
@@ -32,28 +22,26 @@ function LinkWithProjectImpl(
 	ref: Ref<HTMLAnchorElement>
 ) {
 	const { projectIds } = useProjectSearch();
+	const [currentSearchParams] = useSearchParams();
 
-	const searchParams = useMemo<URLSearchParams>(() => {
-		const params =
-			typeof to === 'string'
-				? new URLSearchParams()
-				: new URLSearchParams(to.search);
+	const finalTo = useMemo(() => {
+		if (typeof to === 'string') {
+			return getToFromString(to, currentSearchParams, projectIds);
+		}
 
-		params.delete(PROJECT_KEY);
+		const targetParams = new URLSearchParams(to.search || '');
+		const mergedParams = mergeParamsWithSidebarState(
+			targetParams,
+			currentSearchParams,
+			projectIds
+		);
 
-		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
-
-		return params;
-	}, [projectIds, to]);
-
-	const finalTo =
-		typeof to === 'string'
-			? getToFromString(to, searchParams)
-			: {
-					pathname: to.pathname,
-					search: searchParams.toString(),
-					hash: to.hash
-			  };
+		return {
+			pathname: to.pathname,
+			search: mergedParams.toString(),
+			hash: to.hash
+		};
+	}, [to, currentSearchParams, projectIds]);
 
 	return (
 		<Link to={finalTo} {...props} ref={ref}>
