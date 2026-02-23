@@ -10,6 +10,11 @@ import {
 } from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
 
+import {
+	formatKeyValueForDisplay,
+	normalizeKeyValueForSubmit
+} from '@/shared/utils';
+
 import { Badge } from '../badge';
 import { ButtonTw } from '../button';
 import {
@@ -34,8 +39,25 @@ export type BoxValue = {
 	groupLabel?: string;
 };
 
+export interface KeyValueDelimiterProps {
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
+}
+
 const normalizeInputValue = (value: string) =>
 	value.trim().replace(/\s+/g, ' ');
+
+const normalizeBoxValue = (rawValue: string, props: KeyValueDelimiterProps) =>
+	normalizeKeyValueForSubmit(normalizeInputValue(rawValue), {
+		displayDelimiter: props.keyValueDisplayDelimiter,
+		submitDelimiter: props.keyValueSubmitDelimiter
+	});
+
+const formatBoxValue = (value: string, props: KeyValueDelimiterProps) =>
+	formatKeyValueForDisplay(value, {
+		displayDelimiter: props.keyValueDisplayDelimiter,
+		submitDelimiter: props.keyValueSubmitDelimiter
+	});
 
 const normalizeForMatch = (value: string) =>
 	normalizeInputValue(value).toLowerCase();
@@ -43,11 +65,20 @@ const normalizeForMatch = (value: string) =>
 const updateSelection = <T extends BoxValue>(
 	values: T[],
 	targetValue: string,
-	isSelected: boolean
-): T[] =>
-	values.map((box) =>
-		box.value === targetValue ? ({ ...box, isSelected } as T) : box
+	isSelected: boolean,
+	props: KeyValueDelimiterProps
+): T[] => {
+	const normalizedTargetValue = normalizeForMatch(
+		normalizeBoxValue(targetValue, props)
 	);
+
+	return values.map((box) =>
+		normalizeForMatch(normalizeBoxValue(box.value, props)) ===
+		normalizedTargetValue
+			? ({ ...box, isSelected } as T)
+			: box
+	);
+};
 
 const clearSelection = <T extends BoxValue>(values: T[]): T[] =>
 	values.map((box) =>
@@ -99,6 +130,8 @@ export interface FancyBoxProps {
 	startIcon?: ReactNode;
 	/** End icon for trigger button */
 	endIcon?: ReactNode;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 	/** Button size */
 	size?: 'xss' | 'xs/2' | 'md';
 	/** Group label for newly created values */
@@ -118,10 +151,16 @@ export const TagsBoxInput = ({
 	valueLabel,
 	values,
 	onChange,
+	keyValueDisplayDelimiter,
+	keyValueSubmitDelimiter,
 	size = 'md',
 	createdGroupLabel,
 	groupOrder
 }: FancyBoxProps) => {
+	const delimiterProps: KeyValueDelimiterProps = {
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	};
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [openCombobox, setOpenCombobox] = useState(false);
 	const [inputValue, setInputValue] = useState('');
@@ -161,13 +200,18 @@ export const TagsBoxInput = ({
 			return 0;
 		});
 	}, [groupOrder, values]);
-	const normalizedInputValue = normalizeInputValue(inputValue);
+	const normalizedInputValue = normalizeBoxValue(
+		inputValue,
+		delimiterProps
+	).trim();
 	const normalizedValueLabel = (valueLabel || label).toLowerCase();
+	const normalizedInputMatch = normalizeForMatch(normalizedInputValue);
 	const hasNormalizedMatch = values.some(
 		(box) =>
-			normalizeForMatch(box.value) ===
-				normalizeForMatch(normalizedInputValue) ||
-			normalizeForMatch(box.label) === normalizeForMatch(normalizedInputValue)
+			normalizeForMatch(normalizeBoxValue(box.value, delimiterProps)) ===
+				normalizedInputMatch ||
+			normalizeForMatch(normalizeBoxValue(box.label, delimiterProps)) ===
+				normalizedInputMatch
 	);
 	const canCreate = normalizedInputValue.length > 0 && !hasNormalizedMatch;
 
@@ -183,12 +227,14 @@ export const TagsBoxInput = ({
 	};
 
 	const handleToggle = (box: BoxValue) => {
-		handleChange(updateSelection(values, box.value, !box.isSelected));
+		handleChange(
+			updateSelection(values, box.value, !box.isSelected, delimiterProps)
+		);
 		focusInput();
 	};
 
 	const handleRemove = (box: BoxValue) => {
-		handleChange(updateSelection(values, box.value, false));
+		handleChange(updateSelection(values, box.value, false, delimiterProps));
 		focusInput();
 	};
 
@@ -199,7 +245,7 @@ export const TagsBoxInput = ({
 			...values,
 			{
 				value: normalizedInputValue,
-				label: normalizedInputValue,
+				label: formatBoxValue(normalizedInputValue, delimiterProps),
 				isSelected: true,
 				groupLabel: createdGroupLabel || valueLabel || label
 			}
@@ -277,7 +323,9 @@ export const TagsBoxInput = ({
 												box.className
 											)}
 										>
-											<span className="truncate">{box.label}</span>
+											<span className="truncate">
+												{formatBoxValue(box.label, delimiterProps)}
+											</span>
 										</Badge>
 									))
 								)}
@@ -340,13 +388,16 @@ export const TagsBoxInput = ({
 										box.className
 									)}
 								>
-									<span>{box.label}</span>
+									<span>{formatBoxValue(box.label, delimiterProps)}</span>
 									<button
 										type="button"
 										className="rounded text-text-menu hover:text-primary"
 										onMouseDown={keepPopoverOpen}
 										onClick={() => handleRemove(box)}
-										aria-label={`Remove ${box.label}`}
+										aria-label={`Remove ${formatBoxValue(
+											box.label,
+											delimiterProps
+										)}`}
 									>
 										<Icon name="CrossSimple" size={14} />
 									</button>
@@ -393,7 +444,7 @@ export const TagsBoxInput = ({
 													box.className
 												)}
 											>
-												{box.label}
+												{formatBoxValue(box.label, delimiterProps)}
 											</Badge>
 										</CommandItem>
 									);
@@ -413,8 +464,8 @@ export const TagsBoxInput = ({
 									<div className="mr-0 flex h-4 w-4 items-center justify-center rounded-sm border border-border-primary text-primary">
 										<Icon name="AddSymbol" size={10} />
 									</div>
-									Create new {normalizedValueLabel} &quot;{normalizedInputValue}
-									&quot;
+									Create new {normalizedValueLabel} &quot;
+									{formatBoxValue(normalizedInputValue, delimiterProps)}&quot;
 								</CommandItem>
 							</CommandGroup>
 						) : null}

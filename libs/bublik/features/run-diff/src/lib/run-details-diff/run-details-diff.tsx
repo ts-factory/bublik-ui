@@ -6,6 +6,12 @@ import { ArrayChange, diffArrays, diffWords } from 'diff';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { cn, infoListItemStyles, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import { config } from '@/bublik/config';
+import {
+	formatKeyValueForDisplay,
+	getKeyValueParts,
+	hasSubmitDelimiter
+} from '@/shared/utils';
 
 import { getDiffProps } from './run-details-diff.utils';
 import { MetadataValue, MetaDiff } from './run-details-diff.types';
@@ -102,6 +108,21 @@ export interface TagDiffProps {
 	right?: MetadataValue;
 }
 
+const formatDiffValue = (value: string) => {
+	return formatKeyValueForDisplay(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+};
+
+const isKeyValueEntry = (value: string) => {
+	return hasSubmitDelimiter(value, config.keyValueSubmitDelimiter);
+};
+
+const getEntryKey = (value: string) => {
+	return getKeyValueParts(value, config.keyValueSubmitDelimiter)[0];
+};
+
 const TagDiff = ({ left, right }: TagDiffProps) => {
 	if (!left || !right) return null;
 
@@ -129,7 +150,7 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 									change.removed && 'bg-red-300 text-black border-transparent'
 								)}
 							>
-								{change.value.replace('=', ': ')}
+								{formatDiffValue(change.value)}
 							</span>
 						))}
 				</a>
@@ -149,7 +170,7 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 									change.removed && 'bg-red-300 text-black border-transparent'
 								)}
 							>
-								{change.value.replace('=', ': ')}
+								{formatDiffValue(change.value)}
 							</span>
 						))}
 				</div>
@@ -174,7 +195,7 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 									change.removed && 'bg-red-300 text-black border-transparent'
 								)}
 							>
-								{change.value.replace('=', ': ')}
+								{formatDiffValue(change.value)}
 							</span>
 						))}
 				</a>
@@ -194,7 +215,7 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 									change.removed && 'bg-red-300 text-black border-transparent'
 								)}
 							>
-								{change.value.replace('=', ': ')}
+								{formatDiffValue(change.value)}
 							</span>
 						))}
 				</div>
@@ -230,7 +251,7 @@ const MultipleDiff = (props: MultipleDiffProps) => {
 								target="_blank"
 								rel="noreferrer"
 							>
-								{meta.value.replace('=', ': ')}
+								{formatDiffValue(meta.value)}
 							</a>
 						);
 					}
@@ -247,7 +268,7 @@ const MultipleDiff = (props: MultipleDiffProps) => {
 									'bg-red-300 text-black border-transparent'
 							)}
 						>
-							{meta.value.replace('=', ': ')}
+							{formatDiffValue(meta.value)}
 						</div>
 					);
 				})}
@@ -272,15 +293,23 @@ export const MetadataDiff = (props: MetadataDiffProps) => {
 	);
 
 	const { allValuesWithDiff, diffWithChangedKeys } = useMemo(() => {
+		const getItemByKey = (items: MetadataValue[], key: string) => {
+			return items.find((item) => {
+				if (!isKeyValueEntry(item.value)) return false;
+
+				return getEntryKey(item.value) === key;
+			});
+		};
+
 		const leftKeys = new Set(
 			props.left
-				.filter((item) => item.value.includes('='))
-				.map((item) => item.value.split('=')[0])
+				.filter((item) => isKeyValueEntry(item.value))
+				.map((item) => getEntryKey(item.value))
 		);
 		const rightKeys = new Set(
 			props.right
-				.filter((item) => item.value.includes('='))
-				.map((item) => item.value.split('=')[0])
+				.filter((item) => isKeyValueEntry(item.value))
+				.map((item) => getEntryKey(item.value))
 		);
 		const allKeys = new Set([
 			...Array.from(leftKeys),
@@ -292,13 +321,9 @@ export const MetadataDiff = (props: MetadataDiffProps) => {
 		);
 
 		const keysWithDiff = keysPresentInBoth.filter((key) => {
-			const leftValue = props.left.find((item) =>
-				item.value.includes(key)
-			)?.value;
+			const leftValue = getItemByKey(props.left, key)?.value;
 
-			const rightValue = props.right.find((item) =>
-				item.value.includes(key)
-			)?.value;
+			const rightValue = getItemByKey(props.right, key)?.value;
 
 			return leftValue && rightValue && leftValue !== rightValue;
 		});
@@ -306,8 +331,8 @@ export const MetadataDiff = (props: MetadataDiffProps) => {
 		const diffWithChangedKeys = keysWithDiff
 			.map((key) => {
 				return {
-					left: props.left.find((item) => item.value.includes(key)),
-					right: props.right.find((item) => item.value.includes(key))
+					left: getItemByKey(props.left, key),
+					right: getItemByKey(props.right, key)
 				};
 			})
 			// Should ignore when key is repeated more than once so no clashes occur

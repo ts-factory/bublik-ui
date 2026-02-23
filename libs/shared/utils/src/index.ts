@@ -8,6 +8,7 @@ export * from './lib/misc';
 export * from './lib/tree';
 export * from './lib/time';
 export * from './lib/format';
+export * from './lib/key-value';
 export * from './lib/compress-tests';
 export * from './lib/router';
 export * from './lib/form';

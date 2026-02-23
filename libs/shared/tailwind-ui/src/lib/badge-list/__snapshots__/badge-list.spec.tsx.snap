@@ -125,7 +125,7 @@ exports[`components/BadgeList > should render env badges 1`] = `
         class="inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors overflow-wrap-anywhere bg-badge-1"
         data-testid="tw-badge"
       >
-        env=test-env
+        env: test-env
       </div>
     </div>
     <div

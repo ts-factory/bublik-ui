@@ -11,6 +11,7 @@ import {
 	TableSort,
 	cn
 } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
 import { RunsData, RunsStatisticData, RUN_STATUS } from '@/shared/types';
 
 import { DatesHeader, ColumnDates, RunLinks, ColumnSummary } from './columns';
@@ -139,6 +140,8 @@ export const columns: ColumnDef<RunsData>[] = [
 				<BadgeList
 					badges={cell.getValue<BadgeListItem[]>()}
 					className="bg-badge-6"
+					keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 					selectedBadges={cell.table.getState().globalFilter}
 					onBadgeClick={onGlobalFilter(cell)}
 				/>
@@ -155,6 +158,8 @@ export const columns: ColumnDef<RunsData>[] = [
 				<BadgeList
 					badges={cell.getValue<BadgeListItem[]>()}
 					className="bg-badge-4 whitespace-nowrap"
+					keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 					selectedBadges={cell.table.getState().globalFilter}
 					onBadgeClick={onGlobalFilter(cell)}
 				/>
@@ -170,6 +175,8 @@ export const columns: ColumnDef<RunsData>[] = [
 			return (
 				<BadgeList
 					badges={cell.getValue<BadgeListItem[]>()}
+					keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 					selectedBadges={cell.table.getState().globalFilter}
 					onBadgeClick={onGlobalFilter(cell)}
 				/>

@@ -13,6 +13,7 @@ import {
 	TagsBoxInput,
 	BoxValue
 } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
 
 import {
 	areRunsFiltersSnapshotsEqual,
@@ -155,6 +156,8 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 									});
 									field.onChange(nextValues);
 								}}
+								keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+								keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							/>
 						)}
 						name="runData"

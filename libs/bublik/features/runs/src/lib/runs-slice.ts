@@ -9,11 +9,26 @@ import {
 } from '@reduxjs/toolkit';
 
 import { bublikAPI } from '@/services/bublik-api';
+import { config } from '@/bublik/config';
 import { RunsData } from '@/shared/types';
+import { normalizeKeyValueForSubmit } from '@/shared/utils';
 
 export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()
 });
+
+const normalizeGlobalFilterValue = (value: string) => {
+	return normalizeKeyValueForSubmit(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+};
+
+const normalizeGlobalFilter = (values: string[]) => {
+	return Array.from(
+		new Set(values.map(normalizeGlobalFilterValue).filter(Boolean))
+	);
+};
 
 export const RUNS_PAGE_SLICE = 'runsPage';
 
@@ -38,7 +53,7 @@ export const runsPageSlice = createSlice({
 	initialState: initialRunsPageState,
 	reducers: {
 		updateGlobalFilter: (state, action: PayloadAction<string[]>) => {
-			state.globalFilter = action.payload;
+			state.globalFilter = normalizeGlobalFilter(action.payload);
 		},
 		resetSelection: (state) => {
 			state.rowSelection = [];

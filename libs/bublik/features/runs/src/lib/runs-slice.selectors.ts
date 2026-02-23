@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { createSelector } from '@reduxjs/toolkit';
 
+import { config } from '@/bublik/config';
 import type { BoxValue } from '@/shared/tailwind-ui';
+import { normalizeKeyValueForSubmit } from '@/shared/utils';
 
 import {
 	type AppStateWithRunsSlice,
@@ -12,6 +14,13 @@ import {
 
 const getRunsPageState = (state: AppStateWithRunsSlice) =>
 	state[RUNS_PAGE_SLICE];
+
+const normalizeRunDataValue = (value: string) => {
+	return normalizeKeyValueForSubmit(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+};
 
 export const selectGlobalFilter = createSelector(
 	getRunsPageState,
@@ -60,6 +69,10 @@ export const selectAllTags = createSelector(
 			return META_GROUP;
 		};
 
+		const normalizedGlobalFilter = Array.from(
+			new Set(globalFilter.map(normalizeRunDataValue).filter(Boolean))
+		);
+
 		const getClassName = (value: string) => {
 			if (importantSet.has(value)) return IMPORTANT_BG;
 			if (metaSet.has(value)) return META_BG;
@@ -80,7 +93,7 @@ export const selectAllTags = createSelector(
 			});
 		};
 
-		globalFilter.forEach((value) => upsertBox(value, true));
+		normalizedGlobalFilter.forEach((value) => upsertBox(value, true));
 		Array.from(importantSet).forEach((value) => upsertBox(value));
 		Array.from(metaSet).forEach((value) => upsertBox(value));
 		Array.from(tagsSet).forEach((value) => upsertBox(value));

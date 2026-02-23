@@ -26,6 +26,7 @@ import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useIsSticky, useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import { config } from '@/bublik/config';
 import {
 	cn,
 	Skeleton,
@@ -35,6 +36,7 @@ import {
 	DataTableFacetedFilter,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import { formatKeyValueForDisplay } from '@/shared/utils';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getColumns } from './result-table.columns';
@@ -596,7 +598,10 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			.filter(Boolean)
 			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
 			.map((parameter) => ({
-				label: parameter,
+				label: formatKeyValueForDisplay(parameter, {
+					displayDelimiter: config.keyValueDisplayDelimiter,
+					submitDelimiter: config.keyValueSubmitDelimiter
+				}),
 				value: parameter
 			}));
 	}, [filteredData]);
