@@ -12,6 +12,7 @@ import {
 	hoverCardContentStyles,
 	cn
 } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
 
 interface BadgesCardListProps {
 	startDate: string;
@@ -36,7 +37,11 @@ function BadgesCardList(props: BadgesCardListProps) {
 				</p>
 			</div>
 			<div className="min-h-0 overflow-auto styled-scrollbar px-4 pb-4">
-				<BadgeList badges={badges} />
+				<BadgeList
+					keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
+					badges={badges}
+				/>
 			</div>
 		</div>
 	);

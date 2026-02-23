@@ -6,6 +6,7 @@ import { ArrayParam, useQueryParam, withDefault } from 'use-query-params';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { routes } from '@/router';
 import { HistoryMeasurementResult } from '@/services/bublik-api';
+import { config } from '@/bublik/config';
 import { InfoBlock, SelectedChartsPopover } from '@/shared/charts';
 import {
 	ButtonTw,
@@ -302,6 +303,7 @@ function MeasurementsList(
 								name={m.test_name}
 								start={m.start}
 								parameters={m.parameters_list}
+								separator={config.keyValueSubmitDelimiter}
 							/>
 						</div>
 						{m.measurement_series_charts.length ? (
