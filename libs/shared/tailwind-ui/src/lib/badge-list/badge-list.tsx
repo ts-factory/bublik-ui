@@ -2,12 +2,19 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { forwardRef, useMemo } from 'react';
 
-import { isBranch, isRevision, trimBranch, trimRevision } from '@/shared/utils';
+import {
+	formatKeyValueForDisplay,
+	isBranch,
+	isRevision,
+	trimBranch,
+	trimRevision
+} from '@/shared/utils';
 
 import { Badge } from '../badge';
 import { EnvBadge } from '../env-badge';
 
-const isEnv = (value: string) => value.startsWith('env=');
+const isEnv = (value: string, delimiter = '=') =>
+	value.startsWith(`env${delimiter}`);
 
 export type BadgeListItem = {
 	payload: string;
@@ -19,16 +26,33 @@ export interface BadgeListProps {
 	onBadgeClick?: (badge: BadgeListItem) => void;
 	selectedBadges?: string[];
 	className?: string;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
 export const BadgeList = forwardRef<HTMLDivElement, BadgeListProps>(
-	({ badges, selectedBadges, onBadgeClick, className }, ref) => {
+	(
+		{
+			badges,
+			selectedBadges,
+			onBadgeClick,
+			className,
+			keyValueDisplayDelimiter,
+			keyValueSubmitDelimiter
+		},
+		ref
+	) => {
 		const { filterBadges, envBadges } = useMemo(() => {
-			const filterBadges = badges.filter((badge) => !isEnv(badge.payload));
-			const envBadges = badges.filter((badge) => isEnv(badge.payload));
+			const submitDelimiter = keyValueSubmitDelimiter ?? '=';
+			const filterBadges = badges.filter(
+				(badge) => !isEnv(badge.payload, submitDelimiter)
+			);
+			const envBadges = badges.filter((badge) =>
+				isEnv(badge.payload, submitDelimiter)
+			);
 
 			return { filterBadges, envBadges };
-		}, [badges]);
+		}, [badges, keyValueSubmitDelimiter]);
 
 		const badgeNodes = filterBadges.map((badge, idx) => {
 			const isSelected = selectedBadges?.includes(badge.payload);
@@ -41,6 +65,10 @@ export const BadgeList = forwardRef<HTMLDivElement, BadgeListProps>(
 			let value = badge.payload;
 			if (isRevision(badge.payload)) value = trimRevision(badge.payload);
 			if (isBranch(badge.payload)) value = trimBranch(badge.payload);
+			value = formatKeyValueForDisplay(value, {
+				displayDelimiter: keyValueDisplayDelimiter,
+				submitDelimiter: keyValueSubmitDelimiter
+			});
 
 			return (
 				<Badge
@@ -59,6 +87,8 @@ export const BadgeList = forwardRef<HTMLDivElement, BadgeListProps>(
 			<EnvBadge
 				key={idx}
 				value={envBadge.payload}
+				keyValueDisplayDelimiter={keyValueDisplayDelimiter}
+				keyValueSubmitDelimiter={keyValueSubmitDelimiter}
 				onContentClick={
 					onBadgeClick ? () => onBadgeClick?.(envBadge) : undefined
 				}

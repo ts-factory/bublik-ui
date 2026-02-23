@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { config } from '@/bublik/config';
 import {
 	TextField,
 	BadgeField,

@@ -5,13 +5,21 @@ import { useRef, RefObject } from 'react';
 import { BadgeItem } from '../types';
 import { EditPopover } from './edit-popover';
 import { cn } from '../../utils';
+import { formatKeyValueForDisplay } from '@/shared/utils';
 
 export interface BadgeListProps {
 	label?: string;
 	badges: BadgeItem[];
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
-export const BadgeList = ({ label, badges }: BadgeListProps) => {
+export const BadgeList = ({
+	label,
+	badges,
+	keyValueDisplayDelimiter,
+	keyValueSubmitDelimiter
+}: BadgeListProps) => {
 	const listRef = useRef<HTMLUListElement>(null);
 
 	return (
@@ -25,7 +33,13 @@ export const BadgeList = ({ label, badges }: BadgeListProps) => {
 			ref={listRef}
 		>
 			{badges.map((badge) => (
-				<Badge key={badge.id} badge={badge} listRef={listRef} />
+				<Badge
+					key={badge.id}
+					badge={badge}
+					listRef={listRef}
+					keyValueDisplayDelimiter={keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={keyValueSubmitDelimiter}
+				/>
 			))}
 		</ul>
 	);
@@ -34,13 +48,25 @@ export const BadgeList = ({ label, badges }: BadgeListProps) => {
 export interface BadgeProps {
 	badge: BadgeItem;
 	listRef: RefObject<HTMLUListElement>;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
-export const Badge = ({ badge, listRef }: BadgeProps) => {
+export const Badge = ({
+	badge,
+	listRef,
+	keyValueDisplayDelimiter,
+	keyValueSubmitDelimiter
+}: BadgeProps) => {
+	const displayValue = formatKeyValueForDisplay(badge.value, {
+		displayDelimiter: keyValueDisplayDelimiter,
+		submitDelimiter: keyValueSubmitDelimiter
+	});
+
 	return (
 		<EditPopover badge={badge} listRef={listRef}>
-			<li className="relative inline-flex items-center py-0.5 px-1 rounded bg-badge-0 text-[0.7875rem] font-medium leading-[1.125rem]">
-				{badge.value}
+			<li className="relative inline-flex items-center py-0.5 px-1 rounded bg-badge-0 text-[0.875rem] font-medium leading-[1.125rem]">
+				{displayValue}
 			</li>
 		</EditPopover>
 	);
