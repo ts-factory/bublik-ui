@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { HistoryDataAggregation, ResultData } from '@/shared/types';
+import { config } from '@/bublik/config';
 import { HistoryAggregationColumns } from './history-aggregation.constantst';
 import { Badge, BadgeList } from '@/shared/tailwind-ui';
 
@@ -36,6 +37,8 @@ export const columns: ColumnDef<HistoryDataAggregation>[] = [
 					<div className="flex flex-col gap-1">
 						<BadgeList
 							badges={parameters}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							onBadgeClick={onBadgeCellClick(cell, 'parameters')}
 							selectedBadges={globalFilter.parameters}
 							className="bg-badge-1"

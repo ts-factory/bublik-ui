@@ -26,5 +26,7 @@ export const config = {
 	isProd: env.PROD,
 	isSsr: env.SSR,
 	mode: env.MODE,
-	queryDelimiter: ';'
+	queryDelimiter: ';',
+	keyValueSubmitDelimiter: '=',
+	keyValueDisplayDelimiter: ': '
 } satisfies BublikConfig;

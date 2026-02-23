@@ -3,7 +3,7 @@
 import { FC, SVGProps } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 
-import { TIME_DOT_FORMAT_FULL } from '@/shared/utils';
+import { getKeyValueParts, TIME_DOT_FORMAT_FULL } from '@/shared/utils';
 import { Icon } from '@/shared/tailwind-ui';
 
 import { InfoItem } from './info-item';
@@ -79,9 +79,9 @@ export function InfoBlock(props: InfoBlockProps) {
 			</div>
 			<div className="flex flex-wrap items-center gap-4">
 				{parameters.map((param) => {
-					const [label, value] = param.split(separator);
+					const [label, value] = getKeyValueParts(param, separator);
 
-					return <InfoItem key={param} label={label} value={value} />;
+					return <InfoItem key={param} label={label} value={value ?? ''} />;
 				})}
 			</div>
 		</div>
