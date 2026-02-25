@@ -1,5 +1,69 @@
 
 
+## [2.10.0](https://github.com/ts-factory/bublik-ui/compare/v2.9.1...v2.10.0) (2026-02-25)
+
+
+### 🚀 New Feature
+
+* **api:** add components for handling API errors in a centralized manner ([fba28d8](https://github.com/ts-factory/bublik-ui/commit/fba28d8e93e9df787bcb7a1eb1dc55efab0948b4))
+* **api:** add normalized error handling ([c8c5a06](https://github.com/ts-factory/bublik-ui/commit/c8c5a06897ce126ac94aa77e863cbc8988472c4c))
+* **api:** create library for centralized display of API errors ([0f5c423](https://github.com/ts-factory/bublik-ui/commit/0f5c4231cefd85decd91c8e31138aea0909d890a))
+* **project:** add ability to hide sidebar by specifying search parameter ([00158d5](https://github.com/ts-factory/bublik-ui/commit/00158d5ab0041b58ee3364798ce1c08a5cbba177))
+* **run:** expose obtained-result facets in result table toolbar ([302ee2c](https://github.com/ts-factory/bublik-ui/commit/302ee2cf2b0cd1122ee45ccceea6c8caeb3fea23))
+* **ui:** [input] allow input to oprionally show end of value on mount ([302c499](https://github.com/ts-factory/bublik-ui/commit/302c4996b4feb593967d482d1ceca50544b6472f))
+* **ui:** add shared primitives for handling API errors in a centralized manner ([cfa28df](https://github.com/ts-factory/bublik-ui/commit/cfa28df791e9af563efd85ea78a3abf8c5e9f7bb))
+
+
+### 💅 Polish
+
+* **dashboard:** remove line wrap for run progress nok/ok results ([063be18](https://github.com/ts-factory/bublik-ui/commit/063be18160a21f9119bbd969f0f5d49c948225f6))
+* **dashboard:** separate refresh button from clock widget ([a829cee](https://github.com/ts-factory/bublik-ui/commit/a829ceea46624908de9f0364160f08ef01456c31))
+* **form:** change gray color for input placeholders and app labels ([e596185](https://github.com/ts-factory/bublik-ui/commit/e596185f3748b85157a1a4e2cca8f642b131fa16))
+* **history:** capitalize labels for history legend items ([eb8978e](https://github.com/ts-factory/bublik-ui/commit/eb8978efd7c6110a52237514308664fe6db58ec8))
+* **history:** don't display placeholder for empty legend items ([8867bfa](https://github.com/ts-factory/bublik-ui/commit/8867bfa31dd7bba53dba88a6f0d282f2afba4d90))
+* **log:** [meta] improve structure for log time information ([d855ce4](https://github.com/ts-factory/bublik-ui/commit/d855ce4afe972fdb8b2c729c1071d3ec98c8c4d4))
+* **ui:** [checkbox] allow passing className for icon as a prop ([90e0ddc](https://github.com/ts-factory/bublik-ui/commit/90e0ddc7ea91f60dfb60791dc5784569b23ae31e))
+* **ui:** [hover-card] fix incorrect arrow position ([c983414](https://github.com/ts-factory/bublik-ui/commit/c98341434b71c2da98bc33ede8570e336fac1f0b))
+
+
+### 🐛 Bug Fix
+
+* **config:** showing generic error message instead of specific ([d6caf2b](https://github.com/ts-factory/bublik-ui/commit/d6caf2b4d4d749d42952f7385dd3dd97f512f885))
+* **history:** stop prefiltering history shortcuts by classification ([a69e212](https://github.com/ts-factory/bublik-ui/commit/a69e2125a4c59c96ef3aa0f595428ba2b1d29e77)), closes [#512](https://github.com/ts-factory/bublik-ui/issues/512)
+* **log:** expand nested `ERROR` rows in log ([be1288a](https://github.com/ts-factory/bublik-ui/commit/be1288a49cbe46429911202392d5de7cd22b7339))
+* **project:** fix missing project filter on some links ([6f6cb6d](https://github.com/ts-factory/bublik-ui/commit/6f6cb6dc3d73f7d1bba05ca7a1262eb41d4dad70))
+* **run:** [details] clarify Run ID label ([79f7e2f](https://github.com/ts-factory/bublik-ui/commit/79f7e2fc688d64072c111b31a917e251a9ac821c))
+* **run:** [multiple] preserve `runIds` query params on columns reset ([3f89cee](https://github.com/ts-factory/bublik-ui/commit/3f89cee24ac6ba232ce708411557731d5b54c654)), closes [#511](https://github.com/ts-factory/bublik-ui/issues/511)
+* **run:** make filtering exact and prevent accidental dim reference selection ([e401ded](https://github.com/ts-factory/bublik-ui/commit/e401dedcd72188c2a2251c6d7e0c4885257a02ff))
+* **runs,history,report:** fix memory leak ([4527f0a](https://github.com/ts-factory/bublik-ui/commit/4527f0ac1ddbd21ccda83113ae3cc21fad37d05c))
+* **runs:** [charts] align day charts to daily aggregates ([55ae3dc](https://github.com/ts-factory/bublik-ui/commit/55ae3dc2510b132eacfa20e1b393651453eb7c99))
+* **runs:** [charts] guard pass rate against zero totals ([8d85479](https://github.com/ts-factory/bublik-ui/commit/8d854794d686e984e8df93c90b8835ecd30a0a99))
+* **runs:** rename metadata filter label from 'Tags' to 'Metas' ([8160813](https://github.com/ts-factory/bublik-ui/commit/816081352be73733fe68d12093f5d46f813f9629)), closes [#505](https://github.com/ts-factory/bublik-ui/issues/505)
+
+
+### ♻ Code Refactoring
+
+* **history:** revamp global search form interactions ([b7c3d91](https://github.com/ts-factory/bublik-ui/commit/b7c3d910c8b7c13842b6f169136c4444fcfa197c))
+* **report:** extract hooks for performance from report to reusable library ([fc1fb29](https://github.com/ts-factory/bublik-ui/commit/fc1fb293541b67e4c874d6e162399b01c5e814ed))
+* **run:** make dim mode default in result table ([5cd151b](https://github.com/ts-factory/bublik-ui/commit/5cd151b52f486af65109ba3a19c55378eab933e5))
+* **ui:** [badge-input] improve ergonomics ([523907d](https://github.com/ts-factory/bublik-ui/commit/523907dc876b43719dfba9ead16940b8d0d77a61))
+* use single component for API errors handling and empty states ([2e54fda](https://github.com/ts-factory/bublik-ui/commit/2e54fda1f5500d890057006bf5d3c6653e12eb4b))
+
+
+### 📦 Chores
+
+* **dashboard:** remove links from subrow and add link hints to tooltips ([93d11fa](https://github.com/ts-factory/bublik-ui/commit/93d11fa5217a2439a2dcf7c04ce9f5ba528be36e)), closes [#488](https://github.com/ts-factory/bublik-ui/issues/488)
+* **history:** rename "Test Name" to "Test Path" ([6b5ff68](https://github.com/ts-factory/bublik-ui/commit/6b5ff6839753a77f2be7b0c9bcd33ff60af43e7b))
+* **run:** [comment] close after succesufull edit/create/update form ([7aa905d](https://github.com/ts-factory/bublik-ui/commit/7aa905d076df90eb40f3c9c5e9d9a3f5deb78568))
+* **run:** [result-table] move button and rename to "Filters" for opening toolbar ([33de7ff](https://github.com/ts-factory/bublik-ui/commit/33de7fffb348f90ef478a95984a8dbaa33b75ff4))
+* **test:** update snapshot tests ([da533b7](https://github.com/ts-factory/bublik-ui/commit/da533b70a78a1a8d2b58481e19ab4bd99cc07ea0))
+
+
+### ⚡ Performance Improvements
+
+* **history:** [series] improve performance of series charts ([bc58b7a](https://github.com/ts-factory/bublik-ui/commit/bc58b7a50199267a1e6fc2024bd927d1ad568eae))
+* **report:** improve performance for report charts ([a42f530](https://github.com/ts-factory/bublik-ui/commit/a42f5305e2d49721e9df6ab05c5056c7bc3407b2))
+
 ### [2.9.1](https://github.com/ts-factory/bublik-ui/compare/v2.9.0...v2.9.1) (2026-02-13)
 
 
