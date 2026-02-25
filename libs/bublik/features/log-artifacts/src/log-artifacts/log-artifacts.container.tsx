@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { bublikAPI, GetLogAttachmentByType } from '@/services/bublik-api';
 import {
@@ -239,10 +239,10 @@ function PacketCaptureAttachment({
 					{hasValidUrl &&
 					data.view_type === 'bublik-tools/net-packet-analyzer' ? (
 						<DropdownMenuItem asChild className="pl-2">
-							<Link to={viewerUrl} target="_blank">
+							<LinkWithProject to={viewerUrl} target="_blank">
 								<Icon name="EyeShow" size={20} className="mr-2" />
 								View
-							</Link>
+							</LinkWithProject>
 						</DropdownMenuItem>
 					) : (
 						<DropdownMenuItem disabled className="pl-2">

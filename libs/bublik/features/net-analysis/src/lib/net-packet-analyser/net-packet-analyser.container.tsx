@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 import { Buffer } from 'buffer';
 import { DataSource, FrameMeta, ProtoTree } from '@goodtools/wiregasm';
 import { z } from 'zod';
 
+import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	ButtonTw,
 	CardHeader,
@@ -530,7 +530,7 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 						{'runId' in props ? (
 							<>
 								<ButtonTw variant="secondary" size="xss" asChild>
-									<Link
+									<LinkWithProject
 										to={routes.log({
 											runId: props.runId,
 											focusId: props.resultId
@@ -538,13 +538,13 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 									>
 										<Icon name="BoxArrowRight" className="mr-1" />
 										Log
-									</Link>
+									</LinkWithProject>
 								</ButtonTw>
 								<ButtonTw variant="secondary" size="xss" asChild>
-									<Link to={routes.run({ runId: props.runId })}>
+									<LinkWithProject to={routes.run({ runId: props.runId })}>
 										<Icon name="BoxArrowRight" className="mr-1" />
 										Run
-									</Link>
+									</LinkWithProject>
 								</ButtonTw>
 							</>
 						) : null}
