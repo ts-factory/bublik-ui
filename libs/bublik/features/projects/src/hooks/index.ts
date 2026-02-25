@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
+	createPath,
 	NavigateOptions,
+	parsePath,
 	To,
 	useNavigate,
 	useSearchParams
@@ -9,7 +11,18 @@ import {
 
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
-import { PROJECT_KEY } from '../constants';
+import { HIDE_SIDEBAR_QUERY_KEY, PROJECT_KEY } from '../constants';
+
+function toStringWithSearchParams(to: string, params: URLSearchParams): string {
+	const parsedTo = parsePath(to);
+	const search = params.toString();
+
+	return createPath({
+		pathname: parsedTo.pathname,
+		search: search ? `?${search}` : '',
+		hash: parsedTo.hash
+	});
+}
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -38,20 +51,35 @@ function useProjectSearch() {
 function useNavigateWithProject() {
 	const { projectIds } = useProjectSearch();
 	const _navigate = useNavigate();
+	const [currentSearchParams] = useSearchParams();
 
 	const navigate = (to: To, options?: NavigateOptions) => {
 		const params =
-			typeof to.search === 'string'
+			typeof to === 'string'
+				? new URLSearchParams(parsePath(to).search ?? '')
+				: typeof to.search === 'string'
 				? new URLSearchParams(to.search)
 				: new URLSearchParams();
+		const hideSidebar = currentSearchParams.get(HIDE_SIDEBAR_QUERY_KEY);
 
+		params.delete(PROJECT_KEY);
 		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
 
+		if (!params.has(HIDE_SIDEBAR_QUERY_KEY) && hideSidebar) {
+			params.set(HIDE_SIDEBAR_QUERY_KEY, hideSidebar);
+		}
+
 		if (typeof to === 'string') {
-			_navigate(to, options);
+			_navigate(toStringWithSearchParams(to, params), options);
 		} else {
+			const search = params.toString();
+
 			_navigate(
-				{ pathname: to.pathname, search: params.toString(), hash: to.hash },
+				{
+					pathname: to.pathname,
+					search: search ? `?${search}` : '',
+					hash: to.hash
+				},
 				options
 			);
 		}

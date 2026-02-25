@@ -28,7 +28,10 @@ const SidebarStory = () => {
 
 export const withSidebar = (hideSidebar?: boolean) => {
 	return (Story: ComponentType) => (
-		<AppShell sidebar={hideSidebar ? null : <SidebarStory />}>
+		<AppShell
+			sidebar={hideSidebar ? null : <SidebarStory />}
+			hideSidebar={hideSidebar}
+		>
 			<Story />
 		</AppShell>
 	);
@@ -36,10 +39,12 @@ export const withSidebar = (hideSidebar?: boolean) => {
 
 export interface AppShellProps {
 	sidebar: ReactNode;
+	hideSidebar?: boolean;
 }
 
 export const AppShell = ({
 	sidebar,
+	hideSidebar = false,
 	children
 }: PropsWithChildren<AppShellProps>) => {
 	const [isSidebarOpen, setIsSidebarOpen] = useLocalStorage(
@@ -47,13 +52,21 @@ export const AppShell = ({
 		false
 	);
 
-	const toggleSidebar = useCallback(
-		() => setIsSidebarOpen(!isSidebarOpen),
-		[isSidebarOpen, setIsSidebarOpen]
-	);
+	const isSidebarVisible = !hideSidebar;
+
+	const toggleSidebar = useCallback(() => {
+		if (!isSidebarVisible) return;
+
+		setIsSidebarOpen(!isSidebarOpen);
+	}, [isSidebarOpen, isSidebarVisible, setIsSidebarOpen]);
 
 	useKey(
-		(e) => e.code === 'KeyS' && !e.ctrlKey && !e.metaKey && !isFocusInInput(e),
+		(e) =>
+			isSidebarVisible &&
+			e.code === 'KeyS' &&
+			!e.ctrlKey &&
+			!e.metaKey &&
+			!isFocusInInput(e),
 		toggleSidebar,
 		{ event: 'keypress' }
 	);
@@ -61,12 +74,14 @@ export const AppShell = ({
 	return (
 		<div className="relative flex h-full" data-testid="tw-app-shell">
 			<SidebarProvider
-				isSidebarOpen={isSidebarOpen}
+				isSidebarOpen={isSidebarVisible ? isSidebarOpen : false}
 				toggleSidebar={toggleSidebar}
 			>
-				<div className="sticky top-0 z-20 h-screen h-svh" id="sidebar">
-					{sidebar}
-				</div>
+				{isSidebarVisible ? (
+					<div className="sticky top-0 z-20 h-screen h-svh" id="sidebar">
+						{sidebar}
+					</div>
+				) : null}
 				<div className="flex-grow overflow-auto" id="page-container">
 					{children}
 				</div>

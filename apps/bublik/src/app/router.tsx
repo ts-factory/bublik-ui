@@ -2,11 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { lazy, useEffect, useState, Suspense } from 'react';
 import {
-	Navigate,
 	Outlet,
 	createBrowserRouter,
 	RouterProvider,
-	useNavigate,
 	useLocation
 } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
@@ -17,7 +15,7 @@ import { ErrorBoundary } from '@/shared/tailwind-ui';
 
 import { AuthLayout } from '../pages/auth/auth.layout';
 import { Layout } from './layout';
-import { RedirectToLogPage } from './redirects';
+import { RedirectToDashboard, RedirectToLogPage } from './redirects';
 
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
@@ -51,6 +49,7 @@ import {
 	Icon,
 	Spinner
 } from '@/shared/tailwind-ui';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 import { RunsPage } from '../pages/runs-page';
 
 const ImportPage = lazy(() =>
@@ -81,7 +80,7 @@ const RunReportPage = lazy(() =>
 
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
-	const navigate = useNavigate();
+	const navigate = useNavigateWithProject();
 	const location = useLocation();
 
 	useEffect(() => {
@@ -210,7 +209,7 @@ const router = createBrowserRouter(
 					),
 					ErrorBoundary: () => <ErrorBoundary />,
 					children: [
-						{ path: '/', element: <Navigate to="/dashboard" /> },
+						{ path: '/', element: <RedirectToDashboard /> },
 						{ path: '/dashboard', element: <DashboardPageV2 /> },
 						{
 							path: '/tools/packet-viewer',

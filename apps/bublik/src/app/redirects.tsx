@@ -2,6 +2,17 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Navigate, useLocation, useParams } from 'react-router-dom';
 
+export const RedirectToDashboard = () => {
+	const location = useLocation();
+
+	return (
+		<Navigate
+			to={{ pathname: '/dashboard', search: location.search }}
+			replace
+		/>
+	);
+};
+
 export const RedirectToLogPage = () => {
 	const { runId } = useParams();
 	const location = useLocation();
