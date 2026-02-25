@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import {
 	NavigateOptions,
 	To,
@@ -8,7 +7,7 @@ import {
 	useSearchParams
 } from 'react-router-dom';
 
-import { bublikAPI } from '@/services/bublik-api';
+import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
 import { PROJECT_KEY } from '../constants';
 
@@ -95,13 +94,9 @@ function useDeleteProject({ id }: UseProjectParams) {
 		toast.promise(promise, {
 			success: 'Succesfully deleted project!',
 			error: (error: unknown) => {
-				const result = z
-					.object({ data: z.object({ message: z.string() }) })
-					.safeParse(error);
+				const { description } = getErrorMessage(error);
 
-				if (result.success) return result.data.data.message;
-
-				return 'Failed to delete project!';
+				return description || 'Failed to delete project!';
 			},
 			loading: 'Deleting project...'
 		});
