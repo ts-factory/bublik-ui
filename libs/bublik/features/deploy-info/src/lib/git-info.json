@@ -1,7 +1,7 @@
 {
-	"date": "2026.02.13",
-	"summary": "fix(result): crash caused by incorrect import from react-router",
-	"revision": "a9ce75c2",
-	"branch": "release-2.9.1",
-	"latestTag": "v2.9.1"
+	"date": "2026.02.25",
+	"summary": "feat(project): add ability to hide sidebar by specifying search parameter",
+	"revision": "00158d5a",
+	"branch": "release-2.10.0",
+	"latestTag": "v2.10.0"
 }
