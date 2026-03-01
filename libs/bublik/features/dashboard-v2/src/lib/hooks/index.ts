@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
 	BooleanParam,
 	DateParam,
@@ -13,6 +13,7 @@ import { addDays } from 'date-fns';
 import {
 	useGetDashboardByDateQuery,
 	useGetDashboardModeQuery,
+	useGetRunsTablePageQuery,
 	usePrefetch
 } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
@@ -65,11 +66,57 @@ export const useDashboardReload = () => {
 	return { isEnabled, setIsEnabled } as const;
 };
 
+export type DashboardLayout = 'main-left' | 'secondary-left';
+
+export const useDashboardLayout = () => {
+	const [layout, setLayout] = useQueryParam('layout', StringParam);
+
+	const reset = () => setLayout(null);
+
+	return {
+		layout: layout as DashboardLayout | null | undefined,
+		setLayout: (value: DashboardLayout | null) => setLayout(value),
+		reset
+	} as const;
+};
+
+export const useRunDates = () => {
+	const { projectIds } = useProjectSearch();
+
+	const { data, isLoading } = useGetRunsTablePageQuery({
+		page: '1',
+		pageSize: '50',
+		projects: projectIds
+	});
+
+	const dates = useMemo(() => {
+		if (!data?.results) return [];
+
+		const uniqueDates = new Map<string, Date>();
+
+		for (const run of data.results) {
+			// Prefer finish date (runs can span multiple days), fallback to start
+			const timestamp = run.finish || run.start;
+			if (!timestamp) continue;
+
+			const date = new Date(timestamp);
+			date.setHours(0, 0, 0, 0);
+			const dateKey = date.toISOString();
+
+			if (!uniqueDates.has(dateKey)) uniqueDates.set(dateKey, date);
+		}
+
+		return Array.from(uniqueDates.values()).sort(
+			(a, b) => b.getTime() - a.getTime()
+		);
+	}, [data?.results]);
+
+	return { dates, isLoading };
+};
+
 export const useDashboardModePicker = () => {
 	const { isModeLoading, mode, setMode } = useDashboardMode();
-	const { date: mainDate, setDate: setMainDate } = useDashboardDate(
-		DASHBOARD_TABLE_ID.Main
-	);
+	const { setDate: setMainDate } = useDashboardDate(DASHBOARD_TABLE_ID.Main);
 	const { setDate: setSecondDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Secondary
 	);
@@ -77,22 +124,30 @@ export const useDashboardModePicker = () => {
 	const { data: todayData } = useGetDashboardByDateQuery({
 		projects: projectIds
 	});
+	const { dates } = useRunDates();
+	const { reset: resetLayout } = useDashboardLayout();
 
 	const handleModeChange = (nextMode: DASHBOARD_MODE) => {
 		const modeToDates = {
 			[DASHBOARD_MODE.Rows]: () => {
 				setSecondDate(null);
+				resetLayout();
 			},
 			[DASHBOARD_MODE.RowsLine]: () => {
 				setSecondDate(null);
+				resetLayout();
 			},
 			[DASHBOARD_MODE.Columns]: () => {
-				if (mainDate) return setSecondDate(addDays(mainDate, -1));
+				resetLayout();
 
-				if (!todayData) return;
+				// dates[0] = most recent date with runs
+				// dates[1] = second most recent date with runs (or fallback to dates[0] - 1)
+				const mainDate =
+					dates[0] || (todayData ? new Date(todayData.date) : new Date());
+				const secondaryDate = dates[1] || addDays(mainDate, -1);
 
-				setSecondDate(addDays(new Date(todayData.date), -1));
-				setMainDate(new Date(todayData.date));
+				setMainDate(mainDate);
+				setSecondDate(secondaryDate);
 			}
 		};
 
