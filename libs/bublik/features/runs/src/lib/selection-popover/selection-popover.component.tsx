@@ -1,24 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, ReactNode } from 'react';
-import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
+import { ReactNode } from 'react';
 
 import { RUN_STATUS } from '@/shared/types';
 import {
 	ButtonTw,
 	getRunStatusInfo,
 	Tooltip,
-	Icon
+	Icon,
+	SelectionPopover as SelectionPopoverLayout,
+	SelectionPopoverBody,
+	SelectionPopoverFooter,
+	SelectionPopoverFloatingButton
 } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-
-const variants: Variants = {
-	visible: { opacity: 1, y: '0%' },
-	hidden: { opacity: 0, y: '100%' },
-	exit: { opacity: 0, y: '100%' }
-};
-
-const transition: Transition = { bounce: 0.1 };
 
 export interface SelectionPopoverComponentProps {
 	compareIds: string[];
@@ -26,104 +21,97 @@ export interface SelectionPopoverComponentProps {
 	onResetClick: () => void;
 }
 
-export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
+function SelectionPopover(props: SelectionPopoverComponentProps) {
 	const { compareIds, renderItem, onResetClick } = props;
 
-	const isPopoverVisible = compareIds.length;
+	const hasSelection = compareIds.length > 0;
+
+	if (!hasSelection) return null;
+
+	const label = `${compareIds.length} runs selected`;
 
 	return (
-		<AnimatePresence>
-			{isPopoverVisible ? (
-				<motion.div
-					variants={variants}
-					initial="hidden"
-					animate="visible"
-					exit="exit"
-					transition={transition}
-					className="fixed bottom-4 right-4 bg-white rounded-lg shadow-popover min-w-[360px] max-h-[90vh] flex flex-col"
-					layout="size"
-				>
-					<div className="flex flex-col gap-2 px-4 pt-2 flex-1 overflow-auto">
-						<SelectedResultList
-							label="Selection"
-							ids={compareIds}
-							renderItem={renderItem}
-						/>
-					</div>
-					<div className="flex flex-col gap-2 px-4 py-2 mt-2 border-t border-border-primary">
-						<div className="flex items-center gap-2">
-							{compareIds.length >= 2 ? (
-								<LinkWithProject
-									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
-									to={{
-										pathname: '/multiple',
-										search: new URLSearchParams(
-											compareIds.map((s) => ['runIds', s])
-										).toString()
-									}}
-								>
-									<Icon name="PaperStack" className="size-5 mr-2" />
-									Multiple
-								</LinkWithProject>
-							) : (
-								<ButtonTw
-									variant="primary"
-									rounded="lg"
-									size="md"
-									className="w-full justify-center"
-									disabled={compareIds.length !== 2}
-								>
-									<Icon name="PaperStack" className="size-5 mr-2" />
-									<span>Multiple</span>
-								</ButtonTw>
-							)}
-							{compareIds.length === 2 ? (
-								<LinkWithProject
-									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
-									to={{
-										pathname: '/compare',
-										search: `left=${compareIds[0]}&right=${compareIds[1]}`
-									}}
-								>
-									Compare
-									<Icon
-										name="SwapArrows"
-										size={20}
-										className="text-white rotate-90"
-									/>
-								</LinkWithProject>
-							) : (
-								<ButtonTw
-									variant="primary"
-									rounded="lg"
-									size="md"
-									className="w-full justify-center"
-									disabled={compareIds.length !== 2}
-								>
-									<Icon
-										name="SwapArrows"
-										size={20}
-										className="rotate-90 mr-2"
-									/>
-									<span>Compare</span>
-								</ButtonTw>
-							)}
-						</div>
-						<ButtonTw
-							variant="outline"
-							rounded="lg"
-							size="md"
-							className="w-full justify-center"
-							onClick={onResetClick}
+		<SelectionPopoverLayout defaultOpen layout="size">
+			<SelectionPopoverFloatingButton
+				label={label}
+				icon="ExpandSelection"
+				disabled={!hasSelection}
+			/>
+			<SelectionPopoverBody>
+				<SelectedResultList
+					label="Selected Runs"
+					ids={compareIds}
+					renderItem={renderItem}
+				/>
+			</SelectionPopoverBody>
+			<SelectionPopoverFooter>
+				<div className="flex items-center gap-2">
+					{compareIds.length >= 2 ? (
+						<LinkWithProject
+							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+							to={{
+								pathname: '/multiple',
+								search: new URLSearchParams(
+									compareIds.map((s) => ['runIds', s])
+								).toString()
+							}}
 						>
-							Reset
+							<Icon name="PaperStack" className="size-5 mr-2" />
+							Multiple
+						</LinkWithProject>
+					) : (
+						<ButtonTw
+							variant="primary"
+							rounded="lg"
+							size="sm/2"
+							className="w-full justify-center"
+							disabled={compareIds.length !== 2}
+						>
+							<Icon name="PaperStack" className="size-5 mr-2" />
+							<span>Multiple</span>
 						</ButtonTw>
-					</div>
-				</motion.div>
-			) : null}
-		</AnimatePresence>
+					)}
+					{compareIds.length === 2 ? (
+						<LinkWithProject
+							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+							to={{
+								pathname: '/compare',
+								search: `left=${compareIds[0]}&right=${compareIds[1]}`
+							}}
+						>
+							<Icon
+								name="SwapArrows"
+								size={20}
+								className="text-white rotate-90"
+							/>
+							Compare
+						</LinkWithProject>
+					) : (
+						<ButtonTw
+							variant="primary"
+							rounded="lg"
+							size="sm/2"
+							className="w-full justify-center"
+							disabled={compareIds.length !== 2}
+						>
+							<Icon name="SwapArrows" size={20} className="rotate-90 mr-2" />
+							<span>Compare</span>
+						</ButtonTw>
+					)}
+				</div>
+				<ButtonTw
+					variant="outline"
+					rounded="lg"
+					size="sm/2"
+					className="w-full justify-center"
+					onClick={onResetClick}
+				>
+					Reset
+				</ButtonTw>
+			</SelectionPopoverFooter>
+		</SelectionPopoverLayout>
 	);
-};
+}
 
 export interface SelectedResultListProps {
 	label: string;
@@ -131,11 +119,11 @@ export interface SelectedResultListProps {
 	renderItem: (runId: string) => ReactNode;
 }
 
-export const SelectedResultList: FC<SelectedResultListProps> = ({
+function SelectedResultList({
 	ids,
 	label,
 	renderItem
-}) => {
+}: SelectedResultListProps) {
 	return (
 		<div className="flex flex-col gap-2">
 			<span className="text-[0.875rem] leading-[1.125rem] font-semibold">
@@ -148,7 +136,7 @@ export const SelectedResultList: FC<SelectedResultListProps> = ({
 			</ul>
 		</div>
 	);
-};
+}
 
 export interface SelectedResultItemProps {
 	name: string;
@@ -157,7 +145,7 @@ export interface SelectedResultItemProps {
 	onRemoveClick?: () => void;
 }
 
-export const SelectedResultItem: FC<SelectedResultItemProps> = (props) => {
+function SelectedResultItem(props: SelectedResultItemProps) {
 	const { name, status, start, onRemoveClick } = props;
 	const { bg, icon, color } = getRunStatusInfo(status);
 
@@ -205,4 +193,6 @@ export const SelectedResultItem: FC<SelectedResultItemProps> = (props) => {
 			</div>
 		</div>
 	);
-};
+}
+
+export { SelectionPopover, SelectedResultList, SelectedResultItem };

@@ -107,6 +107,9 @@
 			"@/shared/utils": ["libs/shared/utils/src/index.ts"],
 			"@/bublik/features/ui-state": [
 				"libs/bublik/features/ui-state/src/index.ts"
+			],
+			"@/bublik/features/sidebar-nav": [
+				"libs/bublik/features/sidebar-nav/src/index.ts"
 			]
 		}
 	},
