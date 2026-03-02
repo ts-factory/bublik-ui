@@ -1,10 +1,17 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { ComponentProps } from 'react';
 import { isDate } from 'date-fns';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 
 import { Plot } from '../plot';
-import { getChartName, getColorByIdx } from '../utils';
+import {
+	estimateLegendTopOffset,
+	getChartName,
+	getColorByIdx,
+	sanitizeLegendLabel
+} from '../utils';
 import { EChartsOption } from '../echart';
 
 function resolveXAxisType(
@@ -179,6 +186,8 @@ function resolveOptions(
 
 interface ResolveStackedOptionsProps {
 	enableResultErrorHighlight?: boolean;
+	containerWidth?: number;
+	containerHeight?: number;
 }
 
 export type SingleMeasurementChartWithContext = SingleMeasurementChart & {
@@ -189,8 +198,18 @@ function resolveStackedOptions(
 	plots: SingleMeasurementChartWithContext[],
 	options: ResolveStackedOptionsProps = {}
 ): ComponentProps<typeof Plot>['options'] {
-	const { enableResultErrorHighlight = false } = options;
+	const {
+		enableResultErrorHighlight = false,
+		containerWidth,
+		containerHeight
+	} = options;
 	const Y_AXIS_SPACING = 120;
+	const LEGEND_TOP = 8;
+	const LEGEND_SIDE_PADDING_RATIO = 0.05;
+	const LEGEND_GRID_GAP = 18;
+	const LEGEND_SAFETY_ROWS = 2;
+	const LEGEND_SAFETY_PADDING = 8;
+	const MIN_PLOT_HEIGHT = 180;
 	const axisLabelStyles = {
 		fontFamily: 'Inter',
 		fontSize: 10,
@@ -236,6 +255,43 @@ function resolveStackedOptions(
 	};
 
 	const differingParams = getDifferingParams(plots.map((p) => p.parameters));
+	const seriesNames = plots.map((plot, idx) => {
+		const title = getChartName(plot);
+		const paramsSuffix = formatParamsForDisplay(
+			plot.parameters,
+			differingParams
+		);
+
+		return `${title.replace(/\u200B/g, '')}${paramsSuffix}${`\u200B`.repeat(
+			idx
+		)}`;
+	});
+	const legendLabels = seriesNames.map((name) => sanitizeLegendLabel(name));
+	const legendSidePaddingPx = containerWidth
+		? containerWidth * LEGEND_SIDE_PADDING_RATIO
+		: 0;
+	const maxLegendTop = containerHeight
+		? Math.max(220, containerHeight - MIN_PLOT_HEIGHT)
+		: 320;
+	const topGridOffset = estimateLegendTopOffset({
+		labels: legendLabels,
+		containerWidth,
+		legendTop: LEGEND_TOP,
+		leftPaddingPx: legendSidePaddingPx,
+		rightPaddingPx: legendSidePaddingPx,
+		fontFamily: axisLabelStyles.fontFamily,
+		fontSize: axisLabelStyles.fontSize,
+		fontWeight: axisLabelStyles.fontWeight,
+		itemHeight: 14,
+		lineHeight: 14,
+		rowGap: 8,
+		itemGap: 12,
+		gridGap: LEGEND_GRID_GAP,
+		safetyRows: LEGEND_SAFETY_ROWS,
+		safetyPaddingPx: LEGEND_SAFETY_PADDING,
+		minTop: 64,
+		maxTop: maxLegendTop
+	});
 
 	const yAxisGroups = new Map<string, number[]>();
 	const yAxisConfigs: EChartsOption['yAxis'] = [];
@@ -263,7 +319,10 @@ function resolveStackedOptions(
 				scale: true
 			});
 		} else {
-			yAxisGroups.get(yAxisLabel)!.push(idx);
+			const groupedPlotIndices = yAxisGroups.get(yAxisLabel);
+			if (!groupedPlotIndices) return;
+
+			groupedPlotIndices.push(idx);
 		}
 	});
 	const plotToYAxisIndex = new Map<number, number>();
@@ -297,18 +356,11 @@ function resolveStackedOptions(
 		},
 		yAxis: yAxisConfigs,
 		series: plots.map((plot, idx) => {
-			const title = getChartName(plot);
-			const yAxisIndex = plotToYAxisIndex.get(idx)!;
-			const paramsSuffix = formatParamsForDisplay(
-				plot.parameters,
-				differingParams
-			);
+			const yAxisIndex = plotToYAxisIndex.get(idx) ?? 0;
 
 			return {
 				type: 'line',
-				name: `${title.replace(/\u200B/g, '')}${paramsSuffix}${`\u200B`.repeat(
-					idx
-				)}`,
+				name: seriesNames[idx],
 				datasetId: `dataset_${idx}`,
 				yAxisIndex: yAxisIndex,
 				color: getColorByIdx(idx),
@@ -351,9 +403,9 @@ function resolveStackedOptions(
 			{ type: 'slider', xAxisIndex: [0], bottom: 10 }
 		],
 		grid: {
-			top: 80,
+			top: topGridOffset,
 			left: '5%',
-			right: `${7 * yAxisConfigs.length}%`,
+			right: yAxisConfigs.length > 2 ? `${7 * yAxisConfigs.length}%` : '5%',
 			bottom: '15%'
 		},
 		tooltip: {
@@ -362,7 +414,26 @@ function resolveStackedOptions(
 			extraCssText: 'shadow-popover rounded-lg',
 			axisPointer: { type: 'cross' }
 		},
-		legend: { left: 'left', type: 'scroll', pageButtonPosition: 'start' }
+		legend: {
+			type: 'plain',
+			top: LEGEND_TOP,
+			left: 'center',
+			right: '5%',
+			itemGap: 12,
+			formatter: (name: string) => sanitizeLegendLabel(name),
+			textStyle: {
+				fontFamily: axisLabelStyles.fontFamily,
+				fontSize: axisLabelStyles.fontSize,
+				fontWeight: axisLabelStyles.fontWeight,
+				overflow: 'break',
+				lineHeight: 14
+			},
+			tooltip: {
+				show: true,
+				formatter: (params: { name: string }) =>
+					sanitizeLegendLabel(params.name)
+			}
+		}
 	};
 }
 

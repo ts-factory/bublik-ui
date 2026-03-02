@@ -15,7 +15,7 @@ import {
 	ToolbarToggleItem,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { usePlatformSpecificCtrl } from '@/shared/hooks';
+import { useMeasure, usePlatformSpecificCtrl } from '@/shared/hooks';
 
 import { Plot } from '../plot';
 import {
@@ -295,13 +295,34 @@ interface StackedMeasurementChartProps {
 
 function StackedMeasurementChart(props: StackedMeasurementChartProps) {
 	const ref = useRef<ReactEChartsCore>(null);
+	const [containerRef, { width: containerWidth, height: containerHeight }] =
+		useMeasure<HTMLDivElement>();
 	useChartClick({ ref, onChartPointClick: props.onPointClick });
 
-	const stackedOptions = resolveStackedOptions(props.charts, {
-		enableResultErrorHighlight: props.enableResultErrorHighlight
-	});
+	const stackedOptions = useMemo(
+		() =>
+			resolveStackedOptions(props.charts, {
+				enableResultErrorHighlight: props.enableResultErrorHighlight,
+				containerWidth,
+				containerHeight
+			}),
+		[
+			containerHeight,
+			containerWidth,
+			props.charts,
+			props.enableResultErrorHighlight
+		]
+	);
 
-	return <Plot options={stackedOptions} style={props.style} ref={ref} />;
+	return (
+		<div ref={containerRef} className="h-full w-full" style={props.style}>
+			<Plot
+				options={stackedOptions}
+				style={{ height: '100%', width: '100%' }}
+				ref={ref}
+			/>
+		</div>
+	);
 }
 
 export { MeasurementChart, StackedMeasurementChart, MeasurementChartToolbar };
