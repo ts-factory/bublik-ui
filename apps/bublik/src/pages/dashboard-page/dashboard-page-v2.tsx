@@ -75,13 +75,13 @@ export const DashboardPageV2 = () => {
 	return (
 		<div className="flex flex-col h-full gap-1 p-2">
 			<header className="flex flex-col px-6 py-4 bg-white rounded-t-xl">
-				<div className="flex flex-wrap justify-between">
-					<div className="flex flex-wrap items-stretch justify-center gap-6">
+				<div className="flex flex-wrap gap-4 justify-between">
+					<div className="flex flex-wrap items-stretch justify-center gap-4">
 						<SearchBarContainer />
 						<TodayButtonContainer />
 						<ModePickerContainer />
 					</div>
-					<div className="flex flex-wrap items-stretch justify-center gap-6">
+					<div className="flex flex-wrap items-stretch justify-center gap-4">
 						<TvModeContainer />
 						<AutoReloadContainer />
 						<ClockContainer />
