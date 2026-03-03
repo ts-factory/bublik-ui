@@ -6,14 +6,32 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { formatISODuration, intervalToDuration, sub } from 'date-fns';
 
-import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
+import {
+	formatTimeToAPI,
+	normalizeKeyValueForSubmit,
+	parseISODuration
+} from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
+import { config } from '@/bublik/config';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
+
+const normalizeRunDataValue = (value: string) => {
+	return normalizeKeyValueForSubmit(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+};
+
+const normalizeRunDataList = (runData: string[]) => {
+	return Array.from(
+		new Set(runData.map(normalizeRunDataValue).filter(Boolean))
+	);
+};
 
 function RunsFormContainer() {
 	const dispatch = useDispatch();
@@ -23,8 +41,9 @@ function RunsFormContainer() {
 	const allTags = useSelector(selectAllTags);
 
 	useMount(() => {
-		const initialGlobalFilter =
-			searchParams.get('runData')?.split(';')?.filter(Boolean) || [];
+		const initialGlobalFilter = normalizeRunDataList(
+			searchParams.get('runData')?.split(';')?.filter(Boolean) || []
+		);
 
 		dispatch(updateGlobalFilter(initialGlobalFilter));
 	});
@@ -70,6 +89,16 @@ function searchParamsToForm(
 	searchParams: URLSearchParams,
 	allTags: BoxValue[]
 ): RunsFormValues {
+	const normalizedAllTags = allTags.map((tag) => {
+		const normalizedValue = normalizeRunDataValue(tag.value);
+
+		return {
+			...tag,
+			value: normalizedValue,
+			label: normalizedValue
+		};
+	});
+
 	const rawStart = searchParams.get('startDate');
 	const rawEnd = searchParams.get('finishDate');
 	const calendarMode = (searchParams.get('calendarMode') ??
@@ -79,7 +108,7 @@ function searchParamsToForm(
 
 	const defaultValues: RunsFormValues = {
 		calendarMode,
-		runData: allTags,
+		runData: normalizedAllTags,
 		tagExpr,
 		dates: null
 	};
@@ -149,10 +178,12 @@ function formToSearchParams(
 
 	const selectedRunData = runData
 		.filter((v) => v.isSelected)
-		.map((v) => v.value);
+		.map((v) => normalizeRunDataValue(v.value));
 
-	selectedRunData.length
-		? params.set('runData', selectedRunData.join(';'))
+	const normalizedSelectedRunData = normalizeRunDataList(selectedRunData);
+
+	normalizedSelectedRunData.length
+		? params.set('runData', normalizedSelectedRunData.join(';'))
 		: params.delete('runData');
 
 	tagExpr ? params.set('tagExpr', tagExpr) : params.delete('tagExpr');

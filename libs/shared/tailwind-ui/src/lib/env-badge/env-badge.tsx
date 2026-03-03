@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useState } from 'react';
 
-import { indentEnv } from '@/shared/utils';
+import { formatKeyValueForDisplay, indentEnv } from '@/shared/utils';
 
 import { cn } from '../utils';
 import { Badge } from '../badge';
@@ -14,12 +14,24 @@ export interface EnvBadgeProps {
 	value: string;
 	isSelected?: boolean;
 	onContentClick?: () => void;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
 export const EnvBadge: FC<EnvBadgeProps> = (props) => {
-	const { value, isSelected, onContentClick } = props;
+	const {
+		value,
+		isSelected,
+		onContentClick,
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	} = props;
 	const indentedValue = indentEnv(value);
 	const [isOpen, setIsOpen] = useState(false);
+	const displayValue = formatKeyValueForDisplay(value, {
+		displayDelimiter: keyValueDisplayDelimiter,
+		submitDelimiter: keyValueSubmitDelimiter
+	});
 
 	if (value.length <= 30) {
 		return (
@@ -29,7 +41,7 @@ export const EnvBadge: FC<EnvBadgeProps> = (props) => {
 				onClick={onContentClick}
 				overflowWrap
 			>
-				{value}
+				{displayValue}
 			</Badge>
 		);
 	}

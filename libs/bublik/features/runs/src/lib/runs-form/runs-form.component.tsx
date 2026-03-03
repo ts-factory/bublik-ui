@@ -11,6 +11,7 @@ import {
 	TagsBoxInput,
 	BoxValue
 } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
 import { DateValue } from '@internationalized/date';
 
 export interface RunsFormValues {
@@ -88,6 +89,8 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 								endIcon={<Icon name="AddSymbol" size={20} className="ml-2" />}
 								values={field.value}
 								onChange={field.onChange}
+								keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+								keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							/>
 						)}
 						name="runData"
