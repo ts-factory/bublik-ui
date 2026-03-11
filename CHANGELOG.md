@@ -1,5 +1,12 @@
 
 
+### [2.10.1](https://github.com/ts-factory/bublik-ui/compare/v2.10.0...v2.10.1) (2026-03-11)
+
+
+### 💅 Polish
+
+* **dashboard:** [header] align header items gap with the rest of the app style ([cfdf357](https://github.com/ts-factory/bublik-ui/commit/cfdf3578801cf103891064cd17c8ca512f68d208))
+
 ## [2.10.0](https://github.com/ts-factory/bublik-ui/compare/v2.9.1...v2.10.0) (2026-02-25)
 
 

@@ -1,7 +1,7 @@
 {
-	"date": "2026.02.25",
-	"summary": "feat(project): add ability to hide sidebar by specifying search parameter",
-	"revision": "00158d5a",
-	"branch": "release-2.10.0",
-	"latestTag": "v2.10.0"
+	"date": "2026.03.11",
+	"summary": "style(dashboard): [header] align header items gap with the rest of the app style",
+	"revision": "cfdf3578",
+	"branch": "release-2.10.1",
+	"latestTag": "v2.10.1"
 }
