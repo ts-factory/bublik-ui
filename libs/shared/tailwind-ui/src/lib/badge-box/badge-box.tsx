@@ -1,133 +1,88 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
+	KeyboardEvent,
+	MouseEvent,
 	ReactNode,
-	useCallback,
-	useEffect,
 	useMemo,
 	useRef,
 	useState
 } from 'react';
-import { Command as CommandPrimitive } from 'cmdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 
-import { useMeasure } from '@/shared/hooks';
-import { throttle } from '@/shared/utils';
-
-import { cn } from '../utils';
 import { Badge } from '../badge';
-import { Command, CommandGroup, CommandItem, CommandList } from '../command';
-import { Popover, PopoverContent, PopoverTrigger } from '../popover';
 import { ButtonTw } from '../button';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator
+} from '../command';
 import { Icon } from '../icon';
+import { Popover, PopoverContent, PopoverTrigger } from '../popover';
+import { Separator } from '../separator';
+import { cn, cva } from '../utils';
 
 export type BoxValue = {
 	label: string;
 	value: string;
 	isSelected?: boolean;
 	className?: string;
+	groupLabel?: string;
 };
 
-export interface UserTagsComboboxParams<T extends BoxValue> {
-	values: T[];
-	onChange?: (boxes: T[]) => void;
-}
+const normalizeInputValue = (value: string) =>
+	value.trim().replace(/\s+/g, ' ');
 
-const useTagsCombobox = <T extends BoxValue>(
-	params: UserTagsComboboxParams<T>
-) => {
-	const { values, onChange } = params;
-	const [inputValue, setInputValue] = useState<string>('');
+const normalizeForMatch = (value: string) =>
+	normalizeInputValue(value).toLowerCase();
 
-	const create = (value: string) => {
-		const newFramework = {
-			value,
-			label: value,
-			isSelected: true
-		} as T;
-
-		const nextState = [...values, newFramework];
-		setInputValue('');
-		onChange?.(nextState);
-	};
-
-	const toggle = (passedBox: BoxValue) => {
-		const current = values.find((b) => b.value === passedBox.value);
-
-		if (!current) return;
-
-		const nextState = !current.isSelected
-			? check(passedBox)
-			: uncheck(passedBox);
-
-		onChange?.(nextState);
-	};
-
-	const check = (value: BoxValue) => {
-		return values.map((box) => {
-			if (box.value === value.value) box.isSelected = true;
-
-			return box;
-		});
-	};
-
-	const uncheck = (toRemove: BoxValue) => {
-		return values.map((box) => {
-			if (box.value === toRemove.value) {
-				box.isSelected = false;
-			}
-
-			return box;
-		});
-	};
-
-	const remove = (toRemove: BoxValue) => {
-		onChange?.(uncheck(toRemove));
-	};
-
-	const handleBackspace = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'Backspace' && inputValue === '') {
-				const filtered = values.filter((b) => b.isSelected);
-
-				const lastValue = filtered.at(-1);
-
-				if (!lastValue) return;
-
-				setInputValue(lastValue.label);
-
-				const nextState = values.map((box) => {
-					if (box.value === lastValue.value) box.isSelected = false;
-
-					return box;
-				});
-
-				onChange?.(nextState);
-			}
-		},
-		[inputValue, onChange, values]
+const updateSelection = <T extends BoxValue>(
+	values: T[],
+	targetValue: string,
+	isSelected: boolean
+): T[] =>
+	values.map((box) =>
+		box.value === targetValue ? ({ ...box, isSelected } as T) : box
 	);
 
-	const selectedValues = useMemo(
-		() => values.filter((box) => box.isSelected),
-		[values]
+const clearSelection = <T extends BoxValue>(values: T[]): T[] =>
+	values.map((box) =>
+		box.isSelected ? ({ ...box, isSelected: false } as T) : box
 	);
 
-	useEffect(() => {
-		document.addEventListener('keydown', handleBackspace);
-		return () => document.removeEventListener('keydown', handleBackspace);
-	}, [handleBackspace]);
+const triggerLabelStyles = cva({
+	variants: {
+		size: {
+			xss: 'text-xs font-medium',
+			'xs/2': 'text-xs font-medium',
+			md: 'text-[0.875rem] font-medium leading-[1.5rem]'
+		}
+	}
+});
 
-	return {
-		create,
-		uncheck,
-		toggle,
-		setInputValue,
-		remove,
-		inputValue,
-		selectedValues
-	};
-};
+const triggerSummaryStyles = cva({
+	variants: {
+		size: {
+			xss: 'text-xs font-normal',
+			'xs/2': 'text-xs font-normal',
+			md: 'text-[0.875rem] font-normal leading-[1.5rem]'
+		}
+	}
+});
+
+const triggerBadgeStyles = cva({
+	variants: {
+		size: {
+			xss: 'text-xs leading-4',
+			'xs/2': 'text-xs leading-4',
+			md: 'text-xs leading-4'
+		}
+	}
+});
 
 export interface FancyBoxProps {
 	/** Label of the component */
@@ -144,185 +99,341 @@ export interface FancyBoxProps {
 	startIcon?: ReactNode;
 	/** End icon for trigger button */
 	endIcon?: ReactNode;
+	/** Button size */
+	size?: 'xss' | 'xs/2' | 'md';
+	/** Group label for newly created values */
+	createdGroupLabel?: string;
+	/** Order for rendering grouped sections */
+	groupOrder?: readonly string[];
 }
 
 /**
- * Tags box input is a button with combobox popover for inputting tags
- * Supports autocomplete and creating tags
+ * Tags box input is a button with combobox popover for selecting and creating tags.
  */
-export const TagsBoxInput = (props: FancyBoxProps) => {
-	const {
-		label,
-		endIcon,
-		startIcon,
-		placeholder,
-		valueLabel,
-		values,
-		onChange
-	} = props;
-
+export const TagsBoxInput = ({
+	label,
+	endIcon,
+	startIcon,
+	placeholder,
+	valueLabel,
+	values,
+	onChange,
+	size = 'md',
+	createdGroupLabel,
+	groupOrder
+}: FancyBoxProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [openCombobox, setOpenCombobox] = useState(false);
+	const [inputValue, setInputValue] = useState('');
 
-	const handleChange = (boxes: BoxValue[]) => {
-		onChange?.(boxes);
+	const selectedValues = useMemo(
+		() => values.filter((box) => box.isSelected),
+		[values]
+	);
+	const groupedValues = useMemo(() => {
+		const groups = values.reduce<Map<string | undefined, BoxValue[]>>(
+			(acc, box) => {
+				const groupLabel = box.groupLabel;
+				const current = acc.get(groupLabel) || [];
+
+				acc.set(groupLabel, [...current, box]);
+				return acc;
+			},
+			new Map()
+		);
+
+		return Array.from(groups.entries()).sort(([left], [right]) => {
+			if (groupOrder?.length) {
+				const leftIndex =
+					left === undefined ? groupOrder.length : groupOrder.indexOf(left);
+				const rightIndex =
+					right === undefined ? groupOrder.length : groupOrder.indexOf(right);
+				const normalizedLeft =
+					leftIndex === -1 ? groupOrder.length + 1 : leftIndex;
+				const normalizedRight =
+					rightIndex === -1 ? groupOrder.length + 1 : rightIndex;
+
+				return normalizedLeft - normalizedRight;
+			}
+
+			if (left === undefined) return 1;
+			if (right === undefined) return -1;
+			return 0;
+		});
+	}, [groupOrder, values]);
+	const normalizedInputValue = normalizeInputValue(inputValue);
+	const normalizedValueLabel = (valueLabel || label).toLowerCase();
+	const hasNormalizedMatch = values.some(
+		(box) =>
+			normalizeForMatch(box.value) ===
+				normalizeForMatch(normalizedInputValue) ||
+			normalizeForMatch(box.label) === normalizeForMatch(normalizedInputValue)
+	);
+	const canCreate = normalizedInputValue.length > 0 && !hasNormalizedMatch;
+
+	const focusInput = () => queueMicrotask(() => inputRef.current?.focus());
+
+	const handleOpenChange = (isOpen: boolean) => {
+		setOpenCombobox(isOpen);
+		if (isOpen) focusInput();
 	};
 
-	const { create, toggle, inputValue, setInputValue, selectedValues, remove } =
-		useTagsCombobox({ values, onChange: handleChange });
-
-	const handleComboboxOpenChange = (value: boolean) => {
-		setTimeout(() => {
-			if (value) inputRef.current?.focus();
-		}, 0);
-		setOpenCombobox(value);
+	const handleChange = (nextValues: BoxValue[]) => {
+		onChange?.(nextValues);
 	};
 
-	const groupRef = useRef<HTMLDivElement>(null);
-	const [isScrolled, setIsScrolled] = useState(false);
-	const handleScroll = throttle(() => {
-		if ((groupRef.current?.scrollTop || 0) > 0) {
-			setIsScrolled(true);
-		} else {
-			setIsScrolled(false);
+	const handleToggle = (box: BoxValue) => {
+		handleChange(updateSelection(values, box.value, !box.isSelected));
+		focusInput();
+	};
+
+	const handleRemove = (box: BoxValue) => {
+		handleChange(updateSelection(values, box.value, false));
+		focusInput();
+	};
+
+	const handleCreate = () => {
+		if (!canCreate) return;
+
+		handleChange([
+			...values,
+			{
+				value: normalizedInputValue,
+				label: normalizedInputValue,
+				isSelected: true,
+				groupLabel: createdGroupLabel || valueLabel || label
+			}
+		]);
+		setInputValue('');
+		focusInput();
+	};
+
+	const handleClearSelection = () => {
+		handleChange(clearSelection(values));
+		focusInput();
+	};
+
+	const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Enter' && canCreate) {
+			event.preventDefault();
+			handleCreate();
+			return;
 		}
-	}, 200);
 
-	const [tagsRef, { height: tagsHeight }] = useMeasure<HTMLDivElement>();
+		if (event.key !== 'Backspace' || inputValue.length > 0) return;
+
+		const lastValue = selectedValues.at(-1);
+
+		if (!lastValue) return;
+
+		event.preventDefault();
+		setInputValue(lastValue.label);
+		handleRemove(lastValue);
+	};
+
+	const keepPopoverOpen = (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+	};
 
 	return (
-		<Popover open={openCombobox} onOpenChange={handleComboboxOpenChange} modal>
+		<Popover open={openCombobox} onOpenChange={handleOpenChange}>
 			<PopoverTrigger asChild>
 				<ButtonTw
 					variant="outline-secondary"
-					size="md"
-					state={openCombobox && 'active'}
+					size={size}
+					state={openCombobox ? 'active' : 'default'}
+					className={cn(
+						'max-w-[26rem] justify-start',
+						size !== 'xss' && 'gap-0'
+					)}
 					// eslint-disable-next-line jsx-a11y/role-has-required-aria-props
 					role="combobox"
 					aria-expanded={openCombobox}
 				>
-					{startIcon}
-					<span className="truncate text-[0.875rem] font-medium leading-[1.5rem]">
-						{selectedValues.length === 0 && label}
-						{selectedValues.length >= 1 &&
-							`${selectedValues.length} ${label} selected`}
+					{startIcon ? (
+						<span className="mr-2 shrink-0 text-text-menu">{startIcon}</span>
+					) : null}
+					<span className={cn('truncate', triggerLabelStyles({ size }))}>
+						{label}
 					</span>
-					{endIcon}
+					{selectedValues.length > 0 ? (
+						<>
+							<Separator orientation="vertical" className="mx-2 h-4 shrink-0" />
+							<div className="flex min-w-0 items-center gap-1 overflow-hidden">
+								{selectedValues.length > 2 ? (
+									<span
+										className={cn('truncate', triggerSummaryStyles({ size }))}
+									>
+										{selectedValues.length} selected
+									</span>
+								) : (
+									selectedValues.map((box) => (
+										<Badge
+											key={box.value}
+											className={cn(
+												'max-w-[8rem] truncate bg-primary-wash px-1.5 py-0',
+												triggerBadgeStyles({ size }),
+												box.className
+											)}
+										>
+											<span className="truncate">{box.label}</span>
+										</Badge>
+									))
+								)}
+							</div>
+						</>
+					) : null}
+					<span className="ml-2 shrink-0 text-text-menu">
+						{endIcon || <Icon name="ArrowShortSmall" />}
+					</span>
 				</ButtonTw>
 			</PopoverTrigger>
 			<PopoverContent
-				className="p-0 bg-white rounded-lg shadow-popover min-w-[380px] max-w-[380px] max-h-[var(--radix-popper-available-height)]"
-				sideOffset={8}
+				align="start"
+				sideOffset={4}
+				onOpenAutoFocus={(event) => {
+					event.preventDefault();
+					inputRef.current?.focus();
+				}}
+				className="w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg bg-white p-0 shadow-popover"
 			>
 				<Command loop>
-					<div
-						className="relative flex flex-wrap w-full gap-1 px-2 py-3 overflow-hidden transition-shadow bg-primary-wash"
-						onClick={() => inputRef.current?.focus()}
-						ref={tagsRef}
-					>
-						{selectedValues.map(({ label, value, className }) => (
-							<Badge key={value} className={cn('bg-badge-10', className)}>
-								{label}
-								<button onClick={() => remove({ label, value })} type="button">
-									<Icon name="CrossSimple" size={16} className="ml-1" />
-								</button>
-							</Badge>
-						))}
-						<CommandPrimitive.Input
-							className={cn(
-								'text-sm border-none outline:none focus:ring-0 placeholder:text-text-menu disabled:cursor-not-allowed disabled:opacity-50 p-0 bg-transparent px-2 py-0.5 w-full'
-							)}
-							ref={inputRef}
-							placeholder={placeholder}
-							value={inputValue}
-							onValueChange={setInputValue}
-						/>
-					</div>
-					<CommandList>
-						<CommandGroup
-							className={cn(
-								'overflow-auto p-0',
-								'[&_[cmdk-group-heading]]:min-h-[38px] [&_[cmdk-group-heading]]:grid [&_[cmdk-group-heading]]:items-center [&_[cmdk-group-heading]]:border-b',
-								'[&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:bg-white [&_[cmdk-group-heading]]:z-10',
-								isScrolled &&
-									'[&_[cmdk-group-heading]]:shadow-[0_0_8px_0_rgb(0_0_0/10%)]'
-							)}
-							heading="Select an option or create one"
-							style={{
-								maxHeight: `calc(var(--radix-popover-content-available-height) - ${Math.round(
-									tagsHeight + 24
-								)}px)`
-							}}
-							onScroll={handleScroll}
-							ref={groupRef}
-						>
-							{values.map((box) => {
-								return (
-									<CommandItem
-										key={box.value}
-										value={box.value}
-										onSelect={() => toggle(box)}
-										className="m-1"
-									>
-										<div
-											className={cn(
-												'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-text-menu',
-												box.isSelected
-													? 'bg-primary text-white border-primary'
-													: 'opacity-50 [&_svg]:invisible'
-											)}
-										>
-											<CheckIcon className={cn('h-4 w-4')} />
-										</div>
-										<Badge className={cn('bg-badge-10', box.className)}>
-											{box.label}
-										</Badge>
-									</CommandItem>
-								);
-							})}
-							<CommandItemCreate
-								inputValue={inputValue}
-								values={values}
-								onSelect={() => create(inputValue)}
-								valueLabel={valueLabel || label}
+					<CommandInput
+						ref={inputRef}
+						placeholder={placeholder || label}
+						className="text-xs"
+						value={inputValue}
+						onValueChange={setInputValue}
+						onKeyDown={handleInputKeyDown}
+						startIcon={
+							<Icon
+								name="MagnifyingGlass"
+								size={18}
+								className="shrink-0 opacity-50"
 							/>
-						</CommandGroup>
+						}
+						endIcon={
+							normalizedInputValue ? (
+								<button
+									type="button"
+									className="rounded p-1 text-text-menu hover:bg-primary-wash hover:text-primary"
+									onMouseDown={keepPopoverOpen}
+									onClick={() => {
+										setInputValue('');
+										focusInput();
+									}}
+									aria-label="Clear search"
+								>
+									<Icon name="Cross" size={12} />
+								</button>
+							) : null
+						}
+					/>
+					{selectedValues.length > 0 ? (
+						<div className="flex flex-wrap gap-1 border-b border-border-primary bg-primary-wash px-3 py-2">
+							{selectedValues.map((box) => (
+								<Badge
+									key={box.value}
+									className={cn(
+										'flex items-center gap-1 bg-badge-10 px-1.5 py-0 text-xs leading-4',
+										box.className
+									)}
+								>
+									<span>{box.label}</span>
+									<button
+										type="button"
+										className="rounded text-text-menu hover:text-primary"
+										onMouseDown={keepPopoverOpen}
+										onClick={() => handleRemove(box)}
+										aria-label={`Remove ${box.label}`}
+									>
+										<Icon name="CrossSimple" size={14} />
+									</button>
+								</Badge>
+							))}
+						</div>
+					) : null}
+					<CommandList className="max-h-96 overflow-y-auto">
+						<CommandEmpty className="py-4 text-center text-xs">
+							No results found.
+						</CommandEmpty>
+						{groupedValues.map(([groupLabel, groupValues], index) => (
+							<CommandGroup
+								key={groupLabel || `group-${index}`}
+								heading={groupLabel}
+								className={cn(
+									'pt-0 [&_[cmdk-group-heading]]:-mx-1 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:block [&_[cmdk-group-heading]]:border-y [&_[cmdk-group-heading]]:border-border-primary [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2',
+									index === 0 && '[&_[cmdk-group-heading]]:border-t-0'
+								)}
+							>
+								{groupValues.map((box) => {
+									const isSelected = Boolean(box.isSelected);
+
+									return (
+										<CommandItem
+											key={box.value}
+											value={`${box.label} ${box.value} ${groupLabel}`.trim()}
+											onSelect={() => handleToggle(box)}
+											className="gap-2 text-xs data-[selected=true]:text-text-primary"
+										>
+											<div
+												className={cn(
+													'mr-0 flex h-4 w-4 items-center justify-center rounded-sm border border-text-menu',
+													isSelected
+														? 'border-primary bg-primary text-white'
+														: 'opacity-50 [&_svg]:invisible'
+												)}
+											>
+												<CheckIcon className="h-4 w-4" />
+											</div>
+											<Badge
+												className={cn(
+													'max-w-[18rem] truncate bg-badge-10 text-xs',
+													box.className
+												)}
+											>
+												{box.label}
+											</Badge>
+										</CommandItem>
+									);
+								})}
+							</CommandGroup>
+						))}
+						{canCreate ? (
+							<CommandGroup
+								heading="Create"
+								className="pt-0 [&_[cmdk-group-heading]]:-mx-1 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:block [&_[cmdk-group-heading]]:border-y [&_[cmdk-group-heading]]:border-border-primary [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2"
+							>
+								<CommandItem
+									value={inputValue}
+									onSelect={handleCreate}
+									className="min-h-[38px] gap-2 text-xs text-text-secondary data-[selected=true]:text-text-secondary"
+								>
+									<div className="mr-0 flex h-4 w-4 items-center justify-center rounded-sm border border-border-primary text-primary">
+										<Icon name="AddSymbol" size={10} />
+									</div>
+									Create new {normalizedValueLabel} &quot;{normalizedInputValue}
+									&quot;
+								</CommandItem>
+							</CommandGroup>
+						) : null}
 					</CommandList>
+					{selectedValues.length > 0 ? (
+						<>
+							<CommandSeparator />
+							<CommandGroup>
+								<CommandItem
+									onSelect={handleClearSelection}
+									className="justify-center text-center text-xs"
+								>
+									Clear selection
+								</CommandItem>
+							</CommandGroup>
+						</>
+					) : null}
 				</Command>
 			</PopoverContent>
 		</Popover>
-	);
-};
-
-const CommandItemCreate = ({
-	inputValue,
-	values,
-	onSelect,
-	valueLabel
-}: {
-	inputValue: string;
-	values: BoxValue[];
-	onSelect: () => void;
-	valueLabel: string;
-}) => {
-	const hasNoFramework = !values
-		.map(({ value }) => value)
-		.includes(`${inputValue.toLowerCase()}`);
-
-	const render = inputValue !== '' && hasNoFramework;
-
-	if (!render) return null;
-
-	// BUG: whenever a space is appended, the Create-Button will not be shown.
-	return (
-		<CommandItem
-			key={`${inputValue}`}
-			value={`${inputValue}`}
-			className="text-xs text-muted-foreground m-1 min-h-[38px]"
-			onSelect={onSelect}
-		>
-			<div className={cn('mr-2 h-4 w-4')} />
-			Create new {valueLabel.toLowerCase()} &quot;{inputValue}&quot;
-		</CommandItem>
 	);
 };
