@@ -83,6 +83,7 @@ export interface DashboardTableProps {
 	renderSubrow?: (row: Row<DashboardData>) => ReactNode;
 	layout?: DashboardLayoutType;
 	isFetching?: boolean;
+	isLoading?: boolean;
 	globalFilter?: string;
 	error?: unknown;
 }
@@ -95,6 +96,7 @@ export const DashboardTable = (props: DashboardTableProps) => {
 		date = new Date(),
 		onDateChange,
 		isFetching,
+		isLoading = false,
 		globalFilter,
 		renderSubrow,
 		context,
@@ -117,6 +119,7 @@ export const DashboardTable = (props: DashboardTableProps) => {
 	});
 
 	const state = {
+		loading: <DashboardTableLoading rowNumber={24} />,
 		empty: <DashboardTableEmpty />,
 		error: <DashboardTableError error={error} />,
 		data: (
@@ -144,7 +147,13 @@ export const DashboardTable = (props: DashboardTableProps) => {
 				<div className="h-1 bg-bg-body" />
 				<TableHeader table={table} layout={layout} />
 			</div>
-			{error ? state['error'] : rows.length ? state['data'] : state['empty']}
+			{error
+				? state['error']
+				: isLoading
+				? state['loading']
+				: rows.length
+				? state['data']
+				: state['empty']}
 		</div>
 	);
 };
