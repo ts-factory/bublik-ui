@@ -54,7 +54,7 @@ export const DashboardTableContainer = ({
 		} // 30s
 	);
 
-	usePrefetchNextAndPreviousDay(date);
+	usePrefetchNextAndPreviousDay(date, projectIds);
 
 	const layout = modeToLayout.get(mode);
 	const lastResolvedDataRef = useRef(query.currentData);

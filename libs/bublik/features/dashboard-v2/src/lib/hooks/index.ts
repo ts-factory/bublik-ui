@@ -160,15 +160,30 @@ export const useDashboardMode = () => {
 	};
 };
 
-export const usePrefetchNextAndPreviousDay = (current?: Date | null) => {
+export const usePrefetchNextAndPreviousDay = (
+	current?: Date | null,
+	projectIds?: number[]
+) => {
 	const prefetchForDate = usePrefetch('getDashboardByDate');
 
 	useEffect(() => {
 		if (!current) return;
 
-		prefetchForDate({ date: formatTimeToAPI(addDays(current, 1)) });
-		prefetchForDate({ date: formatTimeToAPI(addDays(current, 2)) });
-		prefetchForDate({ date: formatTimeToAPI(addDays(current, -1)) });
-		prefetchForDate({ date: formatTimeToAPI(addDays(current, -2)) });
-	}, [current, prefetchForDate]);
+		prefetchForDate({
+			date: formatTimeToAPI(addDays(current, 1)),
+			projects: projectIds
+		});
+		prefetchForDate({
+			date: formatTimeToAPI(addDays(current, 2)),
+			projects: projectIds
+		});
+		prefetchForDate({
+			date: formatTimeToAPI(addDays(current, -1)),
+			projects: projectIds
+		});
+		prefetchForDate({
+			date: formatTimeToAPI(addDays(current, -2)),
+			projects: projectIds
+		});
+	}, [current, prefetchForDate, projectIds]);
 };
