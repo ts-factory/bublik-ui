@@ -1,5 +1,13 @@
 
 
+### [2.10.2](https://github.com/ts-factory/bublik-ui/compare/v2.10.1...v2.10.2) (2026-03-11)
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** incorrect prefetch without project filters ([bc7595a](https://github.com/ts-factory/bublik-ui/commit/bc7595adb29397d3ef2ccf7e7ddacd57a5c6c3c0))
+* **dashboard:** prevent empty-state flicker when changing project filter ([15d297e](https://github.com/ts-factory/bublik-ui/commit/15d297ee142f0cde5193b9a892f22b4cdc9ae9cb))
+
 ### [2.10.1](https://github.com/ts-factory/bublik-ui/compare/v2.10.0...v2.10.1) (2026-03-11)
 
 
