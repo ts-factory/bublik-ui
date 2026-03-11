@@ -14,6 +14,7 @@ import { useMount } from '@/shared/hooks';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import {
+	applyRunDataToSearchParams,
 	createRunsSearchParamsFiltersSnapshot,
 	getSelectedRunData
 } from './runs-form.utils';
@@ -173,14 +174,9 @@ function formToSearchParams(
 
 	const selectedRunData = getSelectedRunData(runData);
 
-	selectedRunData.length
-		? params.set('runData', selectedRunData.join(';'))
-		: params.delete('runData');
-
 	tagExpr ? params.set('tagExpr', tagExpr) : params.delete('tagExpr');
 
-	params.set('page', '1');
-	return params;
+	return applyRunDataToSearchParams(params, selectedRunData);
 }
 
 export { RunsFormContainer };

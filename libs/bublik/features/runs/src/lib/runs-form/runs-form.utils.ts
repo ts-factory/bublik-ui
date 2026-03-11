@@ -31,6 +31,22 @@ export const getSelectedRunData = (
 		runData.filter((value) => value.isSelected).map((value) => value.value)
 	);
 
+export function applyRunDataToSearchParams(
+	initialSearchParams: URLSearchParams,
+	runData: string[]
+): URLSearchParams {
+	const params = new URLSearchParams(initialSearchParams);
+	const normalizedRunData = normalizeRunData(runData);
+
+	normalizedRunData.length
+		? params.set('runData', normalizedRunData.join(';'))
+		: params.delete('runData');
+
+	params.set('page', '1');
+
+	return params;
+}
+
 export function createRunsFormFiltersSnapshot(
 	form: RunsFormValues
 ): RunsFormFiltersSnapshot {

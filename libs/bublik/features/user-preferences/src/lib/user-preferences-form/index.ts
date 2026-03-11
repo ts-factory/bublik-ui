@@ -3,3 +3,4 @@
 export * from './user-preferences.hooks';
 export * from './history-preferences-form.component';
 export * from './log-preferences-form.component';
+export * from './runs-preferences-form.component';
