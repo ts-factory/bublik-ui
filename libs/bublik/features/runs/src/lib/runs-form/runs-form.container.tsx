@@ -13,6 +13,10 @@ import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
+import {
+	createRunsSearchParamsFiltersSnapshot,
+	getSelectedRunData
+} from './runs-form.utils';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
 
@@ -34,11 +38,13 @@ function RunsFormContainer() {
 		() => searchParamsToForm(searchParams, allTags),
 		[allTags, searchParams]
 	);
+	const appliedFilters = useMemo(
+		() => createRunsSearchParamsFiltersSnapshot(searchParams),
+		[searchParams]
+	);
 
 	function handleFormSubmit(newForm: RunsFormValues) {
-		const selectedRunData = newForm.runData
-			.filter((value) => value.isSelected)
-			.map((value) => value.value);
+		const selectedRunData = getSelectedRunData(newForm.runData);
 
 		trackEvent(analyticsEventNames.runsFormSubmit, {
 			calendarMode: newForm.calendarMode,
@@ -77,6 +83,7 @@ function RunsFormContainer() {
 		<RunsForm
 			key={`${localGlobalFilter.length}_${defaultValues.runData.length}`}
 			defaultValues={defaultValues}
+			appliedFilters={appliedFilters}
 			onRunsFormSubmit={handleFormSubmit}
 			onResetFormClick={handleResetFormClick}
 		/>
@@ -164,9 +171,7 @@ function formToSearchParams(
 		);
 	}
 
-	const selectedRunData = runData
-		.filter((v) => v.isSelected)
-		.map((v) => v.value);
+	const selectedRunData = getSelectedRunData(runData);
 
 	selectedRunData.length
 		? params.set('runData', selectedRunData.join(';'))

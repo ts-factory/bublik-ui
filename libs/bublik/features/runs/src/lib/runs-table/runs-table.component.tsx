@@ -123,42 +123,45 @@ function RunsTable(props: RunsTableProps) {
 
 	return (
 		<div>
-			<table className="border-separate border-spacing-y-1 h-full p-0 m-0 w-full">
-				<thead>
-					{table.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id} className="h-8">
-							{headerGroup.headers.map((header) => {
-								const headerClassName =
-									header.column.columnDef.meta?.headerClassName || '';
+			<div className="-mt-1">
+				{/* border-spacing adds outer spacing above the first row; offset it to keep a 4px page-level gap */}
+				<table className="border-separate border-spacing-y-1 h-full p-0 m-0 w-full">
+					<thead>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<tr key={headerGroup.id} className="h-8">
+								{headerGroup.headers.map((header) => {
+									const headerClassName =
+										header.column.columnDef.meta?.headerClassName || '';
 
-								return (
-									<th
-										key={header.id}
-										className={cn(
-											'py-2 px-1 text-[0.6875rem] font-semibold leading-[0.875rem] text-left bg-white sticky top-0 z-10',
-											headerClassName
-										)}
-									>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext()
-											  )}
-									</th>
-								);
-							})}
-						</tr>
-					))}
-				</thead>
-				<tbody>
-					{table.getRowModel().rows.map((row) => {
-						return (
-							<RunsRow key={row.id} row={row} onRowClick={handleRowClick} />
-						);
-					})}
-				</tbody>
-			</table>
+									return (
+										<th
+											key={header.id}
+											className={cn(
+												'py-2 px-1 text-[0.6875rem] font-semibold leading-[0.875rem] text-left bg-white sticky top-0 z-10',
+												headerClassName
+											)}
+										>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+														header.column.columnDef.header,
+														header.getContext()
+												  )}
+										</th>
+									);
+								})}
+							</tr>
+						))}
+					</thead>
+					<tbody>
+						{table.getRowModel().rows.map((row) => {
+							return (
+								<RunsRow key={row.id} row={row} onRowClick={handleRowClick} />
+							);
+						})}
+					</tbody>
+				</table>
+			</div>
 			{pageCount ? (
 				<div className="flex justify-center">
 					<Pagination

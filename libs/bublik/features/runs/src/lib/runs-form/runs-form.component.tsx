@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { forwardRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { forwardRef, useMemo } from 'react';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { DateValue } from '@internationalized/date';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
@@ -14,6 +14,11 @@ import {
 	BoxValue
 } from '@/shared/tailwind-ui';
 
+import {
+	areRunsFiltersSnapshotsEqual,
+	createRunsFormFiltersSnapshot,
+	type RunsFormFiltersSnapshot
+} from './runs-form.utils';
 import { RUN_DATA_GROUP_ORDER } from '../runs-slice.selectors';
 
 export interface RunsFormValues {
@@ -25,21 +30,68 @@ export interface RunsFormValues {
 
 export interface RunsFormProps {
 	defaultValues: RunsFormValues;
+	appliedFilters: RunsFormFiltersSnapshot;
 	onRunsFormSubmit: (newForm: RunsFormValues) => void;
 	onResetFormClick: (resettedForm: RunsFormValues) => void;
 }
 
 export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
-	({ defaultValues, onRunsFormSubmit, onResetFormClick }, ref) => {
-		const {
-			control,
-			register,
-			handleSubmit,
-			reset,
-			getValues,
-			watch,
-			setValue
-		} = useForm<RunsFormValues>({ defaultValues });
+	(
+		{ defaultValues, appliedFilters, onRunsFormSubmit, onResetFormClick },
+		ref
+	) => {
+		const { control, register, handleSubmit, reset, getValues, setValue } =
+			useForm<RunsFormValues>({ defaultValues });
+		const watchedValues = useWatch({ control });
+
+		const currentDates: RunsFormValues['dates'] = useMemo(
+			() =>
+				watchedValues.dates?.start && watchedValues.dates?.end
+					? {
+							start: watchedValues.dates.start as DateValue,
+							end: watchedValues.dates.end as DateValue
+					  }
+					: defaultValues.dates,
+			[
+				defaultValues.dates,
+				watchedValues?.dates?.end,
+				watchedValues?.dates?.start
+			]
+		);
+
+		const currentRunData: RunsFormValues['runData'] =
+			watchedValues.runData?.every(
+				(value): value is BoxValue =>
+					typeof value?.label === 'string' && typeof value?.value === 'string'
+			)
+				? watchedValues.runData
+				: defaultValues.runData;
+
+		const currentFormValues = useMemo<RunsFormValues>(
+			() => ({
+				calendarMode: watchedValues.calendarMode ?? defaultValues.calendarMode,
+				dates: currentDates,
+				runData: currentRunData,
+				tagExpr: watchedValues.tagExpr ?? defaultValues.tagExpr
+			}),
+			[
+				currentDates,
+				currentRunData,
+				defaultValues.calendarMode,
+				defaultValues.tagExpr,
+				watchedValues.calendarMode,
+				watchedValues.tagExpr
+			]
+		);
+
+		const hasPendingFilterMismatch = useMemo(
+			() =>
+				!areRunsFiltersSnapshotsEqual(
+					createRunsFormFiltersSnapshot(currentFormValues),
+					appliedFilters
+				),
+			[appliedFilters, currentFormValues]
+		);
 
 		const handleResetClick = () => {
 			const resettedForm: RunsFormValues = {
@@ -65,7 +117,7 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 						control={control}
 						render={({ field }) => (
 							<AriaDateRangePicker
-								mode={watch('calendarMode')}
+								mode={currentFormValues.calendarMode}
 								onModeChange={(mode) => setValue('calendarMode', mode)}
 								label="Runs Range"
 								enabledModes={['default', 'duration']}
@@ -111,7 +163,12 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 					<SearchBar {...register('tagExpr')} placeholder="Tag expression" />
 				</div>
 				<div className="flex gap-4">
-					<ButtonTw size="md" rounded="lg" type="submit" variant="primary">
+					<ButtonTw
+						size="md"
+						rounded="lg"
+						type="submit"
+						variant={hasPendingFilterMismatch ? 'primary' : 'outline'}
+					>
 						<Icon name="Refresh" size={24} className="mr-1.5" />
 						<span>Submit</span>
 					</ButtonTw>
