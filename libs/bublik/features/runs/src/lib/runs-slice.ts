@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
+	createEntityAdapter,
 	createSlice,
 	EntityId,
 	EntityState,
@@ -10,7 +11,9 @@ import {
 import { bublikAPI } from '@/services/bublik-api';
 import { RunsData } from '@/shared/types';
 
-import { runsAdapter } from './runs-slice.selectors';
+export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
+	selectId: (run) => run.id.toString()
+});
 
 export const RUNS_PAGE_SLICE = 'runsPage';
 

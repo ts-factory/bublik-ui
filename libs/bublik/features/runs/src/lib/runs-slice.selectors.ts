@@ -1,19 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	createEntityAdapter,
-	createSelector,
-	EntityId
-} from '@reduxjs/toolkit';
+import { createSelector } from '@reduxjs/toolkit';
 
-import type { RunsData } from '@/shared/types';
 import type { BoxValue } from '@/shared/tailwind-ui';
 
-import { type AppStateWithRunsSlice, RUNS_PAGE_SLICE } from './runs-slice';
-
-export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
-	selectId: (run) => run.id.toString()
-});
+import {
+	type AppStateWithRunsSlice,
+	RUNS_PAGE_SLICE,
+	runsAdapter
+} from './runs-slice';
 
 const getRunsPageState = (state: AppStateWithRunsSlice) =>
 	state[RUNS_PAGE_SLICE];
@@ -39,6 +34,8 @@ export const getResults = createSelector(
 
 const { selectAll: selectAllRuns } = runsAdapter.getSelectors(getResults);
 
+export const RUN_DATA_GROUP_ORDER = ['Important', 'Metadata', 'Tags'] as const;
+
 export const selectAllTags = createSelector(
 	selectAllRuns,
 	selectGlobalFilter,
@@ -46,6 +43,7 @@ export const selectAllTags = createSelector(
 		const DEFAULT_BG = 'bg-badge-0';
 		const IMPORTANT_BG = 'bg-badge-6';
 		const META_BG = 'bg-badge-4';
+		const [IMPORTANT_GROUP, META_GROUP, TAGS_GROUP] = RUN_DATA_GROUP_ORDER;
 
 		const important = runs.flatMap((run) => run.important_tags);
 		const metas = runs.flatMap((run) => run.metadata);
@@ -55,38 +53,38 @@ export const selectAllTags = createSelector(
 		const metaSet = new Set(metas);
 		const tagsSet = new Set(tags);
 
-		const currentTicked: BoxValue[] = globalFilter.map((filterValue) => {
-			let bgClassName = DEFAULT_BG;
+		const getGroupLabel = (value: string) => {
+			if (importantSet.has(value)) return IMPORTANT_GROUP;
+			if (metaSet.has(value)) return META_GROUP;
+			if (tagsSet.has(value)) return TAGS_GROUP;
+			return META_GROUP;
+		};
 
-			if (importantSet.has(filterValue)) bgClassName = IMPORTANT_BG;
-			if (metaSet.has(filterValue)) bgClassName = META_BG;
+		const getClassName = (value: string) => {
+			if (importantSet.has(value)) return IMPORTANT_BG;
+			if (metaSet.has(value)) return META_BG;
+			return DEFAULT_BG;
+		};
 
-			return {
-				label: filterValue,
-				value: filterValue,
-				isSelected: true,
-				className: bgClassName
-			};
-		});
+		const boxesMap = new Map<string, BoxValue>();
 
-		const importantBoxes: BoxValue[] = Array.from(importantSet).map((v) => ({
-			label: v,
-			value: v,
-			className: IMPORTANT_BG
-		}));
+		const upsertBox = (value: string, isSelected = false) => {
+			const current = boxesMap.get(value);
 
-		const metaBoxes: BoxValue[] = Array.from(metaSet).map((v) => ({
-			label: v,
-			value: v,
-			className: META_BG
-		}));
+			boxesMap.set(value, {
+				label: value,
+				value,
+				isSelected: current?.isSelected || isSelected,
+				className: getClassName(value),
+				groupLabel: getGroupLabel(value)
+			});
+		};
 
-		const tagsBoxes: BoxValue[] = Array.from(tagsSet).map((v) => ({
-			label: v,
-			value: v,
-			className: DEFAULT_BG
-		}));
+		globalFilter.forEach((value) => upsertBox(value, true));
+		Array.from(importantSet).forEach((value) => upsertBox(value));
+		Array.from(metaSet).forEach((value) => upsertBox(value));
+		Array.from(tagsSet).forEach((value) => upsertBox(value));
 
-		return [...currentTicked, ...importantBoxes, ...metaBoxes, ...tagsBoxes];
+		return Array.from(boxesMap.values());
 	}
 );

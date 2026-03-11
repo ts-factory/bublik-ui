@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { DateValue } from '@internationalized/date';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
@@ -12,7 +13,8 @@ import {
 	TagsBoxInput,
 	BoxValue
 } from '@/shared/tailwind-ui';
-import { DateValue } from '@internationalized/date';
+
+import { RUN_DATA_GROUP_ORDER } from '../runs-slice.selectors';
 
 export interface RunsFormValues {
 	calendarMode: 'default' | 'duration';
@@ -78,7 +80,10 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 							<TagsBoxInput
 								label="Metas"
 								valueLabel="Meta"
+								createdGroupLabel="Metadata"
+								groupOrder={RUN_DATA_GROUP_ORDER}
 								placeholder="Metas"
+								size="md"
 								startIcon={
 									<Icon
 										name="Filter"
@@ -86,7 +91,9 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 										className="mr-2 text-text-menu"
 									/>
 								}
-								endIcon={<Icon name="AddSymbol" size={20} className="ml-2" />}
+								endIcon={
+									<Icon name="AddSymbol" size={20} className="text-text-menu" />
+								}
 								values={field.value}
 								onChange={(nextValues) => {
 									trackEvent(analyticsEventNames.runsFormTagsEdit, {
