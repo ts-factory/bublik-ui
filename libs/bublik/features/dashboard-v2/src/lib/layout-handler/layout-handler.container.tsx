@@ -15,6 +15,7 @@ import {
 } from '../hooks';
 import {
 	DashboardTableContainer,
+	DashboardTableError,
 	DashboardTableLoading
 } from '../dashboard-table';
 
@@ -63,8 +64,18 @@ export const LayoutHandlerContainer = () => {
 	const isMainPending = !mainDateSearch.date && isResolvingImplicitDate;
 	const isSecondaryPending =
 		!secondaryDateSearch.date && isResolvingImplicitDate;
+	const implicitDateError =
+		needsImplicitDate && !resolvedTodayDate ? todayQuery.error : undefined;
 
-	if (modeSettings.isModeLoading || (needsImplicitDate && !resolvedTodayDate)) {
+	if (modeSettings.isModeLoading) {
+		return <LayoutHandlerLoading />;
+	}
+
+	if (implicitDateError) {
+		return <DashboardTableError error={implicitDateError} />;
+	}
+
+	if (needsImplicitDate && !resolvedTodayDate) {
 		return <LayoutHandlerLoading />;
 	}
 
