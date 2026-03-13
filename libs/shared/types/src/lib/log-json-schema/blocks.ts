@@ -111,12 +111,22 @@ export const LogContentMiChartResultsSchema = z
 			description: z.string(),
 			name: z.string().optional(),
 			entries: z.array(
-				z.object({
-					aggr: z.string(),
-					value: z.number(),
-					base_units: z.string(),
-					multiplier: z.string()
-				})
+				z.union([
+					z.object({
+						aggr: z.string(),
+						value: z.number(),
+						values: z.undefined().optional(),
+						base_units: z.string(),
+						multiplier: z.string()
+					}),
+					z.object({
+						aggr: z.string(),
+						value: z.undefined().optional(),
+						values: z.array(z.number()),
+						base_units: z.string(),
+						multiplier: z.string()
+					})
+				])
 			)
 		})
 	)
