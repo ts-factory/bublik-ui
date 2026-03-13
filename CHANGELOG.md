@@ -1,5 +1,12 @@
 
 
+### [2.10.3](https://github.com/ts-factory/bublik-ui/compare/v2.10.2...v2.10.3) (2026-03-13)
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** display API errors for implicit-date resolution failures ([0976f05](https://github.com/ts-factory/bublik-ui/commit/0976f05dfb20ad72f969fd5962fcb3a1722c4775))
+
 ### [2.10.2](https://github.com/ts-factory/bublik-ui/compare/v2.10.1...v2.10.2) (2026-03-11)
 
 
