@@ -12,7 +12,11 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 
 import { useMeasure } from '@/shared/hooks';
-import { throttle } from '@/shared/utils';
+import {
+	formatKeyValueForDisplay,
+	normalizeKeyValueForSubmit,
+	throttle
+} from '@/shared/utils';
 
 import { cn } from '../utils';
 import { Badge } from '../badge';
@@ -28,18 +32,76 @@ export type BoxValue = {
 	className?: string;
 };
 
+export interface KeyValueDelimiterProps {
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
+}
+
+const normalizeBoxValue = (rawValue: string, props: KeyValueDelimiterProps) => {
+	return normalizeKeyValueForSubmit(rawValue, {
+		displayDelimiter: props.keyValueDisplayDelimiter,
+		submitDelimiter: props.keyValueSubmitDelimiter
+	});
+};
+
+const formatBoxValue = (value: string, props: KeyValueDelimiterProps) => {
+	return formatKeyValueForDisplay(value, {
+		displayDelimiter: props.keyValueDisplayDelimiter,
+		submitDelimiter: props.keyValueSubmitDelimiter
+	});
+};
+
 export interface UserTagsComboboxParams<T extends BoxValue> {
 	values: T[];
 	onChange?: (boxes: T[]) => void;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
 const useTagsCombobox = <T extends BoxValue>(
 	params: UserTagsComboboxParams<T>
 ) => {
-	const { values, onChange } = params;
+	const {
+		values,
+		onChange,
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	} = params;
 	const [inputValue, setInputValue] = useState<string>('');
 
-	const create = (value: string) => {
+	const getComparableValue = useCallback(
+		(value: string) =>
+			normalizeBoxValue(value, {
+				keyValueDisplayDelimiter,
+				keyValueSubmitDelimiter
+			}),
+		[keyValueDisplayDelimiter, keyValueSubmitDelimiter]
+	);
+
+	const create = (rawValue: string) => {
+		const value = getComparableValue(rawValue).trim();
+
+		if (!value.length) return;
+
+		const existing = values.find(
+			(box) => getComparableValue(box.value) === value
+		);
+
+		if (existing) {
+			const nextState = values.map((box) => {
+				if (getComparableValue(box.value) === value) {
+					box.isSelected = true;
+				}
+
+				return box;
+			});
+
+			setInputValue('');
+			onChange?.(nextState);
+
+			return;
+		}
+
 		const newFramework = {
 			value,
 			label: value,
@@ -52,7 +114,10 @@ const useTagsCombobox = <T extends BoxValue>(
 	};
 
 	const toggle = (passedBox: BoxValue) => {
-		const current = values.find((b) => b.value === passedBox.value);
+		const comparedPassedValue = getComparableValue(passedBox.value);
+		const current = values.find(
+			(b) => getComparableValue(b.value) === comparedPassedValue
+		);
 
 		if (!current) return;
 
@@ -64,16 +129,21 @@ const useTagsCombobox = <T extends BoxValue>(
 	};
 
 	const check = (value: BoxValue) => {
+		const comparedValue = getComparableValue(value.value);
+
 		return values.map((box) => {
-			if (box.value === value.value) box.isSelected = true;
+			if (getComparableValue(box.value) === comparedValue)
+				box.isSelected = true;
 
 			return box;
 		});
 	};
 
 	const uncheck = (toRemove: BoxValue) => {
+		const comparedValue = getComparableValue(toRemove.value);
+
 		return values.map((box) => {
-			if (box.value === toRemove.value) {
+			if (getComparableValue(box.value) === comparedValue) {
 				box.isSelected = false;
 			}
 
@@ -97,7 +167,12 @@ const useTagsCombobox = <T extends BoxValue>(
 				setInputValue(lastValue.label);
 
 				const nextState = values.map((box) => {
-					if (box.value === lastValue.value) box.isSelected = false;
+					if (
+						getComparableValue(box.value) ===
+						getComparableValue(lastValue.value)
+					) {
+						box.isSelected = false;
+					}
 
 					return box;
 				});
@@ -105,7 +180,7 @@ const useTagsCombobox = <T extends BoxValue>(
 				onChange?.(nextState);
 			}
 		},
-		[inputValue, onChange, values]
+		[getComparableValue, inputValue, onChange, values]
 	);
 
 	const selectedValues = useMemo(
@@ -144,6 +219,8 @@ export interface FancyBoxProps {
 	startIcon?: ReactNode;
 	/** End icon for trigger button */
 	endIcon?: ReactNode;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
 /**
@@ -158,8 +235,15 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 		placeholder,
 		valueLabel,
 		values,
-		onChange
+		onChange,
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
 	} = props;
+
+	const delimiterProps: KeyValueDelimiterProps = {
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	};
 
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [openCombobox, setOpenCombobox] = useState(false);
@@ -169,7 +253,12 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 	};
 
 	const { create, toggle, inputValue, setInputValue, selectedValues, remove } =
-		useTagsCombobox({ values, onChange: handleChange });
+		useTagsCombobox({
+			values,
+			onChange: handleChange,
+			keyValueDisplayDelimiter,
+			keyValueSubmitDelimiter
+		});
 
 	const handleComboboxOpenChange = (value: boolean) => {
 		setTimeout(() => {
@@ -222,7 +311,7 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 					>
 						{selectedValues.map(({ label, value, className }) => (
 							<Badge key={value} className={cn('bg-badge-10', className)}>
-								{label}
+								{formatBoxValue(label, delimiterProps)}
 								<button onClick={() => remove({ label, value })} type="button">
 									<Icon name="CrossSimple" size={16} className="ml-1" />
 								</button>
@@ -275,7 +364,7 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 											<CheckIcon className={cn('h-4 w-4')} />
 										</div>
 										<Badge className={cn('bg-badge-10', box.className)}>
-											{box.label}
+											{formatBoxValue(box.label, delimiterProps)}
 										</Badge>
 									</CommandItem>
 								);
@@ -285,6 +374,8 @@ export const TagsBoxInput = (props: FancyBoxProps) => {
 								values={values}
 								onSelect={() => create(inputValue)}
 								valueLabel={valueLabel || label}
+								keyValueDisplayDelimiter={keyValueDisplayDelimiter}
+								keyValueSubmitDelimiter={keyValueSubmitDelimiter}
 							/>
 						</CommandGroup>
 					</CommandList>
@@ -298,31 +389,49 @@ const CommandItemCreate = ({
 	inputValue,
 	values,
 	onSelect,
-	valueLabel
+	valueLabel,
+	keyValueDisplayDelimiter,
+	keyValueSubmitDelimiter
 }: {
 	inputValue: string;
 	values: BoxValue[];
 	onSelect: () => void;
 	valueLabel: string;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }) => {
-	const hasNoFramework = !values
-		.map(({ value }) => value)
-		.includes(`${inputValue.toLowerCase()}`);
+	const normalizedInputValue = normalizeBoxValue(inputValue, {
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	}).trim();
 
-	const render = inputValue !== '' && hasNoFramework;
+	const hasNoFramework = !values
+		.map(({ value }) =>
+			normalizeBoxValue(value, {
+				keyValueDisplayDelimiter,
+				keyValueSubmitDelimiter
+			}).toLowerCase()
+		)
+		.includes(normalizedInputValue.toLowerCase());
+
+	const render = normalizedInputValue !== '' && hasNoFramework;
+	const displayInputValue = formatBoxValue(normalizedInputValue, {
+		keyValueDisplayDelimiter,
+		keyValueSubmitDelimiter
+	});
 
 	if (!render) return null;
 
 	// BUG: whenever a space is appended, the Create-Button will not be shown.
 	return (
 		<CommandItem
-			key={`${inputValue}`}
-			value={`${inputValue}`}
+			key={`${normalizedInputValue}`}
+			value={`${normalizedInputValue}`}
 			className="text-xs text-muted-foreground m-1 min-h-[38px]"
 			onSelect={onSelect}
 		>
 			<div className={cn('mr-2 h-4 w-4')} />
-			Create new {valueLabel.toLowerCase()} &quot;{inputValue}&quot;
+			Create new {valueLabel.toLowerCase()} &quot;{displayInputValue}&quot;
 		</CommandItem>
 	);
 };
