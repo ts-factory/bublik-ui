@@ -5,6 +5,7 @@ import { EndpointBuilder } from '@reduxjs/toolkit/query';
 import {
 	DASHBOARD_MODE,
 	DashboardAPIQuery,
+	DashboardAPIResponseSchema,
 	DashboardAPIResponse,
 	DashboardMode,
 	DashboardModeResponse
@@ -60,6 +61,7 @@ export const dashboardEndpoints = {
 					cache: 'no-cache'
 				};
 			},
+			responseSchema: DashboardAPIResponseSchema,
 			providesTags: (_result, _error, arg) => [
 				{ type: BUBLIK_TAG.DashboardData },
 				{ type: BUBLIK_TAG.DashboardData, id: arg?.date }

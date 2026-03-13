@@ -4,9 +4,13 @@ import { useEffect, useRef } from 'react';
 import { addDays } from 'date-fns';
 
 import { DASHBOARD_MODE } from '@/shared/types';
-import { useGetDashboardByDateQuery } from '@/services/bublik-api';
+import {
+	createBublikError,
+	useGetDashboardByDateQuery
+} from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
 import { cn } from '@/shared/tailwind-ui';
+import { parseTimeApi } from '@/shared/utils';
 
 import {
 	DASHBOARD_TABLE_ID,
@@ -15,6 +19,7 @@ import {
 } from '../hooks';
 import {
 	DashboardTableContainer,
+	DashboardTableError,
 	DashboardTableLoading
 } from '../dashboard-table';
 
@@ -25,6 +30,42 @@ const LayoutHandlerLoading = () => {
 			<DashboardTableLoading rowNumber={25} />
 		</div>
 	);
+};
+
+const parseDashboardDate = (value?: string) => {
+	if (!value) return null;
+
+	const parsedDate = parseTimeApi(value);
+
+	return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const createMissingDateError = () =>
+	createBublikError({
+		status: 500,
+		title: 'Dashboard date is unavailable',
+		description:
+			'Dashboard response finished without a valid date. Reload the page or pick a date manually.'
+	});
+
+const resolveImplicitDateError = ({
+	needsImplicitDate,
+	resolvedTodayDate,
+	error,
+	isLoading,
+	isFetching
+}: {
+	needsImplicitDate: boolean;
+	resolvedTodayDate: Date | null;
+	error: unknown;
+	isLoading: boolean;
+	isFetching: boolean;
+}) => {
+	if (!needsImplicitDate || resolvedTodayDate) return undefined;
+	if (error) return error;
+	if (!isLoading && !isFetching) return createMissingDateError();
+
+	return undefined;
 };
 
 export const LayoutHandlerContainer = () => {
@@ -40,12 +81,16 @@ export const LayoutHandlerContainer = () => {
 	useEffect(() => {
 		if (!resolvedTodayQueryDate) return;
 
-		lastResolvedTodayDateRef.current = new Date(resolvedTodayQueryDate);
+		const parsedDate = parseDashboardDate(resolvedTodayQueryDate);
+
+		if (!parsedDate) return;
+
+		lastResolvedTodayDateRef.current = parsedDate;
 		lastResolvedProjectIdsRef.current = projectIds;
 	}, [projectIds, resolvedTodayQueryDate]);
 
 	const resolvedTodayDate = resolvedTodayQueryDate
-		? new Date(resolvedTodayQueryDate)
+		? parseDashboardDate(resolvedTodayQueryDate)
 		: lastResolvedTodayDateRef.current;
 	const resolvedProjectIds = resolvedTodayQueryDate
 		? projectIds
@@ -63,8 +108,23 @@ export const LayoutHandlerContainer = () => {
 	const isMainPending = !mainDateSearch.date && isResolvingImplicitDate;
 	const isSecondaryPending =
 		!secondaryDateSearch.date && isResolvingImplicitDate;
+	const implicitDateError = resolveImplicitDateError({
+		needsImplicitDate,
+		resolvedTodayDate,
+		error: todayQuery.error,
+		isLoading: todayQuery.isLoading,
+		isFetching: todayQuery.isFetching
+	});
 
-	if (modeSettings.isModeLoading || (needsImplicitDate && !resolvedTodayDate)) {
+	if (modeSettings.isModeLoading) {
+		return <LayoutHandlerLoading />;
+	}
+
+	if (implicitDateError) {
+		return <DashboardTableError error={implicitDateError} />;
+	}
+
+	if (needsImplicitDate && !resolvedTodayDate) {
 		return <LayoutHandlerLoading />;
 	}
 

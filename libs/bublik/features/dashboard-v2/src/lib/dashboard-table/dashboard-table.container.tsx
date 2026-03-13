@@ -2,9 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef } from 'react';
 
-import { useGetDashboardByDateQuery } from '@/services/bublik-api';
+import {
+	createBublikError,
+	useGetDashboardByDateQuery
+} from '@/services/bublik-api';
 import { DASHBOARD_MODE, DashboardMode } from '@/shared/types';
-import { formatTimeToAPI } from '@/shared/utils';
+import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
 
 import { DashboardTable } from './dashboard-table.component';
 import {
@@ -31,10 +34,54 @@ interface DashboardTableContainerProps {
 	isPending?: boolean;
 }
 
+const parseDashboardDate = (value?: string) => {
+	if (!value) return null;
+
+	const parsedDate = parseTimeApi(value);
+
+	return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const createInvalidDateError = () =>
+	createBublikError({
+		status: 500,
+		title: 'Dashboard date is invalid',
+		description:
+			'Dashboard response returned an invalid date. Reload the page or select another date.'
+	});
+
+const createMissingDataError = () =>
+	createBublikError({
+		status: 500,
+		title: 'Dashboard data is unavailable',
+		description: 'Dashboard request completed without returning usable data.'
+	});
+
+const resolveTableError = ({
+	error,
+	hasCurrentData,
+	resolvedQueryDate,
+	hasDisplayData,
+	isLoading,
+	isFetching
+}: {
+	error: unknown;
+	hasCurrentData: boolean;
+	resolvedQueryDate: Date | null;
+	hasDisplayData: boolean;
+	isLoading: boolean;
+	isFetching: boolean;
+}) => {
+	if (error) return error;
+	if (hasCurrentData && !resolvedQueryDate) return createInvalidDateError();
+	if (!hasDisplayData && !isLoading && !isFetching)
+		return createMissingDataError();
+};
+
 export const DashboardTableContainer = ({
 	id = DASHBOARD_TABLE_ID.Main,
 	mode,
-	initialDate = new Date(),
+	initialDate,
 	projectIds,
 	isPending = false
 }: DashboardTableContainerProps) => {
@@ -43,15 +90,17 @@ export const DashboardTableContainer = ({
 	const { term } = useDashboardSearchTerm();
 	const requestedDate = date || initialDate;
 	const query = useGetDashboardByDateQuery(
-		{
-			date: formatTimeToAPI(requestedDate),
-			projects: projectIds
-		},
+		requestedDate
+			? {
+					date: formatTimeToAPI(requestedDate),
+					projects: projectIds
+			  }
+			: { projects: projectIds },
 		{
 			pollingInterval: isEnabled ? 30000 : undefined,
 			refetchOnMountOrArgChange: true,
 			refetchOnFocus: true
-		} // 30s
+		}
 	);
 
 	usePrefetchNextAndPreviousDay(date, projectIds);
@@ -70,12 +119,19 @@ export const DashboardTableContainer = ({
 		(query.isFetching || query.isLoading
 			? lastResolvedDataRef.current
 			: undefined);
+	const resolvedQueryDate = parseDashboardDate(query.currentData?.date);
+	const tableError = resolveTableError({
+		error: query.error,
+		hasCurrentData: Boolean(query.currentData),
+		resolvedQueryDate,
+		hasDisplayData: Boolean(displayData),
+		isLoading: query.isLoading,
+		isFetching: query.isFetching
+	});
 
 	const finalDate = date
 		? date
-		: query.currentData
-		? new Date(query.currentData.date)
-		: initialDate;
+		: resolvedQueryDate || initialDate || new Date();
 
 	return (
 		<DashboardTable
@@ -86,10 +142,10 @@ export const DashboardTableContainer = ({
 			onDateChange={setDate}
 			renderSubrow={renderSubrow}
 			isFetching={query.isFetching || isPending}
-			isLoading={query.isLoading && !displayData}
+			isLoading={!tableError && query.isLoading && !displayData}
 			globalFilter={term || undefined}
 			context={displayData?.payload || {}}
-			error={query.error}
+			error={tableError}
 		/>
 	);
 };
