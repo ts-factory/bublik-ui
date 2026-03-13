@@ -23,15 +23,6 @@ export const selectGlobalFilter = createSelector(
 	(state) => state.globalFilter
 );
 
-export const selectRowSelection = createSelector(getRunsPageState, (state) =>
-	Object.fromEntries(state.rowSelection.map((id) => [id, true]))
-);
-
-export const selectCompareIds = createSelector(
-	getRunsPageState,
-	(state) => state.rowSelection
-);
-
 export const getResults = createSelector(
 	getRunsPageState,
 	(state) => state.results

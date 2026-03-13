@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
 	getExpandedRowModel,
 	getCoreRowModel,
@@ -64,6 +64,7 @@ export const RunTableEmpty = () => {
 export interface RunTableProps {
 	data: RunData[] | MergedRun[];
 	openUnexpected?: boolean;
+	openUnexpectedIntentId?: string;
 	expanded: ExpandedState;
 	sorting: SortingState;
 	globalFilter: string[];
@@ -83,6 +84,7 @@ export const RunTable = (props: RunTableProps) => {
 	const {
 		data,
 		openUnexpected,
+		openUnexpectedIntentId,
 		openUnexpectedResults,
 		expanded,
 		globalFilter,
@@ -131,11 +133,119 @@ export const RunTable = (props: RunTableProps) => {
 	const { showUnexpected, expandUnexpected, expandToIteration } =
 		useExpandUnexpected({ table });
 
-	useMount(() => {
-		if (openUnexpected) showUnexpected();
-		if (openUnexpectedResults) expandUnexpected();
-		if (targetIterationId) expandToIteration(targetIterationId);
+	const currentIntentToken = useMemo(() => {
+		if (openUnexpectedIntentId) {
+			return openUnexpectedIntentId;
+		}
 
+		if (targetIterationId !== undefined) {
+			return `target-iteration:${targetIterationId}`;
+		}
+
+		if (openUnexpectedResults) {
+			return 'legacy-open-unexpected-results';
+		}
+
+		if (openUnexpected) {
+			return 'legacy-open-unexpected';
+		}
+
+		return undefined;
+	}, [
+		openUnexpected,
+		openUnexpectedIntentId,
+		openUnexpectedResults,
+		targetIterationId
+	]);
+
+	const navigationIntentRef = useRef({
+		token: currentIntentToken,
+		openUnexpected: Boolean(openUnexpected),
+		openUnexpectedResults: Boolean(openUnexpectedResults),
+		targetIterationId
+	});
+	const appliedIntentTokenRef = useRef<string | null>(null);
+
+	if (
+		currentIntentToken &&
+		navigationIntentRef.current.token !== currentIntentToken
+	) {
+		navigationIntentRef.current = {
+			token: currentIntentToken,
+			openUnexpected: Boolean(openUnexpected),
+			openUnexpectedResults: Boolean(openUnexpectedResults),
+			targetIterationId
+		};
+	}
+
+	if (!navigationIntentRef.current.token && currentIntentToken) {
+		navigationIntentRef.current.token = currentIntentToken;
+	}
+
+	if (openUnexpected) {
+		navigationIntentRef.current.openUnexpected = true;
+	}
+
+	if (openUnexpectedResults) {
+		navigationIntentRef.current.openUnexpectedResults = true;
+	}
+
+	if (targetIterationId !== undefined) {
+		navigationIntentRef.current.targetIterationId = targetIterationId;
+	}
+
+	useEffect(() => {
+		if (!navigationIntentRef.current.token) {
+			return;
+		}
+
+		if (appliedIntentTokenRef.current === navigationIntentRef.current.token) {
+			return;
+		}
+
+		if (data.length === 0) {
+			return;
+		}
+
+		const {
+			openUnexpected: shouldOpenUnexpected,
+			openUnexpectedResults: shouldOpenUnexpectedResults,
+			targetIterationId: targetIterationIdToExpand
+		} = navigationIntentRef.current;
+
+		if (
+			!shouldOpenUnexpected &&
+			!shouldOpenUnexpectedResults &&
+			targetIterationIdToExpand === undefined
+		) {
+			return;
+		}
+
+		if (shouldOpenUnexpected) {
+			showUnexpected();
+		}
+
+		if (shouldOpenUnexpectedResults) {
+			expandUnexpected();
+		}
+
+		if (targetIterationIdToExpand !== undefined) {
+			expandToIteration(targetIterationIdToExpand);
+		}
+
+		appliedIntentTokenRef.current = navigationIntentRef.current.token;
+	}, [
+		data.length,
+		expandToIteration,
+		expandUnexpected,
+		openUnexpected,
+		openUnexpectedIntentId,
+		openUnexpectedResults,
+		showUnexpected,
+		targetIterationId
+	]);
+
+	useMount(() => {
 		if (shouldMigrateExpandedState(expanded)) {
 			migrateExpandedStateUrl(expanded, table.getCoreRowModel().rowsById);
 		}
