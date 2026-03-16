@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { z } from 'zod';
 import { RUN_STATUS } from './run';
 
 export const enum DASHBOARD_MODE {
@@ -8,9 +9,15 @@ export const enum DASHBOARD_MODE {
 	Columns = 'columns'
 }
 
-export type DashboardModeValue = 'rows' | 'columns' | 'rows-line';
+export const DashboardModeSchema = z.enum([
+	DASHBOARD_MODE.Rows,
+	DASHBOARD_MODE.RowsLine,
+	DASHBOARD_MODE.Columns
+]);
 
-export type DashboardMode = DASHBOARD_MODE | DashboardModeValue;
+export type DashboardModeValue = z.infer<typeof DashboardModeSchema>;
+
+export type DashboardMode = z.infer<typeof DashboardModeSchema>;
 
 /**
 |--------------------------------------------------
@@ -18,10 +25,12 @@ export type DashboardMode = DASHBOARD_MODE | DashboardModeValue;
 |--------------------------------------------------
 */
 
-export interface DashboardAPIQuery {
-	date?: string;
-	projects?: number[];
-}
+export const DashboardAPIQuerySchema = z.object({
+	date: z.string().optional(),
+	projects: z.array(z.number()).optional()
+});
+
+export type DashboardAPIQuery = z.infer<typeof DashboardAPIQuerySchema>;
 
 /** Cell context value is used for determining badge color */
 export const enum CELL_CONTEXT {
@@ -31,7 +40,13 @@ export const enum CELL_CONTEXT {
 }
 
 /** Cell context value is used for determining badge color */
-export type CellContextValue = 'success' | 'error' | 'warning';
+export const CellContextValueSchema = z.enum([
+	CELL_CONTEXT.Success,
+	CELL_CONTEXT.Error,
+	CELL_CONTEXT.Warning
+]);
+
+export type CellContextValue = z.infer<typeof CellContextValueSchema>;
 
 /**
 |--------------------------------------------------
@@ -39,54 +54,78 @@ export type CellContextValue = 'success' | 'error' | 'warning';
 |--------------------------------------------------
 */
 
+export const DashboardAPIHeaderSchema = z.object({
+	key: z.string(),
+	name: z.string()
+});
+
 /** Header from api which is used for accessors */
-export type DashboardAPIHeader = {
-	key: string;
-	name: string;
-};
+export type DashboardAPIHeader = z.infer<typeof DashboardAPIHeaderSchema>;
 
 /** When data for cell is an array*/
-export type DashboardCellArray = {
-	value?: string;
-};
+export const DashboardCellArraySchema = z.object({
+	value: z.string().optional()
+});
+
+export type DashboardCellArray = z.infer<typeof DashboardCellArraySchema>;
 
 /** When data for cell is just an object with value and some context */
-export type DashboardCellData = {
-	value?: string | number;
-	context?: CELL_CONTEXT | CellContextValue;
-	payload?: DashboardCellDataMeta;
-};
-
 /** Cell which is a link has some meta to build URL */
-export interface DashboardCellDataMeta {
-	url?: string;
-	params?: number;
-}
+export const DashboardCellDataMetaSchema = z.object({
+	url: z.string().optional(),
+	params: z.number().optional()
+});
+
+export type DashboardCellDataMeta = z.infer<typeof DashboardCellDataMetaSchema>;
+
+export const DashboardCellDataSchema = z.object({
+	value: z.union([z.string(), z.number()]).optional(),
+	context: CellContextValueSchema.optional(),
+	payload: DashboardCellDataMetaSchema.optional()
+});
+
+export type DashboardCellData = z.infer<typeof DashboardCellDataSchema>;
 
 /** Cell can be either an array or an object  */
-export type DashboardCell = DashboardCellData | DashboardCellArray[];
+export const DashboardCellSchema = z.union([
+	DashboardCellDataSchema,
+	z.array(DashboardCellArraySchema)
+]);
+
+export type DashboardCell = z.infer<typeof DashboardCellSchema>;
 
 /** Dashboard where keys are corresponding columns and values are cells */
-export type DashboardRowCells = Record<string, DashboardCell>;
+export const DashboardRowCellsSchema = z.record(
+	z.string(),
+	DashboardCellSchema
+);
+
+export type DashboardRowCells = z.infer<typeof DashboardRowCellsSchema>;
 
 /** Context for dashboard row */
-export type DashboardRowContext = {
-	start: number;
-	run_id: number;
-	conclusion: RUN_STATUS;
-	status: string;
-	status_by_nok: string;
-	conclusion_reason?: string | null;
-};
+export const DashboardRowContextSchema = z.object({
+	start: z.number(),
+	run_id: z.number(),
+	conclusion: z.nativeEnum(RUN_STATUS),
+	status: z.string(),
+	status_by_nok: z.string(),
+	conclusion_reason: z.string().nullable().optional()
+});
+
+export type DashboardRowContext = z.infer<typeof DashboardRowContextSchema>;
 
 /** Dashboard row data */
-export type DashboardData = {
-	row_cells: DashboardRowCells;
-	context: DashboardRowContext;
-};
+export const DashboardDataSchema = z.object({
+	row_cells: DashboardRowCellsSchema,
+	context: DashboardRowContextSchema
+});
+
+export type DashboardData = z.infer<typeof DashboardDataSchema>;
 
 /** This map is used for dashboard sub row description */
-export type DashboardCellMeta = Record<string, string>;
+export const DashboardCellMetaSchema = z.record(z.string(), z.string());
+
+export type DashboardCellMeta = z.infer<typeof DashboardCellMetaSchema>;
 
 /**
 |--------------------------------------------------
@@ -94,26 +133,41 @@ export type DashboardCellMeta = Record<string, string>;
 |--------------------------------------------------
 */
 
+export const DashboardAPIResponseSchema = z.object({
+	date: z.string(),
+	rows: z.array(DashboardDataSchema),
+	header: z.array(DashboardAPIHeaderSchema),
+	payload: DashboardCellMetaSchema
+});
+
 /** Dashboard API response */
-export type DashboardAPIResponse = {
-	date: string;
-	rows: DashboardData[];
-	header: DashboardAPIHeader[];
-	payload: DashboardCellMeta;
-};
+export type DashboardAPIResponse = z.infer<typeof DashboardAPIResponseSchema>;
 
-export type DashboardModeResponse = {
-	mode: { days: number; columns: number };
-};
+export const DashboardModeResponseSchema = z.object({
+	mode: z.object({
+		days: z.number(),
+		columns: z.number()
+	})
+});
 
-export type DashboardResponseV2 = {
-	table: {
-		rows: DashboardAPIResponse['rows'];
-		payload: DashboardAPIResponse['payload'];
-	} | null;
-	headers: DashboardAPIResponse['header'];
-	date: Date;
-	context: Record<string, string>;
-};
+export type DashboardModeResponse = z.infer<typeof DashboardModeResponseSchema>;
 
-export type DashboardQueryParams = { date?: Date | null };
+export const DashboardResponseV2Schema = z.object({
+	table: z
+		.object({
+			rows: z.array(DashboardDataSchema),
+			payload: DashboardCellMetaSchema
+		})
+		.nullable(),
+	headers: z.array(DashboardAPIHeaderSchema),
+	date: z.date(),
+	context: z.record(z.string(), z.string())
+});
+
+export type DashboardResponseV2 = z.infer<typeof DashboardResponseV2Schema>;
+
+export const DashboardQueryParamsSchema = z.object({
+	date: z.date().nullable().optional()
+});
+
+export type DashboardQueryParams = z.infer<typeof DashboardQueryParamsSchema>;
