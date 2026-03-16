@@ -1,5 +1,13 @@
 
 
+### [2.10.3](https://github.com/ts-factory/bublik-ui/compare/v2.10.2...v2.10.3) (2026-03-16)
+
+
+### 🐛 Bug Fix
+
+* **config:** sanitize persisted editor content ([9439acf](https://github.com/ts-factory/bublik-ui/commit/9439acfc6487d76fd0fa42e77f695d7a4efc6d01))
+* **dashboard:** display API errors for implicit-date resolution failures ([ebfb411](https://github.com/ts-factory/bublik-ui/commit/ebfb41175e42e75f57e503e5e0154a83d1a5abd4))
+
 ### [2.10.2](https://github.com/ts-factory/bublik-ui/compare/v2.10.1...v2.10.2) (2026-03-11)
 
 

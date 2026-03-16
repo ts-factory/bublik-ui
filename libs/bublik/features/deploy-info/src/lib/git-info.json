@@ -1,7 +1,7 @@
 {
-	"date": "2026.03.11",
-	"summary": "fix(dashboard): incorrect prefetch without project filters",
-	"revision": "bc7595ad",
-	"branch": "release-2.10.2",
-	"latestTag": "v2.10.2"
+	"date": "2026.03.16",
+	"summary": "fix(dashboard): display API errors for implicit-date resolution failures",
+	"revision": "ebfb4117",
+	"branch": "release-2.10.3",
+	"latestTag": "v2.10.3"
 }
