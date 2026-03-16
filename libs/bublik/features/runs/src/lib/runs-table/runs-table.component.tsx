@@ -127,7 +127,10 @@ function RunsTable(props: RunsTableProps) {
 		<div>
 			<div className="-mt-1">
 				{/* border-spacing adds outer spacing above the first row; offset it to keep a 4px page-level gap */}
-				<table className="border-separate border-spacing-y-1 h-full p-0 m-0 w-full">
+				<table
+					data-testid="runs-table"
+					className="border-separate border-spacing-y-1 h-full p-0 m-0 w-full"
+				>
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id} className="h-8">
@@ -191,7 +194,11 @@ function RunsRow({ row, onRowClick }: RunsRowProps) {
 	const [isHovered, setIsHovered] = useState(false);
 
 	return (
-		<tr onClick={onRowClick(row)}>
+		<tr
+			data-testid="runs-row"
+			data-run-id={row.original.id}
+			onClick={onRowClick(row)}
+		>
 			{row.getVisibleCells().map((cell, cellIdx, cells) => {
 				const className = cell.column.columnDef.meta?.className || '';
 

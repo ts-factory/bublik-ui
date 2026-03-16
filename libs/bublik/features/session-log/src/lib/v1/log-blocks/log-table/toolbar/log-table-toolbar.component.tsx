@@ -103,7 +103,12 @@ export function LogTableToolbar(props: LogTableToolbarProps) {
 	);
 
 	return (
-		<div className={containerClassName} style={style} ref={ref}>
+		<div
+			className={containerClassName}
+			style={style}
+			ref={ref}
+			data-testid="log-table-toolbar"
+		>
 			<FloatingExpandButton
 				isOpen={isOpen}
 				onClick={() => setIsOpen(!isOpen)}

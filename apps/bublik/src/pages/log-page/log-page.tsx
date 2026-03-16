@@ -29,7 +29,7 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	};
 
 	return (
-		<div className="flex flex-col bg-white rounded-md">
+		<div className="flex flex-col bg-white rounded-md" data-testid="log-info">
 			<CardHeader label="Info">
 				<div className="flex gap-2 items-center">
 					<RunModeToggle
@@ -85,7 +85,11 @@ export const LogPage = () => {
 	if (shouldRedirect) return <Navigate to={location} />;
 
 	return (
-		<div className="flex h-screen h-svh gap-1 p-2 overflow-y-hidden">
+		<div
+			className="flex h-screen h-svh gap-1 p-2 overflow-y-hidden"
+			data-testid="log-page"
+			data-log-mode={mode ?? ''}
+		>
 			<LogFeature runId={runId} isTreeShown={isTreeShown}>
 				{isHeaderShown ? <LogHeader runId={runId} /> : null}
 			</LogFeature>

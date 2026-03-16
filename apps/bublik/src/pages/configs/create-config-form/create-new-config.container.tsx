@@ -72,7 +72,8 @@ function CreateNewConfigScreen() {
 	} = useConfirm();
 
 	function handleCreateConfigClick() {
-		const value = getEditorValue(editorRef.current);
+		const value =
+			getEditorValue(editorRef.current) || form.getValues('content');
 
 		if (!isValidJson(value)) return toast.error('Failed to parse JSON');
 		if (!newConfigParams) return toast.error('No config type provided');

@@ -36,6 +36,20 @@
 				"passWithNoTests": true
 			}
 		},
+		"preview": {
+			"dependsOn": ["build"],
+			"executor": "@nx/vite:preview-server",
+			"defaultConfiguration": "production",
+			"options": {
+				"buildTarget": "bublik:build",
+				"port": 4400
+			},
+			"configurations": {
+				"production": {
+					"buildTarget": "bublik:build:production"
+				}
+			}
+		},
 		"e2e": {
 			"executor": "@nx/playwright:playwright",
 			"outputs": ["{workspaceRoot}/dist/.playwright/apps/bublik"],
