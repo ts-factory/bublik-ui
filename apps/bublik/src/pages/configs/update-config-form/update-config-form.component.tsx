@@ -29,7 +29,7 @@ import {
 } from '../components/badges.component';
 import { useSavedState } from '../hooks';
 import { ConfigVersions } from '../versions/config-versions';
-import { ValidJsonStringSchema } from '../utils';
+import { normalizeJsonEditorContent, ValidJsonStringSchema } from '../utils';
 
 const ConfigFormSchema = z.object({
 	name: z.string(),
@@ -78,14 +78,40 @@ const ConfigEditorForm = forwardRef<
 	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
 
 	function getSavedForm(): ConfigFormData {
-		if (savedValue) {
-			try {
-				return JSON.parse(savedValue);
-			} catch {
+		if (!savedValue) {
+			return defaultValues;
+		}
+
+		try {
+			const parsedValue = JSON.parse(savedValue);
+
+			if (!parsedValue || typeof parsedValue !== 'object') {
 				return defaultValues;
 			}
+
+			const savedData = parsedValue as Partial<ConfigFormData>;
+
+			return {
+				name:
+					typeof savedData.name === 'string'
+						? savedData.name
+						: defaultValues.name,
+				description:
+					typeof savedData.description === 'string'
+						? savedData.description
+						: defaultValues.description,
+				is_active:
+					typeof savedData.is_active === 'boolean'
+						? savedData.is_active
+						: defaultValues.is_active,
+				content: normalizeJsonEditorContent(
+					savedData.content,
+					defaultValues.content
+				)
+			};
+		} catch {
+			return defaultValues;
 		}
-		return defaultValues;
 	}
 
 	const form = useForm<ConfigFormData>({

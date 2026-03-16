@@ -47,4 +47,29 @@ function getEditorValue(monaco?: Monaco, uri = DEFAULT_URI): string {
 	return monaco.editor.getModel(URI)?.getValue() ?? '';
 }
 
-export { formatTimeV, isValidJson, getEditorValue, ValidJsonStringSchema };
+function normalizeJsonEditorContent(
+	value: unknown,
+	fallback = '{\n \n}'
+): string {
+	if (typeof value === 'string') {
+		return value;
+	}
+
+	if (value === undefined) {
+		return fallback;
+	}
+
+	try {
+		return JSON.stringify(value, null, 2);
+	} catch {
+		return fallback;
+	}
+}
+
+export {
+	formatTimeV,
+	isValidJson,
+	getEditorValue,
+	normalizeJsonEditorContent,
+	ValidJsonStringSchema
+};

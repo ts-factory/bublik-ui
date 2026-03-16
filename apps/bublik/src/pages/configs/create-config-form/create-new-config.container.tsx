@@ -28,7 +28,12 @@ import {
 import { setErrorsOnForm } from '@/shared/utils';
 
 import { useConfigPageSearchParams, useSavedState } from '../hooks';
-import { getEditorValue, isValidJson, ValidJsonStringSchema } from '../utils';
+import {
+	getEditorValue,
+	isValidJson,
+	normalizeJsonEditorContent,
+	ValidJsonStringSchema
+} from '../utils';
 import { ConfigEditor } from '../components/editor.component';
 import { DEFAULT_PROJECT_LABEL } from '../config.constants';
 
@@ -130,15 +135,44 @@ function CreateNewConfigScreen() {
 			content: savedForm ?? '{\n \n}'
 		};
 
-		if (savedForm) {
-			try {
-				return JSON.parse(savedForm);
-			} catch {
-				return defaultValues;
-			}
+		if (!savedForm) {
+			return defaultValues;
 		}
 
-		return defaultValues;
+		try {
+			const parsedValue = JSON.parse(savedForm);
+
+			if (!parsedValue || typeof parsedValue !== 'object') {
+				return defaultValues;
+			}
+
+			const savedData = parsedValue as Partial<CreateConfigInputs>;
+
+			return {
+				name:
+					typeof savedData.name === 'string'
+						? savedData.name
+						: defaultValues.name,
+				description:
+					typeof savedData.description === 'string'
+						? savedData.description
+						: defaultValues.description,
+				is_active:
+					typeof savedData.is_active === 'boolean'
+						? savedData.is_active
+						: defaultValues.is_active,
+				project:
+					typeof savedData.project === 'number' || savedData.project === null
+						? savedData.project
+						: defaultValues.project,
+				content: normalizeJsonEditorContent(
+					savedData.content,
+					defaultValues.content
+				)
+			};
+		} catch {
+			return defaultValues;
+		}
 	}
 
 	const formValues = form.watch();
@@ -312,7 +346,6 @@ function CreateNewConfigScreen() {
 				render={({ field }) => (
 					<ConfigEditor
 						schema={schemaQuery.data}
-						defaultValue={savedForm ?? '{\n \n}'}
 						ref={editorRef}
 						className={cn(isLoading && 'pointer-events-none opacity-40')}
 						value={field.value}

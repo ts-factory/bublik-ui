@@ -38,6 +38,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { DEFAULT_URI } from '../config.constants';
+import { normalizeJsonEditorContent } from '../utils';
 
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
@@ -66,11 +67,20 @@ interface ConfigEditorProps extends ComponentProps<typeof MonacoEditor> {
 }
 
 const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
-	({ schema, label, readOnly, className, ...props }, ref) => {
+	(
+		{ schema, label, readOnly, className, value, defaultValue, ...props },
+		ref
+	) => {
 		const [monaco, setMonaco] = useState<Monaco>();
 		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 		const [fontSize, setFontSize] = useLocalStorage('editor-font-size', 14);
 		const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+		const normalizedValue =
+			value === undefined ? undefined : normalizeJsonEditorContent(value);
+		const normalizedDefaultValue =
+			defaultValue === undefined
+				? undefined
+				: normalizeJsonEditorContent(defaultValue);
 
 		useImperativeHandle(ref, () => monaco, [monaco]);
 
@@ -202,6 +212,8 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 					<MonacoEditor
 						language="json"
 						path={DEFAULT_URI}
+						value={normalizedValue}
+						defaultValue={normalizedDefaultValue}
 						beforeMount={handleEditorWillMount}
 						onMount={handleEditorDidMount}
 						options={{
