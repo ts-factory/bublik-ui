@@ -16,7 +16,7 @@ export const getNextDates = (): GetNextDatesReturn => {
 	};
 };
 
-export const getUrl = (url: string, runId?: number) => {
+export const getUrl = (url: string, runId?: number | string) => {
 	const map: Record<string, string> = {
 		tree: `/log/${runId}?mode=treeAndinfoAndlog`,
 		runs: `/runs/${runId}`

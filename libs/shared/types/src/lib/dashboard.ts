@@ -73,7 +73,7 @@ export type DashboardCellArray = z.infer<typeof DashboardCellArraySchema>;
 /** Cell which is a link has some meta to build URL */
 export const DashboardCellDataMetaSchema = z.object({
 	url: z.string().optional(),
-	params: z.number().optional()
+	params: z.union([z.number(), z.string()]).optional()
 });
 
 export type DashboardCellDataMeta = z.infer<typeof DashboardCellDataMetaSchema>;
