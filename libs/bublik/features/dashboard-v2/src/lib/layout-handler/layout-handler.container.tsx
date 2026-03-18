@@ -40,6 +40,8 @@ const parseDashboardDate = (value?: string) => {
 	return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 };
 
+const getProjectIdsKey = (projectIds: number[]) => projectIds.join(',');
+
 const createMissingDateError = () =>
 	createBublikError({
 		status: 500,
@@ -75,8 +77,9 @@ export const LayoutHandlerContainer = () => {
 	const { projectIds } = useProjectSearch();
 	const todayQuery = useGetDashboardByDateQuery({ projects: projectIds });
 	const lastResolvedTodayDateRef = useRef<Date | null>(null);
-	const lastResolvedProjectIdsRef = useRef<number[]>(projectIds);
+	const lastResolvedTodayKeyRef = useRef<string | null>(null);
 	const resolvedTodayQueryDate = todayQuery.currentData?.date;
+	const currentProjectIdsKey = getProjectIdsKey(projectIds);
 
 	useEffect(() => {
 		if (!resolvedTodayQueryDate) return;
@@ -86,25 +89,25 @@ export const LayoutHandlerContainer = () => {
 		if (!parsedDate) return;
 
 		lastResolvedTodayDateRef.current = parsedDate;
-		lastResolvedProjectIdsRef.current = projectIds;
-	}, [projectIds, resolvedTodayQueryDate]);
+		lastResolvedTodayKeyRef.current = currentProjectIdsKey;
+	}, [currentProjectIdsKey, resolvedTodayQueryDate]);
+
+	const canReuseResolvedToday =
+		lastResolvedTodayKeyRef.current === currentProjectIdsKey;
 
 	const resolvedTodayDate = resolvedTodayQueryDate
 		? parseDashboardDate(resolvedTodayQueryDate)
-		: lastResolvedTodayDateRef.current;
-	const resolvedProjectIds = resolvedTodayQueryDate
-		? projectIds
-		: lastResolvedProjectIdsRef.current;
+		: canReuseResolvedToday
+		? lastResolvedTodayDateRef.current
+		: null;
 	const needsImplicitMainDate = !mainDateSearch.date;
 	const needsImplicitSecondaryDate =
 		modeSettings.mode === DASHBOARD_MODE.Columns && !secondaryDateSearch.date;
 	const needsImplicitDate = needsImplicitMainDate || needsImplicitSecondaryDate;
 	const isResolvingImplicitDate =
 		needsImplicitDate && todayQuery.isFetching && !resolvedTodayQueryDate;
-	const mainProjectIds = mainDateSearch.date ? projectIds : resolvedProjectIds;
-	const secondaryProjectIds = secondaryDateSearch.date
-		? projectIds
-		: resolvedProjectIds;
+	const mainProjectIds = projectIds;
+	const secondaryProjectIds = projectIds;
 	const isMainPending = !mainDateSearch.date && isResolvingImplicitDate;
 	const isSecondaryPending =
 		!secondaryDateSearch.date && isResolvingImplicitDate;

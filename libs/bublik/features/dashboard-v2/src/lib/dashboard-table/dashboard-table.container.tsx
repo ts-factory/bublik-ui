@@ -42,6 +42,17 @@ const parseDashboardDate = (value?: string) => {
 	return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 };
 
+const getDashboardQueryKey = ({
+	requestedDate,
+	projectIds
+}: {
+	requestedDate?: Date;
+	projectIds: number[];
+}) =>
+	`${requestedDate ? formatTimeToAPI(requestedDate) : null}-${projectIds.join(
+		','
+	)}`;
+
 const createInvalidDateError = () =>
 	createBublikError({
 		status: 500,
@@ -89,6 +100,7 @@ export const DashboardTableContainer = ({
 	const { isEnabled } = useDashboardReload();
 	const { term } = useDashboardSearchTerm();
 	const requestedDate = date || initialDate;
+	const currentQueryKey = getDashboardQueryKey({ requestedDate, projectIds });
 	const query = useGetDashboardByDateQuery(
 		requestedDate
 			? {
@@ -107,16 +119,21 @@ export const DashboardTableContainer = ({
 
 	const layout = modeToLayout.get(mode);
 	const lastResolvedDataRef = useRef(query.currentData);
+	const lastResolvedQueryKeyRef = useRef<string | null>(
+		query.currentData ? currentQueryKey : null
+	);
 
 	useEffect(() => {
 		if (!query.currentData) return;
 
 		lastResolvedDataRef.current = query.currentData;
-	}, [query.currentData]);
+		lastResolvedQueryKeyRef.current = currentQueryKey;
+	}, [currentQueryKey, query.currentData]);
 
 	const displayData =
 		query.currentData ||
-		(query.isFetching || query.isLoading
+		(lastResolvedQueryKeyRef.current === currentQueryKey &&
+		(query.isFetching || query.isLoading)
 			? lastResolvedDataRef.current
 			: undefined);
 	const resolvedQueryDate = parseDashboardDate(query.currentData?.date);
