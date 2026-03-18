@@ -1,5 +1,13 @@
 
 
+### [2.10.4](https://github.com/ts-factory/bublik-ui/compare/v2.10.3...v2.10.4) (2026-03-18)
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** don't show stale data in case of error ([0718788](https://github.com/ts-factory/bublik-ui/commit/07187885a5d601b0430bbba7a51ec3bf2831af32))
+* **dashboard:** validation error when dashboard contains report links ([238cfd3](https://github.com/ts-factory/bublik-ui/commit/238cfd39e80d9fc9fa36333e1a8bbce22a15db09))
+
 ### [2.10.3](https://github.com/ts-factory/bublik-ui/compare/v2.10.2...v2.10.3) (2026-03-16)
 
 

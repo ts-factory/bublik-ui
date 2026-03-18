@@ -1,7 +1,7 @@
 {
-	"date": "2026.03.16",
-	"summary": "fix(dashboard): display API errors for implicit-date resolution failures",
-	"revision": "ebfb4117",
-	"branch": "release-2.10.3",
-	"latestTag": "v2.10.3"
+	"date": "2026.03.18",
+	"summary": "fix(dashboard): don't show stale data in case of error",
+	"revision": "07187885",
+	"branch": "release-2.10.4",
+	"latestTag": "v2.10.4"
 }
