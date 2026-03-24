@@ -5,6 +5,7 @@ import { Buffer } from 'buffer';
 import { DataSource, FrameMeta, ProtoTree } from '@goodtools/wiregasm';
 import { z } from 'zod';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	ButtonTw,
@@ -269,6 +270,10 @@ function usePacketAnalyzer(options: UsePacketAnalyzerOptions) {
 	};
 
 	const handleRowClick = (row: Data) => {
+		trackEvent(analyticsEventNames.netPacketSelectPacket, {
+			packetNumber: row.raw.number
+		});
+
 		setSelectedRowIdx(row.raw.number);
 	};
 
@@ -495,6 +500,13 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 		setSelectedTreeEntry
 	} = usePacketAnalyzer({ fileUrl });
 
+	const handleFilterApply = () => {
+		trackEvent(analyticsEventNames.netPacketFilterApply, {
+			hasValue: Boolean(filterInput.trim()),
+			valueLength: filterInput.trim().length
+		});
+	};
+
 	return (
 		<div className="flex flex-col gap-1 p-2 h-full overflow-hidden">
 			{/* Top section - Packet table */}
@@ -515,6 +527,12 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 								placeholder="filter e.g tcp"
 								value={filterInput}
 								onChange={(e) => setFilterInput(e.target.value)}
+								onBlur={handleFilterApply}
+								onKeyDown={(event) => {
+									if (event.key === 'Enter') {
+										handleFilterApply();
+									}
+								}}
 								className={cn(
 									'w-full px-2 py-[0px] outline-none font-mono tracking-tighter rounded text-text-secondary transition-all active:shadow-none',
 									'border border-border-primary hover:border-primary',
@@ -535,13 +553,25 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 											runId: props.runId,
 											focusId: props.resultId
 										})}
+										onClick={() => {
+											trackEvent(analyticsEventNames.netPacketBacklinkClick, {
+												action: 'log'
+											});
+										}}
 									>
 										<Icon name="BoxArrowRight" className="mr-1" />
 										Log
 									</LinkWithProject>
 								</ButtonTw>
 								<ButtonTw variant="secondary" size="xss" asChild>
-									<LinkWithProject to={routes.run({ runId: props.runId })}>
+									<LinkWithProject
+										to={routes.run({ runId: props.runId })}
+										onClick={() => {
+											trackEvent(analyticsEventNames.netPacketBacklinkClick, {
+												action: 'run'
+											});
+										}}
+									>
 										<Icon name="BoxArrowRight" className="mr-1" />
 										Run
 									</LinkWithProject>
