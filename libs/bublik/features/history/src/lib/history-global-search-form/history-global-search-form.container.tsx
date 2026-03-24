@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useMount, useUnmount } from '@/shared/hooks';
 
 import { HistoryGlobalSearchFormButton } from './history-global-search-button.component';
@@ -35,6 +36,13 @@ export const HistoryGlobalSearchFormContainer = () => {
 
 	const handleFormSubmit = useCallback(
 		(form: HistoryGlobalSearchFormValues) => {
+			trackEvent(analyticsEventNames.historyGlobalSearchSubmit, {
+				hasRunData: form.runData.length > 0,
+				hasParameters: form.parameters.length > 0,
+				hasVerdict: form.verdict.length > 0,
+				hasResultProperties: form.resultProperties.length > 0
+			});
+
 			handleGlobalSearchSubmit(form);
 			const otherForm = formToSearchState(form);
 

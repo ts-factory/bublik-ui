@@ -3,6 +3,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { PROJECT_KEY } from '@/bublik/features/projects';
@@ -21,6 +22,10 @@ export const HistoryResetGlobalFilterContainer = () => {
 	const dispatch = useDispatch();
 
 	const handleResetClick = () => {
+		trackEvent(analyticsEventNames.historyResetFiltersClick, {
+			source: 'header'
+		});
+
 		actions.resetGlobalFilter();
 		actions.resetSearchForm();
 

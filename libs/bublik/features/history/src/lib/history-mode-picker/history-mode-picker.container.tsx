@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { Spinner } from '@/shared/tailwind-ui';
 import { useUnmount } from '@/shared/hooks';
 
@@ -31,10 +32,22 @@ const HistoryMeasurementsCombinedContainer = lazy(() =>
 export const HistoryPageModePickerContainer = () => {
 	const actions = useHistoryActions();
 	const [searchParams] = useSearchParams();
-	const mode = searchParams.get('mode');
+	const mode = searchParams.get('mode') ?? 'linear';
+	const previousModeRef = useRef(mode);
 
 	useUnmount(() => actions.resetGlobalFilter());
 	useSyncHistoryQueryToState();
+
+	useEffect(() => {
+		if (mode !== previousModeRef.current) {
+			trackEvent(analyticsEventNames.historyModeChange, {
+				fromMode: previousModeRef.current,
+				toMode: mode
+			});
+		}
+
+		previousModeRef.current = mode;
+	}, [mode]);
 
 	if (mode === 'linear') return <HistoryLinearContainer />;
 

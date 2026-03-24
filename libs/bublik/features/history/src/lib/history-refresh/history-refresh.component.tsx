@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
 interface RefreshButtonProps {
@@ -13,6 +14,10 @@ export const HistoryRefresh: FC<RefreshButtonProps> = ({ onRefreshClick }) => {
 	const controls = useAnimation();
 
 	const handleClick = async () => {
+		trackEvent(analyticsEventNames.historyRefreshClick, {
+			source: 'header'
+		});
+
 		onRefreshClick?.();
 
 		await controls.start({

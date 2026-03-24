@@ -7,6 +7,7 @@ import {
 	RESULT_PROPERTIES,
 	VERDICT_TYPE
 } from '@/shared/types';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { routes, stringifySearch, useSearchState } from '@/router';
 import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
@@ -21,6 +22,12 @@ export const Links = ({ row }: LinksProps) => {
 	const [search] = useSearchState<HistorySearchParams>();
 	const shortcuts = getHistorySearch(row, search);
 
+	const handleLinkClick = (action: string) => {
+		trackEvent(analyticsEventNames.historyLinkClick, {
+			action
+		});
+	};
+
 	return (
 		<div className="flex flex-col items-start gap-1">
 			<ButtonTw asChild size="xss" variant="secondary">
@@ -30,6 +37,7 @@ export const Links = ({ row }: LinksProps) => {
 						focusId: row.result_id,
 						mode: LogPageMode.InfoAndLog
 					})}
+					onClick={() => handleLinkClick('log')}
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
@@ -41,6 +49,7 @@ export const Links = ({ row }: LinksProps) => {
 						runId: row.run_id,
 						targetIterationId: Number(row.result_id)
 					})}
+					onClick={() => handleLinkClick('run')}
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
@@ -50,6 +59,7 @@ export const Links = ({ row }: LinksProps) => {
 				<SplitButton.Button asChild>
 					<LinkWithProject
 						to={{ pathname: '/history', search: shortcuts.historyQuery }}
+						onClick={() => handleLinkClick('history_default')}
 					>
 						<Icon
 							name="BoxArrowRight"
@@ -75,6 +85,7 @@ export const Links = ({ row }: LinksProps) => {
 							<LinkWithProject
 								to={{ pathname: '/history', search: shortcuts.allUnexpected }}
 								target="_blank"
+								onClick={() => handleLinkClick('history_all_unexpected')}
 							>
 								<Icon name="ExternalLink" size={16} className="text-primary" />
 								<span>All Unexpected</span>
@@ -94,6 +105,7 @@ export const Links = ({ row }: LinksProps) => {
 									search: shortcuts.similarUnexpected
 								}}
 								target="_blank"
+								onClick={() => handleLinkClick('history_similar_unexpected')}
 							>
 								<Icon name="ExternalLink" size={16} className="text-primary" />
 								<span>Similar Unexpected</span>
@@ -109,6 +121,7 @@ export const Links = ({ row }: LinksProps) => {
 							runId: row.run_id,
 							resultId: row.result_id
 						})}
+						onClick={() => handleLinkClick('result')}
 					>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Result
@@ -124,6 +137,7 @@ export const Links = ({ row }: LinksProps) => {
 					size="xss"
 					variant="secondary"
 					className="justify-start w-fit"
+					onClick={() => handleLinkClick('preview')}
 				>
 					<Icon name="ExpandSelection" className="mr-1.5" size={20} />
 					<span>Preview</span>
