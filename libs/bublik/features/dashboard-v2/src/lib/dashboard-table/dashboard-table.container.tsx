@@ -2,12 +2,13 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef } from 'react';
 
+import { DASHBOARD_MODE, DashboardMode } from '@/shared/types';
+import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
 import {
 	createBublikError,
 	useGetDashboardByDateQuery
 } from '@/services/bublik-api';
-import { DASHBOARD_MODE, DashboardMode } from '@/shared/types';
-import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 import { DashboardTable } from './dashboard-table.component';
 import {
@@ -132,13 +133,23 @@ export const DashboardTableContainer = ({
 		? date
 		: resolvedQueryDate || initialDate || new Date();
 
+	const handleDateChange = (nextDate: Date) => {
+		setDate(nextDate);
+
+		trackEvent(analyticsEventNames.dashboardDateChange, {
+			tableId: id,
+			mode,
+			selectedDate: formatTimeToAPI(nextDate)
+		});
+	};
+
 	return (
 		<DashboardTable
 			date={finalDate}
 			headers={displayData?.header}
 			rows={displayData?.rows}
 			layout={layout}
-			onDateChange={setDate}
+			onDateChange={handleDateChange}
 			renderSubrow={renderSubrow}
 			isFetching={query.isFetching || isPending}
 			isLoading={!tableError && query.isLoading && !displayData}

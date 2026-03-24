@@ -5,6 +5,7 @@ import { addDays } from 'date-fns';
 import { ButtonTw, Tooltip } from '@/shared/tailwind-ui';
 import { useGetDashboardByDateQuery } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DASHBOARD_MODE } from '@/shared/types';
 
 import {
@@ -24,15 +25,35 @@ export const TodayButtonContainer = () => {
 
 	const handleTodayButtonClick = () => {
 		if (mode === DASHBOARD_MODE.Columns) {
-			if (!data) return;
+			if (!data) {
+				trackEvent(analyticsEventNames.dashboardTodayClick, {
+					mode,
+					status: 'skipped_missing_data'
+				});
+
+				return;
+			}
 
 			setFirstDate(new Date(data.date));
 			setSecondDate(addDays(new Date(data.date), -1));
+
+			trackEvent(analyticsEventNames.dashboardTodayClick, {
+				mode,
+				status: 'applied',
+				tableCount: 2
+			});
+
 			return;
 		}
 
 		setFirstDate(null);
 		setSecondDate(null);
+
+		trackEvent(analyticsEventNames.dashboardTodayClick, {
+			mode,
+			status: 'applied',
+			tableCount: 1
+		});
 	};
 
 	return (

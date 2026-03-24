@@ -16,6 +16,7 @@ import {
 	usePrefetch
 } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DASHBOARD_MODE } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 
@@ -70,7 +71,7 @@ export const useDashboardModePicker = () => {
 	const { date: mainDate, setDate: setMainDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Main
 	);
-	const { setDate: setSecondDate } = useDashboardDate(
+	const { date: secondDate, setDate: setSecondDate } = useDashboardDate(
 		DASHBOARD_TABLE_ID.Secondary
 	);
 	const { projectIds } = useProjectSearch();
@@ -79,6 +80,8 @@ export const useDashboardModePicker = () => {
 	});
 
 	const handleModeChange = (nextMode: DASHBOARD_MODE) => {
+		if (!nextMode || nextMode === mode) return;
+
 		const modeToDates = {
 			[DASHBOARD_MODE.Rows]: () => {
 				setSecondDate(null);
@@ -96,10 +99,15 @@ export const useDashboardModePicker = () => {
 			}
 		};
 
-		if (!nextMode) return;
-
 		modeToDates[nextMode]();
 		setMode(nextMode);
+
+		trackEvent(analyticsEventNames.dashboardModeChange, {
+			fromMode: mode,
+			toMode: nextMode,
+			hadMainDate: Boolean(mainDate),
+			hadSecondaryDate: Boolean(secondDate)
+		});
 	};
 
 	return {

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { Clock, cn, Icon, Tooltip } from '@/shared/tailwind-ui';
 
 import { useDashboardClock } from '../hooks';
@@ -15,6 +16,14 @@ export const ClockContainer = () => {
 		[latestTimestamp]
 	);
 
+	const handleRefreshClick = () => {
+		trackEvent(analyticsEventNames.dashboardManualRefresh, {
+			source: 'button'
+		});
+
+		refetch();
+	};
+
 	return (
 		<div className="flex">
 			<Tooltip content={`Current dashboard is fetched at: ${formattedTime}`}>
@@ -26,7 +35,7 @@ export const ClockContainer = () => {
 						'flex items-center justify-center border border-border-primary border-l rounded-r-md px-3 transition-colors',
 						'hover:bg-primary-wash hover:border-primary'
 					)}
-					onClick={refetch}
+					onClick={handleRefreshClick}
 				>
 					<Icon name="Refresh" className="text-primary" />
 				</button>

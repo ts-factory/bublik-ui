@@ -3,6 +3,7 @@
 import { ReactElement } from 'react';
 import { z } from 'zod';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DashboardCellData } from '@/shared/types';
 import { cn, cva, Tooltip } from '@/shared/tailwind-ui';
 import {
@@ -51,6 +52,7 @@ export function CellLink({
 		return (
 			<AbsoluteLink
 				cellString={cellString}
+				cellKey={cellKey}
 				url={data.payload.url}
 				bgColor={bgColor}
 				destination={destination}
@@ -65,6 +67,7 @@ export function CellLink({
 		return (
 			<LinkToRun
 				to={to}
+				cellKey={cellKey}
 				cellString={cellString}
 				bgColor={bgColor}
 				destination={destination}
@@ -77,6 +80,12 @@ export function CellLink({
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				to={getUrl(data.payload.url, data.payload?.params)}
+				onClick={() => {
+					trackDashboardTableLinkClick({
+						cellKey,
+						destinationType: 'relative'
+					});
+				}}
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
@@ -86,6 +95,7 @@ export function CellLink({
 }
 
 interface LinkToRunProps {
+	cellKey: string;
 	cellString: string | number;
 	to: string;
 	bgColor?: string;
@@ -93,7 +103,7 @@ interface LinkToRunProps {
 }
 
 function LinkToRun(props: LinkToRunProps) {
-	const { cellString, to, bgColor, destination } = props;
+	const { cellString, cellKey, to, bgColor, destination } = props;
 	const navigate = useNavigateWithProject();
 
 	return (
@@ -102,6 +112,13 @@ function LinkToRun(props: LinkToRunProps) {
 				to={to}
 				state={{ openUnexpected: true }}
 				onClick={(e) => {
+					trackDashboardTableLinkClick({
+						cellKey,
+						destinationType: 'run',
+						hasCtrlKey: e.ctrlKey,
+						interaction: 'click'
+					});
+
 					e.preventDefault();
 					if (e.ctrlKey) {
 						navigate(to, { state: { openUnexpectedResults: true } });
@@ -110,6 +127,13 @@ function LinkToRun(props: LinkToRunProps) {
 					}
 				}}
 				onContextMenu={(e) => {
+					trackDashboardTableLinkClick({
+						cellKey,
+						destinationType: 'run',
+						hasCtrlKey: e.ctrlKey,
+						interaction: 'context_menu'
+					});
+
 					e.preventDefault();
 					if (e.ctrlKey) {
 						navigate(to, { state: { openUnexpectedResults: true } });
@@ -126,6 +150,7 @@ function LinkToRun(props: LinkToRunProps) {
 }
 
 interface AbsoluteLinkProps {
+	cellKey: string;
 	cellString: string | number;
 	url: string;
 	bgColor?: string;
@@ -133,7 +158,7 @@ interface AbsoluteLinkProps {
 }
 
 function AbsoluteLink(props: AbsoluteLinkProps) {
-	const { cellString, bgColor, url, destination } = props;
+	const { cellString, cellKey, bgColor, url, destination } = props;
 
 	return (
 		<LinkHintCard destination={destination}>
@@ -141,6 +166,12 @@ function AbsoluteLink(props: AbsoluteLinkProps) {
 				rel="noopener noreferrer"
 				href={url}
 				target="_blank"
+				onClick={() => {
+					trackDashboardTableLinkClick({
+						cellKey,
+						destinationType: 'absolute'
+					});
+				}}
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
@@ -166,4 +197,22 @@ function getDestinationHint(hint: string | undefined) {
 	if (!hint) return undefined;
 
 	return hint.trim();
+}
+
+type DashboardTableLinkClickDestinationType = 'absolute' | 'relative' | 'run';
+
+interface DashboardTableLinkClickPayload {
+	cellKey: string;
+	destinationType: DashboardTableLinkClickDestinationType;
+	interaction?: 'click' | 'context_menu';
+	hasCtrlKey?: boolean;
+}
+
+function trackDashboardTableLinkClick(payload: DashboardTableLinkClickPayload) {
+	trackEvent(analyticsEventNames.dashboardTableLinkClick, {
+		cellKey: payload.cellKey,
+		destinationType: payload.destinationType,
+		interaction: payload.interaction ?? 'click',
+		hasCtrlKey: payload.hasCtrlKey ?? false
+	});
 }
