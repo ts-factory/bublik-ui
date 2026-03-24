@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren } from 'react';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	Dialog,
 	DialogTrigger,
@@ -19,6 +20,12 @@ interface ImportRunFormModalProps {
 
 function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 	const handleOpenChange = (open: boolean) => {
+		if (open) {
+			trackEvent(analyticsEventNames.importModalOpen, {
+				source: 'import_page'
+			});
+		}
+
 		if (!open) setTimeout(() => props.onClose?.(), 300);
 	};
 

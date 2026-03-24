@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { z } from 'zod';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ImportEventResponse, ImportRunsFormValues } from '@/shared/types';
 import { bublikAPI, useImportRunsMutation } from '@/services/bublik-api';
 import { setErrorsOnForm } from '@/shared/utils';
@@ -31,6 +32,11 @@ export const useImportTasks = () => {
 				(run) => z.string().url().safeParse(run.url).success
 			);
 
+			trackEvent(analyticsEventNames.importRunsSubmit, {
+				providedRunsCount: runs.length,
+				validRunsCount: onlyUrls.length
+			});
+
 			if (!onlyUrls.length) {
 				form.setError('root', {
 					message: 'You must enter at least one valid URL'
@@ -40,9 +46,21 @@ export const useImportTasks = () => {
 
 			const results = await importRuns(onlyUrls).unwrap();
 
+			trackEvent(analyticsEventNames.importRunsSubmit, {
+				providedRunsCount: runs.length,
+				validRunsCount: onlyUrls.length,
+				status: 'success',
+				taskCount: results.length
+			});
+
 			setStep('result');
 			setCeleryTasks(results);
 		} catch (e: unknown) {
+			trackEvent(analyticsEventNames.importRunsSubmit, {
+				providedRunsCount: runs.length,
+				status: 'error'
+			});
+
 			setErrorsOnForm(e, { handle: form });
 		}
 	};

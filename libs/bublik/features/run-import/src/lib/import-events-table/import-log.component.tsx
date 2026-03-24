@@ -21,6 +21,7 @@ import { PauseIcon, RocketIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetImportLogQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -75,6 +76,11 @@ function ImportLogProvider({ children }: PropsWithChildren) {
 
 	function toggle(task: string, enablePolling?: boolean) {
 		return () => {
+			trackEvent(analyticsEventNames.importTaskLogOpen, {
+				action: taskId ? 'close' : 'open',
+				hasTaskId: Boolean(task)
+			});
+
 			setTaskId((t) => (t ? null : task));
 
 			if (typeof enablePolling !== 'undefined') {

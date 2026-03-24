@@ -4,6 +4,7 @@ import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 import { ExpandedState, PaginationState } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LogQuery } from '@/shared/types';
 import { useGetImportEventLogQuery } from '@/services/bublik-api';
 
@@ -51,10 +52,23 @@ const useEventFilters = () => {
 	const [params, setParams] = useQueryParam<LogQuery>('filters', FilterParams);
 
 	const handleFilterChange = (values: LogQuery) => {
+		trackEvent(analyticsEventNames.importEventsFilterApply, {
+			hasMessage: Boolean(values.msg),
+			hasUrl: Boolean(values.url),
+			hasTaskId: Boolean(values.task_id),
+			hasDate: Boolean(values.date),
+			hasSeverity: Boolean(values.severity),
+			hasFacility: Boolean(values.facility)
+		});
+
 		setParams(values, 'replaceIn');
 	};
 
 	const handleResetClick = () => {
+		trackEvent(analyticsEventNames.importEventsFilterReset, {
+			source: 'import_page'
+		});
+
 		setParams(
 			{
 				date: undefined,
