@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
@@ -22,10 +23,17 @@ export interface SelectedResultItemContainerProps {
 export const SelectedResultItemContainer: FC<
 	SelectedResultItemContainerProps
 > = ({ runId }) => {
-	const { removeSelection } = useRunsSelection();
+	const { compareIds, removeSelection } = useRunsSelection();
 	const { data, isLoading, isError, error } = useGetRunDetailsQuery(runId);
 
-	const handleRemove = () => removeSelection(runId);
+	const handleRemove = () => {
+		removeSelection(runId);
+		trackEvent(analyticsEventNames.runsRowSelectionChange, {
+			action: 'remove',
+			selectionCount: Math.max(compareIds.length - 1, 0),
+			source: 'selection_popover'
+		});
+	};
 
 	if (isLoading) return <Skeleton className="h-[54px] rounded" />;
 
@@ -68,10 +76,34 @@ export const SelectedResultItemContainer: FC<
 export const SelectionPopoverContainer = () => {
 	const { compareIds, resetSelect } = useRunsSelection();
 
+	const handleResetClick = () => {
+		resetSelect();
+		trackEvent(analyticsEventNames.runsSelectionReset, {
+			selectionCount: 0,
+			source: 'selection_popover'
+		});
+	};
+
+	const handleCompareClick = () => {
+		trackEvent(analyticsEventNames.runsSelectionAction, {
+			action: 'compare',
+			selectionCount: compareIds.length
+		});
+	};
+
+	const handleMultipleClick = () => {
+		trackEvent(analyticsEventNames.runsSelectionAction, {
+			action: 'multiple',
+			selectionCount: compareIds.length
+		});
+	};
+
 	return (
 		<SelectionPopover
 			compareIds={compareIds}
-			onResetClick={resetSelect}
+			onResetClick={handleResetClick}
+			onCompareClick={handleCompareClick}
+			onMultipleClick={handleMultipleClick}
 			renderItem={(runId) => <SelectedResultItemContainer runId={runId} />}
 		/>
 	);

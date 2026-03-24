@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
@@ -37,20 +38,35 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 	const link = new URL(window.location.href);
 	link.searchParams.delete('rowState');
 
+	const handleModeToggle = () => {
+		trackEvent(analyticsEventNames.runModeToggle, {
+			enabled: !isModeFull
+		});
+
+		setIsModeFull((prev) => !prev);
+	};
+
 	return (
 		<header className="flex flex-col bg-white rounded">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
 					<RunModeToggle
 						isFullMode={isModeFull}
-						onToggleClick={() => setIsModeFull(!isModeFull)}
+						onToggleClick={handleModeToggle}
 					/>
 					<DefineCompromiseContainer runId={runId} />
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
 					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.log({ runId })}>
+						<LinkWithProject
+							to={routes.log({ runId })}
+							onClick={() => {
+								trackEvent(analyticsEventNames.runOpenLogClick, {
+									source: 'header'
+								});
+							}}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
 						</LinkWithProject>

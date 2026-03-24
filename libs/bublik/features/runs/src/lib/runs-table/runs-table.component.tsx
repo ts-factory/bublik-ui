@@ -14,6 +14,7 @@ import {
 	getSortedRowModel
 } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { RunsData } from '@/shared/types';
 import { Skeleton, cn, Pagination } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -91,6 +92,11 @@ function RunsTable(props: RunsTableProps) {
 
 			if (isInSelection) {
 				removeSelection(row.id);
+				trackEvent(analyticsEventNames.runsRowSelectionChange, {
+					action: 'remove',
+					selectionCount: selectionKeys.length - 1,
+					source: 'table_row'
+				});
 				return;
 			}
 
@@ -98,10 +104,20 @@ function RunsTable(props: RunsTableProps) {
 				const oldestId = selection.at(0);
 				if (oldestId) removeSelection(oldestId);
 				addSelection(row.id);
+				trackEvent(analyticsEventNames.runsRowSelectionChange, {
+					action: 'replace_oldest',
+					selectionCount: selectionKeys.length,
+					source: 'table_row'
+				});
 				return;
 			}
 
 			addSelection(row.id);
+			trackEvent(analyticsEventNames.runsRowSelectionChange, {
+				action: 'add',
+				selectionCount: selectionKeys.length + 1,
+				source: 'table_row'
+			});
 		};
 	}
 

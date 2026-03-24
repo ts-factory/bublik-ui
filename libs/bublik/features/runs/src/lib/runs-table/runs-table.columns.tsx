@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { CellContext, ColumnDef, RowData } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	getRunStatusInfo,
 	BadgeList,
@@ -26,16 +27,18 @@ const onGlobalFilter =
 	(cell: CellContext<RunsData, unknown>) => (badge: BadgeListItem) => {
 		const table = cell.table;
 		const globalFilter: string[] = table.getState().globalFilter;
+		const isSelected = globalFilter.includes(badge.payload);
+		const nextFilter = isSelected
+			? globalFilter.filter((tag) => tag !== badge.payload)
+			: Array.from(new Set([badge.payload, ...globalFilter]));
 
-		if (globalFilter.includes(badge.payload)) {
-			const removedFilter = globalFilter.filter((tag) => tag !== badge.payload);
+		trackEvent(analyticsEventNames.runsTableTagClick, {
+			action: isSelected ? 'remove' : 'add',
+			columnId: cell.column.id,
+			selectedCount: nextFilter.length
+		});
 
-			table.setGlobalFilter(removedFilter);
-		} else {
-			const addedFilter = Array.from(new Set([badge.payload, ...globalFilter]));
-
-			table.setGlobalFilter(addedFilter);
-		}
+		table.setGlobalFilter(nextFilter);
 	};
 
 export const columns: ColumnDef<RunsData>[] = [

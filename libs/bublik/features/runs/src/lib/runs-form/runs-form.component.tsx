@@ -3,6 +3,7 @@
 import { forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	ButtonTw,
 	SearchBar,
@@ -87,7 +88,14 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 								}
 								endIcon={<Icon name="AddSymbol" size={20} className="ml-2" />}
 								values={field.value}
-								onChange={field.onChange}
+								onChange={(nextValues) => {
+									trackEvent(analyticsEventNames.runsFormTagsEdit, {
+										selectedCount: nextValues.filter((v) => v.isSelected)
+											.length,
+										totalCount: nextValues.length
+									});
+									field.onChange(nextValues);
+								}}
 							/>
 						)}
 						name="runData"

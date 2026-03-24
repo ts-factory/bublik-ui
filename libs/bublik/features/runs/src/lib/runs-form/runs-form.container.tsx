@@ -6,6 +6,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { formatISODuration, intervalToDuration, sub } from 'date-fns';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
@@ -35,18 +36,34 @@ function RunsFormContainer() {
 	);
 
 	function handleFormSubmit(newForm: RunsFormValues) {
+		const selectedRunData = newForm.runData
+			.filter((value) => value.isSelected)
+			.map((value) => value.value);
+
+		trackEvent(analyticsEventNames.runsFormSubmit, {
+			calendarMode: newForm.calendarMode,
+			hasDateRange: Boolean(newForm.dates?.start && newForm.dates?.end),
+			hasTagExpr: Boolean(newForm.tagExpr.trim()),
+			selectedRunDataCount: selectedRunData.length
+		});
+
 		setSearchParams(formToSearchParams(searchParams, newForm), {
 			replace: true
 		});
-		dispatch(
-			updateGlobalFilter(
-				newForm.runData.filter((v) => v.isSelected).map((v) => v.value)
-			)
-		);
+		dispatch(updateGlobalFilter(selectedRunData));
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 	}
 
 	function handleResetFormClick(resettedForm: RunsFormValues) {
+		trackEvent(analyticsEventNames.runsFormReset, {
+			calendarMode: resettedForm.calendarMode,
+			hadDateRange:
+				Boolean(searchParams.get('startDate')) ||
+				Boolean(searchParams.get('finishDate')),
+			hadTagExpr: Boolean(searchParams.get('tagExpr')),
+			hadSelectedRunData: Boolean(searchParams.get('runData'))
+		});
+
 		dispatch(updateGlobalFilter([]));
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 

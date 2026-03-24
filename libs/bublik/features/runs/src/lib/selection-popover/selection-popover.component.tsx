@@ -24,10 +24,18 @@ export interface SelectionPopoverComponentProps {
 	compareIds: string[];
 	renderItem: (runId: string) => ReactNode;
 	onResetClick: () => void;
+	onCompareClick?: () => void;
+	onMultipleClick?: () => void;
 }
 
 export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
-	const { compareIds, renderItem, onResetClick } = props;
+	const {
+		compareIds,
+		renderItem,
+		onResetClick,
+		onCompareClick,
+		onMultipleClick
+	} = props;
 
 	const isPopoverVisible = compareIds.length;
 
@@ -55,6 +63,7 @@ export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
 							{compareIds.length >= 2 ? (
 								<LinkWithProject
 									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+									onClick={onMultipleClick}
 									to={{
 										pathname: '/multiple',
 										search: new URLSearchParams(
@@ -80,6 +89,7 @@ export const SelectionPopover: FC<SelectionPopoverComponentProps> = (props) => {
 							{compareIds.length === 2 ? (
 								<LinkWithProject
 									className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+									onClick={onCompareClick}
 									to={{
 										pathname: '/compare',
 										search: `left=${compareIds[0]}&right=${compareIds[1]}`
