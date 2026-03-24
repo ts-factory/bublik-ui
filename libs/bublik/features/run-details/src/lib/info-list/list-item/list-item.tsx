@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC } from 'react';
-
 import {
 	cn,
 	CopyTooltip,
 	toast,
 	infoListItemStyles
 } from '@/shared/tailwind-ui';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 import { getDisplayText } from '../utils';
 
@@ -24,7 +23,7 @@ export type InfoListItemProps = {
 	formatter?: (str: string) => string;
 };
 
-export const InfoListItem: FC<InfoListItemProps> = ({ item, formatter }) => {
+export function InfoListItem({ item, formatter }: InfoListItemProps) {
 	const { name, value, url, isImportant, className } = item;
 
 	const bg = isImportant ? 'bg-badge-6' : className;
@@ -34,6 +33,7 @@ export const InfoListItem: FC<InfoListItemProps> = ({ item, formatter }) => {
 	const formattedValue = formatter ? formatter(displayValue) : displayValue;
 
 	const handleCopyUrlComplete = () => {
+		trackEvent(analyticsEventNames.runCopyShortUrl);
 		toast.success('Copied revision to clipboard');
 	};
 
@@ -59,4 +59,4 @@ export const InfoListItem: FC<InfoListItemProps> = ({ item, formatter }) => {
 			</div>
 		</CopyTooltip>
 	);
-};
+}

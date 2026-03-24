@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { bublikAPI, useGetRunDetailsQuery } from '@/services/bublik-api';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 import { RunRowStateContextProvider, useGlobalRequirements } from '../hooks';
 import {
@@ -52,6 +53,33 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		targetIterationId
 	} = useRunTableQueryState(data);
 
+	const handleSortingChange: typeof setSorting = (state) => {
+		const nextSorting =
+			typeof state === 'function' ? state(sorting) : state ?? [];
+		const previousSort = sorting?.[0];
+		const nextSort = nextSorting?.[0];
+
+		if (
+			previousSort?.id !== nextSort?.id ||
+			previousSort?.desc !== nextSort?.desc
+		) {
+			trackEvent(analyticsEventNames.runTableSortChange, {
+				fromColumn: previousSort?.id ?? null,
+				toColumn: nextSort?.id ?? null,
+				fromDirection:
+					previousSort?.desc === undefined
+						? 'none'
+						: previousSort.desc
+						? 'desc'
+						: 'asc',
+				toDirection:
+					nextSort?.desc === undefined ? 'none' : nextSort.desc ? 'desc' : 'asc'
+			});
+		}
+
+		setSorting(state);
+	};
+
 	if (error || detailsQuery.error) {
 		return <RunTableError error={error || detailsQuery.error} />;
 	}
@@ -73,7 +101,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				onExpandedChange={setExpanded}
 				onGlobalFilterChange={setGlobalFilter}
 				sorting={sorting}
-				onSortingChange={setSorting}
+				onSortingChange={handleSortingChange}
 				columnVisibility={columnVisibility}
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}

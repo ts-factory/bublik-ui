@@ -3,6 +3,7 @@
 import { MouseEvent } from 'react';
 import { Row, Table } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	MergedRun,
 	RESULT_PROPERTIES,
@@ -189,8 +190,21 @@ function TableBadgeModel({
 		setGlobalFilter(remove(rowId, columnId)(globalFilter));
 	}
 
-	function handlePackageClick(forceCtrl = false) {
+	function handlePackageClick(
+		forceCtrl = false,
+		source: 'badge' | 'open_tooltip' = 'badge'
+	) {
 		return (e: MouseEvent) => {
+			trackEvent(analyticsEventNames.runTableBadgeClick, {
+				columnId,
+				rowType: 'package',
+				source,
+				hasCtrlKey: forceCtrl || e.ctrlKey,
+				interaction: e.type === 'contextmenu' ? 'context_menu' : 'click',
+				isSelected: isPackageInFilter,
+				value: value || 0
+			});
+
 			// 1. Just open subtrees
 			if (!e.ctrlKey && !forceCtrl) return handleWithoutControl();
 
@@ -211,7 +225,23 @@ function TableBadgeModel({
 	function handleClick(e: MouseEvent) {
 		e.preventDefault();
 
-		isTest(row) ? handleResultClick() : handlePackageClick(false)(e);
+		if (isTest(row)) {
+			trackEvent(analyticsEventNames.runTableBadgeClick, {
+				columnId,
+				rowType: 'test',
+				source: 'badge',
+				hasCtrlKey: e.ctrlKey,
+				interaction: e.type === 'contextmenu' ? 'context_menu' : 'click',
+				isSelected: isTestSelected,
+				action: isTestSelected ? 'collapse' : 'expand',
+				value: value || 0
+			});
+
+			handleResultClick();
+			return;
+		}
+
+		handlePackageClick(false, 'badge')(e);
 	}
 
 	if (rowId === rootRowId && value) {
@@ -225,7 +255,7 @@ function TableBadgeModel({
 				>
 					{value}
 				</Badge>
-				<OpenTooltip onClick={handlePackageClick(true)}>
+				<OpenTooltip onClick={handlePackageClick(true, 'open_tooltip')}>
 					<Icon
 						name="InformationCircleQuestionMark"
 						size={16}

@@ -23,6 +23,7 @@ import {
 import { createNextState } from '@reduxjs/toolkit';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useIsSticky, useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import {
@@ -657,6 +658,10 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	}, [filteredData]);
 
 	function handleClearFilters() {
+		trackEvent(analyticsEventNames.resultTableFiltersReset, {
+			activeFilterCount: columnFilters.length
+		});
+
 		setColumnFilters([]);
 		resetLocalRequirements();
 	}
@@ -770,6 +775,33 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 
 const columnFiltersParam = withDefault(JsonParam, []);
 
+function getFilterSelectionCount(
+	filter: ColumnFiltersState[number] | undefined
+) {
+	if (!filter) {
+		return 0;
+	}
+
+	if (Array.isArray(filter.value)) {
+		return filter.value.length;
+	}
+
+	const obtainedResult = ObtainedResultFilterSchema.safeParse(filter.value);
+	if (obtainedResult.success) {
+		return (
+			obtainedResult.data.verdicts.length +
+			obtainedResult.data.results.length +
+			obtainedResult.data.resultProperties.length
+		);
+	}
+
+	return 0;
+}
+
+function findFilterById(columnFilters: ColumnFiltersState, id: string) {
+	return columnFilters.find((filter) => filter.id === id);
+}
+
 function useColumnFilters(rowId: string) {
 	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
 		Record<string, ColumnFiltersState>
@@ -792,6 +824,29 @@ function useColumnFilters(rowId: string) {
 		(updater: Updater<ColumnFiltersState>) => {
 			const nextState =
 				typeof updater === 'function' ? updater(columnFilters) : updater;
+
+			const maybeChangedFilterIds = new Set<string>([
+				...columnFilters.map((filter) => filter.id),
+				...nextState.map((filter) => filter.id)
+			]);
+
+			for (const filterId of maybeChangedFilterIds) {
+				const previousFilter = findFilterById(columnFilters, filterId);
+				const nextFilter = findFilterById(nextState, filterId);
+
+				const previousValue = JSON.stringify(previousFilter?.value ?? null);
+				const nextValue = JSON.stringify(nextFilter?.value ?? null);
+
+				if (previousValue === nextValue) {
+					continue;
+				}
+
+				trackEvent(analyticsEventNames.resultTableFilterChange, {
+					filterId,
+					previousCount: getFilterSelectionCount(previousFilter),
+					nextCount: getFilterSelectionCount(nextFilter)
+				});
+			}
 
 			setQueryColumnFilters((prev) => ({ ...prev, [rowId]: nextState }));
 		},

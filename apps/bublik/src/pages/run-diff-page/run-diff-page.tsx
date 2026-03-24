@@ -3,6 +3,7 @@
 import { memo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { routes } from '@/router';
 import { usePrefetchImmediately } from '@/services/bublik-api';
 import {
@@ -45,20 +46,42 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 	usePrefetchImmediately('getRunSource', rightRunId);
 
 	const handleExpandClick = (leftOrRight: 'left' | 'right' | 'diff') => () =>
-		selected === leftOrRight ? setSelected(null) : setSelected(leftOrRight);
+		setSelected((prev) => {
+			const next = prev === leftOrRight ? null : leftOrRight;
+
+			trackEvent(analyticsEventNames.runDiffViewToggle, {
+				fromView: prev ?? 'split',
+				toView: next ?? 'split'
+			});
+
+			return next;
+		});
+
+	const handleNavigationClick = (action: string, side: 'left' | 'right') => {
+		trackEvent(analyticsEventNames.runDiffNavigationClick, {
+			action,
+			side
+		});
+	};
 
 	return (
 		<header className="flex flex-col mb-1 bg-white rounded min-h-[260px]">
 			<div className="flex justify-between border-b border-border-primary h-9">
 				<div className="flex items-center gap-4 px-4 border-r border-border-primary">
 					<ButtonTw size="xss" asChild variant="secondary">
-						<LinkWithProject to={routes.run({ runId: leftRunId })}>
+						<LinkWithProject
+							to={routes.run({ runId: leftRunId })}
+							onClick={() => handleNavigationClick('run', 'left')}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
 						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw size="xss" asChild variant="secondary">
-						<LinkWithProject to={routes.log({ runId: leftRunId })}>
+						<LinkWithProject
+							to={routes.log({ runId: leftRunId })}
+							onClick={() => handleNavigationClick('log', 'left')}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
 						</LinkWithProject>
@@ -93,13 +116,19 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 				</div>
 				<div className="flex items-center gap-4 px-4 border-l border-border-primary">
 					<ButtonTw variant="secondary" size="xss" asChild>
-						<LinkWithProject to={routes.run({ runId: rightRunId })}>
+						<LinkWithProject
+							to={routes.run({ runId: rightRunId })}
+							onClick={() => handleNavigationClick('run', 'right')}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Run
 						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw variant="secondary" size="xss" asChild>
-						<LinkWithProject to={routes.log({ runId: rightRunId })}>
+						<LinkWithProject
+							to={routes.log({ runId: rightRunId })}
+							onClick={() => handleNavigationClick('log', 'right')}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
 							Log
 						</LinkWithProject>

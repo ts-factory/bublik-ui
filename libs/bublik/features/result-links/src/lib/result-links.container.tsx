@@ -4,6 +4,7 @@ import { HistoryMode, RunDataResults } from '@/shared/types';
 import { usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { Icon } from '@/shared/tailwind-ui';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -18,6 +19,7 @@ export interface ResultLinksProps {
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;
 	onLogLinkMouseEnter?: () => void;
+	onLinkClick?: (action: string) => void;
 	showLinkToRun?: boolean;
 	path?: string;
 }
@@ -31,6 +33,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		userPreferredHistoryMode = 'linear',
 		onLogLinkMouseEnter,
 		onMeasurementLinkMouseEnter,
+		onLinkClick,
 		showLinkToRun = false,
 		path
 	} = props;
@@ -43,6 +46,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						<LinkWithProject
 							className="flex items-center w-full gap-1"
 							to={routes.run({ runId, targetIterationId: resultId })}
+							onClick={() => onLinkClick?.('run')}
 						>
 							<Icon name="Paper" className="size-5" />
 							Run {runId}
@@ -53,6 +57,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					<LinkWithProject
 						className="flex items-center w-full gap-1"
 						onMouseEnter={onLogLinkMouseEnter}
+						onClick={() => onLinkClick?.('log')}
 						to={routes.log({ runId, focusId: resultId })}
 					>
 						<Icon name="BoxArrowRight" className="grid place-items-center" />
@@ -73,6 +78,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 							className="flex items-center gap-1"
 							to={routes.measurements({ runId, resultId })}
 							onMouseEnter={onMeasurementLinkMouseEnter}
+							onClick={() => onLinkClick?.('result')}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Result
@@ -86,7 +92,10 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						runId={Number(runId)}
 						measurementId={hasMeasurements ? Number(resultId) : undefined}
 					>
-						<button className="flex items-center w-full gap-1">
+						<button
+							className="flex items-center w-full gap-1"
+							onClick={() => onLinkClick?.('preview')}
+						>
 							<Icon
 								name="ExpandSelection"
 								size={20}
@@ -128,6 +137,10 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 		prefetchResultInfo(resultId);
 	};
 
+	const handleLinkClick = (action: string) => {
+		trackEvent(analyticsEventNames.resultTableLinkClick, { action });
+	};
+
 	return (
 		<ResultLinks
 			resultId={resultId}
@@ -139,6 +152,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}
 			showLinkToRun={showLinkToRun}
 			path={path}
+			onLinkClick={handleLinkClick}
 		/>
 	);
 };

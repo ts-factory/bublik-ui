@@ -13,6 +13,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { To } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	CreateTestCommentParams,
 	EditTestCommentParams,
@@ -78,7 +79,18 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 	const historyLink = getHistoryViewLink(path, runIds, data?.finish);
 
 	return (
-		<DropdownMenu onOpenChange={setOpen}>
+		<DropdownMenu
+			onOpenChange={(nextOpen) => {
+				if (nextOpen) {
+					trackEvent(analyticsEventNames.runTableHistoryLinkClick, {
+						action: 'open_menu',
+						runCount: runIds.length
+					});
+				}
+
+				setOpen(nextOpen);
+			}}
+		>
 			<DropdownMenuTrigger asChild>
 				<button
 					className={cn(
@@ -98,7 +110,16 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 				<DropdownMenuLabel>Open Direct Search</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<LinkWithProject to={historyLink} className="pl-2">
+					<LinkWithProject
+						to={historyLink}
+						className="pl-2"
+						onClick={() => {
+							trackEvent(analyticsEventNames.runTableHistoryLinkClick, {
+								action: 'open_history_view',
+								runCount: runIds.length
+							});
+						}}
+					>
 						<Icon
 							name="BoxArrowRight"
 							size={20}
@@ -135,7 +156,14 @@ function getColumns({ projectId, runIds }: GetColumnsOptions) {
 				<TableNode
 					nodeName={name}
 					nodeType={type}
-					onClick={() => row.toggleExpanded()}
+					onClick={() => {
+						trackEvent(analyticsEventNames.runTableTreeToggle, {
+							nodeType: type,
+							action: row.getIsExpanded() ? 'collapse' : 'expand'
+						});
+
+						row.toggleExpanded();
+					}}
 					isExpanded={row.getIsExpanded()}
 					depth={row.depth}
 					trailing={

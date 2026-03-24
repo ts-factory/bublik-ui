@@ -16,6 +16,7 @@ import {
 import { MergedRun, RunData } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { bublikAPI } from '@/services/bublik-api';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	ButtonTw,
 	cn,
@@ -203,14 +204,29 @@ function GlobalRequirementsFilter({ runId }: { runId: string | string[] }) {
 		})) ?? [];
 
 	function handleChange(values: string[] | undefined) {
-		setLocalRequirements(values ?? []);
+		const nextValues = values ?? [];
+
+		trackEvent(analyticsEventNames.runTableRequirementsChange, {
+			selectedCount: nextValues.length
+		});
+
+		setLocalRequirements(nextValues);
 	}
 
 	function handleSubmit() {
+		trackEvent(analyticsEventNames.runTableRequirementsSubmit, {
+			selectedCount: localRequirements.length,
+			hasChanges
+		});
+
 		setGlobalRequirements(localRequirements);
 	}
 
 	function handleReset() {
+		trackEvent(analyticsEventNames.runTableRequirementsReset, {
+			selectedCount: 0
+		});
+
 		resetGlobalRequirements();
 		setLocalRequirements([]);
 	}

@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 
 import { useCopyToClipboard } from '@/shared/hooks';
 import { cn, Icon, toast } from '@/shared/tailwind-ui';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 export interface RunDetailsLabelProps {
 	label: string;
@@ -26,6 +27,7 @@ export const DetailItem = ({
 		(typeof value === 'string' || typeof value === 'number');
 
 	const handleCopy = () => {
+		trackEvent(analyticsEventNames.runCopyDetailsCopy, { label });
 		if (!canCopy) return;
 		copy(String(value)).then((success) => {
 			if (success) {

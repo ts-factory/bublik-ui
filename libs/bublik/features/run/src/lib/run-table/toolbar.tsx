@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Table } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData } from '@/shared/types';
 import { toolbarIcon } from '@/bublik/run-utils';
 import {
@@ -35,7 +36,21 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 
 	const [isOpen, setIsOpen] = useState(false);
 
+	const handleColumnsOpenChange = (open: boolean) => {
+		if (open) {
+			trackEvent(analyticsEventNames.runTableToolbarColumnsOpen, {
+				source: 'columns_dropdown'
+			});
+		}
+
+		setIsOpen(open);
+	};
+
 	const handleResetState = () => {
+		trackEvent(analyticsEventNames.runTableToolbarReset, {
+			source: 'toolbar'
+		});
+
 		table.setColumnVisibility(DEFAULT_COLUMN_VISIBILITY);
 		reset();
 		resetGlobalRequirements();
@@ -55,8 +70,8 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 
 	return (
 		<div className="flex gap-3">
-			<DropdownMenu open={isOpen}>
-				<DropdownMenuTrigger asChild onClick={() => setIsOpen(true)}>
+			<DropdownMenu open={isOpen} onOpenChange={handleColumnsOpenChange}>
+				<DropdownMenuTrigger asChild>
 					<ButtonTw size="xss" variant="secondary" state={isOpen && 'active'}>
 						Columns
 						<Icon name="ArrowShortSmall" />
@@ -80,7 +95,19 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 							<DropdownMenuCheckboxItem
 								key={column.id}
 								checked={column.getIsVisible()}
-								onCheckedChange={column.toggleVisibility}
+								onCheckedChange={(checked) => {
+									const isVisible = Boolean(checked);
+
+									trackEvent(
+										analyticsEventNames.runTableToolbarColumnVisibilityToggle,
+										{
+											columnId: column.id,
+											visible: isVisible
+										}
+									);
+
+									column.toggleVisibility(isVisible);
+								}}
 								className="text-xs"
 							>
 								{column.id
@@ -105,7 +132,13 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 					variant="secondary"
 					state={!tableHasUnexpected ? 'disabled' : 'default'}
 					size="xss"
-					onClick={showUnexpected}
+					onClick={() => {
+						trackEvent(analyticsEventNames.runTableToolbarPreviewNok, {
+							hasUnexpected: tableHasUnexpected
+						});
+
+						showUnexpected();
+					}}
 				>
 					<Icon name="EyeShow" size={20} className="mr-1.5" />
 					Preview NOK
@@ -116,7 +149,13 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 					variant="secondary"
 					state={!tableHasUnexpected ? 'disabled' : 'default'}
 					size="xss"
-					onClick={expandUnexpected}
+					onClick={() => {
+						trackEvent(analyticsEventNames.runTableToolbarOpenNok, {
+							hasUnexpected: tableHasUnexpected
+						});
+
+						expandUnexpected();
+					}}
 				>
 					<Icon name="Scan" size={20} className="mr-1.5" />
 					Open NOK

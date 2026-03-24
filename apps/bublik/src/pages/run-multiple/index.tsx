@@ -4,6 +4,7 @@ import { useMount } from 'react-use';
 import { useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	RunTableContainer,
 	GlobalRequirementsProvider
@@ -88,6 +89,13 @@ function RunDetailsHeaderLabel() {
 	const { runIds, selectedRunId, getSearchParams } =
 		useRunStatsMultipleParams();
 
+	const handleRunSelect = (runId: string) => {
+		trackEvent(analyticsEventNames.runMultipleSelectedRunChange, {
+			fromRunId: selectedRunId,
+			toRunId: runId
+		});
+	};
+
 	return (
 		<div className="flex items-center gap-4">
 			<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
@@ -108,6 +116,7 @@ function RunDetailsHeaderLabel() {
 								pathname: '/multiple',
 								search: getSearchParams(runId).toString()
 							}}
+							onClick={() => handleRunSelect(runId)}
 							replace
 						>
 							<Icon name="Paper" className="size-5 mr-1.5" />
@@ -133,25 +142,47 @@ function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
 	const link = new URL(window.location.href);
 	link.searchParams.delete('rowState');
 
+	const handleModeToggle = () => {
+		trackEvent(analyticsEventNames.runMultipleModeToggle, {
+			enabled: !isModeFull
+		});
+
+		setIsModeFull(!isModeFull);
+	};
+
 	return (
 		<div className="flex h-full gap-3">
 			<RunReportConfigsContainer runId={runId} />
 			<LinkToSourceContainer runId={runId} />
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.run({ runId })}>
+				<LinkWithProject
+					to={routes.run({ runId })}
+					onClick={() => {
+						trackEvent(analyticsEventNames.runMultipleNavigationClick, {
+							action: 'run'
+						});
+					}}
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.log({ runId })}>
+				<LinkWithProject
+					to={routes.log({ runId })}
+					onClick={() => {
+						trackEvent(analyticsEventNames.runMultipleNavigationClick, {
+							action: 'log'
+						});
+					}}
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
 				</LinkWithProject>
 			</ButtonTw>
 			<RunModeToggle
 				isFullMode={isModeFull ?? false}
-				onToggleClick={() => setIsModeFull(!isModeFull)}
+				onToggleClick={handleModeToggle}
 			/>
 			<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 			<CopyShortUrlButtonContainer />

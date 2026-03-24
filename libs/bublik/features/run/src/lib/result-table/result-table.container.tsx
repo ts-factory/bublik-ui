@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import { Row } from '@tanstack/react-table';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
 
@@ -69,6 +70,10 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	const setShowToolbar = useCallback(
 		(showToolbar: boolean) => {
+			trackEvent(analyticsEventNames.resultTableToolbarToggle, {
+				enabled: showToolbar
+			});
+
 			return updateRowState({ ...rowState, showToolbar, rowId });
 		},
 		[updateRowState, rowId, rowState]
@@ -78,6 +83,11 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 		(row: Row<RunDataResults>) => {
 			const referenceDiffRowId =
 				rowState?.referenceDiffRowId === row.id ? undefined : row.id;
+
+			trackEvent(analyticsEventNames.resultTableReferenceToggle, {
+				action: rowState?.referenceDiffRowId === row.id ? 'unselect' : 'select',
+				hasReference: Boolean(referenceDiffRowId)
+			});
 
 			updateRowState({
 				...rowState,
