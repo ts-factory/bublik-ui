@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useMount } from '@/shared/hooks';
 import { VerifyEmailSchemaInputs } from '@/shared/types';
 import { useAuth } from '@/bublik/features/auth';
@@ -17,9 +18,17 @@ export const EmailActivationPage = () => {
 			const inputs = VerifyEmailSchemaInputs.parse(params);
 
 			await verifyEmail(inputs).unwrap();
+			trackEvent(analyticsEventNames.authEmailActivationResult, {
+				status: 'success'
+			});
+
 			toast.success('The email is verified. You are registered.');
 			navigate('/auth/login');
 		} catch (e) {
+			trackEvent(analyticsEventNames.authEmailActivationResult, {
+				status: 'error'
+			});
+
 			toast.error('Failed to verify email!');
 		}
 	});
