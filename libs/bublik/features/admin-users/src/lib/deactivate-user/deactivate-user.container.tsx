@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useConfirm } from '@/shared/hooks';
 import { ConfirmDialog, Tooltip } from '@/shared/tailwind-ui';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 import { ActionButton } from '../action-button';
 import { useAdminUsers } from '../users-table';
@@ -18,6 +19,10 @@ export const DeactivateUserContainer = ({
 		const isConfirmed = await confirmation();
 
 		if (!isConfirmed) return;
+
+		trackEvent(analyticsEventNames.adminUsersDeactivateConfirm, {
+			source: 'users_table'
+		});
 
 		await deleteUser({ email });
 	};

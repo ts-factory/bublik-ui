@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef, useState } from 'react';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { AdminUpdateUserInputs } from '@/shared/types';
 import { Dialog, DialogTrigger, toast, Tooltip } from '@/shared/tailwind-ui';
 import { useAdminUpdateUserMutation } from '@/services/bublik-api';
@@ -32,9 +33,18 @@ export const UpdateUserFormModalContainer = ({
 				last_name: input.last_name || undefined,
 				password: input.password || undefined
 			}).unwrap();
+
+			trackEvent(analyticsEventNames.adminUsersUpdateSubmit, {
+				status: 'success'
+			});
+
 			setOpen(false);
 			toast.success('Updated user successfully!');
 		} catch (e: unknown) {
+			trackEvent(analyticsEventNames.adminUsersUpdateSubmit, {
+				status: 'error'
+			});
+
 			if (formRef.current) setErrorsOnForm(e, { handle: formRef.current });
 			toast.error('Failed to update user data!');
 		}

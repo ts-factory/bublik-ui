@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef, useState } from 'react';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { AdminCreateUserInputs } from '@/shared/types';
 import { useAdminCreateUserMutation } from '@/services/bublik-api';
 import { setErrorsOnForm } from '@/shared/utils';
@@ -24,11 +25,20 @@ export const CreateUserFormContainer = () => {
 
 		try {
 			await createUser(input).unwrap();
+
+			trackEvent(analyticsEventNames.adminUsersCreateSubmit, {
+				status: 'success'
+			});
+
 			setOpen(false);
 			toast.success(
 				"A verification link has been sent to the user's email address"
 			);
 		} catch (e: unknown) {
+			trackEvent(analyticsEventNames.adminUsersCreateSubmit, {
+				status: 'error'
+			});
+
 			setErrorsOnForm(e, {
 				handle: form,
 				onSetError: (key, error, handle) => {
