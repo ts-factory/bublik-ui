@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { ExportChart } from '@/shared/charts';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 interface ExportChartProps {
 	resultId: string;
@@ -15,6 +16,11 @@ function ExportChartContainer({ resultId }: ExportChartProps) {
 			plots={data?.charts}
 			disabled={isError}
 			isLoading={isLoading}
+			onExportClick={(format) => {
+				trackEvent(analyticsEventNames.measurementsExport, {
+					format
+				});
+			}}
 		/>
 	);
 }

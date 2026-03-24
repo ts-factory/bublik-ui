@@ -35,6 +35,11 @@ interface MeasurementChartProps {
 	chart: SingleMeasurementChart;
 	color: string;
 	onChartPointClick?: (props: ChartPointClickProps) => void;
+	onToolbarAction?: (
+		action: string,
+		chartId: number,
+		payload?: unknown
+	) => void;
 	style?: CSSProperties;
 	additionalToolBarItems?: ReactNode;
 	isFullScreen?: boolean;
@@ -46,6 +51,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 	const {
 		chart,
 		color,
+		onToolbarAction,
 		additionalToolBarItems,
 		isFullScreen = false,
 		enableResultErrorHighlight = false,
@@ -87,6 +93,7 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 							onChartPointClick={props.onChartPointClick}
 							style={{ height: '100%' }}
 							additionalToolBarItems={additionalToolBarItems}
+							onToolbarAction={onToolbarAction}
 							isFullScreen={true}
 							enableResultErrorHighlight={enableResultErrorHighlight}
 							disableTooltips={disableTooltips}
@@ -97,12 +104,14 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 			<MeasurementChartToolbar
 				title={chart.title ?? chart.subtitle}
 				state={state}
+				chartId={chart.id}
 				toggleGlobalZoom={toggleGlobalZoom}
 				resetZoom={resetZoom}
 				toggleSliders={toggleSliders}
 				toggleLimitYAxis={toggleLimitYAxis}
 				changeMode={changeMode}
 				toggleFullScreen={toggleFullScreen}
+				onToolbarAction={onToolbarAction}
 				additionalToolBarItems={additionalToolBarItems}
 				isFullScreen={isFullScreen}
 				disableTooltips={disableTooltips}
@@ -115,12 +124,18 @@ const MeasurementChart = (props: MeasurementChartProps) => {
 interface MeasurementChartToolbarProps {
 	title: string;
 	state: ChartState;
+	chartId?: number;
 	toggleGlobalZoom: () => void;
 	resetZoom: () => void;
 	toggleSliders: () => void;
 	toggleLimitYAxis: () => void;
 	changeMode: (type: string) => void;
 	toggleFullScreen: (open?: boolean) => void;
+	onToolbarAction?: (
+		action: string,
+		chartId: number,
+		payload?: unknown
+	) => void;
 	additionalToolBarItems?: ReactNode;
 	isFullScreen?: boolean;
 	disableTooltips?: boolean;
@@ -144,16 +159,81 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 	const {
 		title,
 		state,
+		chartId,
 		toggleGlobalZoom,
 		resetZoom,
 		toggleSliders,
 		toggleLimitYAxis,
 		changeMode,
 		toggleFullScreen,
+		onToolbarAction,
 		additionalToolBarItems,
 		isFullScreen,
 		disableTooltips = false
 	} = props;
+
+	const handleGlobalZoomToggle = () => {
+		if (chartId !== undefined) {
+			onToolbarAction?.('toggle_zoom', chartId, {
+				enabled: !state.isGlobalZoomEnabled
+			});
+		}
+
+		toggleGlobalZoom();
+	};
+
+	const handleResetZoom = () => {
+		if (chartId !== undefined) {
+			onToolbarAction?.('reset_zoom', chartId);
+		}
+
+		resetZoom();
+	};
+
+	const handleSlidersToggle = () => {
+		if (chartId !== undefined) {
+			onToolbarAction?.('toggle_sliders', chartId, {
+				enabled: !state.isSlidersVisible
+			});
+		}
+
+		toggleSliders();
+	};
+
+	const handleLimitYAxisToggle = () => {
+		if (chartId !== undefined) {
+			onToolbarAction?.('toggle_y_axis_limit', chartId, {
+				enabled: !state.limitYAxis
+			});
+		}
+
+		toggleLimitYAxis();
+	};
+
+	const handleModeChange = (type: string) => {
+		if (!type || type === state.mode) {
+			return;
+		}
+
+		if (chartId !== undefined) {
+			onToolbarAction?.('change_mode', chartId, {
+				fromMode: state.mode,
+				toMode: type
+			});
+		}
+
+		changeMode(type);
+	};
+
+	const handleFullScreenToggle = () => {
+		if (chartId !== undefined) {
+			onToolbarAction?.('toggle_full_screen', chartId, {
+				enabled: !state.isFullScreen
+			});
+		}
+
+		toggleFullScreen();
+	};
 
 	return (
 		<div className="flex items-center justify-between mb-2">
@@ -179,7 +259,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 							aria-label={
 								state.isGlobalZoomEnabled ? 'Disable zoom' : 'Enable zoom'
 							}
-							onClick={toggleGlobalZoom}
+							onClick={handleGlobalZoomToggle}
 							state={state.isGlobalZoomEnabled ? 'active' : 'default'}
 						>
 							<Icon name="MagnifyingGlass" className="size-5" />
@@ -187,7 +267,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 					</ChartControlTooltip>
 
 					<ChartControlTooltip content="Reset zoom" disabled={disableTooltips}>
-						<ToolbarButton aria-label="Reset zoom" onClick={resetZoom}>
+						<ToolbarButton aria-label="Reset zoom" onClick={handleResetZoom}>
 							<Icon name="ResetZoom" className="size-5" />
 						</ToolbarButton>
 					</ChartControlTooltip>
@@ -200,7 +280,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 							aria-label={
 								state.isSlidersVisible ? 'Hide sliders' : 'Show sliders'
 							}
-							onClick={toggleSliders}
+							onClick={handleSlidersToggle}
 							state={state.isSlidersVisible ? 'active' : 'default'}
 						>
 							<Icon name="SettingsSliders" className="size-5" />
@@ -221,7 +301,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 									? 'Remove y-axis limit'
 									: 'Limit y-axis to max/min values'
 							}
-							onClick={toggleLimitYAxis}
+							onClick={handleLimitYAxisToggle}
 							state={state.limitYAxis ? 'active' : 'default'}
 						>
 							<Icon name="SwapArrows" className="size-5" />
@@ -232,7 +312,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 				<ToolbarToggleGroup
 					type="single"
 					value={state.mode}
-					onValueChange={changeMode}
+					onValueChange={handleModeChange}
 					variant="primary"
 					size="default"
 					aria-label="Chart modes"
@@ -273,7 +353,7 @@ function MeasurementChartToolbar(props: MeasurementChartToolbarProps) {
 							aria-label={
 								state.isFullScreen ? 'Close full screen' : 'Open full screen'
 							}
-							onClick={() => toggleFullScreen()}
+							onClick={handleFullScreenToggle}
 							state={state.isFullScreen ? 'active' : 'default'}
 						>
 							<Icon name="ExpandSelection" className="size-5" />

@@ -7,7 +7,10 @@ import { EChartsOption } from '../echart';
 import { chartStyles, Plot } from '../plot';
 
 export interface BarChartProps
-	extends Pick<ComponentProps<typeof Plot>, 'style' | 'className'> {
+	extends Pick<
+		ComponentProps<typeof Plot>,
+		'style' | 'className' | 'onEvents'
+	> {
 	title: string;
 	xAxis: EChartsOption['xAxis'];
 	yAxis: EChartsOption['yAxis'];

@@ -21,13 +21,16 @@ export type ExportExtensions = `.${AllowedExportExtensions}`;
 export interface ExportChartListProps {
 	extensions: ExportExtensions[];
 	onSaveAsClick: (fileExtension: ExportExtensions) => void;
+	onExportClick?: (fileExtension: ExportExtensions) => void;
 }
 
 export const ExportChartList: FC<ExportChartListProps> = ({
 	extensions,
-	onSaveAsClick
+	onSaveAsClick,
+	onExportClick
 }) => {
 	const handleSaveAsClick = (fileExtension: ExportExtensions) => () => {
+		onExportClick?.(fileExtension);
 		onSaveAsClick(fileExtension);
 	};
 
@@ -55,12 +58,14 @@ export interface ExportChartProps {
 	plots?: SingleMeasurementChart[];
 	isLoading?: boolean;
 	disabled?: boolean;
+	onExportClick?: (fileExtension: ExportExtensions) => void;
 }
 
 export const ExportChart = ({
 	plots,
 	isLoading,
-	disabled
+	disabled,
+	onExportClick
 }: ExportChartProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { handleExportClick } = useExportChart({ plots });
@@ -91,6 +96,7 @@ export const ExportChart = ({
 				<ExportChartList
 					onSaveAsClick={handleExportClick}
 					extensions={['.xlsx', '.csv']}
+					onExportClick={onExportClick}
 				/>
 			</PopoverContent>
 		</Popover>

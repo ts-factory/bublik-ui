@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { routes } from '@/router';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -12,7 +13,14 @@ export interface LinkToLogProps {
 export const LinkToLog = ({ runId, resultId }: LinkToLogProps) => {
 	return (
 		<ButtonTw asChild variant="secondary" size="xss">
-			<LinkWithProject to={routes.log({ runId, focusId: resultId })}>
+			<LinkWithProject
+				to={routes.log({ runId, focusId: resultId })}
+				onClick={() => {
+					trackEvent(analyticsEventNames.measurementsLinkToLogClick, {
+						source: 'measurements_header'
+					});
+				}}
+			>
 				<Icon name="BoxArrowRight" className="mr-1.5" />
 				Log
 			</LinkWithProject>

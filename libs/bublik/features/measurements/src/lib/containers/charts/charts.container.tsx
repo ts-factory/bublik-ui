@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { getColorByIdx } from '@/shared/charts';
 import {
 	Skeleton,
@@ -61,6 +62,29 @@ export function ChartsContainer(props: ChartsProps) {
 	const { data, isLoading, error } = useGetSingleMeasurementQuery(resultId);
 	const { selectedCharts, handleChartClick } = useResultSelectCharts();
 
+	const handleMeasurementChartClick = (chartId: number) => {
+		const isSelected = selectedCharts.includes(chartId);
+
+		trackEvent(analyticsEventNames.measurementsChartSelect, {
+			action: isSelected ? 'remove' : 'add',
+			selectedCount: isSelected
+				? Math.max(selectedCharts.length - 1, 0)
+				: selectedCharts.length + 1
+		});
+	};
+
+	const handleChartToolbarAction = (
+		action: string,
+		chartId: number,
+		payload?: unknown
+	) => {
+		trackEvent(analyticsEventNames.measurementsChartToolbarAction, {
+			action,
+			chartId,
+			payload
+		});
+	};
+
 	if (isLoading) return <ChartsLoading layout={layout} />;
 
 	if (error) return <ChartsError error={error} />;
@@ -86,11 +110,15 @@ export function ChartsContainer(props: ChartsProps) {
 								key={plot.id}
 								chart={plot}
 								color={getColorByIdx(idx)}
+								onToolbarAction={handleChartToolbarAction}
 								additionalToolBarItems={
 									<ToolbarButton
 										aria-label="Add to combined chart"
 										state={state}
-										onClick={() => handleChartClick(plot)}
+										onClick={() => {
+											handleMeasurementChartClick(plot.id);
+											handleChartClick(plot);
+										}}
 									>
 										<Icon name="AddSymbol" className="size-5" />
 									</ToolbarButton>
@@ -114,11 +142,15 @@ export function ChartsContainer(props: ChartsProps) {
 							key={plot.id}
 							chart={plot}
 							color={getColorByIdx(idx)}
+							onToolbarAction={handleChartToolbarAction}
 							additionalToolBarItems={
 								<ToolbarButton
 									aria-label="Add to combined chart"
 									state={state}
-									onClick={() => handleChartClick(plot)}
+									onClick={() => {
+										handleMeasurementChartClick(plot.id);
+										handleChartClick(plot);
+									}}
 								>
 									<Icon name="AddSymbol" className="size-5" />
 								</ToolbarButton>
