@@ -3,6 +3,7 @@
 import { ComponentProps, useRef, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	ConfigExistsError,
 	ConfigWithSameNameErrorResponseSchema,
@@ -53,11 +54,23 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	const handleSubmit = async (data: EditConfigBody) => {
 		const form = formRef.current;
 
+		trackEvent(analyticsEventNames.configsUpdateSubmit, {
+			status: 'pending'
+		});
+
 		try {
 			const result = await updateConfig(data);
+			trackEvent(analyticsEventNames.configsUpdateSubmit, {
+				status: 'success'
+			});
+
 			setConfigId(result.id);
 			setIsDialogOpen(false);
 		} catch (e) {
+			trackEvent(analyticsEventNames.configsUpdateSubmit, {
+				status: 'error'
+			});
+
 			const parseResult = ConfigWithSameNameErrorResponseSchema.safeParse(e);
 
 			if (parseResult.success) {
@@ -89,6 +102,11 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 	async function handleMarkAsCurrent() {
 		const isConfirmed = await confirmation();
 		if (!isConfirmed || !config) return;
+
+		trackEvent(analyticsEventNames.configsLifecycleAction, {
+			action: config.is_active ? 'deactivate' : 'activate'
+		});
+
 		markAsCurrent({ is_active: !config.is_active });
 	}
 
@@ -96,6 +114,11 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		if (!config) return;
 		const isConfirmed = await markConfirm.confirmation();
 		if (!isConfirmed) return;
+
+		trackEvent(analyticsEventNames.configsLifecycleAction, {
+			action: 'delete'
+		});
+
 		await deleteConfig(id);
 		const currentVersion = versions?.all_config_versions
 			.filter((v) => v.id !== id)

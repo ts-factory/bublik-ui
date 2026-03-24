@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useConfirm } from '@/shared/hooks';
 import { bublikAPI, ConfigExistsError } from '@/services/bublik-api';
 import {
@@ -74,6 +75,11 @@ function CreateNewConfigScreen() {
 		if (!isValidJson(value)) return toast.error('Failed to parse JSON');
 		if (!newConfigParams) return toast.error('No config type provided');
 
+		trackEvent(analyticsEventNames.configsLifecycleAction, {
+			action: 'open_create_modal',
+			type: newConfigParams.type
+		});
+
 		setIsCreateDialogOpen(true);
 	}
 
@@ -84,6 +90,12 @@ function CreateNewConfigScreen() {
 
 	async function handleCreateSubmit(data: CreateConfigInputs) {
 		if (!newConfigParams) return toast.error('No config params present');
+
+		trackEvent(analyticsEventNames.configsCreateSubmit, {
+			status: 'pending',
+			type: newConfigParams.type,
+			isActive: data.is_active
+		});
 
 		const promise = createConfigMutation({
 			type: newConfigParams.type,
@@ -98,18 +110,35 @@ function CreateNewConfigScreen() {
 
 		try {
 			const result = await promise;
+			trackEvent(analyticsEventNames.configsCreateSubmit, {
+				status: 'success',
+				type: newConfigParams.type,
+				isActive: data.is_active
+			});
+
 			setConfigId(result.id);
 			form.reset();
 			setIsCreateDialogOpen(false);
 		} catch (e) {
 			if (e instanceof ConfigExistsError) {
+				trackEvent(analyticsEventNames.configsCreateSubmit, {
+					status: 'exists',
+					type: newConfigParams.type
+				});
+
 				setIsCreateDialogOpen(false);
 				const shouldNavigate = await confirmationExisting();
 
 				if (!shouldNavigate) return;
 
 				setConfigId(e.configId);
+				return;
 			}
+
+			trackEvent(analyticsEventNames.configsCreateSubmit, {
+				status: 'error',
+				type: newConfigParams.type
+			});
 
 			setErrorsOnForm(e, {
 				handle: form,
