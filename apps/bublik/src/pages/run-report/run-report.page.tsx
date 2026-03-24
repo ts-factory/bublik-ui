@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
+import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams, useSearchParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	ReportStackedContextProvider,
 	RunReportContainer,
@@ -20,6 +22,17 @@ function RunReportPage() {
 	const { runId } = useParams<{ runId: string }>();
 	const configId = searchParams.get('config');
 	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
+
+	useEffect(() => {
+		if (!runId || !configId) {
+			return;
+		}
+
+		trackEvent(analyticsEventNames.runReportOpen, {
+			hasRunId: Boolean(runId),
+			hasConfigId: Boolean(configId)
+		});
+	}, [configId, runId]);
 
 	if (!configId) {
 		return (
