@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Icon, SplitButton, Tooltip, ButtonTw } from '@/shared/tailwind-ui';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { Icon, SplitButton, Tooltip, ButtonTw } from '@/shared/tailwind-ui';
 import type { HistorySearch } from '@/shared/utils';
 
 export interface HistoryLinkComponentProps {
@@ -13,6 +14,22 @@ export interface HistoryLinkComponentProps {
 	isError?: boolean;
 	disabled?: boolean;
 }
+
+type HistoryLinkAction =
+	| 'open_menu'
+	| 'direct_default'
+	| 'direct_test_path'
+	| 'direct_test_path_verdicts'
+	| 'direct_test_path_parameters'
+	| 'direct_test_path_parameters_important_tags'
+	| 'direct_test_path_parameters_all_tags'
+	| 'prefilled_test_path_verdicts'
+	| 'prefilled_test_path_parameters_verdicts'
+	| 'prefilled_test_path_parameters_important_tags';
+
+const trackHistoryLinkClick = (action: HistoryLinkAction) => {
+	trackEvent(analyticsEventNames.historyLinkComponentClick, { action });
+};
 
 /**
  * Loading state component - shows a spinner button
@@ -42,7 +59,7 @@ const ErrorState = () => (
 	</ButtonTw>
 );
 
-export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
+const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 	const { search, isLoading, isError, disabled } = props;
 
 	if (isLoading) return <LoadingState />;
@@ -54,7 +71,10 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 	return (
 		<SplitButton.Root variant="secondary" size="xss">
 			<SplitButton.Button asChild>
-				<LinkWithProject {...direct.testNameAndParametersAndImportantTags}>
+				<LinkWithProject
+					{...direct.testNameAndParametersAndImportantTags}
+					onClick={() => trackHistoryLinkClick('direct_default')}
+				>
 					<Icon
 						name="BoxArrowRight"
 						size={20}
@@ -64,7 +84,7 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 				</LinkWithProject>
 			</SplitButton.Button>
 			<SplitButton.Separator orientation="vertical" className="h-5" />
-			<SplitButton.Trigger>
+			<SplitButton.Trigger onClick={() => trackHistoryLinkClick('open_menu')}>
 				<Icon name="ArrowShortTop" size={18} className="rotate-180" />
 			</SplitButton.Trigger>
 			<SplitButton.Content align="start">
@@ -76,7 +96,10 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...direct.testName}>
+						<LinkWithProject
+							{...direct.testName}
+							onClick={() => trackHistoryLinkClick('direct_test_path')}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path</span>
 						</LinkWithProject>
@@ -88,7 +111,10 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...direct.testNameAndVerdicts}>
+						<LinkWithProject
+							{...direct.testNameAndVerdicts}
+							onClick={() => trackHistoryLinkClick('direct_test_path_verdicts')}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Verdicts</span>
 						</LinkWithProject>
@@ -100,7 +126,12 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...direct.testNameAndParameters}>
+						<LinkWithProject
+							{...direct.testNameAndParameters}
+							onClick={() =>
+								trackHistoryLinkClick('direct_test_path_parameters')
+							}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Parameters</span>
 						</LinkWithProject>
@@ -112,7 +143,14 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...direct.testNameAndParametersAndImportantTags}>
+						<LinkWithProject
+							{...direct.testNameAndParametersAndImportantTags}
+							onClick={() =>
+								trackHistoryLinkClick(
+									'direct_test_path_parameters_important_tags'
+								)
+							}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>
 								Test Path + Parameters + Important Tags{' '}
@@ -127,7 +165,12 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...direct.testNameAndParametersAndAllTags}>
+						<LinkWithProject
+							{...direct.testNameAndParametersAndAllTags}
+							onClick={() =>
+								trackHistoryLinkClick('direct_test_path_parameters_all_tags')
+							}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Parameters + All Tags</span>
 						</LinkWithProject>
@@ -142,7 +185,12 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...prefilled.testNameAndVerdicts}>
+						<LinkWithProject
+							{...prefilled.testNameAndVerdicts}
+							onClick={() =>
+								trackHistoryLinkClick('prefilled_test_path_verdicts')
+							}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Verdicts</span>
 						</LinkWithProject>
@@ -154,7 +202,12 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					sideOffset={8}
 				>
 					<SplitButton.Item asChild>
-						<LinkWithProject {...prefilled.testNameAndParametersAndVerdicts}>
+						<LinkWithProject
+							{...prefilled.testNameAndParametersAndVerdicts}
+							onClick={() =>
+								trackHistoryLinkClick('prefilled_test_path_parameters_verdicts')
+							}
+						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Parameters + Verdicts</span>
 						</LinkWithProject>
@@ -168,6 +221,11 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 					<SplitButton.Item asChild>
 						<LinkWithProject
 							{...prefilled.testNameAndParametersAndImportantTags}
+							onClick={() =>
+								trackHistoryLinkClick(
+									'prefilled_test_path_parameters_important_tags'
+								)
+							}
 						>
 							<Icon name="BoxArrowRight" size={20} className="text-primary" />
 							<span>Test Path + Parameters + Important Tags</span>
@@ -178,3 +236,5 @@ export const HistoryLinkComponent = (props: HistoryLinkComponentProps) => {
 		</SplitButton.Root>
 	);
 };
+
+export { HistoryLinkComponent };
