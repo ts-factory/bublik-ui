@@ -22,7 +22,7 @@ import {
 	buildQueryArgs,
 	clearFilterParams,
 	hasActiveFilters,
-	PAGE_SIZE,
+	PAGE_SIZE_OPTIONS,
 	parseSearchParams,
 	updateQueryValue,
 	updateQueryValues
@@ -78,7 +78,7 @@ function AnalyticsEventsSectionContainer(
 
 	const totalCount = events?.pagination.count ?? 0;
 	const currentPage = queryState.page;
-	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / queryState.pageSize));
 
 	const handleFilterValuesChange = (
 		key: AnalyticsFilterKey,
@@ -132,6 +132,22 @@ function AnalyticsEventsSectionContainer(
 		setSearchParams(params);
 	};
 
+	const handlePageSizeChange = (pageSize: number) => {
+		const params = new URLSearchParams(searchParams);
+		params.set(
+			'page_size',
+			`${
+				PAGE_SIZE_OPTIONS.includes(
+					pageSize as (typeof PAGE_SIZE_OPTIONS)[number]
+				)
+					? pageSize
+					: queryState.pageSize
+			}`
+		);
+		params.set('page', '1');
+		setSearchParams(params);
+	};
+
 	return (
 		<div className="bg-white rounded-md overflow-hidden flex flex-col flex-1 min-h-0 isolate">
 			<AnalyticsEventsSection
@@ -152,7 +168,10 @@ function AnalyticsEventsSectionContainer(
 				<AnalyticsPagination
 					currentPage={currentPage}
 					totalPages={totalPages}
+					pageSize={queryState.pageSize}
+					pageSizeOptions={PAGE_SIZE_OPTIONS}
 					onPageChange={handlePageChange}
+					onPageSizeChange={handlePageSizeChange}
 				/>
 			</div>
 		</div>

@@ -10,7 +10,8 @@ import {
 	ParsedQueryState
 } from './admin-analytics-page.types';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 100;
+const PAGE_SIZE_OPTIONS = [100, 200, 300, 400, 500] as const;
 const CHART_LABEL_MAX_LENGTH = 26;
 type AnalyticsColorScheme = {
 	chartColor: string;
@@ -140,6 +141,7 @@ const joinFilterValues = (values: string[]): string | undefined => {
 
 const parseSearchParams = (searchParams: URLSearchParams): ParsedQueryState => {
 	const page = Number(searchParams.get('page') || '1');
+	const pageSize = Number(searchParams.get('page_size') || `${PAGE_SIZE}`);
 
 	return {
 		eventTypes: splitFilterValues(searchParams.get('event_type')),
@@ -149,7 +151,12 @@ const parseSearchParams = (searchParams: URLSearchParams): ParsedQueryState => {
 		appVersions: splitFilterValues(searchParams.get('app_version')),
 		search: searchParams.get('search') || undefined,
 		payloadSearch: searchParams.get('payload_search') || undefined,
-		page: Number.isNaN(page) || page < 1 ? 1 : page
+		page: Number.isNaN(page) || page < 1 ? 1 : page,
+		pageSize: PAGE_SIZE_OPTIONS.includes(
+			pageSize as (typeof PAGE_SIZE_OPTIONS)[number]
+		)
+			? pageSize
+			: PAGE_SIZE
 	};
 };
 
@@ -162,7 +169,7 @@ const buildQueryArgs = (queryState: ParsedQueryState): AnalyticsQueryArgs => ({
 	search: queryState.search,
 	payload_search: queryState.payloadSearch,
 	page: queryState.page,
-	page_size: PAGE_SIZE
+	page_size: queryState.pageSize
 });
 
 const updateQueryValues = (
@@ -332,6 +339,7 @@ export {
 	mergeTopPathsByPath,
 	normalizeTrackedPath,
 	PAGE_SIZE,
+	PAGE_SIZE_OPTIONS,
 	parseSearchParams,
 	updateQueryValue,
 	updateQueryValues

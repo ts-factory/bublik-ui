@@ -11,12 +11,18 @@ import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
 import { config } from '@/bublik/config';
+import {
+	setAnalyticsEnabled,
+	trackPageView
+} from '@/bublik/features/analytics';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
+import { bublikAPI } from '@/services/bublik-api';
 
 import { AuthLayout } from '../pages/auth/auth.layout';
 import { Layout } from './layout';
 import { RedirectToDashboard, RedirectToLogPage } from './redirects';
 
+import { AdminAnalyticsPage } from '../pages/admin-analytics';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -167,6 +173,24 @@ function LazyRoute({ children }: { children: React.ReactNode }) {
 	);
 }
 
+function AnalyticsRouteTracker() {
+	const location = useLocation();
+	const { data: features } = bublikAPI.useGetServerFeaturesQuery();
+	const isAnalyticsEnabled = Boolean(features?.analytics_enabled);
+
+	useEffect(() => {
+		setAnalyticsEnabled(isAnalyticsEnabled);
+	}, [isAnalyticsEnabled]);
+
+	useEffect(() => {
+		if (!isAnalyticsEnabled) return;
+
+		trackPageView({ path: location.pathname });
+	}, [isAnalyticsEnabled, location.key, location.pathname]);
+
+	return null;
+}
+
 const router = createBrowserRouter(
 	[
 		{
@@ -176,6 +200,7 @@ const router = createBrowserRouter(
 					options={{ updateType: 'replaceIn' }}
 				>
 					<BublikCommand />
+					<AnalyticsRouteTracker />
 					<Outlet />
 				</QueryParamProvider>
 			),
@@ -275,6 +300,10 @@ const router = createBrowserRouter(
 											<AdminUsersPage />
 										</LazyRoute>
 									)
+								},
+								{
+									path: 'analytics',
+									element: <AdminAnalyticsPage />
 								},
 								{
 									path: 'config',

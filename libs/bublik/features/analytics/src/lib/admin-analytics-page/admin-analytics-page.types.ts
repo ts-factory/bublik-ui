@@ -22,6 +22,7 @@ type ParsedQueryState = {
 	search?: string;
 	payloadSearch?: string;
 	page: number;
+	pageSize: number;
 };
 
 type AnalyticsFilterKey =
