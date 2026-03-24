@@ -8,15 +8,7 @@ import {
 	VersionSummary
 } from '@/services/bublik-api';
 
-import frontendInfo from '../git-info.json';
-
-const frontendVersion: VersionSummary = {
-	branch: frontendInfo.branch,
-	revision: frontendInfo.revision,
-	date: new Date(frontendInfo.date),
-	tag: frontendInfo.latestTag,
-	summary: frontendInfo.summary
-};
+import { frontendVersion } from './frontend-version';
 
 const wrapper = cva({
 	base: 'flex flex-col py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[40px] h-full',

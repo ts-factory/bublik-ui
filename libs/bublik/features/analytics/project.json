@@ -1,0 +1,19 @@
+{
+	"name": "analytics",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/analytics/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{options.reportsDirectory}"],
+			"options": {
+				"reportsDirectory": "../../../../coverage/libs/bublik/features/analytics"
+			}
+		}
+	}
+}
