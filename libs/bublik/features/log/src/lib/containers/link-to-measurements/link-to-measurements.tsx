@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { skipToken } from '@reduxjs/toolkit/query';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MeasurementsMode } from '@/shared/types';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
@@ -49,6 +50,11 @@ export const LinkToMeasurementsContainer = ({
 					runId,
 					mode: MeasurementsMode.Default
 				})}
+				onClick={() => {
+					trackEvent(analyticsEventNames.logLinkToMeasurementsClick, {
+						source: 'log_toolbar'
+					});
+				}}
 			>
 				{isFetching ? (
 					<Icon name="ProgressIndicator" className="mr-1.5 animate-spin" />

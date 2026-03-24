@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { skipToken } from '@reduxjs/toolkit/query';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	useGetLogJsonQuery,
 	useGetLogUrlByResultIdQuery,
@@ -63,6 +64,10 @@ export function LogPickerContainer() {
 	}
 
 	const handlePageClick = (_: string, page: number) => {
+		trackEvent(analyticsEventNames.logPageChange, {
+			page
+		});
+
 		setPage(page);
 	};
 
@@ -72,6 +77,10 @@ export function LogPickerContainer() {
 
 		if (el) highlightRow(el);
 		if (clickedId === lineNumber) return;
+
+		trackEvent(analyticsEventNames.logLineBookmark, {
+			action: 'save_line'
+		});
 
 		setLineNumber(clickedId);
 	};

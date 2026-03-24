@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { routes } from '@/router';
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -19,6 +20,11 @@ export function LinkToRun(props: LinkToRunProps) {
 					runId,
 					targetIterationId: targetIterationId ?? undefined
 				})}
+				onClick={() => {
+					trackEvent(analyticsEventNames.logLinkToRunClick, {
+						source: 'log_toolbar'
+					});
+				}}
 			>
 				<Icon name="BoxArrowRight" className="mr-1.5" />
 				Run

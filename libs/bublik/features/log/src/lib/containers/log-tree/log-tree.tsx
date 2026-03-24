@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback, useMemo, useRef, useState } from 'react';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetTreeByRunIdQuery } from '@/services/bublik-api';
 import { CardHeader, Skeleton, TooltipProvider } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
@@ -64,12 +65,33 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 	const scrollToFocusRef = useRef<(() => void) | undefined>();
 
 	const handleScrollToFocusClick = useCallback(() => {
+		trackEvent(analyticsEventNames.logTreeScrollToFocus, {
+			hasFocusId: Boolean(focusId)
+		});
+
 		scrollToFocusRef.current?.();
-	}, []);
+	}, [focusId]);
 
 	const handleNokClick = useCallback(() => {
-		setShowOnlyErrors((prev) => !prev);
-	}, []);
+		setShowOnlyErrors((prev) => {
+			const next = !prev;
+
+			trackEvent(analyticsEventNames.logTreeNokToggle, {
+				enabled: next,
+				hasErrors: treeWithOnlyErrors !== null
+			});
+
+			return next;
+		});
+	}, [treeWithOnlyErrors]);
+
+	const handleRunButtonClick = useCallback(() => {
+		trackEvent(analyticsEventNames.logTreeRunLogClick, {
+			hasFocusId: Boolean(focusId)
+		});
+
+		showRunLog();
+	}, [focusId, showRunLog]);
 
 	if (isLoading) return <TreeLoading />;
 
@@ -81,7 +103,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 					isNokMode={showOnlyErrors}
 					isShowingRunLog={isShowingRunLog}
 					onScrollToFocusClick={handleScrollToFocusClick}
-					onRunButtonClick={showRunLog}
+					onRunButtonClick={handleRunButtonClick}
 					onNokClick={handleNokClick}
 				/>
 				<div className="w-full h-full">
@@ -98,7 +120,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 				isNokMode={showOnlyErrors}
 				isShowingRunLog={isShowingRunLog}
 				onScrollToFocusClick={handleScrollToFocusClick}
-				onRunButtonClick={showRunLog}
+				onRunButtonClick={handleRunButtonClick}
 				onNokClick={handleNokClick}
 			/>
 

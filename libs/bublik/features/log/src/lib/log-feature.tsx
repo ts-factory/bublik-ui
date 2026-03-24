@@ -3,6 +3,7 @@
 import { ReactNode, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { formatTimeToDot } from '@/shared/utils';
 import {
 	ButtonTw,
@@ -73,6 +74,14 @@ function LogFeature(props: LogFeatureProps) {
 
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	const handleLegacyLogToggle = () => {
+		trackEvent(analyticsEventNames.logLegacyToggle, {
+			enabled: !isLegacyLog
+		});
+
+		toggleLog();
+	};
+
 	if (!runId) return null;
 
 	return (
@@ -98,7 +107,7 @@ function LogFeature(props: LogFeatureProps) {
 								variant="secondary"
 								state={isLegacyLog && 'active'}
 								size="xss"
-								onClick={toggleLog}
+								onClick={handleLegacyLogToggle}
 							>
 								Legacy Log
 							</ButtonTw>

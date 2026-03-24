@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LogPageMode } from '@/shared/types';
 import { usePrefetchLogPage, usePrefetchRun } from '@/services/bublik-api';
 import { CardHeader, RunModeToggle } from '@/shared/tailwind-ui';
@@ -19,13 +20,21 @@ export interface LogHeaderProps {
 const LogHeader = ({ runId }: LogHeaderProps) => {
 	const [isFullMode, setIsFullMode] = useState(false);
 
+	const handleModeToggle = () => {
+		trackEvent(analyticsEventNames.logModeToggle, {
+			enabled: !isFullMode
+		});
+
+		setIsFullMode((prev) => !prev);
+	};
+
 	return (
 		<div className="flex flex-col bg-white rounded-md">
 			<CardHeader label="Info">
 				<div className="flex gap-2 items-center">
 					<RunModeToggle
 						isFullMode={isFullMode}
-						onToggleClick={() => setIsFullMode(!isFullMode)}
+						onToggleClick={handleModeToggle}
 					/>
 					<CopyShortUrlButtonContainer />
 				</div>

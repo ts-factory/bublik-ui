@@ -4,6 +4,7 @@ import { FC, SyntheticEvent, useCallback, useMemo } from 'react';
 import { FixedSizeNodePublicState } from 'react-vtree/dist/es';
 import { NodeComponentProps } from 'react-vtree/dist/es/Tree';
 
+import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { NodeEntity } from '@/shared/types';
 
 import { TreeData } from '../tree-view';
@@ -40,12 +41,23 @@ export const Node: FC<
 		(e: SyntheticEvent<HTMLDivElement, MouseEvent>) => {
 			e.preventDefault();
 
+			const willFocus = !isSuite;
+			const willToggle = !isMainPackage && isPackage;
+
+			trackEvent(analyticsEventNames.logTreeNodeClick, {
+				nodeType: entity,
+				willFocus,
+				willToggle,
+				action: willToggle ? (isOpen ? 'collapse' : 'expand') : 'select'
+			});
+
 			if (!isScrolled) changeCurrentScrollId(id);
 			if (!isSuite) setFocusId(id);
 			if (!isMainPackage && isPackage) setOpen(!isOpen);
 		},
 		[
 			changeCurrentScrollId,
+			entity,
 			id,
 			isMainPackage,
 			isOpen,
