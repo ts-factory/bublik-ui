@@ -13,3 +13,4 @@ export * from './admin-endpoints';
 export * from './report-endpoints';
 export * from './configs-endpoints';
 export * from './project-endpoints';
+export * from './analytics-endpoints';

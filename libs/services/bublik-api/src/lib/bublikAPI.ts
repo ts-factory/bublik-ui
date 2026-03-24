@@ -30,7 +30,8 @@ import {
 	runsEndpoints,
 	reportEndpoints,
 	configsEndpoints,
-	projectEndpoints
+	projectEndpoints,
+	analyticsEndpoints
 } from './endpoints';
 
 const baseQuery = fetchBaseQuery(getAPIConfig());
@@ -109,7 +110,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(adminUsersEndpoints)
 	.injectEndpoints(reportEndpoints)
 	.injectEndpoints(configsEndpoints)
-	.injectEndpoints(projectEndpoints);
+	.injectEndpoints(projectEndpoints)
+	.injectEndpoints(analyticsEndpoints);
 
 export const {
 	// Dashboard
@@ -168,5 +170,12 @@ export const {
 	useDeleteTestCommentMutation,
 	// Utils
 	usePrefetch,
-	useLazyGetShortUrlQuery
+	useLazyGetShortUrlQuery,
+	useGetServerFeaturesQuery,
+	useGetAnalyticsOverviewQuery,
+	useGetAnalyticsEventsQuery,
+	useGetAnalyticsFacetsQuery,
+	useGetAnalyticsChartsQuery,
+	useLazyGetAnalyticsExportQuery,
+	useImportAnalyticsDataMutation
 } = bublikAPI;

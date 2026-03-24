@@ -35,6 +35,10 @@ const VersionSummary = z.object({
 	tag: z.string().optional()
 });
 
+const ServerFeaturesSchema = z.object({
+	analytics_enabled: z.boolean()
+});
+
 export type VersionSummary = z.infer<typeof VersionSummary>;
 
 export const deployEndpoints = {
@@ -79,6 +83,13 @@ export const deployEndpoints = {
 			responseSchema: z.string().nullable(),
 			transformResponse: (resp) => resp.tab_title_prefix,
 			argSchema: z.object({ projects: z.array(z.number()) }).optional()
+		}),
+		getServerFeatures: build.query({
+			query: () => ({
+				url: withApiV2('/server/features')
+			}),
+			argSchema: z.void(),
+			responseSchema: ServerFeaturesSchema
 		})
 	})
 };
