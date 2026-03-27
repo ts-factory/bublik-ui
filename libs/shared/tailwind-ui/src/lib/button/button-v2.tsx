@@ -14,19 +14,19 @@ export const twButtonStyles = cva({
 	variants: {
 		variant: {
 			primary: [
-				'bg-primary text-white',
+				'border border-transparent bg-primary text-white',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
 			],
 			destruction: [
-				'bg-bg-error text-white',
+				'border border-transparent bg-bg-error text-white',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
 			],
 			'destruction-secondary': [
-				'text-text-unexpected hover:bg-red-100',
+				'border border-transparent text-text-unexpected hover:bg-red-100',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary'
 			],
 			secondary: [
-				'text-primary bg-primary-wash',
+				'border border-transparent text-primary bg-primary-wash',
 				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary'
 			],
 			outline: [
@@ -79,72 +79,72 @@ export const twButtonStyles = cva({
 		{
 			variant: ['destruction'],
 			size: 'xss',
-			className: 'hover:shadow-[inset_0_0_0_2px_#fca5b3] py-1.5'
+			className: 'hover:shadow-[inset_0_0_0_2px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'xs',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[7px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'xs/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[8px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'sm',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[7px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'sm/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[9px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'md',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-2'
+			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'lg',
-			className: 'hover:shadow-[inset_0_0_0_4px_#fca5b3] py-[11px]'
+			className: 'hover:shadow-[inset_0_0_0_4px_#fca5b3]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xss',
-			className: 'hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5'
+			className: 'hover:shadow-[inset_0_0_0_2px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xs',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[7px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xs/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2'
+			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'sm',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[7px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'sm/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[9px]'
+			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'md',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2'
+			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'lg',
-			className: 'hover:shadow-[inset_0_0_0_4px_#94b0ff] py-[11px]'
+			className: 'hover:shadow-[inset_0_0_0_4px_#94b0ff]'
 		},
 		{
 			variant: ['primary', 'secondary'],
