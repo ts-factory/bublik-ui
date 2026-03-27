@@ -19,8 +19,8 @@ function BadgesCardList(props: BadgesCardListProps) {
 	const { startDate, badges } = props;
 
 	return (
-		<div className="flex flex-col w-80 gap-3 p-4 bg-white rounded-xl shadow-lg border border-gray-100">
-			<div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+		<div className="flex flex-col max-w-2xl bg-white rounded-xl shadow-lg border border-gray-100">
+			<div className="flex items-center gap-2 p-4 pb-2 border-b border-gray-100">
 				<Icon name="Clock" size={18} />
 				<p className="text-sm text-gray-600">
 					<span className="text-sm text-text-primary font-semibold">
@@ -31,7 +31,11 @@ function BadgesCardList(props: BadgesCardListProps) {
 					</span>
 				</p>
 			</div>
-			<BadgeList badges={badges} />
+			<div className="overflow-y-auto max-h-[40vh]">
+				<div className="p-4 pt-3">
+					<BadgeList badges={badges} />
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -56,6 +60,8 @@ function AggregationTooltip(props: AggregationTooltipProps) {
 
 	return (
 		<HoverCard
+			align="start"
+			side="bottom"
 			content={
 				<BadgesCardList startDate={startDate} badges={badgesWithColor} />
 			}
