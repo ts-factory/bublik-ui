@@ -4,3 +4,4 @@ export * from './actions';
 export * from './table-utils';
 export * from './colors';
 export * from './formatting';
+export * from './legend-layout';

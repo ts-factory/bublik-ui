@@ -9,7 +9,13 @@ import {
 	cn
 } from '@/shared/tailwind-ui';
 import { ReportChart } from '@/shared/types';
-import { EChartsOption, Plot } from '@/shared/charts';
+import {
+	EChartsOption,
+	Plot,
+	estimateLegendTopOffset,
+	sanitizeLegendLabel
+} from '@/shared/charts';
+import { useMeasure } from '@/shared/hooks';
 
 import { useRunReportStacked } from './run-report-stacked.hooks';
 
@@ -65,7 +71,18 @@ function getRecordValue(record: unknown, key: string): unknown {
 	return (record as Record<string, unknown>)[key];
 }
 
-function createStackedOptions(records: ChartWithContext[]): EChartsOption {
+function createStackedOptions(
+	records: ChartWithContext[],
+	containerWidth?: number,
+	containerHeight?: number
+): EChartsOption {
+	const LEGEND_TOP = 8;
+	const LEGEND_LEFT_PADDING_RATIO = 0.07;
+	const LEGEND_RIGHT_PADDING_RATIO = 0.05;
+	const LEGEND_GRID_GAP = 18;
+	const LEGEND_SAFETY_ROWS = 2;
+	const LEGEND_SAFETY_PADDING = 12;
+	const MIN_PLOT_HEIGHT = 180;
 	const axisLabelStyles = {
 		fontFamily: 'Inter',
 		fontSize: 10,
@@ -101,6 +118,7 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 	let datasetIdCounter = 0;
 	const datasets: EChartsOption['dataset'] = [];
 	const seriesConfigs: EChartsOption['series'] = [];
+	const legendLabels: string[] = [];
 
 	const measurementLabelCounts = new Map<string, number>();
 	records.forEach((record) => {
@@ -176,7 +194,38 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 				showSymbol: true,
 				symbolSize: 6
 			});
+
+			legendLabels.push(sanitizeLegendLabel(seriesName));
 		});
+	});
+
+	const legendLeftPaddingPx = containerWidth
+		? containerWidth * LEGEND_LEFT_PADDING_RATIO
+		: 0;
+	const legendRightPaddingPx = containerWidth
+		? containerWidth * LEGEND_RIGHT_PADDING_RATIO
+		: 0;
+	const maxLegendTop = containerHeight
+		? Math.max(220, containerHeight - MIN_PLOT_HEIGHT)
+		: 320;
+	const topGridOffset = estimateLegendTopOffset({
+		labels: legendLabels,
+		containerWidth,
+		legendTop: LEGEND_TOP,
+		leftPaddingPx: legendLeftPaddingPx,
+		rightPaddingPx: legendRightPaddingPx,
+		fontFamily: axisLabelStyles.fontFamily,
+		fontSize: axisLabelStyles.fontSize,
+		fontWeight: axisLabelStyles.fontWeight,
+		itemHeight: 14,
+		lineHeight: 14,
+		rowGap: 8,
+		itemGap: 12,
+		gridGap: LEGEND_GRID_GAP,
+		safetyRows: LEGEND_SAFETY_ROWS,
+		safetyPaddingPx: LEGEND_SAFETY_PADDING,
+		minTop: 64,
+		maxTop: maxLegendTop
 	});
 
 	const options: EChartsOption = {
@@ -201,12 +250,10 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 			{ type: 'slider', xAxisIndex: [0], bottom: 10 }
 		],
 		grid: {
-			top: '12%',
-			left: '5%',
+			top: topGridOffset,
+			left: '7%',
 			right:
-				yAxisConfigs.length > 1
-					? `${8 * (yAxisConfigs.length - 1) + 5}%`
-					: '5%',
+				yAxisConfigs.length > 1 ? `${8 * (yAxisConfigs.length - 1)}%` : '5%',
 			bottom: '9%'
 		},
 		tooltip: {
@@ -261,11 +308,24 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 			}
 		},
 		legend: {
-			top: '1%',
-			left: 'left',
-			type: 'scroll',
-			animationDurationUpdate: 200,
-			pageButtonPosition: 'start'
+			type: 'plain',
+			top: LEGEND_TOP,
+			left: '7%',
+			right: '5%',
+			itemGap: 12,
+			formatter: (name: string) => sanitizeLegendLabel(name),
+			textStyle: {
+				fontFamily: axisLabelStyles.fontFamily,
+				fontSize: axisLabelStyles.fontSize,
+				fontWeight: axisLabelStyles.fontWeight,
+				overflow: 'break',
+				lineHeight: 14
+			},
+			tooltip: {
+				show: true,
+				formatter: (params: { name: string }) =>
+					sanitizeLegendLabel(params.name)
+			}
 		}
 	};
 
@@ -275,6 +335,10 @@ function createStackedOptions(records: ChartWithContext[]): EChartsOption {
 function RunReportStackedChartContainer() {
 	const { selectedRecords, isStackedOpen, toggleStacked } =
 		useRunReportStacked();
+	const [
+		plotContainerRef,
+		{ width: plotContainerWidth, height: plotContainerHeight }
+	] = useMeasure<HTMLDivElement>();
 
 	const charts = useMemo<ChartWithContext[]>(
 		() =>
@@ -291,7 +355,10 @@ function RunReportStackedChartContainer() {
 			}, []),
 		[selectedRecords]
 	);
-	const options = useMemo(() => createStackedOptions(charts), [charts]);
+	const options = useMemo(
+		() => createStackedOptions(charts, plotContainerWidth, plotContainerHeight),
+		[charts, plotContainerHeight, plotContainerWidth]
+	);
 
 	if (!charts.length) return null;
 
@@ -299,12 +366,14 @@ function RunReportStackedChartContainer() {
 		<DrawerRoot open={isStackedOpen} onOpenChange={toggleStacked}>
 			<DrawerContent
 				className={cn(
-					'bg-white shadow-popover flex flex-col overflow-hidden w-[80vw] max-w-[80vw]'
+					'bg-white shadow-popover flex flex-col overflow-hidden w-[80vw]'
 				)}
 			>
 				<CardHeader label="Stacked Chart" />
 				<div className="p-1 flex-1">
-					<Plot options={options} style={{ height: '100%', width: '100%' }} />
+					<div ref={plotContainerRef} className="h-full w-full">
+						<Plot options={options} style={{ height: '100%', width: '100%' }} />
+					</div>
 				</div>
 			</DrawerContent>
 		</DrawerRoot>

@@ -12,3 +12,7 @@ export const getChartName = (plot: SingleMeasurementChart): string => {
 		? `${plot.title} - ${plot.axis_y.label}`
 		: plot.subtitle ?? '';
 };
+
+export const sanitizeLegendLabel = (label: string): string => {
+	return label.replace(/\u200B/g, '');
+};
