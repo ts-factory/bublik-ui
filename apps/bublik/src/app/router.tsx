@@ -13,10 +13,9 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
 
-import { AuthLayout } from '../pages/auth/auth.layout';
 import { Layout } from './layout';
 import { RedirectToDashboard, RedirectToLogPage } from './redirects';
-
+import { AuthLayout } from '../pages/auth/auth.layout';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -35,8 +34,11 @@ import { RunDiffPage } from '../pages/run-diff-page/run-diff-page';
 import { RunMultiplePage } from '../pages/run-multiple';
 import { RunPage } from '../pages/run-page/run-page';
 import { HistoryPageV2 } from '../pages/history-page/history-page';
+import { RunsPage } from '../pages/runs-page';
+import { RunsLayout } from '../pages/runs-layout';
 
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 import {
 	Command,
 	CommandDialog,
@@ -49,8 +51,6 @@ import {
 	Icon,
 	Spinner
 } from '@/shared/tailwind-ui';
-import { useNavigateWithProject } from '@/bublik/features/projects';
-import { RunsPage } from '../pages/runs-page';
 
 const ImportPage = lazy(() =>
 	import('../pages/import-page/import-page').then((module) => ({
@@ -246,11 +246,13 @@ const router = createBrowserRouter(
 							)
 						},
 						{
-							path: '/runs',
-							element: <RunsPage />
+							element: <RunsLayout />,
+							children: [
+								{ path: '/runs', element: <RunsPage /> },
+								{ path: '/compare', element: <RunDiffPage /> },
+								{ path: '/multiple', element: <RunMultiplePage /> }
+							]
 						},
-						{ path: '/compare', element: <RunDiffPage /> },
-						{ path: '/multiple', element: <RunMultiplePage /> },
 						{
 							path: '/runs/:runId',
 							element: <RunPage />

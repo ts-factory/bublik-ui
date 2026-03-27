@@ -21,7 +21,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
-import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
+import { QueryParamConfig, useQueryParam, withDefault } from 'use-query-params';
 
 import { useIsSticky, useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
@@ -35,6 +35,11 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import {
+	decodeCompressedOrJsonState,
+	encodeCompressedState,
+	isCompressedStateValue
+} from '@/bublik/features/sidebar';
 
 import { getColumns } from './result-table.columns';
 import {
@@ -768,13 +773,53 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	};
 }
 
-const columnFiltersParam = withDefault(JsonParam, []);
+const compressedColumnFiltersParam = withDefault(
+	{
+		encode: (value) => {
+			if (value === null || value === undefined) {
+				return value;
+			}
+
+			return encodeCompressedState(value);
+		},
+		decode: (value) => decodeCompressedOrJsonState(value)
+	} as QueryParamConfig<
+		Record<string, ColumnFiltersState>,
+		Record<string, ColumnFiltersState>
+	>,
+	{}
+);
+
+function isLegacyColumnFiltersValue(value: string | null): boolean {
+	if (!value || isCompressedStateValue(value)) {
+		return false;
+	}
+
+	try {
+		JSON.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
 
 function useColumnFilters(rowId: string) {
 	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
 		Record<string, ColumnFiltersState>
-	>('columnFilters', columnFiltersParam, { updateType: 'replaceIn' });
+	>('columnFilters', compressedColumnFiltersParam, { updateType: 'replaceIn' });
 	const { localRequirements, setLocalRequirements } = useGlobalRequirements();
+
+	useMount(() => {
+		const columnFiltersParamValue = new URLSearchParams(
+			window.location.search
+		).get('columnFilters');
+
+		if (!isLegacyColumnFiltersValue(columnFiltersParamValue)) {
+			return;
+		}
+
+		setQueryColumnFilters(queryColumnFilters, 'replaceIn');
+	});
 
 	const columnFilters = useMemo(() => {
 		const currentFilters = queryColumnFilters?.[rowId] ?? [];
