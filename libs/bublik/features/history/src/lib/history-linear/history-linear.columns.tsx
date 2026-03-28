@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { HistoryDataLinear, RunResult } from '@/shared/types';
+import { config } from '@/bublik/config';
 import {
 	BadgeList,
 	BadgeListItem,
@@ -72,6 +73,8 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 				>
 					<BadgeList
 						badges={metadataBadges}
+						keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+						keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 						selectedBadges={cell.table.getState().globalFilter['tags']}
 						onBadgeClick={onBadgeClick(cell, 'tags')}
 						className="bg-badge-4"
@@ -95,6 +98,8 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 				>
 					<BadgeList
 						badges={tags}
+						keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+						keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 						selectedBadges={cell.table.getState().globalFilter['tags']}
 						onBadgeClick={onBadgeClick(cell, 'tags')}
 					/>
@@ -176,6 +181,8 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 				>
 					<BadgeList
 						badges={parameters}
+						keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+						keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 						selectedBadges={cell.table.getState().globalFilter['parameters']}
 						onBadgeClick={onBadgeClick(cell, 'parameters')}
 						className="bg-badge-1"
