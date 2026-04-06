@@ -1,13 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	CSSProperties,
-	Fragment,
-	ReactNode,
-	SVGProps,
-	useMemo,
-	useState
-} from 'react';
+import { CSSProperties, Fragment, ReactNode, useMemo, useState } from 'react';
 import {
 	Cell,
 	ExpandedState,
@@ -23,6 +16,7 @@ import {
 } from '@tanstack/react-table';
 import { fromDate, getLocalTimeZone } from '@internationalized/date';
 
+import { SortArrow } from '@/icons';
 import { DashboardAPIResponse, DashboardData } from '@/shared/types';
 import { cn, Skeleton, SwitchDatePicker } from '@/shared/tailwind-ui';
 import { splitInHalf } from '@/shared/utils';
@@ -158,21 +152,6 @@ export const DashboardTable = (props: DashboardTableProps) => {
 	);
 };
 
-const SortIcon = (props: SVGProps<SVGSVGElement>) => {
-	return (
-		<svg
-			width="6"
-			height="8"
-			viewBox="0 0 6 8"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			{...props}
-		>
-			<path d="M3 8L5.59808 5H0.401924L3 8Z" fill="#454c58"></path>
-		</svg>
-	);
-};
-
 interface TableHeaderProps {
 	table: Table<DashboardData>;
 	layout?: DashboardLayoutType;
@@ -182,8 +161,10 @@ const TableHeader = (props: TableHeaderProps) => {
 	const { table, layout = 'row' } = props;
 
 	const sorting = {
-		asc: <SortIcon className="ml-1 rotate-180" />,
-		desc: <SortIcon className="ml-1" />
+		asc: (
+			<SortArrow className="ml-1 size-3.5 shrink-0 translate-y-0.5 rotate-180" />
+		),
+		desc: <SortArrow className="ml-1 size-3.5 shrink-0 -translate-y-px" />
 	} as const;
 
 	const renderHeaderCells =

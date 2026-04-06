@@ -63,6 +63,7 @@ export { ReactComponent as ProgressIndicator } from './progress-indicator.svg';
 export { ReactComponent as Refresh } from './refresh.svg';
 export { ReactComponent as Scan } from './scan.svg';
 export { ReactComponent as SidebarArrows } from './sidebar-arrows.svg';
+export { ReactComponent as SortArrow } from './sort-arrow.svg';
 export { ReactComponent as SwapArrows } from './swap-arrows.svg';
 export { ReactComponent as ThreeDotsVertical } from './three-dots-vertical.svg';
 export { ReactComponent as TimeCircle } from './time-circle.svg';
