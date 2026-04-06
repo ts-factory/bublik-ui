@@ -61,32 +61,17 @@ const createInvalidDateError = () =>
 			'Dashboard response returned an invalid date. Reload the page or select another date.'
 	});
 
-const createMissingDataError = () =>
-	createBublikError({
-		status: 500,
-		title: 'Dashboard data is unavailable',
-		description: 'Dashboard request completed without returning usable data.'
-	});
-
 const resolveTableError = ({
 	error,
 	hasCurrentData,
-	resolvedQueryDate,
-	hasDisplayData,
-	isLoading,
-	isFetching
+	resolvedQueryDate
 }: {
 	error: unknown;
 	hasCurrentData: boolean;
 	resolvedQueryDate: Date | null;
-	hasDisplayData: boolean;
-	isLoading: boolean;
-	isFetching: boolean;
 }) => {
 	if (error) return error;
 	if (hasCurrentData && !resolvedQueryDate) return createInvalidDateError();
-	if (!hasDisplayData && !isLoading && !isFetching)
-		return createMissingDataError();
 };
 
 export const DashboardTableContainer = ({
@@ -140,10 +125,7 @@ export const DashboardTableContainer = ({
 	const tableError = resolveTableError({
 		error: query.error,
 		hasCurrentData: Boolean(query.currentData),
-		resolvedQueryDate,
-		hasDisplayData: Boolean(displayData),
-		isLoading: query.isLoading,
-		isFetching: query.isFetching
+		resolvedQueryDate
 	});
 
 	const finalDate = date

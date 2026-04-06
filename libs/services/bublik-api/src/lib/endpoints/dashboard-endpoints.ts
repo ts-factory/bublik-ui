@@ -5,18 +5,20 @@ import { EndpointBuilder } from '@reduxjs/toolkit/query';
 import {
 	DASHBOARD_MODE,
 	DashboardAPIQuery,
+	DashboardAPIQuerySchema,
 	DashboardAPIResponseSchema,
 	DashboardAPIResponse,
 	DashboardMode,
 	DashboardModeResponse
 } from '@/shared/types';
+import { formatTimeToAPI } from '@/shared/utils';
 
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 import { BUBLIK_TAG } from '../types';
 import { getMinutes } from '../utils';
 
-const getDashboardMode = (days: number, columns: number) => {
+function getDashboardMode(days: number, columns: number) {
 	let dashboardMode: DashboardMode;
 
 	if (days === 1 && columns === 1) {
@@ -30,7 +32,18 @@ const getDashboardMode = (days: number, columns: number) => {
 	}
 
 	return dashboardMode;
-};
+}
+
+function createEmptyDashboardResponse(
+	date?: DashboardAPIQuery['date']
+): DashboardAPIResponse {
+	return {
+		date: date ?? formatTimeToAPI(new Date()),
+		rows: [],
+		header: [],
+		payload: {}
+	};
+}
 
 export const dashboardEndpoints = {
 	endpoints: (
@@ -61,6 +74,10 @@ export const dashboardEndpoints = {
 					cache: 'no-cache'
 				};
 			},
+			argSchema: DashboardAPIQuerySchema.optional(),
+			rawResponseSchema: DashboardAPIResponseSchema.nullable(),
+			transformResponse: (response: DashboardAPIResponse | null, _meta, arg) =>
+				response ?? createEmptyDashboardResponse(arg?.date),
 			responseSchema: DashboardAPIResponseSchema,
 			providesTags: (_result, _error, arg) => [
 				{ type: BUBLIK_TAG.DashboardData },
