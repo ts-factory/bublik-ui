@@ -1,5 +1,12 @@
 
 
+### [2.10.5](https://github.com/ts-factory/bublik-ui/compare/v2.10.4...v2.10.5) (2026-04-06)
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** show empty dashboard in case of no data from API ([9fbdfad](https://github.com/ts-factory/bublik-ui/commit/9fbdfad9432d2273f0a742345e5db92e00e0618b))
+
 ### [2.10.4](https://github.com/ts-factory/bublik-ui/compare/v2.10.3...v2.10.4) (2026-03-18)
 
 
