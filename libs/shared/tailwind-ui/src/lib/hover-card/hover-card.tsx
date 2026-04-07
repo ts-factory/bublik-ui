@@ -5,7 +5,7 @@ import * as RadixHoverCard from '@radix-ui/react-hover-card';
 
 import { cva } from '../utils';
 
-const hoverCardContentStyles = cva({
+export const hoverCardContentStyles = cva({
 	base: [
 		'z-50',
 		'rdx-state-open:rdx-side-top:animate-slide-down-fade',

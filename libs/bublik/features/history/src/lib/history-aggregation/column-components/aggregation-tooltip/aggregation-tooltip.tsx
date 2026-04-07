@@ -1,13 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import * as RadixHoverCard from '@radix-ui/react-hover-card';
+
+import { parseDetailDate } from '@/shared/utils';
 
 import {
 	BadgeListItem,
 	BadgeList,
-	HoverCard,
-	Icon
+	Icon,
+	hoverCardContentStyles,
+	cn
 } from '@/shared/tailwind-ui';
 
 interface BadgesCardListProps {
@@ -17,24 +20,29 @@ interface BadgesCardListProps {
 
 function BadgesCardList(props: BadgesCardListProps) {
 	const { startDate, badges } = props;
+	const formattedStartDate = parseDetailDate(startDate) ?? '-';
 
 	return (
-		<div className="flex flex-col w-80 gap-3 p-4 bg-white rounded-xl shadow-lg border border-gray-100">
-			<div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+		<div className="flex flex-col gap-4">
+			<div className="flex items-center gap-2 border-b border-gray-100 py-2 px-4">
 				<Icon name="Clock" size={18} />
 				<p className="text-sm text-gray-600">
 					<span className="text-sm text-text-primary font-semibold">
-						Start Date:
+						Start:
 					</span>
 					<span className="ml-1.5 text-sm text-gray-800">
-						{format(parseISO(startDate), 'MMMM d, yyyy')}
+						{formattedStartDate}
 					</span>
 				</p>
 			</div>
-			<BadgeList badges={badges} />
+			<div className="min-h-0 overflow-auto styled-scrollbar px-4 pb-4">
+				<BadgeList badges={badges} />
+			</div>
 		</div>
 	);
 }
+
+const MAX_TAG_COUNT_FOR_SMALL_CARD = 20;
 
 interface AggregationTooltipProps {
 	relevantTags: string[];
@@ -54,14 +62,25 @@ function AggregationTooltip(props: AggregationTooltipProps) {
 		[relevantTags, importantTags]
 	);
 
+	const allCount = relevantTags.length + importantTags.length;
+
 	return (
-		<HoverCard
-			content={
-				<BadgesCardList startDate={startDate} badges={badgesWithColor} />
-			}
-		>
-			{children}
-		</HoverCard>
+		<RadixHoverCard.Root>
+			<RadixHoverCard.Trigger asChild>{children}</RadixHoverCard.Trigger>
+			<RadixHoverCard.Portal>
+				<RadixHoverCard.Content
+					className={cn(
+						hoverCardContentStyles(),
+						'flex min-h-0 overflow-auto max-h-[var(--radix-hover-card-content-available-height)] border border-gray-100 max-w-[min(60vw,var(--radix-hover-card-content-available-width))] flex-col gap-3 rounded-xl bg-white shadow-lg',
+						allCount < MAX_TAG_COUNT_FOR_SMALL_CARD && 'w-96'
+					)}
+					collisionPadding={8}
+					sideOffset={8}
+				>
+					<BadgesCardList startDate={startDate} badges={badgesWithColor} />
+				</RadixHoverCard.Content>
+			</RadixHoverCard.Portal>
+		</RadixHoverCard.Root>
 	);
 }
 
