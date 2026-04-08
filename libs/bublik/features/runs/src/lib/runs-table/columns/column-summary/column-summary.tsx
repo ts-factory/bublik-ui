@@ -17,6 +17,18 @@ interface ColumnSummaryProps {
 	unexpectedPercentage: number;
 }
 
+function getUnexpectedNavigationState(openUnexpectedResults = false) {
+	const openUnexpectedIntentId = `${Date.now()}-${Math.random()
+		.toString(36)
+		.slice(2)}`;
+
+	if (openUnexpectedResults) {
+		return { openUnexpectedResults: true, openUnexpectedIntentId };
+	}
+
+	return { openUnexpected: true, openUnexpectedIntentId };
+}
+
 function ColumnSummary(props: ColumnSummaryProps) {
 	const {
 		runId,
@@ -53,23 +65,31 @@ function ColumnSummary(props: ColumnSummaryProps) {
 			/>
 			<SummaryBadge
 				to={to}
-				state={{ openUnexpected: true }}
+				state={getUnexpectedNavigationState()}
 				onContextMenu={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState(true)
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState()
+						});
 					}
 				}}
 				onClick={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState(true)
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate(to, {
+							state: getUnexpectedNavigationState()
+						});
 					}
 				}}
 				label="NOK"

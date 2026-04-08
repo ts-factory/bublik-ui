@@ -21,13 +21,11 @@ export interface AppStateWithRunsSlice {
 export interface RunsPageSliceState {
 	globalFilter: string[];
 	results: EntityState<RunsData, EntityId>;
-	rowSelection: string[];
 }
 
 export const initialRunsPageState: RunsPageSliceState = {
 	globalFilter: [],
-	results: runsAdapter.getInitialState(),
-	rowSelection: []
+	results: runsAdapter.getInitialState()
 };
 
 export const runsPageSlice = createSlice({
@@ -36,17 +34,6 @@ export const runsPageSlice = createSlice({
 	reducers: {
 		updateGlobalFilter: (state, action: PayloadAction<string[]>) => {
 			state.globalFilter = action.payload;
-		},
-		resetSelection: (state) => {
-			state.rowSelection = [];
-		},
-		addToSelection: (state, action: PayloadAction<string>) => {
-			state.rowSelection.push(action.payload);
-		},
-		removeFromSelection: (state, action: PayloadAction<string>) => {
-			state.rowSelection = state.rowSelection.filter(
-				(id) => id !== action.payload
-			);
 		}
 	},
 	extraReducers: (builder) => {
@@ -60,9 +47,4 @@ export const runsPageSlice = createSlice({
 });
 
 export const runsPageReducer = runsPageSlice.reducer;
-export const {
-	updateGlobalFilter,
-	resetSelection,
-	removeFromSelection,
-	addToSelection
-} = runsPageSlice.actions;
+export const { updateGlobalFilter } = runsPageSlice.actions;
