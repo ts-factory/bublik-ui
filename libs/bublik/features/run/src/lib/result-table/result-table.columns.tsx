@@ -10,6 +10,7 @@ import {
 import { createNextState } from '@reduxjs/toolkit';
 
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
@@ -19,6 +20,7 @@ import {
 	cn,
 	Tooltip
 } from '@/shared/tailwind-ui';
+import { formatKeyValueForDisplay } from '@/shared/utils';
 
 import { KeyList } from './key-list';
 import { getCommonParameters } from './matcher';
@@ -460,6 +462,10 @@ function Parameters(props: ParametersProps) {
 	return (
 		<ul className="flex gap-1 flex-wrap">
 			{parameters.map((value, index) => {
+				const displayValue = formatKeyValueForDisplay(value, {
+					displayDelimiter: config.keyValueDisplayDelimiter,
+					submitDelimiter: config.keyValueSubmitDelimiter
+				});
 				const isSelected = filterValue.includes(value);
 				const shouldDim = hasReferenceRow
 					? referenceSet.has(value)
@@ -475,7 +481,7 @@ function Parameters(props: ParametersProps) {
 						)}
 						onClick={() => onParameterClick(value)}
 					>
-						{value}
+						{displayValue}
 					</button>
 				);
 			})}

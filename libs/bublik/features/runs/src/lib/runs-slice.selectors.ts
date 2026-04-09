@@ -6,8 +6,10 @@ import {
 	EntityId
 } from '@reduxjs/toolkit';
 
+import { config } from '@/bublik/config';
 import type { RunsData } from '@/shared/types';
 import type { BoxValue } from '@/shared/tailwind-ui';
+import { normalizeKeyValueForSubmit } from '@/shared/utils';
 
 import { type AppStateWithRunsSlice, RUNS_PAGE_SLICE } from './runs-slice';
 
@@ -17,6 +19,13 @@ export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 
 const getRunsPageState = (state: AppStateWithRunsSlice) =>
 	state[RUNS_PAGE_SLICE];
+
+const normalizeRunDataValue = (value: string) => {
+	return normalizeKeyValueForSubmit(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+};
 
 export const selectGlobalFilter = createSelector(
 	getRunsPageState,
@@ -55,19 +64,25 @@ export const selectAllTags = createSelector(
 		const metaSet = new Set(metas);
 		const tagsSet = new Set(tags);
 
-		const currentTicked: BoxValue[] = globalFilter.map((filterValue) => {
-			let bgClassName = DEFAULT_BG;
+		const normalizedGlobalFilter = Array.from(
+			new Set(globalFilter.map(normalizeRunDataValue).filter(Boolean))
+		);
 
-			if (importantSet.has(filterValue)) bgClassName = IMPORTANT_BG;
-			if (metaSet.has(filterValue)) bgClassName = META_BG;
+		const currentTicked: BoxValue[] = normalizedGlobalFilter.map(
+			(filterValue) => {
+				let bgClassName = DEFAULT_BG;
 
-			return {
-				label: filterValue,
-				value: filterValue,
-				isSelected: true,
-				className: bgClassName
-			};
-		});
+				if (importantSet.has(filterValue)) bgClassName = IMPORTANT_BG;
+				if (metaSet.has(filterValue)) bgClassName = META_BG;
+
+				return {
+					label: filterValue,
+					value: filterValue,
+					isSelected: true,
+					className: bgClassName
+				};
+			}
+		);
 
 		const importantBoxes: BoxValue[] = Array.from(importantSet).map((v) => ({
 			label: v,
