@@ -9,18 +9,25 @@ import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 
+const getRunsTablePageParams = (queryParams: RunsAPIQuery) => {
+	const { projects, runData, ...rest } = queryParams;
+
+	return {
+		...prepareForSend(rest),
+		project: projects?.[0],
+		...(runData !== undefined ? { run_metas: runData } : {})
+	};
+};
+
 export const runsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getRunsTablePage: build.query<RunsAPIResponse, RunsAPIQuery>({
 			query: (queryParams) => {
-				const { projects, ...rest } = queryParams;
-				const params = { ...prepareForSend(rest), project: projects?.[0] };
-
 				return {
 					url: withApiV2('/runs'),
-					params,
+					params: getRunsTablePageParams(queryParams),
 					cache: 'no-cache'
 				};
 			},
@@ -28,3 +35,5 @@ export const runsEndpoints = {
 		})
 	})
 };
+
+export { getRunsTablePageParams };
