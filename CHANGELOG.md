@@ -1,5 +1,52 @@
 
 
+## [2.11.0](https://github.com/ts-factory/bublik-ui/compare/v2.10.5...v2.11.0) (2026-04-10)
+
+
+### 🚀 New Feature
+
+* **admin:** add analytics event tracking to admin user page ([6889aff](https://github.com/ts-factory/bublik-ui/commit/6889affad2fcdc6663fa5283b5197d7fbcab2f81))
+* **analytics:** add analytics library ([4c13c82](https://github.com/ts-factory/bublik-ui/commit/4c13c82d984bb9d2507e49e7101c3039e4175329))
+* **analytics:** add analytics page and route visit tracking ([986e166](https://github.com/ts-factory/bublik-ui/commit/986e166292e2975e1475c3220066a26c84dce892))
+* **analytics:** add API endpoints for analytics ([9189d41](https://github.com/ts-factory/bublik-ui/commit/9189d416d23b63efa02c6eb5c74e0045b4fb2c4f))
+* **auth:** add analytics event tracking to email page ([fb89921](https://github.com/ts-factory/bublik-ui/commit/fb8992142edf5ce7f1a3ba3acfd4359c7b32c705))
+* **config:** add analytics event tracking to configs page ([a26b7e0](https://github.com/ts-factory/bublik-ui/commit/a26b7e042e01201e34262e3b1ce24f204bb0a44e))
+* **dashboard:** add analytics event tracking to dashboard page ([1c53ef3](https://github.com/ts-factory/bublik-ui/commit/1c53ef35fb775f32845a5ebb7c5f1fafcf628def))
+* **history:** add analytics event tracking to history page ([01fc28a](https://github.com/ts-factory/bublik-ui/commit/01fc28a7088104c7bad6a7250981200919e87e5c))
+* **history:** add analytics event tracking to history shortcut links ([4181aab](https://github.com/ts-factory/bublik-ui/commit/4181aabc20130ead56e41fb9a356d8f2aa2ef945))
+* **import:** add analytics events tracking to import page ([f5c0069](https://github.com/ts-factory/bublik-ui/commit/f5c0069a7678f2c2f35263e7b63a29927f9a776e))
+* **log:** add analytics event tracking to log `pcap` attachment page ([d04c3b4](https://github.com/ts-factory/bublik-ui/commit/d04c3b49937d8e659911424e238c0712bf479918))
+* **log:** add analytics event tracking to log page ([2e519b2](https://github.com/ts-factory/bublik-ui/commit/2e519b22683deb8ec4b1ad392a628f49ccb4e591))
+* **report:** add analytics event tracking to report page ([6e060c6](https://github.com/ts-factory/bublik-ui/commit/6e060c625ec56e2803b5675204c7e377d2607bbf))
+* **result:** add analytics event tracking to result page ([35f60b9](https://github.com/ts-factory/bublik-ui/commit/35f60b94f9dad3b8577f90829d9f72320acfaf34))
+* **run,settings:** add settings to auto apply click search ([a88725d](https://github.com/ts-factory/bublik-ui/commit/a88725d02f95902df698a640e1111b2a5c94de63))
+* **run:** add analytics event tracking to run page ([0d09675](https://github.com/ts-factory/bublik-ui/commit/0d096759fc6214447ce2f27047358a6002dae711))
+* **run:** highlight submit button in case filters are not applied ([2c04b34](https://github.com/ts-factory/bublik-ui/commit/2c04b345414f7c72b1f0d236ecf8630fc3f538aa))
+* **runs:** add analytics event tracking to runs page ([a7d910e](https://github.com/ts-factory/bublik-ui/commit/a7d910e3f08881a965375a85004ac818f72f0a12))
+* **settings:** add reusable hook for listening for storage events ([4747032](https://github.com/ts-factory/bublik-ui/commit/4747032cf3cb68e517306771a8ec8f6831c61de5))
+
+
+### 💅 Polish
+
+* **dashboard,run:** make sort arrow bigger to improve visibility ([c5d1cff](https://github.com/ts-factory/bublik-ui/commit/c5d1cff96841594d21d67d19d409f8580d88ed39))
+* **report,history:** [stacked-chart] display legend with line breaks ([f115923](https://github.com/ts-factory/bublik-ui/commit/f115923706aa0b75a3dea28475c0291601e22a43)), closes [#487](https://github.com/ts-factory/bublik-ui/issues/487)
+
+
+### 🐛 Bug Fix
+
+* **history:** prevent hover card tags from being cut off ([8a8613e](https://github.com/ts-factory/bublik-ui/commit/8a8613ea3911ce00330a4712f3681b62a5cab385))
+
+
+### ♻ Code Refactoring
+
+* **run:** use new badge input component with grouping labels ([bc55e7b](https://github.com/ts-factory/bublik-ui/commit/bc55e7b5831f88b5af5ba632f1224148159a2a84))
+* **ui:** improve badge input component for run page ([fc97d97](https://github.com/ts-factory/bublik-ui/commit/fc97d97b2d97b612747e307a326c735f3d781fa1))
+
+
+### 📦 Chores
+
+* **runs:** align filter param names with backend changes ([31bda0b](https://github.com/ts-factory/bublik-ui/commit/31bda0bb94836dcd0596402e80a20806961fbc7a))
+
 ### [2.10.5](https://github.com/ts-factory/bublik-ui/compare/v2.10.4...v2.10.5) (2026-04-06)
 
 
