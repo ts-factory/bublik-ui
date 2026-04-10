@@ -1,7 +1,7 @@
 {
-	"date": "2026.04.06",
-	"summary": "fix(dashboard): show empty dashboard in case of no data from API",
-	"revision": "9fbdfad9",
-	"branch": "release-2.10.5",
-	"latestTag": "v2.10.5"
+	"date": "2026.04.10",
+	"summary": "feat(run,settings): add settings to auto apply click search",
+	"revision": "a88725d0",
+	"branch": "release-2.11.0",
+	"latestTag": "v2.11.0"
 }
