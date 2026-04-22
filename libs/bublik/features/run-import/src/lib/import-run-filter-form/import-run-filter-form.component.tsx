@@ -3,23 +3,29 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { LogQuery, LogQuerySchema } from '@/shared/types';
+import { ImportTaskFilters, ImportTaskFiltersSchema } from '@/shared/types';
 import {
 	ButtonTw,
-	DatePickerField,
 	Icon,
 	Input,
 	SelectField,
 	Tooltip
 } from '@/shared/tailwind-ui';
 
-import { facilityOptions, severityOptions } from '../utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { useDispatch } from 'react-redux';
 
+const statusOptions = [
+	{ value: 'all', displayValue: 'All' },
+	{ value: 'RECEIVED', displayValue: 'Received' },
+	{ value: 'RUNNING', displayValue: 'Running' },
+	{ value: 'SUCCESS', displayValue: 'Success' },
+	{ value: 'FAILURE', displayValue: 'Failure' }
+];
+
 export interface ImportRunFilterProps {
-	onFiltersChange?: (filters: LogQuery) => void;
-	defaultValues?: LogQuery;
+	onFiltersChange?: (filters: ImportTaskFilters) => void;
+	defaultValues?: ImportTaskFilters;
 	onResetClick?: () => void;
 }
 
@@ -29,25 +35,23 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 		control,
 		handleSubmit,
 		formState: { errors }
-	} = useForm<LogQuery>({
+	} = useForm<ImportTaskFilters>({
 		defaultValues: props.defaultValues,
-		resolver: zodResolver(LogQuerySchema)
+		resolver: zodResolver(ImportTaskFiltersSchema)
 	});
 	const dispatch = useDispatch();
 
 	const handleInitialSubmit = () => {
 		return handleSubmit((values) => {
-			const severity = values.severity === 'all' ? undefined : values.severity;
-			const facility = values.facility === 'all' ? undefined : values.facility;
+			const status = values.status === 'all' ? undefined : values.status;
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.importEvents]));
 
 			return props.onFiltersChange?.({
-				severity,
-				facility,
-				date: values.date,
-				msg: values.msg?.trim(),
-				task_id: values.task_id?.trim(),
-				url: values.url?.trim()
+				job: values.job,
+				run: values.run,
+				url: values.url?.trim(),
+				celery_task: values.celery_task?.trim(),
+				status
 			});
 		});
 	};
@@ -58,29 +62,21 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 			className="flex flex-wrap items-center gap-4"
 		>
 			<div>
-				<SelectField
-					name="severity"
-					placeholder="Select severity"
-					control={control}
-					label="Severity"
-					options={severityOptions}
-				/>
-			</div>
-			<div>
-				<SelectField
-					name="facility"
-					placeholder="Select facility"
-					control={control}
-					label="Facility"
-					options={facilityOptions}
+				<Input
+					label="Job ID"
+					placeholder="1"
+					type="number"
+					{...register('job', { valueAsNumber: true })}
+					error={errors.job?.message}
 				/>
 			</div>
 			<div>
 				<Input
-					label="Message"
-					placeholder="Message..."
-					{...register('msg')}
-					error={errors.msg?.message}
+					label="Run ID"
+					placeholder="123"
+					type="number"
+					{...register('run', { valueAsNumber: true })}
+					error={errors.run?.message}
 				/>
 			</div>
 			<div>
@@ -95,12 +91,18 @@ export const ImportRunFilterForm = (props: ImportRunFilterProps) => {
 				<Input
 					label="Task ID"
 					placeholder="c8a4d0b8-b3d4-4b38-9dbd-352fcd8beae0"
-					{...register('task_id')}
-					error={errors.task_id?.message}
+					{...register('celery_task')}
+					error={errors.celery_task?.message}
 				/>
 			</div>
 			<div>
-				<DatePickerField label="Date" name="date" control={control} />
+				<SelectField
+					name="status"
+					placeholder="Select status"
+					control={control}
+					label="Status"
+					options={statusOptions}
+				/>
 			</div>
 			<div className="flex items-center gap-4">
 				<ButtonTw

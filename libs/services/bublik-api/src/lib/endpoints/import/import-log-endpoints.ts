@@ -4,12 +4,14 @@ import { EndpointBuilder, QueryReturnValue } from '@reduxjs/toolkit/query';
 import { z } from 'zod';
 
 import {
-	ImportEventResponse,
 	ImportRunInput,
+	ImportRunsJobResponse,
+	ImportRunsJobResponseSchema,
 	ImportJsonLog,
-	LogRawApiResponseSchema,
-	LogQuerySchema,
-	LogEventResponseSchema
+	ImportJsonLogResponseSchema,
+	ImportTaskListRawResponseSchema,
+	ImportTaskListResponseSchema,
+	ImportTaskFiltersSchema
 } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 import { config } from '@/bublik/config';
@@ -17,7 +19,6 @@ import { config } from '@/bublik/config';
 import { BublikBaseQueryFn, withApiV2 } from '../../config';
 import { API_REDUCER_PATH } from '../../constants';
 import { BUBLIK_TAG } from '../../types';
-import { getUrl, runToImportUrl } from './parse-import-url';
 import { MaybePromise } from '../../utils';
 
 export const importLogEventsEndpoint = {
@@ -27,66 +28,80 @@ export const importLogEventsEndpoint = {
 		getImportEventLog: build.query({
 			query: (query) => ({
 				url: withApiV2('/session_import'),
-				params: {
-					...query,
-					date: query.date ? formatTimeToAPI(query.date) : undefined
-				},
+				params: query,
 				cache: 'no-cache'
 			}),
-			argSchema: LogQuerySchema,
-			responseSchema: LogEventResponseSchema,
-			rawResponseSchema: LogRawApiResponseSchema,
+			argSchema: ImportTaskFiltersSchema,
+			responseSchema: ImportTaskListResponseSchema,
+			rawResponseSchema: ImportTaskListRawResponseSchema,
 			transformResponse: (
-				response: z.infer<typeof LogRawApiResponseSchema>
-			): z.infer<typeof LogEventResponseSchema> => ({
+				response: z.infer<typeof ImportTaskListRawResponseSchema>
+			): z.infer<typeof ImportTaskListResponseSchema> => ({
 				...response,
-				results: response.results.map((result) => {
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const latest = result.at(0)!;
-					const other = result.slice(0);
-					const maybeRunId = result.find(
-						(item) => item?.run_id !== undefined
-					)?.run_id;
-
-					return {
-						...latest,
-						children: other,
-						run_id: maybeRunId
-					};
-				})
+				results: response.results.map((result) => ({
+					...result,
+					runtime: result.runtime ? parseFloat(result.runtime) : null
+				}))
 			}),
 			providesTags: [BUBLIK_TAG.importEvents]
 		}),
-		importRuns: build.mutation<ImportEventResponse[], ImportRunInput[]>({
+		importRuns: build.mutation<ImportRunsJobResponse[], ImportRunInput[]>({
 			queryFn: async (runUrls, _api, _extraOptions, baseQuery) => {
 				const importRunPromises = runUrls.map((run) => {
-					const importUrl = runToImportUrl(run);
+					const params = new URLSearchParams();
+					params.set('url', run.url);
+					if (run.range?.startDate) {
+						params.set('from', formatTimeToAPI(run.range.startDate));
+					}
+					if (run.range?.endDate) {
+						params.set('to', formatTimeToAPI(run.range.endDate));
+					}
+					if (run.force) {
+						params.set('force', 'true');
+					}
+					if (run.project != null) {
+						params.set('project', String(run.project));
+					}
 
-					/**
-					 * For some reason base query here doesn't respect passed config base url in getApiConfig function
-					 * We need to add it manually
-					 */
-					const url = withApiV2(`/importruns/source/${importUrl}`, true);
+					const url = `${withApiV2(
+						'/importruns/source/',
+						true
+					)}?${params.toString()}`;
 
 					return baseQuery(`${config.rootUrl}${url}`) as MaybePromise<
-						QueryReturnValue<{ celery_task_id: string }>
+						QueryReturnValue<unknown>
 					>;
 				});
 
 				const responses = await Promise.allSettled(importRunPromises);
 
-				const data = responses.map((maybe, idx) => {
-					const maybeRunUrl = runUrls?.[idx];
-					const url = maybeRunUrl ? getUrl(maybeRunUrl).toString() : 'unknown';
+				const data: ImportRunsJobResponse[] = [];
+				const errors: string[] = [];
 
+				for (const maybe of responses) {
 					if (maybe.status === 'fulfilled' && maybe.value.data) {
-						const taskId = maybe.value.data.celery_task_id;
-
-						return { taskId, url };
+						const parsed = ImportRunsJobResponseSchema.safeParse(
+							maybe.value.data
+						);
+						if (parsed.success) {
+							data.push(parsed.data);
+						} else {
+							errors.push('Invalid response from import server');
+						}
+					} else if (maybe.status === 'rejected') {
+						errors.push(String(maybe.reason));
 					}
+				}
 
-					return { url, taskId: null };
-				});
+				if (errors.length) {
+					return {
+						error: {
+							status: 400,
+							title: 'Import failed',
+							description: errors.join('; ')
+						}
+					};
+				}
 
 				return { data };
 			},
@@ -96,7 +111,8 @@ export const importLogEventsEndpoint = {
 			query: (celery_task_id: string) => ({
 				url: withApiV2(`/importruns/log/?task_id=${celery_task_id}`, true),
 				cache: 'no-cache'
-			})
+			}),
+			responseSchema: z.array(ImportJsonLogResponseSchema)
 		})
 	})
 };

@@ -5,31 +5,23 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { z } from 'zod';
 import { RocketIcon } from '@radix-ui/react-icons';
 
-import { Facility, LogEventWithChildren, Severity } from '@/shared/types';
+import { ImportTaskRow } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { useImportRunsMutation } from '@/services/bublik-api';
-import {
-	Badge,
-	ButtonTw,
-	cn,
-	Icon,
-	toast,
-	Tooltip
-} from '@/shared/tailwind-ui';
-import { formatTimeToDot } from '@/shared/utils';
+import { useCopyToClipboard } from '@/shared/hooks';
+import { ButtonTw, cn, Icon, toast, Tooltip } from '@/shared/tailwind-ui';
+import { parseDetailDate } from '@/shared/utils';
 import { routes } from '@/router';
 
-import { SEVERITY_MAP } from '../utils';
-import { getSeverityBgColor } from './import-event-table-utils';
 import { useImportLog } from './import-log.component';
-import { FacilityBadge } from './import-event-table.component';
+import { StatusBadge } from './import-event-table.component';
 
 export function getBgByStatus(status: string): string {
 	const statusMap: Record<string, string> = {
 		SUCCESS: 'bg-bg-ok',
 		FAILURE: 'bg-bg-error',
-		STARTED: 'bg-bg-running',
+		RUNNING: 'bg-bg-running',
 		RECEIVED: 'bg-gray-400'
 	};
 
@@ -43,14 +35,14 @@ export function getIconByStatus(status: string) {
 	> = {
 		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
 		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />,
-		STARTED: (props) => <Icon name="Play" {...props} />,
+		RUNNING: (props) => <Icon name="Play" {...props} />,
 		RECEIVED: (props) => <Icon name="Download" {...props} />
 	};
 
 	return statusMap[status];
 }
 
-const columnHelper = createColumnHelper<LogEventWithChildren>();
+const columnHelper = createColumnHelper<ImportTaskRow>();
 
 interface ActionCellProps {
 	taskId?: string | null;
@@ -90,7 +82,7 @@ function ActionsCell(props: ActionCellProps) {
 				variant="secondary"
 				size="xss"
 				className="justify-start"
-				onClick={toggle(taskId, status === 'STARTED')}
+				onClick={toggle(taskId, status === 'RUNNING')}
 			>
 				<Icon name="Paper" size={20} className="mr-1.5" />
 				<span>Log</span>
@@ -111,6 +103,63 @@ function ActionsCell(props: ActionCellProps) {
 				</a>
 			</ButtonTw>
 		</div>
+	);
+}
+
+function formatRuntime(seconds: number): string {
+	const hrs = Math.floor(seconds / 3600);
+	const mins = Math.floor((seconds % 3600) / 60);
+	const secs = (seconds % 60).toFixed(2);
+
+	const parts = [];
+	if (hrs > 0) parts.push(`${hrs}h`);
+	if (mins > 0) parts.push(`${mins}m`);
+	parts.push(`${secs}s`);
+
+	return parts.join(' ');
+}
+
+interface CopyableValueProps {
+	value?: string | number | null;
+	label: string;
+}
+
+function CopyableValue({ value, label }: CopyableValueProps) {
+	const [, copy] = useCopyToClipboard();
+	const canCopy = value !== null && value !== undefined;
+
+	const handleCopy = () => {
+		if (!canCopy) return;
+
+		copy(String(value)).then((success) => {
+			if (success) {
+				toast.success(`Copied ${label.toLowerCase()} to clipboard`);
+			} else {
+				toast.error(`Failed to copy ${label.toLowerCase()}`);
+			}
+		});
+	};
+
+	return (
+		<span
+			className={cn(
+				'inline-flex items-center gap-1 font-medium',
+				canCopy && 'cursor-pointer hover:text-primary group'
+			)}
+			onClick={(event) => {
+				event.stopPropagation();
+				handleCopy();
+			}}
+		>
+			{value ?? '-'}
+			{canCopy ? (
+				<Icon
+					name="PaperStack"
+					size={14}
+					className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
+				/>
+			) : null}
+		</span>
 	);
 }
 
@@ -144,68 +193,53 @@ export const columns = [
 		cell: (cell) => (
 			<ActionsCell
 				taskId={cell.getValue()}
-				runId={cell.row.original.run_id}
+				runId={cell.row.original.run_id ?? undefined}
 				status={cell.row.original.status}
 			/>
 		),
 		meta: { width: 'min-content' }
 	}),
-	columnHelper.accessor('timestamp', {
-		header: 'Date',
+	columnHelper.accessor('status', {
+		header: () => <span className="pl-2.5">Status</span>,
+		cell: (cell) => {
+			const status = cell.getValue();
+			return <StatusBadge status={status} />;
+		},
+		meta: { width: 'min-content' }
+	}),
+	columnHelper.accessor('started_at', {
+		header: 'Started At',
 		cell: (cell) => {
 			const date = cell.getValue();
-
 			if (!date) return null;
-
-			return formatTimeToDot(date);
+			return parseDetailDate(date);
 		},
-		meta: { width: '0.1fr' }
+		meta: { width: 'max-content' }
 	}),
-	columnHelper.accessor('facility', {
-		header: () => <span className="pl-2">Facility</span>,
-		cell: (cell) => {
-			const facility = cell.getValue();
-
-			return <FacilityBadge facility={facility} />;
-		},
-		meta: { width: '0.1fr' }
-	}),
-	columnHelper.accessor('severity', {
-		header: () => <span className="pl-2">Severity</span>,
+	columnHelper.accessor('runtime', {
+		header: 'Runtime',
 		cell: (cell) => {
 			const value = cell.getValue();
-
-			if (!value) return null;
-
-			return (
-				<Badge className={getSeverityBgColor(value)}>
-					{SEVERITY_MAP.has(value)
-						? SEVERITY_MAP.get(value)?.toUpperCase()
-						: value.toUpperCase()}
-				</Badge>
-			);
+			if (value == null) return null;
+			return <span>{formatRuntime(value)}</span>;
 		},
-		meta: { width: '0.1fr' }
+		meta: { width: '96px' }
 	}),
-	columnHelper.accessor('error_msg', {
-		header: 'Message',
-		cell: (cell) => {
-			const value = cell.getValue();
-
-			if (!value) return null;
-
-			return <span className="whitespace-pre-wrap font-mono">{value}</span>;
-		},
-		meta: { width: '1fr' }
+	columnHelper.accessor('job_id', {
+		header: 'Job Id',
+		cell: (cell) => <CopyableValue label="Job ID" value={cell.getValue()} />,
+		meta: { width: 'max-content' }
 	}),
-	columnHelper.accessor('uri', {
-		id: 'URI',
+	columnHelper.accessor('run_id', {
+		header: 'Run Id',
+		cell: (cell) => <CopyableValue label="Run ID" value={cell.getValue()} />,
+		meta: { width: 'max-content' }
+	}),
+	columnHelper.accessor('run_source_url', {
 		header: 'URL',
 		cell: (cell) => {
 			const url = cell.getValue();
-
 			if (!z.string().url().safeParse(url).success) return null;
-
 			return (
 				<a
 					href={url}
@@ -217,14 +251,25 @@ export const columns = [
 				</a>
 			);
 		},
-		meta: { width: '1fr' }
+		meta: { width: 'minmax(280px, 2fr)' }
+	}),
+	columnHelper.accessor('error_msg', {
+		header: 'Error',
+		cell: (cell) => {
+			const value = cell.getValue();
+			if (!value) return null;
+			return (
+				<span className="whitespace-pre-wrap font-mono text-xs text-red-600">
+					{value}
+				</span>
+			);
+		},
+		meta: { width: 'minmax(220px, 1.35fr)' }
 	}),
 	columnHelper.display({
 		id: 'expand',
 		cell: ({ row }) => {
-			const isError =
-				row.original.severity === Severity.ERROR &&
-				row.original.facility === Facility.ImportRuns;
+			const isError = row.original.status === 'FAILURE';
 
 			// eslint-disable-next-line react-hooks/rules-of-hooks
 			const [importRuns] = useImportRunsMutation();
@@ -237,7 +282,11 @@ export const columns = [
 							size="xss"
 							onClick={async () => {
 								const promise = importRuns([
-									{ force: true, url: row.original.uri, range: null }
+									{
+										force: true,
+										url: row.original.run_source_url,
+										range: null
+									}
 								]);
 
 								toast.promise(promise, {
@@ -275,6 +324,6 @@ export const columns = [
 				</div>
 			);
 		},
-		meta: { width: 'min-content' }
+		meta: { width: '72px' }
 	})
 ];

@@ -5,7 +5,7 @@ import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 import { ExpandedState, PaginationState } from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { LogQuery } from '@/shared/types';
+import { ImportTaskFilters } from '@/shared/types';
 import { useGetImportEventLogQuery } from '@/services/bublik-api';
 
 import {
@@ -17,12 +17,11 @@ import {
 import { ImportRunFilterForm } from '../import-run-filter-form';
 
 const FilterParams = withDefault(JsonParam, {
-	date: undefined,
-	facility: 'importruns',
-	msg: undefined,
-	severity: undefined,
-	task_id: undefined,
-	url: undefined
+	job: undefined,
+	run: undefined,
+	url: undefined,
+	celery_task: undefined,
+	status: undefined
 });
 
 const PaginationParam = withDefault(JsonParam, {
@@ -49,16 +48,18 @@ function useImportLogExpanded() {
 }
 
 const useEventFilters = () => {
-	const [params, setParams] = useQueryParam<LogQuery>('filters', FilterParams);
+	const [params, setParams] = useQueryParam<ImportTaskFilters>(
+		'filters',
+		FilterParams
+	);
 
-	const handleFilterChange = (values: LogQuery) => {
+	const handleFilterChange = (values: ImportTaskFilters) => {
 		trackEvent(analyticsEventNames.importEventsFilterApply, {
-			hasMessage: Boolean(values.msg),
 			hasUrl: Boolean(values.url),
-			hasTaskId: Boolean(values.task_id),
-			hasDate: Boolean(values.date),
-			hasSeverity: Boolean(values.severity),
-			hasFacility: Boolean(values.facility)
+			hasCeleryTask: Boolean(values.celery_task),
+			hasJob: Boolean(values.job),
+			hasRun: Boolean(values.run),
+			hasStatus: Boolean(values.status)
 		});
 
 		setParams(values, 'replaceIn');
@@ -71,22 +72,18 @@ const useEventFilters = () => {
 
 		setParams(
 			{
-				date: undefined,
-				facility: 'importruns',
-				msg: undefined,
-				severity: undefined,
-				task_id: undefined,
-				url: undefined
+				job: undefined,
+				run: undefined,
+				url: undefined,
+				celery_task: undefined,
+				status: undefined
 			},
 			'replace'
 		);
 	};
 
 	return {
-		query: {
-			...params,
-			date: params?.date ? new Date(params.date) : undefined
-		},
+		query: params,
 		setQuery: handleFilterChange,
 		onResetClick: handleResetClick
 	};

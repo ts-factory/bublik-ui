@@ -16,69 +16,97 @@ export enum Facility {
 	Celery = 'celery'
 }
 
-export const LogEventSchema = z.object({
-	event_id: z.number(),
-	status: z.enum(['SUCCESS', 'FAILURE', 'STARTED']).or(z.string()),
-	uri: z.string(),
-	celery_task: z.string().optional().nullable(),
-	facility: z.nativeEnum(Facility),
-	severity: z.nativeEnum(Severity),
+export const ImportTaskEventLogSchema = z.object({
 	timestamp: z.string(),
-	run_id: z.number().optional().nullable(),
-	error_msg: z.string().optional().nullable(),
-	runtime: z.number().optional().nullable()
+	facility: z.string(),
+	severity: z.string(),
+	msg: z.string()
 });
 
-export const LogQuerySchema = z.object({
-	severity: z.nativeEnum(Severity).optional().or(z.string()),
-	facility: z.nativeEnum(Facility).optional().or(z.string()),
-	msg: z.preprocess((arg) => (arg ? arg : undefined), z.string().optional()),
-	date: z.date().optional(),
-	page: z.number().optional(),
-	page_size: z.number().optional(),
-	url: z.preprocess(
+export type ImportTaskEventLog = z.infer<typeof ImportTaskEventLogSchema>;
+
+export const ImportTaskRowRawSchema = z.object({
+	status: z.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE']).or(z.string()),
+	run_source_url: z.string(),
+	celery_task: z.string().optional().nullable(),
+	started_at: z.string().nullable(),
+	finished_at: z.string().nullable(),
+	runtime: z.string().nullable(),
+	job_id: z.number(),
+	run_id: z.number().nullable(),
+	event_logs: z.array(ImportTaskEventLogSchema),
+	error_msg: z.string().nullable()
+});
+
+export type ImportTaskRowRaw = z.infer<typeof ImportTaskRowRawSchema>;
+
+export const ImportTaskRowSchema = ImportTaskRowRawSchema.extend({
+	runtime: z.number().nullable()
+});
+
+export type ImportTaskRow = z.infer<typeof ImportTaskRowSchema>;
+
+export const ImportTaskListRawResponseSchema = z.object({
+	pagination: z.object({ count: z.number() }),
+	results: z.array(ImportTaskRowRawSchema)
+});
+
+export const ImportTaskListResponseSchema = z.object({
+	pagination: z.object({ count: z.number() }),
+	results: z.array(ImportTaskRowSchema)
+});
+
+export type ImportTaskListResponse = z.infer<
+	typeof ImportTaskListResponseSchema
+>;
+
+export const ImportJobTaskDataSchema = z.object({
+	run_source_url: z.string(),
+	celery_task_id: z.string().nullable(),
+	flower: z.string().nullable(),
+	import_log: z.string().nullable()
+});
+
+export type ImportJobTaskData = z.infer<typeof ImportJobTaskDataSchema>;
+
+export const ImportRunsJobResponseSchema = z.object({
+	job_id: z.number(),
+	job_tasks_data: z.array(ImportJobTaskDataSchema)
+});
+
+export type ImportRunsJobResponse = z.infer<typeof ImportRunsJobResponseSchema>;
+
+const optionalNumberFilterSchema = z.preprocess((val) => {
+	if (val === '' || val == null) return undefined;
+
+	if (typeof val === 'number') {
+		return Number.isNaN(val) ? undefined : val;
+	}
+
+	const parsed = Number(val);
+	return Number.isNaN(parsed) ? undefined : parsed;
+}, z.number().optional());
+
+export const ImportTaskFiltersSchema = z.object({
+	job: optionalNumberFilterSchema,
+	run: optionalNumberFilterSchema,
+	url: z.preprocess((arg) => (arg ? arg : undefined), z.string().optional()),
+	celery_task: z.preprocess(
 		(arg) => (arg ? arg : undefined),
-		z.string().url().optional()
+		z.string().optional()
 	),
-	task_id: z.preprocess((arg) => (arg ? arg : undefined), z.string().optional())
+	status: z.preprocess(
+		(arg) => (arg ? arg : undefined),
+		z
+			.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE'])
+			.or(z.string())
+			.optional()
+	),
+	page: z.number().optional(),
+	page_size: z.number().optional()
 });
 
-export const ImportRunMutationResponseSchema = z.object({
-	taskId: z.string().optional().nullable(),
-	url: z.string().nullable()
-});
-
-export const ImportRunMutationRequestSchema = z.object({
-	celery_task_id: z.string()
-});
-
-export type LogEvent = z.infer<typeof LogEventSchema>;
-
-export type LogQuery = z.infer<typeof LogQuerySchema>;
-
-export const LogRawApiResponseSchema = z.object({
-	pagination: z.object({ count: z.number() }),
-	results: z.array(z.array(LogEventSchema))
-});
-
-const LogEventWithChildrenSchema = LogEventSchema.extend({
-	children: z.array(LogEventSchema)
-});
-
-export type LogEventWithChildren = z.infer<typeof LogEventWithChildrenSchema>;
-
-export const LogEventResponseSchema = z.object({
-	pagination: z.object({ count: z.number() }),
-	results: z.array(LogEventWithChildrenSchema)
-});
-
-export type ImportEventResponse = z.infer<
-	typeof ImportRunMutationResponseSchema
->;
-
-export type ImportRunApiResponse = z.infer<
-	typeof ImportRunMutationRequestSchema
->;
+export type ImportTaskFilters = z.infer<typeof ImportTaskFiltersSchema>;
 
 export const ImportJsonLogResponseSchema = z.object({
 	asctime: z.string(),

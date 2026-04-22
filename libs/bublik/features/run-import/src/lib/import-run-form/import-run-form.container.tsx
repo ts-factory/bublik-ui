@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { ImportEventResponse, ImportRunsFormValues } from '@/shared/types';
+import { ImportRunsJobResponse, ImportRunsFormValues } from '@/shared/types';
 import { bublikAPI, useImportRunsMutation } from '@/services/bublik-api';
 import { setErrorsOnForm } from '@/shared/utils';
 
@@ -20,7 +20,7 @@ type FormState = 'form' | 'result';
 export const useImportTasks = () => {
 	const [importRuns] = useImportRunsMutation();
 	const [step, setStep] = useState<FormState>('form');
-	const [celeryTasks, setCeleryTasks] = useState<ImportEventResponse[]>([]);
+	const [importJobs, setImportJobs] = useState<ImportRunsJobResponse[]>([]);
 	const importFormRef = useRef<ImportRunFormHandle>(null);
 
 	const onFormSubmit = async ({ runs }: ImportRunsFormValues) => {
@@ -46,15 +46,20 @@ export const useImportTasks = () => {
 
 			const results = await importRuns(onlyUrls).unwrap();
 
+			const taskCount = results.reduce(
+				(sum, job) => sum + job.job_tasks_data.length,
+				0
+			);
+
 			trackEvent(analyticsEventNames.importRunsSubmit, {
 				providedRunsCount: runs.length,
 				validRunsCount: onlyUrls.length,
 				status: 'success',
-				taskCount: results.length
+				taskCount
 			});
 
 			setStep('result');
-			setCeleryTasks(results);
+			setImportJobs(results);
 		} catch (e: unknown) {
 			trackEvent(analyticsEventNames.importRunsSubmit, {
 				providedRunsCount: runs.length,
@@ -67,14 +72,14 @@ export const useImportTasks = () => {
 
 	const onFormClose = () => {
 		setStep('form');
-		setCeleryTasks([]);
+		setImportJobs([]);
 	};
 
-	return { step, onFormClose, onFormSubmit, celeryTasks, importFormRef };
+	return { step, onFormClose, onFormSubmit, importJobs, importFormRef };
 };
 
 export const ImportRunFormContainer = () => {
-	const { step, onFormClose, onFormSubmit, celeryTasks, importFormRef } =
+	const { step, onFormClose, onFormSubmit, importJobs, importFormRef } =
 		useImportTasks();
 	const { data, error, isLoading } = bublikAPI.useGetAllProjectsQuery();
 
@@ -87,7 +92,7 @@ export const ImportRunFormContainer = () => {
 					ref={importFormRef}
 				/>
 			)}
-			{step === 'result' && <RunImportResult results={celeryTasks} />}
+			{step === 'result' && <RunImportResult results={importJobs} />}
 		</ImportRunFormModal>
 	);
 };

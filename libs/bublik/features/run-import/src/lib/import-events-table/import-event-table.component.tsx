@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps, Fragment, useState } from 'react';
+import { ComponentProps, ComponentType, Fragment, useState } from 'react';
 import {
 	ExpandedState,
 	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
-	getGroupedRowModel,
 	getPaginationRowModel,
 	OnChangeFn,
 	PaginationState,
@@ -18,7 +17,8 @@ import {
 import { format, parseISO } from 'date-fns';
 import { RocketIcon } from '@radix-ui/react-icons';
 
-import { Facility, LogEventWithChildren, Severity } from '@/shared/types';
+import { Facility, ImportTaskRow, Severity } from '@/shared/types';
+import { useCopyToClipboard } from '@/shared/hooks';
 import {
 	Badge,
 	ButtonTw,
@@ -26,7 +26,8 @@ import {
 	cva,
 	Icon,
 	Pagination,
-	Skeleton
+	Skeleton,
+	toast
 } from '@/shared/tailwind-ui';
 import { TIME_DOT_FORMAT_FULL } from '@/shared/utils';
 import { config } from '@/bublik/config';
@@ -49,7 +50,7 @@ declare module '@tanstack/react-table' {
 }
 
 interface ImportEventTableProps {
-	data: LogEventWithChildren[];
+	data: ImportTaskRow[];
 	pagination: PaginationState;
 	setPagination: OnChangeFn<PaginationState>;
 	expanded: ExpandedState;
@@ -69,12 +70,11 @@ function ImportEventTable(props: ImportEventTableProps) {
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		getGroupedRowModel: getGroupedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		onPaginationChange: setPagination,
 		onExpandedChange: setExpanded,
-		getRowId: (row) => row.event_id.toString(),
-		getRowCanExpand: (row) => row?.original?.children?.length > 1,
+		getRowId: (row) => row.celery_task ?? row.run_source_url,
+		getRowCanExpand: (row) => row?.original?.event_logs?.length > 0,
 		rowCount,
 		manualPagination: true
 	});
@@ -132,7 +132,7 @@ function ImportEventTable(props: ImportEventTableProps) {
 }
 
 interface EventRowProps {
-	row: Row<LogEventWithChildren>;
+	row: Row<ImportTaskRow>;
 }
 
 function EventRow({ row }: EventRowProps) {
@@ -175,7 +175,13 @@ function EventRow({ row }: EventRowProps) {
 				);
 			})}
 			{row.getIsExpanded() && (
-				<div className={'col-span-full'}>{renderTimeline({ row, toggle })}</div>
+				<div className={'col-span-full'}>
+					{renderEventLogs({
+						eventLogs: row.original.event_logs,
+						taskId: row.original.celery_task,
+						toggle
+					})}
+				</div>
 			)}
 		</Fragment>
 	);
@@ -216,164 +222,184 @@ const ImportEventTableEmpty = () => {
 	);
 };
 
-type TimelineOptions = {
-	row: Row<LogEventWithChildren>;
+interface EventLogsOptions {
+	eventLogs: ImportTaskRow['event_logs'];
+	taskId?: string | null;
 	toggle: ReturnType<typeof useImportLog>['toggle'];
-};
+}
 
-const NO_TASK_GROUP = '__no-task__';
-
-function renderTimeline(props: TimelineOptions) {
-	const {
-		row: {
-			original: { children: events }
-		},
-		toggle
-	} = props;
-	const groupedEvents = events.reduce<Record<string, typeof events>>(
-		(acc, evt) => {
-			const taskId = evt.celery_task ?? NO_TASK_GROUP;
-			if (!acc[taskId]) acc[taskId] = [];
-			acc[taskId].push(evt);
-			return acc;
-		},
-		{}
-	);
+function renderEventLogs(props: EventLogsOptions) {
+	const { eventLogs, taskId, toggle } = props;
+	const orderedEventLogs = eventLogs.slice().reverse();
 
 	return (
 		<div className="bg-white px-4 py-8 border-t border-border-primary mb-1">
 			<div className="relative flex flex-col gap-8">
-				{/* Continuous vertical line across all groups */}
+				{/* Continuous vertical line */}
 				<div className="absolute left-10 top-12 bottom-16 z-10 w-0.5 bg-border-primary" />
 
-				{Object.entries(groupedEvents).map(([taskId, taskEvents], idx, arr) => {
-					const isNoTask = taskId === NO_TASK_GROUP;
-
-					return (
-						<div
-							key={taskId}
-							className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors"
-						>
-							{idx !== arr.length - 1 && (
-								<div className="absolute left-7 top-[95%] size-6 bg-white z-0" />
-							)}
-							{idx !== 0 && (
-								<div className="absolute left-7 -top-[5%] size-6 bg-white z-0" />
-							)}
-							<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
-								<span className="text-sm text-text-primary font-semibold">
-									Task:
-								</span>
-								{isNoTask ? (
-									<>
-										<Badge variant="warning" className="ml-2">
-											No celery task available
-										</Badge>
-										<span className="text-xs text-text-secondary ml-2">
-											These events cannot be opened in Flower or have their logs
-											viewed
-										</span>
-									</>
-								) : (
-									<>
-										<code className="text-sm text-gray-800 whitespace-pre-wrap">
-											{' '}
-											{taskId}
-										</code>
-										<span className="px-2">•</span>
-										<div className="flex items-center gap-2">
-											<ButtonTw
-												variant="secondary"
-												size="xss"
-												onClick={toggle(taskId)}
-											>
-												<Icon name="Paper" size={20} className="mr-1.5" />
-												<span>Log</span>
-											</ButtonTw>
-											<ButtonTw
-												variant="secondary"
-												size="xss"
-												className="justify-start"
-												asChild
-											>
-												<a
-													href={`${config.oldBaseUrl}/flower/task/${taskId}`}
-													target="_blank"
-													rel="noreferrer"
-												>
-													<RocketIcon className="mr-1.5 size-4" />
-													<span>Task</span>
-												</a>
-											</ButtonTw>
-										</div>
-									</>
-								)}
-							</div>
-							<div className="relative pl-8">
-								<div className="space-y-4">
-									{taskEvents.map((evt, _) => {
-										const StatusIcon = getIconByStatus(evt.status);
-										const bg = getBgByStatus(evt.status);
-
-										return (
-											<div key={evt.event_id} className="relative">
-												{/* Status icon circle */}
-												<div
-													className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white z-10`}
-												>
-													<StatusIcon className="size-6" />
-												</div>
-
-												{/* Event content */}
-												<div className="space-y-3 rounded-lg ml-4 border border-border-primary bg-gray-50/70 p-4">
-													<div className="flex flex-col gap-2">
-														<div className="flex items-center gap-2">
-															<StatusBadge status={evt.status} />
-															<FacilityBadge facility={evt.facility} />
-															<SeverityBadge severity={evt.severity} />
-														</div>
-														<div>
-															<div className="flex items-center gap-2 text-xs leading-5 text-text-primary flex-wrap">
-																<div className="flex items-center gap-1">
-																	<Icon name="Clock" className="size-4" />
-																	<span>
-																		{format(
-																			parseISO(evt.timestamp),
-																			TIME_DOT_FORMAT_FULL
-																		)}
-																	</span>
-																</div>
-																{evt.runtime && (
-																	<>
-																		<span>•</span>
-																		<div className="flex items-center gap-1">
-																			<span>
-																				Runtime: {formatRuntime(evt.runtime)}
-																			</span>
-																		</div>
-																	</>
-																)}
-															</div>
-														</div>
-													</div>
-													{evt.error_msg && (
-														<p className="font-medium text-xs bg-primary-wash p-4 rounded-md">
-															{evt.error_msg}
-														</p>
-													)}
-												</div>
-											</div>
-										);
-									})}
-								</div>
+				<div className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors">
+					{taskId ? (
+						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
+							<span className="text-sm text-text-primary font-semibold">
+								Task: &nbsp;
+							</span>
+							<CopyableTaskId taskId={taskId} />
+							<span className="px-2">•</span>
+							<div className="flex items-center gap-2">
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									onClick={toggle(taskId)}
+								>
+									<Icon name="Paper" size={20} className="mr-1.5" />
+									<span>Log</span>
+								</ButtonTw>
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									className="justify-start"
+									asChild
+								>
+									<a
+										href={`${config.oldBaseUrl}/flower/task/${taskId}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										<RocketIcon className="mr-1.5 size-4" />
+										<span>Task</span>
+									</a>
+								</ButtonTw>
 							</div>
 						</div>
-					);
-				})}
+					) : (
+						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
+							<Badge variant="warning" className="ml-2">
+								No celery task available
+							</Badge>
+							<span className="text-xs text-text-secondary ml-2">
+								These events cannot be opened in Flower or have their logs
+								viewed
+							</span>
+						</div>
+					)}
+					<div className="relative pl-8">
+						<div className="space-y-4">
+							{orderedEventLogs.map((evt) => {
+								const StatusIcon = getEventLogIcon(evt.severity);
+								const bg = getEventLogBg(evt.severity);
+
+								return (
+									<div key={evt.timestamp + evt.msg} className="relative">
+										<div
+											className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white z-10`}
+										>
+											<StatusIcon className="size-6" />
+										</div>
+
+										<div className="space-y-3 rounded-lg ml-4 border border-border-primary bg-gray-50/70 p-4">
+											<div className="flex flex-col gap-2">
+												<div className="flex items-center gap-2">
+													<FacilityBadge facility={evt.facility as Facility} />
+													<SeverityBadge severity={evt.severity as Severity} />
+												</div>
+												<div>
+													<div className="flex items-center gap-2 text-xs leading-5 text-text-primary flex-wrap">
+														<div className="flex items-center gap-1">
+															<Icon name="Clock" className="size-4" />
+															<span>
+																{format(
+																	parseISO(evt.timestamp),
+																	TIME_DOT_FORMAT_FULL
+																)}
+															</span>
+														</div>
+													</div>
+												</div>
+											</div>
+											<p className="font-medium text-xs bg-primary-wash p-4 rounded-md">
+												{evt.msg}
+											</p>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
 }
+
+interface CopyableTaskIdProps {
+	taskId: string;
+}
+
+function CopyableTaskId({ taskId }: CopyableTaskIdProps) {
+	const [, copy] = useCopyToClipboard();
+
+	return (
+		<button
+			type="button"
+			className="inline-flex items-center gap-1 text-sm text-gray-800 whitespace-pre-wrap group hover:text-primary"
+			onClick={(event) => {
+				event.stopPropagation();
+				copy(taskId).then((success) => {
+					if (success) {
+						toast.success('Copied task id to clipboard');
+					} else {
+						toast.error('Failed to copy task id');
+					}
+				});
+			}}
+		>
+			<code>{taskId}</code>
+			<Icon
+				name="PaperStack"
+				size={14}
+				className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
+			/>
+		</button>
+	);
+}
+
+function getEventLogBg(severity: string): string {
+	switch (severity) {
+		case Severity.ERROR:
+			return 'bg-bg-error';
+		case Severity.WARNING:
+			return 'bg-yellow-500';
+		case Severity.DEBUG:
+			return 'bg-gray-500';
+		case Severity.INFO:
+		default:
+			return 'bg-primary';
+	}
+}
+
+type EventLogIconProps = Omit<ComponentProps<typeof Icon>, 'name'>;
+
+function getEventLogIcon(severity: string): ComponentType<EventLogIconProps> {
+	switch (severity) {
+		case Severity.ERROR:
+			return (props: EventLogIconProps) => (
+				<Icon {...props} name="InformationCircleCrossMark" />
+			);
+		case Severity.WARNING:
+			return (props: EventLogIconProps) => (
+				<Icon {...props} name="TriangleExclamationMark" />
+			);
+		case Severity.DEBUG:
+			return (props: EventLogIconProps) => <Icon {...props} name="IssueIcon" />;
+		case Severity.INFO:
+		default:
+			return (props: EventLogIconProps) => (
+				<Icon {...props} name="InformationCircleCheckmark" />
+			);
+	}
+}
+
 const facilityStyles = cva({
 	base: [
 		'inline-flex',
@@ -457,9 +483,10 @@ export const statusBadgeStyles = cva({
 	],
 	variants: {
 		variant: {
-			SUCCESS: ['bg-bg-ok', 'text-white'],
+			SUCCESS: ['bg-badge-3', 'text-text-expected'],
 			FAILURE: ['bg-badge-12', 'text-white'],
-			STARTED: ['bg-primary', 'text-white'],
+			RUNNING: ['bg-primary', 'text-white'],
+			RECEIVED: ['bg-badge-0', 'text-text-secondary'],
 			UNKNOWN: ['bg-badge-0', 'text-text-primary']
 		}
 	},

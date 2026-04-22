@@ -3,8 +3,7 @@
 import { format } from 'date-fns';
 import { RocketIcon } from '@radix-ui/react-icons';
 
-import { config } from '@/bublik/config';
-import { ImportEventResponse } from '@/shared/types';
+import { ImportRunsJobResponse } from '@/shared/types';
 import {
 	ButtonTw,
 	DialogDescription,
@@ -16,7 +15,7 @@ import { useImportLog } from '../import-events-table';
 import { StatusBadge } from '../import-events-table/import-event-table.component';
 
 interface RunImportResultProps {
-	results: ImportEventResponse[];
+	results: ImportRunsJobResponse[];
 	timestamp?: Date;
 }
 
@@ -25,6 +24,13 @@ function RunImportResult({
 	timestamp = new Date()
 }: RunImportResultProps) {
 	const { toggle } = useImportLog();
+
+	const allTasks = results.flatMap((job) =>
+		job.job_tasks_data.map((task) => ({
+			...task,
+			jobId: job.job_id
+		}))
+	);
 
 	return (
 		<div>
@@ -40,14 +46,15 @@ function RunImportResult({
 			</p>
 			<h3 className="text-sm font-medium text-text-primary mb-2">Imports</h3>
 			<ul className="border rounded-md [&>*:not(:last-child)]:border-b [&>*]:border-border-primary">
-				{results.map((result, i) => {
-					const url = result.url ? new URL(result.url) : null;
+				{allTasks.map((task, i) => {
+					const url = task.run_source_url ? new URL(task.run_source_url) : null;
 					const cleanUrl = url ? url.origin + url.pathname : '';
+					const hasTask = Boolean(task.celery_task_id);
 
 					return (
 						<li key={i} className="space-y-2 p-4">
 							<div className="flex items-center justify-between gap-2">
-								<StatusBadge status={result.taskId ? 'SUCCESS' : 'FAILURE'} />
+								<StatusBadge status={hasTask ? 'SUCCESS' : 'FAILURE'} />
 								<span className="text-xs text-gray-500">
 									{format(
 										new Date(
@@ -57,6 +64,9 @@ function RunImportResult({
 										'hh:mm a'
 									)}
 								</span>
+							</div>
+							<div className="flex items-center gap-2 text-xs text-gray-500">
+								<span>Job #{task.jobId}</span>
 							</div>
 							{cleanUrl ? (
 								<a
@@ -72,7 +82,9 @@ function RunImportResult({
 								<ButtonTw
 									variant="outline-secondary"
 									onClick={
-										result.taskId ? toggle(result.taskId, true) : undefined
+										task.celery_task_id
+											? toggle(task.celery_task_id, true)
+											: undefined
 									}
 									className="flex-1"
 								>
@@ -85,7 +97,7 @@ function RunImportResult({
 									asChild
 								>
 									<a
-										href={`${config.oldBaseUrl}/flower/task/${result.taskId}`}
+										href={task.flower ?? undefined}
 										target="_blank"
 										rel="noreferrer"
 									>
