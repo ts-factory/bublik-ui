@@ -14,7 +14,6 @@ import {
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { parseDetailDate } from '@/shared/utils';
 
-import { useRunsStats } from '../runs-stats.hooks';
 import { RunLinks } from '../../runs-table/columns';
 
 interface RunsListModal {
@@ -24,13 +23,7 @@ interface RunsListModal {
 }
 
 export const RunsListModal = ({ ids, open, onOpenChange }: RunsListModal) => {
-	const { queryData } = useRunsStats();
-
-	if (!queryData || !ids.length) return null;
-
-	const filteredResults = queryData.results.filter((f) =>
-		ids.includes(String(f.id))
-	);
+	if (!ids.length) return null;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,9 +39,9 @@ export const RunsListModal = ({ ids, open, onOpenChange }: RunsListModal) => {
 					Run List
 				</h2>
 				<ul className="flex flex-col gap-4">
-					{filteredResults.map((result) => (
-						<li key={result.id}>
-							<RunsListModalItemContainer runId={String(result.id)} />
+					{ids.map((id) => (
+						<li key={id}>
+							<RunsListModalItemContainer runId={id} />
 						</li>
 					))}
 				</ul>
