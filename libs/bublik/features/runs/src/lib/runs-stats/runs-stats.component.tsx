@@ -4,7 +4,7 @@ import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { ConclusionSection, DaySection, TestsSection } from './components';
-import { RunStats } from './runs-stats.types';
+import { RunsChartBucket } from './runs-stats.types';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -36,23 +36,24 @@ export const RunsStatsError = (props: RunsStatsErrorProps) => {
 };
 
 export interface RunsStatsProps {
-	stats: RunStats[];
+	dayStats: RunsChartBucket[];
+	weekStats: RunsChartBucket[];
 }
 
-export const RunsStats = ({ stats }: RunsStatsProps) => {
+export const RunsStats = ({ dayStats, weekStats }: RunsStatsProps) => {
 	return (
 		<main className="flex flex-col gap-1">
 			<div className="bg-white rounded-md">
 				<CardHeader label="Conclusion Stats" />
-				<ConclusionSection stats={stats} />
+				<ConclusionSection stats={weekStats} />
 			</div>
 			<div className="bg-white rounded-md">
 				<CardHeader label="Tests Stats" />
-				<TestsSection stats={stats} />
+				<TestsSection stats={weekStats} />
 			</div>
 			<div className="bg-white rounded-md">
 				<CardHeader label="Day Stats" />
-				<DaySection stats={stats} />
+				<DaySection stats={dayStats} />
 			</div>
 		</main>
 	);
