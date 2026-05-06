@@ -241,7 +241,7 @@ function getColumns({ projectId, runIds }: GetColumnsOptions) {
 				return (
 					<TestComments
 						comments={comments}
-						testId={row.original.result_id}
+						testId={row.original.test_id}
 						projectId={projectId}
 					/>
 				);

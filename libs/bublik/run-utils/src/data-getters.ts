@@ -13,7 +13,7 @@ export const getStats =
 export const getTreeNode = (data?: RunData | MergedRun | null) => {
 	if (!data) return null;
 
-	const name = data.name;
+	const name = data.test_name;
 	const type = data.type;
 
 	return { name, type };

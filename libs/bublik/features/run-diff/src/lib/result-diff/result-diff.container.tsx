@@ -26,27 +26,35 @@ const getQueries = ({
 	left: RunDataWithDiff | null;
 	right: RunDataWithDiff | null;
 }) => {
-	const leftQuery =
-		left?.parent_id && left?.name
-			? {
-					parentId: left.parent_id,
-					testName: left.name,
-					requests: {
-						TOTAL: { results: [], resultProperties: [] }
+	const leftQuery = left
+		? {
+				selectors: [
+					{
+						parentId: left.parent_id ?? left.result_id,
+						startTirId: left.result_id
 					}
-			  }
-			: undefined;
+				],
+				testName: left.test_name,
+				requests: {
+					TOTAL: { results: [], resultProperties: [] }
+				}
+		  }
+		: undefined;
 
-	const rightQuery =
-		right?.parent_id && right?.name
-			? {
-					parentId: right.parent_id,
-					testName: right.name,
-					requests: {
-						TOTAL: { results: [], resultProperties: [] }
+	const rightQuery = right
+		? {
+				selectors: [
+					{
+						parentId: right.parent_id ?? right.result_id,
+						startTirId: right.result_id
 					}
-			  }
-			: undefined;
+				],
+				testName: right.test_name,
+				requests: {
+					TOTAL: { results: [], resultProperties: [] }
+				}
+		  }
+		: undefined;
 
 	return { leftQuery, rightQuery };
 };

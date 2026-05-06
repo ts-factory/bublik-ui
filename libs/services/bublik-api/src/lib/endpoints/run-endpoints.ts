@@ -55,23 +55,13 @@ export interface Verdict {
 }
 
 /**
- * Merges runs based on result_id and exec_seqno
+ * Merges runs based on test_id and exec_seqno
  * @param runs - Top most packages of runs that contain children
  * @returns Array of merged runs with **ONE** root node where stats are merged
  */
-function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
+export function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 	// TODO: Add some checks so we compare only runs with same top package?
-	const runMap = new Map<number, RunData>(runs);
-
-	const nodesMap = new Map<[number, number], Map<number, RunData>>();
-	Array.from(runMap.entries()).forEach(([runId, node]) =>
-		nodesMap.set([runId, node.result_id], createNodeMap(node))
-	);
-
-	const roots = Array.from(nodesMap.entries())
-		.map(([[_, rootId], nodeMap]) => nodeMap.get(rootId))
-		.filter((node): node is RunData => node !== undefined);
-
+	const roots = runs.map(([_runId, node]) => node);
 	const mergedNodes = createMergedNode(roots);
 
 	return [mergedNodes];
@@ -81,6 +71,7 @@ function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 			...nodes[0],
 			result_ids: [],
 			parent_ids: [],
+			result_selectors: [],
 			children: []
 		};
 
@@ -90,12 +81,16 @@ function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 
 		mergedNode.result_ids = mergeIds(nodes.map((node) => node.result_id));
 		mergedNode.parent_ids = mergeIds(parentIds);
+		mergedNode.result_selectors = nodes.map((node) => ({
+			parentId: node.parent_id ?? node.result_id,
+			startTirId: node.result_id
+		}));
 		mergedNode.stats = mergeStats(nodes.map((node) => node.stats));
 
 		const allChildren = nodes.map((node) => node.children).flat();
 		const groupedChildrenById = groupBy(
 			allChildren,
-			(child) => child.result_id
+			(child) => `${child.test_id}:${child.exec_seqno}`
 		);
 
 		Object.entries(groupedChildrenById).forEach(([_, children]) => {
@@ -132,17 +127,6 @@ function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 				DEFAULT_STATS
 			);
 		}
-	}
-
-	function createNodeMap(
-		node: RunData,
-		map: Map<number, RunData> = new Map()
-	): Map<number, RunData> {
-		map.set(node.result_id, node);
-
-		node.children.forEach((child) => createNodeMap(child, map));
-
-		return map;
 	}
 }
 
@@ -186,23 +170,28 @@ export const runEndpoints = {
 			async queryFn(query, _queryApi, _extraOptions, fetchWithBQ) {
 				try {
 					const testName = query.testName;
-					const parentIds = Array.isArray(query.parentId)
-						? query.parentId
-						: [query.parentId];
 
-					const requests = parentIds.flatMap((parentId) =>
+					const requests = query.selectors.flatMap((selector) =>
 						Object.entries(query.requests).map(([_columnId, props]) => {
 							const results = props.results.join(config.queryDelimiter);
 							const resultProperties = props.resultProperties.join(
 								config.queryDelimiter
 							);
+							const params: Record<string, string | number> = {
+								parent_id: selector.parentId,
+								test_name: testName,
+								start_tir_id: selector.startTirId
+							};
 
-							return fetchWithBQ(
-								withApiV2(
-									`/results/?parent_id=${parentId}&test_name=${testName}&results=${results}&result_properties=${resultProperties}`,
-									true
-								)
-							);
+							if (results) params.results = results;
+							if (resultProperties) {
+								params.result_properties = resultProperties;
+							}
+
+							return fetchWithBQ({
+								url: withApiV2('/results'),
+								params
+							});
 						})
 					);
 

@@ -17,12 +17,15 @@ import {
 } from './result-table.component';
 import { getRowValues } from '../run-table';
 
-function getParentId(row: Row<RunData | MergedRun>) {
+function getResultSelectors(row: Row<RunData | MergedRun>) {
 	return 'parent_ids' in row.original
-		? row.original.parent_ids.length
-			? row.original.parent_ids
-			: row.original.result_ids
-		: row.original.parent_id ?? row.original.result_id;
+		? row.original.result_selectors
+		: [
+				{
+					parentId: row.original.parent_id ?? row.original.result_id,
+					startTirId: row.original.result_id
+				}
+		  ];
 }
 
 const DEFAULT_REQUEST = {
@@ -51,8 +54,8 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	const values = useMemo(() => getRowValues(row), [row]);
 
 	const { data, isFetching, isError, error } = useGetResultsTableQuery({
-		parentId: getParentId(row),
-		testName: row.original.name,
+		selectors: getResultSelectors(row),
+		testName: row.original.test_name,
 		requests
 	});
 

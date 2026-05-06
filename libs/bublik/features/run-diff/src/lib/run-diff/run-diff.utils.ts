@@ -52,14 +52,14 @@ export const computeDiff = (config: ComputeDiffConfig) => {
 	traverseTree(leftTree, 0, (node, index, parent) => {
 		const parentChildren = parent?.children || [];
 		const filteredChildren = parentChildren.filter(
-			(child) => child.result_id === node.result_id
+			(child) => child.test_id === node.test_id
 		);
 
 		const sortedChildren = filteredChildren.sort(
 			(a, b) => a.exec_seqno - b.exec_seqno
 		);
 
-		node.id = `${node.result_id}_${
+		node.id = `${node.test_id}_${
 			sortedChildren.findIndex(
 				(sortedNOde) => sortedNOde.exec_seqno === node.exec_seqno
 			) + 1
@@ -71,14 +71,14 @@ export const computeDiff = (config: ComputeDiffConfig) => {
 	traverseTree(rightTree, 0, (node, index, parent) => {
 		const parentChildren = parent?.children || [];
 		const filteredChildren = parentChildren.filter(
-			(child) => child.result_id === node.result_id
+			(child) => child.test_id === node.test_id
 		);
 
 		const sortedChildren = filteredChildren.sort(
 			(a, b) => a.exec_seqno - b.exec_seqno
 		);
 
-		node.id = `${node.result_id}_${
+		node.id = `${node.test_id}_${
 			sortedChildren.findIndex(
 				(sortedNOde) => sortedNOde.exec_seqno === node.exec_seqno
 			) + 1

@@ -73,7 +73,10 @@ export type RunPageParams = {
 };
 
 export type ResultTableAPIQuery = {
-	parentId: number | number[];
+	selectors: {
+		parentId: number;
+		startTirId: number;
+	}[];
 	testName: string;
 };
 
@@ -103,14 +106,15 @@ export type RunStats = {
 };
 
 export type RunData = {
-	/** Should be matched between run nodes */
+	/** Test iteration result ID */
 	result_id: number;
 	/** Should be matched between run nodes */
+	test_id: number;
+	/** Should be matched between run nodes */
 	exec_seqno: number;
-	iteration_id: number;
 	parent_id: number | null;
 	type: NodeEntity;
-	name: string;
+	test_name: string;
 	period: string;
 	path: string[];
 	stats: RunStats;
@@ -125,6 +129,7 @@ export type MergedRun = Omit<
 > & {
 	parent_ids: number[];
 	result_ids: number[];
+	result_selectors: ResultTableAPIQuery['selectors'];
 	children: MergedRun[];
 };
 

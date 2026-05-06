@@ -37,8 +37,8 @@ export function getRowId(
 ) {
 	if ('result_ids' in original) {
 		return parent
-			? `${parent.id}_${original.result_ids.join(':')}_${original.exec_seqno}`
-			: `${original.result_ids.join(':')}_${original.exec_seqno}`;
+			? `${parent.id}_${original.test_id}_${original.exec_seqno}`
+			: `${original.test_id}_${original.exec_seqno}`;
 	}
 
 	const baseId = `${original.result_id}_${original.exec_seqno}`;

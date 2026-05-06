@@ -20,6 +20,10 @@ export interface UseExpandUnexpectedConfig {
 	table: Table<RunData | MergedRun>;
 }
 
+function getStartTirId(data: RunData | MergedRun): number {
+	return 'result_ids' in data ? Math.min(...data.result_ids) : data.result_id;
+}
+
 export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 	const { table } = config;
 	const rootRowId = getRootRowId(table);
@@ -66,13 +70,13 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 		(iterationId: number) => {
 			const model = table.getPreFilteredRowModel();
 			const sortedIterations = model.flatRows.sort(
-				(a, b) => a.original.iteration_id - b.original.iteration_id
+				(a, b) => getStartTirId(a.original) - getStartTirId(b.original)
 			);
 
 			let testContainingIteration: Row<RunData | MergedRun> | null = null;
 
 			for (const iteration of sortedIterations) {
-				if (iteration.original.iteration_id <= iterationId) {
+				if (getStartTirId(iteration.original) <= iterationId) {
 					testContainingIteration = iteration;
 				} else {
 					break;
