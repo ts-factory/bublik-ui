@@ -12,7 +12,8 @@ import {
 	ContextMenuSeparator,
 	toast,
 	VerdictListProps,
-	Icon
+	Icon,
+	formatBadgeString
 } from '@/shared/tailwind-ui';
 import { useCopyToClipboard } from '@/shared/hooks';
 
@@ -115,7 +116,7 @@ export const HistoryContextMenuContainer = (props: HistoryContextMenuProps) => {
 	};
 
 	const handleCopyAll = async () => {
-		const rawBadges = badges.map((badge) => badge.payload).join(', ');
+		const rawBadges = formatBadgeString(badges.map((badge) => badge.payload));
 
 		const isSuccess = await copy(rawBadges);
 

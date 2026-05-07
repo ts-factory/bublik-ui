@@ -3,3 +3,4 @@
 export * from './badge-input';
 export * from './badge-field';
 export * from './types';
+export * from './utils';
