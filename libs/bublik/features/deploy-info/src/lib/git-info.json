@@ -1,7 +1,7 @@
 {
-	"date": "2026.04.10",
-	"summary": "feat(run,settings): add settings to auto apply click search",
-	"revision": "a88725d0",
-	"branch": "release-2.11.0",
-	"latestTag": "v2.11.0"
+	"date": "2026.05.07",
+	"summary": "fix(history): support quoted badge values containing commas",
+	"revision": "200e2a6d",
+	"branch": "release-2.12.1",
+	"latestTag": "v2.12.1"
 }

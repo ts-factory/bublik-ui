@@ -1,5 +1,31 @@
 
 
+### [2.12.1](https://github.com/ts-factory/bublik-ui/compare/v2.11.0...v2.12.1) (2026-05-07)
+
+
+### 🚀 New Feature
+
+* **history:** add autocomplete to "Test Path" global search form field ([ae3d3d8](https://github.com/ts-factory/bublik-ui/commit/ae3d3d8c351be852e0b737d3b49024137a9491d6))
+* **router:** send current URL information to parent window ([5eab15d](https://github.com/ts-factory/bublik-ui/commit/5eab15d2b25dd5a9604904d1ca37a54671191862))
+
+
+### 🐛 Bug Fix
+
+* **history:** preserve verdict lookup type when clicking reset verdict button ([09d78f9](https://github.com/ts-factory/bublik-ui/commit/09d78f9e706fe3ea1615bc232741b9da138c6f1b))
+* **history:** support quoted badge values containing commas ([200e2a6](https://github.com/ts-factory/bublik-ui/commit/200e2a6d1e26b877f74a346d405cb982c38df02b))
+
+
+### ♻ Code Refactoring
+
+* **import:** adapt import table to new API changes ([ba7d169](https://github.com/ts-factory/bublik-ui/commit/ba7d169153c8a6629aef7a6ae03014c867963124))
+* **run:** adapt for new api changes ([139001e](https://github.com/ts-factory/bublik-ui/commit/139001ef3b35bf9a7ff1beea617d7aace699a31a))
+
+
+### 📦 Chores
+
+* **measurements:** normalize stacked chart y-axes for multi-axis plots ([8933fd8](https://github.com/ts-factory/bublik-ui/commit/8933fd83ce450fd7608d23b9431bb01558659763)), closes [#532](https://github.com/ts-factory/bublik-ui/issues/532)
+* **run:** make "Objective" column visible by default ([e1b1285](https://github.com/ts-factory/bublik-ui/commit/e1b1285548d20bf3c94d0e734e6fab0134ae1c81))
+
 ## [2.11.0](https://github.com/ts-factory/bublik-ui/compare/v2.10.5...v2.11.0) (2026-04-10)
 
 
