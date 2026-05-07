@@ -325,6 +325,14 @@ function resolveStackedOptions(
 			groupedPlotIndices.push(idx);
 		}
 	});
+
+	if (yAxisConfigs.length > 1) {
+		yAxisConfigs.forEach((yAxisConfig) => {
+			yAxisConfig.min = 0;
+			yAxisConfig.max = 'dataMax';
+		});
+	}
+
 	const plotToYAxisIndex = new Map<number, number>();
 	yAxisGroups.forEach((plotIndices, _yAxisLabel) => {
 		const yAxisIndex = Array.from(yAxisGroups.keys()).indexOf(_yAxisLabel);
