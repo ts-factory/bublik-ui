@@ -105,7 +105,7 @@ export const useHistoryGlobalSearchForm = (
 		methods.reset({
 			...methods.getValues(),
 			verdict: [],
-			verdictLookup: VERDICT_TYPE.None,
+			verdictLookup: methods.getValues().verdictLookup,
 			verdictExpr: ''
 		});
 	};
