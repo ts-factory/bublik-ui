@@ -8,3 +8,4 @@ export * from './scroll-container';
 export * from './section-header';
 export * from './section-subheader';
 export * from './form-section/form-section';
+export * from './test-path-combobox';

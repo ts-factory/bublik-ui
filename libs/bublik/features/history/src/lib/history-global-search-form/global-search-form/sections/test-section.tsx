@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { TextField, BadgeField } from '@/shared/tailwind-ui';
@@ -8,7 +8,8 @@ import { TextField, BadgeField } from '@/shared/tailwind-ui';
 import {
 	ExpressionToggleButton,
 	FieldResetButton,
-	FormSection
+	FormSection,
+	TestPathComboboxField
 } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
 
@@ -18,6 +19,7 @@ export type TestSectionProps = {
 };
 
 export const TestSection = (props: TestSectionProps) => {
+	const portalRef = useRef<HTMLDivElement>(null);
 	const { control, watch, setValue } =
 		useFormContext<HistoryGlobalSearchFormValues>();
 	const [isParametersExpressionVisible, setIsParametersExpressionVisible] =
@@ -37,14 +39,13 @@ export const TestSection = (props: TestSectionProps) => {
 				/>
 			</FormSection.Header>
 			<div className="flex flex-col gap-4">
-				<div className="grid gap-4 md:grid-cols-2">
-					<TextField
+				<div className="grid gap-4 md:grid-cols-2" ref={portalRef}>
+					<TestPathComboboxField
 						name="testName"
 						label="Test Path"
-						type="text"
 						placeholder="default_buff"
-						showEndOnMount
 						control={control}
+						container={portalRef}
 					/>
 					<TextField
 						name="hash"

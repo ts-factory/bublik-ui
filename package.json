@@ -39,6 +39,7 @@
 	},
 	"private": true,
 	"dependencies": {
+		"@base-ui/react": "^1.4.1",
 		"@dnd-kit/core": "^6.1.0",
 		"@dnd-kit/utilities": "^3.2.2",
 		"@goodtools/wiregasm": "^1.8.2",

@@ -33,6 +33,18 @@ export const historyEndpoints = {
 			},
 			providesTags: () => [BUBLIK_TAG.HistoryData]
 		}),
+		getTestSearchOptions: build.query<string[], { project?: number }>({
+			query: (query) => {
+				const { project } = query;
+
+				return {
+					url: withApiV2('/history/test_search_options'),
+					params: prepareForSend({ project }),
+					cache: 'no-cache'
+				};
+			},
+			providesTags: () => [BUBLIK_TAG.HistoryData]
+		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
 			HistoryAPIBackendQuery
