@@ -71,7 +71,7 @@ export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	[ColumnId.Total]: false,
 	[ColumnId.ExpectedTotal]: false,
 	[ColumnId.UnexpectedTotal]: false,
-	[ColumnId.Objective]: false,
+	[ColumnId.Objective]: true,
 	[ColumnId.Comments]: false
 };
 
