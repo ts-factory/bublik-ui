@@ -14,12 +14,30 @@ import {
 	ImportTaskFiltersSchema
 } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
-import { config } from '@/bublik/config';
 
 import { BublikBaseQueryFn, withApiV2 } from '../../config';
 import { API_REDUCER_PATH } from '../../constants';
 import { BUBLIK_TAG } from '../../types';
 import { MaybePromise } from '../../utils';
+
+const buildImportRunSourceUrl = (run: ImportRunInput) => {
+	const params = new URLSearchParams();
+	params.set('url', run.url);
+	if (run.range?.startDate) {
+		params.set('from', formatTimeToAPI(run.range.startDate));
+	}
+	if (run.range?.endDate) {
+		params.set('to', formatTimeToAPI(run.range.endDate));
+	}
+	if (run.force) {
+		params.set('force', 'true');
+	}
+	if (run.project != null) {
+		params.set('project', String(run.project));
+	}
+
+	return `${withApiV2('/importruns/source/', true)}?${params.toString()}`;
+};
 
 export const importLogEventsEndpoint = {
 	endpoints: (
@@ -48,29 +66,9 @@ export const importLogEventsEndpoint = {
 		importRuns: build.mutation<ImportRunsJobResponse[], ImportRunInput[]>({
 			queryFn: async (runUrls, _api, _extraOptions, baseQuery) => {
 				const importRunPromises = runUrls.map((run) => {
-					const params = new URLSearchParams();
-					params.set('url', run.url);
-					if (run.range?.startDate) {
-						params.set('from', formatTimeToAPI(run.range.startDate));
-					}
-					if (run.range?.endDate) {
-						params.set('to', formatTimeToAPI(run.range.endDate));
-					}
-					if (run.force) {
-						params.set('force', 'true');
-					}
-					if (run.project != null) {
-						params.set('project', String(run.project));
-					}
+					const url = buildImportRunSourceUrl(run);
 
-					const url = `${withApiV2(
-						'/importruns/source/',
-						true
-					)}?${params.toString()}`;
-
-					return baseQuery(`${config.rootUrl}${url}`) as MaybePromise<
-						QueryReturnValue<unknown>
-					>;
+					return baseQuery(url) as MaybePromise<QueryReturnValue<unknown>>;
 				});
 
 				const responses = await Promise.allSettled(importRunPromises);
@@ -116,3 +114,5 @@ export const importLogEventsEndpoint = {
 		})
 	})
 };
+
+export { buildImportRunSourceUrl };
