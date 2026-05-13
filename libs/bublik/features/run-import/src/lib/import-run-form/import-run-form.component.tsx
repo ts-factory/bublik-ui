@@ -24,7 +24,6 @@ import {
 	ButtonTw,
 	Checkbox,
 	cn,
-	DialogDescription,
 	DialogTitle,
 	FormAlertError,
 	Icon,
@@ -194,7 +193,7 @@ export const ImportRunForm = forwardRef<
 					value={projectValue}
 					onValueChange={handleProjectFieldChange}
 				/>
-				<p className="text-gray-500 text-sm leading-relaxed font-normal space-y-1">
+				<div className="text-gray-500 text-sm leading-relaxed font-normal space-y-1">
 					<span>
 						Run must be linked to a project. If it isn’t, the import will fail.{' '}
 						<br />
@@ -206,7 +205,7 @@ export const ImportRunForm = forwardRef<
 						<br />
 					</span>
 					<span className="font-medium text-gray-600">Precedence order:</span>
-					<ol className="list-decimal list-inside mt-1 space-y-0.5">
+					<div className="list-decimal list-inside mt-1 space-y-0.5">
 						<li>Project specified in the import form</li>
 						<li>
 							Project specified in{' '}
@@ -214,8 +213,8 @@ export const ImportRunForm = forwardRef<
 								meta_data.json
 							</code>
 						</li>
-					</ol>
-				</p>
+					</div>
+				</div>
 
 				<div className="flex flex-col gap-4">
 					<div className="grid grid-cols-[1fr,min-content,min-content] gap-y-2 gap-x-2">
@@ -263,13 +262,14 @@ export const ImportRunForm = forwardRef<
 						size="md"
 						variant="primary"
 						className="w-full"
+						disabled={formControl.formState.isSubmitting}
 					>
 						{formControl.formState.isSubmitting ? (
-							<Icon name="ProgressIndicator" className="pr-2" />
+							<Icon name="ProgressIndicator" className="mr-1.5 animate-spin" />
 						) : null}
 						{formControl.formState.isSubmitting
-							? 'Importing...'
-							: 'Start Import'}
+							? 'Creating import jobs…'
+							: 'Import'}
 					</ButtonTw>
 				</div>
 			</form>

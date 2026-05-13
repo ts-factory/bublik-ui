@@ -18,7 +18,7 @@ import { RunImportResult } from './import-run-form-result-list.component';
 type FormState = 'form' | 'result';
 
 export const useImportTasks = () => {
-	const [importRuns] = useImportRunsMutation();
+	const [importRuns, { isLoading: isImporting }] = useImportRunsMutation();
 	const [step, setStep] = useState<FormState>('form');
 	const [importJobs, setImportJobs] = useState<ImportRunsJobResponse[]>([]);
 	const importFormRef = useRef<ImportRunFormHandle>(null);
@@ -75,16 +75,29 @@ export const useImportTasks = () => {
 		setImportJobs([]);
 	};
 
-	return { step, onFormClose, onFormSubmit, importJobs, importFormRef };
+	return {
+		step,
+		onFormClose,
+		onFormSubmit,
+		importJobs,
+		importFormRef,
+		isImporting
+	};
 };
 
 export const ImportRunFormContainer = () => {
-	const { step, onFormClose, onFormSubmit, importJobs, importFormRef } =
-		useImportTasks();
+	const {
+		step,
+		onFormClose,
+		onFormSubmit,
+		importJobs,
+		importFormRef,
+		isImporting
+	} = useImportTasks();
 	const { data, error, isLoading } = bublikAPI.useGetAllProjectsQuery();
 
 	return (
-		<ImportRunFormModal onClose={onFormClose}>
+		<ImportRunFormModal onClose={onFormClose} preventClose={isImporting}>
 			{step === 'form' && !error && !isLoading && data && (
 				<ImportRunForm
 					projects={data}

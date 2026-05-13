@@ -71,7 +71,10 @@ function EventTableWithData({ data }: { data: ImportTaskRow[] }) {
 	);
 }
 
-function createImportTaskRow(runtime: number | null, jobId: number): ImportTaskRow {
+function createImportTaskRow(
+	runtime: number | null,
+	jobId: number
+): ImportTaskRow {
 	return {
 		status: 'SUCCESS',
 		run_source_url: `https://example.com/run/${jobId}`,

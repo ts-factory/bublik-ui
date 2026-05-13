@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState } from 'react';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
@@ -11,15 +11,31 @@ import {
 	TwScrollArea,
 	Icon,
 	Tooltip,
-	DialogClose
+	DialogClose,
+	toast
 } from '@/shared/tailwind-ui';
+
+const CLOSE_BLOCKED_TOAST_ID = 'import-runs-close-blocked';
 
 interface ImportRunFormModalProps {
 	onClose?: () => void;
+	preventClose?: boolean;
 }
 
 function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
+	const [open, setOpen] = useState(false);
+
 	const handleOpenChange = (open: boolean) => {
+		if (!open && props.preventClose) {
+			toast.warning(
+				'Import is still in progress. Please wait until it finishes.',
+				{ id: CLOSE_BLOCKED_TOAST_ID }
+			);
+			return;
+		}
+
+		setOpen(open);
+
 		if (open) {
 			trackEvent(analyticsEventNames.importModalOpen, {
 				source: 'import_page'
@@ -30,7 +46,7 @@ function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 	};
 
 	return (
-		<Dialog onOpenChange={handleOpenChange}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<ButtonTw variant="outline" size="md" rounded="lg">
 					<Icon name="FilePlus" size={24} className="mr-1.5 text-primary" />
