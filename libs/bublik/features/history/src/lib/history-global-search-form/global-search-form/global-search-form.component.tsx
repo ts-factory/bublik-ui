@@ -96,7 +96,7 @@ const MainFormHeader = (props: MainFormHeaderProps) => {
 			>
 				<DialogClose
 					onClick={props.onCloseButtonClick}
-					className="rounded hover:bg-primary-wash p-2 hover:text-primary text-text-menu"
+					className="rounded hover:bg-primary-wash p-2 mr-1 hover:text-primary text-text-menu"
 				>
 					<Icon name="Cross" className="size-4" />
 				</DialogClose>
