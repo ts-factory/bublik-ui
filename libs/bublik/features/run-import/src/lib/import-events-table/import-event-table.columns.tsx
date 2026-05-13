@@ -107,16 +107,21 @@ function ActionsCell(props: ActionCellProps) {
 }
 
 function formatRuntime(seconds: number): string {
-	const hrs = Math.floor(seconds / 3600);
-	const mins = Math.floor((seconds % 3600) / 60);
-	const secs = (seconds % 60).toFixed(2);
+	if (!Number.isFinite(seconds) || seconds < 0) return '-';
 
-	const parts = [];
-	if (hrs > 0) parts.push(`${hrs}h`);
-	if (mins > 0) parts.push(`${mins}m`);
-	parts.push(`${secs}s`);
+	const totalCentiseconds = Math.round(seconds * 100);
+	const hrs = Math.floor(totalCentiseconds / 360000);
+	const mins = Math.floor((totalCentiseconds % 360000) / 6000);
+	const secs = Math.floor((totalCentiseconds % 6000) / 100);
+	const centiseconds = totalCentiseconds % 100;
 
-	return parts.join(' ');
+	return [
+		hrs.toString().padStart(2, '0'),
+		mins.toString().padStart(2, '0'),
+		`${secs.toString().padStart(2, '0')}.${centiseconds
+			.toString()
+			.padStart(2, '0')}`
+	].join(':');
 }
 
 interface CopyableValueProps {
@@ -199,6 +204,11 @@ export const columns = [
 		),
 		meta: { width: 'min-content' }
 	}),
+	columnHelper.accessor('job_id', {
+		header: 'Job Id',
+		cell: (cell) => <CopyableValue label="Job ID" value={cell.getValue()} />,
+		meta: { width: 'max-content' }
+	}),
 	columnHelper.accessor('status', {
 		header: () => <span className="pl-2.5">Status</span>,
 		cell: (cell) => {
@@ -214,25 +224,6 @@ export const columns = [
 			if (!date) return null;
 			return parseDetailDate(date);
 		},
-		meta: { width: 'max-content' }
-	}),
-	columnHelper.accessor('runtime', {
-		header: 'Runtime',
-		cell: (cell) => {
-			const value = cell.getValue();
-			if (value == null) return null;
-			return <span>{formatRuntime(value)}</span>;
-		},
-		meta: { width: '96px' }
-	}),
-	columnHelper.accessor('job_id', {
-		header: 'Job Id',
-		cell: (cell) => <CopyableValue label="Job ID" value={cell.getValue()} />,
-		meta: { width: 'max-content' }
-	}),
-	columnHelper.accessor('run_id', {
-		header: 'Run Id',
-		cell: (cell) => <CopyableValue label="Run ID" value={cell.getValue()} />,
 		meta: { width: 'max-content' }
 	}),
 	columnHelper.accessor('run_source_url', {
@@ -251,7 +242,19 @@ export const columns = [
 				</a>
 			);
 		},
-		meta: { width: 'minmax(280px, 2fr)' }
+		meta: { width: 'minmax(280px, max-content)' }
+	}),
+	columnHelper.accessor('runtime', {
+		header: 'Runtime',
+		cell: (cell) => {
+			const value = cell.getValue();
+			if (value == null) return null;
+			return <span>{formatRuntime(value)}</span>;
+		},
+		meta: {
+			className: 'justify-end text-right tabular-nums',
+			width: 'minmax(6.75rem, max-content)'
+		}
 	}),
 	columnHelper.accessor('error_msg', {
 		header: 'Error',
@@ -324,6 +327,6 @@ export const columns = [
 				</div>
 			);
 		},
-		meta: { width: '72px' }
+		meta: { width: 'min-content' }
 	})
 ];

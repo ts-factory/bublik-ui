@@ -120,6 +120,10 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 		return () => container.removeEventListener('scroll', handleScroll);
 	}, []);
 
+	const handlePaginationChange = () => {
+		containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	};
+
 	return (
 		<>
 			<div className="px-6 py-4 bg-white rounded-t-xl">
@@ -133,7 +137,10 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 					{props.children}
 				</div>
 			</div>
-			<div className="flex flex-col overflow-auto flex-grow" ref={containerRef}>
+			<div
+				className="flex flex-col flex-grow min-h-0 overflow-auto relative"
+				ref={containerRef}
+			>
 				{isLoading ? (
 					<ImportEventTableLoading />
 				) : error ? (
@@ -147,6 +154,7 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 						setExpanded={setExpanded}
 						rowCount={data.pagination.count}
 						isScrolled={isScrolled}
+						onPaginationChange={handlePaginationChange}
 					/>
 				) : (
 					<ImportEventTableEmpty />

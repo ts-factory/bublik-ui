@@ -39,6 +39,39 @@ const buildImportRunSourceUrl = (run: ImportRunInput) => {
 	return `${withApiV2('/importruns/source/', true)}?${params.toString()}`;
 };
 
+function parseImportRuntime(runtime?: string | null): number | null {
+	if (!runtime) return null;
+
+	const value = runtime.trim();
+	if (!value) return null;
+
+	const parts = value.split(':');
+	if (parts.length === 3) {
+		const [hours, minutes, seconds] = parts.map(Number);
+
+		if ([hours, minutes, seconds].every(Number.isFinite)) {
+			return hours * 3600 + minutes * 60 + seconds;
+		}
+
+		return null;
+	}
+
+	const seconds = Number(value);
+	return Number.isFinite(seconds) ? seconds : null;
+}
+
+function transformImportTaskListResponse(
+	response: z.infer<typeof ImportTaskListRawResponseSchema>
+): z.infer<typeof ImportTaskListResponseSchema> {
+	return {
+		...response,
+		results: response.results.map((result) => ({
+			...result,
+			runtime: parseImportRuntime(result.runtime)
+		}))
+	};
+}
+
 export const importLogEventsEndpoint = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
@@ -54,13 +87,8 @@ export const importLogEventsEndpoint = {
 			rawResponseSchema: ImportTaskListRawResponseSchema,
 			transformResponse: (
 				response: z.infer<typeof ImportTaskListRawResponseSchema>
-			): z.infer<typeof ImportTaskListResponseSchema> => ({
-				...response,
-				results: response.results.map((result) => ({
-					...result,
-					runtime: result.runtime ? parseFloat(result.runtime) : null
-				}))
-			}),
+			): z.infer<typeof ImportTaskListResponseSchema> =>
+				transformImportTaskListResponse(response),
 			providesTags: [BUBLIK_TAG.importEvents]
 		}),
 		importRuns: build.mutation<ImportRunsJobResponse[], ImportRunInput[]>({
@@ -115,4 +143,8 @@ export const importLogEventsEndpoint = {
 	})
 };
 
-export { buildImportRunSourceUrl };
+export {
+	buildImportRunSourceUrl,
+	parseImportRuntime,
+	transformImportTaskListResponse
+};

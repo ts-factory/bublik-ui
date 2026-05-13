@@ -33,11 +33,7 @@ import { TIME_DOT_FORMAT_FULL } from '@/shared/utils';
 import { config } from '@/bublik/config';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
-import {
-	columns,
-	getBgByStatus,
-	getIconByStatus
-} from './import-event-table.columns';
+import { columns } from './import-event-table.columns';
 import { FACILITY_MAP, SEVERITY_MAP } from '../utils';
 import { getSeverityBgColor } from './import-event-table-utils';
 import { useImportLog } from './import-log.component';
@@ -57,11 +53,20 @@ interface ImportEventTableProps {
 	setExpanded: OnChangeFn<ExpandedState>;
 	isScrolled: boolean;
 	rowCount: number;
+	onPaginationChange?: () => void;
 }
 
 function ImportEventTable(props: ImportEventTableProps) {
-	const { data, pagination, setPagination, rowCount, expanded, setExpanded } =
-		props;
+	const {
+		data,
+		pagination,
+		setPagination,
+		rowCount,
+		expanded,
+		setExpanded,
+		isScrolled,
+		onPaginationChange
+	} = props;
 
 	const table = useReactTable({
 		state: { pagination, expanded },
@@ -83,9 +88,19 @@ function ImportEventTable(props: ImportEventTableProps) {
 		.map((col) => col.meta?.['width'] || 'minmax(0, 1fr)')
 		.join(' ');
 
+	const handlePageChange = (page: number) => {
+		onPaginationChange?.();
+		table.setPageIndex(page - 1);
+	};
+
+	const handlePageSizeChange = (pageSize: number) => {
+		onPaginationChange?.();
+		table.setPageSize(pageSize);
+	};
+
 	return (
 		<div>
-			<div className="w-full overflow-hidden">
+			<div className="w-full">
 				<div className="grid" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
@@ -96,7 +111,7 @@ function ImportEventTable(props: ImportEventTableProps) {
 									<div
 										key={header.id}
 										className={cn(
-											'tracking-wider sticky top-0 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white',
+											'tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white',
 											className
 										)}
 									>
@@ -109,6 +124,13 @@ function ImportEventTable(props: ImportEventTableProps) {
 									</div>
 								);
 							})}
+							<div
+								className={cn(
+									'sticky top-[30px] z-10 col-span-full h-2 -mb-2 pointer-events-none bg-gradient-to-b from-black/10 to-transparent',
+									isScrolled && 'opacity-100',
+									!isScrolled && 'opacity-0'
+								)}
+							/>
 						</Fragment>
 					))}
 
@@ -118,12 +140,12 @@ function ImportEventTable(props: ImportEventTableProps) {
 				</div>
 			</div>
 
-			<div className="flex items-center justify-center mt-4">
+			<div className="flex items-center justify-center">
 				<Pagination
 					totalCount={rowCount}
 					pageSize={table.getState().pagination.pageSize}
-					onPageChange={(page) => table.setPageIndex(page - 1)}
-					onPageSizeChange={table.setPageSize}
+					onPageChange={handlePageChange}
+					onPageSizeChange={handlePageSizeChange}
 					currentPage={table.getState().pagination.pageIndex + 1}
 				/>
 			</div>
@@ -424,19 +446,6 @@ const facilityStyles = cva({
 		}
 	}
 });
-
-function formatRuntime(seconds: number): string {
-	const hrs = Math.floor(seconds / 3600);
-	const mins = Math.floor((seconds % 3600) / 60);
-	const secs = (seconds % 60).toFixed(2);
-
-	const parts = [];
-	if (hrs > 0) parts.push(`${hrs}h`);
-	if (mins > 0) parts.push(`${mins}m`);
-	parts.push(`${secs}s`);
-
-	return parts.join(' ');
-}
 
 interface FacilityBadgeProps {
 	facility: Facility;
