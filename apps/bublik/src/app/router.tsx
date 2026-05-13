@@ -186,7 +186,7 @@ function AnalyticsRouteTracker() {
 		if (!isAnalyticsEnabled) return;
 
 		trackPageView({ path: location.pathname });
-	}, [isAnalyticsEnabled, location.key, location.pathname]);
+	}, [isAnalyticsEnabled, location.pathname]);
 
 	return null;
 }
