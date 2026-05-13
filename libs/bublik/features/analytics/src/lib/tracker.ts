@@ -314,7 +314,6 @@ const trackPageView = ({ path }: { path: string }) => {
 };
 
 const trackEvent = (name: string, payload?: unknown) => {
-	console.log(name, payload);
 	if (!isAnalyticsEnabled || typeof window === 'undefined') {
 		return;
 	}
