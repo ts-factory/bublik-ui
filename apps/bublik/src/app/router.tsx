@@ -11,14 +11,10 @@ import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
 import { config } from '@/bublik/config';
-import {
-	setAnalyticsEnabled,
-	trackPageView
-} from '@/bublik/features/analytics';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
-import { bublikAPI } from '@/services/bublik-api';
 
 import { AuthLayout } from '../pages/auth/auth.layout';
+import { AnalyticsRouteTracker } from './analytics-route-tracker.component';
 import { Layout } from './layout';
 import { RedirectToDashboard, RedirectToLogPage } from './redirects';
 
@@ -171,24 +167,6 @@ function LazyRoute({ children }: { children: React.ReactNode }) {
 	return (
 		<Suspense fallback={<Spinner className="h-48" />}>{children}</Suspense>
 	);
-}
-
-function AnalyticsRouteTracker() {
-	const location = useLocation();
-	const { data: features } = bublikAPI.useGetServerFeaturesQuery();
-	const isAnalyticsEnabled = Boolean(features?.analytics_enabled);
-
-	useEffect(() => {
-		setAnalyticsEnabled(isAnalyticsEnabled);
-	}, [isAnalyticsEnabled]);
-
-	useEffect(() => {
-		if (!isAnalyticsEnabled) return;
-
-		trackPageView({ path: location.pathname });
-	}, [isAnalyticsEnabled, location.pathname]);
-
-	return null;
 }
 
 /**
