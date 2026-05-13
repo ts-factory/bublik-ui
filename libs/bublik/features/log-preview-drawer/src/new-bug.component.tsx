@@ -3,12 +3,14 @@
 import { ComponentProps } from 'react';
 
 import {
+	getLogTimestampSeconds,
 	LogTableSchema,
 	RootBlock,
 	RunDetailsAPIResponse,
 	TreeDataAPIResponse
 } from '@/shared/types';
 import { useCopyToClipboard } from '@/shared/hooks';
+import { formatUnixTimestampToTimezone } from '@/shared/utils';
 import { config } from '@/bublik/config';
 import {
 	cn,
@@ -207,7 +209,7 @@ function generateMarkdownTable<T extends Record<string, unknown>>(
 	return [header, separator, ...rows].join('\n');
 }
 
-function getFormattedMarkdown(
+export function getFormattedMarkdown(
 	options: NewBugButtonProps & { globalFilter: string[] }
 ): string {
 	const DELIMETER = '=';
@@ -393,7 +395,7 @@ function getFormattedMarkdown(
 				{
 					header: 'Timestamp',
 					accessor: 'timestamp',
-					cell: (v) => v.formatted
+					cell: (v) => formatUnixTimestampToTimezone(getLogTimestampSeconds(v))
 				},
 				{
 					header: 'Log Content',
@@ -419,7 +421,7 @@ function getFormattedMarkdown(
 
 const VERDICT_ENTTITY = 'Verdict';
 
-type BugTags = {
+export type BugTags = {
 	branches: string[];
 	important: string[];
 	revisions?: { name?: string; value: string; url?: string }[];
@@ -428,7 +430,7 @@ type BugTags = {
 	configuration?: string;
 };
 
-interface NewBugButtonProps {
+export interface NewBugButtonProps {
 	link: string;
 	path?: string;
 	name: string;

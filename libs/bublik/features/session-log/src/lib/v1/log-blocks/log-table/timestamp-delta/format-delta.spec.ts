@@ -1,8 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { createElement } from 'react';
+import { render } from '@testing-library/react';
+import type { Row } from '@tanstack/react-table';
 import { describe, test, expect } from 'vitest';
-import { formatDelta } from './timestamp-delta';
+
+import type { LogJsonTimestamp, LogTableData } from '@/shared/types';
 import { formatUnixTimestampToTimezone } from '@/shared/utils';
+
+import { DeltaContextProvider } from '../log-table.context';
+import { LOG_COLUMNS } from '../log-table.columns';
+import { formatDelta, TimestampDelta } from './timestamp-delta';
+
+function createRow(timestamp: LogJsonTimestamp) {
+	return {
+		getValue: (column: string) => {
+			if (column === LOG_COLUMNS.timestamp) return timestamp;
+
+			return undefined;
+		}
+	} as unknown as Row<LogTableData>;
+}
+
 describe('format delta', () => {
 	test('should display zero difference properly', () => {
 		expect(formatDelta(0, 0)).toBe('00:00:00.0');
@@ -54,5 +73,56 @@ describe('formatUnixTimestampToTimezone', () => {
 		const result = formatUnixTimestampToTimezone(1758662506.123456);
 		expect(result).toBeDefined();
 		expect(typeof result).toBe('string');
+	});
+});
+
+describe('TimestampDelta', () => {
+	test('should display top-level timestamp values', () => {
+		const timestamp = 1758662506.123456;
+		const row = createRow(timestamp);
+
+		const { getByText } = render(
+			createElement(
+				DeltaContextProvider,
+				{
+					value: {
+						anchorRow: row,
+						setAnchorRow: () => undefined,
+						resetAnchorRow: () => undefined
+					}
+				},
+				createElement(TimestampDelta, { data: timestamp, row })
+			)
+		);
+
+		expect(getByText(formatUnixTimestampToTimezone(timestamp))).toBeDefined();
+	});
+
+	test('should calculate deltas between legacy and top-level timestamp values', () => {
+		const anchorRow = createRow({
+			timestamp: 1758662506,
+			formatted: '00:00:00.000'
+		});
+		const row = createRow(1758662507.125);
+
+		const { getByText } = render(
+			createElement(
+				DeltaContextProvider,
+				{
+					value: {
+						anchorRow,
+						setAnchorRow: () => undefined,
+						resetAnchorRow: () => undefined
+					}
+				},
+				createElement(TimestampDelta, {
+					data: 1758662507.125,
+					row,
+					showDelta: true
+				})
+			)
+		);
+
+		expect(getByText('+ 00:00:01.125')).toBeDefined();
 	});
 });

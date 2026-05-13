@@ -3,11 +3,15 @@
 import { Row } from '@tanstack/react-table';
 
 import { toast } from '@/shared/tailwind-ui';
-import { LogJsonTimestamp, LogTableData } from '@/shared/types';
+import { formatUnixTimestampToTimezone } from '@/shared/utils';
+import {
+	getLogTimestampSeconds,
+	LogJsonTimestamp,
+	LogTableData
+} from '@/shared/types';
 
 import { useDeltaContext } from '../log-table.context';
 import { LOG_COLUMNS } from '../log-table.columns';
-import { formatUnixTimestampToTimezone } from '@/shared/utils';
 
 export type TimestampDeltaProps = {
 	data: LogTableData['timestamp'];
@@ -22,17 +26,17 @@ export const TimestampDelta = (props: TimestampDeltaProps) => {
 	if (!showDelta) {
 		return (
 			<span className="inline-flex">
-				{formatUnixTimestampToTimezone(value.timestamp)}
+				{formatUnixTimestampToTimezone(getLogTimestampSeconds(value))}
 			</span>
 		);
 	}
 
-	const anchorSeconds = anchorRow.getValue<LogJsonTimestamp>(
-		LOG_COLUMNS.timestamp
-	).timestamp;
-	const compareSeconds = row.getValue<LogJsonTimestamp>(
-		LOG_COLUMNS.timestamp
-	).timestamp;
+	const anchorSeconds = getLogTimestampSeconds(
+		anchorRow.getValue<LogJsonTimestamp>(LOG_COLUMNS.timestamp)
+	);
+	const compareSeconds = getLogTimestampSeconds(
+		row.getValue<LogJsonTimestamp>(LOG_COLUMNS.timestamp)
+	);
 
 	const handleAnchroClick = () => {
 		setAnchorRow(row);

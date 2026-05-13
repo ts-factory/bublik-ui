@@ -134,6 +134,11 @@
 															"type": "string",
 															"description": "Optional objective"
 														},
+														"requirements": {
+															"type": "array",
+															"items": { "type": "string" },
+															"description": "Optional list of requirements"
+														},
 														"authors": {
 															"type": "array",
 															"items": {
@@ -218,13 +223,18 @@
 															"entity_name": { "type": "string" },
 															"user_name": { "type": "string" },
 															"timestamp": {
-																"type": "object",
-																"properties": {
-																	"timestamp": { "type": "number" },
-																	"formatted": { "type": "string" }
-																},
-																"required": ["timestamp", "formatted"],
-																"additionalProperties": false
+																"anyOf": [
+																	{ "type": "number" },
+																	{
+																		"type": "object",
+																		"properties": {
+																			"timestamp": { "type": "number" },
+																			"formatted": { "type": "string" }
+																		},
+																		"required": ["timestamp", "formatted"],
+																		"additionalProperties": false
+																	}
+																]
 															},
 															"log_content": {
 																"type": "array",

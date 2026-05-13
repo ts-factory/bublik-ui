@@ -205,12 +205,19 @@ export type LogContentSnifferPacket = z.infer<
  |--------------------------------------------------
  */
 
-export const LogJsonTimestampSchema = z.object({
-	timestamp: z.number(),
-	formatted: z.string()
-});
+export const LogJsonTimestampSchema = z.union([
+	z.number(),
+	z.object({
+		timestamp: z.number(),
+		formatted: z.string()
+	})
+]);
 
 export type LogJsonTimestamp = z.infer<typeof LogJsonTimestampSchema>;
+
+export function getLogTimestampSeconds(timestamp: LogJsonTimestamp): number {
+	return typeof timestamp === 'number' ? timestamp : timestamp.timestamp;
+}
 
 export const LogTableDataBaseSchema = z
 	.object({
