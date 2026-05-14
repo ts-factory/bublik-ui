@@ -8,17 +8,16 @@ import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
+import { Skeleton, useSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
 
 import { useRunsSelection } from '../hooks';
 import { useRunsSidebarState } from '../sidebar';
+import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover.constants';
 import {
 	SelectedResultItem,
 	SelectionPopover
 } from './selection-popover.component';
-
-import { Skeleton } from '@/shared/tailwind-ui';
-
 export interface SelectedResultItemContainerProps {
 	runId: string;
 }
@@ -28,8 +27,14 @@ export const SelectedResultItemContainer: FC<
 > = ({ runId }) => {
 	const { compareIds, removeSelection } = useRunsSelection();
 	const { data, isLoading, isError, error } = useGetRunDetailsQuery(runId);
+	const { resetOpenState } = useSelectionPopoverOpenState(
+		RUNS_SELECTION_POPOVER_STORAGE_KEY
+	);
 
 	const handleRemove = () => {
+		if (compareIds.length === 1) {
+			resetOpenState();
+		}
 		removeSelection(runId);
 		trackEvent(analyticsEventNames.runsRowSelectionChange, {
 			action: 'remove',

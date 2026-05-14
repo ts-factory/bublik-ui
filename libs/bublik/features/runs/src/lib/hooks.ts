@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
 import { RunsAPIQuery } from '@/shared/types';
+import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { useProjectSearch } from '@/bublik/features/projects';
 import {
@@ -19,6 +20,7 @@ import {
 import { updateGlobalFilter } from './runs-slice';
 import { selectGlobalFilter } from './runs-slice.selectors';
 import { normalizeRunDataQuery } from './runs-key-value';
+import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover/selection-popover.constants';
 
 export const useRunsGlobalFilter = () => {
 	const dispatch = useDispatch();
@@ -150,6 +152,8 @@ export const useRunsSelection = () => {
 	const compareIds = selectedRunIds;
 
 	const resetSelection = useCallback(() => {
+		resetSelectionPopoverOpenState(RUNS_SELECTION_POPOVER_STORAGE_KEY);
+
 		const newParams = updateSidebarStateSearchParams(
 			new URLSearchParams(searchParams),
 			(sidebarState) => {
@@ -169,6 +173,11 @@ export const useRunsSelection = () => {
 	const removeSelection = useCallback(
 		(runId: string) => {
 			const newSelection = selectedRunIds.filter((id: string) => id !== runId);
+
+			if (newSelection.length === 0) {
+				resetSelectionPopoverOpenState(RUNS_SELECTION_POPOVER_STORAGE_KEY);
+			}
+
 			const newParams = updateSidebarStateSearchParams(
 				new URLSearchParams(searchParams),
 				(sidebarState) => {

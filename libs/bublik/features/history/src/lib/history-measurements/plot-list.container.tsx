@@ -20,6 +20,8 @@ import { useHistoryActions } from '../slice';
 import { HistoryEmpty } from '../history-empty';
 import { HistoryError } from '../history-error';
 import {
+	HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
 	useCombinedView,
 	useGetHistoryMeasurements,
 	useGetHistoryMeasurementsByResult,
@@ -99,6 +101,7 @@ export function PlotListContainer() {
 			/>
 			<SelectedChartsPopover
 				label={label}
+				storageKey={HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
 				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
@@ -252,6 +255,7 @@ export function PlotListContainerByResult() {
 			/>
 			<SelectedChartsPopover
 				label="Selected Charts"
+				storageKey={HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
 				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}

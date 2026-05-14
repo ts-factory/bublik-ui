@@ -11,9 +11,12 @@ import {
 	SelectionPopover as SelectionPopoverLayout,
 	SelectionPopoverBody,
 	SelectionPopoverFooter,
-	SelectionPopoverFloatingButton
+	SelectionPopoverFloatingButton,
+	useSelectionPopoverOpenState
 } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
+
+import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover.constants';
 
 export interface SelectionPopoverComponentProps {
 	compareIds: string[];
@@ -33,13 +36,24 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 	} = props;
 
 	const hasSelection = compareIds.length > 0;
+	const { open, onOpenChange, resetOpenState } = useSelectionPopoverOpenState(
+		RUNS_SELECTION_POPOVER_STORAGE_KEY
+	);
 
 	if (!hasSelection) return null;
 
 	const label = `${compareIds.length} runs selected`;
+	const handleResetClick = () => {
+		resetOpenState();
+		onResetClick();
+	};
 
 	return (
-		<SelectionPopoverLayout defaultOpen layout="size">
+		<SelectionPopoverLayout
+			open={open}
+			onOpenChange={onOpenChange}
+			layout="size"
+		>
 			<SelectionPopoverFloatingButton
 				label={label}
 				icon="ExpandSelection"
@@ -114,7 +128,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 					rounded="lg"
 					size="sm/2"
 					className="w-full justify-center"
-					onClick={onResetClick}
+					onClick={handleResetClick}
 				>
 					Reset
 				</ButtonTw>
