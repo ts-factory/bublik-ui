@@ -11,17 +11,19 @@ import {
 } from './runs-stats.component';
 
 export const RunsStatsContainer = () => {
-	const { stats, isLoading, error, isFetching } = useRunsStats();
+	const { dayStats, weekStats, isLoading, error, isFetching } = useRunsStats();
 
 	if (error) return <RunsStatsError error={error} />;
 
 	if (isLoading) return <RunsStatsLoading />;
 
-	if (!stats || !stats.length) return <RunsStatsEmpty />;
+	if (!dayStats || !weekStats || !dayStats.length || !weekStats.length) {
+		return <RunsStatsEmpty />;
+	}
 
 	return (
 		<div className={cn(isFetching && 'opacity-40 pointer-events-none')}>
-			<RunsStats stats={stats} />
+			<RunsStats dayStats={dayStats} weekStats={weekStats} />
 		</div>
 	);
 };

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ECElementEvent } from 'echarts';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
@@ -8,14 +8,14 @@ import { BarChart, PieChart } from '@/shared/charts';
 
 import {
 	COLOR_MAP,
-	getGroupedByWeek,
+	getGroupedTests,
 	getPieChartDataForResults
 } from '../runs-stats.component.utils';
-import { RunStats, TestByWeekDaySchema } from '../runs-stats.types';
+import { RunsChartBucket, TestByWeekDaySchema } from '../runs-stats.types';
 import { RunsListModal } from './runs-list.component';
 
 interface TestsSectionProps {
-	stats: RunStats[];
+	stats: RunsChartBucket[];
 }
 
 export const TestsSection = ({ stats }: TestsSectionProps) => {
@@ -30,17 +30,16 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 		setIsModalOpen(open);
 	};
 
-	const handleBarChartClick = (params: ECElementEvent) => {
-		const { ids } = TestByWeekDaySchema.parse(params.value);
-		const runIds = ids.split(',');
+	const handleBarChartClick = useCallback((params: ECElementEvent) => {
+		const { ids } = TestByWeekDaySchema.parse(params.data ?? params.value);
 
-		setRunIds(runIds);
+		setRunIds(ids.split(','));
 		setIsModalOpen(true);
-	};
+	}, []);
 
 	useEffect(() => {
 		barRef.current?.getEchartsInstance()?.on('click', handleBarChartClick);
-	}, []);
+	}, [handleBarChartClick]);
 
 	return (
 		<section className="flex items-center chart-mosaic">
@@ -78,7 +77,7 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 			<div className="w-1/2 px-4 py-2">
 				<BarChart
 					title="Tests by week"
-					dataset={{ source: getGroupedByWeek(stats) }}
+					dataset={{ source: getGroupedTests(stats) }}
 					legend={{}}
 					xAxis={{ type: 'time', name: 'Date' }}
 					yAxis={[

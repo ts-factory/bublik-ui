@@ -134,6 +134,7 @@ export const {
 	useGetTestSearchOptionsQuery,
 	// Runs
 	useGetRunsTablePageQuery,
+	useGetRunsChartsQuery,
 	useGetResultInfoQuery,
 	// Measurements
 	useGetMeasurementsQuery,

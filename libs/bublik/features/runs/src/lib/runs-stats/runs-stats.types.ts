@@ -4,20 +4,35 @@ import { z } from 'zod';
 
 import { RUN_STATUS } from '@/shared/types';
 
-export const RunsStatsSchema = z.object({
-	date: z.date(),
-	runId: z.string(),
-	runStatus: z.nativeEnum(RUN_STATUS),
-	total: z.number(),
-	nok: z.number(),
-	ok: z.number(),
-	passrate: z.number(),
-	nokPercent: z.number(),
-	okPercent: z.number(),
-	planPercent: z.number()
+const RunIdsSchema = z
+	.array(z.union([z.string(), z.number()]))
+	.transform((ids) => ids.map(String));
+
+export const RunIdsByStatusSchema = z.object({
+	[RUN_STATUS.Busy]: RunIdsSchema,
+	[RUN_STATUS.Compromised]: RunIdsSchema,
+	[RUN_STATUS.Error]: RunIdsSchema,
+	[RUN_STATUS.Interrupted]: RunIdsSchema,
+	[RUN_STATUS.Ok]: RunIdsSchema,
+	[RUN_STATUS.Running]: RunIdsSchema,
+	[RUN_STATUS.Stopped]: RunIdsSchema,
+	[RUN_STATUS.Warning]: RunIdsSchema
 });
 
-export type RunStats = z.infer<typeof RunsStatsSchema>;
+export type RunIdsByStatus = z.infer<typeof RunIdsByStatusSchema>;
+
+export const RunsChartBucketSchema = z.object({
+	date: z.date(),
+	tests: z.object({
+		total: z.number(),
+		nok: z.number(),
+		ok: z.number(),
+		passrate: z.number()
+	}),
+	runIdsByStatus: RunIdsByStatusSchema
+});
+
+export type RunsChartBucket = z.infer<typeof RunsChartBucketSchema>;
 
 export const GroupedStatsSchema = z.object({
 	date: z.date(),
@@ -43,4 +58,4 @@ export const TestByWeekDaySchema = z.object({
 	ids: z.string()
 });
 
-export type TestGroupedByWeek = z.infer<typeof TestByWeekDaySchema>;
+export type TestGroupedByDate = z.infer<typeof TestByWeekDaySchema>;

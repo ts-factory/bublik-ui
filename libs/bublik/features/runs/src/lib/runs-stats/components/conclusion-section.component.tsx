@@ -12,15 +12,15 @@ import {
 	getPieChartDataByRunStatus,
 	getRunStatus
 } from '../runs-stats.component.utils';
-import { GroupedStatsSchema, RunStats } from '../runs-stats.types';
+import { GroupedStatsSchema, RunsChartBucket } from '../runs-stats.types';
 import { RunsListModal } from './runs-list.component';
 
 export interface ConclusionSectionProps {
-	stats: RunStats[];
+	stats: RunsChartBucket[];
 }
 
 export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
-	const { grouped, statuses } = getRunStatus(stats, 'week');
+	const { grouped, statuses } = getRunStatus(stats);
 	const pieData = getPieChartDataByRunStatus(stats);
 	const pieRef = useRef<ReactEChartsCore>(null);
 	const barRef = useRef<ReactEChartsCore>(null);
@@ -36,12 +36,14 @@ export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
 
 	const handlePieChartClick = useCallback(
 		(params: ECElementEvent) => {
+			const status = (params.data as { status?: RUN_STATUS } | undefined)?.status;
+
+			if (!status) return;
+
 			setIsModalOpen(true);
 
 			setRunIds(
-				stats
-					.filter((s) => s.runStatus === `run-${params.name.toLowerCase()}`)
-					.map((s) => s.runId)
+				stats.flatMap((bucket) => bucket.runIdsByStatus[status])
 			);
 		},
 		[stats]
@@ -51,21 +53,15 @@ export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
 		(params: ECElementEvent) => {
 			if (!params.seriesName) return;
 
-			const { ids: rawIds } = GroupedStatsSchema.parse(params.data);
-			const allIdsInGroup = rawIds.split(',');
-
 			const clickedStatus =
 				`run-${params.seriesName.toLowerCase()}` as RUN_STATUS;
-
-			const filteredIds = stats
-				.filter(
-					(s) =>
-						s.runStatus === clickedStatus && allIdsInGroup.includes(s.runId)
-				)
-				.map((s) => s.runId);
+			const { date } = GroupedStatsSchema.parse(params.data);
+			const bucket = stats.find(
+				(bucket) => bucket.date.getTime() === date.getTime()
+			);
 
 			setIsModalOpen(true);
-			setRunIds(filteredIds);
+			setRunIds(bucket?.runIdsByStatus[clickedStatus] ?? []);
 		},
 		[stats]
 	);

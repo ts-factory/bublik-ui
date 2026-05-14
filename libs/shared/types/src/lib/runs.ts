@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { z } from 'zod';
+
 import { RUN_STATUS } from './run';
 import { Pagination } from './utils';
 
@@ -18,6 +20,19 @@ export type RunsAPIQuery = {
 	pageSize?: string | null;
 	projects?: number[];
 };
+
+export type RunsChartsGroupBy = 'day' | 'week';
+
+export const RunsChartsAPIQuerySchema = z.object({
+	startDate: z.string().nullable().optional(),
+	finishDate: z.string().nullable().optional(),
+	runData: z.string().nullable().optional(),
+	tagExpr: z.string().nullable().optional(),
+	projects: z.array(z.number()).optional(),
+	groupBy: z.enum(['day', 'week']).optional()
+});
+
+export type RunsChartsAPIQuery = z.infer<typeof RunsChartsAPIQuerySchema>;
 
 /**
 |--------------------------------------------------
@@ -52,3 +67,32 @@ export type RunsAPIResponse = {
 	pagination: Pagination;
 	results: RunsData[];
 };
+
+export const RunsChartsBucketSchema = z.object({
+	date: z.string(),
+	tests: z.object({
+		ok: z.number(),
+		nok: z.number(),
+		total: z.number(),
+		passrate: z.number()
+	}),
+	run_ids_by_status: z.object({
+		[RUN_STATUS.Busy]: z.array(z.number()),
+		[RUN_STATUS.Compromised]: z.array(z.number()),
+		[RUN_STATUS.Error]: z.array(z.number()),
+		[RUN_STATUS.Interrupted]: z.array(z.number()),
+		[RUN_STATUS.Ok]: z.array(z.number()),
+		[RUN_STATUS.Running]: z.array(z.number()),
+		[RUN_STATUS.Stopped]: z.array(z.number()),
+		[RUN_STATUS.Warning]: z.array(z.number())
+	})
+});
+
+export const RunsChartsAPIResponseSchema = z.object({
+	buckets: z.array(RunsChartsBucketSchema)
+});
+
+export type RunsChartsBucket = z.infer<typeof RunsChartsBucketSchema>;
+export type RunsChartsAPIResponse = z.infer<
+	typeof RunsChartsAPIResponseSchema
+>;

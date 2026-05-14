@@ -1,58 +1,89 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { skipToken } from '@reduxjs/toolkit/query';
 
-import { RUN_STATUS, RunsAPIQuery } from '@/shared/types';
-import { useGetRunsTablePageQuery } from '@/services/bublik-api';
+import {
+	RUN_STATUS,
+	RunsChartsAPIQuery,
+	RunsChartsAPIResponse
+} from '@/shared/types';
+import { useGetRunsChartsQuery } from '@/services/bublik-api';
 
 import { useRunsQuery } from '../hooks';
+import { RunIdsByStatus, RunsChartBucket } from './runs-stats.types';
+
+const makeEmptyRunIdsByStatus = (): RunIdsByStatus => ({
+	[RUN_STATUS.Busy]: [],
+	[RUN_STATUS.Compromised]: [],
+	[RUN_STATUS.Error]: [],
+	[RUN_STATUS.Interrupted]: [],
+	[RUN_STATUS.Ok]: [],
+	[RUN_STATUS.Running]: [],
+	[RUN_STATUS.Stopped]: [],
+	[RUN_STATUS.Warning]: []
+});
+
+const toRunIdsByStatus = (
+	runIdsByStatus: Partial<Record<RUN_STATUS, number[]>>
+): RunIdsByStatus => {
+	const result = makeEmptyRunIdsByStatus();
+
+	Object.values(RUN_STATUS).forEach((status) => {
+		result[status] = runIdsByStatus[status]?.map(String) ?? [];
+	});
+
+	return result;
+};
+
+const mapBuckets = (
+	buckets: RunsChartsAPIResponse['buckets']
+): RunsChartBucket[] =>
+	buckets.map(({ date, tests, run_ids_by_status }) => ({
+		date: new Date(date),
+		tests,
+		runIdsByStatus: toRunIdsByStatus(run_ids_by_status)
+	}));
 
 export const useRunsStats = () => {
 	const { query: searchQuery } = useRunsQuery();
 
-	const query = useGetRunsTablePageQuery(searchQuery);
+	const chartsQuery = useMemo<RunsChartsAPIQuery>(
+		() => ({
+			startDate: searchQuery.startDate,
+			finishDate: searchQuery.finishDate,
+			runData: searchQuery.runData,
+			tagExpr: searchQuery.tagExpr,
+			projects: searchQuery.projects
+		}),
+		[
+			searchQuery.finishDate,
+			searchQuery.projects,
+			searchQuery.runData,
+			searchQuery.startDate,
+			searchQuery.tagExpr
+		]
+	);
 
-	const calculatedQuery: RunsAPIQuery | typeof skipToken = query.data
-		? {
-				...searchQuery,
-				page: '1',
-				pageSize: String(query.data.pagination.count)
-		  }
-		: skipToken;
+	const dayQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'day' });
+	const weekQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'week' });
 
-	const finalQuery = useGetRunsTablePageQuery(calculatedQuery);
+	const dayStats = useMemo(() => {
+		if (!dayQuery.data) return undefined;
 
-	const getPassRate = (ok: number, total: number) => {
-		if (total === 0) return 0;
+		return mapBuckets(dayQuery.data.buckets);
+	}, [dayQuery.data]);
 
-		return Number(((ok / total) * 100).toFixed(2));
-	};
+	const weekStats = useMemo(() => {
+		if (!weekQuery.data) return undefined;
 
-	const data = useMemo(() => {
-		if (!finalQuery.data) return undefined;
-
-		return finalQuery.data.results.map(({ stats, start, conclusion, id }) => {
-			return {
-				runId: String(id),
-				runStatus: conclusion as RUN_STATUS,
-				total: stats.tests_total,
-				nok: stats.tests_total_nok,
-				nokPercent: stats.tests_total_nok_percent,
-				ok: stats.tests_total_ok,
-				okPercent: stats.tests_total_ok_percent,
-				planPercent: stats.tests_total_plan_percent,
-				passrate: getPassRate(stats.tests_total_ok, stats.tests_total),
-				date: new Date(start)
-			};
-		});
-	}, [finalQuery.data]);
+		return mapBuckets(weekQuery.data.buckets);
+	}, [weekQuery.data]);
 
 	return {
-		isLoading: query.isLoading || finalQuery.isLoading,
-		isFetching: query.isFetching || finalQuery.isFetching,
-		stats: data,
-		queryData: finalQuery.data,
-		error: query.error || finalQuery.error
+		isLoading: dayQuery.isLoading || weekQuery.isLoading,
+		isFetching: dayQuery.isFetching || weekQuery.isFetching,
+		dayStats,
+		weekStats,
+		error: dayQuery.error || weekQuery.error
 	} as const;
 };
