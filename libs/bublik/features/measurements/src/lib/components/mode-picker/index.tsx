@@ -14,7 +14,10 @@ import { ModeCharts } from './mode-charts';
 import { ModeTables } from './mode-tables';
 import { ModeSplit } from './mode-split';
 import { ModeOverlay } from './mode-overlay';
-import { useResultSelectCharts } from '../../hooks';
+import {
+	MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	useResultSelectCharts
+} from '../../hooks';
 
 const modeMap = {
 	[MeasurementsMode.Charts]: ModeCharts,
@@ -108,6 +111,7 @@ function SelectedChartsContainer() {
 	return (
 		<SelectedChartsPopover
 			label={label}
+			storageKey={MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
 			selectionCount={selectedCharts.length}
 			plots={plots}
 			onResetButtonClick={handleResetButtonClick}
