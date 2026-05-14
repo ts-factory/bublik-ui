@@ -9,8 +9,11 @@ import {
 	SelectionPopoverFooter,
 	SelectionPopoverList,
 	SelectionPopoverTitle,
-	SelectionPopoverFloatingButton
+	SelectionPopoverFloatingButton,
+	useSelectionPopoverOpenState
 } from '@/shared/tailwind-ui';
+
+import { RUN_REPORT_STACKED_SELECTED_STORAGE_KEY } from './run-report-stacked.constants';
 
 const pluralRules = new Intl.PluralRules('en-US');
 const suffixes = {
@@ -34,14 +37,27 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 	const { items = [], onResetClick, onRemoveClick, onOpenClick } = props;
 
 	const hasItems = items.length > 0;
+	const { open, onOpenChange, resetOpenState } = useSelectionPopoverOpenState(
+		RUN_REPORT_STACKED_SELECTED_STORAGE_KEY
+	);
 
 	if (!hasItems) return null;
 	const count = items.length;
 	const rule = pluralRules.select(count) as 'one' | 'other';
 	const label = `${count} chart${suffixes[rule]} selected`;
+	const handleResetClick = () => {
+		resetOpenState();
+		onResetClick?.();
+	};
+	const handleRemoveClick = (id: string) => {
+		if (items.length === 1) {
+			resetOpenState();
+		}
+		onRemoveClick?.(id);
+	};
 
 	return (
-		<SelectionPopover defaultOpen layout="size">
+		<SelectionPopover open={open} onOpenChange={onOpenChange} layout="size">
 			<SelectionPopoverFloatingButton
 				label={label}
 				icon="ExpandSelection"
@@ -65,7 +81,7 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 									<button
 										aria-label="Remove from stacked"
 										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
-										onClick={() => onRemoveClick?.(item.id)}
+										onClick={() => handleRemoveClick(item.id)}
 									>
 										<Icon
 											name="CrossSimple"
@@ -96,7 +112,7 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 						rounded="lg"
 						size="sm/2"
 						className="w-full justify-center"
-						onClick={onResetClick}
+						onClick={handleResetClick}
 					>
 						<span>Reset</span>
 					</ButtonTw>

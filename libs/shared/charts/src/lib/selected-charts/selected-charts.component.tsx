@@ -9,13 +9,15 @@ import {
 	SelectionPopoverFooter,
 	SelectionPopoverList,
 	SelectionPopoverTitle,
-	SelectionPopoverFloatingButton
+	SelectionPopoverFloatingButton,
+	useSelectionPopoverOpenState
 } from '@/shared/tailwind-ui';
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { getChartName } from '../utils';
 
 interface SelectedChartsPopoverProps {
 	label: string;
+	storageKey: string;
 	selectionCount: number;
 	plots: { plot: SingleMeasurementChart; color: string }[];
 	onResetButtonClick?: () => void;
@@ -25,11 +27,26 @@ interface SelectedChartsPopoverProps {
 
 function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 	const hasSelection = props.selectionCount > 0;
+	const { open, onOpenChange, resetOpenState } = useSelectionPopoverOpenState(
+		props.storageKey
+	);
 
 	if (!hasSelection) return null;
 
+	const handleResetButtonClick = () => {
+		resetOpenState();
+		props.onResetButtonClick?.();
+	};
+
+	const handleRemoveClick = (plot: SingleMeasurementChart) => {
+		if (props.selectionCount === 1) {
+			resetOpenState();
+		}
+		props.onRemoveClick?.(plot);
+	};
+
 	return (
-		<SelectionPopover defaultOpen className="z-30">
+		<SelectionPopover open={open} onOpenChange={onOpenChange} className="z-30">
 			<SelectionPopoverFloatingButton
 				label={props.label}
 				icon="ExpandSelection"
@@ -56,7 +73,7 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 									<button
 										aria-label="Remove from compare"
 										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
-										onClick={() => props.onRemoveClick?.(plot)}
+										onClick={() => handleRemoveClick(plot)}
 									>
 										<Icon name="CrossSimple" />
 									</button>
@@ -83,7 +100,7 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 						size="sm/2"
 						rounded="lg"
 						className="flex-1"
-						onClick={props.onResetButtonClick}
+						onClick={handleResetButtonClick}
 					>
 						Reset
 					</ButtonTw>

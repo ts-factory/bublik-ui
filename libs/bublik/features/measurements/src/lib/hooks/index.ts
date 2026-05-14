@@ -6,9 +6,12 @@ import {
 } from 'use-query-params';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
+import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 import { MeasurementsMode } from '@/shared/types';
 
 const SELECTED_CHARTS_KEY = 'selectedCharts';
+const MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY =
+	'measurements-selected-charts-popover-open';
 
 function useResultSelectCharts() {
 	const navigate = useNavigate();
@@ -30,9 +33,18 @@ function useResultSelectCharts() {
 
 	function removeChart(chartId: number) {
 		setSelectedCharts((prev) => (prev || []).filter((id) => id !== chartId));
+
+		if (selectedCharts.length === 1 && selectedCharts.includes(chartId)) {
+			resetSelectionPopoverOpenState(
+				MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY
+			);
+		}
 	}
 
 	function resetCharts() {
+		resetSelectionPopoverOpenState(
+			MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY
+		);
 		setSelectedCharts([]);
 	}
 
@@ -54,4 +66,7 @@ function useResultSelectCharts() {
 	};
 }
 
-export { useResultSelectCharts };
+export {
+	MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	useResultSelectCharts
+};
