@@ -154,7 +154,7 @@ function CopyableValue({ value, label }: CopyableValueProps) {
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center gap-1 font-medium',
+				'relative inline-flex items-center font-medium',
 				canCopy && 'cursor-pointer hover:text-primary group'
 			)}
 			onClick={(event) => {
@@ -167,7 +167,7 @@ function CopyableValue({ value, label }: CopyableValueProps) {
 				<Icon
 					name="PaperStack"
 					size={14}
-					className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
+					className="absolute left-full ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-primary"
 				/>
 			) : null}
 		</span>
@@ -213,7 +213,7 @@ export const columns = [
 	columnHelper.accessor('job_id', {
 		header: 'Job Id',
 		cell: (cell) => <CopyableValue label="Job ID" value={cell.getValue()} />,
-		meta: { width: 'max-content' }
+		meta: { width: 'max-content', className: 'justify-end px-4 text-right' }
 	}),
 	columnHelper.accessor('status', {
 		header: () => <span className="pl-2.5">Status</span>,
@@ -258,7 +258,7 @@ export const columns = [
 			return <span>{formatRuntime(value)}</span>;
 		},
 		meta: {
-			className: 'justify-end text-right tabular-nums',
+			className: 'justify-start text-left tabular-nums',
 			width: 'minmax(6.75rem, max-content)'
 		}
 	}),

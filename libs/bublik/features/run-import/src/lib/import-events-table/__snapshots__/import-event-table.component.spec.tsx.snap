@@ -186,7 +186,7 @@ exports[`ImportEventTableComponent > should render successfully 1`] = `
           </span>
         </div>
         <div
-          class="tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white"
+          class="tracking-wider sticky top-0 z-10 mb-1 py-2 text-[0.6875rem] font-semibold leading-[0.875rem] bg-white justify-end px-4 text-right"
         >
           Job Id
         </div>
@@ -210,7 +210,7 @@ exports[`ImportEventTableComponent > should render successfully 1`] = `
           URL
         </div>
         <div
-          class="tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-[0.6875rem] font-semibold leading-[0.875rem] bg-white justify-end text-right tabular-nums"
+          class="tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-[0.6875rem] font-semibold leading-[0.875rem] bg-white justify-start text-left tabular-nums"
         >
           Runtime
         </div>
