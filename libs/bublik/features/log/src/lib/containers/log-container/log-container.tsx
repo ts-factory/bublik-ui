@@ -184,7 +184,9 @@ const JsonLog = (props: JsonLogProps) => {
 	const idToFetch = isShowingRunLog
 		? { id: runId }
 		: focusId
-		? { id: focusId, page }
+		? page
+			? { id: focusId, page }
+			: { id: focusId }
 		: skipToken;
 
 	const { data, isLoading, isFetching, error } = useGetLogJsonQuery(idToFetch);

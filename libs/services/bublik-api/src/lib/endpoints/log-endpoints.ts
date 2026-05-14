@@ -124,6 +124,16 @@ type LogUrlResponse = {
 	attachments_url: string;
 };
 
+export const normalizeLogJsonInput = (
+	input: GetLogJsonInputs
+): GetLogJsonInputs => {
+	const page = input.page ?? undefined;
+
+	return typeof page === 'undefined'
+		? { id: input.id }
+		: { id: input.id, page };
+};
+
 export const constructJsonUrl = (input: GetLogJsonInputs): string => {
 	const PREFIX = '/api/v2';
 
@@ -136,12 +146,19 @@ export const constructJsonUrl = (input: GetLogJsonInputs): string => {
 	return result;
 };
 
-const fetchJson = async (externalUrl: string) => {
+const fetchJson = async <T = unknown>(
+	externalUrl: string,
+	signal?: AbortSignal
+): Promise<T> => {
 	const getBublikFromStatusCode = (response: Response): BublikHttpError => {
-		return { status: response.status };
+		return { status: response.status, data: response.statusText };
 	};
 
-	const options: RequestInit = { credentials: 'include', cache: 'no-store' };
+	const options: RequestInit = {
+		credentials: 'include',
+		cache: 'no-store',
+		signal
+	};
 
 	const response = await fetch(externalUrl, options);
 
@@ -191,7 +208,9 @@ export const logEndpoints = {
 						};
 					}
 
-					const attachmentsJson = await fetchJson(jsonUrl.data.attachments_url);
+					const attachmentsJson = await fetchJson<
+						z.infer<typeof AttachmentsSchema>
+					>(jsonUrl.data.attachments_url);
 
 					return {
 						data: {
@@ -218,7 +237,9 @@ export const logEndpoints = {
 			}
 		}),
 		getLogJson: build.query<RootBlock, GetLogJsonInputs>({
-			queryFn: async ({ page, id }, api, _extraOptions, baseQuery) => {
+			serializeQueryArgs: ({ queryArgs }) => normalizeLogJsonInput(queryArgs),
+			queryFn: async (input, api, _extraOptions, baseQuery) => {
+				const { page, id } = normalizeLogJsonInput(input);
 				const getUrl = constructJsonUrl({ page, id });
 
 				const jsonUrl = (await baseQuery(
@@ -238,15 +259,17 @@ export const logEndpoints = {
 
 				try {
 					const [blocksJson, artifactsAndVerdicts] = (await Promise.all([
-						fetchJson(jsonUrl.data.url),
+						fetchJson<RootBlock>(jsonUrl.data.url, api.signal),
 						baseQuery(withApiV2(`/results/${id}/artifacts_and_verdicts`))
 					])) as [RootBlock, QueryReturnValue<ResultsAndVerdictsForIteration>];
 
-					const blocksWithAddedVerdictsAndArtifacts = addArtifactsVerdicts(
-						blocksJson,
-						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						artifactsAndVerdicts.data!
-					);
+					if (artifactsAndVerdicts.error) {
+						console.error(artifactsAndVerdicts.error);
+					}
+
+					const blocksWithAddedVerdictsAndArtifacts = artifactsAndVerdicts.data
+						? addArtifactsVerdicts(blocksJson, artifactsAndVerdicts.data)
+						: blocksJson;
 
 					const result = fixPagesCountForAllView(
 						blocksWithAddedVerdictsAndArtifacts,
