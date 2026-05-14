@@ -1,5 +1,32 @@
 
 
+### [2.12.2](https://github.com/ts-factory/bublik-ui/compare/v2.12.1...v2.12.2) (2026-05-14)
+
+
+### 💅 Polish
+
+* **history:** [form] align close button horizontally ([defe631](https://github.com/ts-factory/bublik-ui/commit/defe6319d0ba6e6cc0b70367989c8a8251265132))
+* **import:** improve import events table layout ([ba0507f](https://github.com/ts-factory/bublik-ui/commit/ba0507fb629563aadec8ce61044dd3c621aed340))
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** fix analytics dashboard page view tracking ([94d7f42](https://github.com/ts-factory/bublik-ui/commit/94d7f429d1425986080415ee2d88ab3e2ba4ef1f))
+* **import:** remove duplicated root prefix in import run requests ([27dd360](https://github.com/ts-factory/bublik-ui/commit/27dd360f13ec9bf9033e02703b8517f82d383322))
+
+
+### ♻ Code Refactoring
+
+* **dashboard:** move analytics route tracker for better organization ([f11e5fe](https://github.com/ts-factory/bublik-ui/commit/f11e5fe62f2a9eed15040eaea44ebea506a0f8ac))
+* **history:** [form] improve test path input with proper path handling ([dcb9fe1](https://github.com/ts-factory/bublik-ui/commit/dcb9fe1ce9166fbcf5828aea7b9f9caf6d3ad1f2))
+* **import:** [form] display loading state in import form properly ([f80906a](https://github.com/ts-factory/bublik-ui/commit/f80906a29cc33de27fee70e1679ef7e8c62ce4a3))
+* **log:** deprecate `formatted` field in JSON log ([2f25dce](https://github.com/ts-factory/bublik-ui/commit/2f25dcefae2a1c85e1cef8225ff6ad9ddaf6a2f7))
+
+
+### 📦 Chores
+
+* **analytics:** remove logging of all events from client side ([dfb738c](https://github.com/ts-factory/bublik-ui/commit/dfb738c2f981e4a959e4cbac0cc2c31f74035659))
+
 ### [2.12.1](https://github.com/ts-factory/bublik-ui/compare/v2.11.0...v2.12.1) (2026-05-07)
 
 

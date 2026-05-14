@@ -1,7 +1,7 @@
 {
-	"date": "2026.05.07",
-	"summary": "fix(history): support quoted badge values containing commas",
-	"revision": "200e2a6d",
-	"branch": "release-2.12.1",
-	"latestTag": "v2.12.1"
+	"date": "2026.05.14",
+	"summary": "refactor(import): [form] display loading state in import form properly",
+	"revision": "f80906a2",
+	"branch": "release-2.12.2",
+	"latestTag": "v2.12.2"
 }
