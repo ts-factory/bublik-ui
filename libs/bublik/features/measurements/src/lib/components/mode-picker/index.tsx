@@ -14,7 +14,10 @@ import { ModeCharts } from './mode-charts';
 import { ModeTables } from './mode-tables';
 import { ModeSplit } from './mode-split';
 import { ModeOverlay } from './mode-overlay';
-import { useResultSelectCharts } from '../../hooks';
+import {
+	MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	useResultSelectCharts
+} from '../../hooks';
 
 const modeMap = {
 	[MeasurementsMode.Charts]: ModeCharts,
@@ -54,11 +57,32 @@ export const ModePicker = ({ mode }: ModePickerProps) => {
 	);
 };
 
+const pluralRules = new Intl.PluralRules('en-US');
+const suffixes = {
+	one: '',
+	other: 's'
+} as const satisfies Record<'one' | 'other', string>;
+
 function SelectedChartsContainer() {
 	const { resultId } = useParams<MeasurementsRouterParams>();
 	const { selectedCharts, resetCharts, removeChart, handleOpenButtonClick } =
 		useResultSelectCharts();
-	const { data } = useGetSingleMeasurementQuery(resultId ?? skipToken);
+	const { data, isLoading } = useGetSingleMeasurementQuery(
+		resultId ?? skipToken
+	);
+
+	const count = selectedCharts.length;
+	const rule = pluralRules.select(count) as 'one' | 'other';
+	const label = `${count} chart${suffixes[rule]} selected`;
+	const plots =
+		data?.charts
+			?.filter((chart) => selectedCharts.includes(chart.id))
+			?.map((chart, idx) => ({
+				plot: chart,
+				color: getColorByIdx(idx)
+			})) ?? [];
+
+	if (isLoading) return;
 
 	const handleResetButtonClick = () => {
 		trackEvent(analyticsEventNames.measurementsCombinedReset, {
@@ -86,16 +110,10 @@ function SelectedChartsContainer() {
 
 	return (
 		<SelectedChartsPopover
-			open={!!selectedCharts.length}
-			label="Combined"
-			plots={
-				data?.charts
-					?.filter((chart) => selectedCharts.includes(chart.id))
-					?.map((chart, idx) => ({
-						plot: chart,
-						color: getColorByIdx(idx)
-					})) ?? []
-			}
+			label={label}
+			storageKey={MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
+			selectionCount={selectedCharts.length}
+			plots={plots}
 			onResetButtonClick={handleResetButtonClick}
 			onRemoveClick={handleRemoveClick}
 			onOpenButtonClick={handleOpenClick}

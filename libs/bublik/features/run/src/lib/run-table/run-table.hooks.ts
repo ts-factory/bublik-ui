@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
 	useQueryParam,
-	JsonParam,
 	withDefault,
-	NumberParam
+	NumberParam,
+	QueryParamConfig
 } from 'use-query-params';
 import {
 	ExpandedState,
@@ -21,14 +21,79 @@ import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
+import {
+	decodeCompressedOrJsonState,
+	encodeCompressedState,
+	isCompressedStateValue
+} from '@/bublik/features/sidebar';
 
 import { RowStateContextType, RunRowState } from '../hooks';
 import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-const GlobalFilterParam = withDefault(JsonParam, []);
-const RowStateParam = withDefault(JsonParam, {});
-const SortingParam = withDefault(JsonParam, []);
+const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
+	encode: (value) => {
+		if (value === null || value === undefined) {
+			return value;
+		}
+
+		return encodeCompressedState(value);
+	},
+	decode: (value) => decodeCompressedOrJsonState(value)
+};
+
+const ExpandedParam = CompressedJsonParam as QueryParamConfig<
+	ExpandedState,
+	ExpandedState
+>;
+const GlobalFilterParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<string[], string[]>,
+	[]
+);
+const RowStateParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<RunRowState, RunRowState>,
+	{}
+);
+const SortingParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<SortingState, SortingState>,
+	[]
+);
+const VisibilityParam = CompressedJsonParam as QueryParamConfig<
+	VisibilityState,
+	VisibilityState
+>;
+const COMPRESSED_RUN_TABLE_QUERY_KEYS = [
+	'expanded',
+	'globalFilter',
+	'rowState',
+	'sorting',
+	'visibility'
+] as const;
+const RUN_TABLE_PERSISTED_QUERY_KEYS = [
+	'expanded',
+	'globalFilter',
+	'rowState',
+	'columnFilters'
+] as const;
+
+function isLegacyJsonStateParamValue(value: string | null): boolean {
+	if (!value || isCompressedStateValue(value)) {
+		return false;
+	}
+
+	try {
+		JSON.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function hasPersistedRunTableState(search: string): boolean {
+	const searchParams = new URLSearchParams(search);
+
+	return RUN_TABLE_PERSISTED_QUERY_KEYS.some((key) => searchParams.has(key));
+}
 
 export function getRowId(
 	original: RunData | MergedRun,
@@ -69,7 +134,7 @@ function useColumnVisibility() {
 		);
 
 	const [queryColumnVisibility, setQueryColumnVisibility] =
-		useQueryParam<VisibilityState>('visibility', JsonParam);
+		useQueryParam<VisibilityState>('visibility', VisibilityParam);
 
 	useMount(() => {
 		if (!Object.keys(queryColumnVisibility ?? {}).length) {
@@ -151,16 +216,21 @@ export function useTargetIterationId() {
 export const useRunTableQueryState = (
 	data: RunData[] | MergedRun[] | undefined | null
 ) => {
-	const locationState = useLocation().state as {
+	const location = useLocation();
+	const navigationState = location.state as {
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
+		openUnexpectedIntentId?: string;
 	};
+	const locationState = hasPersistedRunTableState(location.search)
+		? undefined
+		: navigationState;
 	const { targetIterationId } = useTargetIterationId();
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
 		withDefault(
-			JsonParam,
+			ExpandedParam,
 			data && data.length > 0 ? { [getRowId(data[0], 0, undefined)]: true } : {}
 		)
 	);
@@ -185,6 +255,38 @@ export const useRunTableQueryState = (
 	);
 
 	const { setColumnVisibility, columnVisibility } = useColumnVisibility();
+
+	useMount(() => {
+		const currentSearchParams = new URLSearchParams(window.location.search);
+
+		const keysToMigrate = COMPRESSED_RUN_TABLE_QUERY_KEYS.filter((key) =>
+			isLegacyJsonStateParamValue(currentSearchParams.get(key))
+		);
+
+		if (keysToMigrate.length === 0) {
+			return;
+		}
+
+		if (keysToMigrate.includes('expanded')) {
+			setExpanded(expanded, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('globalFilter')) {
+			setGlobalFilter(globalFilter, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('rowState')) {
+			setRowState(rowState, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('sorting')) {
+			setSorting(sorting, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('visibility')) {
+			setColumnVisibility(columnVisibility);
+		}
+	});
 
 	return {
 		locationState,

@@ -71,3 +71,4 @@ export * from './lib/data-table-faceted-filter';
 export * from './lib/run-running';
 export * from './lib/split-button';
 export * from './lib/state';
+export * from './lib/selection-popover';
