@@ -10,7 +10,15 @@ import {
 	useProgressiveVisibleCount,
 	useRenderWhenVisible
 } from '@/shared/hooks';
-import { CardHeader, cn, toast } from '@/shared/tailwind-ui';
+import {
+	ButtonTw,
+	CardHeader,
+	cn,
+	Icon,
+	Kbd,
+	toast,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { StackedAdd } from '../run-report-stacked';
@@ -19,6 +27,8 @@ import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report-args';
 import { WarningsHoverCard } from '../run-report-warnings';
 import { useDelegatedTableWheelScroll } from './run-report-test.hooks';
+import { getArgsValNavigationTarget } from '../run-report-navigation.utils';
+import type { ArgValNavigationItem } from '../run-report-navigation.utils';
 
 const INITIAL_RECORDS_RENDER_COUNT = 10;
 const RECORDS_RENDER_CHUNK_SIZE = 10;
@@ -26,12 +36,23 @@ const RECORDS_RENDER_CHUNK_SIZE = 10;
 interface RunReportTestBlockProps {
 	enableChartView: boolean;
 	enableTableView: boolean;
+	enablePairGainColumns: boolean;
 	argsValBlocks: ArgsValBlock[];
 	offsetTop: number;
+	argValNavigationItems: ArgValNavigationItem[];
+	onArgValNavigate: (id: string) => void;
 }
 
 function RunReportTestBlock(props: RunReportTestBlockProps) {
-	const { enableChartView, enableTableView, argsValBlocks, offsetTop } = props;
+	const {
+		enableChartView,
+		enableTableView,
+		enablePairGainColumns,
+		argsValBlocks,
+		offsetTop,
+		argValNavigationItems,
+		onArgValNavigate
+	} = props;
 	const [searchParams] = useSearchParams();
 	const [headerOffsetTop, setHeaderOffsetTop] = useState(0);
 	const pageContainer = usePageContainer();
@@ -81,20 +102,27 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 							style={{ position: 'sticky', top: offsetTop, zIndex: 8 }}
 							ref={handleRef}
 						>
-							<div
-								className="border-b border-border-primary py-1.5 px-4 bg-white"
+							<CardHeader
+								className="bg-white"
 								style={{ zIndex: 8 }}
+								label={
+									<LinkWithProject
+										className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+										to={{
+											search: searchParams.toString(),
+											hash: encodeURIComponent(argsValBlock.id)
+										}}
+									>
+										{argsValBlock.label}
+									</LinkWithProject>
+								}
 							>
-								<LinkWithProject
-									className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-									to={{
-										search: searchParams.toString(),
-										hash: encodeURIComponent(argsValBlock.id)
-									}}
-								>
-									{argsValBlock.label}
-								</LinkWithProject>
-							</div>
+								<ArgValNavigationControls
+									currentId={argsValBlock.id}
+									items={argValNavigationItems}
+									onNavigate={onArgValNavigate}
+								/>
+							</CardHeader>
 							<div className="p-4">
 								<RunReportArgs label="Argument Values" items={params} />
 							</div>
@@ -139,6 +167,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 											records={measurement.content}
 											enableChartView={enableChartView}
 											enableTableView={enableTableView}
+											enablePairGainColumns={enablePairGainColumns}
 											offset={headerOffsetTop + offsetTop + 36}
 											pageContainer={pageContainer}
 										/>
@@ -153,10 +182,58 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 	);
 }
 
+interface ArgValNavigationControlsProps {
+	currentId: string;
+	items: ArgValNavigationItem[];
+	onNavigate: (id: string) => void;
+}
+
+function ArgValNavigationControls(props: ArgValNavigationControlsProps) {
+	const { currentId, items, onNavigate } = props;
+	const previousItem = getArgsValNavigationTarget(items, currentId, 'previous');
+	const nextItem = getArgsValNavigationTarget(items, currentId, 'next');
+
+	return (
+		<div className="flex items-center gap-1">
+			<Tooltip content="Previous argument values (k)">
+				<ButtonTw
+					type="button"
+					variant="secondary"
+					size="xss"
+					className="gap-1 px-1.5"
+					aria-label="Previous argument values"
+					disabled={!previousItem}
+					onClick={() => previousItem && onNavigate(previousItem.id)}
+				>
+					<Icon name="ArrowShortTop" className="size-4" />
+					<span>Prev</span>
+					<Kbd>k</Kbd>
+				</ButtonTw>
+			</Tooltip>
+			<Tooltip content="Next argument values (j)">
+				<ButtonTw
+					type="button"
+					variant="secondary"
+					size="xss"
+					className="gap-1 px-1.5"
+					aria-label="Next argument values"
+					disabled={!nextItem}
+					onClick={() => nextItem && onNavigate(nextItem.id)}
+				>
+					<Icon name="ArrowShortTop" className="size-4 rotate-180" />
+					<span>Next</span>
+					<Kbd>j</Kbd>
+				</ButtonTw>
+			</Tooltip>
+		</div>
+	);
+}
+
 type RunReportEntityBlockProps = Pick<
 	RunReportTestBlockProps,
 	'enableChartView' | 'enableTableView'
 > & {
+	enablePairGainColumns: boolean;
 	block: RecordBlock;
 	offset: number;
 	idx: number;
@@ -166,7 +243,11 @@ type RunReportEntityBlockProps = Pick<
 interface MeasurementRecordListProps
 	extends Pick<
 		RunReportEntityBlockProps,
-		'enableChartView' | 'enableTableView' | 'offset' | 'pageContainer'
+		| 'enableChartView'
+		| 'enableTableView'
+		| 'enablePairGainColumns'
+		| 'offset'
+		| 'pageContainer'
 	> {
 	records: RecordBlock[];
 }
@@ -174,6 +255,7 @@ interface MeasurementRecordListProps
 function MeasurementRecordList(props: MeasurementRecordListProps) {
 	const { records, enableChartView, enableTableView, offset, pageContainer } =
 		props;
+	const { enablePairGainColumns } = props;
 	const visibleCount = useProgressiveVisibleCount({
 		totalCount: records.length,
 		initialCount: INITIAL_RECORDS_RENDER_COUNT,
@@ -205,6 +287,7 @@ function MeasurementRecordList(props: MeasurementRecordListProps) {
 					<MeasurementBlock
 						enableChartView={enableChartView}
 						enableTableView={enableTableView}
+						enablePairGainColumns={enablePairGainColumns}
 						block={record}
 						offset={offset}
 						idx={idx}
@@ -222,7 +305,14 @@ function MeasurementRecordList(props: MeasurementRecordListProps) {
 }
 
 function MeasurementBlock(props: RunReportEntityBlockProps) {
-	const { enableChartView, enableTableView, block, offset, idx } = props;
+	const {
+		enableChartView,
+		enableTableView,
+		enablePairGainColumns,
+		block,
+		offset,
+		idx
+	} = props;
 	const { id, chart, table, label } = block;
 	const [searchParams] = useSearchParams();
 	const ref = useRef<HTMLDivElement>(null);
@@ -297,7 +387,10 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 										className={cn('flex-1', 'overflow-y-auto overflow-x-auto')}
 										data-run-report-table-scroll="true"
 									>
-										<RunReportTable table={table} />
+										<RunReportTable
+											table={table}
+											enablePairGainColumns={enablePairGainColumns}
+										/>
 									</div>
 								</div>
 							) : null}

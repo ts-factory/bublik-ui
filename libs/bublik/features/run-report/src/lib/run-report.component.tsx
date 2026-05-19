@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
 	createColumnHelper,
@@ -19,6 +19,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 	Icon,
+	Kbd,
 	Separator,
 	Spinner,
 	Tooltip
@@ -31,13 +32,19 @@ import {
 } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
-import { useMount } from '@/shared/hooks';
+import { useMount, usePhysicalHotkeys } from '@/shared/hooks';
 
 import { RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
 import { WarningsHoverCard } from './run-report-warnings';
-import { useEnablePairGainColumns } from './run-report-table/run-report-table.hooks';
 import { RunReportArgs } from './run-report-args';
+import {
+	RUN_REPORT_TABLE_OF_CONTENTS_ID,
+	getArgsValNavigationTarget,
+	getCurrentArgsValNavigationItem,
+	getVisibleArgsValNavigationItems
+} from './run-report-navigation.utils';
+import type { ArgValNavigationItem } from './run-report-navigation.utils';
 
 function scrollToItem(id: string) {
 	const elem = document.getElementById(encodeURIComponent(id));
@@ -56,6 +63,85 @@ function scrollToItem(id: string) {
 	const targetScroll = scroller.scrollTop + relativeTop - offset;
 
 	scroller.scrollTo({ top: targetScroll, behavior: 'smooth' });
+}
+
+interface UseArgValBlockKeyboardNavigationConfig {
+	items: ArgValNavigationItem[];
+	testItems: ArgValNavigationItem[];
+	onNavigate: (id: string) => void;
+	onTableOfContentsNavigate: () => void;
+	onPairGainColumnsToggle: (id: string) => void;
+}
+
+function useArgValBlockKeyboardNavigation(
+	config: UseArgValBlockKeyboardNavigationConfig
+) {
+	const {
+		items,
+		testItems,
+		onNavigate,
+		onTableOfContentsNavigate,
+		onPairGainColumnsToggle
+	} = config;
+
+	usePhysicalHotkeys(
+		[
+			{
+				code: 'KeyT',
+				callback: () => onTableOfContentsNavigate(),
+				options: { requireReset: true }
+			},
+			{
+				code: 'KeyP',
+				callback: () => {
+					const scroller = document.getElementById('page-container');
+					if (!scroller) return;
+
+					const currentTest = getCurrentArgsValNavigationItem(
+						testItems,
+						scroller
+					);
+
+					if (currentTest) onPairGainColumnsToggle(currentTest.id);
+				},
+				options: { requireReset: true }
+			},
+			{
+				code: 'KeyJ',
+				callback: () => {
+					const scroller = document.getElementById('page-container');
+					if (!scroller) return;
+
+					const currentItem = getCurrentArgsValNavigationItem(items, scroller);
+					const targetItem = currentItem
+						? getArgsValNavigationTarget(items, currentItem.id, 'next')
+						: items[0];
+
+					if (targetItem) onNavigate(targetItem.id);
+				},
+				options: { requireReset: true }
+			},
+			{
+				code: 'KeyK',
+				callback: () => {
+					const scroller = document.getElementById('page-container');
+					if (!scroller) return;
+
+					const currentItem = getCurrentArgsValNavigationItem(items, scroller);
+					const targetItem = currentItem
+						? getArgsValNavigationTarget(items, currentItem.id, 'previous')
+						: undefined;
+
+					if (targetItem) onNavigate(targetItem.id);
+				},
+				options: { requireReset: true }
+			}
+		],
+		{
+			ignoreInputs: true,
+			preventDefault: true
+		}
+	);
 }
 
 interface TableOfContentsItem {
@@ -96,7 +182,10 @@ interface RunReportTableOfContentsProps {
 
 function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 	return (
-		<div className="bg-white flex flex-col rounded">
+		<div
+			id={RUN_REPORT_TABLE_OF_CONTENTS_ID}
+			className="bg-white flex flex-col rounded"
+		>
 			<CardHeader label="Table Of Contents" />
 			<ul className="flex flex-col py-2">
 				{contents.map((item, idx, arr) => {
@@ -191,15 +280,63 @@ interface RunReportProps {
 function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
 	const location = useLocation();
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const [pairGainColumnsByTestId, setPairGainColumnsByTestId] = useState<
+		Record<string, boolean>
+	>({});
 
 	const testBlocks = useMemo(
 		() => blocks.content.filter((b) => b.type === 'test-block'),
 		[blocks.content]
 	);
+	const testNavigationItems = useMemo(
+		() =>
+			testBlocks.map((block) => ({
+				id: block.id,
+				label: block.label
+			})),
+		[testBlocks]
+	);
+	const argValNavigationItems = useMemo(
+		() => getVisibleArgsValNavigationItems(testBlocks),
+		[testBlocks]
+	);
 	const tableOfContents = useMemo(
 		() => generateTableOfContents(blocks),
 		[blocks]
 	);
+	const navigateToArgValBlock = useCallback(
+		(id: string) => {
+			scrollToItem(id);
+			navigate({
+				search: searchParams.toString(),
+				hash: encodeURIComponent(id)
+			});
+		},
+		[navigate, searchParams]
+	);
+	const navigateToTableOfContents = useCallback(() => {
+		scrollToItem(RUN_REPORT_TABLE_OF_CONTENTS_ID);
+		navigate({
+			search: searchParams.toString(),
+			hash: RUN_REPORT_TABLE_OF_CONTENTS_ID
+		});
+	}, [navigate, searchParams]);
+	const togglePairGainColumns = useCallback((id: string) => {
+		setPairGainColumnsByTestId((state) => ({
+			...state,
+			[id]: !state[id]
+		}));
+	}, []);
+
+	useArgValBlockKeyboardNavigation({
+		items: argValNavigationItems,
+		testItems: testNavigationItems,
+		onNavigate: navigateToArgValBlock,
+		onTableOfContentsNavigate: navigateToTableOfContents,
+		onPairGainColumnsToggle: togglePairGainColumns
+	});
 
 	useMount(() => {
 		setTimeout(() => {
@@ -216,7 +353,14 @@ function RunReport(props: RunReportProps) {
 				config={blocks.config}
 			/>
 			<RunReportTableOfContents contents={tableOfContents} />
-			<RunReportContentList blocks={testBlocks} />
+			<RunReportContentList
+				blocks={testBlocks}
+				argValNavigationItems={argValNavigationItems}
+				onArgValNavigate={navigateToArgValBlock}
+				onTableOfContentsNavigate={navigateToTableOfContents}
+				pairGainColumnsByTestId={pairGainColumnsByTestId}
+				onPairGainColumnsToggle={togglePairGainColumns}
+			/>
 			<NotProcessedPointsTable points={blocks.unprocessed_iters} />
 		</div>
 	);
@@ -455,6 +599,11 @@ function RunReportEmpty() {
 
 interface RunReportContentListProps {
 	blocks: TestBlock[];
+	argValNavigationItems: ArgValNavigationItem[];
+	onArgValNavigate: (id: string) => void;
+	onTableOfContentsNavigate: () => void;
+	pairGainColumnsByTestId: Record<string, boolean>;
+	onPairGainColumnsToggle: (id: string) => void;
 }
 
 function RunReportContentList(props: RunReportContentListProps) {
@@ -464,7 +613,17 @@ function RunReportContentList(props: RunReportContentListProps) {
 				<li key={block.id} className="relative">
 					{/* LEVEL 1 */}
 					<div className="absolute left-0 top-0 w-1 h-full bg-indigo-300 rounded-tl-md" />
-					<RunReportContentItem key={block.id} block={block} />
+					<RunReportContentItem
+						key={block.id}
+						block={block}
+						argValNavigationItems={props.argValNavigationItems}
+						onArgValNavigate={props.onArgValNavigate}
+						onTableOfContentsNavigate={props.onTableOfContentsNavigate}
+						enablePairGainColumns={Boolean(
+							props.pairGainColumnsByTestId[block.id]
+						)}
+						onPairGainColumnsToggle={props.onPairGainColumnsToggle}
+					/>
 				</li>
 			))}
 		</ul>
@@ -473,13 +632,21 @@ function RunReportContentList(props: RunReportContentListProps) {
 
 interface RunReportContentItemProps {
 	block: TestBlock;
+	argValNavigationItems: ArgValNavigationItem[];
+	onArgValNavigate: (id: string) => void;
+	onTableOfContentsNavigate: () => void;
+	enablePairGainColumns: boolean;
+	onPairGainColumnsToggle: (id: string) => void;
 }
 
-function RunReportContentItem({ block }: RunReportContentItemProps) {
-	const ref = useRef<HTMLDivElement>(null);
-	const [enablePairGainColumns, toggleEnablePairGainColumns] =
-		useEnablePairGainColumns();
-
+function RunReportContentItem({
+	block,
+	argValNavigationItems,
+	onArgValNavigate,
+	onTableOfContentsNavigate,
+	enablePairGainColumns,
+	onPairGainColumnsToggle
+}: RunReportContentItemProps) {
 	const args = useMemo(
 		() =>
 			Object.entries(block.common_args).map(([name, value]) => ({
@@ -493,7 +660,7 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 	const [params] = useSearchParams();
 	const [offsetTop, setOffsetTop] = useState(0);
 
-	const handleRef = useCallback((node: HTMLDivElement) => {
+	const handleRef = useCallback((node: HTMLDivElement | null) => {
 		setOffsetTop(node?.clientHeight ?? 0);
 	}, []);
 
@@ -502,55 +669,70 @@ function RunReportContentItem({ block }: RunReportContentItemProps) {
 			id={encodeURIComponent(block.id)}
 			className="flex flex-col bg-white rounded pl-1"
 		>
-			<div
-				className={cn('sticky top-0 bg-white z-[10] rounded-t')}
+			{/* LEVEL 1 */}
+			<CardHeader
+				className="sticky top-0 bg-white z-[10] rounded-t"
+				label={
+					<LinkWithProject
+						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
+						to={{
+							search: params.toString(),
+							hash: encodeURIComponent(block.id)
+						}}
+					>
+						{block.label}
+					</LinkWithProject>
+				}
 				ref={handleRef}
 			>
-				{/* LEVEL 1 */}
-				<CardHeader
-					label={
-						<LinkWithProject
-							className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-							to={{
-								search: params.toString(),
-								hash: encodeURIComponent(block.id)
-							}}
+				<div className="flex items-center gap-2">
+					<Tooltip content="Return to Table of Contents (t)">
+						<ButtonTw
+							type="button"
+							variant="secondary"
+							size="xss"
+							className="gap-1 px-1.5"
+							aria-label="Return to Table of Contents"
+							onClick={onTableOfContentsNavigate}
 						>
-							{block.label}
-						</LinkWithProject>
-					}
-					ref={ref}
-				>
-					<div className="flex items-center gap-2">
-						<Tooltip
-							content={
-								enablePairGainColumns
-									? 'Show columns in original order'
-									: 'Place gain columns next to their base columns'
-							}
+							<Icon name="PaperListText" className="size-4" />
+							<span>TOC</span>
+							<Kbd>t</Kbd>
+						</ButtonTw>
+					</Tooltip>
+					<Tooltip
+						content={
+							enablePairGainColumns
+								? 'Show columns in original order (p)'
+								: 'Place gain columns next to their base columns (p)'
+						}
+					>
+						<ButtonTw
+							type="button"
+							variant={enablePairGainColumns ? 'primary' : 'secondary'}
+							size="xss"
+							onClick={() => onPairGainColumnsToggle(block.id)}
 						>
-							<ButtonTw
-								variant={enablePairGainColumns ? 'primary' : 'secondary'}
-								size="xss"
-								onClick={() => toggleEnablePairGainColumns()}
-							>
-								<Icon name="Aggregation" size={20} className="mr-1.5" />
-								<span>
-									{enablePairGainColumns ? 'Unpair' : 'Pair'} Gain Columns
-								</span>
-							</ButtonTw>
-						</Tooltip>
-					</div>
-				</CardHeader>
-				<div className="p-4">
-					<RunReportArgs label="Common Arguments" items={args} />
+							<Icon name="Aggregation" size={16} className="mr-1.5" />
+							<span className="mr-1.5">
+								{enablePairGainColumns ? 'Unpair' : 'Pair'} Gain Columns
+							</span>
+							<Kbd>p</Kbd>
+						</ButtonTw>
+					</Tooltip>
 				</div>
+			</CardHeader>
+			<div className="p-4">
+				<RunReportArgs label="Common Arguments" items={args} />
 			</div>
 			<RunReportTestBlock
 				enableChartView={block.enable_chart_view}
 				enableTableView={block.enable_table_view}
+				enablePairGainColumns={enablePairGainColumns}
 				argsValBlocks={block.content}
 				offsetTop={offsetTop}
+				argValNavigationItems={argValNavigationItems}
+				onArgValNavigate={onArgValNavigate}
 			/>
 		</div>
 	);

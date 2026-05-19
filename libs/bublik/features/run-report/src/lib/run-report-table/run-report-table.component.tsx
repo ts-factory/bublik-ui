@@ -8,7 +8,6 @@ import { cn, cva } from '@/shared/tailwind-ui';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import { WarningsHoverCard } from '../run-report-warnings';
-import { useEnablePairGainColumns } from './run-report-table.hooks';
 
 const cellStyles = cva({
 	base: [
@@ -85,11 +84,12 @@ function getTableDerivedData(table: ReportTable) {
 
 interface RunReportTableProps {
 	table: ReportTable;
+	enablePairGainColumns: boolean;
 }
 
-function RunReportTable({ table }: RunReportTableProps) {
+function RunReportTable(props: RunReportTableProps) {
+	const { table, enablePairGainColumns } = props;
 	const { runId } = useParams<{ runId: string }>();
-	const [enablePairGainColumns] = useEnablePairGainColumns();
 	const [previewResultId, setPreviewResultId] = useState<number>();
 	const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
