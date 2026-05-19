@@ -20,10 +20,10 @@ export const convertResults = (
 ): ResultDescriptionItem[] => {
 	return values.map((result) => {
 		const statistics = result.entries
-			.filter((entry) => entry.aggr !== 'single')
+			.filter((entry) => entry.aggr !== 'single' && entry.aggr !== 'series')
 			.map((entry) => ({
 				units: entry.base_units,
-				value: entry.value,
+				value: entry.value ?? 0,
 				multiplier: entry.multiplier,
 				aggr: entry.aggr
 			}));
@@ -31,13 +31,27 @@ export const convertResults = (
 		return {
 			parameterName: result.description,
 			values: result.entries
-				.filter((entry) => entry.aggr === 'single')
-				.map((entry) => ({
-					units: entry.base_units,
-					value: entry.value,
-					multiplier: entry.multiplier,
-					aggr: entry.aggr
-				})),
+				.filter((entry) => entry.aggr === 'single' || entry.aggr === 'series')
+				.flatMap((entry) => {
+					if (entry.aggr === 'series')
+						return (
+							entry.values?.flatMap((value) => {
+								return {
+									units: entry.base_units,
+									value: value ?? 0,
+									multiplier: entry.multiplier,
+									aggr: entry.aggr
+								};
+							}) || []
+						);
+					else
+						return {
+							units: entry.base_units,
+							value: entry.value ?? 0,
+							multiplier: entry.multiplier,
+							aggr: entry.aggr
+						};
+				}),
 			statistics
 		};
 	});
@@ -92,8 +106,11 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 		const result = results.find((result) => result.type === axis.type);
 		const units = result?.entries?.[0]?.base_units;
 		const data =
-			result?.entries?.map(
-				(entry) => Number(entry.value) * Number(entry.multiplier)
+			result?.entries?.flatMap(
+				(entry) =>
+					entry.values?.map(
+						(value) => Number(value) * Number(entry.multiplier)
+					) || [Number(entry.value) * Number(entry.multiplier)]
 			) || [];
 		const min = Math.min(...data);
 		const max = Math.max(...data);
@@ -188,8 +205,13 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 				};
 
 			const yValues = result.entries
-				.filter((entry) => entry.aggr === 'single')
-				.map((entry) => Number(entry.value) * Number(entry.multiplier));
+				.filter((entry) => entry.aggr === 'single' || entry.aggr === 'series')
+				.flatMap(
+					(entry) =>
+						entry.values?.map(
+							(value) => Number(value) * Number(entry.multiplier)
+						) || [Number(entry.value) * Number(entry.multiplier)]
+				);
 
 			const data = yValues.map((y, index) => {
 				const x =
