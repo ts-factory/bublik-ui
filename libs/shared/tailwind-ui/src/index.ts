@@ -50,6 +50,7 @@ export * from './lib/context-menu';
 export * from './lib/styles';
 export * from './lib/text-area';
 export * from './lib/json-viewer';
+export * from './lib/kbd';
 export * from './lib/skeleton';
 export * from './lib/dropdown';
 export * from './lib/collapsible';
