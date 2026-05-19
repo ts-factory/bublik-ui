@@ -164,6 +164,14 @@ export const getErrorMessage = (error: unknown): BublikError => {
 		return { title: type, status, description: message };
 	}
 
+	if (isBublikAuthError(error)) {
+		return {
+			status: error.status,
+			title: 'error' in error.data ? 'Authorization error' : 'Error',
+			description: error.data.message
+		};
+	}
+
 	if (isHttpError(error)) {
 		const { status, data } = error;
 
@@ -174,14 +182,6 @@ export const getErrorMessage = (error: unknown): BublikError => {
 				typeof data === 'string'
 					? data
 					: HTTP_CODE_DESCRIPTIONS.get(status) ?? ''
-		};
-	}
-
-	if (isBublikAuthError(error)) {
-		return {
-			status: error.status,
-			title: 'Authorization error',
-			description: error.data.message
 		};
 	}
 

@@ -8,7 +8,7 @@ import { RocketIcon } from '@radix-ui/react-icons';
 import { ImportTaskRow } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { useImportRunsMutation } from '@/services/bublik-api';
+import { getErrorMessage, useImportRunsMutation } from '@/services/bublik-api';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { ButtonTw, cn, Icon, toast, Tooltip } from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
@@ -43,6 +43,12 @@ export function getIconByStatus(status: string) {
 }
 
 const columnHelper = createColumnHelper<ImportTaskRow>();
+
+const IMPORT_RETRY_ERROR_FALLBACK = 'Failed to trigger re-import';
+
+export function getImportRetryErrorMessage(error: unknown): string {
+	return getErrorMessage(error).description || IMPORT_RETRY_ERROR_FALLBACK;
+}
 
 interface ActionCellProps {
 	taskId?: string | null;
@@ -290,11 +296,11 @@ export const columns = [
 										url: row.original.run_source_url,
 										range: null
 									}
-								]);
+								]).unwrap();
 
 								toast.promise(promise, {
 									success: 'Triggered re-import successfully',
-									error: 'Failed to trigger re-import'
+									error: getImportRetryErrorMessage
 								});
 
 								await promise;

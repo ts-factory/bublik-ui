@@ -16,6 +16,7 @@ import {
 	ImportEventTableError,
 	ImportEventTableLoading
 } from './import-event-table.component';
+import { getImportRetryErrorMessage } from './import-event-table.columns';
 
 vi.mock('./import-log.component', () => ({
 	useImportLog: () => ({
@@ -133,5 +134,38 @@ describe('ImportEventTableComponent', () => {
 	it('should render empty state', () => {
 		const { asFragment } = render(<ImportEventTableEmpty />);
 		expect(asFragment()).toMatchSnapshot();
+	});
+
+	it('should format retry errors from backend messages', () => {
+		expect(
+			getImportRetryErrorMessage({
+				status: 400,
+				data: {
+					messages: {
+						url: ['URL does not match any allowed logs base URI']
+					}
+				}
+			})
+		).toBe('url: URL does not match any allowed logs base URI');
+
+		expect(
+			getImportRetryErrorMessage({
+				status: 500,
+				data: {
+					messages: [
+						'Unexpected server error. Try refreshing and let us know if it keeps happening.'
+					]
+				}
+			})
+		).toBe(
+			'Unexpected server error. Try refreshing and let us know if it keeps happening.'
+		);
+
+		expect(
+			getImportRetryErrorMessage({
+				status: 400,
+				data: { message: 'Import source is not available' }
+			})
+		).toBe('Import source is not available');
 	});
 });

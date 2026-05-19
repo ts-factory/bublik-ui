@@ -114,6 +114,20 @@ describe('Unified Error Handling', () => {
 					'Unexpected server error. Try refreshing and let us know if it keeps happening.'
 			});
 		});
+
+		it('should handle backend errors with a plain message', () => {
+			const error = {
+				status: 400,
+				data: { message: 'Import source is not available' }
+			};
+			const result = getErrorMessage(error);
+
+			expect(result).toEqual({
+				status: 400,
+				title: 'Error',
+				description: 'Import source is not available'
+			});
+		});
 	});
 
 	describe('getErrorDetails', () => {
