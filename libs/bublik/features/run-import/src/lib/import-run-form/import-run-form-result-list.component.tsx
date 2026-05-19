@@ -54,7 +54,12 @@ function RunImportResult({
 					return (
 						<li key={i} className="space-y-2 p-4">
 							<div className="flex items-center justify-between gap-2">
-								<StatusBadge status={hasTask ? 'SUCCESS' : 'FAILURE'} />
+								<div className="flex items-center gap-2">
+									<StatusBadge status={hasTask ? 'SUCCESS' : 'FAILURE'} />
+									<div className="flex items-center gap-2 text-xs text-gray-500">
+										<span>Job #{task.jobId}</span>
+									</div>
+								</div>
 								<span className="text-xs text-gray-500">
 									{format(
 										new Date(
@@ -64,9 +69,6 @@ function RunImportResult({
 										'hh:mm a'
 									)}
 								</span>
-							</div>
-							<div className="flex items-center gap-2 text-xs text-gray-500">
-								<span>Job #{task.jobId}</span>
 							</div>
 							{cleanUrl ? (
 								<a
