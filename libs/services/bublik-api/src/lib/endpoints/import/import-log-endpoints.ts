@@ -20,6 +20,21 @@ import { API_REDUCER_PATH } from '../../constants';
 import { BUBLIK_TAG } from '../../types';
 import { MaybePromise } from '../../utils';
 
+type ImportRunsError = {
+	status: string | number;
+	data?: unknown;
+	title?: string;
+	description?: string;
+	failedRunIndex?: number;
+	failedRunErrors?: ImportRunsError[];
+};
+
+type ImportRunsQueryReturnValue<T = unknown> = QueryReturnValue<
+	T,
+	unknown,
+	object | undefined
+>;
+
 const buildImportRunSourceUrl = (run: ImportRunInput) => {
 	const params = new URLSearchParams();
 	params.set('url', run.url);
@@ -60,6 +75,66 @@ function parseImportRuntime(runtime?: string | null): number | null {
 	return Number.isFinite(seconds) ? seconds : null;
 }
 
+const withFailedRunIndex = (
+	error: unknown,
+	failedRunIndex: number
+): ImportRunsError => {
+	if (typeof error === 'object' && error !== null) {
+		return { ...error, failedRunIndex } as ImportRunsError;
+	}
+
+	return {
+		status: 400,
+		data: { messages: [String(error)] },
+		failedRunIndex
+	};
+};
+
+const getImportRunsQueryResult = (
+	responses: PromiseSettledResult<ImportRunsQueryReturnValue>[]
+): ImportRunsQueryReturnValue<ImportRunsJobResponse[]> => {
+	const data: ImportRunsJobResponse[] = [];
+	const errors: string[] = [];
+	const requestErrors: ImportRunsError[] = [];
+
+	for (const [index, maybe] of responses.entries()) {
+		if (maybe.status === 'fulfilled' && maybe.value.data) {
+			const parsed = ImportRunsJobResponseSchema.safeParse(maybe.value.data);
+			if (parsed.success) {
+				data.push(parsed.data);
+			} else {
+				errors.push('Invalid response from import server');
+			}
+		} else if (maybe.status === 'fulfilled' && maybe.value.error) {
+			requestErrors.push(withFailedRunIndex(maybe.value.error, index));
+		} else if (maybe.status === 'rejected') {
+			errors.push(String(maybe.reason));
+		}
+	}
+
+	if (requestErrors.length) {
+		const [firstRequestError] = requestErrors;
+		return {
+			error: {
+				...firstRequestError,
+				failedRunErrors: requestErrors
+			}
+		};
+	}
+
+	if (errors.length) {
+		return {
+			error: {
+				status: 400,
+				title: 'Import failed',
+				description: errors.join('; ')
+			}
+		};
+	}
+
+	return { data };
+};
+
 function transformImportTaskListResponse(
 	response: z.infer<typeof ImportTaskListRawResponseSchema>
 ): z.infer<typeof ImportTaskListResponseSchema> {
@@ -96,40 +171,12 @@ export const importLogEventsEndpoint = {
 				const importRunPromises = runUrls.map((run) => {
 					const url = buildImportRunSourceUrl(run);
 
-					return baseQuery(url) as MaybePromise<QueryReturnValue<unknown>>;
+					return baseQuery(url) as MaybePromise<ImportRunsQueryReturnValue>;
 				});
 
 				const responses = await Promise.allSettled(importRunPromises);
 
-				const data: ImportRunsJobResponse[] = [];
-				const errors: string[] = [];
-
-				for (const maybe of responses) {
-					if (maybe.status === 'fulfilled' && maybe.value.data) {
-						const parsed = ImportRunsJobResponseSchema.safeParse(
-							maybe.value.data
-						);
-						if (parsed.success) {
-							data.push(parsed.data);
-						} else {
-							errors.push('Invalid response from import server');
-						}
-					} else if (maybe.status === 'rejected') {
-						errors.push(String(maybe.reason));
-					}
-				}
-
-				if (errors.length) {
-					return {
-						error: {
-							status: 400,
-							title: 'Import failed',
-							description: errors.join('; ')
-						}
-					};
-				}
-
-				return { data };
+				return getImportRunsQueryResult(responses);
 			},
 			invalidatesTags: [BUBLIK_TAG.importEvents]
 		}),
@@ -145,6 +192,8 @@ export const importLogEventsEndpoint = {
 
 export {
 	buildImportRunSourceUrl,
+	getImportRunsQueryResult,
 	parseImportRuntime,
-	transformImportTaskListResponse
+	transformImportTaskListResponse,
+	withFailedRunIndex
 };

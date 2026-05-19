@@ -25,6 +25,7 @@ import {
 	Checkbox,
 	cn,
 	DialogTitle,
+	ErrorMessage,
 	FormAlertError,
 	Icon,
 	SelectInput,
@@ -311,17 +312,23 @@ type EditRowProps = {
 };
 
 const EditRow = ({ field, idx, formApi, remove }: EditRowProps) => {
+	const urlFieldName = `runs.${idx}.url` as const;
+	const urlError = formApi.getFieldState(urlFieldName, formApi.formState).error
+		?.message;
+
 	return (
 		<Fragment key={field.id}>
 			<BodyCell>
-				<TextField
-					control={formApi.control}
-					name={`runs.${idx}.url`}
-					placeholder={`https://ts-factory.io/logs/2022/11/14/fili-mcx5-${
-						idx + 1
-					}`}
-					autoFocus={idx === 0}
-				/>
+				<div className="[&_[data-testid=input-error-message]]:hidden">
+					<TextField
+						control={formApi.control}
+						name={urlFieldName}
+						placeholder={`https://ts-factory.io/logs/2022/11/14/fili-mcx5-${
+							idx + 1
+						}`}
+						autoFocus={idx === 0}
+					/>
+				</div>
 			</BodyCell>
 			<BodyCell>
 				<AriaDateRangeField
@@ -344,6 +351,11 @@ const EditRow = ({ field, idx, formApi, remove }: EditRowProps) => {
 					</Tooltip>
 				) : null}
 			</BodyCell>
+			{urlError ? (
+				<BodyCell className="col-span-3">
+					<ErrorMessage>{urlError}</ErrorMessage>
+				</BodyCell>
+			) : null}
 		</Fragment>
 	);
 };
