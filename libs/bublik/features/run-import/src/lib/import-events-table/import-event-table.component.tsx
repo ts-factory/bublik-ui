@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps, ComponentType, Fragment, useState } from 'react';
+import {
+	ComponentProps,
+	ComponentType,
+	Fragment,
+	useEffect,
+	useRef,
+	useState
+} from 'react';
 import {
 	ExpandedState,
 	flexRender,
@@ -51,22 +58,14 @@ interface ImportEventTableProps {
 	setPagination: OnChangeFn<PaginationState>;
 	expanded: ExpandedState;
 	setExpanded: OnChangeFn<ExpandedState>;
-	isScrolled: boolean;
 	rowCount: number;
-	onPaginationChange?: () => void;
 }
 
 function ImportEventTable(props: ImportEventTableProps) {
-	const {
-		data,
-		pagination,
-		setPagination,
-		rowCount,
-		expanded,
-		setExpanded,
-		isScrolled,
-		onPaginationChange
-	} = props;
+	const { data, pagination, setPagination, rowCount, expanded, setExpanded } =
+		props;
+	const [isScrolled, setIsScrolled] = useState(false);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
 	const table = useReactTable({
 		state: { pagination, expanded },
@@ -88,19 +87,42 @@ function ImportEventTable(props: ImportEventTableProps) {
 		.map((col) => col.meta?.['width'] || 'minmax(0, 1fr)')
 		.join(' ');
 
+	useEffect(() => {
+		const container = scrollContainerRef.current;
+		if (!container) return;
+
+		const handleScroll = () => {
+			setIsScrolled(container.scrollTop > 0);
+		};
+
+		container.addEventListener('scroll', handleScroll);
+		return () => container.removeEventListener('scroll', handleScroll);
+	}, []);
+
+	const scrollToTop = () => {
+		scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	};
+
 	const handlePageChange = (page: number) => {
-		onPaginationChange?.();
+		scrollToTop();
 		table.setPageIndex(page - 1);
 	};
 
 	const handlePageSizeChange = (pageSize: number) => {
-		onPaginationChange?.();
+		scrollToTop();
 		table.setPageSize(pageSize);
 	};
 
+	const pageSize = table.getState().pagination.pageSize;
+	const currentPage = table.getState().pagination.pageIndex + 1;
+	const shouldRenderPagination = rowCount > pageSize;
+
 	return (
-		<div>
-			<div className="w-full">
+		<div className="flex min-h-full flex-col overflow-hidden">
+			<div
+				className="relative min-h-0 flex-1 overflow-auto"
+				ref={scrollContainerRef}
+			>
 				<div className="grid" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
@@ -140,15 +162,18 @@ function ImportEventTable(props: ImportEventTableProps) {
 				</div>
 			</div>
 
-			<div className="flex items-center justify-center">
-				<Pagination
-					totalCount={rowCount}
-					pageSize={table.getState().pagination.pageSize}
-					onPageChange={handlePageChange}
-					onPageSizeChange={handlePageSizeChange}
-					currentPage={table.getState().pagination.pageIndex + 1}
-				/>
-			</div>
+			{shouldRenderPagination ? (
+				<div className="z-20 flex shrink-0 items-center rounded-b-xl justify-center bg-white px-4 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+					<Pagination
+						variant="bordered"
+						totalCount={rowCount}
+						pageSize={pageSize}
+						onPageChange={handlePageChange}
+						onPageSizeChange={handlePageSizeChange}
+						currentPage={currentPage}
+					/>
+				</div>
+			) : null}
 		</div>
 	);
 }

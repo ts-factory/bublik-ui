@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren } from 'react';
 import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
 import { ExpandedState, PaginationState } from '@tanstack/react-table';
 
@@ -105,25 +105,6 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 			refetchOnMountOrArgChange: true
 		}
 	);
-	const [isScrolled, setIsScrolled] = useState(false);
-	const containerRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		const container = containerRef.current;
-		if (!container) return;
-
-		const handleScroll = () => {
-			setIsScrolled(container.scrollTop > 0);
-		};
-
-		container.addEventListener('scroll', handleScroll);
-		return () => container.removeEventListener('scroll', handleScroll);
-	}, []);
-
-	const handlePaginationChange = () => {
-		containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-	};
-
 	return (
 		<>
 			<div className="px-6 py-4 bg-white rounded-t-xl">
@@ -137,10 +118,7 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 					{props.children}
 				</div>
 			</div>
-			<div
-				className="flex flex-col flex-grow min-h-0 overflow-auto relative"
-				ref={containerRef}
-			>
+			<div className="relative flex min-h-0 flex-grow flex-col overflow-hidden">
 				{isLoading ? (
 					<ImportEventTableLoading />
 				) : error ? (
@@ -153,8 +131,6 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 						expanded={expanded}
 						setExpanded={setExpanded}
 						rowCount={data.pagination.count}
-						isScrolled={isScrolled}
-						onPaginationChange={handlePaginationChange}
 					/>
 				) : (
 					<ImportEventTableEmpty />

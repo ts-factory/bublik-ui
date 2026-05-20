@@ -40,7 +40,6 @@ function EventTableDemo() {
 					setPagination={setPagination}
 					expanded={expanded}
 					setExpanded={setExpanded}
-					isScrolled={false}
 					rowCount={0}
 				/>
 			</Provider>
@@ -64,7 +63,6 @@ function EventTableWithData({ data }: { data: ImportTaskRow[] }) {
 					setPagination={setPagination}
 					expanded={expanded}
 					setExpanded={setExpanded}
-					isScrolled={false}
 					rowCount={data.length}
 				/>
 			</Provider>
