@@ -21,6 +21,11 @@ const buttonStyles = cva({
 				'hover:bg-primary hover:text-white',
 				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu'
 			],
+			bordered: [
+				'flex items-center py-2 px-4 rounded-md border text-[1rem]',
+				'hover:border-primary hover:bg-primary-wash hover:text-primary',
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu disabled:hover:border-border-primary'
+			],
 			log: [
 				'relative inline-flex items-center px-4 py-2 border text-sm font-medium first:rounded-l-lg last:rounded-r-lg'
 			]
@@ -37,6 +42,16 @@ const buttonStyles = cva({
 			variant: 'primary',
 			isActive: false,
 			className: 'text-text-primary bg-white'
+		},
+		{
+			variant: 'bordered',
+			isActive: false,
+			className: 'bg-white border-border-primary text-text-primary'
+		},
+		{
+			variant: 'bordered',
+			isActive: true,
+			className: 'bg-primary-wash border-primary text-primary'
 		},
 		{
 			variant: 'log',
@@ -57,6 +72,7 @@ const wrapperStyles = cva({
 	variants: {
 		variant: {
 			primary: 'gap-1',
+			bordered: 'gap-1',
 			log: 'relative rounded-md -space-x-px'
 		}
 	}
@@ -234,6 +250,7 @@ export const Pagination = (props: PaginationProps) => {
 					options={DEFAULT_PAGE_SIZES}
 					defaultValue={pageSize.toString() || DEFAULT_PAGE_SIZES[1]}
 					onValueChange={handlePageSizeChange}
+					triggerVariant={variant === 'bordered' ? 'bordered' : 'primary'}
 				/>
 			)}
 		</div>

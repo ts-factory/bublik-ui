@@ -8,7 +8,8 @@ import {
 } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
-import { cva } from '../utils';
+import { cva, VariantProps } from '../utils';
+import { Icon } from '../icon';
 
 export const selectItemStyles = cva({
 	base: [
@@ -45,25 +46,40 @@ export const SelectItem: FC<SelectPrimitive.SelectItemProps> = ({ value }) => {
 	);
 };
 
+const selectTriggerStyles = cva({
+	base: [
+		'inline-flex items-center justify-center rounded-md bg-white px-4 text-[1rem] font-medium gap-1 outline-none transition-colors'
+	],
+	variants: {
+		variant: {
+			primary: 'hover:text-primary',
+			bordered:
+				'border border-border-primary py-2 hover:border-primary hover:bg-primary-wash hover:text-primary'
+		}
+	}
+});
+
 export interface PaginationSelectProps extends SelectPrimitive.SelectProps {
 	label: string;
 	options: string[];
+	triggerVariant?: VariantProps<typeof selectTriggerStyles>['variant'];
 }
 
 export const RadixSelect: FC<PaginationSelectProps> = ({
 	options,
 	label,
+	triggerVariant = 'primary',
 	...props
 }) => {
 	return (
 		<Select {...props}>
 			<SelectTrigger
-				className="inline-flex items-center justify-center rounded-md px-4 text-[1rem] font-normal gap-1 bg-white hover:text-primary outline-none"
+				className={selectTriggerStyles({ variant: triggerVariant })}
 				aria-label={label}
 			>
 				<SelectValue />
 				<SelectIcon>
-					<ChevronDownIcon />
+					<Icon name="ArrowShortTop" className="size-[18px] rotate-180" />
 				</SelectIcon>
 			</SelectTrigger>
 			<SelectContent className="hidden bg-white rounded-md shadow-popover">
