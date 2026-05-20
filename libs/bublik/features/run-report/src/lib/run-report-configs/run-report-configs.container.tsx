@@ -12,6 +12,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 	Icon,
+	Separator,
 	Tooltip
 } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -50,7 +51,9 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 					) : (
 						<Icon name="LineChartSingle" size={20} className="mr-2" />
 					)}
-					Reports
+					<span>Reports</span>
+					<Separator className="mx-1.5" orientation="vertical" />
+					<Icon name="ArrowShortTop" size={18} className="rotate-180" />
 				</ButtonTw>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
