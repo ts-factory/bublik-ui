@@ -1,7 +1,7 @@
 {
-	"date": "2026.05.14",
-	"summary": "refactor(import): [form] display loading state in import form properly",
-	"revision": "f80906a2",
-	"branch": "release-2.12.2",
-	"latestTag": "v2.12.2"
+	"date": "2026.05.21",
+	"summary": "style(import): [table] fix \"Runtime\" and \"Job Id\" column layout",
+	"revision": "98213f94",
+	"branch": "main",
+	"latestTag": "v2.12.3"
 }

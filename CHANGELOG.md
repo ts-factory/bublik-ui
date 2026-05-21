@@ -1,5 +1,20 @@
 
 
+### [2.12.3](https://github.com/ts-factory/bublik-ui/compare/v2.12.2...v2.12.3) (2026-05-21)
+
+
+### 💅 Polish
+
+* **import:** [table] fix "Runtime" and "Job Id" column layout ([98213f9](https://github.com/ts-factory/bublik-ui/commit/98213f9412aa9c695379fa51f5ee676bd64f4245))
+* **import:** move job id in line with status for better readability ([3c3d57b](https://github.com/ts-factory/bublik-ui/commit/3c3d57b1018b8143232cc36eb687ca29f8c271dc))
+
+
+### 🐛 Bug Fix
+
+* **import:** [form] show validation errors from API ([58025d4](https://github.com/ts-factory/bublik-ui/commit/58025d43ab7d7b2acb829167af940623c4dab0da))
+* **import:** show error properly for "Try Again" action ([dcb7bc5](https://github.com/ts-factory/bublik-ui/commit/dcb7bc5357b4f30dfc8dc6f1aa8bbb6a3f0a1272))
+* **log:** fix duplicate log JSON requests ([36990bd](https://github.com/ts-factory/bublik-ui/commit/36990bd0aafcaeac269c6ec1ccebf15e210d6a0b))
+
 ### [2.12.2](https://github.com/ts-factory/bublik-ui/compare/v2.12.1...v2.12.2) (2026-05-14)
 
 
