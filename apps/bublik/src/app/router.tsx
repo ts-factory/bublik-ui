@@ -7,6 +7,7 @@ import {
 	RouterProvider,
 	useLocation
 } from 'react-router-dom';
+import { useHotkey } from '@tanstack/react-hotkeys';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
@@ -85,17 +86,11 @@ function BublikCommand() {
 	const navigate = useNavigateWithProject();
 	const location = useLocation();
 
-	useEffect(() => {
-		const down = (e: KeyboardEvent) => {
-			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-				e.preventDefault();
-				setOpen((open) => !open);
-			}
-		};
-
-		document.addEventListener('keydown', down);
-		return () => document.removeEventListener('keydown', down);
-	}, []);
+	useHotkey('Mod+K', () => setOpen((open) => !open), {
+		ignoreInputs: false,
+		preventDefault: true,
+		requireReset: true
+	});
 
 	function handleSelect(action: () => void) {
 		return (_value: string) => {

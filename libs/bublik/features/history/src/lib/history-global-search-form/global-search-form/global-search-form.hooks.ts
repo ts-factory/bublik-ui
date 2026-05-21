@@ -3,6 +3,7 @@
 import { KeyboardEvent, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useHotkeys } from '@tanstack/react-hotkeys';
 
 import { VERDICT_TYPE } from '@/shared/types';
 
@@ -153,17 +154,18 @@ type UseCtrlEnterSubmitConfig = {
 export const useCtrlEnterSubmit = (config: UseCtrlEnterSubmitConfig) => {
 	const { onSubmit, methods } = config;
 
-	useEffect(() => {
-		const handleSubmitShortcut = (e: globalThis.KeyboardEvent) => {
-			if (e.key !== 'Enter') return;
-			if (!e.ctrlKey && !e.metaKey) return;
-			if (e.isComposing || e.repeat) return;
-
-			e.preventDefault();
-			methods.handleSubmit(onSubmit)();
-		};
-
-		document?.addEventListener('keydown', handleSubmitShortcut);
-		return () => document?.removeEventListener('keydown', handleSubmitShortcut);
-	}, [methods, onSubmit]);
+	useHotkeys(
+		(['Control+Enter', 'Meta+Enter'] as const).map((hotkey) => ({
+			hotkey,
+			callback: (event) => {
+				if (event.isComposing) return;
+				methods.handleSubmit(onSubmit)();
+			}
+		})),
+		{
+			ignoreInputs: false,
+			preventDefault: true,
+			requireReset: true
+		}
+	);
 };

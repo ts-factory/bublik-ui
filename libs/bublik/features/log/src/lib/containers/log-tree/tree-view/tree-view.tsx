@@ -18,8 +18,12 @@ import {
 } from 'react-vtree';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import { getPathToNode, isFocusInInput, isPackage } from '@/shared/utils';
-import { useSmoothScroll, useForceRerender } from '@/shared/hooks';
+import { getPathToNode, isPackage } from '@/shared/utils';
+import {
+	useSmoothScroll,
+	useForceRerender,
+	usePhysicalHotkeys
+} from '@/shared/hooks';
 import { NodeData } from '@/shared/types';
 
 import { Node } from '../tree-node';
@@ -120,15 +124,16 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 	const isFirstRender = useRef(true);
 
-	useEffect(() => {
-		/* ========== HELPERS ========== */
-		const updateCurrentScrollId = (value: string) => {
+	const updateCurrentScrollId = useCallback(
+		(value: string) => {
 			currentScrollId.current = value;
 			forceRerender();
-		};
+		},
+		[forceRerender]
+	);
 
-		const getNextPackage = (currentScrollId: string, stack: string[]) => {
-			// 1) When scroll id is root scroll to bottom
+	const getNextPackage = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			if (currentScrollId === main_package) {
 				return stack
 					.slice()
@@ -136,7 +141,6 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					.find((id) => isPackage(tree[id]));
 			}
 
-			// 2) Just return next id
 			return stack
 				.slice(0, stack.indexOf(currentScrollId) + 1)
 				.reverse()
@@ -147,17 +151,18 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					if (id === main_package) return true;
 
 					return (
-						// 1) Next or prev node is test
 						tree[id].has_error ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index + 1]])) ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index - 1]])) ||
-						// 2) Opened nodes
 						isOpen
 					);
 				});
-		};
+		},
+		[main_package, tree]
+	);
 
-		const getPrevPackage = (currentScrollId: string, stack: string[]) => {
+	const getPrevPackage = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			return stack
 				.slice(stack.indexOf(currentScrollId))
 				.find((id, index, arr) => {
@@ -168,13 +173,10 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					if (id === main_package) return true;
 
 					return (
-						// 1) Next or prev node is test
 						tree[id].has_error ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index - 1]])) ||
 						(isPackage(tree[id]) && !isPackage(tree[arr[index + 1]])) ||
-						// 2) Opened nodes
 						isOpen ||
-						// 3) Nesting level
 						(!(
 							treeRef.current?.state.records.get(id)?.public.data
 								.nestingLevel ===
@@ -184,10 +186,12 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 							tree[id].entity !== 'test')
 					);
 				});
-		};
+		},
+		[main_package, tree]
+	);
 
-		const jumpTenNodesUp = (currentScrollId: string, stack: string[]) => {
-			// 1) When scroll id is root scroll to bottom
+	const jumpTenNodesUp = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			if (currentScrollId === main_package) {
 				return stack
 					.slice()
@@ -195,25 +199,30 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 					.find((id) => isPackage(tree[id]));
 			}
 
-			// 2) Just return next id
 			const nextId = stack
 				.slice(0, stack.indexOf(currentScrollId) + 1)
 				.reverse()
 				.slice(0, 11);
 
 			return nextId[nextId.length - 1];
-		};
+		},
+		[main_package, tree]
+	);
 
-		const jumpTenNodesDown = (currentScrollId: string, stack: string[]) => {
+	const jumpTenNodesDown = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			const nextId = stack.slice(stack.indexOf(currentScrollId)).slice(0, 11);
 
 			if (nextId[nextId.length - 1] === stack[stack.length - 1])
 				return main_package;
 
 			return nextId[nextId.length - 1];
-		};
+		},
+		[main_package]
+	);
 
-		const getNextNode = (currentScrollId: string, stack: string[]) => {
+	const getNextNode = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			const nextNodeId = stack
 				.slice(0, stack.indexOf(currentScrollId.toString()))
 				.reverse()[0];
@@ -221,219 +230,229 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			if (!nextNodeId) return stack[stack.length - 1];
 
 			return nextNodeId;
-		};
+		},
+		[]
+	);
 
-		const getPrevNode = (currentScrollId: string, stack: string[]) => {
+	const getPrevNode = useCallback(
+		(currentScrollId: string, stack: string[]) => {
 			return stack.slice(stack.indexOf(currentScrollId.toString()))[1];
-		};
+		},
+		[]
+	);
 
-		const calcScrollPosition = (scrollId: string, nodeStack: string[]) => {
-			// 1) Get node index from stack
+	const calcScrollPosition = useCallback(
+		(scrollId: string, nodeStack: string[]) => {
 			const index = nodeStack.indexOf(scrollId.toString());
 
-			// 2) Get offset from index and item size
 			return index * itemSize - window.innerHeight / 2 + itemSize / 2;
-		};
+		},
+		[itemSize]
+	);
 
-		const scrollToFocus = async () => {
-			const getUpdatedState = (ids: string[]) => {
-				const state: {
-					[nodeId: string]: boolean;
-				} = {};
-
-				ids.forEach((id) => (state[id] = true));
-
-				return state;
-			};
-
-			if (!focusId) return;
-			if (focusId === main_package) {
-				updateCurrentScrollId(main_package);
-				return;
-			}
-
-			const stack = treeRef.current?.state.order;
-
-			// 1) Get path to node
-			const path = getPathToNode(focusId, tree);
-			// 2) Build state
-			const nodesToOpen = getUpdatedState(path);
-			// 3) Update tree state
-			await treeRef.current?.recomputeTree(nodesToOpen);
-			// 4) Scroll to node
-			if (!stack) return;
-			scrollToNode(focusId, stack);
-		};
-
-		const scrollToNode = (
-			scrollId: string | undefined = main_package,
-			stack: string[]
-		) => {
+	const scrollToNode = useCallback(
+		(scrollId: string | undefined = main_package, stack: string[]) => {
 			updateCurrentScrollId(scrollId);
 			return scrollTo(calcScrollPosition(scrollId, stack));
+		},
+		[calcScrollPosition, main_package, scrollTo, updateCurrentScrollId]
+	);
+
+	const scrollToFocus = useCallback(async () => {
+		const getUpdatedState = (ids: string[]) => {
+			const state: {
+				[nodeId: string]: boolean;
+			} = {};
+
+			ids.forEach((id) => (state[id] = true));
+
+			return state;
 		};
 
-		/* ========== MAIN LOGIC ========== */
+		if (!focusId) return;
+		if (focusId === main_package) {
+			updateCurrentScrollId(main_package);
+			return;
+		}
 
-		// [1] Scroll to focus
-		if (treeRef.current && focusId) scrollToFocus();
+		const stack = treeRef.current?.state.order;
+		const path = getPathToNode(focusId, tree);
+		const nodesToOpen = getUpdatedState(path);
 
-		// [3] Keyboard navigation
-		// W/S - jump one node up/down
-		// A/D - jump ten node up/down
-		// C/R - smart jump up/down
-		// F - jump to focus node
-		// T - jump to top
-		// X - close parent node and subtree
-		// G - close all nodes
-		// ENTER - open/close if package, download log if test
+		await treeRef.current?.recomputeTree(nodesToOpen);
 
-		const handleScroll = (e: KeyboardEvent) => {
-			const stack = treeRef.current?.state.order as string[];
-			// 1) Up and down
-			if (
-				e.code === 'KeyR' ||
-				e.code === 'KeyC' ||
-				e.code === 'KeyH' ||
-				e.code === 'KeyJ' ||
-				e.code === 'KeyK' ||
-				e.code === 'KeyL'
-			) {
-				let scrollId: string | undefined;
-				// Smart jumping
-				if (e.code === 'KeyR')
-					scrollId = getNextPackage(currentScrollId.current, stack);
-				if (e.code === 'KeyC')
-					scrollId = getPrevPackage(currentScrollId.current, stack);
+		if (stack) scrollToNode(focusId, stack);
+	}, [focusId, main_package, scrollToNode, tree, updateCurrentScrollId]);
 
-				// Go up/down one node
-				if (e.code === 'KeyK')
-					scrollId = getNextNode(currentScrollId.current, stack);
-				if (e.code === 'KeyJ')
-					scrollId = getPrevNode(currentScrollId.current, stack);
+	const scrollByCode = useCallback(
+		(code: string) => {
+			const stack = treeRef.current?.state.order as string[] | undefined;
+			if (!stack) return;
 
-				// Go up/down ten nodes
-				if (e.code === 'KeyH')
-					scrollId = jumpTenNodesUp(currentScrollId.current, stack);
-				if (e.code === 'KeyL')
-					scrollId = jumpTenNodesDown(currentScrollId.current, stack);
+			let scrollId: string | undefined;
 
-				if (!isFocusInInput(e)) scrollToNode(scrollId, stack);
+			if (code === 'KeyR')
+				scrollId = getNextPackage(currentScrollId.current, stack);
+			if (code === 'KeyC')
+				scrollId = getPrevPackage(currentScrollId.current, stack);
+			if (code === 'KeyK')
+				scrollId = getNextNode(currentScrollId.current, stack);
+			if (code === 'KeyJ')
+				scrollId = getPrevNode(currentScrollId.current, stack);
+			if (code === 'KeyH')
+				scrollId = jumpTenNodesUp(currentScrollId.current, stack);
+			if (code === 'KeyL')
+				scrollId = jumpTenNodesDown(currentScrollId.current, stack);
+			if (code === 'KeyT') scrollId = main_package;
+
+			scrollToNode(scrollId, stack);
+		},
+		[
+			getNextNode,
+			getNextPackage,
+			getPrevNode,
+			getPrevPackage,
+			jumpTenNodesDown,
+			jumpTenNodesUp,
+			main_package,
+			scrollToNode
+		]
+	);
+
+	const closeAllNodes = useCallback(async () => {
+		await treeRef.current?.recomputeTree({
+			[main_package]: {
+				open: true,
+				subtreeCallback(node, ownerNode) {
+					if (node !== ownerNode) {
+						node.isOpen = false;
+					}
+				}
 			}
+		});
 
-			// 2) To top
-			if (e.code === 'KeyT' && !isFocusInInput(e)) {
-				scrollToNode(main_package, stack);
-			}
+		updateCurrentScrollId(main_package);
+	}, [main_package, updateCurrentScrollId]);
 
-			// 3) To focus
-			if (e.code === 'KeyF' && focusId && !isFocusInInput(e)) {
-				scrollToFocus();
-			}
-		};
+	const closeParent = useCallback(async () => {
+		const stack = treeRef.current?.state.order;
+		const parentId: string | null = tree[currentScrollId.current].parentId;
 
-		/* ========== CLOSE AND OPEN NODES ========== */
+		if (parentId && parentId !== main_package) {
+			await treeRef.current?.recomputeTree({
+				[parentId]: {
+					open: false,
+					subtreeCallback(node, _ownerNode) {
+						node.isOpen = false;
+					}
+				}
+			});
+		}
 
-		// [4] Open and close packages
-		const handleCloseAllNodes = async (e: KeyboardEvent) => {
-			if (e.code === 'KeyG') {
-				await treeRef.current?.recomputeTree({
-					[main_package]: {
-						open: true,
-						subtreeCallback(node, ownerNode) {
-							if (node !== ownerNode) {
-								node.isOpen = false;
-							}
+		if (!stack) return;
+		scrollToNode(
+			parentId && parentId !== main_package ? parentId : main_package,
+			stack
+		);
+	}, [main_package, scrollToNode, tree]);
+
+	const closeChildren = useCallback(async () => {
+		const stack = treeRef.current?.state.order as string[] | undefined;
+		const parentId: string | null = tree[currentScrollId.current].parentId;
+
+		if (parentId && parentId !== main_package) {
+			await treeRef.current?.recomputeTree({
+				[parentId]: {
+					open: true,
+					subtreeCallback(node, ownerNode) {
+						if (node !== ownerNode) {
+							node.isOpen = false;
 						}
 					}
-				});
+				}
+			});
+		}
 
-				updateCurrentScrollId(main_package);
-			}
-		};
+		if (stack) {
+			scrollToNode(
+				parentId && parentId !== main_package ? parentId : main_package,
+				stack
+			);
+		}
+	}, [main_package, scrollToNode, tree]);
 
-		const handleCloseParent = async (e: KeyboardEvent) => {
-			const stack = treeRef.current?.state.order;
-			const parentId: string | null = tree[currentScrollId.current].parentId;
+	const toggleCurrentNode = useCallback(async () => {
+		if (isPackage(tree[currentScrollId.current])) {
+			const isOpen = treeRef.current?.state.records.get(currentScrollId.current)
+				?.public.isOpen;
 
-			if (e.code === 'KeyX') {
-				if (parentId && parentId !== main_package) {
-					await treeRef.current?.recomputeTree({
-						[parentId]: {
-							open: false,
-							subtreeCallback(node, _ownerNode) {
-								node.isOpen = false;
-							}
-						}
-					});
+			await treeRef.current?.recomputeTree({
+				[currentScrollId.current]: !(
+					isOpen && currentScrollId.current !== main_package
+				)
+			});
+		}
+
+		if (tree[currentScrollId.current].entity !== 'suite') {
+			setSearchParams((params) => {
+				if (params.get('focusId') !== currentScrollId.current) {
+					params.delete('lineNumber');
 				}
 
-				if (!stack) return;
-				scrollToNode(
-					parentId && parentId !== main_package ? parentId : main_package,
-					stack
-				);
+				params.set('focusId', currentScrollId.current);
+
+				return params;
+			});
+		}
+	}, [main_package, setSearchParams, tree]);
+
+	usePhysicalHotkeys(
+		[
+			{ code: 'KeyR', callback: () => scrollByCode('KeyR') },
+			{ code: 'KeyC', callback: () => scrollByCode('KeyC') },
+			{ code: 'KeyH', callback: () => scrollByCode('KeyH') },
+			{ code: 'KeyJ', callback: () => scrollByCode('KeyJ') },
+			{ code: 'KeyK', callback: () => scrollByCode('KeyK') },
+			{ code: 'KeyL', callback: () => scrollByCode('KeyL') },
+			{ code: 'KeyT', callback: () => scrollByCode('KeyT') },
+			{
+				code: 'KeyF',
+				callback: () => scrollToFocus(),
+				options: { enabled: Boolean(focusId) }
+			},
+			{
+				code: 'KeyG',
+				callback: () => closeAllNodes(),
+				options: { requireReset: true }
+			},
+			{
+				code: 'KeyX',
+				callback: () => closeParent(),
+				options: { requireReset: true }
+			},
+			{
+				code: 'KeyZ',
+				callback: () => closeChildren(),
+				options: { requireReset: true }
+			},
+			{
+				code: 'Enter',
+				callback: () => toggleCurrentNode(),
+				options: { requireReset: true }
 			}
-		};
+		],
+		{
+			ignoreInputs: true,
+			preventDefault: true
+		}
+	);
 
-		const handleCloseChildren = async (e: KeyboardEvent) => {
-			const stack = treeRef.current?.state.order as string[];
-			const parentId: string | null = tree[currentScrollId.current].parentId;
+	useEffect(() => {
+		if (treeRef.current && focusId) scrollToFocus();
 
-			if (e.code === 'KeyZ') {
-				if (parentId && parentId !== main_package) {
-					await treeRef.current?.recomputeTree({
-						[parentId]: {
-							open: true,
-							subtreeCallback(node, ownerNode) {
-								if (node !== ownerNode) {
-									node.isOpen = false;
-								}
-							}
-						}
-					});
-				}
-
-				scrollToNode(
-					parentId && parentId !== main_package ? parentId : main_package,
-					stack
-				);
-			}
-		};
-
-		const handleNodeClick = async (e: KeyboardEvent) => {
-			if (e.code === 'Enter') {
-				// 1) Toggle node
-				if (isPackage(tree[currentScrollId.current])) {
-					const isOpen = treeRef.current?.state.records.get(
-						currentScrollId.current
-					)?.public.isOpen;
-
-					await treeRef.current?.recomputeTree({
-						[currentScrollId.current]: !(
-							isOpen && currentScrollId.current !== main_package
-						)
-					});
-				}
-
-				if (tree[currentScrollId.current].entity !== 'suite') {
-					setSearchParams((params) => {
-						if (params.get('focusId') !== currentScrollId.current) {
-							params.delete('lineNumber');
-						}
-
-						params.set('focusId', currentScrollId.current);
-
-						return params;
-					});
-				}
-			}
-		};
-
-		// FOR BUTTON
 		scrollToFocusFuncRef.current = scrollToFocus;
 
-		if (isFirstRender && focusId) {
+		if (isFirstRender.current && focusId) {
 			setTimeout(() => {
 				if (tree[focusId]) {
 					scrollToFocus();
@@ -442,29 +461,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 
 			isFirstRender.current = false;
 		}
-
-		window.addEventListener('keypress', handleScroll);
-		window.addEventListener('keypress', handleNodeClick);
-		window.addEventListener('keypress', handleCloseParent);
-		window.addEventListener('keypress', handleCloseChildren);
-		window.addEventListener('keypress', handleCloseAllNodes);
-
-		return () => {
-			window.removeEventListener('keypress', handleScroll);
-			window.removeEventListener('keypress', handleNodeClick);
-			window.removeEventListener('keypress', handleCloseParent);
-			window.removeEventListener('keypress', handleCloseChildren);
-			window.removeEventListener('keypress', handleCloseAllNodes);
-		};
-	}, [
-		focusId,
-		main_package,
-		tree,
-		itemSize,
-		scrollTo,
-		forceRerender,
-		setSearchParams
-	]);
+	}, [focusId, scrollToFocus, tree]);
 
 	return (
 		<AutoSizer>

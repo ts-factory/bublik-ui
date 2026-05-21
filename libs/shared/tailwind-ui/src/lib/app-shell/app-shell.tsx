@@ -6,9 +6,9 @@ import {
 	useCallback,
 	ComponentType
 } from 'react';
+import { useHotkey } from '@tanstack/react-hotkeys';
 
-import { useLocalStorage, useKey } from '@/shared/hooks';
-import { isFocusInInput } from '@/shared/utils';
+import { useLocalStorage, usePhysicalHotkeys } from '@/shared/hooks';
 
 import { SidebarProvider, useSidebar } from './context';
 import { cn } from '../utils';
@@ -60,15 +60,19 @@ export const AppShell = ({
 		setIsSidebarOpen(!isSidebarOpen);
 	}, [isSidebarOpen, isSidebarVisible, setIsSidebarOpen]);
 
-	useKey(
-		(e) =>
-			isSidebarVisible &&
-			e.code === 'KeyS' &&
-			!e.ctrlKey &&
-			!e.metaKey &&
-			!isFocusInInput(e),
-		toggleSidebar,
-		{ event: 'keypress' }
+	usePhysicalHotkeys(
+		[
+			{
+				code: 'KeyS',
+				callback: toggleSidebar,
+				options: { enabled: isSidebarVisible }
+			}
+		],
+		{
+			ignoreInputs: true,
+			preventDefault: true,
+			requireReset: true
+		}
 	);
 
 	return (
