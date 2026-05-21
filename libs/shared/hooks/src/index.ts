@@ -36,6 +36,7 @@ export * from './lib/useKeyPress';
 export * from './lib/useIsOnline';
 export * from './lib/use-controllable-state';
 export * from './lib/use-ctrl-pressed';
+export * from './lib/use-physical-hotkeys';
 export * from './lib/use-page-container';
 export * from './lib/use-render-when-visible';
 export * from './lib/use-progressive-visible-count';
