@@ -28,7 +28,7 @@ vi.mock('@/shared/tailwind-ui', async (importOriginal) => {
 	};
 });
 
-function renderSubmenuItem() {
+function renderSubmenuItem({ disabled = false }: { disabled?: boolean } = {}) {
 	const handleLinkClick = vi.fn();
 
 	type TestLinkProps = {
@@ -61,7 +61,11 @@ function renderSubmenuItem() {
 		<MemoryRouter>
 			<TooltipProvider>
 				<SidebarProvider isSidebarOpen>
-					<SidebarNavSubmenuItemContainer to="/runs" linkComponent={TestLink}>
+					<SidebarNavSubmenuItemContainer
+						to="/runs"
+						disabled={disabled}
+						linkComponent={TestLink}
+					>
 						<SidebarNavSubmenuItemContainer.Label>
 							Details
 						</SidebarNavSubmenuItemContainer.Label>
@@ -81,6 +85,24 @@ function renderSubmenuItem() {
 }
 
 describe('SidebarNavSubmenuItemContainer', () => {
+	it('shows an active enabled hierarchy guide', () => {
+		const { container } = renderSubmenuItem();
+		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
+		const branch = container.querySelector('[data-sidebar-nav-guide-branch]');
+
+		expect(guide).toBeInstanceOf(HTMLLIElement);
+		expect(branch?.className).toContain('border-primary');
+	});
+
+	it('uses a lighter hierarchy guide for disabled items', () => {
+		const { container } = renderSubmenuItem({ disabled: true });
+		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
+		const branch = container.querySelector('[data-sidebar-nav-guide-branch]');
+
+		expect(guide).toBeInstanceOf(HTMLLIElement);
+		expect(branch?.className).toContain('border-border-primary/50');
+	});
+
 	it('keeps info button clicks from triggering link navigation', async () => {
 		const user = userEvent.setup();
 		const { container, handleLinkClick } = renderSubmenuItem();

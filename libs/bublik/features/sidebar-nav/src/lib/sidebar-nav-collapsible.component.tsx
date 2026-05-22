@@ -10,7 +10,10 @@ import {
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
-import { wrapperStyles } from './sidebar-nav.styles';
+import {
+	submenuGuideListStyles,
+	wrapperStyles
+} from './sidebar-nav.styles';
 import { useIsActivePaths, type ActivePattern } from './use-is-active';
 
 interface SidebarCollapsibleContextValue {
@@ -70,6 +73,9 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 }) {
 	const context = useSidebarCollapsible();
 	const isSubmenuOpen = context?.isSubmenuOpen ?? false;
+	const isActive = context?.isActive ?? false;
+	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
+	const isSidebarOpen = !!isSidebarOpenRaw;
 
 	return (
 		<div
@@ -82,7 +88,14 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 				}
 			`}
 		>
-			<ul className="flex flex-col gap-3">{children}</ul>
+			<ul
+				className={submenuGuideListStyles({
+					isSidebarOpen,
+					tone: isActive ? 'active' : 'inactive'
+				})}
+			>
+				{children}
+			</ul>
 		</div>
 	);
 };

@@ -54,12 +54,72 @@ export const listWrapperStyles = cva({
 export const accordionLinkStyles = cva({
 	base: ['flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group'],
 	variants: {
-		isSidebarOpen: { true: 'px-[18px]', false: 'px-[9px]' },
+		isSidebarOpen: {
+			true: 'ml-11 pl-3 pr-[18px]',
+			false: 'px-[9px]'
+		},
 		isActive: {
 			true: 'bg-[#ecf1ff] text-[#385bf9]',
 			false: 'text-text-menu hover:text-primary'
 		},
 		disabled: { true: 'cursor-not-allowed hover:text-text-menu' }
+	}
+});
+
+export const submenuGuideListStyles = cva({
+	base: [
+		'flex flex-col gap-3 relative',
+		'before:absolute before:left-[29px] before:-top-10 before:h-10 before:w-0.5 before:rounded-full before:content-[""] before:pointer-events-none'
+	],
+	variants: {
+		isSidebarOpen: {
+			true: '',
+			false: 'before:hidden'
+		},
+		tone: {
+			active: 'before:bg-primary',
+			inactive: 'before:bg-border-primary/80'
+		}
+	}
+});
+
+export const submenuGuideItemStyles = cva({
+	base: [
+		'relative',
+		'[&:has(~_[data-sidebar-nav-submenu-guide-active=true])_[data-sidebar-nav-guide-stem]]:bg-primary',
+		'[&[data-sidebar-nav-submenu-guide-active=true]_[data-sidebar-nav-guide-stem-top]]:bg-primary',
+		'[&:last-child_[data-sidebar-nav-guide-stem-bottom]]:hidden'
+	],
+	variants: {
+		isSidebarOpen: {
+			true: '',
+			false: '[&_[data-sidebar-nav-guide-part]]:hidden'
+		}
+	}
+});
+
+export const submenuGuideStemStyles = cva({
+	base: [
+		'absolute left-[29px] w-0.5 bg-border-primary/80 pointer-events-none z-0'
+	],
+	variants: {
+		segment: {
+			top: 'top-[-1px] h-[calc(50%-0.625rem+1px)]',
+			bottom: 'top-[calc(50%-10px)] bottom-[calc(-0.75rem-1px)]'
+		}
+	}
+});
+
+export const submenuGuideBranchStyles = cva({
+	base: [
+		'absolute left-[29px] top-[calc(50%-0.625rem)] h-2.5 w-3 rounded-bl-[0.625rem] border-b-2 border-l-2 pointer-events-none z-10'
+	],
+	variants: {
+		tone: {
+			active: 'border-primary',
+			inactive: 'border-border-primary/80',
+			disabled: 'border-border-primary/50'
+		}
 	}
 });
 
