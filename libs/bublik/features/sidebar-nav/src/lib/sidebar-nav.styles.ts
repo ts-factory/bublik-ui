@@ -112,13 +112,13 @@ export const submenuGuideStemStyles = cva({
 
 export const submenuGuideBranchStyles = cva({
 	base: [
-		'absolute left-[29px] top-[calc(50%-0.625rem)] h-2.5 w-3 rounded-bl-[0.625rem] border-b-2 border-l-2 pointer-events-none z-10'
+		'absolute left-[29px] top-[calc(50%-0.625rem)] h-2.5 w-3 rounded-bl-[0.625rem] border-b-2 border-l-2 pointer-events-none'
 	],
 	variants: {
 		tone: {
-			active: 'border-primary',
-			inactive: 'border-border-primary/80',
-			disabled: 'border-border-primary/50'
+			active: 'border-primary z-10',
+			inactive: 'border-border-primary/80 z-[-1]',
+			disabled: 'border-border-primary/50 z-[-1]'
 		}
 	}
 });
