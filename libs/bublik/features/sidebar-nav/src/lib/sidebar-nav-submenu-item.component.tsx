@@ -28,6 +28,12 @@ import {
 	SidebarAccordionLabel
 } from './sidebar-nav-accordion.component';
 import {
+	submenuGuideBranchExtensionStyles,
+	submenuGuideBranchStyles,
+	submenuGuideItemStyles,
+	submenuGuideStemStyles
+} from './sidebar-nav.styles';
+import {
 	getSubmenuIsActive,
 	type SubmenuMatchPattern
 } from './sidebar-nav.matchers';
@@ -50,7 +56,10 @@ export function useSidebarNavSubmenuItem(): SidebarNavSubmenuItemContextValue {
 	return context;
 }
 
-function SidebarNavSubmenuIcon(props: Omit<IconProps, 'ref'>) {
+function SidebarNavSubmenuIcon({
+	className,
+	...props
+}: Omit<IconProps, 'ref'>) {
 	const { disabled } = useSidebarNavSubmenuItem();
 	return (
 		<div
@@ -59,7 +68,7 @@ function SidebarNavSubmenuIcon(props: Omit<IconProps, 'ref'>) {
 				disabled && 'opacity-60'
 			)}
 		>
-			<Icon {...props} />
+			<Icon {...props} className={cn('size-[22px]', className)} />
 		</div>
 	);
 }
@@ -98,6 +107,9 @@ type SidebarNavSubmenuItemProps = {
 
 function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 	const { children, isActive, disabled } = props;
+	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
+	const isSidebarOpen = !!isSidebarOpenRaw;
+	const guideTone = disabled ? 'disabled' : isActive ? 'active' : 'inactive';
 
 	const linkProps =
 		'href' in props
@@ -105,13 +117,49 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 			: { to: props.to, linkComponent: props.linkComponent };
 
 	return (
-		<SidebarAccordionLink
-			isActive={isActive}
-			disabled={disabled}
-			{...linkProps}
+		<li
+			className={submenuGuideItemStyles({
+				isSidebarOpen
+			})}
+			data-sidebar-nav-submenu-guide
+			data-sidebar-nav-submenu-guide-active={isActive ? 'true' : undefined}
 		>
-			{children}
-		</SidebarAccordionLink>
+			<span
+				aria-hidden="true"
+				data-sidebar-nav-guide-part
+				data-sidebar-nav-guide-stem
+				data-sidebar-nav-guide-stem-top
+				className={submenuGuideStemStyles({ segment: 'top' })}
+			/>
+			<span
+				aria-hidden="true"
+				data-sidebar-nav-guide-part
+				data-sidebar-nav-guide-stem
+				data-sidebar-nav-guide-stem-bottom
+				className={submenuGuideStemStyles({ segment: 'bottom' })}
+			/>
+			<span
+				aria-hidden="true"
+				data-sidebar-nav-guide-part
+				data-sidebar-nav-guide-branch
+				className={submenuGuideBranchStyles({ tone: guideTone })}
+			/>
+			<span
+				aria-hidden="true"
+				data-sidebar-nav-guide-part
+				data-sidebar-nav-guide-branch-extension
+				className={submenuGuideBranchExtensionStyles({ tone: guideTone })}
+			/>
+			<SidebarNavSubmenuItemContext.Provider value={{ disabled: !!disabled }}>
+				<SidebarAccordionLink
+					isActive={isActive}
+					disabled={disabled}
+					{...linkProps}
+				>
+					{children}
+				</SidebarAccordionLink>
+			</SidebarNavSubmenuItemContext.Provider>
+		</li>
 	);
 }
 
@@ -140,16 +188,14 @@ export function SidebarNavSubmenuItemContainer({
 	const isActive = pattern ? getSubmenuIsActive(location, pattern) : true;
 
 	return (
-		<SidebarNavSubmenuItemContext.Provider value={{ disabled }}>
-			<SidebarNavSubmenuItemComponent
-				to={to}
-				isActive={isActive}
-				disabled={disabled}
-				linkComponent={linkComponent}
-			>
-				{children}
-			</SidebarNavSubmenuItemComponent>
-		</SidebarNavSubmenuItemContext.Provider>
+		<SidebarNavSubmenuItemComponent
+			to={to}
+			isActive={isActive}
+			disabled={disabled}
+			linkComponent={linkComponent}
+		>
+			{children}
+		</SidebarNavSubmenuItemComponent>
 	);
 }
 

@@ -13,10 +13,10 @@ import {
 const SIDEBAR_STATE_VALUE = 'compressedSidebarState';
 
 describe('mergeParamsWithSidebarState', () => {
-	it('preserves sidebar params and rewrites project params', () => {
+	it('preserves compact sidebar params and rewrites project params', () => {
 		const targetParams = new URLSearchParams('mode=charts&project=1');
 		const currentParams = new URLSearchParams(
-			`project=2&global.runs.lastMode=list&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}`
+			`project=2&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}`
 		);
 
 		const result = mergeParamsWithSidebarState(targetParams, currentParams, [
@@ -32,7 +32,7 @@ describe('mergeParamsWithSidebarState', () => {
 
 describe('mergeStringUrlWithSidebarState', () => {
 	const currentParams = new URLSearchParams(
-		`project=2&global.runs.lastMode=list&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}`
+		`project=2&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}`
 	);
 
 	it('preserves hash when target already has query params', () => {
