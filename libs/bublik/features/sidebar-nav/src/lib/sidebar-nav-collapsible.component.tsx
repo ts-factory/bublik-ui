@@ -11,6 +11,7 @@ import {
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
 import {
+	submenuGuideContainerStyles,
 	submenuGuideListStyles,
 	wrapperStyles
 } from './sidebar-nav.styles';
@@ -79,21 +80,22 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 
 	return (
 		<div
-			className={`
-				[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none
+			className={cn(
+				submenuGuideContainerStyles({
+					isSidebarOpen,
+					isSubmenuOpen,
+					tone: isActive ? 'active' : 'inactive'
+				}),
+				`[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none
 				${
 					isSubmenuOpen
 						? 'grid-rows-[1fr] duration-300'
 						: 'grid-rows-[0fr] duration-500'
 				}
-			`}
+			`
+			)}
 		>
-			<ul
-				className={submenuGuideListStyles({
-					isSidebarOpen,
-					tone: isActive ? 'active' : 'inactive'
-				})}
-			>
+			<ul className={submenuGuideListStyles({ isSidebarOpen })}>
 				{children}
 			</ul>
 		</div>

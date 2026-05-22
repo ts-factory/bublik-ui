@@ -28,6 +28,7 @@ import {
 	SidebarAccordionLabel
 } from './sidebar-nav-accordion.component';
 import {
+	submenuGuideBranchExtensionStyles,
 	submenuGuideBranchStyles,
 	submenuGuideItemStyles,
 	submenuGuideStemStyles
@@ -64,7 +65,7 @@ function SidebarNavSubmenuIcon(props: Omit<IconProps, 'ref'>) {
 				disabled && 'opacity-60'
 			)}
 		>
-			<Icon {...props} />
+			<Icon {...props} className="size-[22px]" />
 		</div>
 	);
 }
@@ -140,6 +141,12 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 				data-sidebar-nav-guide-part
 				data-sidebar-nav-guide-branch
 				className={submenuGuideBranchStyles({ tone: guideTone })}
+			/>
+			<span
+				aria-hidden="true"
+				data-sidebar-nav-guide-part
+				data-sidebar-nav-guide-branch-extension
+				className={submenuGuideBranchExtensionStyles({ tone: guideTone })}
 			/>
 			<SidebarNavSubmenuItemContext.Provider value={{ disabled: !!disabled }}>
 				<SidebarAccordionLink

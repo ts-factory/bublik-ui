@@ -52,10 +52,10 @@ export const listWrapperStyles = cva({
 });
 
 export const accordionLinkStyles = cva({
-	base: ['flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group'],
+	base: ['flex items-center rounded-[10px] py-1.5 h-full gap-1 group'],
 	variants: {
 		isSidebarOpen: {
-			true: 'ml-11 pl-3 pr-[18px]',
+			true: 'ml-11 pl-3 pr-4',
 			false: 'px-[9px]'
 		},
 		isActive: {
@@ -66,13 +66,17 @@ export const accordionLinkStyles = cva({
 	}
 });
 
-export const submenuGuideListStyles = cva({
+export const submenuGuideContainerStyles = cva({
 	base: [
-		'flex flex-col gap-3 relative',
-		'before:absolute before:left-[29px] before:-top-10 before:h-10 before:w-0.5 before:rounded-full before:content-[""] before:pointer-events-none'
+		'relative',
+		'before:absolute before:left-[29px] before:-top-2 before:h-2 before:w-0.5 before:rounded-t-full before:content-[""] before:pointer-events-none before:z-50'
 	],
 	variants: {
 		isSidebarOpen: {
+			true: '',
+			false: 'before:hidden'
+		},
+		isSubmenuOpen: {
 			true: '',
 			false: 'before:hidden'
 		},
@@ -83,11 +87,21 @@ export const submenuGuideListStyles = cva({
 	}
 });
 
+export const submenuGuideListStyles = cva({
+	base: ['flex flex-col gap-3 relative'],
+	variants: {
+		isSidebarOpen: {
+			true: '',
+			false: ''
+		}
+	}
+});
+
 export const submenuGuideItemStyles = cva({
 	base: [
 		'relative',
-		'[&:has(~_[data-sidebar-nav-submenu-guide-active=true])_[data-sidebar-nav-guide-stem]]:bg-primary',
-		'[&[data-sidebar-nav-submenu-guide-active=true]_[data-sidebar-nav-guide-stem-top]]:bg-primary',
+		'[&:has(~_[data-sidebar-nav-submenu-guide-active=true])_[data-sidebar-nav-guide-stem]]:bg-primary [&:has(~_[data-sidebar-nav-submenu-guide-active=true])_[data-sidebar-nav-guide-stem]]:z-20',
+		'[&[data-sidebar-nav-submenu-guide-active=true]_[data-sidebar-nav-guide-stem-top]]:bg-primary [&[data-sidebar-nav-submenu-guide-active=true]_[data-sidebar-nav-guide-stem-top]]:z-20',
 		'[&:last-child_[data-sidebar-nav-guide-stem-bottom]]:hidden'
 	],
 	variants: {
@@ -100,11 +114,11 @@ export const submenuGuideItemStyles = cva({
 
 export const submenuGuideStemStyles = cva({
 	base: [
-		'absolute left-[29px] w-0.5 bg-border-primary/80 pointer-events-none z-0'
+		'absolute left-[29px] w-0.5 bg-border-primary/80 pointer-events-none z-10'
 	],
 	variants: {
 		segment: {
-			top: 'top-[-1px] h-[calc(50%-0.625rem+1px)]',
+			top: 'top-[-1px] h-[calc(50%-0.625rem+3px)]',
 			bottom: 'top-[calc(50%-10px)] bottom-[calc(-0.75rem-1px)]'
 		}
 	}
@@ -112,13 +126,26 @@ export const submenuGuideStemStyles = cva({
 
 export const submenuGuideBranchStyles = cva({
 	base: [
-		'absolute left-[29px] top-[calc(50%-0.625rem)] h-2.5 w-3 rounded-bl-[0.625rem] border-b-2 border-l-2 pointer-events-none'
+		'absolute left-[29px] top-[calc(50%-9px)] h-2.5 w-3 rounded-bl-[0.625rem] border-b-2 border-l-2 pointer-events-none'
 	],
 	variants: {
 		tone: {
-			active: 'border-primary z-10',
-			inactive: 'border-border-primary/80 z-[-1]',
-			disabled: 'border-border-primary/50 z-[-1]'
+			active: 'border-primary z-20',
+			inactive: 'border-border-primary/80 z-10',
+			disabled: 'border-border-primary/50 z-10'
+		}
+	}
+});
+
+export const submenuGuideBranchExtensionStyles = cva({
+	base: [
+		'absolute left-[40px] top-1/2 h-0.5 w-[14px] -translate-y-1/2 rounded-full pointer-events-none'
+	],
+	variants: {
+		tone: {
+			active: 'bg-primary z-20',
+			inactive: 'bg-border-primary/80 z-[-1]',
+			disabled: 'bg-border-primary/50 z-[-1]'
 		}
 	}
 });
