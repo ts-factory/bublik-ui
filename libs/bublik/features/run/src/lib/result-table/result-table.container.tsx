@@ -23,7 +23,7 @@ function getResultSelectors(row: Row<RunData | MergedRun>) {
 		: [
 				{
 					parentId: row.original.parent_id ?? row.original.result_id,
-					startTirId: row.original.result_id
+					startExecSeqno: row.original.exec_seqno
 				}
 		  ];
 }

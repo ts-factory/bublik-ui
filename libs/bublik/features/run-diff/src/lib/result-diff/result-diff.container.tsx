@@ -31,7 +31,7 @@ const getQueries = ({
 				selectors: [
 					{
 						parentId: left.parent_id ?? left.result_id,
-						startTirId: left.result_id
+						startExecSeqno: left.exec_seqno
 					}
 				],
 				testName: left.test_name,
@@ -46,7 +46,7 @@ const getQueries = ({
 				selectors: [
 					{
 						parentId: right.parent_id ?? right.result_id,
-						startTirId: right.result_id
+						startExecSeqno: right.exec_seqno
 					}
 				],
 				testName: right.test_name,

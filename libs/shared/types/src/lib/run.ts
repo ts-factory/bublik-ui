@@ -75,7 +75,7 @@ export type RunPageParams = {
 export type ResultTableAPIQuery = {
 	selectors: {
 		parentId: number;
-		startTirId: number;
+		startExecSeqno: number;
 	}[];
 	testName: string;
 };

@@ -54,6 +54,29 @@ export interface Verdict {
 	comment: string;
 }
 
+export function buildResultsTableParams({
+	selector,
+	testName,
+	results,
+	resultProperties
+}: {
+	selector: ResultTableAPIQueryWithFilter['selectors'][number];
+	testName: string;
+	results: string;
+	resultProperties: string;
+}): Record<string, string | number> {
+	const params: Record<string, string | number> = {
+		parent_id: selector.parentId,
+		test_name: testName,
+		start_exec_seqno: selector.startExecSeqno
+	};
+
+	if (results) params.results = results;
+	if (resultProperties) params.result_properties = resultProperties;
+
+	return params;
+}
+
 /**
  * Merges runs based on test_id and exec_seqno
  * @param runs - Top most packages of runs that contain children
@@ -83,7 +106,7 @@ export function mergeRuns(runs: Array<[number, RunData]>): Array<MergedRun> {
 		mergedNode.parent_ids = mergeIds(parentIds);
 		mergedNode.result_selectors = nodes.map((node) => ({
 			parentId: node.parent_id ?? node.result_id,
-			startTirId: node.result_id
+			startExecSeqno: node.exec_seqno
 		}));
 		mergedNode.stats = mergeStats(nodes.map((node) => node.stats));
 
@@ -177,16 +200,12 @@ export const runEndpoints = {
 							const resultProperties = props.resultProperties.join(
 								config.queryDelimiter
 							);
-							const params: Record<string, string | number> = {
-								parent_id: selector.parentId,
-								test_name: testName,
-								start_tir_id: selector.startTirId
-							};
-
-							if (results) params.results = results;
-							if (resultProperties) {
-								params.result_properties = resultProperties;
-							}
+							const params = buildResultsTableParams({
+								selector,
+								testName,
+								results,
+								resultProperties
+							});
 
 							return fetchWithBQ({
 								url: withApiV2('/results'),
