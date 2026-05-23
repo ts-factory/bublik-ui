@@ -116,7 +116,6 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 	return (
 		<li
 			className={submenuGuideItemStyles({
-				tone: guideTone,
 				isSidebarOpen
 			})}
 			data-sidebar-nav-submenu-guide
