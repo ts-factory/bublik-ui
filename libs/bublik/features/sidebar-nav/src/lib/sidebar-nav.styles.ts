@@ -92,7 +92,7 @@ export const submenuGuideListStyles = cva({
 	variants: {
 		isSidebarOpen: {
 			true: '',
-			false: ''
+			false: 'bg-primary-wash rounded-lg'
 		}
 	}
 });
