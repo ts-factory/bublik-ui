@@ -5,11 +5,98 @@ import { parse, stringify } from 'zipson';
 
 import { SIDEBAR_PREFIX } from '@/shared/types';
 
-import { SIDEBAR_STATE_PARAM } from './sidebar-state.constants';
+import {
+	DASHBOARD_SIDEBAR_KEYS,
+	HISTORY_SIDEBAR_KEYS,
+	LOG_SIDEBAR_KEYS,
+	MEASUREMENTS_SIDEBAR_KEYS,
+	RUNS_SIDEBAR_KEYS,
+	RUN_SIDEBAR_KEYS,
+	SHARED_SIDEBAR_KEYS,
+	SIDEBAR_STATE_PARAM
+} from './sidebar-state.constants';
 
 type SidebarStateValue = string | string[];
 type SidebarState = Record<string, SidebarStateValue>;
 type EncodedParamInput = string | (string | null)[] | null | undefined;
+type CompactSidebarState = [2, Record<string, SidebarStateValue>];
+
+export const SIDEBAR_STATE_MAX_LENGTH = 1500;
+
+const SIDEBAR_KEY_ALIASES = {
+	[RUNS_SIDEBAR_KEYS.SELECTED]: 'rs',
+	[RUNS_SIDEBAR_KEYS.LAST_LIST]: 'rll',
+	[RUNS_SIDEBAR_KEYS.LAST_CHARTS]: 'rlc',
+	[RUNS_SIDEBAR_KEYS.LAST_COMPARE]: 'rlp',
+	[RUNS_SIDEBAR_KEYS.LAST_MULTIPLE]: 'rlm',
+	[RUNS_SIDEBAR_KEYS.LAST_MODE]: 'rm',
+	[RUN_SIDEBAR_KEYS.LAST_DETAILS]: 'rd',
+	[RUN_SIDEBAR_KEYS.LAST_REPORT]: 'rr',
+	[RUN_SIDEBAR_KEYS.LAST_MODE]: 'rnm',
+	[MEASUREMENTS_SIDEBAR_KEYS.LAST_MEASUREMENTS]: 'mmu',
+	[MEASUREMENTS_SIDEBAR_KEYS.LAST_MODE]: 'mm',
+	[LOG_SIDEBAR_KEYS.LAST_LOG]: 'll',
+	[LOG_SIDEBAR_KEYS.LAST_MODE]: 'lm',
+	[HISTORY_SIDEBAR_KEYS.LAST_LINEAR]: 'hl',
+	[HISTORY_SIDEBAR_KEYS.LAST_AGGREGATION]: 'ha',
+	[HISTORY_SIDEBAR_KEYS.LAST_TREND]: 'ht',
+	[HISTORY_SIDEBAR_KEYS.LAST_SERIES]: 'hs',
+	[HISTORY_SIDEBAR_KEYS.LAST_STACKED]: 'hk',
+	[HISTORY_SIDEBAR_KEYS.LAST_MODE]: 'hm',
+	[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: 'cr',
+	[SHARED_SIDEBAR_KEYS.LAST_LOG_RUN_ID]: 'lr',
+	[SHARED_SIDEBAR_KEYS.LAST_RUN_RUN_ID]: 'rrid',
+	[DASHBOARD_SIDEBAR_KEYS.LAST_URL]: 'du'
+} as const;
+
+const SIDEBAR_KEY_ALIAS_MAP: Record<string, string> = SIDEBAR_KEY_ALIASES;
+
+const SIDEBAR_ALIAS_KEYS = Object.fromEntries(
+	Object.entries(SIDEBAR_KEY_ALIAS_MAP).map(([key, alias]) => [alias, key])
+) as Record<string, string>;
+
+const URL_STATE_KEYS = new Set<string>([
+	RUNS_SIDEBAR_KEYS.LAST_LIST,
+	RUNS_SIDEBAR_KEYS.LAST_CHARTS,
+	RUNS_SIDEBAR_KEYS.LAST_COMPARE,
+	RUNS_SIDEBAR_KEYS.LAST_MULTIPLE,
+	RUN_SIDEBAR_KEYS.LAST_DETAILS,
+	RUN_SIDEBAR_KEYS.LAST_REPORT,
+	MEASUREMENTS_SIDEBAR_KEYS.LAST_MEASUREMENTS,
+	LOG_SIDEBAR_KEYS.LAST_LOG,
+	HISTORY_SIDEBAR_KEYS.LAST_LINEAR,
+	HISTORY_SIDEBAR_KEYS.LAST_AGGREGATION,
+	HISTORY_SIDEBAR_KEYS.LAST_TREND,
+	HISTORY_SIDEBAR_KEYS.LAST_SERIES,
+	HISTORY_SIDEBAR_KEYS.LAST_STACKED,
+	DASHBOARD_SIDEBAR_KEYS.LAST_URL
+]);
+
+const SIDEBAR_STATE_PRUNE_ORDER = [
+	DASHBOARD_SIDEBAR_KEYS.LAST_URL,
+	HISTORY_SIDEBAR_KEYS.LAST_STACKED,
+	HISTORY_SIDEBAR_KEYS.LAST_SERIES,
+	HISTORY_SIDEBAR_KEYS.LAST_TREND,
+	HISTORY_SIDEBAR_KEYS.LAST_AGGREGATION,
+	HISTORY_SIDEBAR_KEYS.LAST_LINEAR,
+	MEASUREMENTS_SIDEBAR_KEYS.LAST_MEASUREMENTS,
+	LOG_SIDEBAR_KEYS.LAST_LOG,
+	RUN_SIDEBAR_KEYS.LAST_REPORT,
+	RUN_SIDEBAR_KEYS.LAST_DETAILS,
+	RUNS_SIDEBAR_KEYS.LAST_MULTIPLE,
+	RUNS_SIDEBAR_KEYS.LAST_COMPARE,
+	RUNS_SIDEBAR_KEYS.LAST_CHARTS,
+	RUNS_SIDEBAR_KEYS.LAST_LIST,
+	SHARED_SIDEBAR_KEYS.LAST_LOG_RUN_ID,
+	SHARED_SIDEBAR_KEYS.LAST_RUN_RUN_ID,
+	HISTORY_SIDEBAR_KEYS.LAST_MODE,
+	MEASUREMENTS_SIDEBAR_KEYS.LAST_MODE,
+	LOG_SIDEBAR_KEYS.LAST_MODE,
+	RUN_SIDEBAR_KEYS.LAST_MODE,
+	RUNS_SIDEBAR_KEYS.LAST_MODE,
+	RUNS_SIDEBAR_KEYS.SELECTED,
+	SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID
+];
 
 interface GlobalWithBuffer {
 	Buffer?: {
@@ -116,6 +203,98 @@ function normalizeSidebarState(value: unknown): SidebarState {
 	return normalized;
 }
 
+function isCompactSidebarState(value: unknown): value is CompactSidebarState {
+	return (
+		Array.isArray(value) &&
+		value.length === 2 &&
+		value[0] === 2 &&
+		!!value[1] &&
+		typeof value[1] === 'object' &&
+		!Array.isArray(value[1])
+	);
+}
+
+function normalizeSidebarStateValue(
+	key: string,
+	value: SidebarStateValue
+): SidebarStateValue | null {
+	if (isStringArray(value)) {
+		const normalizedValues = value.filter(Boolean);
+		return normalizedValues.length > 0 ? normalizedValues : null;
+	}
+
+	const normalizedValue = URL_STATE_KEYS.has(key)
+		? stripSidebarParamsFromUrl(value)
+		: value;
+
+	return normalizedValue ? normalizedValue : null;
+}
+
+function decodeSidebarState(value: string): SidebarState {
+	const decodedState = decodeCompressedState<unknown>(value);
+	if (!isCompactSidebarState(decodedState)) {
+		return {};
+	}
+
+	const normalized: SidebarState = {};
+
+	for (const [alias, entry] of Object.entries(decodedState[1])) {
+		const key = SIDEBAR_ALIAS_KEYS[alias];
+		if (!key || !(typeof entry === 'string' || isStringArray(entry))) {
+			continue;
+		}
+
+		const normalizedValue = normalizeSidebarStateValue(key, entry);
+		if (normalizedValue) {
+			normalized[key] = normalizedValue;
+		}
+	}
+
+	return normalized;
+}
+
+function compactSidebarState(sidebarState: SidebarState): CompactSidebarState {
+	const compactState: Record<string, SidebarStateValue> = {};
+
+	for (const [key, value] of Object.entries(sidebarState)) {
+		const alias = SIDEBAR_KEY_ALIAS_MAP[key];
+		if (!alias) {
+			continue;
+		}
+
+		const normalizedValue = normalizeSidebarStateValue(key, value);
+		if (normalizedValue) {
+			compactState[alias] = normalizedValue;
+		}
+	}
+
+	return [2, compactState];
+}
+
+function encodeSidebarState(sidebarState: SidebarState): string {
+	return encodeCompressedState(compactSidebarState(sidebarState));
+}
+
+function pruneSidebarState(sidebarState: SidebarState): SidebarState {
+	const prunedState = { ...sidebarState };
+	let encodedState = encodeSidebarState(prunedState);
+
+	for (const key of SIDEBAR_STATE_PRUNE_ORDER) {
+		if (encodedState.length <= SIDEBAR_STATE_MAX_LENGTH) {
+			return prunedState;
+		}
+
+		delete prunedState[key];
+		encodedState = encodeSidebarState(prunedState);
+	}
+
+	if (encodedState.length <= SIDEBAR_STATE_MAX_LENGTH) {
+		return prunedState;
+	}
+
+	return {};
+}
+
 function tryParseJson<T>(value: string): T | undefined {
 	try {
 		return JSON.parse(value) as T;
@@ -131,25 +310,6 @@ function parseLegacyJsonState<T>(value: string): T | undefined {
 	}
 
 	return tryParseJson<T>(decodeURIComponent(value));
-}
-
-function getLegacySidebarState(searchParams: URLSearchParams): SidebarState {
-	const legacyState: SidebarState = {};
-
-	searchParams.forEach((_, key) => {
-		if (!key.startsWith(`${SIDEBAR_PREFIX}.`)) {
-			return;
-		}
-
-		const values = searchParams.getAll(key);
-		if (values.length === 0) {
-			return;
-		}
-
-		legacyState[key] = values.length === 1 ? values[0] : values;
-	});
-
-	return legacyState;
 }
 
 function removeLegacySidebarParams(searchParams: URLSearchParams): void {
@@ -201,11 +361,10 @@ export function getSidebarState(searchParams: URLSearchParams): SidebarState {
 	const encodedState = searchParams.get(SIDEBAR_STATE_PARAM);
 
 	if (encodedState) {
-		const decodedState = decodeCompressedState<unknown>(encodedState);
-		return normalizeSidebarState(decodedState);
+		return decodeSidebarState(encodedState);
 	}
 
-	return getLegacySidebarState(searchParams);
+	return {};
 }
 
 /**
@@ -258,13 +417,14 @@ export function updateSidebarStateSearchParams(
 
 		const sidebarState = getSidebarState(newParams);
 		updater(sidebarState);
+		const prunedState = pruneSidebarState(normalizeSidebarState(sidebarState));
 
-		if (Object.keys(sidebarState).length === 0) {
+		if (Object.keys(prunedState).length === 0) {
 			newParams.delete(SIDEBAR_STATE_PARAM);
 			return;
 		}
 
-		newParams.set(SIDEBAR_STATE_PARAM, encodeCompressedState(sidebarState));
+		newParams.set(SIDEBAR_STATE_PARAM, encodeSidebarState(prunedState));
 	});
 }
 
@@ -293,13 +453,14 @@ export function setEncodedUrlParam(
 
 	const sidebarState = getSidebarState(searchParams);
 	setSidebarStateValue(sidebarState, key, stripSidebarParamsFromUrl(rawUrl));
+	const prunedState = pruneSidebarState(normalizeSidebarState(sidebarState));
 
-	if (Object.keys(sidebarState).length === 0) {
+	if (Object.keys(prunedState).length === 0) {
 		searchParams.delete(SIDEBAR_STATE_PARAM);
 		return;
 	}
 
-	searchParams.set(SIDEBAR_STATE_PARAM, encodeCompressedState(sidebarState));
+	searchParams.set(SIDEBAR_STATE_PARAM, encodeSidebarState(prunedState));
 }
 
 export function getUpdatedSearchParams(
@@ -314,24 +475,31 @@ export function getUpdatedSearchParams(
 
 /**
  * Strips sidebar params from a URL to avoid recursive state growth.
- * Keeps project params.
  */
 export function stripSidebarParamsFromUrl(url: string): string {
 	if (!url.includes('?')) return url;
 
-	const [pathname, searchStr] = url.split('?');
+	const [pathname, searchAndHash] = url.split('?');
+	const [searchStr, hash] = searchAndHash.split('#');
 	const params = new URLSearchParams(searchStr);
 
 	const keysToRemove: string[] = [];
-	params.forEach((_, key) => {
-		if (key.startsWith(`${SIDEBAR_PREFIX}.`) || key === SIDEBAR_STATE_PARAM) {
+	params.forEach((value, key) => {
+		if (
+			key.startsWith(`${SIDEBAR_PREFIX}.`) ||
+			key === SIDEBAR_STATE_PARAM ||
+			key === 'project' ||
+			value === '' ||
+			(key === 'mode' && value === 'default')
+		) {
 			keysToRemove.push(key);
 		}
 	});
 	keysToRemove.forEach((key) => params.delete(key));
 
 	const cleanedSearch = params.toString();
-	return cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
+	const cleanedPath = cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
+	return hash ? `${cleanedPath}#${hash}` : cleanedPath;
 }
 
 /**

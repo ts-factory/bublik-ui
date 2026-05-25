@@ -42,7 +42,7 @@ export const linkStyles = cva({
 	base: 'flex py-[7px] min-w-0 flex-grow gap-3.5',
 	variants: {
 		isSidebarOpen: { true: 'pl-4', false: 'pl-[7px]' },
-		disabled: { true: 'cursor-not-allowed opacity-60 pointer-events-none' }
+		disabled: { true: 'cursor-not-allowed pointer-events-none' }
 	}
 });
 
@@ -82,7 +82,7 @@ export const submenuGuideContainerStyles = cva({
 		},
 		tone: {
 			active: 'before:bg-primary',
-			inactive: 'before:bg-border-primary/80'
+			inactive: 'before:bg-border-primary'
 		}
 	}
 });
@@ -106,8 +106,7 @@ export const submenuGuideItemStyles = cva({
 	],
 	variants: {
 		isSidebarOpen: {
-			true:
-				'[&_[data-sidebar-nav-guide-part]]:opacity-100 [&_[data-sidebar-nav-guide-part]]:delay-700',
+			true: '[&_[data-sidebar-nav-guide-part]]:opacity-100 [&_[data-sidebar-nav-guide-part]]:delay-700',
 			false:
 				'[&_[data-sidebar-nav-guide-part]]:opacity-0 [&_[data-sidebar-nav-guide-part]]:delay-0'
 		}
@@ -116,7 +115,7 @@ export const submenuGuideItemStyles = cva({
 
 export const submenuGuideStemStyles = cva({
 	base: [
-		'absolute left-[29px] w-0.5 bg-border-primary/80 pointer-events-none z-10 transition-opacity duration-300'
+		'absolute left-[29px] w-0.5 bg-border-primary pointer-events-none z-10 transition-opacity duration-300'
 	],
 	variants: {
 		segment: {
@@ -133,8 +132,8 @@ export const submenuGuideBranchStyles = cva({
 	variants: {
 		tone: {
 			active: 'border-primary z-20',
-			inactive: 'border-border-primary/80 z-10',
-			disabled: 'border-border-primary/50 z-10'
+			inactive: 'border-border-primary z-10',
+			disabled: 'border-border-primary z-10'
 		}
 	}
 });
@@ -146,8 +145,8 @@ export const submenuGuideBranchExtensionStyles = cva({
 	variants: {
 		tone: {
 			active: 'bg-primary z-20',
-			inactive: 'bg-border-primary/80 z-[-1]',
-			disabled: 'bg-border-primary/50 z-[-1]'
+			inactive: 'bg-border-primary z-[-1]',
+			disabled: 'bg-border-primary z-[-1]'
 		}
 	}
 });
