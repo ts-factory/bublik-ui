@@ -62,7 +62,14 @@ export const SidebarNavCollapsibleContainer = ({
 		<SidebarCollapsibleContext.Provider
 			value={{ isSubmenuOpen, onToggle, isActive }}
 		>
-			<div className="relative">{children}</div>
+			<div
+				className={cn(
+					'relative',
+					!isSidebarOpen && isSubmenuOpen ? 'bg-primary-wash rounded-lg' : ''
+				)}
+			>
+				{children}
+			</div>
 		</SidebarCollapsibleContext.Provider>
 	);
 };
