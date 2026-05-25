@@ -64,8 +64,10 @@ export const SidebarNavCollapsibleContainer = ({
 		>
 			<div
 				className={cn(
-					'relative',
-					!isSidebarOpen && isSubmenuOpen ? 'bg-primary-wash rounded-lg' : ''
+					'relative transition-colors duration-300',
+					!isSidebarOpen && isSubmenuOpen
+						? 'bg-primary-wash rounded-lg delay-700'
+						: ''
 				)}
 			>
 				{children}
