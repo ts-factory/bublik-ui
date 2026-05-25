@@ -56,7 +56,10 @@ export function useSidebarNavSubmenuItem(): SidebarNavSubmenuItemContextValue {
 	return context;
 }
 
-function SidebarNavSubmenuIcon(props: Omit<IconProps, 'ref'>) {
+function SidebarNavSubmenuIcon({
+	className,
+	...props
+}: Omit<IconProps, 'ref'>) {
 	const { disabled } = useSidebarNavSubmenuItem();
 	return (
 		<div
@@ -65,7 +68,7 @@ function SidebarNavSubmenuIcon(props: Omit<IconProps, 'ref'>) {
 				disabled && 'opacity-60'
 			)}
 		>
-			<Icon {...props} className="size-[22px]" />
+			<Icon {...props} className={cn('size-[22px]', className)} />
 		</div>
 	);
 }
