@@ -150,4 +150,6 @@ export const submenuGuideBranchExtensionStyles = cva({
 	}
 });
 
-export const paddingTransition = { transition: 'padding 0.5s ease' };
+export const paddingTransition = {
+	transition: 'padding 0.5s ease, margin 0.5s ease'
+};
