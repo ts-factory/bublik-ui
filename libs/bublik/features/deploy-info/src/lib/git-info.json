@@ -1,7 +1,7 @@
 {
-	"date": "2026.05.21",
-	"summary": "style(import): [table] fix \"Runtime\" and \"Job Id\" column layout",
-	"revision": "98213f94",
-	"branch": "main",
-	"latestTag": "v2.12.3"
+	"date": "2026.05.22",
+	"summary": "fix(run): update run results API filtering to use `exec_seqno`",
+	"revision": "19a373cf",
+	"branch": "release-2.12.4",
+	"latestTag": "v2.12.4"
 }

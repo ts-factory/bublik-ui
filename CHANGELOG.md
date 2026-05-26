@@ -1,5 +1,32 @@
 
 
+### [2.12.4](https://github.com/ts-factory/bublik-ui/compare/v2.12.3...v2.12.4) (2026-05-26)
+
+
+### 🚀 New Feature
+
+* **hooks:** add hotkey hook to handle different locales ([d873865](https://github.com/ts-factory/bublik-ui/commit/d8738655b1f54f24d0dd1de5cd9c332d3fa81fcf))
+* **import:** add reload indicator to the header ([e87e112](https://github.com/ts-factory/bublik-ui/commit/e87e1122adb81d3d75b739d09c1510a62d0bcba5))
+* **report:** add button shorcuts for report navigation ([075f008](https://github.com/ts-factory/bublik-ui/commit/075f008059e9d954a229f9f02dcf3df03f5c67b2))
+* **ui:** add kdb ui component for hinting users about shortcuts ([33c1d1a](https://github.com/ts-factory/bublik-ui/commit/33c1d1a98b3130c66458e00c0d306c2fd57ee094))
+
+
+### 💅 Polish
+
+* **import:** [table] display pagination at the bottom always visible ([2c7ba99](https://github.com/ts-factory/bublik-ui/commit/2c7ba9978a17ee328970dd53dce80545ae56babf))
+* **report:** add arrow for "Reports" dropdown menu ([46d397b](https://github.com/ts-factory/bublik-ui/commit/46d397b09e62ffae6cbbe90c2039790d326be11a))
+* **ui:** [pagination] add new style with bordered button ([5505a83](https://github.com/ts-factory/bublik-ui/commit/5505a83b82d78dfe57e9be8a87ab48a167221915))
+
+
+### 🐛 Bug Fix
+
+* **run:** update run results API filtering to use `exec_seqno` ([19a373c](https://github.com/ts-factory/bublik-ui/commit/19a373cf8ba63bd36ced9f30e3ced96b551b65da))
+
+
+### 📦 Chores
+
+* **hooks:** update to use new keyboard shortcut hook ([9ad5eea](https://github.com/ts-factory/bublik-ui/commit/9ad5eea0f5946f3103e8d107d4b58b7b9bad9ddb))
+
 ### [2.12.3](https://github.com/ts-factory/bublik-ui/compare/v2.12.2...v2.12.3) (2026-05-21)
 
 
