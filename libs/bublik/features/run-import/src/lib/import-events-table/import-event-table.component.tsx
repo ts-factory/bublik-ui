@@ -283,7 +283,7 @@ function renderEventLogs(props: EventLogsOptions) {
 		<div className="bg-white px-4 py-8 border-t border-border-primary mb-1">
 			<div className="relative flex flex-col gap-8">
 				{/* Continuous vertical line */}
-				<div className="absolute left-10 top-12 bottom-16 z-10 w-0.5 bg-border-primary" />
+				<div className="absolute left-10 top-12 bottom-16 w-0.5 bg-border-primary" />
 
 				<div className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors">
 					{taskId ? (
@@ -339,7 +339,7 @@ function renderEventLogs(props: EventLogsOptions) {
 								return (
 									<div key={evt.timestamp + evt.msg} className="relative">
 										<div
-											className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white z-10`}
+											className={`absolute -left-[24px] top-[11px] flex size-8 items-center justify-center rounded-full ${bg} text-white`}
 										>
 											<StatusIcon className="size-6" />
 										</div>
