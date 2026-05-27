@@ -19,12 +19,20 @@ import { useHistoryActions } from '../slice';
 import { HistoryEmpty } from '../history-empty';
 import { HistoryError } from '../history-error';
 import {
+	HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
 	useCombinedView,
 	useGetHistoryMeasurements,
 	useGetHistoryMeasurementsByResult,
 	useHistoryMeasurementsTitle
 } from './plot-list.hooks';
 import { PlotList, PlotListLoading } from './plot-list.component';
+
+const pluralRules = new Intl.PluralRules('en-US');
+const suffixes = {
+	one: '',
+	other: 's'
+} as const satisfies Record<'one' | 'other', string>;
 
 export function PlotListContainer() {
 	const { query } = useHistoryQuery();
@@ -48,6 +56,10 @@ export function PlotListContainer() {
 	useEffect(() => {
 		if (data) syncChartsFromData(data);
 	}, [data, syncChartsFromData]);
+
+	const count = selectedCharts.length;
+	const rule = pluralRules.select(count) as 'one' | 'other';
+	const label = `${count} chart${suffixes[rule]} selected`;
 
 	if (!query.testName) {
 		return (
@@ -87,8 +99,9 @@ export function PlotListContainer() {
 				group="trend"
 			/>
 			<SelectedChartsPopover
-				open={!!selectedCharts.length}
-				label="Combined"
+				label={label}
+				storageKey={HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
+				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}
@@ -240,8 +253,9 @@ export function PlotListContainerByResult() {
 				group="measurement"
 			/>
 			<SelectedChartsPopover
-				open={!!selectedCharts.length}
-				label="Combined"
+				label="Selected Charts"
+				storageKey={HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY}
+				selectionCount={selectedCharts.length}
 				plots={selectedCharts}
 				onResetButtonClick={handleResetButtonClick}
 				onRemoveClick={handleRemoveClick}

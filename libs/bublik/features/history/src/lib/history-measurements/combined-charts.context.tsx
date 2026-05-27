@@ -12,6 +12,17 @@ import { useQueryParam } from 'use-query-params';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
+import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
+
+const HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY =
+	'history-trend-selected-charts-popover-open';
+const HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY =
+	'history-series-selected-charts-popover-open';
+
+const selectedChartsPopoverStorageKeys = {
+	trend: HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	measurement: HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY
+} as const;
 
 export interface SelectedChart {
 	plot: SingleMeasurementChart;
@@ -91,10 +102,9 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 					'combinedPlots',
 					charts.map((c) => String(c.plot.id)).join(';')
 				);
-				return;
+			} else {
+				params.delete('combinedPlots');
 			}
-
-			params.delete('combinedPlots');
 
 			navigate({ search: params.toString() }, { replace: true });
 		},
@@ -123,7 +133,12 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 				);
 				setSelectedCharts(newCharts);
 				updateUrlWithCharts(newCharts);
-				if (newCharts.length === 0) setSelectedGroup(null);
+				if (newCharts.length === 0) {
+					resetSelectionPopoverOpenState(
+						selectedChartsPopoverStorageKeys[group]
+					);
+					setSelectedGroup(null);
+				}
 			}
 		},
 		[selectedCharts, setSelectedGroup, updateUrlWithCharts]
@@ -140,12 +155,25 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			setSelectedCharts(newCharts);
 			updateUrlWithCharts(newCharts);
 
-			if (newCharts.length === 0) setSelectedGroup(null);
+			if (newCharts.length === 0) {
+				if (selectedGroup) {
+					resetSelectionPopoverOpenState(
+						selectedChartsPopoverStorageKeys[selectedGroup]
+					);
+				}
+				setSelectedGroup(null);
+			}
 		},
-		[selectedCharts, setSelectedGroup, updateUrlWithCharts]
+		[selectedCharts, selectedGroup, setSelectedGroup, updateUrlWithCharts]
 	);
 
 	const handleResetButtonClick = useCallback(() => {
+		resetSelectionPopoverOpenState(
+			HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY
+		);
+		resetSelectionPopoverOpenState(
+			HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY
+		);
 		setSelectedCharts([]);
 		setSelectedGroup(null);
 		const params = new URLSearchParams(searchParams);
@@ -202,4 +230,9 @@ export const useCombinedCharts = () => {
 			'useCombinedCharts must be used within a CombinedChartsProvider'
 		);
 	return ctx;
+};
+
+export {
+	HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY
 };
