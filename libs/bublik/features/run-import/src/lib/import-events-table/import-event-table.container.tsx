@@ -2,8 +2,17 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren, useEffect, useState } from 'react';
 import * as SwitchPrimitive from '@radix-ui/react-switch';
-import { JsonParam, useQueryParam, withDefault } from 'use-query-params';
-import { ExpandedState, PaginationState } from '@tanstack/react-table';
+import {
+	JsonParam,
+	useQueryParam,
+	useQueryParams,
+	withDefault
+} from 'use-query-params';
+import {
+	ExpandedState,
+	OnChangeFn,
+	PaginationState
+} from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ImportTaskFilters } from '@/shared/types';
@@ -18,18 +27,22 @@ import {
 } from './import-event-table.component';
 import { ImportRunFilterForm } from '../import-run-filter-form';
 
-const FilterParams = withDefault(JsonParam, {
+const DEFAULT_FILTERS: ImportTaskFilters = {
 	job: undefined,
 	run: undefined,
 	url: undefined,
 	celery_task: undefined,
 	status: undefined
-});
+};
 
-const PaginationParam = withDefault(JsonParam, {
+const DEFAULT_PAGINATION: PaginationState = {
 	pageIndex: 0,
 	pageSize: 25
-});
+};
+
+const FilterParams = withDefault(JsonParam, DEFAULT_FILTERS);
+
+const PaginationParam = withDefault(JsonParam, DEFAULT_PAGINATION);
 
 const IMPORT_EVENTS_POLLING_INTERVAL_MS = 5000;
 
@@ -215,15 +228,6 @@ function ImportEventsRefreshControl(props: ImportEventsRefreshControlProps) {
 	);
 }
 
-function useImportLogPagination() {
-	const [pagination, setPagination] = useQueryParam<PaginationState>(
-		'pagination',
-		PaginationParam
-	);
-
-	return { pagination, setPagination };
-}
-
 function useImportLogExpanded() {
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
@@ -233,11 +237,26 @@ function useImportLogExpanded() {
 	return { expanded, setExpanded };
 }
 
-const useEventFilters = () => {
-	const [params, setParams] = useQueryParam<ImportTaskFilters>(
-		'filters',
-		FilterParams
-	);
+const useImportEventQueryParams = () => {
+	const [{ filters, pagination }, setParams] = useQueryParams({
+		filters: FilterParams,
+		pagination: PaginationParam
+	});
+
+	const resetPagination = (value: PaginationState): PaginationState => ({
+		...value,
+		pageIndex: 0
+	});
+
+	const setPagination: OnChangeFn<PaginationState> = (updater) => {
+		setParams((latestValues) => {
+			const latestPagination = latestValues.pagination ?? DEFAULT_PAGINATION;
+			const nextPagination =
+				typeof updater === 'function' ? updater(latestPagination) : updater;
+
+			return { pagination: nextPagination };
+		}, 'replaceIn');
+	};
 
 	const handleFilterChange = (values: ImportTaskFilters) => {
 		trackEvent(analyticsEventNames.importEventsFilterApply, {
@@ -248,7 +267,14 @@ const useEventFilters = () => {
 			hasStatus: Boolean(values.status)
 		});
 
-		setParams(values, 'replaceIn');
+		setParams((latestValues) => {
+			const latestPagination = latestValues.pagination ?? DEFAULT_PAGINATION;
+
+			return {
+				filters: values,
+				pagination: resetPagination(latestPagination)
+			};
+		}, 'replaceIn');
 	};
 
 	const handleResetClick = () => {
@@ -256,28 +282,28 @@ const useEventFilters = () => {
 			source: 'import_page'
 		});
 
-		setParams(
-			{
-				job: undefined,
-				run: undefined,
-				url: undefined,
-				celery_task: undefined,
-				status: undefined
-			},
-			'replace'
-		);
+		setParams((latestValues) => {
+			const latestPagination = latestValues.pagination ?? DEFAULT_PAGINATION;
+
+			return {
+				filters: DEFAULT_FILTERS,
+				pagination: resetPagination(latestPagination)
+			};
+		}, 'replaceIn');
 	};
 
 	return {
-		query: params,
+		query: filters,
 		setQuery: handleFilterChange,
-		onResetClick: handleResetClick
+		onResetClick: handleResetClick,
+		pagination,
+		setPagination
 	};
 };
 
 export const ImportEventsTableContainer = (props: PropsWithChildren) => {
-	const { query, setQuery, onResetClick } = useEventFilters();
-	const { pagination, setPagination } = useImportLogPagination();
+	const { query, setQuery, onResetClick, pagination, setPagination } =
+		useImportEventQueryParams();
 	const { expanded, setExpanded } = useImportLogExpanded();
 	const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 	const isAutoRefreshAvailable = pagination.pageIndex === 0;
