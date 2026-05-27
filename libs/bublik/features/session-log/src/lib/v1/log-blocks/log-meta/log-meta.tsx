@@ -490,7 +490,7 @@ function MetaInfoItem(props: MetaInfoItemProps) {
 				<div className={cn('flex items-start gap-1 min-w-0 pr-8')}>
 					<pre
 						className={cn(
-							'text-sm text-gray-800 whitespace-pre-wrap break-all',
+							'text-sm text-gray-800 whitespace-pre-wrap break-words',
 							className
 						)}
 					>
