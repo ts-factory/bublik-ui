@@ -4,8 +4,10 @@ import { EndpointBuilder } from '@reduxjs/toolkit/query';
 
 import {
 	HistoryAPIBackendQuery,
+	HistoryAPIBackendQuerySchema,
 	HistoryDataAggregationAPIResponse,
-	HistoryLinearAPIResponse
+	HistoryLinearAPIResponse,
+	HistoryLinearAPIResponseSchema
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -31,6 +33,8 @@ export const historyEndpoints = {
 					cache: 'no-cache'
 				};
 			},
+			argSchema: HistoryAPIBackendQuerySchema,
+			responseSchema: HistoryLinearAPIResponseSchema,
 			providesTags: () => [BUBLIK_TAG.HistoryData]
 		}),
 		getTestSearchOptions: build.query<string[], { project?: number }>({

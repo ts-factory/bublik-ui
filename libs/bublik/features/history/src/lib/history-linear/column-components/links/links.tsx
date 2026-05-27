@@ -47,7 +47,7 @@ export const Links = ({ row }: LinksProps) => {
 				<LinkWithProject
 					to={routes.run({
 						runId: row.run_id,
-						targetIterationId: Number(row.result_id)
+						targetIterationId: row.result_id
 					})}
 					onClick={() => handleLinkClick('run')}
 				>
@@ -55,6 +55,20 @@ export const Links = ({ row }: LinksProps) => {
 					Run
 				</LinkWithProject>
 			</ButtonTw>
+			{row.report_config_id != null && (
+				<ButtonTw asChild size="xss" variant="secondary">
+					<LinkWithProject
+						to={{
+							pathname: `/runs/${row.run_id}/report`,
+							search: `config=${row.report_config_id}`
+						}}
+						onClick={() => handleLinkClick('report')}
+					>
+						<Icon name="BoxArrowRight" className="mr-1.5" />
+						Report
+					</LinkWithProject>
+				</ButtonTw>
+			)}
 			<SplitButton.Root variant="secondary" size="xss">
 				<SplitButton.Button asChild>
 					<LinkWithProject
@@ -129,9 +143,9 @@ export const Links = ({ row }: LinksProps) => {
 				</ButtonTw>
 			)}
 			<LogPreviewContainer
-				runId={Number(row.run_id)}
-				resultId={Number(row.result_id)}
-				measurementId={row.has_measurements ? Number(row.result_id) : undefined}
+				runId={row.run_id}
+				resultId={row.result_id}
+				measurementId={row.has_measurements ? row.result_id : undefined}
 			>
 				<ButtonTw
 					size="xss"

@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { RESULT_TYPE, RunResult, VERDICT_TYPE } from './run';
+import { z } from 'zod';
+
+import { RESULT_TYPE, ResultTypeSchema, RunResult, VERDICT_TYPE } from './run';
 import { Pagination } from './utils';
 
 /**
@@ -43,6 +45,38 @@ export type HistoryAPIBackendQuery = {
 	pageSize?: string;
 	projects?: number[];
 };
+
+export const HistoryAPIBackendQuerySchema = z.object({
+	testName: z.string().optional(),
+	hash: z.string().optional(),
+	testArgs: z.string().optional(),
+	revisions: z.string().optional(),
+	branches: z.string().optional(),
+	labels: z.string().optional(),
+
+	fromDate: z.string().optional(),
+	toDate: z.string().optional(),
+	tags: z.string().optional(),
+	tagExpr: z.string().optional(),
+
+	labelExpr: z.string().optional(),
+	revExpr: z.string().optional(),
+	branchExpr: z.string().optional(),
+	verdictExpr: z.string().optional(),
+	testArgExpr: z.string().optional(),
+
+	runProperties: z.string().optional(),
+	runIds: z.string().optional(),
+	resultTypes: z.string().optional(),
+	resultStatuses: z.string().optional(),
+
+	verdictLookup: z.nativeEnum(VERDICT_TYPE).optional(),
+	verdict: z.string().optional(),
+
+	page: z.string().optional(),
+	pageSize: z.string().optional(),
+	projects: z.array(z.number()).optional()
+});
 
 export type HistoryAPIQuery = {
 	page?: string;
@@ -98,14 +132,41 @@ export type HistoryDataLinear = {
 	parameters: string[];
 	has_error: boolean;
 	has_measurements: boolean;
-	run_id: string;
-	result_id: string;
-	iteration_id: string;
-	results: string[];
-	result_properties: string[];
+	run_id: number;
+	result_id: number;
+	iteration_id: number;
+	results?: string[];
+	result_properties?: string[];
 	important_tags: string[];
-	run_properties: string[];
+	run_properties?: string[];
+	report_config_id?: number | null;
 };
+
+const RunResultSchema = z.object({
+	result_type: ResultTypeSchema,
+	verdicts: z.array(z.string())
+});
+
+export const HistoryDataLinearSchema = z.object({
+	start_date: z.string(),
+	finish_date: z.string(),
+	duration: z.string(),
+	obtained_result: RunResultSchema,
+	expected_results: z.array(RunResultSchema),
+	relevant_tags: z.array(z.string()),
+	metadata: z.array(z.string()),
+	parameters: z.array(z.string()),
+	has_error: z.boolean(),
+	has_measurements: z.boolean(),
+	run_id: z.number(),
+	result_id: z.number(),
+	iteration_id: z.number(),
+	results: z.array(z.string()).optional(),
+	result_properties: z.array(z.string()).optional(),
+	important_tags: z.array(z.string()),
+	run_properties: z.array(z.string()).optional(),
+	report_config_id: z.number().nullable().optional()
+});
 
 export type HistoryCount = {
 	runs: number;
@@ -114,6 +175,20 @@ export type HistoryCount = {
 	total_results: number;
 	unexpected_results: number;
 };
+
+const HistoryCountSchema = z.object({
+	runs: z.number(),
+	expected_results: z.number(),
+	iterations: z.number(),
+	total_results: z.number(),
+	unexpected_results: z.number()
+});
+
+const HistoryPaginationSchema = z.object({
+	previous: z.string().nullable(),
+	next: z.string().nullable(),
+	count: z.number()
+});
 
 export type HistoryDataAggregation = {
 	hash: string;
@@ -153,7 +228,18 @@ export interface HistoryResponse<T> {
 	results_ids: number[];
 }
 
-export type HistoryLinearAPIResponse = HistoryResponse<HistoryDataLinear>;
+export const HistoryLinearAPIResponseSchema = z.object({
+	from_date: z.string(),
+	to_date: z.string(),
+	counts: HistoryCountSchema,
+	pagination: HistoryPaginationSchema,
+	results: z.array(HistoryDataLinearSchema),
+	results_ids: z.array(z.number())
+});
+
+export type HistoryLinearAPIResponse = z.infer<
+	typeof HistoryLinearAPIResponseSchema
+>;
 
 export type HistoryDataAggregationAPIResponse =
 	HistoryResponse<HistoryDataAggregation>;
