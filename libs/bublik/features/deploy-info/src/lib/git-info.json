@@ -1,7 +1,7 @@
 {
-	"date": "2026.05.22",
-	"summary": "fix(run): update run results API filtering to use `exec_seqno`",
-	"revision": "19a373cf",
-	"branch": "release-2.12.4",
-	"latestTag": "v2.12.4"
+	"date": "2026.06.02",
+	"summary": "chore(deps): upgrade `xlsx` to 0.20.3 version to integrity issues",
+	"revision": "ab8a6710",
+	"branch": "release-2.13.0",
+	"latestTag": "v2.13.0"
 }

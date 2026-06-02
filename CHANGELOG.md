@@ -1,5 +1,24 @@
 
 
+## [2.13.0](https://github.com/ts-factory/bublik-ui/compare/v2.12.4...v2.13.0) (2026-06-02)
+
+
+### 🚀 New Feature
+
+* **history:** add button for navigation to latest run report ([801cc8b](https://github.com/ts-factory/bublik-ui/commit/801cc8b9a0469c55f9e30b3d5495fcd1a19db891))
+
+
+### 🐛 Bug Fix
+
+* **import:** fix import event filter pagination reset ([a7c2ded](https://github.com/ts-factory/bublik-ui/commit/a7c2dedcd1e28f7b52bd55c7258aad1ab6c37f1a))
+* **import:** status line on top of the import table header ([9918c4b](https://github.com/ts-factory/bublik-ui/commit/9918c4b99af3a4fc41078b7492fa680006ee97df))
+* **log:** adjust objective text wrapping in log metadata ([7ecef66](https://github.com/ts-factory/bublik-ui/commit/7ecef66e6350323896300f1941dd5721294fcb5f))
+
+
+### 📦 Chores
+
+* **deps:** upgrade `xlsx` to 0.20.3 version to integrity issues ([ab8a671](https://github.com/ts-factory/bublik-ui/commit/ab8a6710e579f53c19f960641d705c65b7fe7aae))
+
 ### [2.12.4](https://github.com/ts-factory/bublik-ui/compare/v2.12.3...v2.12.4) (2026-05-26)
 
 
