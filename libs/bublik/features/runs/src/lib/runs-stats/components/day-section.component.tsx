@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 import { BarChart, LineChart } from '@/shared/charts';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
-import { COLOR_MAP, getGroupedByDay } from '../runs-stats.component.utils';
-import { RunStats, TestByWeekDaySchema } from '../runs-stats.types';
+import { COLOR_MAP, getGroupedTests } from '../runs-stats.component.utils';
+import { RunsChartBucket, TestByWeekDaySchema } from '../runs-stats.types';
 import { RunsListModal } from './runs-list.component';
 
 interface HandlePointClickProps {
@@ -48,11 +48,11 @@ function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
 }
 
 interface DaySectionProps {
-	stats: RunStats[];
+	stats: RunsChartBucket[];
 }
 
 export const DaySection = ({ stats }: DaySectionProps) => {
-	const groupedByDay = getGroupedByDay(stats);
+	const groupedByDay = getGroupedTests(stats);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [runIds, setRunIds] = useState<string[]>([]);
 
