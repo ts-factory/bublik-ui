@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { useAuth } from '@/bublik/features/auth';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
@@ -8,10 +9,15 @@ import {
 	SidebarNavSubmenuItemContainer,
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
+import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
 const ADMIN_SIDEBAR_PATTERNS = [{ path: '/admin/*' }];
 
 export function AdminSidebarNav() {
+	const { isAdmin } = useAuth();
+	const { data: features } = useGetServerFeaturesQuery();
+	const showAnalytics = isAdmin && Boolean(features?.analytics_enabled);
+
 	return (
 		<SidebarNavCollapsibleContainer patterns={ADMIN_SIDEBAR_PATTERNS}>
 			<SidebarNavCollapsibleContainer.Item>
@@ -74,6 +80,21 @@ export function AdminSidebarNav() {
 						Flower
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
+				{showAnalytics ? (
+					<SidebarNavSubmenuItemContainer
+						to="/admin/analytics"
+						pattern={{ path: '/admin/analytics' }}
+						linkComponent={LinkWithProject}
+					>
+						<SidebarNavSubmenuItemContainer.Icon
+							name="LineChartOnline"
+							size={24}
+						/>
+						<SidebarNavSubmenuItemContainer.Label>
+							Analytics
+						</SidebarNavSubmenuItemContainer.Label>
+					</SidebarNavSubmenuItemContainer>
+				) : null}
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);
