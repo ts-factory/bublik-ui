@@ -17,7 +17,7 @@ import parserJson from 'prettier/parser-babel';
 import * as monaco from 'monaco-editor';
 import { loader } from '@monaco-editor/react';
 
-import { useLocalStorage } from '@/shared/hooks';
+import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
@@ -75,6 +75,8 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 		const [fontSize, setFontSize] = useLocalStorage('editor-font-size', 14);
 		const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+		const [, copySchema] = useCopyToClipboard();
+		const schemaText = schema ? JSON.stringify(schema, null, 2) : '';
 		const normalizedValue =
 			value === undefined ? undefined : normalizeJsonEditorContent(value);
 		const normalizedDefaultValue =
@@ -128,6 +130,21 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 			}
 		}
 
+		async function handleCopySchemaClick() {
+			if (!schemaText) {
+				toast.error('Schema is not available');
+				return;
+			}
+
+			const isCopied = await copySchema(schemaText);
+
+			if (isCopied) {
+				toast.success('Schema copied to clipboard');
+			} else {
+				toast.error('Failed to copy schema');
+			}
+		}
+
 		return (
 			<div className="flex flex-col h-full">
 				<CardHeader label={label ?? 'Editor'}>
@@ -147,7 +164,19 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 									'flex flex-col overflow-hidden max-w-7xl'
 								)}
 							>
-								<CardHeader label="Schema" />
+								<CardHeader label="Schema">
+									<Tooltip content="Copy Schema">
+										<ButtonTw
+											variant="secondary"
+											size="xss"
+											onClick={handleCopySchemaClick}
+											disabled={!schemaText}
+										>
+											<Icon name="PaperStack" className="size-5 mr-1.5" />
+											<span>Copy</span>
+										</ButtonTw>
+									</Tooltip>
+								</CardHeader>
 								<div className="flex-1 overflow-hidden">
 									<ShikiHighlighter
 										language="json"
@@ -160,7 +189,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 											'[&_pre]:py-5'
 										])}
 									>
-										{JSON.stringify(schema, null, 2)}
+										{schemaText}
 									</ShikiHighlighter>
 								</div>
 							</DrawerContent>
