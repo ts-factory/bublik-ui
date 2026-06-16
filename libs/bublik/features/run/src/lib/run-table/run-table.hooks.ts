@@ -16,14 +16,14 @@ import {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { RunData, MergedRun } from '@/shared/types';
-import { useLocalStorage, useMount } from '@/shared/hooks';
+import { RunData, MergedRun, RunStatsColumn } from '@/shared/types';
+import { useLocalStorage } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { RowStateContextType, RunRowState } from '../hooks';
-import { DEFAULT_COLUMN_VISIBILITY } from './constants';
+import { createDefaultColumnVisibility } from './constants';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 const GlobalFilterParam = withDefault(JsonParam, []);
@@ -47,37 +47,70 @@ export function getRowId(
 
 const LOCAL_STORAGE_COLUMN_VISIBILITY_KEY = 'run-column-visibility';
 
-function useColumnVisibility() {
-	function getDefaultColumnVisibility(): VisibilityState {
-		try {
-			const columnVisibility = localStorage.getItem(
-				LOCAL_STORAGE_COLUMN_VISIBILITY_KEY
-			);
+function getColumnVisibilityStorageKey(projectId?: number): string {
+	return projectId === undefined
+		? LOCAL_STORAGE_COLUMN_VISIBILITY_KEY
+		: `${LOCAL_STORAGE_COLUMN_VISIBILITY_KEY}:${projectId}`;
+}
 
-			if (!columnVisibility) return DEFAULT_COLUMN_VISIBILITY;
+function hasColumnVisibility(
+	value: VisibilityState | null | undefined
+): boolean {
+	return Object.keys(value ?? {}).length > 0;
+}
+
+function hasStoredColumnVisibility(
+	key: string,
+	value: VisibilityState
+): boolean {
+	try {
+		return localStorage.getItem(key) !== null && hasColumnVisibility(value);
+	} catch (_) {
+		return false;
+	}
+}
+
+function useColumnVisibility(
+	defaultColumns?: RunStatsColumn[],
+	projectId?: number
+) {
+	const columnVisibilityStorageKey = getColumnVisibilityStorageKey(projectId);
+	const defaultColumnVisibility = useMemo(
+		() => createDefaultColumnVisibility(defaultColumns),
+		[defaultColumns]
+	);
+
+	function getLocalColumnVisibility(): VisibilityState {
+		try {
+			const columnVisibility = localStorage.getItem(columnVisibilityStorageKey);
+
+			if (!columnVisibility) return defaultColumnVisibility;
 
 			return JSON.parse(columnVisibility);
 		} catch (_) {
-			return DEFAULT_COLUMN_VISIBILITY;
+			return defaultColumnVisibility;
 		}
 	}
 
 	const [localColumnVisibility, setLocalColumnVisibility] =
 		useLocalStorage<VisibilityState>(
-			LOCAL_STORAGE_COLUMN_VISIBILITY_KEY,
-			getDefaultColumnVisibility()
+			columnVisibilityStorageKey,
+			getLocalColumnVisibility()
 		);
 
 	const [queryColumnVisibility, setQueryColumnVisibility] =
 		useQueryParam<VisibilityState>('visibility', JsonParam);
 
-	useMount(() => {
-		if (!Object.keys(queryColumnVisibility ?? {}).length) {
-			setQueryColumnVisibility(localColumnVisibility, 'replaceIn');
-		}
-	});
-
-	const columnVisibility = queryColumnVisibility ?? localColumnVisibility;
+	const hasQueryColumnVisibility = hasColumnVisibility(queryColumnVisibility);
+	const hasLocalColumnVisibility = hasStoredColumnVisibility(
+		columnVisibilityStorageKey,
+		localColumnVisibility
+	);
+	const columnVisibility = hasQueryColumnVisibility
+		? queryColumnVisibility
+		: hasLocalColumnVisibility
+		? localColumnVisibility
+		: defaultColumnVisibility;
 
 	const setColumnVisibility = (
 		state: Updater<VisibilityState> | VisibilityState
@@ -91,6 +124,7 @@ function useColumnVisibility() {
 
 	return {
 		columnVisibility,
+		defaultColumnVisibility,
 		setColumnVisibility
 	};
 }
@@ -149,7 +183,9 @@ export function useTargetIterationId() {
 }
 
 export const useRunTableQueryState = (
-	data: RunData[] | MergedRun[] | undefined | null
+	data: RunData[] | MergedRun[] | undefined | null,
+	defaultColumns?: RunStatsColumn[],
+	projectId?: number
 ) => {
 	const locationState = useLocation().state as {
 		openUnexpected?: boolean;
@@ -184,7 +220,8 @@ export const useRunTableQueryState = (
 		[rowState, setRowState]
 	);
 
-	const { setColumnVisibility, columnVisibility } = useColumnVisibility();
+	const { setColumnVisibility, columnVisibility, defaultColumnVisibility } =
+		useColumnVisibility(defaultColumns, projectId);
 
 	return {
 		locationState,
@@ -197,6 +234,7 @@ export const useRunTableQueryState = (
 		rowState,
 		setRowState,
 		columnVisibility,
+		defaultColumnVisibility,
 		setColumnVisibility,
 		rowStateContext,
 		targetIterationId: targetIterationId ?? undefined

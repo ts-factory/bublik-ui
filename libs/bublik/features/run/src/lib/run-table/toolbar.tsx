@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo, useState } from 'react';
-import { Table } from '@tanstack/react-table';
+import { Table, VisibilityState } from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData } from '@/shared/types';
@@ -20,15 +20,15 @@ import {
 
 import { useExpandUnexpected } from './hooks';
 import { hasUnexpected } from './utils';
-import { DEFAULT_COLUMN_VISIBILITY } from './constants';
 import { ColumnId } from './types';
 import { useGlobalRequirements } from '../hooks';
 
 export interface ToolbarProps {
 	table: Table<RunData | MergedRun>;
+	defaultColumnVisibility: VisibilityState;
 }
 
-export const Toolbar = ({ table }: ToolbarProps) => {
+export const Toolbar = ({ table, defaultColumnVisibility }: ToolbarProps) => {
 	const { resetGlobalRequirements } = useGlobalRequirements();
 	const { showUnexpected, expandUnexpected, reset } = useExpandUnexpected({
 		table
@@ -51,7 +51,7 @@ export const Toolbar = ({ table }: ToolbarProps) => {
 			source: 'toolbar'
 		});
 
-		table.setColumnVisibility(DEFAULT_COLUMN_VISIBILITY);
+		table.setColumnVisibility(defaultColumnVisibility);
 		reset();
 		resetGlobalRequirements();
 

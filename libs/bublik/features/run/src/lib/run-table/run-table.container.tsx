@@ -28,7 +28,12 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 
 	const { globalRequirements } = useGlobalRequirements();
 
-	const { data, isLoading, error, isFetching } = Array.isArray(runId)
+	const {
+		data: runTableResponse,
+		isLoading,
+		error,
+		isFetching
+	} = Array.isArray(runId)
 		? bublikAPI.useGetMultipleRunsByRunIdsQuery(
 				runId.map((id) => ({ runId: id, requirements: globalRequirements }))
 		  )
@@ -36,8 +41,11 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				runId,
 				requirements: globalRequirements
 		  });
+	const data = runTableResponse?.results ?? [];
+	const defaultColumns = runTableResponse?.defaultColumns;
 
 	const detailsQuery = useGetRunDetailsQuery(getSingleRunId(runId));
+	const projectId = detailsQuery.data?.project_id;
 
 	const {
 		columnVisibility,
@@ -50,8 +58,9 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		setGlobalFilter,
 		setSorting,
 		sorting,
-		targetIterationId
-	} = useRunTableQueryState(data);
+		targetIterationId,
+		defaultColumnVisibility
+	} = useRunTableQueryState(data, defaultColumns, projectId);
 
 	const handleSortingChange: typeof setSorting = (state) => {
 		const nextSorting =
@@ -92,7 +101,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		<RunRowStateContextProvider value={rowStateContext}>
 			<RunTable
 				runId={runId}
-				projectId={detailsQuery.data?.project_id}
+				projectId={projectId}
 				data={data ?? []}
 				openUnexpected={locationState?.openUnexpected}
 				openUnexpectedResults={locationState?.openUnexpectedResults}
@@ -103,6 +112,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				sorting={sorting}
 				onSortingChange={handleSortingChange}
 				columnVisibility={columnVisibility}
+				defaultColumnVisibility={defaultColumnVisibility}
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}
 				targetIterationId={targetIterationId}

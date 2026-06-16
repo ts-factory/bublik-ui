@@ -3,7 +3,6 @@
 import { z } from 'zod';
 
 import { NodeEntity } from './tree';
-import { Pagination } from './utils';
 
 /** Run property state */
 export const enum RUN_PROPERTIES {
@@ -30,6 +29,24 @@ export enum RESULT_TYPE {
 }
 
 export const ResultTypeSchema = z.nativeEnum(RESULT_TYPE);
+
+export const RunStatsColumnSchema = z.enum([
+	'run',
+	'passed',
+	'failed',
+	'passed_unexpected',
+	'failed_unexpected',
+	'skipped',
+	'skipped_unexpected',
+	'abnormal',
+	'comments',
+	'objective',
+	'total',
+	'total_expected',
+	'total_unexpected'
+]);
+
+export type RunStatsColumn = z.infer<typeof RunStatsColumnSchema>;
 
 /** Verdict type */
 export enum VERDICT_TYPE {
@@ -95,15 +112,17 @@ export type ResultTableAPIQueryWithFilter = ResultTableAPIQuery & {
  |--------------------------------------------------
  */
 
-export type RunStats = {
-	passed: number;
-	failed: number;
-	passed_unexpected: number;
-	failed_unexpected: number;
-	skipped: number;
-	skipped_unexpected: number;
-	abnormal: number;
-};
+export const RunStatsSchema = z.object({
+	passed: z.number(),
+	failed: z.number(),
+	passed_unexpected: z.number(),
+	failed_unexpected: z.number(),
+	skipped: z.number(),
+	skipped_unexpected: z.number(),
+	abnormal: z.number()
+});
+
+export type RunStats = z.infer<typeof RunStatsSchema>;
 
 export type RunData = {
 	/** Test iteration result ID */
@@ -133,27 +152,63 @@ export type MergedRun = Omit<
 	children: MergedRun[];
 };
 
-export type RunDataComment = {
-	comment_id: string;
-	updated: string;
-	comment: string;
-};
+export const RunDataCommentSchema = z.object({
+	comment_id: z.string(),
+	updated: z.string(),
+	comment: z.string()
+});
 
-export type RunDataResults = {
-	name: string;
-	result_id: number;
-	iteration_id: number;
-	run_id: string;
-	has_measurements: boolean;
-	has_error: boolean;
-	expected_results: RunResultWithKeys[];
-	obtained_result: RunResult;
-	comments: string[];
-	parameters: string[];
-	start: string;
-	artifacts?: string[];
-	requirements?: string[];
-};
+export type RunDataComment = z.infer<typeof RunDataCommentSchema>;
+
+const NodeEntitySchema = z.custom<NodeEntity>((value) =>
+	['pkg', 'session', 'test', 'suite'].includes(String(value))
+);
+
+export const RunDataSchema = z.object({
+	result_id: z.number(),
+	test_id: z.number(),
+	exec_seqno: z.number(),
+	parent_id: z.number().nullable(),
+	type: NodeEntitySchema,
+	test_name: z.string(),
+	period: z.string(),
+	path: z.array(z.string()),
+	stats: RunStatsSchema,
+	children: z.array(z.unknown()).transform((children) => children as RunData[]),
+	objective: z.string().optional(),
+	comments: z.array(RunDataCommentSchema).optional()
+});
+
+const RunResultSchema = z.object({
+	result_type: ResultTypeSchema,
+	verdicts: z.array(z.string())
+});
+
+const RunResultWithKeysSchema = RunResultSchema.and(
+	z.object({
+		keys: z.array(
+			z.object({ name: z.string(), url: z.string().nullable().optional() })
+		)
+	})
+);
+
+export const RunDataResultsSchema = z.object({
+	name: z.string(),
+	result_id: z.number(),
+	iteration_id: z.number(),
+	run_id: z.number(),
+	has_measurements: z.boolean(),
+	has_error: z.boolean(),
+	expected_results: z.array(RunResultWithKeysSchema),
+	obtained_result: RunResultSchema,
+	comments: z.array(z.string()),
+	parameters: z.array(z.string()),
+	start: z.string(),
+	artifacts: z.array(z.string()).optional(),
+	requirements: z.array(z.string()).optional()
+});
+
+export type RunDataResults = z.infer<typeof RunDataResultsSchema>;
 
 /**
  |--------------------------------------------------
@@ -238,22 +293,44 @@ export type CompromisedTagsResponse = {
  |--------------------------------------------------
  */
 
-export type ResultLogAPIResponse = {
-	url: string;
+export const ResultLogAPIResponseSchema = z.object({
+	url: z.string()
+});
+
+export type ResultLogAPIResponse = z.infer<typeof ResultLogAPIResponseSchema>;
+
+export const RunAPIResponseSchema = z.object({
+	results: RunDataSchema.nullable(),
+	default_columns: z.array(RunStatsColumnSchema).optional()
+});
+
+export type RunAPIResponse = z.infer<typeof RunAPIResponseSchema>;
+
+export const RunTableAPIResponseSchema = z.object({
+	results: z.array(RunDataSchema).nullable(),
+	defaultColumns: z.array(RunStatsColumnSchema).optional()
+});
+
+export type RunTableAPIResponse = z.infer<typeof RunTableAPIResponseSchema>;
+
+export type MergedRunTableAPIResponse = {
+	results: MergedRun[];
+	defaultColumns?: RunStatsColumn[];
 };
 
-export type RunAPIResponse = {
-	results: RunData | null;
-};
+export const ResultDetailsAPIResponseSchema = z.object({
+	results: z.array(RunDataResultsSchema)
+});
 
-export type ResultDetailsAPIResponse = {
-	pagination: Pagination;
-	results: RunDataResults[];
-};
+export type ResultDetailsAPIResponse = z.infer<
+	typeof ResultDetailsAPIResponseSchema
+>;
 
-export type RunSourceAPIRResponse = {
-	url: string | null;
-};
+export const RunSourceAPIRResponseSchema = z.object({
+	url: z.string().nullable()
+});
+
+export type RunSourceAPIRResponse = z.infer<typeof RunSourceAPIRResponseSchema>;
 
 /**
  |--------------------------------------------------
@@ -261,38 +338,46 @@ export type RunSourceAPIRResponse = {
  |--------------------------------------------------
  */
 
-export type DetailsItem = {
-	name?: string;
-	value: string;
-	url?: string;
-};
+export const DetailsItemSchema = z.object({
+	name: z.string().optional(),
+	value: z.coerce.string(),
+	url: z.string().optional()
+});
 
-export type CompromisedStatusDetails = {
-	status: boolean;
-	comment?: string;
-	bug_id?: string;
-	bug_url?: string;
-};
+export type DetailsItem = z.infer<typeof DetailsItemSchema>;
 
-export type RunDetailsAPIResponse = {
-	project_id: number;
-	project_name: string;
-	id: number;
-	main_package: string;
-	start: string;
-	finish: string;
-	duration: string;
-	is_compromised: boolean;
-	important_tags: string[];
-	compromised: CompromisedStatusDetails;
-	relevant_tags: string[];
-	branches: string[];
-	labels: string[];
-	revisions: DetailsItem[];
-	special_categories: Record<string, string[]>;
-	configuration?: string;
-	status: string;
-	status_by_nok: string;
-	conclusion: RUN_STATUS;
-	conclusion_reason?: string | null;
-};
+export const CompromisedStatusDetailsSchema = z.object({
+	status: z.boolean().default(false),
+	comment: z.string().optional(),
+	bug_id: z.string().optional(),
+	bug_url: z.string().optional()
+});
+
+export type CompromisedStatusDetails = z.infer<
+	typeof CompromisedStatusDetailsSchema
+>;
+
+export const RunDetailsAPIResponseSchema = z.object({
+	project_id: z.number(),
+	project_name: z.string(),
+	id: z.number(),
+	main_package: z.string().default(''),
+	start: z.string().default(''),
+	finish: z.string().default(''),
+	duration: z.string().default(''),
+	is_compromised: z.boolean().default(false),
+	important_tags: z.array(z.string()).default([]),
+	compromised: CompromisedStatusDetailsSchema.default({ status: false }),
+	relevant_tags: z.array(z.string()).default([]),
+	branches: z.array(z.string()).default([]),
+	labels: z.array(z.string()).default([]),
+	revisions: z.array(DetailsItemSchema).default([]),
+	special_categories: z.record(z.string(), z.array(z.string())).default({}),
+	configuration: z.string().optional(),
+	status: z.string().default(''),
+	status_by_nok: z.string().default(''),
+	conclusion: z.nativeEnum(RUN_STATUS),
+	conclusion_reason: z.string().nullable().optional()
+});
+
+export type RunDetailsAPIResponse = z.infer<typeof RunDetailsAPIResponseSchema>;

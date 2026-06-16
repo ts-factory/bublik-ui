@@ -69,6 +69,7 @@ export interface RunTableProps {
 	sorting: SortingState;
 	globalFilter: string[];
 	columnVisibility: VisibilityState;
+	defaultColumnVisibility: VisibilityState;
 	onColumnVisibilityChange: OnChangeFn<VisibilityState>;
 	onExpandedChange: OnChangeFn<ExpandedState>;
 	onSortingChange: OnChangeFn<SortingState>;
@@ -92,6 +93,7 @@ export const RunTable = (props: RunTableProps) => {
 		onGlobalFilterChange,
 		onSortingChange,
 		columnVisibility,
+		defaultColumnVisibility,
 		onColumnVisibilityChange,
 		isFetching,
 		runId,
@@ -154,7 +156,10 @@ export const RunTable = (props: RunTableProps) => {
 					</div>
 					<GlobalRequirementsFilter runId={runId} />
 				</div>
-				<Toolbar table={table} />
+				<Toolbar
+					table={table}
+					defaultColumnVisibility={defaultColumnVisibility}
+				/>
 			</div>
 			{data.length === 0 ? (
 				<div className="flex items-center justify-center h-full">

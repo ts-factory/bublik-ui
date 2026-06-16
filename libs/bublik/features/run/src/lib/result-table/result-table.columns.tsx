@@ -72,7 +72,7 @@ export const getColumns = ({
 				return (
 					<div className="flex items-center h-full">
 						<ResultLinksContainer
-							runId={value.run_id}
+							runId={String(value.run_id)}
 							resultId={value.result_id}
 							result={value}
 							showLinkToRun={showLinkToRun}
@@ -231,7 +231,12 @@ export const getColumns = ({
 										/>
 									) : null}
 									{result?.keys?.length && result.keys ? (
-										<KeyList items={result.keys} />
+										<KeyList
+											items={result.keys.map(({ url, ...key }) => ({
+												...key,
+												url: url ?? undefined
+											}))}
+										/>
 									) : null}
 								</Fragment>
 							);

@@ -19,8 +19,13 @@ import {
 	EditTestCommentParams,
 	DeleteTestCommentParams,
 	RunAPIResponse,
+	RunAPIResponseSchema,
+	RunTableAPIResponse,
+	MergedRunTableAPIResponse,
 	MergedRun,
-	RunStats
+	RunStats,
+	RunSourceAPIRResponseSchema,
+	ResultDetailsAPIResponseSchema
 } from '@/shared/types';
 import { config } from '@/bublik/config';
 
@@ -170,9 +175,11 @@ export const runEndpoints = {
 	) => ({
 		getRunSource: build.query<RunSourceAPIRResponse, string>({
 			query: (runId) => ({ url: withApiV2(`/runs/${runId}/source`) }),
+			argSchema: z.string(),
+			responseSchema: RunSourceAPIRResponseSchema,
 			keepUnusedDataFor: getMinutes(15)
 		}),
-		getRunTableByRunId: build.query<RunData[] | null, RunStatsParams>({
+		getRunTableByRunId: build.query<RunTableAPIResponse, RunStatsParams>({
 			query: ({ runId, requirements }) => {
 				const queryRequirements = requirements?.join(config.queryDelimiter);
 
@@ -183,6 +190,8 @@ export const runEndpoints = {
 				};
 			},
 			keepUnusedDataFor: getMinutes(5),
+			argSchema: RunStatsParamsSchema,
+			rawResponseSchema: RunAPIResponseSchema,
 			transformResponse: transformRunTable,
 			providesTags: [{ type: BUBLIK_TAG.Run }]
 		}),
@@ -218,9 +227,15 @@ export const runEndpoints = {
 						requests
 					)) as QueryReturnValue<ResultDetailsAPIResponse>[];
 
+					const parsedRequestsResults = requestsResults.map((result) =>
+						result.data
+							? ResultDetailsAPIResponseSchema.parse(result.data)
+							: null
+					);
+
 					const checkedIds = new Set<number>();
-					const data = requestsResults
-						.map((result) => result?.data?.results || [])
+					const data = parsedRequestsResults
+						.map((result) => result?.results || [])
 						.reduce((acc, curr) => [...acc, ...curr], [])
 						.filter((item) => {
 							const isDuplicate = checkedIds.has(item.result_id);
@@ -271,6 +286,7 @@ export const runEndpoints = {
 				url: withApiV2(`/runs/${runId}/details`),
 				cache: 'reload'
 			}),
+			argSchema: z.string().or(z.number()),
 			providesTags: (_result, _error, runId) => [
 				{ type: BUBLIK_TAG.RunDetails, id: runId }
 			]
@@ -338,37 +354,72 @@ export const runEndpoints = {
 			}),
 			invalidatesTags: [BUBLIK_TAG.Run]
 		}),
-		getMultipleRunsByRunIds: build.query<MergedRun[], RunStatsParams[]>({
+		getMultipleRunsByRunIds: build.query<
+			MergedRunTableAPIResponse,
+			RunStatsParams[]
+		>({
 			queryFn: async (params, _api, _extraOptions, fetchWithBQ) => {
-				const queryParams = params.map(({ runId, requirements }) => {
-					const queryRequirements = requirements?.join(config.queryDelimiter);
-					const params = {} as Record<string, string>;
-					if (queryRequirements) params.requirements = queryRequirements;
+				try {
+					const queryParams = params.map(({ runId, requirements }) => {
+						const queryRequirements = requirements?.join(config.queryDelimiter);
+						const params = {} as Record<string, string>;
+						if (queryRequirements) params.requirements = queryRequirements;
 
-					return { url: withApiV2(`/runs/${runId}/stats`), params };
-				});
+						return { url: withApiV2(`/runs/${runId}/stats`), params };
+					});
 
-				const requests = queryParams.map((queryParam) =>
-					fetchWithBQ(queryParam)
-				);
+					const requests = queryParams.map((queryParam) =>
+						fetchWithBQ(queryParam)
+					);
 
-				const requestsResults = await Promise.all(
-					params.map(async (runId, index) => {
-						const result = (await requests[
-							index
-						]) as QueryReturnValue<RunAPIResponse>;
-						const data = result.data?.results;
+					const requestsResults = await Promise.all(
+						params.map(async (runId, index) => {
+							const result = (await requests[
+								index
+							]) as QueryReturnValue<RunAPIResponse>;
+							const parsed = result.data
+								? RunAPIResponseSchema.parse(result.data)
+								: null;
+							const data = parsed?.results;
 
-						return data ? [Number(runId.runId), data] : null;
-					})
-				);
+							return data
+								? {
+										entry: [Number(runId.runId), data] as [number, RunData],
+										defaultColumns: parsed.default_columns
+								  }
+								: null;
+						})
+					);
 
-				const filteredResults = requestsResults.filter(
-					(item): item is [number, RunData] => item !== null
-				);
+					const filteredResults = requestsResults.filter(
+						(item): item is NonNullable<(typeof requestsResults)[number]> =>
+							item !== null
+					);
 
-				return { data: mergeRuns(filteredResults) };
+					if (!filteredResults.length) {
+						return { data: { results: [] } };
+					}
+
+					return {
+						data: {
+							results: mergeRuns(filteredResults.map((item) => item.entry)),
+							defaultColumns: filteredResults[0]?.defaultColumns
+						}
+					};
+				} catch (error) {
+					return {
+						error: {
+							originalStatus: 500,
+							error:
+								error instanceof Error
+									? error.message
+									: 'Invalid run stats response',
+							status: 'CUSTOM_ERROR'
+						}
+					};
+				}
 			},
+			argSchema: z.array(RunStatsParamsSchema),
 			providesTags: [BUBLIK_TAG.Run]
 		}),
 		getResultsAndVerdictsForIteration: build.query<

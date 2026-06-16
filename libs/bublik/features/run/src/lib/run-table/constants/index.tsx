@@ -6,7 +6,8 @@ import { VisibilityState } from '@tanstack/react-table';
 import {
 	ResultTableFilter,
 	RESULT_PROPERTIES,
-	RESULT_TYPE
+	RESULT_TYPE,
+	RunStatsColumn
 } from '@/shared/types';
 import { Icon } from '@/shared/tailwind-ui';
 
@@ -74,6 +75,54 @@ export const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	[ColumnId.Objective]: true,
 	[ColumnId.Comments]: false
 };
+
+const RUN_STATS_COLUMN_ID_MAP: Record<RunStatsColumn, ColumnId> = {
+	run: ColumnId.Run,
+	passed: ColumnId.PassedExpected,
+	failed: ColumnId.FailedExpected,
+	passed_unexpected: ColumnId.PassedUnexpected,
+	failed_unexpected: ColumnId.FailedUnexpected,
+	skipped: ColumnId.SkippedExpected,
+	skipped_unexpected: ColumnId.SkippedUnexpected,
+	abnormal: ColumnId.Abnormal,
+	comments: ColumnId.Comments,
+	objective: ColumnId.Objective,
+	total: ColumnId.Total,
+	total_expected: ColumnId.ExpectedTotal,
+	total_unexpected: ColumnId.UnexpectedTotal
+};
+
+const CONFIGURABLE_COLUMN_IDS = [
+	ColumnId.Total,
+	ColumnId.Run,
+	ColumnId.ExpectedTotal,
+	ColumnId.UnexpectedTotal,
+	ColumnId.PassedExpected,
+	ColumnId.FailedExpected,
+	ColumnId.PassedUnexpected,
+	ColumnId.FailedUnexpected,
+	ColumnId.SkippedExpected,
+	ColumnId.SkippedUnexpected,
+	ColumnId.Abnormal,
+	ColumnId.Objective,
+	ColumnId.Comments
+];
+
+export function createDefaultColumnVisibility(
+	defaultColumns?: RunStatsColumn[]
+): VisibilityState {
+	if (!defaultColumns) return DEFAULT_COLUMN_VISIBILITY;
+
+	const visibleColumns = new Set(
+		defaultColumns.map((column) => RUN_STATS_COLUMN_ID_MAP[column])
+	);
+
+	return CONFIGURABLE_COLUMN_IDS.reduce<VisibilityState>((acc, columnId) => {
+		acc[columnId] = visibleColumns.has(columnId);
+
+		return acc;
+	}, {});
+}
 
 type ColumnGroup = {
 	id: string;

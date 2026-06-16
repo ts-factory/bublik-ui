@@ -14,12 +14,8 @@ export const measurementsEndpoints = {
 	) => ({
 		getResultInfo: build.query<RunDataResults, string | number>({
 			query: (resultId) => withApiV2(`/results/${resultId}`),
-			transformResponse: (response: {
-				result: Omit<RunDataResults, 'run_id'> & { run_id: number };
-			}) => ({
-				...response.result,
-				run_id: String(response.result.run_id)
-			})
+			transformResponse: (response: { result: RunDataResults }) =>
+				response.result
 		}),
 		getSingleMeasurement: build.query<SingleMeasurement, string | number>({
 			query: (resultId) => ({
