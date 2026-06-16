@@ -223,12 +223,39 @@ export const useRunsSelection = () => {
 		[searchParams, selectedRunIds, setSearchParams]
 	);
 
+	const replaceSelection = useCallback(
+		(oldRunId: string, newRunId: string) => {
+			const newSelection = selectedRunIds
+				.filter((id: string) => id !== oldRunId && id !== newRunId)
+				.concat(newRunId);
+
+			const newParams = updateSidebarStateSearchParams(
+				new URLSearchParams(searchParams),
+				(sidebarState) => {
+					setSidebarStateValue(
+						sidebarState,
+						RUNS_SIDEBAR_KEYS.SELECTED,
+						newSelection
+					);
+				}
+			);
+
+			if (!newParams) {
+				return;
+			}
+
+			setSearchParams(newParams, { replace: true });
+		},
+		[searchParams, selectedRunIds, setSearchParams]
+	);
+
 	return {
 		rowSelection,
 		compareIds,
 		resetSelection,
 		resetSelect,
 		removeSelection,
-		addSelection
+		addSelection,
+		replaceSelection
 	};
 };
