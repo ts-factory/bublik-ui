@@ -157,6 +157,7 @@ const fetchJson = async <T = unknown>(
 	const options: RequestInit = {
 		credentials: 'include',
 		cache: 'no-store',
+		referrerPolicy: 'origin',
 		signal
 	};
 
