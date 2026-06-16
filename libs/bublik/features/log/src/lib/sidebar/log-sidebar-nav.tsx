@@ -25,11 +25,11 @@ function getModeFromSearch(search: string): LogSidebarMode {
 			return 'infoAndlog';
 		case 'treeAndlog':
 			return 'treeAndlog';
-		case 'log':
-			return 'log';
 		case 'treeAndinfoAndlog':
-		default:
 			return 'treeAndinfoAndlog';
+		case 'log':
+		default:
+			return 'log';
 	}
 }
 

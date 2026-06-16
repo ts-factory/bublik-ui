@@ -35,6 +35,19 @@ import { useIsLogLegacy, useLogPage } from './hooks';
 import { useLogSidebarState } from './sidebar';
 import { LogSidebarMode } from '@/bublik/features/sidebar';
 
+const LOG_SIDEBAR_MODES: readonly LogSidebarMode[] = [
+	'log',
+	'infoAndlog',
+	'treeAndinfoAndlog',
+	'treeAndlog'
+];
+
+function getLogSidebarMode(mode: string | null): LogSidebarMode {
+	return LOG_SIDEBAR_MODES.includes(mode as LogSidebarMode)
+		? (mode as LogSidebarMode)
+		: 'log';
+}
+
 function useLogTitle() {
 	const { runId, focusId } = useLogPage();
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
@@ -69,8 +82,7 @@ function LogFeature(props: LogFeatureProps) {
 
 	useEffect(() => {
 		if (runId) {
-			const logMode: LogSidebarMode = (mode ||
-				'treeAndinfoAndlog') as LogSidebarMode;
+			const logMode = getLogSidebarMode(mode);
 			setLastVisited(logMode, location.pathname + location.search, runId);
 		}
 	}, [runId, mode, location.pathname, location.search, setLastVisited]);
