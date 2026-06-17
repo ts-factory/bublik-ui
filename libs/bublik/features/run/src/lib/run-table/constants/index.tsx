@@ -108,6 +108,16 @@ const CONFIGURABLE_COLUMN_IDS = [
 	ColumnId.Comments
 ];
 
+export const DEFAULT_COLUMN_ORDER = [
+	ColumnId.Tree,
+	ColumnId.Objective,
+	ColumnId.Comments,
+	...CONFIGURABLE_COLUMN_IDS.filter(
+		(columnId) =>
+			columnId !== ColumnId.Objective && columnId !== ColumnId.Comments
+	)
+];
+
 export function createDefaultColumnVisibility(
 	defaultColumns?: RunStatsColumn[]
 ): VisibilityState {
@@ -122,6 +132,22 @@ export function createDefaultColumnVisibility(
 
 		return acc;
 	}, {});
+}
+
+export function createDefaultColumnOrder(
+	defaultColumns?: RunStatsColumn[]
+): ColumnId[] {
+	if (!defaultColumns) return DEFAULT_COLUMN_ORDER;
+
+	const orderedColumnIds = Array.from(
+		new Set(defaultColumns.map((column) => RUN_STATS_COLUMN_ID_MAP[column]))
+	);
+	const orderedColumnIdsSet = new Set(orderedColumnIds);
+	const restColumnIds = CONFIGURABLE_COLUMN_IDS.filter(
+		(columnId) => !orderedColumnIdsSet.has(columnId)
+	);
+
+	return [ColumnId.Tree, ...orderedColumnIds, ...restColumnIds];
 }
 
 type ColumnGroup = {

@@ -13,7 +13,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { MergedRun, RunData } from '@/shared/types';
+import { MergedRun, RunData, RunStatsColumn } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { bublikAPI } from '@/services/bublik-api';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
@@ -70,6 +70,7 @@ export interface RunTableProps {
 	globalFilter: string[];
 	columnVisibility: VisibilityState;
 	defaultColumnVisibility: VisibilityState;
+	defaultColumns?: RunStatsColumn[];
 	onColumnVisibilityChange: OnChangeFn<VisibilityState>;
 	onExpandedChange: OnChangeFn<ExpandedState>;
 	onSortingChange: OnChangeFn<SortingState>;
@@ -94,6 +95,7 @@ export const RunTable = (props: RunTableProps) => {
 		onSortingChange,
 		columnVisibility,
 		defaultColumnVisibility,
+		defaultColumns,
 		onColumnVisibilityChange,
 		isFetching,
 		runId,
@@ -105,9 +107,10 @@ export const RunTable = (props: RunTableProps) => {
 		() =>
 			getColumns({
 				projectId,
-				runIds: typeof runId === 'string' ? [Number(runId)] : runId.map(Number)
+				runIds: typeof runId === 'string' ? [Number(runId)] : runId.map(Number),
+				defaultColumns
 			}),
-		[projectId, runId]
+		[defaultColumns, projectId, runId]
 	);
 
 	const table = useReactTable<RunData | MergedRun>({

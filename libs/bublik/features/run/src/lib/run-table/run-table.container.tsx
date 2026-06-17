@@ -113,6 +113,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				onSortingChange={handleSortingChange}
 				columnVisibility={columnVisibility}
 				defaultColumnVisibility={defaultColumnVisibility}
+				defaultColumns={defaultColumns}
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}
 				targetIterationId={targetIterationId}

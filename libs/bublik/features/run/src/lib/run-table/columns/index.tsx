@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { PopoverClose, PopoverPortal } from '@radix-ui/react-popover';
 import { toast } from 'sonner';
-import { groupBy } from 'remeda';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { To } from 'react-router-dom';
@@ -20,7 +19,8 @@ import {
 	MergedRun,
 	NodeEntity,
 	RunData,
-	RunDataComment
+	RunDataComment,
+	RunStatsColumn
 } from '@/shared/types';
 import { useConfirm } from '@/shared/hooks';
 import {
@@ -54,7 +54,7 @@ import { stringifySearch } from '@/router';
 
 import { badgeColumns } from './badge-columns';
 import { ColumnId } from '../types';
-import { COLUMN_GROUPS } from '../constants';
+import { COLUMN_GROUPS, createDefaultColumnOrder } from '../constants';
 
 function getHistoryViewLink(
 	path: string[],
@@ -136,9 +136,53 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 interface GetColumnsOptions {
 	projectId?: number;
 	runIds?: number[];
+	defaultColumns?: RunStatsColumn[];
 }
 
-function getColumns({ projectId, runIds }: GetColumnsOptions) {
+function groupColumnsByOrder(
+	columns: ColumnDef<RunData | MergedRun>[],
+	helper: ReturnType<typeof createColumnHelper<RunData | MergedRun>>
+) {
+	const columnGroups = columns.reduce<
+		{
+			id: string;
+			columns: ColumnDef<RunData | MergedRun>[];
+		}[]
+	>((groups, column) => {
+		const columnId = column.id as ColumnId;
+		const group = COLUMN_GROUPS.find((group) =>
+			group.columns.includes(columnId)
+		);
+		const groupId = group?.id ?? columnId;
+		const lastGroup = groups[groups.length - 1];
+
+		if (lastGroup?.id === groupId) {
+			lastGroup.columns.push(column);
+		} else {
+			groups.push({ id: groupId, columns: [column] });
+		}
+
+		return groups;
+	}, []);
+	const groupUsageCount = new Map<string, number>();
+
+	return columnGroups.map(({ id, columns }) => {
+		const group = COLUMN_GROUPS.find((group) => group.id === id);
+		const usedCount = groupUsageCount.get(id) ?? 0;
+		const groupId = usedCount === 0 ? id : `${id}-${usedCount}`;
+
+		groupUsageCount.set(id, usedCount + 1);
+
+		return helper.group({
+			id: groupId,
+			header: () => group?.label,
+			columns,
+			meta: { className: group?.className }
+		});
+	});
+}
+
+function getColumns({ projectId, runIds, defaultColumns }: GetColumnsOptions) {
 	const helper = createColumnHelper<RunData | MergedRun>();
 
 	const treeColumn: ColumnDef<RunData> = {
@@ -251,22 +295,18 @@ function getColumns({ projectId, runIds }: GetColumnsOptions) {
 		}),
 		...badgeColumns
 	] as ColumnDef<RunData | MergedRun>[];
+	const columnsById = new Map(
+		columns.map((column) => [column.id as ColumnId, column])
+	);
+	const orderedColumns = createDefaultColumnOrder(defaultColumns).flatMap(
+		(columnId) => {
+			const column = columnsById.get(columnId);
 
-	const groupedColumns = groupBy(
-		columns,
-		(c) => COLUMN_GROUPS.find((g) => g.columns.includes(c.id as ColumnId))?.id
+			return column ? [column] : [];
+		}
 	);
 
-	return Object.entries(groupedColumns).map(([id, columns]) => {
-		const group = COLUMN_GROUPS.find((g) => g.id === id);
-
-		return helper.group({
-			id: id,
-			header: group?.label as any,
-			columns: columns as ColumnDef<RunData | MergedRun>[],
-			meta: { className: group?.className }
-		});
-	});
+	return groupColumnsByOrder(orderedColumns, helper);
 }
 
 function useTestComment() {
