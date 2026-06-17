@@ -171,6 +171,13 @@ export const ImportRunForm = forwardRef<
 	const projectValue =
 		uniqueProjects.size === 1 ? [...uniqueProjects][0] : DEFAULT_PROJECT_VALUE;
 
+	const handleAddRunClick = () => {
+		const project =
+			projectValue === DEFAULT_PROJECT_VALUE ? null : parseInt(projectValue);
+
+		append({ url: '', force: allForceEnabled, range: null, project });
+	};
+
 	return (
 		<>
 			<DialogTitle className="text-lg font-semibold leading-none tracking-tight">
@@ -237,9 +244,7 @@ export const ImportRunForm = forwardRef<
 						rounded="lg"
 						size="md"
 						variant="outline"
-						onClick={() =>
-							append({ url: '', force: false, range: null, project: null })
-						}
+						onClick={handleAddRunClick}
 					>
 						<Icon name="AddSymbol" size={24} className="mr-1.5 text-primary" />
 						<span>Add</span>
