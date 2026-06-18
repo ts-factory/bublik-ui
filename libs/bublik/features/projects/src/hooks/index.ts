@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
 	NavigateOptions,
@@ -45,36 +45,39 @@ function useNavigateWithProject() {
 	const _navigate = useNavigate();
 	const location = useLocation();
 
-	const navigate = (to: To, options?: NavigateOptions) => {
-		const freshSearchParams = new URLSearchParams(location.search);
+	const navigate = useCallback(
+		(to: To, options?: NavigateOptions) => {
+			const freshSearchParams = new URLSearchParams(location.search);
 
-		if (typeof to === 'string') {
-			const finalTo = mergeStringUrlWithSidebarState(
-				to,
+			if (typeof to === 'string') {
+				const finalTo = mergeStringUrlWithSidebarState(
+					to,
+					freshSearchParams,
+					projectIds
+				);
+				_navigate(finalTo, options);
+				return;
+			}
+
+			const targetParams = new URLSearchParams(to.search || '');
+			const mergedParams = mergeParamsWithSidebarState(
+				targetParams,
 				freshSearchParams,
 				projectIds
 			);
-			_navigate(finalTo, options);
-			return;
-		}
+			const search = mergedParams.toString();
 
-		const targetParams = new URLSearchParams(to.search || '');
-		const mergedParams = mergeParamsWithSidebarState(
-			targetParams,
-			freshSearchParams,
-			projectIds
-		);
-		const search = mergedParams.toString();
-
-		_navigate(
-			{
-				pathname: to.pathname,
-				search: search ? `?${search}` : '',
-				hash: to.hash
-			},
-			options
-		);
-	};
+			_navigate(
+				{
+					pathname: to.pathname,
+					search: search ? `?${search}` : '',
+					hash: to.hash
+				},
+				options
+			);
+		},
+		[_navigate, location.search, projectIds]
+	);
 
 	return navigate;
 }
