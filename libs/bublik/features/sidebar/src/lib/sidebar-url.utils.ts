@@ -428,41 +428,6 @@ export function updateSidebarStateSearchParams(
 	});
 }
 
-export function parseModeParam<T extends string>(
-	searchParams: URLSearchParams,
-	key: string,
-	allowedModes: readonly T[]
-): T | null {
-	const mode = getSidebarStateString(searchParams, key);
-	if (!mode) {
-		return null;
-	}
-
-	return allowedModes.includes(mode as T) ? (mode as T) : null;
-}
-
-/**
- * Backward-compatible helper kept for existing usage.
- */
-export function setEncodedUrlParam(
-	searchParams: URLSearchParams,
-	key: string,
-	rawUrl: string
-): void {
-	removeLegacySidebarParams(searchParams);
-
-	const sidebarState = getSidebarState(searchParams);
-	setSidebarStateValue(sidebarState, key, stripSidebarParamsFromUrl(rawUrl));
-	const prunedState = pruneSidebarState(normalizeSidebarState(sidebarState));
-
-	if (Object.keys(prunedState).length === 0) {
-		searchParams.delete(SIDEBAR_STATE_PARAM);
-		return;
-	}
-
-	searchParams.set(SIDEBAR_STATE_PARAM, encodeSidebarState(prunedState));
-}
-
 export function getUpdatedSearchParams(
 	searchParams: URLSearchParams,
 	updater: (newParams: URLSearchParams) => void
@@ -499,20 +464,6 @@ export function stripSidebarParamsFromUrl(url: string): string {
 	const cleanedSearch = params.toString();
 	const cleanedPath = cleanedSearch ? `${pathname}?${cleanedSearch}` : pathname;
 	return hash ? `${cleanedPath}#${hash}` : cleanedPath;
-}
-
-/**
- * Backward-compatible helper kept for existing usage.
- */
-export function encodeUrlForParam(url: string): string {
-	return stripSidebarParamsFromUrl(url);
-}
-
-/**
- * Backward-compatible helper kept for existing usage.
- */
-export function decodeUrlFromParam(encoded: string | null): string | null {
-	return encoded;
 }
 
 /**
