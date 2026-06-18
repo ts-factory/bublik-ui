@@ -135,16 +135,20 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 		[searchParams]
 	);
 
-	// Computed URLs for each mode
+	// Computed URLs for each mode. Linear and aggregation views paginate
+	// independently, so reset `page` when switching between them — keeping the
+	// current page can land on a non-existent page in the other view.
 	const linearUrl = useMemo(() => {
 		const params = new URLSearchParams(searchParams);
 		params.set('mode', 'linear');
+		params.delete('page');
 		return `/history?${params.toString()}`;
 	}, [searchParams]);
 
 	const aggregationUrl = useMemo(() => {
 		const params = new URLSearchParams(searchParams);
 		params.set('mode', 'aggregation');
+		params.delete('page');
 		return `/history?${params.toString()}`;
 	}, [searchParams]);
 
