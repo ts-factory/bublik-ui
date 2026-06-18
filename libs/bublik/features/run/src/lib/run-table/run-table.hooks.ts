@@ -343,9 +343,15 @@ export const useRunTableQueryState = (
 		openUnexpectedResults?: boolean;
 		openUnexpectedIntentId?: string;
 	};
-	const locationState = hasPersistedRunTableState(location.search)
-		? undefined
-		: navigationState;
+	// A fresh navigation carries a unique openUnexpectedIntentId; always honor
+	// it even when the target URL already has persisted table params. Only the
+	// legacy (id-less) booleans are suppressed in that case, since they cannot
+	// be distinguished from a reload of an already-interacted-with table.
+	const hasFreshIntent = Boolean(navigationState?.openUnexpectedIntentId);
+	const locationState =
+		hasFreshIntent || !hasPersistedRunTableState(location.search)
+			? navigationState
+			: undefined;
 	const { targetIterationId } = useTargetIterationId();
 	const [resultFilter] = useQueryParam('resultFilter', StringParam);
 
