@@ -71,10 +71,17 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			if (plotIds.length > 0 && selectedCharts.length === 0) {
 				const restoredCharts: SelectedChart[] = [];
 
-				plotIds.forEach((id, idx) => {
-					const chart = charts.find((c) => String(c.id) === id);
-					if (chart) {
-						restoredCharts.push({ plot: chart, color: getColorByIdx(idx) });
+				plotIds.forEach((id) => {
+					// Color by the chart's position in the full list, matching how
+					// getColorByIdx(idx) assigns colors at add time. Indexing by the
+					// URL position instead would shift colors whenever a listed id is
+					// missing from the loaded charts.
+					const chartIdx = charts.findIndex((c) => String(c.id) === id);
+					if (chartIdx !== -1) {
+						restoredCharts.push({
+							plot: charts[chartIdx],
+							color: getColorByIdx(chartIdx)
+						});
 					}
 				});
 
