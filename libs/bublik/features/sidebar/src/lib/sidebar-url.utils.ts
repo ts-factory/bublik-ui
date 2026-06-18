@@ -489,7 +489,6 @@ export function stripSidebarParamsFromUrl(url: string): string {
 			key.startsWith(`${SIDEBAR_PREFIX}.`) ||
 			key === SIDEBAR_STATE_PARAM ||
 			key === 'project' ||
-			value === '' ||
 			(key === 'mode' && value === 'default')
 		) {
 			keysToRemove.push(key);
