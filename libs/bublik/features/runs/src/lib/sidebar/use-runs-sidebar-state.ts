@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { matchPath, useLocation, useSearchParams } from 'react-router-dom';
 
 import {
 	RUNS_SIDEBAR_KEYS,
@@ -89,8 +89,28 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 	const isCompareAvailable = selectedRunIds.length === 2;
 	const isMultipleAvailable = selectedRunIds.length >= 2;
 
-	const listUrl = useMemo(() => '/runs', []);
-	const chartsUrl = useMemo(() => '/runs?mode=charts', []);
+	// When already on the runs page, preserve the active filters/query when
+	// switching modes; otherwise fall back to the persisted last-visited URL so
+	// we don't leak the current (unrelated) page's params into /runs.
+	const isOnRunsPage = !!matchPath('/runs', location.pathname);
+
+	const listUrl = useMemo(() => {
+		if (isOnRunsPage) {
+			const params = new URLSearchParams(location.search);
+			params.delete('mode');
+			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
+		}
+		return lastListUrl || '/runs';
+	}, [isOnRunsPage, location.search, lastListUrl]);
+
+	const chartsUrl = useMemo(() => {
+		if (isOnRunsPage) {
+			const params = new URLSearchParams(location.search);
+			params.set('mode', 'charts');
+			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
+		}
+		return lastChartsUrl || '/runs?mode=charts';
+	}, [isOnRunsPage, location.search, lastChartsUrl]);
 
 	const compareUrl = useMemo(() => {
 		if (!isCompareAvailable) return null;
