@@ -316,10 +316,16 @@ export function migrateExpandedStateUrl(
 	const currentUrl = new URL(window.location.href);
 
 	try {
-		const expandedJson = JSON.stringify(newExpanded);
-		currentUrl.searchParams.set('expanded', expandedJson);
+		// Encode with the same compressed format every other run-table writer
+		// uses, then actually apply the rewritten URL.
+		currentUrl.searchParams.set('expanded', encodeCompressedState(newExpanded));
+		window.history.replaceState(
+			window.history.state,
+			'',
+			currentUrl.toString()
+		);
 	} catch (error) {
-		console.error('Failed to stringify expanded state:', error, newExpanded);
+		console.error('Failed to migrate expanded state:', error, newExpanded);
 	}
 }
 
