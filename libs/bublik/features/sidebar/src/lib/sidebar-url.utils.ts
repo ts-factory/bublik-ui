@@ -467,6 +467,20 @@ export function stripSidebarParamsFromUrl(url: string): string {
 }
 
 /**
+ * Reads the `mode` query param and validates it against an allow-list,
+ * returning the default when it is absent or unknown. Shared by the
+ * per-feature sidebar navs.
+ */
+export function getModeFromSearch<T extends string>(
+	search: string,
+	allowedModes: readonly T[],
+	defaultMode: T
+): T {
+	const mode = new URLSearchParams(search).get('mode');
+	return mode && allowedModes.includes(mode as T) ? (mode as T) : defaultMode;
+}
+
+/**
  * Gets base URL without mode parameter.
  */
 export function getBaseUrl(url: string): string {

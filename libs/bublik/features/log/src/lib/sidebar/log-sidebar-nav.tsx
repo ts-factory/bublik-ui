@@ -13,25 +13,18 @@ import {
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
 import { LogPageParams } from '@/shared/types';
+import { getModeFromSearch, LogSidebarMode } from '@/bublik/features/sidebar';
+
 import { useLogSidebarState } from './use-log-sidebar-state';
 
 import { LogDialog } from './log-dialog';
 
-function getModeFromSearch(search: string): LogSidebarMode {
-	const params = new URLSearchParams(search);
-	const mode = params.get('mode');
-	switch (mode) {
-		case 'infoAndlog':
-			return 'infoAndlog';
-		case 'treeAndlog':
-			return 'treeAndlog';
-		case 'treeAndinfoAndlog':
-			return 'treeAndinfoAndlog';
-		case 'log':
-		default:
-			return 'log';
-	}
-}
+const LOG_SIDEBAR_MODES: readonly LogSidebarMode[] = [
+	'log',
+	'infoAndlog',
+	'treeAndlog',
+	'treeAndinfoAndlog'
+];
 
 const LOG_SIDEBAR_PATTERNS = [{ path: '/log/:runId' }];
 
@@ -44,7 +37,7 @@ export function LogSidebarNav() {
 	useEffect(() => {
 		const pathMatch = matchPath('/log/:runId', location.pathname);
 		if (pathMatch && runId) {
-			const mode = getModeFromSearch(location.search);
+			const mode = getModeFromSearch(location.search, LOG_SIDEBAR_MODES, 'log');
 			setLastVisited(mode, location.pathname, runId);
 		}
 	}, [location.pathname, location.search, runId, setLastVisited]);
@@ -142,5 +135,3 @@ export function LogSidebarNav() {
 		</SidebarNavCollapsibleContainer>
 	);
 }
-
-type LogSidebarMode = 'log' | 'infoAndlog' | 'treeAndinfoAndlog' | 'treeAndlog';
