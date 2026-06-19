@@ -48,23 +48,21 @@ vi.mock('@/bublik/features/sidebar', () => ({
 
 		sidebarState[key] = value;
 	},
-	updateSidebarStateSearchParams: (
-		current: URLSearchParams,
-		updater: (sidebarState: Record<string, string>) => void
-	) => {
-		const next = new URLSearchParams(current);
-		const previous = next.toString();
-		const state: Record<string, string> = {};
+	useSidebarStateWriter:
+		() => (updater: (sidebarState: Record<string, string>) => void) => {
+			const next = new URLSearchParams(window.location.search);
+			const previous = next.toString();
+			const state: Record<string, string> = {};
 
-		updater(state);
-		next.set('_s', JSON.stringify(state));
+			updater(state);
+			next.set('_s', JSON.stringify(state));
 
-		if (next.toString() === previous) {
-			return null;
-		}
+			if (next.toString() === previous) {
+				return;
+			}
 
-		return next;
-	},
+			setSearchParamsMock(next, { replace: true, state: locationState });
+		},
 	stripSidebarParamsFromUrl: (url: string) => url,
 	extractRunIdFromUrl: () => '42'
 }));
