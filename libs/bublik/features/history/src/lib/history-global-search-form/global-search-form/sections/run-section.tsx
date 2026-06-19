@@ -80,6 +80,8 @@ export const RunSection = (props: RunSectionProps) => {
 							label="Labels"
 							placeholder="label"
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
 								<FieldResetButton
 									helpMessage="Clear labels"
@@ -115,6 +117,8 @@ export const RunSection = (props: RunSectionProps) => {
 							label="Branches"
 							placeholder="master"
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
 								<FieldResetButton
 									helpMessage="Clear branches"
@@ -152,6 +156,8 @@ export const RunSection = (props: RunSectionProps) => {
 							label="Revisions"
 							placeholder="8af383125f20cc5ecdb8393bf"
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
 								<FieldResetButton
 									helpMessage="Clear revisions"
@@ -189,6 +195,8 @@ export const RunSection = (props: RunSectionProps) => {
 							name="runData"
 							placeholder="medford"
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
 								<FieldResetButton
 									helpMessage="Clear tags"

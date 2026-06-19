@@ -4,14 +4,17 @@ import { config } from '@/bublik/config';
 import { Badge, BadgeVariants, Icon, IconProps } from '@/shared/tailwind-ui';
 import { formatKeyValueForDisplay } from '@/shared/utils';
 
+const formatLegendValue = (value: string) =>
+	formatKeyValueForDisplay(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
+
 const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
 	if (!value) return null;
 
 	if (!Array.isArray(value)) {
-		const displayValue = formatKeyValueForDisplay(value, {
-			displayDelimiter: config.keyValueDisplayDelimiter,
-			submitDelimiter: config.keyValueSubmitDelimiter
-		});
+		const displayValue = formatLegendValue(value);
 
 		return (
 			<Badge variant={BadgeVariants.Primary} className="bg-primary-wash">
@@ -27,10 +30,7 @@ const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
 	return (
 		<>
 			{value.map((value) => {
-				const displayValue = formatKeyValueForDisplay(value, {
-					displayDelimiter: config.keyValueDisplayDelimiter,
-					submitDelimiter: config.keyValueSubmitDelimiter
-				});
+				const displayValue = formatLegendValue(value);
 
 				return (
 					<Badge
