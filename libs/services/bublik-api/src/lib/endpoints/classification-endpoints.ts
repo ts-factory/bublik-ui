@@ -30,6 +30,8 @@ export const classificationEndpoints = {
 				},
 				cache: 'no-cache'
 			}),
+			transformResponse: (response: { results: Issue[] }) =>
+				response?.results ?? [],
 			providesTags: [BUBLIK_TAG.Issues]
 		}),
 		getIssueRules: build.query<
@@ -41,6 +43,8 @@ export const classificationEndpoints = {
 				params: { project: args.projectId, issue: args.issue },
 				cache: 'no-cache'
 			}),
+			transformResponse: (response: { results: IssueRule[] }) =>
+				response?.results ?? [],
 			providesTags: [BUBLIK_TAG.IssueRules]
 		}),
 		classifyResult: build.mutation<
