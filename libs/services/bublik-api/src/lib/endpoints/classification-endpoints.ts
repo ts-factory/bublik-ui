@@ -22,7 +22,7 @@ export const classificationEndpoints = {
 			{ projectId?: number; state?: string; category?: string }
 		>({
 			query: (args) => ({
-				url: withApiV2('/issues', true),
+				url: withApiV2('/issues'),
 				params: {
 					project: args.projectId,
 					state: args.state,
@@ -37,7 +37,7 @@ export const classificationEndpoints = {
 			{ projectId?: number; issue?: number }
 		>({
 			query: (args) => ({
-				url: withApiV2('/issue-rules', true),
+				url: withApiV2('/issue-rules'),
 				params: { project: args.projectId, issue: args.issue },
 				cache: 'no-cache'
 			}),

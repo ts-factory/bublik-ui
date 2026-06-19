@@ -14,9 +14,15 @@ export function useClassify(resultId: number) {
 	const issues = useGetIssuesQuery(projectId ? { projectId } : {});
 	const [classify, mutationState] = useClassifyResultMutation();
 
+	const canClassify = projectId !== undefined;
+
 	async function submit(
 		input: Omit<ClassifyRequest, 'resultId' | 'projectId'>
 	) {
+		if (projectId === undefined) {
+			toast.error('Select a project first', { position: 'top-center' });
+			return;
+		}
 		const promise = classify({ resultId, projectId, ...input }).unwrap();
 		toast.promise(promise, {
 			loading: 'Classifying result...',
@@ -30,5 +36,5 @@ export function useClassify(resultId: number) {
 		return promise;
 	}
 
-	return { issues, submit, isLoading: mutationState.isLoading };
+	return { issues, submit, canClassify, isLoading: mutationState.isLoading };
 }

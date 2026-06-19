@@ -35,7 +35,7 @@ export interface ClassifyPopoverProps {
 
 export function ClassifyPopover({ resultId }: ClassifyPopoverProps) {
 	const [open, setOpen] = useState(false);
-	const { issues, submit } = useClassify(resultId);
+	const { issues, submit, canClassify } = useClassify(resultId);
 
 	const { register, control, handleSubmit, watch, formState } =
 		useForm<FormValues>({
@@ -67,7 +67,12 @@ export function ClassifyPopover({ resultId }: ClassifyPopoverProps) {
 	return (
 		<Popover open={open} onOpenChange={setOpen} modal>
 			<PopoverTrigger asChild>
-				<ButtonTw variant="secondary" size="xss">
+				<ButtonTw
+					variant="secondary"
+					size="xss"
+					disabled={!canClassify}
+					title={!canClassify ? 'Select a project first' : undefined}
+				>
 					<Icon name="TriangleExclamationMark" size={18} className="mr-1" />
 					Classify
 				</ButtonTw>
