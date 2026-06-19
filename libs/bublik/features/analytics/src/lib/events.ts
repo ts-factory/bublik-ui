@@ -20,6 +20,7 @@ const analyticsEventNames = {
 	runTableToolbarColumnsOpen: 'run_table_toolbar_columns_open',
 	runTableToolbarColumnVisibilityToggle:
 		'run_table_toolbar_column_visibility_toggle',
+	runTableToolbarColumnReorder: 'run_table_toolbar_column_reorder',
 	runTableToolbarPreviewNok: 'run_table_toolbar_preview_nok',
 	runTableToolbarOpenNok: 'run_table_toolbar_open_nok',
 	runTableToolbarReset: 'run_table_toolbar_reset',

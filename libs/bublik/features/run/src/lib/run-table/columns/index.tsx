@@ -137,6 +137,7 @@ interface GetColumnsOptions {
 	projectId?: number;
 	runIds?: number[];
 	defaultColumns?: RunStatsColumn[];
+	columnOrder?: ColumnId[];
 }
 
 function groupColumnsByOrder(
@@ -182,7 +183,12 @@ function groupColumnsByOrder(
 	});
 }
 
-function getColumns({ projectId, runIds, defaultColumns }: GetColumnsOptions) {
+function getColumns({
+	projectId,
+	runIds,
+	defaultColumns,
+	columnOrder
+}: GetColumnsOptions) {
 	const helper = createColumnHelper<RunData | MergedRun>();
 
 	const treeColumn: ColumnDef<RunData> = {
@@ -298,13 +304,15 @@ function getColumns({ projectId, runIds, defaultColumns }: GetColumnsOptions) {
 	const columnsById = new Map(
 		columns.map((column) => [column.id as ColumnId, column])
 	);
-	const orderedColumns = createDefaultColumnOrder(defaultColumns).flatMap(
-		(columnId) => {
-			const column = columnsById.get(columnId);
+	const resolvedColumnOrder =
+		columnOrder && columnOrder.length > 0
+			? columnOrder
+			: createDefaultColumnOrder(defaultColumns);
+	const orderedColumns = resolvedColumnOrder.flatMap((columnId) => {
+		const column = columnsById.get(columnId);
 
-			return column ? [column] : [];
-		}
-	);
+		return column ? [column] : [];
+	});
 
 	return groupColumnsByOrder(orderedColumns, helper);
 }

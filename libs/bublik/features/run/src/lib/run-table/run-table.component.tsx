@@ -33,6 +33,7 @@ import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
+import { ColumnId } from './types';
 import { useGlobalRequirements } from '../hooks';
 import {
 	getRowId,
@@ -71,6 +72,9 @@ export interface RunTableProps {
 	columnVisibility: VisibilityState;
 	defaultColumnVisibility: VisibilityState;
 	defaultColumns?: RunStatsColumn[];
+	columnOrder: ColumnId[];
+	defaultColumnOrder: ColumnId[];
+	onColumnOrderChange: (order: ColumnId[]) => void;
 	onColumnVisibilityChange: OnChangeFn<VisibilityState>;
 	onExpandedChange: OnChangeFn<ExpandedState>;
 	onSortingChange: OnChangeFn<SortingState>;
@@ -96,6 +100,9 @@ export const RunTable = (props: RunTableProps) => {
 		columnVisibility,
 		defaultColumnVisibility,
 		defaultColumns,
+		columnOrder,
+		defaultColumnOrder,
+		onColumnOrderChange,
 		onColumnVisibilityChange,
 		isFetching,
 		runId,
@@ -108,9 +115,10 @@ export const RunTable = (props: RunTableProps) => {
 			getColumns({
 				projectId,
 				runIds: typeof runId === 'string' ? [Number(runId)] : runId.map(Number),
-				defaultColumns
+				defaultColumns,
+				columnOrder
 			}),
-		[defaultColumns, projectId, runId]
+		[columnOrder, defaultColumns, projectId, runId]
 	);
 
 	const table = useReactTable<RunData | MergedRun>({
@@ -162,6 +170,9 @@ export const RunTable = (props: RunTableProps) => {
 				<Toolbar
 					table={table}
 					defaultColumnVisibility={defaultColumnVisibility}
+					columnOrder={columnOrder}
+					defaultColumnOrder={defaultColumnOrder}
+					onColumnOrderChange={onColumnOrderChange}
 				/>
 			</div>
 			{data.length === 0 ? (

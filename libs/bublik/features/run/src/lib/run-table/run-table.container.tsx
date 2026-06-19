@@ -59,7 +59,10 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		setSorting,
 		sorting,
 		targetIterationId,
-		defaultColumnVisibility
+		defaultColumnVisibility,
+		columnOrder,
+		defaultColumnOrder,
+		setColumnOrder
 	} = useRunTableQueryState(data, defaultColumns, projectId);
 
 	const handleSortingChange: typeof setSorting = (state) => {
@@ -114,6 +117,9 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				columnVisibility={columnVisibility}
 				defaultColumnVisibility={defaultColumnVisibility}
 				defaultColumns={defaultColumns}
+				columnOrder={columnOrder}
+				defaultColumnOrder={defaultColumnOrder}
+				onColumnOrderChange={setColumnOrder}
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}
 				targetIterationId={targetIterationId}

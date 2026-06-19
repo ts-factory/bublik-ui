@@ -6,7 +6,8 @@ import {
 	createDefaultColumnOrder,
 	createDefaultColumnVisibility,
 	DEFAULT_COLUMN_ORDER,
-	DEFAULT_COLUMN_VISIBILITY
+	DEFAULT_COLUMN_VISIBILITY,
+	reconcileColumnOrder
 } from '.';
 import { ColumnId } from '../types';
 
@@ -68,5 +69,72 @@ describe('run table column defaults', () => {
 		expect(
 			createDefaultColumnOrder(['run', 'passed', 'run']).slice(0, 3)
 		).toEqual([ColumnId.Tree, ColumnId.Run, ColumnId.PassedExpected]);
+	});
+});
+
+describe('reconcileColumnOrder', () => {
+	const defaultOrder = createDefaultColumnOrder();
+
+	it('falls back to the default order when nothing is saved', () => {
+		expect(reconcileColumnOrder(undefined, defaultOrder)).toEqual(defaultOrder);
+		expect(reconcileColumnOrder([], defaultOrder)).toEqual(defaultOrder);
+	});
+
+	it('preserves a valid saved order', () => {
+		const saved = [
+			ColumnId.Tree,
+			ColumnId.Comments,
+			ColumnId.Objective,
+			ColumnId.Total,
+			ColumnId.Run,
+			ColumnId.ExpectedTotal,
+			ColumnId.UnexpectedTotal,
+			ColumnId.PassedExpected,
+			ColumnId.FailedExpected,
+			ColumnId.PassedUnexpected,
+			ColumnId.FailedUnexpected,
+			ColumnId.SkippedExpected,
+			ColumnId.SkippedUnexpected,
+			ColumnId.Abnormal
+		];
+
+		expect(reconcileColumnOrder(saved, defaultOrder)).toEqual(saved);
+	});
+
+	it('drops saved columns that are no longer available', () => {
+		const saved = [ColumnId.Run, 'LEGACY_COLUMN' as ColumnId, ColumnId.Total];
+
+		const result = reconcileColumnOrder(saved, defaultOrder);
+
+		expect(result).not.toContain('LEGACY_COLUMN');
+		expect(result.slice(0, 3)).toEqual([
+			ColumnId.Tree,
+			ColumnId.Run,
+			ColumnId.Total
+		]);
+	});
+
+	it('appends newly available columns in their default position', () => {
+		const saved = [ColumnId.Run, ColumnId.Total];
+
+		const result = reconcileColumnOrder(saved, defaultOrder);
+
+		expect(result.slice(0, 3)).toEqual([
+			ColumnId.Tree,
+			ColumnId.Run,
+			ColumnId.Total
+		]);
+		// every default column still present exactly once
+		expect(new Set(result)).toEqual(new Set(defaultOrder));
+		expect(result.length).toBe(defaultOrder.length);
+	});
+
+	it('always pins the tree column first', () => {
+		const saved = [ColumnId.Run, ColumnId.Tree, ColumnId.Total];
+
+		const result = reconcileColumnOrder(saved, defaultOrder);
+
+		expect(result[0]).toBe(ColumnId.Tree);
+		expect(result.filter((id) => id === ColumnId.Tree)).toHaveLength(1);
 	});
 });

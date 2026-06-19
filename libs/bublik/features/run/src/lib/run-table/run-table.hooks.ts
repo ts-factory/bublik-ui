@@ -23,7 +23,12 @@ import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { RowStateContextType, RunRowState } from '../hooks';
-import { createDefaultColumnVisibility } from './constants';
+import {
+	createDefaultColumnOrder,
+	createDefaultColumnVisibility,
+	reconcileColumnOrder
+} from './constants';
+import { ColumnId } from './types';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 const GlobalFilterParam = withDefault(JsonParam, []);
@@ -129,6 +134,85 @@ function useColumnVisibility(
 	};
 }
 
+const LOCAL_STORAGE_COLUMN_ORDER_KEY = 'run-column-order';
+
+function getColumnOrderStorageKey(projectId?: number): string {
+	return projectId === undefined
+		? LOCAL_STORAGE_COLUMN_ORDER_KEY
+		: `${LOCAL_STORAGE_COLUMN_ORDER_KEY}:${projectId}`;
+}
+
+function hasColumnOrder(value: ColumnId[] | null | undefined): boolean {
+	return Array.isArray(value) && value.length > 0;
+}
+
+function hasStoredColumnOrder(key: string, value: ColumnId[]): boolean {
+	try {
+		return localStorage.getItem(key) !== null && hasColumnOrder(value);
+	} catch (_) {
+		return false;
+	}
+}
+
+function useColumnOrder(defaultColumns?: RunStatsColumn[], projectId?: number) {
+	const columnOrderStorageKey = getColumnOrderStorageKey(projectId);
+	const defaultColumnOrder = useMemo(
+		() => createDefaultColumnOrder(defaultColumns),
+		[defaultColumns]
+	);
+
+	function getLocalColumnOrder(): ColumnId[] {
+		try {
+			const columnOrder = localStorage.getItem(columnOrderStorageKey);
+
+			if (!columnOrder) return defaultColumnOrder;
+
+			return JSON.parse(columnOrder);
+		} catch (_) {
+			return defaultColumnOrder;
+		}
+	}
+
+	const [localColumnOrder, setLocalColumnOrder] = useLocalStorage<ColumnId[]>(
+		columnOrderStorageKey,
+		getLocalColumnOrder()
+	);
+
+	const [queryColumnOrder, setQueryColumnOrder] = useQueryParam<ColumnId[]>(
+		'columnOrder',
+		JsonParam
+	);
+
+	const hasQueryColumnOrder = hasColumnOrder(queryColumnOrder);
+	const hasLocalColumnOrder = hasStoredColumnOrder(
+		columnOrderStorageKey,
+		localColumnOrder
+	);
+	const resolvedColumnOrder = hasQueryColumnOrder
+		? queryColumnOrder
+		: hasLocalColumnOrder
+		? localColumnOrder
+		: defaultColumnOrder;
+
+	const columnOrder = useMemo(
+		() => reconcileColumnOrder(resolvedColumnOrder, defaultColumnOrder),
+		[resolvedColumnOrder, defaultColumnOrder]
+	);
+
+	const setColumnOrder = (state: Updater<ColumnId[]> | ColumnId[]): void => {
+		const newState = typeof state === 'function' ? state(columnOrder) : state;
+
+		setQueryColumnOrder(newState, 'replaceIn');
+		setLocalColumnOrder(newState);
+	};
+
+	return {
+		columnOrder,
+		defaultColumnOrder,
+		setColumnOrder
+	};
+}
+
 export function migrateExpandedState(
 	expanded: Record<string, boolean> | true,
 	allRows: Record<string, Row<RunData | MergedRun>>
@@ -223,6 +307,11 @@ export const useRunTableQueryState = (
 	const { setColumnVisibility, columnVisibility, defaultColumnVisibility } =
 		useColumnVisibility(defaultColumns, projectId);
 
+	const { columnOrder, defaultColumnOrder, setColumnOrder } = useColumnOrder(
+		defaultColumns,
+		projectId
+	);
+
 	return {
 		locationState,
 		expanded,
@@ -236,6 +325,9 @@ export const useRunTableQueryState = (
 		columnVisibility,
 		defaultColumnVisibility,
 		setColumnVisibility,
+		columnOrder,
+		defaultColumnOrder,
+		setColumnOrder,
 		rowStateContext,
 		targetIterationId: targetIterationId ?? undefined
 	};

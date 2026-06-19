@@ -150,6 +150,32 @@ export function createDefaultColumnOrder(
 	return [ColumnId.Tree, ...orderedColumnIds, ...restColumnIds];
 }
 
+/**
+ * Reconciles a user-saved column order against the current default order.
+ *
+ * Keeps the saved order for columns that still exist, drops columns the API no
+ * longer provides, appends newly added columns in their default position, and
+ * always pins the tree column first. This protects against stale localStorage
+ * when the available column set changes.
+ */
+export function reconcileColumnOrder(
+	saved: ColumnId[] | undefined | null,
+	defaultOrder: ColumnId[]
+): ColumnId[] {
+	if (!saved || saved.length === 0) return defaultOrder;
+
+	const defaultSet = new Set(defaultOrder);
+	const knownSaved = saved.filter(
+		(columnId) => columnId !== ColumnId.Tree && defaultSet.has(columnId)
+	);
+	const knownSet = new Set(knownSaved);
+	const missing = defaultOrder.filter(
+		(columnId) => columnId !== ColumnId.Tree && !knownSet.has(columnId)
+	);
+
+	return [ColumnId.Tree, ...knownSaved, ...missing];
+}
+
 type ColumnGroup = {
 	id: string;
 	label: ReactNode;
