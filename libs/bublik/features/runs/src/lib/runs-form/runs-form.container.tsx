@@ -7,15 +7,10 @@ import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { formatISODuration, intervalToDuration, sub } from 'date-fns';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import {
-	formatTimeToAPI,
-	normalizeKeyValueForSubmit,
-	parseISODuration
-} from '@/shared/utils';
+import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
-import { config } from '@/bublik/config';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import {
@@ -25,19 +20,7 @@ import {
 } from './runs-form.utils';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
-
-const normalizeRunDataValue = (value: string) => {
-	return normalizeKeyValueForSubmit(value, {
-		displayDelimiter: config.keyValueDisplayDelimiter,
-		submitDelimiter: config.keyValueSubmitDelimiter
-	});
-};
-
-const normalizeRunDataList = (runData: string[]) => {
-	return Array.from(
-		new Set(runData.map(normalizeRunDataValue).filter(Boolean))
-	);
-};
+import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
 
 function RunsFormContainer() {
 	const dispatch = useDispatch();
