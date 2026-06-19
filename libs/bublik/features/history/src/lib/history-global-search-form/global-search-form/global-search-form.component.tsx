@@ -18,7 +18,8 @@ import {
 	TestSection,
 	RunSection,
 	ResultSection,
-	VerdictSection
+	VerdictSection,
+	ClassificationSection
 } from './sections';
 
 export interface GlobalSearchFormProps {
@@ -72,6 +73,7 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 						<VerdictSection
 							onResetVerdictSectionClick={form.resetVerdictSection}
 						/>
+						<ClassificationSection />
 						<StickySubmit
 							onResetClick={form.resetForm}
 							isScrollable={isVisible}

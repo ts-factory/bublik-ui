@@ -41,6 +41,11 @@ export type HistoryAPIBackendQuery = {
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
 
+	/* Result classification (Plan 2) */
+	categories?: string;
+	issue?: string;
+	untriaged?: string;
+
 	page?: string;
 	pageSize?: string;
 	projects?: number[];
@@ -72,6 +77,11 @@ export const HistoryAPIBackendQuerySchema = z.object({
 
 	verdictLookup: z.nativeEnum(VERDICT_TYPE).optional(),
 	verdict: z.string().optional(),
+
+	/* Result classification (Plan 2) */
+	categories: z.string().optional(),
+	issue: z.string().optional(),
+	untriaged: z.string().optional(),
 
 	page: z.string().optional(),
 	pageSize: z.string().optional(),
@@ -107,6 +117,12 @@ export type HistoryAPIQuery = {
 
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
+
+	/* Result classification (Plan 2) */
+	categories?: string;
+	issue?: string;
+	untriaged?: string;
+
 	project?: string;
 };
 
