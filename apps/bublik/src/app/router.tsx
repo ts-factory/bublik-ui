@@ -83,6 +83,12 @@ const RunReportPage = lazy(() =>
 	}))
 );
 
+const RunIssuesPage = lazy(() =>
+	import('../pages/run-issues/run-issues.page').then((module) => ({
+		default: module.RunIssuesPage
+	}))
+);
+
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigateWithProject();
@@ -271,6 +277,14 @@ const router = createBrowserRouter(
 							element: (
 								<LazyRoute>
 									<RunReportPage />
+								</LazyRoute>
+							)
+						},
+						{
+							path: '/runs/:runId/issues',
+							element: (
+								<LazyRoute>
+									<RunIssuesPage />
 								</LazyRoute>
 							)
 						},

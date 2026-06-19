@@ -6,3 +6,4 @@ export {
 	categoryBadgeVariant
 } from './lib/category';
 export { IssuesTable } from './lib/issues-table';
+export { RunIssuesTable } from './lib/run-issues-table';

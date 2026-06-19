@@ -192,5 +192,6 @@ export const {
 	useCloseIssueMutation,
 	useReopenIssueMutation,
 	useDeactivateRuleMutation,
-	useApplyRulesToRunMutation
+	useApplyRulesToRunMutation,
+	useGetRunIssuesQuery
 } = bublikAPI;

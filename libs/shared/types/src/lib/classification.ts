@@ -58,6 +58,15 @@ export type ResultIssueRef = {
 	origin: 'import' | 'manual_apply' | 'manual_oneoff';
 };
 
+export interface RunIssueRow {
+	issue_id: number;
+	title: string;
+	state: IssueState;
+	bug_key: string | null;
+	result_count: number;
+	categories: { category: IssueCategory; expected: boolean }[];
+}
+
 export type ClassifyScope = 'future' | 'oneoff';
 
 export type ClassifyRequest = {
