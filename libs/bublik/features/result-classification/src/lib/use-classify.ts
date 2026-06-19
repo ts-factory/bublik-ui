@@ -1,0 +1,34 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+import {
+	getErrorMessage,
+	useClassifyResultMutation,
+	useGetIssuesQuery
+} from '@/services/bublik-api';
+import { useProjectSearch } from '@/bublik/features/projects';
+import { toast } from '@/shared/tailwind-ui';
+import type { ClassifyRequest } from '@/shared/types';
+
+export function useClassify(resultId: number) {
+	const { projectIds } = useProjectSearch();
+	const projectId = projectIds[0];
+	const issues = useGetIssuesQuery(projectId ? { projectId } : {});
+	const [classify, mutationState] = useClassifyResultMutation();
+
+	async function submit(
+		input: Omit<ClassifyRequest, 'resultId' | 'projectId'>
+	) {
+		const promise = classify({ resultId, projectId, ...input }).unwrap();
+		toast.promise(promise, {
+			loading: 'Classifying result...',
+			success: 'Result classified',
+			error: (err: unknown) => {
+				const m = getErrorMessage(err);
+				return `${m.title}\n${m.description}`;
+			},
+			position: 'top-center'
+		});
+		return promise;
+	}
+
+	return { issues, submit, isLoading: mutationState.isLoading };
+}
