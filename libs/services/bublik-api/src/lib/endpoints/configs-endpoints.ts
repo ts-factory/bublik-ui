@@ -145,13 +145,13 @@ export const configsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getListOfConfigs: build.query<
-			ConfigItem[],
-			{ projectIds?: number[] } | undefined
-		>({
-			query: (params) => ({
+		getListOfConfigs: build.query<ConfigItem[], void>({
+			// Always fetch the full list and let the sidebar group/filter by project
+			// client-side. Filtering by `project` on the backend dropped the global
+			// configs whenever a project filter was active, making the sidebar look
+			// empty even though configs existed.
+			query: () => ({
 				url: withApiV2('/config'),
-				params: { project: params?.projectIds?.[0] },
 				cache: 'no-cache'
 			}),
 			providesTags: [BUBLIK_TAG.Config]
