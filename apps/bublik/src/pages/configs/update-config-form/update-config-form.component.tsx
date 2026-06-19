@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { forwardRef, ReactNode, useEffect, useImperativeHandle } from 'react';
+import {
+	forwardRef,
+	ReactNode,
+	useEffect,
+	useImperativeHandle,
+	useRef
+} from 'react';
 import { useForm, Controller, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,7 +52,7 @@ type ConfigFormData = z.infer<typeof ConfigFormSchema>;
 
 interface ConfigEditorFormProps {
 	defaultValues: ConfigFormData;
-	onSubmit: (data: Partial<ConfigFormData>) => void;
+	onSubmit: (data: Partial<ConfigFormData>) => void | Promise<boolean>;
 	schema?: Record<string, unknown>;
 	isLoading?: boolean;
 	label: ReactNode;
@@ -79,7 +85,9 @@ const ConfigEditorForm = forwardRef<
 		setIsOpen,
 		isAdmin
 	} = props;
-	const { savedValue, setSavedValue } = useSavedState(config.id.toString());
+	const { savedValue, setSavedValue, clearSavedValue } = useSavedState(
+		config.id.toString()
+	);
 
 	function getSavedForm(): ConfigFormData {
 		if (!savedValue) {
@@ -126,10 +134,31 @@ const ConfigEditorForm = forwardRef<
 	useImperativeHandle(ref, () => form);
 
 	const formValues = form.watch();
-	useEffect(
-		() => setSavedValue(JSON.stringify(formValues)),
-		[formValues, setSavedValue]
-	);
+	const isModified = isConfigModified(formValues, defaultValues);
+
+	// Persist a draft only while the form differs from the server config, and
+	// drop it once it matches again. This keeps unsaved edits across navigation
+	// without planting a phantom draft on mount that would later shadow fresh
+	// server data.
+	useEffect(() => {
+		if (isModified) {
+			setSavedValue(JSON.stringify(formValues));
+		} else {
+			clearSavedValue();
+		}
+	}, [isModified, formValues, setSavedValue, clearSavedValue]);
+
+	// Keep the form's active state in sync when the config is activated or
+	// deactivated from the toolbar: that action keeps the same id (no remount)
+	// and only flips is_active, which the user did not touch in the form.
+	// Skip the initial run so a saved draft's is_active is not overwritten.
+	const prevIsActive = useRef(config.is_active);
+	useEffect(() => {
+		if (prevIsActive.current !== config.is_active) {
+			prevIsActive.current = config.is_active;
+			form.setValue('is_active', config.is_active);
+		}
+	}, [config.is_active, form]);
 
 	const handleSaveClick = () => {
 		if (!ValidJsonStringSchema.safeParse(form.getValues('content')).success) {
@@ -143,9 +172,7 @@ const ConfigEditorForm = forwardRef<
 		form.reset(defaultValues);
 	}
 
-	const isModified = isConfigModified(formValues, defaultValues);
-
-	function handleSubmit(data: ConfigFormData) {
+	async function handleSubmit(data: ConfigFormData) {
 		const dirtyFields = form.formState.dirtyFields;
 
 		if (Object.keys(dirtyFields).length === 0) return;
@@ -156,7 +183,10 @@ const ConfigEditorForm = forwardRef<
 				.map((key) => [key, data[key]])
 		) as Partial<ConfigFormData>;
 
-		onSubmit(changedData);
+		// Clear the saved draft once the server has accepted the change so a
+		// stale draft cannot resurface when the user revisits this config.
+		const succeeded = await onSubmit(changedData);
+		if (succeeded) clearSavedValue();
 	}
 
 	return (

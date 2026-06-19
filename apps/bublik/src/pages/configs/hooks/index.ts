@@ -1,23 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { Monaco } from '@monaco-editor/react';
-import { MutableRefObject, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQueryParam, NumberParam, JsonParam } from 'use-query-params';
-import { useSessionStorage, useUnmount } from 'react-use';
-import { useBeforeUnload } from 'react-router-dom';
+import { useSessionStorage } from 'react-use';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	bublikAPI,
-	ConfigExistsError,
 	ConfigSchemaParams,
 	ConfigSchemaParamsSchema,
-	ConfigValidationErrorSchema,
 	EditConfigBody
 } from '@/services/bublik-api';
 import { toast } from '@/shared/tailwind-ui';
-
-import { getEditorValue } from '../utils';
 
 function useConfigPageSearchParams() {
 	const [configId, _setConfigId] = useQueryParam('configId', NumberParam);
@@ -40,22 +34,26 @@ function useConfigPageSearchParams() {
 	return { configId, setConfigId, newConfigParams, setNewConfigParams };
 }
 
-function useSavedState(
-	key: string,
-	editorRef?: MutableRefObject<Monaco | undefined>
-) {
-	const [savedValue, setSavedValue] = useSessionStorage<string>(key);
+function useSavedState(key: string) {
+	const [savedValue, setSavedValue] = useSessionStorage<string | undefined>(
+		key
+	);
 
-	const handleBeforeUnload = useCallback(() => {
-		const value = getEditorValue(editorRef?.current);
-		if (!value) return;
-		setSavedValue(value);
-	}, [editorRef, setSavedValue]);
+	const clearSavedValue = useCallback(() => {
+		// react-use's useSessionStorage exposes no dedicated remove; setting the
+		// value to undefined makes subsequent reads fall back to the default.
+		setSavedValue(undefined);
+		// Also remove it synchronously: callers often clear right before the
+		// component unmounts (after a save/create that navigates away), so the
+		// internal write-on-render effect would never flush the cleared state.
+		try {
+			window.sessionStorage.removeItem(key);
+		} catch {
+			// Ignore: storage may be unavailable (private mode / disabled).
+		}
+	}, [key, setSavedValue]);
 
-	useBeforeUnload(handleBeforeUnload);
-	useUnmount(handleBeforeUnload);
-
-	return { savedValue, setSavedValue };
+	return { savedValue, setSavedValue, clearSavedValue };
 }
 
 function useConfigById(configId: number) {
