@@ -19,10 +19,9 @@ interface ConfigsSidebarContainerProps {
 function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	const { createProjectButton } = props;
 	const { projectIds } = useProjectSearch();
-	const configsQuery = bublikAPI.useGetListOfConfigsQuery(
-		{ projectIds: projectIds },
-		{ refetchOnMountOrArgChange: true }
-	);
+	const configsQuery = bublikAPI.useGetListOfConfigsQuery(undefined, {
+		refetchOnMountOrArgChange: true
+	});
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { isAdmin } = useAuth();
 	const { setConfigId, configId, setNewConfigParams } =

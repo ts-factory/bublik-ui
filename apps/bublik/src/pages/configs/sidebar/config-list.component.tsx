@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useMemo, useState } from 'react';
-import { groupBy } from 'remeda';
 
 import { ConfigItem, Project, ConfigSchemaParams } from '@/services/bublik-api';
 import { cn, ConfirmDialog, Icon } from '@/shared/tailwind-ui';
@@ -50,30 +49,22 @@ function ConfigList(props: ConfigListProps) {
 				? projects.filter((project) => projectIds.includes(project.id))
 				: projects;
 
-		const defaultConfigs = configs.filter((config) => !config.project);
-		const projectConfigs = configs.filter((config) => config.project);
-
 		const projectMap = new Map<number, string>();
 		filteredProjects.forEach((project) =>
 			projectMap.set(project.id, project.name)
 		);
 
 		const groupedByProject: GroupedConfigs = {
-			[DEFAULT_PROJECT_LABEL]: defaultConfigs,
+			[DEFAULT_PROJECT_LABEL]: configs.filter((config) => !config.project),
 			...Object.fromEntries(
 				filteredProjects.map((project) => [project.name, []])
 			)
 		};
 
-		Object.entries(
-			groupBy(
-				projectConfigs,
-				(config) => projectMap.get(config.project || 0) || DEFAULT_PROJECT_LABEL
-			)
-		).forEach(([projectName, configs]) => {
-			if (projectName in groupedByProject) {
-				groupedByProject[projectName] = configs;
-			}
+		configs.forEach((config) => {
+			if (!config.project) return; // already in the default bucket
+			const projectName = projectMap.get(config.project);
+			if (projectName) groupedByProject[projectName].push(config); // drop other projects
 		});
 
 		return groupedByProject;
