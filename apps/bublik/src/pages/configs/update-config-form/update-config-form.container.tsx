@@ -51,7 +51,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 			UseFormReturn<ComponentProps<typeof ConfigEditorForm>['defaultValues']>
 		>(null);
 
-	const handleSubmit = async (data: EditConfigBody) => {
+	const handleSubmit = async (data: EditConfigBody): Promise<boolean> => {
 		const form = formRef.current;
 
 		trackEvent(analyticsEventNames.configsUpdateSubmit, {
@@ -66,6 +66,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 
 			setConfigId(result.id);
 			setIsDialogOpen(false);
+			return true;
 		} catch (e) {
 			trackEvent(analyticsEventNames.configsUpdateSubmit, {
 				status: 'error'
@@ -75,13 +76,13 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 
 			if (parseResult.success) {
 				form?.setError('root', { message: parseResult.data.data.message });
-				return;
+				return false;
 			}
 
 			if (e instanceof ConfigExistsError) {
 				const shouldNavigate = await confirmationExisting();
 
-				if (!shouldNavigate) return;
+				if (!shouldNavigate) return false;
 
 				setConfigId(e.configId);
 			}
@@ -96,6 +97,8 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 					}
 				});
 			}
+
+			return false;
 		}
 	};
 

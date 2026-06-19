@@ -58,9 +58,11 @@ function CreateNewConfigScreen() {
 
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-	const { savedValue: savedForm, setSavedValue } = useSavedState(
-		JSON.stringify(newConfigParams)
-	);
+	const {
+		savedValue: savedForm,
+		setSavedValue,
+		clearSavedValue
+	} = useSavedState(JSON.stringify(newConfigParams));
 
 	const {
 		confirmation: confirmationExisting,
@@ -116,6 +118,9 @@ function CreateNewConfigScreen() {
 				isActive: data.is_active
 			});
 
+			// Drop the saved draft so reopening "create" for these params shows
+			// fresh defaults instead of the just-created content.
+			clearSavedValue();
 			setConfigId(result.id);
 			form.reset();
 			setIsCreateDialogOpen(false);
