@@ -5,3 +5,4 @@ export {
 	defaultExpectedFor,
 	categoryBadgeVariant
 } from './lib/category';
+export { IssuesTable } from './lib/issues-table';
