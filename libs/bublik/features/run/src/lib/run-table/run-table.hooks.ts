@@ -7,7 +7,8 @@ import {
 	withDefault,
 	NumberParam,
 	StringParam,
-	QueryParamConfig
+	QueryParamConfig,
+	JsonParam
 } from 'use-query-params';
 import {
 	ExpandedState,
@@ -18,7 +19,7 @@ import {
 } from '@tanstack/react-table';
 
 import { RunData, MergedRun, RunStatsColumn } from '@/shared/types';
-import { useLocalStorage } from '@/shared/hooks';
+import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';

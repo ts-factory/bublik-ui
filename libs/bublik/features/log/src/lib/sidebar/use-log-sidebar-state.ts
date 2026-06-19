@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import {
 	LOG_SIDEBAR_KEYS,
@@ -11,7 +11,7 @@ import {
 	getSidebarStateString,
 	setSidebarStateValue,
 	stripSidebarParamsFromUrl,
-	updateSidebarStateSearchParams,
+	useSidebarStateWriter,
 	getBaseUrl,
 	addModeToUrl,
 	extractRunIdFromLogUrl
@@ -44,8 +44,8 @@ export interface UseLogSidebarStateReturn {
 }
 
 export function useLogSidebarState(): UseLogSidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const writeSidebarState = useSidebarStateWriter();
 
 	const lastLogUrl = useMemo(
 		() => getSidebarStateString(searchParams, LOG_SIDEBAR_KEYS.LAST_LOG),
@@ -103,45 +103,32 @@ export function useLogSidebarState(): UseLogSidebarStateReturn {
 
 	const setLastVisited = useCallback(
 		(mode: LogSidebarMode, url: string, runId?: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 			const extractedRunId = runId || extractRunIdFromLogUrl(cleanedUrl);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(sidebarState, LOG_SIDEBAR_KEYS.LAST_MODE, mode);
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(sidebarState, LOG_SIDEBAR_KEYS.LAST_MODE, mode);
+				setSidebarStateValue(
+					sidebarState,
+					LOG_SIDEBAR_KEYS.LAST_LOG,
+					cleanedUrl
+				);
+
+				if (extractedRunId) {
 					setSidebarStateValue(
 						sidebarState,
-						LOG_SIDEBAR_KEYS.LAST_LOG,
-						cleanedUrl
+						SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID,
+						extractedRunId
 					);
-
-					if (extractedRunId) {
-						setSidebarStateValue(
-							sidebarState,
-							SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID,
-							extractedRunId
-						);
-						setSidebarStateValue(
-							sidebarState,
-							SHARED_SIDEBAR_KEYS.LAST_LOG_RUN_ID,
-							extractedRunId
-						);
-					}
+					setSidebarStateValue(
+						sidebarState,
+						SHARED_SIDEBAR_KEYS.LAST_LOG_RUN_ID,
+						extractedRunId
+					);
 				}
-			);
-
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {

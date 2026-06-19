@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import {
 	MEASUREMENTS_SIDEBAR_KEYS,
@@ -10,7 +10,7 @@ import {
 	getSidebarStateString,
 	setSidebarStateValue,
 	stripSidebarParamsFromUrl,
-	updateSidebarStateSearchParams,
+	useSidebarStateWriter,
 	getBaseUrl,
 	addModeToUrl
 } from '@/bublik/features/sidebar';
@@ -36,8 +36,8 @@ export interface UseMeasurementsSidebarStateReturn {
 }
 
 export function useMeasurementsSidebarState(): UseMeasurementsSidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const writeSidebarState = useSidebarStateWriter();
 
 	const lastMeasurementsUrl = useMemo(
 		() =>
@@ -79,35 +79,22 @@ export function useMeasurementsSidebarState(): UseMeasurementsSidebarStateReturn
 
 	const setLastVisited = useCallback(
 		(mode: MeasurementsSidebarMode, url: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(
-						sidebarState,
-						MEASUREMENTS_SIDEBAR_KEYS.LAST_MODE,
-						mode
-					);
-					setSidebarStateValue(
-						sidebarState,
-						MEASUREMENTS_SIDEBAR_KEYS.LAST_MEASUREMENTS,
-						cleanedUrl
-					);
-				}
-			);
-
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(
+					sidebarState,
+					MEASUREMENTS_SIDEBAR_KEYS.LAST_MODE,
+					mode
+				);
+				setSidebarStateValue(
+					sidebarState,
+					MEASUREMENTS_SIDEBAR_KEYS.LAST_MEASUREMENTS,
+					cleanedUrl
+				);
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {

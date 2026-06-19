@@ -15,8 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('react-router-dom', async (importOriginal) => {
-	const actual =
-		await importOriginal<typeof import('react-router-dom')>();
+	const actual = await importOriginal<typeof import('react-router-dom')>();
 
 	return {
 		...actual,

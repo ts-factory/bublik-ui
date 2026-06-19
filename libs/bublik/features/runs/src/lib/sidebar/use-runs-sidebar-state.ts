@@ -10,7 +10,7 @@ import {
 	getSidebarStateStringArray,
 	getSidebarStateString,
 	setSidebarStateValue,
-	updateSidebarStateSearchParams,
+	useSidebarStateWriter,
 	stripSidebarParamsFromUrl
 } from '@/bublik/features/sidebar';
 
@@ -48,8 +48,9 @@ export interface UseRunsSidebarStateReturn {
 }
 
 export function useRunsSidebarState(): UseRunsSidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 	const location = useLocation();
+	const writeSidebarState = useSidebarStateWriter();
 
 	const selectedRunIds = useMemo(
 		() => getSidebarStateStringArray(searchParams, RUNS_SIDEBAR_KEYS.SELECTED),
@@ -141,57 +142,44 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 
 	const setLastVisited = useCallback(
 		(mode: RunsMode, url: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(sidebarState, RUNS_SIDEBAR_KEYS.LAST_MODE, mode);
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(sidebarState, RUNS_SIDEBAR_KEYS.LAST_MODE, mode);
 
-					switch (mode) {
-						case 'list':
-							setSidebarStateValue(
-								sidebarState,
-								RUNS_SIDEBAR_KEYS.LAST_LIST,
-								cleanedUrl
-							);
-							break;
-						case 'charts':
-							setSidebarStateValue(
-								sidebarState,
-								RUNS_SIDEBAR_KEYS.LAST_CHARTS,
-								cleanedUrl
-							);
-							break;
-						case 'compare':
-							setSidebarStateValue(
-								sidebarState,
-								RUNS_SIDEBAR_KEYS.LAST_COMPARE,
-								cleanedUrl
-							);
-							break;
-						case 'multiple':
-							setSidebarStateValue(
-								sidebarState,
-								RUNS_SIDEBAR_KEYS.LAST_MULTIPLE,
-								cleanedUrl
-							);
-							break;
-					}
+				switch (mode) {
+					case 'list':
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.LAST_LIST,
+							cleanedUrl
+						);
+						break;
+					case 'charts':
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.LAST_CHARTS,
+							cleanedUrl
+						);
+						break;
+					case 'compare':
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.LAST_COMPARE,
+							cleanedUrl
+						);
+						break;
+					case 'multiple':
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.LAST_MULTIPLE,
+							cleanedUrl
+						);
+						break;
 				}
-			);
-
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {
