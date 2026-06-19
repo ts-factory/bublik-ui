@@ -117,6 +117,8 @@ export const VerdictSection = (props: VerdictSectionProps) => {
 							}
 							disabled={verdictLookup === VERDICT_TYPE.None}
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={lookupControls}
 						/>
 					</div>
