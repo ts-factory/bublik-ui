@@ -1,5 +1,25 @@
 
 
+## [2.14.0](https://github.com/ts-factory/bublik-ui/compare/v2.13.1...v2.14.0) (2026-06-19)
+
+
+### 🚀 New Feature
+
+* **configs:** add button to copy config schema ([a99c331](https://github.com/ts-factory/bublik-ui/commit/a99c33162dc9dd4d68613f1acb3cc2018dd536cd))
+* **run:** add ability to reorder columns ([b8a212b](https://github.com/ts-factory/bublik-ui/commit/b8a212b22e5dfd78cb186ed6be1861f10fe90173))
+* **run:** honor column order provided from API ([01a762e](https://github.com/ts-factory/bublik-ui/commit/01a762e6da48316fece8ebead4c4e87f42257db7))
+* **run:** honor default columns provided for run table from API ([752b039](https://github.com/ts-factory/bublik-ui/commit/752b039777aba9eba70f922dc89e60081e801cb3))
+
+
+### 🐛 Bug Fix
+
+* **import:** force import flag resetting after adding new URL ([babf57b](https://github.com/ts-factory/bublik-ui/commit/babf57bd80905f7e563ccd4fcbd989244b3fa46a))
+
+
+### ♻ Code Refactoring
+
+* **runs:** use new API endpoint for runs charts page ([d8ca6e8](https://github.com/ts-factory/bublik-ui/commit/d8ca6e8ae1f9acfa5014014a916cb219116d91aa))
+
 ## [2.13.0](https://github.com/ts-factory/bublik-ui/compare/v2.12.4...v2.13.0) (2026-06-02)
 
 
