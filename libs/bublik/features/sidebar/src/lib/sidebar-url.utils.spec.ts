@@ -84,12 +84,12 @@ describe('sidebar URL state', () => {
 		).toBeNull();
 	});
 
-	it('strips recursive sidebar state, project params, and empty defaults from URLs', () => {
+	it('strips recursive sidebar state, project params, and default mode but keeps explicitly-empty params', () => {
 		expect(
 			stripSidebarParamsFromUrl(
 				'/runs?project=1&global.runs.lastMode=list&_s=old&mode=default&tagExpr=&runData=abc#section'
 			)
-		).toBe('/runs?runData=abc#section');
+		).toBe('/runs?tagExpr=&runData=abc#section');
 	});
 
 	it('prunes optional sidebar URLs to keep _s under budget', () => {
