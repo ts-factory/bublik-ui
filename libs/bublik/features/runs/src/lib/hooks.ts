@@ -7,13 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
 import { RunsAPIQuery } from '@/shared/types';
-import {
-	formatTimeToAPI,
-	normalizeKeyValueForSubmit,
-	parseISODuration
-} from '@/shared/utils';
+import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { useProjectSearch } from '@/bublik/features/projects';
-import { config } from '@/bublik/config';
 
 import {
 	addToSelection,
@@ -26,22 +21,7 @@ import {
 	selectCompareIds,
 	selectRowSelection
 } from './runs-slice.selectors';
-
-const normalizeRunDataValue = (value: string) => {
-	return normalizeKeyValueForSubmit(value, {
-		displayDelimiter: config.keyValueDisplayDelimiter,
-		submitDelimiter: config.keyValueSubmitDelimiter
-	});
-};
-
-const normalizeRunDataQuery = (queryValue: string) => {
-	return queryValue
-		.split(';')
-		.filter(Boolean)
-		.map(normalizeRunDataValue)
-		.filter(Boolean)
-		.join(';');
-};
+import { normalizeRunDataQuery } from './runs-key-value';
 
 export const useRunsGlobalFilter = () => {
 	const dispatch = useDispatch();
