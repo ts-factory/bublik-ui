@@ -47,6 +47,33 @@ function getEditorValue(monaco?: Monaco, uri = DEFAULT_URI): string {
 	return monaco.editor.getModel(URI)?.getValue() ?? '';
 }
 
+interface ComparableConfigForm {
+	name: string;
+	content: string;
+	description?: string;
+	is_active: boolean;
+}
+
+/**
+ * Whether the edited form differs from the server config.
+ *
+ * Compares field by field instead of `JSON.stringify`-ing the whole form
+ * object: a plain stringify is sensitive to key order, and the form's seeded
+ * values and the server defaults are built with different key orders, which
+ * made the comparison report "modified" even when the values were identical.
+ */
+function isConfigModified(
+	form: ComparableConfigForm,
+	server: ComparableConfigForm
+): boolean {
+	return (
+		form.name !== server.name ||
+		(form.description ?? '') !== (server.description ?? '') ||
+		form.is_active !== server.is_active ||
+		form.content !== server.content
+	);
+}
+
 function normalizeJsonEditorContent(
 	value: unknown,
 	fallback = '{\n \n}'
@@ -70,6 +97,7 @@ export {
 	formatTimeV,
 	isValidJson,
 	getEditorValue,
+	isConfigModified,
 	normalizeJsonEditorContent,
 	ValidJsonStringSchema
 };

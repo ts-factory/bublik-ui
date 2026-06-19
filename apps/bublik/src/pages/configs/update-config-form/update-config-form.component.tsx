@@ -29,7 +29,11 @@ import {
 } from '../components/badges.component';
 import { useSavedState } from '../hooks';
 import { ConfigVersions } from '../versions/config-versions';
-import { normalizeJsonEditorContent, ValidJsonStringSchema } from '../utils';
+import {
+	isConfigModified,
+	normalizeJsonEditorContent,
+	ValidJsonStringSchema
+} from '../utils';
 
 const ConfigFormSchema = z.object({
 	name: z.string(),
@@ -139,8 +143,7 @@ const ConfigEditorForm = forwardRef<
 		form.reset(defaultValues);
 	}
 
-	const isModified =
-		JSON.stringify(formValues) !== JSON.stringify(defaultValues);
+	const isModified = isConfigModified(formValues, defaultValues);
 
 	function handleSubmit(data: ConfigFormData) {
 		const dirtyFields = form.formState.dirtyFields;
