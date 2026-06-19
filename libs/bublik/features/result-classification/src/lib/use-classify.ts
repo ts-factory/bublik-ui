@@ -8,9 +8,11 @@ import { useProjectSearch } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
 import type { ClassifyRequest } from '@/shared/types';
 
-export function useClassify(resultId: number) {
+export function useClassify(resultId: number, projectIdParam?: number) {
 	const { projectIds } = useProjectSearch();
-	const projectId = projectIds[0];
+	// Prefer the project the result belongs to (run page); fall back to the
+	// global project selector.
+	const projectId = projectIdParam ?? projectIds[0];
 	const issues = useGetIssuesQuery(projectId ? { projectId } : {});
 	const [classify, mutationState] = useClassifyResultMutation();
 

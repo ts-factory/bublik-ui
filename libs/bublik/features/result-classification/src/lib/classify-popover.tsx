@@ -31,11 +31,14 @@ type FormValues = z.infer<typeof Schema>;
 
 export interface ClassifyPopoverProps {
 	resultId: number;
+	/** Project the result belongs to. On a run page this comes from the result
+	 * itself, so classify works regardless of the global project selector. */
+	projectId?: number;
 }
 
-export function ClassifyPopover({ resultId }: ClassifyPopoverProps) {
+export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 	const [open, setOpen] = useState(false);
-	const { issues, submit, canClassify } = useClassify(resultId);
+	const { issues, submit, canClassify } = useClassify(resultId, projectId);
 
 	const { register, control, handleSubmit, watch, formState } =
 		useForm<FormValues>({

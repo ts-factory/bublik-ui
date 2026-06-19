@@ -93,7 +93,10 @@ export const getColumns = ({
 							</Badge>
 						))}
 						{isFailed ? (
-							<ClassifyPopover resultId={value.result_id} />
+							<ClassifyPopover
+								resultId={value.result_id}
+								projectId={value.project_id}
+							/>
 						) : null}
 					</div>
 				);

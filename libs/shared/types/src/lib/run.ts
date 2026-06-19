@@ -198,6 +198,8 @@ export const RunDataResultsSchema = z.object({
 	result_id: z.number(),
 	iteration_id: z.number(),
 	run_id: z.number(),
+	// classify uses the result's own project, not the global selector
+	project_id: z.number().optional(),
 	has_measurements: z.boolean(),
 	has_error: z.boolean(),
 	expected_results: z.array(RunResultWithKeysSchema),
