@@ -8,3 +8,6 @@ export {
 export { IssuesTable } from './lib/issues-table';
 export { RunIssuesTable } from './lib/run-issues-table';
 export { RunIssueResults } from './lib/run-issue-results';
+export { IssuePicker } from './lib/issue-picker';
+export type { IssuePickerProps } from './lib/issue-picker';
+export { issueTag } from './lib/issue-picker.utils';
