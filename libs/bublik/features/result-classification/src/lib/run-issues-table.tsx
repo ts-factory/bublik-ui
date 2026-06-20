@@ -37,7 +37,10 @@ function RunIssueTableRow({
 	return (
 		<>
 			<tr className="group">
-				<td className={cn(cellClassName, 'text-text-menu')}>
+				<td
+					className={cn(cellClassName, 'text-text-menu truncate')}
+					title={issue.bug_key ?? `#${issue.issue_id}`}
+				>
 					{issue.bug_key ?? `#${issue.issue_id}`}
 				</td>
 				<td className={cn(cellClassName, 'font-medium text-text-primary')}>
@@ -138,7 +141,7 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 			<table className="min-w-full border-separate table-fixed border-spacing-y-1">
 				<thead className="bg-white">
 					<tr className="h-8.5">
-						<th className={headerClassName}>
+						<th className={cn(headerClassName, 'w-32')}>
 							<span className="inline-flex items-center gap-1">
 								<Icon name="TriangleExclamationMark" size={14} />
 								Issue
