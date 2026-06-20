@@ -13,9 +13,10 @@ import {
 	PopoverTrigger,
 	SelectInput
 } from '@/shared/tailwind-ui';
-import type { ClassifyScope, Issue, IssueCategory } from '@/shared/types';
+import type { ClassifyScope, IssueCategory } from '@/shared/types';
 
 import { CATEGORY_OPTIONS, defaultExpectedFor } from './category';
+import { IssuePicker } from './issue-picker';
 import { useClassify } from './use-classify';
 
 const Schema = z.object({
@@ -38,7 +39,7 @@ export interface ClassifyPopoverProps {
 
 export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 	const [open, setOpen] = useState(false);
-	const { issues, submit, canClassify } = useClassify(resultId, projectId);
+	const { submit, canClassify } = useClassify(resultId, projectId);
 
 	const { register, control, handleSubmit, watch, formState } =
 		useForm<FormValues>({
@@ -61,11 +62,6 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 		});
 		setOpen(false);
 	}
-
-	const issueOptions = (issues.data ?? []).map((i: Issue) => ({
-		value: String(i.id),
-		displayValue: i.title
-	}));
 
 	return (
 		<Popover open={open} onOpenChange={setOpen} modal>
@@ -124,12 +120,10 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 							control={control}
 							name="issueId"
 							render={({ field }) => (
-								<SelectInput
-									label="Pick issue"
-									value={field.value ? String(field.value) : ''}
-									onValueChange={(v) => field.onChange(Number(v))}
-									name={field.name}
-									options={issueOptions}
+								<IssuePicker
+									projectId={projectId}
+									value={field.value}
+									onChange={(id) => field.onChange(id)}
 								/>
 							)}
 						/>
