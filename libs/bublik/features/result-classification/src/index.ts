@@ -7,3 +7,4 @@ export {
 } from './lib/category';
 export { IssuesTable } from './lib/issues-table';
 export { RunIssuesTable } from './lib/run-issues-table';
+export { RunIssueResults } from './lib/run-issue-results';

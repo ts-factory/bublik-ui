@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+import { useState } from 'react';
+
 import { useGetRunIssuesQuery } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { Badge, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { Badge, Icon, Skeleton, cn } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import type { RunIssueRow } from '@/shared/types';
+
+import { RunIssueResults } from './run-issue-results';
 
 interface RunIssuesTableProps {
 	runId: number | string;
@@ -12,13 +16,24 @@ interface RunIssuesTableProps {
 
 interface RunIssueRowProps {
 	issue: RunIssueRow;
+	runId: number | string;
+	projectId?: number;
+	isExpanded: boolean;
+	onToggle: () => void;
 }
 
-function RunIssueTableRow({ issue }: RunIssueRowProps) {
+function RunIssueTableRow({
+	issue,
+	runId,
+	projectId,
+	isExpanded,
+	onToggle
+}: RunIssueRowProps) {
 	const categories = issue.categories.map((c) => c.category).join(', ');
 	const isExpected = issue.categories.some((c) => c.expected);
 
 	return (
+		<>
 		<tr className="group">
 			<td className="px-4 py-2 text-sm font-medium border-t border-b border-transparent text-text-primary first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary">
 				<LinkWithProject
@@ -37,7 +52,21 @@ function RunIssueTableRow({ issue }: RunIssueRowProps) {
 				</Badge>
 			</td>
 			<td className="px-4 py-2 text-sm text-right border-t border-b border-transparent group-hover:border-primary">
-				{issue.result_count}
+				<button
+					type="button"
+					onClick={onToggle}
+					className="inline-flex items-center gap-1 ml-auto hover:text-primary"
+					aria-expanded={isExpanded}
+				>
+					{issue.result_count}
+					<Icon
+						name="ArrowShortSmall"
+						className={cn(
+							'grid place-items-center transition-transform',
+							isExpanded ? 'rotate-360' : '-rotate-90'
+						)}
+					/>
+				</button>
 			</td>
 			<td className="px-4 py-2 text-sm border-t border-b border-transparent group-hover:border-primary">
 				<Badge variant={issue.state === 'open' ? 'unexpected' : 'expected'}>
@@ -52,6 +81,18 @@ function RunIssueTableRow({ issue }: RunIssueRowProps) {
 				)}
 			</td>
 		</tr>
+		{isExpanded ? (
+			<tr>
+				<td colSpan={6} className="border-b border-border-primary bg-primary-wash/40">
+					<RunIssueResults
+						runId={runId}
+						issueId={issue.issue_id}
+						projectId={projectId}
+					/>
+				</td>
+			</tr>
+		) : null}
+		</>
 	);
 }
 
@@ -67,6 +108,16 @@ function RunIssuesTableLoading() {
 
 export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 	const { data, isLoading, error } = useGetRunIssuesQuery({ runId, projectId });
+	const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+	const toggleExpanded = (issueId: number) => {
+		setExpanded((prev) => {
+			const next = new Set(prev);
+			if (next.has(issueId)) next.delete(issueId);
+			else next.add(issueId);
+			return next;
+		});
+	};
 
 	if (isLoading) return <RunIssuesTableLoading />;
 
@@ -116,7 +167,14 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 				</thead>
 				<tbody className="bg-white">
 					{issues.map((issue) => (
-						<RunIssueTableRow key={issue.issue_id} issue={issue} />
+						<RunIssueTableRow
+							key={issue.issue_id}
+							issue={issue}
+							runId={runId}
+							projectId={projectId}
+							isExpanded={expanded.has(issue.issue_id)}
+							onToggle={() => toggleExpanded(issue.issue_id)}
+						/>
 					))}
 				</tbody>
 			</table>

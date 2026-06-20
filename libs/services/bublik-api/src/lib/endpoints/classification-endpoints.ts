@@ -2,7 +2,13 @@
 /* SPDX-FileCopyrightText: 2026 OKTET Labs Ltd. */
 import { EndpointBuilder } from '@reduxjs/toolkit/query';
 
-import { ClassifyRequest, Issue, IssueRule, RunIssueRow } from '@/shared/types';
+import {
+	ClassifyRequest,
+	Issue,
+	IssueRule,
+	RunIssueResultRow,
+	RunIssueRow
+} from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
 import { prepareForSend } from '../utils';
@@ -113,6 +119,17 @@ export const classificationEndpoints = {
 				cache: 'no-cache'
 			}),
 			providesTags: [BUBLIK_TAG.Issues, BUBLIK_TAG.ResultClassification]
+		}),
+		getRunIssueResults: build.query<
+			RunIssueResultRow[],
+			{ runId: number | string; issueId: number; projectId?: number }
+		>({
+			query: ({ runId, issueId, projectId }) => ({
+				url: withApiV2(`/runs/${runId}/issues/${issueId}/results`),
+				params: { project: projectId },
+				cache: 'no-cache'
+			}),
+			providesTags: [BUBLIK_TAG.ResultClassification]
 		}),
 		applyRulesToRun: build.mutation<
 			{ stamps_created: number },

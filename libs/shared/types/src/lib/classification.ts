@@ -67,6 +67,14 @@ export interface RunIssueRow {
 	categories: { category: IssueCategory; expected: boolean }[];
 }
 
+export interface RunIssueResultRow {
+	result_id: number;
+	name: string | null;
+	path: string[];
+	obtained_result: string | null;
+	verdicts: string[];
+}
+
 export type ClassifyScope = 'future' | 'oneoff';
 
 export type ClassifyRequest = {
