@@ -75,6 +75,13 @@ export interface RunIssueResultRow {
 	verdicts: string[];
 }
 
+export interface IssuePickerOption {
+	id: number;
+	title: string;
+	key: string | null;
+	category: IssueCategory | null;
+}
+
 export type ClassifyScope = 'future' | 'oneoff';
 
 export type ClassifyRequest = {

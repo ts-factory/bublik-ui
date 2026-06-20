@@ -5,6 +5,7 @@ import { EndpointBuilder } from '@reduxjs/toolkit/query';
 import {
 	ClassifyRequest,
 	Issue,
+	IssuePickerOption,
 	IssueRule,
 	RunIssueResultRow,
 	RunIssueRow
@@ -38,6 +39,17 @@ export const classificationEndpoints = {
 			}),
 			transformResponse: (response: { results: Issue[] }) =>
 				response?.results ?? [],
+			providesTags: [BUBLIK_TAG.Issues]
+		}),
+		getIssuePicker: build.query<
+			IssuePickerOption[],
+			{ projectId?: number; search?: string }
+		>({
+			query: ({ projectId, search }) => ({
+				url: withApiV2('/issues/picker'),
+				params: { project: projectId, search: search || undefined },
+				cache: 'no-cache'
+			}),
 			providesTags: [BUBLIK_TAG.Issues]
 		}),
 		getIssueRules: build.query<
