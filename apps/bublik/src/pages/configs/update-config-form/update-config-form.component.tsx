@@ -1,17 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import {
-	forwardRef,
-	ReactNode,
-	useEffect,
-	useImperativeHandle,
-	useRef
-} from 'react';
+import { forwardRef, ReactNode, useEffect, useImperativeHandle } from 'react';
 import { useForm, Controller, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { ConfigVersionResponse } from '@/services/bublik-api';
+import { usePrevious } from '@/shared/hooks';
 import {
 	ButtonTw,
 	Checkbox,
@@ -135,30 +130,32 @@ const ConfigEditorForm = forwardRef<
 
 	const formValues = form.watch();
 	const isModified = isConfigModified(formValues, defaultValues);
+	const serializedForm = JSON.stringify(formValues);
 
 	// Persist a draft only while the form differs from the server config, and
 	// drop it once it matches again. This keeps unsaved edits across navigation
 	// without planting a phantom draft on mount that would later shadow fresh
-	// server data.
+	// server data. Keyed on the serialized form so it only writes/clears on an
+	// actual change rather than on every render.
 	useEffect(() => {
 		if (isModified) {
-			setSavedValue(JSON.stringify(formValues));
+			setSavedValue(serializedForm);
 		} else {
 			clearSavedValue();
 		}
-	}, [isModified, formValues, setSavedValue, clearSavedValue]);
+	}, [isModified, serializedForm, setSavedValue, clearSavedValue]);
 
 	// Keep the form's active state in sync when the config is activated or
 	// deactivated from the toolbar: that action keeps the same id (no remount)
-	// and only flips is_active, which the user did not touch in the form.
-	// Skip the initial run so a saved draft's is_active is not overwritten.
-	const prevIsActive = useRef(config.is_active);
+	// and only flips is_active, which the user did not touch in the form. The
+	// undefined check skips the initial render so a saved draft's is_active is
+	// not overwritten.
+	const prevIsActive = usePrevious(config.is_active);
 	useEffect(() => {
-		if (prevIsActive.current !== config.is_active) {
-			prevIsActive.current = config.is_active;
+		if (prevIsActive !== undefined && prevIsActive !== config.is_active) {
 			form.setValue('is_active', config.is_active);
 		}
-	}, [config.is_active, form]);
+	}, [config.is_active, prevIsActive, form]);
 
 	const handleSaveClick = () => {
 		if (!ValidJsonStringSchema.safeParse(form.getValues('content')).success) {
