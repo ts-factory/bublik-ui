@@ -84,6 +84,13 @@ export interface IssuePickerOption {
 
 export type ClassifyScope = 'future' | 'oneoff';
 
+export interface ClassifyMatcher {
+	matchParameters: boolean;
+	matchVerdicts: boolean;
+	matchImportantTags: boolean;
+	matchAllTags: boolean;
+}
+
 export type ClassifyRequest = {
 	resultId: number;
 	projectId: number;
@@ -91,4 +98,7 @@ export type ClassifyRequest = {
 	category: IssueCategory;
 	expected?: boolean;
 	scope: ClassifyScope;
+	// Optional; keys are decamelized to match_* by prepareForSend. Omit to keep
+	// the backend defaults (path + params + verdicts + important tags).
+	matcher?: ClassifyMatcher;
 };
