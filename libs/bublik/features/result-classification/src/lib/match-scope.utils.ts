@@ -47,8 +47,6 @@ export const PRESETS: Preset[] = [
 	}
 ];
 
-export const DEFAULT_PRESET_LABEL = 'Path + Parameters + Verdicts + Important tags';
-
 function flagsEqual(a: MatchFlags, b: MatchFlags): boolean {
 	return (
 		a.matchParameters === b.matchParameters &&
