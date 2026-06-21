@@ -1,34 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useWatch, type Control } from 'react-hook-form';
 
 import {
 	ButtonTw,
 	Icon,
-	Input,
 	Popover,
 	PopoverContent,
-	PopoverTrigger,
-	SelectInput
+	PopoverTrigger
 } from '@/shared/tailwind-ui';
-import type { ClassifyScope, IssueCategory } from '@/shared/types';
 
-import { CATEGORY_OPTIONS, defaultExpectedFor } from './category';
-import { IssuePicker } from './issue-picker';
+import {
+	ClassifyFields,
+	buildSubmitHandler,
+	useClassifyForm,
+	type ClassifyFormValues
+} from './classify-form';
+import { ClassifyDrawer } from './classify-drawer';
+import { chipsForFlags, presetForFlags } from './match-scope.utils';
 import { useClassify } from './use-classify';
-
-const Schema = z.object({
-	mode: z.enum(['new', 'existing']),
-	issueId: z.coerce.number().optional(),
-	title: z.string().optional(),
-	bugKey: z.string().optional(),
-	category: z.string().min(1, { message: 'Category is required' }),
-	scope: z.enum(['future', 'oneoff'])
-});
-
-type FormValues = z.infer<typeof Schema>;
 
 export interface ClassifyPopoverProps {
 	resultId: number;
@@ -37,151 +27,104 @@ export interface ClassifyPopoverProps {
 	projectId?: number;
 }
 
+function MatchingSummary({ control }: { control: Control<ClassifyFormValues> }) {
+	const flags = useWatch({
+		control,
+		name: ['matchParameters', 'matchVerdicts', 'matchImportantTags', 'matchAllTags']
+	});
+	const current = {
+		matchParameters: flags[0],
+		matchVerdicts: flags[1],
+		matchImportantTags: flags[2],
+		matchAllTags: flags[3]
+	};
+	return (
+		<div className="flex flex-col gap-1 px-3 py-2 rounded bg-primary-wash/60">
+			<span className="text-xs font-semibold text-text-menu">
+				Matching ({presetForFlags(current)})
+			</span>
+			<div className="flex flex-wrap gap-1">
+				{chipsForFlags(current).map((chip) => (
+					<span
+						key={chip}
+						className="px-1.5 py-0.5 text-[0.6875rem] rounded bg-white border border-border-primary"
+					>
+						{chip}
+					</span>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 	const [open, setOpen] = useState(false);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 	const { submit, canClassify } = useClassify(resultId, projectId);
+	const form = useClassifyForm();
 
-	const { register, control, handleSubmit, watch, formState } =
-		useForm<FormValues>({
-			resolver: zodResolver(Schema),
-			defaultValues: { mode: 'new', category: 'known-issue', scope: 'future' }
-		});
-	const mode = watch('mode');
-
-	async function onSubmit(values: FormValues) {
-		const category = values.category as IssueCategory;
-		const issue =
-			values.mode === 'existing' && values.issueId
-				? values.issueId
-				: { title: values.title || 'Untitled', bug_key: values.bugKey || undefined };
-		await submit({
-			issue,
-			category,
-			expected: defaultExpectedFor(category),
-			scope: values.scope as ClassifyScope
-		});
-		setOpen(false);
-	}
+	const onSubmit = buildSubmitHandler(submit, () => setOpen(false));
 
 	return (
-		<Popover open={open} onOpenChange={setOpen} modal>
-			<PopoverTrigger asChild>
-				<ButtonTw
-					variant="secondary"
-					size="xss"
-					disabled={!canClassify}
-					title={!canClassify ? 'Select a project first' : undefined}
-				>
-					<Icon name="TriangleExclamationMark" size={18} className="mr-1" />
-					Classify
-				</ButtonTw>
-			</PopoverTrigger>
-			<PopoverContent sideOffset={8}>
-				<form
-					onSubmit={handleSubmit(onSubmit)}
-					className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"
-				>
-					<span className="text-[0.875rem] font-semibold">
-						Classify failure
-					</span>
-
-					<Controller
-						control={control}
-						name="mode"
-						render={({ field }) => (
-							<SelectInput
-								label="Issue"
-								value={field.value}
-								onValueChange={field.onChange}
-								name={field.name}
-								options={[
-									{ value: 'new', displayValue: 'New issue' },
-									{ value: 'existing', displayValue: 'Existing issue' }
-								]}
-							/>
-						)}
-					/>
-
-					{mode === 'new' ? (
-						<>
-							<Input
-								label="Title"
-								placeholder="Short label"
-								{...register('title')}
-							/>
-							<Input
-								label="Bug key (optional)"
-								placeholder="ref://JIRA/ISSUE-123"
-								{...register('bugKey')}
-							/>
-						</>
-					) : (
-						<Controller
-							control={control}
-							name="issueId"
-							render={({ field }) => (
-								<IssuePicker
-									projectId={projectId}
-									value={field.value}
-									onChange={(id) => field.onChange(id)}
-								/>
-							)}
-						/>
-					)}
-
-					<Controller
-						control={control}
-						name="category"
-						render={({ field }) => (
-							<SelectInput
-								label="Category"
-								value={field.value}
-								onValueChange={field.onChange}
-								name={field.name}
-								options={CATEGORY_OPTIONS}
-							/>
-						)}
-					/>
-
-					<Controller
-						control={control}
-						name="scope"
-						render={({ field }) => (
-							<SelectInput
-								label="Apply to"
-								value={field.value}
-								onValueChange={field.onChange}
-								name={field.name}
-								options={[
-									{
-										value: 'future',
-										displayValue: 'This + future matching runs'
-									},
-									{ value: 'oneoff', displayValue: 'Just this result' }
-								]}
-							/>
-						)}
-					/>
-
+		<>
+			<Popover open={open} onOpenChange={setOpen} modal>
+				<PopoverTrigger asChild>
 					<ButtonTw
-						type="submit"
-						variant="primary"
-						size="md"
-						rounded="lg"
-						className="justify-center w-full"
+						variant="secondary"
+						size="xss"
+						disabled={!canClassify}
+						title={!canClassify ? 'Select a project first' : undefined}
 					>
-						{formState.isSubmitting ? (
-							<Icon
-								name="ProgressIndicator"
-								size={18}
-								className="animate-spin"
-							/>
-						) : (
-							'Classify'
-						)}
+						<Icon name="TriangleExclamationMark" size={18} className="mr-1" />
+						Classify
 					</ButtonTw>
-				</form>
-			</PopoverContent>
-		</Popover>
+				</PopoverTrigger>
+				<PopoverContent sideOffset={8}>
+					<form
+						onSubmit={form.handleSubmit(onSubmit)}
+						className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"
+					>
+						<span className="text-[0.875rem] font-semibold">Classify failure</span>
+
+						<ClassifyFields form={form} projectId={projectId} />
+
+						<MatchingSummary control={form.control} />
+
+						<button
+							type="button"
+							onClick={() => {
+								setOpen(false);
+								setDrawerOpen(true);
+							}}
+							className="self-start text-xs font-medium text-primary hover:underline"
+						>
+							Customize match rules →
+						</button>
+
+						<ButtonTw
+							type="submit"
+							variant="primary"
+							size="md"
+							rounded="lg"
+							className="justify-center w-full"
+						>
+							{form.formState.isSubmitting ? (
+								<Icon name="ProgressIndicator" size={18} className="animate-spin" />
+							) : (
+								'Classify'
+							)}
+						</ButtonTw>
+					</form>
+				</PopoverContent>
+			</Popover>
+
+			<ClassifyDrawer
+				open={drawerOpen}
+				onOpenChange={setDrawerOpen}
+				form={form}
+				projectId={projectId}
+				submit={submit}
+			/>
+		</>
 	);
 }
