@@ -38,10 +38,15 @@ function RunIssueTableRow({
 		<>
 			<tr className="group">
 				<td
-					className={cn(cellClassName, 'text-text-menu truncate')}
-					title={issue.bug_key ?? `#${issue.issue_id}`}
+					className={cn(cellClassName, 'truncate')}
+					title={`Manage rules for ${issue.bug_key ?? `#${issue.issue_id}`}`}
 				>
-					{issue.bug_key ?? `#${issue.issue_id}`}
+					<LinkWithProject
+						to={`/admin/issues/${issue.issue_id}`}
+						className="text-text-menu hover:text-primary hover:underline"
+					>
+						{issue.bug_key ?? `#${issue.issue_id}`}
+					</LinkWithProject>
 				</td>
 				<td className={cn(cellClassName, 'font-medium text-text-primary')}>
 					<LinkWithProject
