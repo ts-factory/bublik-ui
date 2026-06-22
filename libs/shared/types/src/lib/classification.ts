@@ -38,6 +38,7 @@ export type IssueRule = {
 	expected: boolean;
 	active: boolean;
 	test: number;
+	test_name: string;
 	match_parameters: boolean;
 	match_verdicts: boolean;
 	match_important_tags: boolean;
@@ -102,3 +103,13 @@ export type ClassifyRequest = {
 	// the backend defaults (path + params + verdicts + important tags).
 	matcher?: ClassifyMatcher;
 };
+
+export interface RuleResultRow {
+	result_id: number;
+	run_id: number | null;
+	run_start: string | null;
+	name: string | null;
+	path: string[];
+	obtained_result: string | null;
+	verdicts: string[];
+}
