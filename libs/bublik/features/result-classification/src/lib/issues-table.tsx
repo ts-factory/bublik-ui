@@ -5,7 +5,7 @@ import {
 	useGetIssuesQuery,
 	useReopenIssueMutation
 } from '@/services/bublik-api';
-import { useProjectSearch } from '@/bublik/features/projects';
+import { useProjectSearch, LinkWithProject } from '@/bublik/features/projects';
 import { Badge, ButtonTw, Icon, Skeleton, toast } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import type { Issue } from '@/shared/types';
@@ -50,7 +50,12 @@ function IssueRow({ issue, projectId }: IssueRowProps) {
 	return (
 		<tr className="group">
 			<td className="px-4 py-2 text-sm font-medium border-t border-b border-transparent text-text-primary first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary">
-				<span className="font-medium">{issue.title}</span>
+				<LinkWithProject
+					to={`/admin/issues/${issue.id}`}
+					className="font-medium hover:text-primary hover:underline"
+				>
+					{issue.title}
+				</LinkWithProject>
 				{issue.issue_ext?.key ? (
 					<span className="ml-2 text-text-menu text-xs">
 						{issue.issue_ext.key}
