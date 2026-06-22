@@ -81,10 +81,11 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 						Classify
 					</ButtonTw>
 				</PopoverTrigger>
-				{/* Above the z-50 crowd (tooltips/other popovers also portal to body
-				    at z-50); otherwise a later z-50 portal paints over the popover and
-				    clicks on it read as outside -> dismiss. */}
-				<PopoverContent sideOffset={8} portal className="z-[100]">
+				{/* z-[55] sits above the z-50 tooltip/popover layer (else a later
+				    z-50 portal paints over us and clicks read as outside -> dismiss)
+				    but below the nested SelectInput dropdown (z-[60]) so its options
+				    open in front of the popover instead of behind it. */}
+				<PopoverContent sideOffset={8} portal className="z-[55]">
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"

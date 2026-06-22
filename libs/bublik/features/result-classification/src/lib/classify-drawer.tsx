@@ -31,7 +31,7 @@ export function ClassifyDrawer({
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
 			<DrawerContent
 				portal
-				className="z-[100] w-[28rem] max-w-[90vw] flex flex-col"
+				className="z-[55] w-[28rem] max-w-[90vw] flex flex-col"
 			>
 				<div className="flex items-center justify-between px-5 py-4 border-b border-border-primary">
 					<span className="text-base font-semibold">Classify failure</span>
