@@ -53,6 +53,8 @@ export type ResultIssueRef = {
 	issue_id: number;
 	issue_title: string;
 	issue_state: IssueState;
+	/** External bug key (e.g. ISSUE-240); populated in history rows. */
+	bug_key?: string | null;
 	category: IssueCategory;
 	expected: boolean;
 	rule_id: number;

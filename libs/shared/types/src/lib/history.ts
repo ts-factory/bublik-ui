@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { RESULT_TYPE, ResultTypeSchema, RunResult, VERDICT_TYPE } from './run';
 import { Pagination } from './utils';
+import { ResultIssueRef } from './classification';
 
 /**
 |--------------------------------------------------
@@ -156,11 +157,30 @@ export type HistoryDataLinear = {
 	important_tags: string[];
 	run_properties?: string[];
 	report_config_id?: number | null;
+	issues?: ResultIssueRef[];
 };
 
 const RunResultSchema = z.object({
 	result_type: ResultTypeSchema,
 	verdicts: z.array(z.string())
+});
+
+const HistoryIssueRefSchema = z.object({
+	issue_id: z.number(),
+	issue_title: z.string(),
+	issue_state: z.enum(['open', 'closed']),
+	bug_key: z.string().nullable().optional(),
+	category: z.enum([
+		'product-defect',
+		'test-bug',
+		'env',
+		'known-issue',
+		'flaky',
+		'to-investigate'
+	]),
+	expected: z.boolean(),
+	rule_id: z.number(),
+	origin: z.enum(['import', 'manual_apply', 'manual_oneoff'])
 });
 
 export const HistoryDataLinearSchema = z.object({
@@ -181,7 +201,8 @@ export const HistoryDataLinearSchema = z.object({
 	result_properties: z.array(z.string()).optional(),
 	important_tags: z.array(z.string()),
 	run_properties: z.array(z.string()).optional(),
-	report_config_id: z.number().nullable().optional()
+	report_config_id: z.number().nullable().optional(),
+	issues: z.array(HistoryIssueRefSchema).optional()
 });
 
 export type HistoryCount = {
