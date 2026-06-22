@@ -25,9 +25,14 @@ export function ClassifyDrawer({
 }: ClassifyDrawerProps) {
 	const onSubmit = buildSubmitHandler(submit, () => onOpenChange(false));
 
+	// Modal (like the History drawer) traps focus; portal layers the panel above
+	// the table so clicks land inside, not on rows behind.
 	return (
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="w-[28rem] max-w-[90vw] flex flex-col">
+			<DrawerContent
+				portal
+				className="z-[100] w-[28rem] max-w-[90vw] flex flex-col"
+			>
 				<div className="flex items-center justify-between px-5 py-4 border-b border-border-primary">
 					<span className="text-base font-semibold">Classify failure</span>
 					<button

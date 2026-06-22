@@ -67,6 +67,8 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 
 	return (
 		<>
+			{/* Modal traps focus (like the History drawer); portal layers the
+			    content above the table so clicks land inside, not on rows behind. */}
 			<Popover open={open} onOpenChange={setOpen} modal>
 				<PopoverTrigger asChild>
 					<ButtonTw
@@ -79,7 +81,10 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 						Classify
 					</ButtonTw>
 				</PopoverTrigger>
-				<PopoverContent sideOffset={8}>
+				{/* Above the z-50 crowd (tooltips/other popovers also portal to body
+				    at z-50); otherwise a later z-50 portal paints over the popover and
+				    clicks on it read as outside -> dismiss. */}
+				<PopoverContent sideOffset={8} portal className="z-[100]">
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"
