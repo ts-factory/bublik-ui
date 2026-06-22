@@ -7,6 +7,7 @@ import {
 	Issue,
 	IssuePickerOption,
 	IssueRule,
+	RuleResultRow,
 	RunIssueResultRow,
 	RunIssueRow
 } from '@/shared/types';
@@ -120,6 +121,36 @@ export const classificationEndpoints = {
 				params: { project: projectId }
 			}),
 			invalidatesTags: [BUBLIK_TAG.IssueRules, BUBLIK_TAG.Run]
+		}),
+		getIssue: build.query<Issue, { issueId: number; projectId?: number }>({
+			query: ({ issueId, projectId }) => ({
+				url: withApiV2(`/issues/${issueId}`),
+				params: { project: projectId },
+				cache: 'no-cache'
+			}),
+			providesTags: [BUBLIK_TAG.Issues]
+		}),
+		activateRule: build.mutation<
+			IssueRule,
+			{ ruleId: number; projectId?: number }
+		>({
+			query: ({ ruleId, projectId }) => ({
+				url: withApiV2(`/issue-rules/${ruleId}/activate`),
+				method: 'POST',
+				params: { project: projectId }
+			}),
+			invalidatesTags: [BUBLIK_TAG.IssueRules, BUBLIK_TAG.Run]
+		}),
+		getIssueRuleResults: build.query<
+			RuleResultRow[],
+			{ ruleId: number; projectId?: number; limit?: number }
+		>({
+			query: ({ ruleId, projectId, limit }) => ({
+				url: withApiV2(`/issue-rules/${ruleId}/results`),
+				params: { project: projectId, limit },
+				cache: 'no-cache'
+			}),
+			providesTags: [BUBLIK_TAG.ResultClassification]
 		}),
 		getRunIssues: build.query<
 			RunIssueRow[],
