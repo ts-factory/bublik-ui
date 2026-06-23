@@ -114,4 +114,8 @@ export interface RuleResultRow {
 	path: string[];
 	obtained_result: string | null;
 	verdicts: string[];
+	// Present on the per-issue aggregate (results span multiple rules/categories).
+	rule_id?: number;
+	category?: IssueCategory;
+	expected?: boolean | null;
 }

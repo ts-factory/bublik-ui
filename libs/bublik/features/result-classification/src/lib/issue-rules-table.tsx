@@ -10,6 +10,10 @@ import { Badge, ButtonTw, Icon, Skeleton, toast } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { IssueRuleRow } from './issue-rule-row';
+import { IssueResults } from './issue-results';
+
+const sectionHeaderClassName =
+	'text-xs font-bold tracking-wider uppercase text-text-menu';
 
 function notifyError(err: unknown) {
 	const m = getErrorMessage(err);
@@ -86,6 +90,12 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 				) : null}
 			</div>
 
+			<section className="flex flex-col gap-2">
+				<h2 className={sectionHeaderClassName}>Results</h2>
+				<IssueResults issueId={issueId} projectId={projectId} />
+			</section>
+
+			<h2 className={sectionHeaderClassName}>Rules</h2>
 			{rules.length === 0 ? (
 				<BublikEmptyState
 					title="No rules"

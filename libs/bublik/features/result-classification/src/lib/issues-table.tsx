@@ -68,25 +68,33 @@ function IssueRow({ issue, projectId }: IssueRowProps) {
 				</Badge>
 			</td>
 			<td className="px-4 py-2 text-sm text-right border-t border-b border-transparent last:border-r last:rounded-r group-hover:border-primary group-hover:last:border-primary">
-				{isOpen ? (
-					<ButtonTw
-						variant="destruction-secondary"
-						size="xss"
-						state={isBusy ? 'loading' : 'default'}
-						onClick={handleClose}
-					>
-						Close
+				<div className="flex items-center justify-end gap-2">
+					<ButtonTw asChild variant="secondary" size="xss">
+						<LinkWithProject to={`/admin/issues/${issue.id}`}>
+							<Icon name="Paper" size={14} className="mr-1.5" />
+							Results
+						</LinkWithProject>
 					</ButtonTw>
-				) : (
-					<ButtonTw
-						variant="secondary"
-						size="xss"
-						state={isBusy ? 'loading' : 'default'}
-						onClick={handleReopen}
-					>
-						Reopen
-					</ButtonTw>
-				)}
+					{isOpen ? (
+						<ButtonTw
+							variant="destruction-secondary"
+							size="xss"
+							state={isBusy ? 'loading' : 'default'}
+							onClick={handleClose}
+						>
+							Close
+						</ButtonTw>
+					) : (
+						<ButtonTw
+							variant="secondary"
+							size="xss"
+							state={isBusy ? 'loading' : 'default'}
+							onClick={handleReopen}
+						>
+							Reopen
+						</ButtonTw>
+					)}
+				</div>
 			</td>
 		</tr>
 	);
@@ -142,7 +150,7 @@ export function IssuesTable() {
 						<th className="w-32 px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase">
 							State
 						</th>
-						<th className="w-32 px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-right uppercase">
+						<th className="w-52 px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-right uppercase">
 							Actions
 						</th>
 					</tr>

@@ -152,6 +152,17 @@ export const classificationEndpoints = {
 			}),
 			providesTags: [BUBLIK_TAG.ResultClassification]
 		}),
+		getIssueResults: build.query<
+			RuleResultRow[],
+			{ issueId: number; projectId?: number; limit?: number }
+		>({
+			query: ({ issueId, projectId, limit }) => ({
+				url: withApiV2(`/issues/${issueId}/results`),
+				params: { project: projectId, limit },
+				cache: 'no-cache'
+			}),
+			providesTags: [BUBLIK_TAG.ResultClassification]
+		}),
 		getRunIssues: build.query<
 			RunIssueRow[],
 			{ runId: number | string; projectId?: number }

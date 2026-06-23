@@ -196,6 +196,7 @@ export const {
 	useActivateRuleMutation,
 	useGetIssueQuery,
 	useGetIssueRuleResultsQuery,
+	useGetIssueResultsQuery,
 	useApplyRulesToRunMutation,
 	useGetRunIssuesQuery,
 	useGetRunIssueResultsQuery
