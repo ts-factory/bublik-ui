@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, SelectInput } from '@/shared/tailwind-ui';
 import type { ClassifyScope, IssueCategory } from '@/shared/types';
 
-import { CATEGORY_OPTIONS, defaultExpectedFor } from './category';
+import { CATEGORY_OPTIONS } from './category';
 import { IssuePicker } from './issue-picker';
 import { DEFAULT_MATCH_FLAGS } from './match-scope.utils';
 
@@ -17,6 +17,7 @@ export const ClassifyFormSchema = z.object({
 	bugKey: z.string().optional(),
 	category: z.string().min(1, { message: 'Category is required' }),
 	scope: z.enum(['future', 'oneoff']),
+	expected: z.enum(['expected', 'unexpected', 'none']),
 	matchParameters: z.boolean(),
 	matchVerdicts: z.boolean(),
 	matchImportantTags: z.boolean(),
@@ -34,6 +35,7 @@ export function useClassifyForm(): ClassifyForm {
 			mode: 'new',
 			category: 'known-issue',
 			scope: 'future',
+			expected: 'expected',
 			...DEFAULT_MATCH_FLAGS
 		}
 	});
@@ -43,7 +45,7 @@ export function buildSubmitHandler(
 	submit: (input: {
 		issue: number | { title: string; bug_key?: string };
 		category: IssueCategory;
-		expected: boolean;
+		expected: boolean | null;
 		scope: ClassifyScope;
 		matcher: {
 			matchParameters: boolean;
@@ -63,7 +65,12 @@ export function buildSubmitHandler(
 		await submit({
 			issue,
 			category,
-			expected: defaultExpectedFor(category),
+			expected:
+				values.expected === 'expected'
+					? true
+					: values.expected === 'unexpected'
+						? false
+						: null,
 			scope: values.scope as ClassifyScope,
 			matcher: {
 				matchParameters: values.matchParameters,
@@ -138,6 +145,24 @@ export function ClassifyFields({
 						onValueChange={field.onChange}
 						name={field.name}
 						options={CATEGORY_OPTIONS}
+					/>
+				)}
+			/>
+
+			<Controller
+				control={control}
+				name="expected"
+				render={({ field }) => (
+					<SelectInput
+						label="Expected"
+						value={field.value}
+						onValueChange={field.onChange}
+						name={field.name}
+						options={[
+							{ value: 'expected', displayValue: 'Expected' },
+							{ value: 'unexpected', displayValue: 'Unexpected' },
+							{ value: 'none', displayValue: 'None' }
+						]}
 					/>
 				)}
 			/>
