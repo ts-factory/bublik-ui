@@ -178,7 +178,7 @@ const HistoryIssueRefSchema = z.object({
 		'flaky',
 		'to-investigate'
 	]),
-	expected: z.boolean(),
+	expected: z.boolean().nullable(),
 	rule_id: z.number(),
 	origin: z.enum(['import', 'manual_apply', 'manual_oneoff'])
 });

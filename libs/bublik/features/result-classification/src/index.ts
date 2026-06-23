@@ -12,3 +12,4 @@ export { IssuePicker } from './lib/issue-picker';
 export type { IssuePickerProps } from './lib/issue-picker';
 export { issueTag } from './lib/issue-picker.utils';
 export * from './lib/issue-rules-table';
+export * from './lib/expected';

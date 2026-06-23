@@ -35,7 +35,7 @@ export type IssueRule = {
 	project: number;
 	issue: number;
 	category: IssueCategory;
-	expected: boolean;
+	expected: boolean | null;
 	active: boolean;
 	test: number;
 	test_name: string;
@@ -56,7 +56,7 @@ export type ResultIssueRef = {
 	/** External bug key (e.g. ISSUE-240); populated in history rows. */
 	bug_key?: string | null;
 	category: IssueCategory;
-	expected: boolean;
+	expected: boolean | null;
 	rule_id: number;
 	origin: 'import' | 'manual_apply' | 'manual_oneoff';
 };
@@ -67,7 +67,7 @@ export interface RunIssueRow {
 	state: IssueState;
 	bug_key: string | null;
 	result_count: number;
-	categories: { category: IssueCategory; expected: boolean }[];
+	categories: { category: IssueCategory; expected: boolean | null }[];
 }
 
 export interface RunIssueResultRow {
@@ -99,7 +99,7 @@ export type ClassifyRequest = {
 	projectId: number;
 	issue: number | { title: string; description?: string; bug_key?: string };
 	category: IssueCategory;
-	expected?: boolean;
+	expected?: boolean | null;
 	scope: ClassifyScope;
 	// Optional; keys are decamelized to match_* by prepareForSend. Omit to keep
 	// the backend defaults (path + params + verdicts + important tags).
