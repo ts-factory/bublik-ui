@@ -23,7 +23,7 @@ import { MergedRun, RunData } from '@/shared/types';
 import { toolbarIcon } from '@/bublik/run-utils';
 import {
 	ButtonTw,
-	Checkbox,
+	ColumnCheckmark,
 	cn,
 	DropdownMenu,
 	DropdownMenuContent,
@@ -105,18 +105,8 @@ function SortableColumnItem({
 				className={cn('flex flex-1 cursor-pointer items-center gap-2 py-0.5')}
 				onClick={() => onToggle(!checked)}
 			>
-				<Checkbox
-					checked={checked}
-					className="pointer-events-none"
-					tabIndex={-1}
-					aria-hidden
-				/>
-				<span
-					className={cn(
-						'flex select-none items-center gap-4',
-						!checked && 'pl-3.5'
-					)}
-				>
+				<ColumnCheckmark checked={checked} />
+				<span className="flex flex-1 select-none items-center gap-4">
 					{getColumnLabel(id)}
 					{getColumnIcon(id)}
 				</span>
@@ -213,8 +203,9 @@ export const Toolbar = ({
 			<DropdownMenu open={isOpen} onOpenChange={handleColumnsOpenChange}>
 				<DropdownMenuTrigger asChild>
 					<ButtonTw size="xss" variant="secondary" state={isOpen && 'active'}>
+						<Icon name="DashboardModeColumns" size={20} className="mr-1.5" />
 						Columns
-						<Icon name="ArrowShortSmall" />
+						<Icon name="ArrowShortSmall" className="ml-1.5" />
 					</ButtonTw>
 				</DropdownMenuTrigger>
 
@@ -223,6 +214,7 @@ export const Toolbar = ({
 					onEscapeKeyDown={() => setIsOpen(false)}
 					onInteractOutside={() => setIsOpen(false)}
 					loop
+					align="start"
 				>
 					<DropdownMenuLabel className="text-xs">Columns</DropdownMenuLabel>
 					<Separator className="h-px my-1 -mx-1" />

@@ -29,6 +29,7 @@ type SimpleCheckboxProps = RadixCheckbox.CheckboxProps & { label?: string };
 
 const SimpleCheckbox = forwardRef<HTMLButtonElement, SimpleCheckboxProps>(
 	(props, ref) => {
+		const { className, ...restProps } = props;
 		const checked = props.checked;
 
 		const controlId = props.id ?? props.name;
@@ -40,12 +41,13 @@ const SimpleCheckbox = forwardRef<HTMLButtonElement, SimpleCheckboxProps>(
 						'peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-sm transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
 						checked
 							? 'text-white bg-primary border-primary'
-							: 'border-border-primary'
+							: 'border-border-primary',
+						className
 					)}
 					data-testid="tw-checkbox"
 					data-slot="checkbox"
 					name={props.name}
-					{...props}
+					{...restProps}
 					ref={ref}
 				>
 					<RadixCheckbox.Indicator className="grid place-content-center text-current transition-none">
@@ -138,3 +140,42 @@ const BoxedCheckbox = forwardRef<HTMLButtonElement, BoxedCheckboxProps>(
 		);
 	}
 );
+
+export interface ColumnCheckmarkProps {
+	checked: boolean;
+	className?: string;
+}
+
+/**
+ * Borderless checkmark in a fixed-size slot. Shows on check, but reserves its
+ * space when unchecked so an adjacent label never shifts as it is toggled.
+ * Used by column-visibility dropdowns where a full bordered checkbox is too heavy.
+ */
+export function ColumnCheckmark({ checked, className }: ColumnCheckmarkProps) {
+	return (
+		<span
+			aria-hidden
+			className={cn(
+				'grid h-3.5 w-3.5 shrink-0 place-items-center text-primary',
+				className
+			)}
+		>
+			{checked ? (
+				<svg
+					width="14"
+					height="14"
+					viewBox="0 0 15 15"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path
+						d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z"
+						fill="currentColor"
+						fillRule="evenodd"
+						clipRule="evenodd"
+					/>
+				</svg>
+			) : null}
+		</span>
+	);
+}
