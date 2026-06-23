@@ -10,6 +10,7 @@ import { Badge, ButtonTw, Icon, cn, toast } from '@/shared/tailwind-ui';
 import type { IssueRule } from '@/shared/types';
 
 import { CATEGORY_OPTIONS } from './category';
+import { expectedBadge } from './expected';
 import { chipsForFlags } from './match-scope.utils';
 import { IssueRuleResults } from './issue-rule-results';
 
@@ -53,6 +54,7 @@ export function IssueRuleRow({ rule, projectId }: IssueRuleRowProps) {
 		matchImportantTags: rule.match_important_tags,
 		matchAllTags: rule.match_all_tags
 	});
+	const exp = expectedBadge(rule.expected);
 
 	return (
 		<>
@@ -62,9 +64,7 @@ export function IssueRuleRow({ rule, projectId }: IssueRuleRowProps) {
 				</td>
 				<td className={cellClassName}>{categoryLabel(rule.category)}</td>
 				<td className={cellClassName}>
-					<Badge variant={rule.expected ? 'expected' : 'unexpected'}>
-						{rule.expected ? 'Expected' : 'Unexpected'}
-					</Badge>
+					<Badge variant={exp.variant}>{exp.label}</Badge>
 				</td>
 				<td className={cellClassName}>
 					<div className="flex flex-wrap gap-1">

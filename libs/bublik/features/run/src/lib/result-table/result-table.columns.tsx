@@ -12,7 +12,10 @@ import { createNextState } from '@reduxjs/toolkit';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import { ClassifyPopover } from '@/bublik/features/result-classification';
+import {
+	ClassifyPopover,
+	expectedBadge
+} from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
@@ -85,7 +88,7 @@ export const getColumns = ({
 						{(value.issues ?? []).map((ref) => (
 							<Badge
 								key={ref.rule_id}
-								variant={ref.expected ? 'expected' : 'unexpected'}
+								variant={expectedBadge(ref.expected).variant}
 								overflowWrap
 							>
 								{ref.category}

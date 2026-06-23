@@ -7,6 +7,7 @@ import { Badge, Icon, Skeleton, cn } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import type { RunIssueRow } from '@/shared/types';
 
+import { expectedBadge } from './expected';
 import { RunIssueResults } from './run-issue-results';
 
 interface RunIssuesTableProps {
@@ -32,7 +33,13 @@ function RunIssueTableRow({
 	isExpanded,
 	onToggle
 }: RunIssueRowProps) {
-	const isExpected = issue.categories.some((c) => c.expected);
+	const dispositions = issue.categories.map((c) => c.expected);
+	const aggregate = dispositions.includes(true)
+		? true
+		: dispositions.includes(false)
+			? false
+			: null;
+	const badge = expectedBadge(aggregate);
 
 	return (
 		<>
@@ -57,9 +64,7 @@ function RunIssueTableRow({
 					</LinkWithProject>
 				</td>
 				<td className={cellClassName}>
-					<Badge variant={isExpected ? 'expected' : 'unexpected'}>
-						{isExpected ? 'Expected' : 'Unexpected'}
-					</Badge>
+					<Badge variant={badge.variant}>{badge.label}</Badge>
 				</td>
 				<td className={cn(cellClassName, 'text-right')}>
 					<button
