@@ -35,7 +35,7 @@ export function useClassifyForm(): ClassifyForm {
 			mode: 'new',
 			category: 'known-issue',
 			scope: 'future',
-			expected: 'expected',
+			expected: 'none',
 			...DEFAULT_MATCH_FLAGS
 		}
 	});
@@ -159,9 +159,9 @@ export function ClassifyFields({
 						onValueChange={field.onChange}
 						name={field.name}
 						options={[
+							{ value: 'none', displayValue: "Don't change" },
 							{ value: 'expected', displayValue: 'Expected' },
-							{ value: 'unexpected', displayValue: 'Unexpected' },
-							{ value: 'none', displayValue: 'None' }
+							{ value: 'unexpected', displayValue: 'Unexpected' }
 						]}
 					/>
 				)}
