@@ -165,6 +165,10 @@ const RunStatsParamsSchema = z.object({
 
 type RunStatsParams = z.infer<typeof RunStatsParamsSchema>;
 
+export type RunsStatsByRunIdResponse = {
+	runs: Array<{ runId: number; results: RunData[]; defaultColumns?: unknown }>;
+};
+
 export const runEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<
@@ -404,6 +408,65 @@ export const runEndpoints = {
 						data: {
 							results: mergeRuns(filteredResults.map((item) => item.entry)),
 							defaultColumns: filteredResults[0]?.defaultColumns
+						}
+					};
+				} catch (error) {
+					return {
+						error: {
+							originalStatus: 500,
+							error:
+								error instanceof Error
+									? error.message
+									: 'Invalid run stats response',
+							status: 'CUSTOM_ERROR'
+						}
+					};
+				}
+			},
+			argSchema: z.array(RunStatsParamsSchema),
+			providesTags: [BUBLIK_TAG.Run]
+		}),
+		getRunsStatsByRunIds: build.query<
+			RunsStatsByRunIdResponse,
+			RunStatsParams[]
+		>({
+			queryFn: async (params, _api, _extraOptions, fetchWithBQ) => {
+				try {
+					const requestsResults = await Promise.all(
+						params.map(async ({ runId, requirements }) => {
+							const queryRequirements = requirements?.join(
+								config.queryDelimiter
+							);
+							const queryParams = {} as Record<string, string>;
+
+							if (queryRequirements)
+								queryParams.requirements = queryRequirements;
+
+							const result = (await fetchWithBQ({
+								url: withApiV2(`/runs/${runId}/stats`),
+								params: queryParams
+							})) as QueryReturnValue<RunAPIResponse>;
+
+							const parsed = result.data
+								? RunAPIResponseSchema.parse(result.data)
+								: null;
+
+							return parsed?.results
+								? {
+										runId: Number(runId),
+										results: [parsed.results],
+										defaultColumns: parsed.default_columns
+								  }
+								: null;
+						})
+					);
+
+					return {
+						data: {
+							runs: requestsResults.filter(
+								(item): item is NonNullable<(typeof requestsResults)[number]> =>
+									item !== null
+							)
 						}
 					};
 				} catch (error) {

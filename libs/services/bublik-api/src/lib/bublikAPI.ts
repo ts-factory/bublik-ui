@@ -124,6 +124,7 @@ export const {
 	useLazyGetRunDetailsQuery,
 	useGetRunTableByRunIdQuery,
 	useGetMultipleRunsByRunIdsQuery,
+	useGetRunsStatsByRunIdsQuery,
 	useGetResultsTableQuery,
 	useGetRunSourceQuery,
 	useGetRunRequirementsQuery,
