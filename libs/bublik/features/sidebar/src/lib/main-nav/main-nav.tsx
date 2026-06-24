@@ -50,6 +50,13 @@ const mainMenu: SidebarItem[] = [
 				pattern: { path: '/runs', search: { mode: 'charts' } }
 			},
 			{
+				label: 'Table',
+				to: '/runs',
+				dialogContent: <RunsDialog />,
+				icon: <Icon name="Aggregation" />,
+				pattern: { path: '/runs', search: { mode: 'progress' } }
+			},
+			{
 				label: 'Multiple',
 				icon: <Icon name="PaperStack" className="w-6 h-6" />,
 				to: '/runs',

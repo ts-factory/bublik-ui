@@ -7,3 +7,4 @@ export * from './lib/runs-form';
 export * from './lib/selection-popover';
 export * from './lib/runs-stats';
 export * from './lib/runs-mode-picker';
+export * from './lib/runs-progress';

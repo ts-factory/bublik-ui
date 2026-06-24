@@ -13,6 +13,12 @@ const RunsStatsContainer = lazy(() =>
 	}))
 );
 
+const RunsProgressContainer = lazy(() =>
+	import('../runs-progress').then((module) => ({
+		default: module.RunsProgressContainer
+	}))
+);
+
 export const RunsModePickerContainer = () => {
 	const [searchParams] = useSearchParams();
 
@@ -22,6 +28,14 @@ export const RunsModePickerContainer = () => {
 		return (
 			<Suspense fallback={<Spinner className="h-48" />}>
 				<RunsStatsContainer />
+			</Suspense>
+		);
+	}
+
+	if (searchParams.get('mode') === 'progress') {
+		return (
+			<Suspense fallback={<Spinner className="h-48" />}>
+				<RunsProgressContainer />
 			</Suspense>
 		);
 	}
