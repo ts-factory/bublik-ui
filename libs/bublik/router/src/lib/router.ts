@@ -33,8 +33,14 @@ export const routes = {
 	dashboard: buildRoute<DashboardConfig>({ getPathname: () => `/dashboard` }),
 	run: buildRoute<RunConfig>({
 		getPathname: ({ runId }) => `/runs/${runId}`,
-		getSearch: ({ targetIterationId }) =>
-			targetIterationId ? `targetIterationId=${targetIterationId}` : ''
+		getSearch: ({ targetIterationId, resultFilter }) => {
+			const params = new URLSearchParams();
+			if (targetIterationId) {
+				params.set('targetIterationId', String(targetIterationId));
+			}
+			if (resultFilter) params.set('resultFilter', resultFilter);
+			return params.toString();
+		}
 	}),
 	history: buildRoute<HistoryConfig>({ getPathname: () => `/history` }),
 	log: buildRoute<LogConfig>({
