@@ -90,11 +90,6 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 				) : null}
 			</div>
 
-			<section className="flex flex-col gap-2">
-				<h2 className={sectionHeaderClassName}>Results</h2>
-				<IssueResults issueId={issueId} projectId={projectId} />
-			</section>
-
 			<h2 className={sectionHeaderClassName}>Rules</h2>
 			{rules.length === 0 ? (
 				<BublikEmptyState
@@ -123,6 +118,11 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					</table>
 				</div>
 			)}
+
+			<section className="flex flex-col gap-2">
+				<h2 className={sectionHeaderClassName}>Results</h2>
+				<IssueResults issueId={issueId} projectId={projectId} />
+			</section>
 		</div>
 	);
 }
