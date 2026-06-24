@@ -59,6 +59,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 		setSorting,
 		sorting,
 		targetIterationId,
+		resultColumnId,
 		defaultColumnVisibility,
 		columnOrder,
 		defaultColumnOrder,
@@ -123,6 +124,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				onColumnVisibilityChange={setColumnVisibility}
 				isFetching={isFetching}
 				targetIterationId={targetIterationId}
+				resultColumnId={resultColumnId}
 			/>
 		</RunRowStateContextProvider>
 	);

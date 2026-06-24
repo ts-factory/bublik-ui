@@ -84,6 +84,7 @@ export interface RunTableProps {
 	runId: string | string[];
 	projectId?: number;
 	targetIterationId?: number;
+	resultColumnId?: string;
 }
 
 export const RunTable = (props: RunTableProps) => {
@@ -107,7 +108,8 @@ export const RunTable = (props: RunTableProps) => {
 		isFetching,
 		runId,
 		projectId,
-		targetIterationId
+		targetIterationId,
+		resultColumnId
 	} = props;
 
 	const columns = useMemo(
@@ -148,7 +150,7 @@ export const RunTable = (props: RunTableProps) => {
 	useMount(() => {
 		if (openUnexpected) showUnexpected();
 		if (openUnexpectedResults) expandUnexpected();
-		if (targetIterationId) expandToIteration(targetIterationId);
+		if (targetIterationId) expandToIteration(targetIterationId, resultColumnId);
 
 		if (shouldMigrateExpandedState(expanded)) {
 			migrateExpandedStateUrl(expanded, table.getCoreRowModel().rowsById);

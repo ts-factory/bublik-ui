@@ -14,6 +14,7 @@ import {
 	getPackageIdsWithUnexpected,
 	getAllTestIds
 } from '../utils';
+import { getResultFilterForColumnId } from '../columns/badge-columns';
 import { useRunTableRowState } from '../../hooks';
 
 export interface UseExpandUnexpectedConfig {
@@ -32,7 +33,8 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 
 	const rootRowValues = getRowValues(rowModel.rowsById[rootRowId]);
 	const globalFilter = getUnexpectedGlobalFilter(rootRowValues, rootRowId);
-	const { expandAllUnexpected, resetRowState } = useRunTableRowState();
+	const { expandAllUnexpected, resetRowState, updateRowState } =
+		useRunTableRowState();
 
 	const expandUnexpected = useCallback(() => {
 		const packageIdsWithUnexpected = getPackageIdsWithUnexpected(table);
@@ -67,7 +69,7 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 	}, [resetRowState, rootRowId, table]);
 
 	const expandToIteration = useCallback(
-		(iterationId: number) => {
+		(iterationId: number, columnId?: string) => {
 			const model = table.getPreFilteredRowModel();
 			const sortedIterations = model.flatRows.sort(
 				(a, b) => getStartTirId(a.original) - getStartTirId(b.original)
@@ -98,8 +100,15 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 			table.setExpanded(
 				toggleSubtree(true, [testContainingIteration.id, ...parents])
 			);
+
+			if (columnId) {
+				updateRowState({
+					rowId: testContainingIteration.id,
+					requests: { [columnId]: getResultFilterForColumnId(columnId) }
+				});
+			}
 		},
-		[table]
+		[table, updateRowState]
 	);
 
 	return {

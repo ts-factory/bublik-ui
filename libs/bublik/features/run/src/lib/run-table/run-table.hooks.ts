@@ -6,7 +6,8 @@ import {
 	useQueryParam,
 	JsonParam,
 	withDefault,
-	NumberParam
+	NumberParam,
+	StringParam
 } from 'use-query-params';
 import {
 	ExpandedState,
@@ -276,6 +277,7 @@ export const useRunTableQueryState = (
 		openUnexpectedResults?: boolean;
 	};
 	const { targetIterationId } = useTargetIterationId();
+	const [resultFilter] = useQueryParam('resultFilter', StringParam);
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
@@ -329,7 +331,8 @@ export const useRunTableQueryState = (
 		defaultColumnOrder,
 		setColumnOrder,
 		rowStateContext,
-		targetIterationId: targetIterationId ?? undefined
+		targetIterationId: targetIterationId ?? undefined,
+		resultColumnId: resultFilter ?? undefined
 	};
 };
 

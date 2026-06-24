@@ -3,3 +3,4 @@
 export * from './run-table.container';
 export * from './run-table.component';
 export * from './utils';
+export { TestComments } from './components/test-comments';
