@@ -102,6 +102,10 @@ class RunsPage {
 
 	async fillTagExpr(expr: string): Promise<void> {
 		await this.tagExprInput.fill(expr);
+		// Wait for the controlled input to commit the value before submitting.
+		// Without this, webkit can fire Submit before React registers the change
+		// and the form posts an empty tag expression.
+		await expect(this.tagExprInput).toHaveValue(expr);
 	}
 
 	async submit(): Promise<void> {

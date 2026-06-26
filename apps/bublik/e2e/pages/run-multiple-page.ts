@@ -27,7 +27,9 @@ class RunMultiplePage {
 	}
 
 	async selectRun(runId: number): Promise<void> {
-		await this.page.getByRole('link', { name: `Run ${runId}` }).click();
+		await this.page
+			.getByRole('link', { name: `Run ${runId}`, exact: true })
+			.click();
 		await expect(this.page).toHaveURL(new RegExp(`selected=${runId}`), {
 			timeout: 15_000
 		});
