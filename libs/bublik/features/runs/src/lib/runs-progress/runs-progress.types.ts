@@ -46,6 +46,11 @@ type RunsProgressGroup = {
 	runCount: number;
 };
 
+type RunsProgressPackage = {
+	name: string;
+	runCount: number;
+};
+
 type RunsProgressFilterSummary = {
 	label: string;
 	value: string;
@@ -55,6 +60,7 @@ export type {
 	RunsProgressCell,
 	RunsProgressFilterSummary,
 	RunsProgressGroup,
+	RunsProgressPackage,
 	RunsProgressRow,
 	RunsProgressRun,
 	RunsProgressTrend,

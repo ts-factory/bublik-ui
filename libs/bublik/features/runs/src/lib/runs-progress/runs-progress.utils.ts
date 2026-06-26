@@ -8,6 +8,7 @@ import { formatTimeToAPI } from '@/shared/utils';
 import {
 	RunsProgressFilterSummary,
 	RunsProgressGroup,
+	RunsProgressPackage,
 	RunsProgressRow,
 	RunsProgressRun,
 	RunsProgressTrend,
@@ -227,6 +228,22 @@ function getMetadataKeys(runs: RunsData[]): string[] {
 	});
 
 	return Array.from(keys).sort((left, right) => left.localeCompare(right));
+}
+
+function getRunPackageName(root: RunData): string {
+	return root.test_name;
+}
+
+function buildPackageSummaries(runs: RunsProgressRun[]): RunsProgressPackage[] {
+	const countByName = new Map<string, number>();
+
+	runs.forEach(({ root }) => {
+		const name = getRunPackageName(root);
+
+		countByName.set(name, (countByName.get(name) ?? 0) + 1);
+	});
+
+	return Array.from(countByName, ([name, runCount]) => ({ name, runCount }));
 }
 
 function getRunGroupValue(run: RunsData, key: string): string | null {
@@ -567,6 +584,7 @@ export type { MetricChange, MetricDelta, MetricDeltaStatus };
 
 export {
 	buildFilterSummary,
+	buildPackageSummaries,
 	buildRunsProgressRows,
 	filterChangedRows,
 	filterRunsByDateWindow,
@@ -578,6 +596,7 @@ export {
 	getMetricToneClassName,
 	getNodeStats,
 	getRunGroupValue,
+	getRunPackageName,
 	getStatsTotal,
 	getUnexpectedTotal,
 	groupRuns,
