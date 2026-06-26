@@ -1,7 +1,7 @@
 {
-	"date": "2026.06.19",
-	"summary": "feat(run): add ability to reorder columns",
-	"revision": "b8a212b2",
-	"branch": "release-2.14.0",
-	"latestTag": "v2.14.0"
+	"date": "2026.06.26",
+	"summary": "feat(runs): add new progress mode into nav and mode picker",
+	"revision": "c5ab0fbe",
+	"branch": "release-2.15.0",
+	"latestTag": "v2.15.0"
 }

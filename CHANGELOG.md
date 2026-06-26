@@ -1,5 +1,35 @@
 
 
+## [2.15.0](https://github.com/ts-factory/bublik-ui/compare/v2.14.0...v2.15.0) (2026-06-26)
+
+
+### 🚀 New Feature
+
+* **router:** carry a result filter on run links ([a8a46fa](https://github.com/ts-factory/bublik-ui/commit/a8a46fa401c880c5a987f96396f3143c7c963a56))
+* **run:** add Expected column and test comments, drop Objective/Notes ([057db96](https://github.com/ts-factory/bublik-ui/commit/057db96e0e9ccd42eed7244218110ebe14f43be3))
+* **run:** add runs-progress run endpoints ([d71fedf](https://github.com/ts-factory/bublik-ui/commit/d71fedfe1778edd2e218e24d6717c42931eed279))
+* **runs:** add new progress mode into nav and mode picker ([c5ab0fb](https://github.com/ts-factory/bublik-ui/commit/c5ab0fbe2389ba8a237bd41fe4c13684ff62735d))
+* **runs:** add runs progress table mode ([1d6793d](https://github.com/ts-factory/bublik-ui/commit/1d6793dcfd9c7f80325f3a3a47f26fa1a6d1ca98))
+* **ui:** support column checkmark and expander-less tree node ([9060be6](https://github.com/ts-factory/bublik-ui/commit/9060be6eb27cd92aa8955c04a336b75ae3c5a04c))
+
+
+### 🐛 Bug Fix
+
+* **config:** show global configs when a project filter is active ([e078739](https://github.com/ts-factory/bublik-ui/commit/e07873984fb9dccb1c850509ce231c8899fce243))
+* **config:** stop showing a false MODIFIED badge ([0215ece](https://github.com/ts-factory/bublik-ui/commit/0215ece22961e47d99fa3a4bcaf9a377d3844981))
+* **config:** stop stale drafts shadowing server config after edits ([91b00aa](https://github.com/ts-factory/bublik-ui/commit/91b00aae2916a8004d90b6a0fd46b54f846af743))
+* **run:** prevent column visibility item layout shifts on toggle ([0531ad3](https://github.com/ts-factory/bublik-ui/commit/0531ad3ec6faf04763f8d558ff2066c4b405940d))
+
+
+### ♻ Code Refactoring
+
+* **configs:** tidy draft-persistence effects in the editor ([851e312](https://github.com/ts-factory/bublik-ui/commit/851e31239a3a2d6b45b853bc3985b112f193f37c))
+
+
+### 📦 Chores
+
+* **deps:** add @tanstack/react-virtual ([c790c36](https://github.com/ts-factory/bublik-ui/commit/c790c36dba019bfc975d58cd0d7f19436c465179))
+
 ## [2.14.0](https://github.com/ts-factory/bublik-ui/compare/v2.13.1...v2.14.0) (2026-06-19)
 
 
