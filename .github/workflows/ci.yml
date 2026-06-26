@@ -143,8 +143,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 0
     steps:
       - name: Resolve frontend/backend revisions
         id: rev
@@ -221,37 +219,33 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: bublik-docker/bublik-ui/pnpm-lock.yaml
 
-      # The app is built inside Docker; these host deps are only for running
-      # the Playwright suite (import + e2e) against the dockerized stack.
-      - name: Install Playwright host deps
+      # The app is built inside Docker; these node_modules are mounted into the
+      # official Playwright container that runs the suite (no host browsers).
+      - name: Install frontend node_modules
         working-directory: bublik-docker/bublik-ui
         run: pnpm install --frozen-lockfile
 
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bublik-docker/bublik-ui/pnpm-lock.yaml') }}
-
-      # System libs (apt) only; split from the browser download so an apt-lock
-      # stall can't masquerade as a frozen download and is bounded by a timeout.
-      - name: Install Playwright system deps
-        timeout-minutes: 10
+      - name: Resolve Playwright version
+        id: pw
         working-directory: bublik-docker/bublik-ui
-        run: pnpm exec playwright install-deps
+        run: |
+          VERSION="$(node -e "console.log(require('@playwright/test/package.json').version)")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Playwright version: $VERSION"
 
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        timeout-minutes: 10
-        working-directory: bublik-docker/bublik-ui
-        run: pnpm exec playwright install chromium firefox webkit
-
+      # Containers chown their log dirs to www-data:www-data (mode 2775) and then
+      # drop to HOST_UID:HOST_GID. HOST_GID must be the www-data gid (33) or the
+      # services can't write their logs (PermissionError -> django/celery crash).
       - name: Setup .env
         working-directory: bublik-docker
         run: |
           cp .env.example .env
-          echo "BUBLIK_DOCKER_DATA_DIR=./data" >> .env
+          {
+            echo "BUBLIK_DOCKER_DATA_DIR=./data"
+            echo "HOST_UID=$(id -u)"
+            echo "HOST_GID=$(getent group www-data | cut -d: -f3)"
+            echo "UMASK=022"
+          } >> .env
           mkdir -p data/logs/logs
 
       - name: Build stack from source
@@ -262,17 +256,48 @@ jobs:
         working-directory: bublik-docker
         run: task e2e:up
 
+      # The containers chown data/logs to www-data; the host bublik-e2e tool runs
+      # as the runner user (not in that group) and must write the fixture bundles
+      # there. Grant access without changing ownership so the containers (gid 33)
+      # keep writing their logs.
+      - name: Allow host tools to write into the data dir
+        working-directory: bublik-docker
+        run: sudo chmod -R a+rwX data
+
       - name: Generate fixtures
         working-directory: bublik-docker
         run: task e2e:fixtures
 
-      - name: Import fixtures
-        working-directory: bublik-docker
-        run: task e2e:import:ui
+      # Run Playwright from the official image (browsers preinstalled) instead
+      # of downloading them on the host. --network host lets the container reach
+      # the compose stack (network_mode: host) on 127.0.0.1; the workspace is
+      # mounted so it reuses the node_modules installed above.
+      - name: Import fixtures (Playwright)
+        run: |
+          docker run --rm --network host \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/work/bublik-ui \
+            -e CI=1 \
+            -e BASE_URL=http://127.0.0.1/v2/ \
+            -e BUBLIK_E2E_RUN_OVERVIEW=../.e2e/e2e-manifest.json \
+            -v "${{ github.workspace }}/bublik-docker:/work" \
+            -w /work/bublik-ui \
+            mcr.microsoft.com/playwright:v${{ steps.pw.outputs.version }}-noble \
+            ./node_modules/.bin/playwright test --config apps/bublik/playwright.config.ts \
+              --project auth --project import
 
-      - name: Run e2e tests
-        working-directory: bublik-docker
-        run: task e2e
+      - name: Run e2e tests (Playwright)
+        run: |
+          docker run --rm --network host \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/work/bublik-ui \
+            -e CI=1 \
+            -e BASE_URL=http://127.0.0.1/v2/ \
+            -e BUBLIK_E2E_RUN_OVERVIEW=../.e2e/e2e-manifest.json \
+            -v "${{ github.workspace }}/bublik-docker:/work" \
+            -w /work/bublik-ui \
+            mcr.microsoft.com/playwright:v${{ steps.pw.outputs.version }}-noble \
+            ./node_modules/.bin/playwright test --config apps/bublik/playwright.config.ts
 
       - name: Dump service logs on failure
         if: ${{ failure() }}
