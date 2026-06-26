@@ -57,6 +57,7 @@ import { formatTimestampToFull } from '@/shared/utils';
 import {
 	RunsProgressFilterSummary,
 	RunsProgressGroup,
+	RunsProgressPackage,
 	RunsProgressRow,
 	RunsProgressRun,
 	RunsProgressTrendDirection
@@ -301,6 +302,9 @@ interface RunsProgressProps {
 	onTimeFrameDaysChange: (timeFrameDays: number | null) => void;
 	availableGroupKeys: string[];
 	onGroupKeyChange: (groupKey: string | null) => void;
+	packages: RunsProgressPackage[];
+	selectedPackage: string | null;
+	onSelectedPackageChange: (packageName: string | null) => void;
 	filters: RunsProgressFilterSummary[];
 	isFetching?: boolean;
 	isCapped?: boolean;
@@ -319,6 +323,9 @@ function RunsProgress(props: RunsProgressProps) {
 		onTimeFrameDaysChange,
 		availableGroupKeys,
 		onGroupKeyChange,
+		packages,
+		selectedPackage,
+		onSelectedPackageChange,
 		isFetching,
 		isCapped,
 		total,
@@ -634,6 +641,13 @@ function RunsProgress(props: RunsProgressProps) {
 							<Separator orientation="vertical" className="h-4" />
 							<Legend />
 							<Separator orientation="vertical" className="h-4" />
+							{packages.length > 1 ? (
+								<PackageMenu
+									packages={packages}
+									selectedPackage={selectedPackage}
+									onSelectedPackageChange={onSelectedPackageChange}
+								/>
+							) : null}
 							<GroupByMenu
 								groupKey={groupKey}
 								timeFrameDays={timeFrameDays}
@@ -641,13 +655,25 @@ function RunsProgress(props: RunsProgressProps) {
 								availableGroupKeys={availableGroupKeys}
 								onGroupKeyChange={onGroupKeyChange}
 							/>
-							{isCapped ? (
+							{packages.length > 1 ? (
 								<>
 									<Separator orientation="vertical" className="h-4" />
 									<span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-unexpected">
 										<Icon name="InformationCircleExclamationMark" size={12} />
-										Showing the latest {cap} of {total} runs — select a date
-										range or duration to view all.
+										Runs span {packages.length} suites — showing{' '}
+										{selectedPackage} (
+										{packages.find((pkg) => pkg.name === selectedPackage)
+											?.runCount ?? 0}
+										). Narrow by a meta filter or a project.
+									</span>
+								</>
+							) : isCapped ? (
+								<>
+									<Separator orientation="vertical" className="h-4" />
+									<span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-unexpected">
+										<Icon name="InformationCircleExclamationMark" size={12} />
+										Showing latest {cap} of {total} runs — pick a date range or
+										duration for all.
 									</span>
 								</>
 							) : null}
@@ -1235,6 +1261,53 @@ function GroupByMenu({
 						</DropdownMenuRadioGroup>
 					</>
 				) : null}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+function PackageMenu({
+	packages,
+	selectedPackage,
+	onSelectedPackageChange
+}: {
+	packages: RunsProgressPackage[];
+	selectedPackage: string | null;
+	onSelectedPackageChange: (packageName: string | null) => void;
+}) {
+	const [isOpen, setIsOpen] = useState(false);
+
+	return (
+		<DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+			<DropdownMenuTrigger asChild>
+				<ButtonTw variant="secondary" size="xss" state={isOpen && 'active'}>
+					<Icon name="Folder" size={20} className="mr-1.5" />
+					{selectedPackage ?? 'Suite'}
+					<Icon name="ArrowShortSmall" className="ml-1.5" />
+				</ButtonTw>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent collisionPadding={{ right: 15 }} className="w-64">
+				<DropdownMenuLabel className="text-xs">Test Suite</DropdownMenuLabel>
+				<Separator className="h-px my-1 -mx-1" />
+				<DropdownMenuRadioGroup
+					value={selectedPackage ?? ''}
+					onValueChange={(value) => onSelectedPackageChange(value || null)}
+				>
+					{packages.map((pkg) => (
+						<DropdownMenuRadioItem
+							key={pkg.name}
+							value={pkg.name}
+							className="text-xs"
+						>
+							<span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+								<span className="truncate">{pkg.name}</span>
+								<span className="shrink-0 text-text-secondary tabular-nums">
+									{pkg.runCount}
+								</span>
+							</span>
+						</DropdownMenuRadioItem>
+					))}
+				</DropdownMenuRadioGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

@@ -14,9 +14,11 @@ import {
 import { useRunsProgressRuns } from './runs-progress.hooks';
 import {
 	buildFilterSummary,
+	buildPackageSummaries,
 	buildRunsProgressRows,
 	filterRunsByDateWindow,
 	getMetadataKeys,
+	getRunPackageName,
 	groupRuns,
 	sortRunsNewestFirst
 } from './runs-progress.utils';
@@ -27,6 +29,7 @@ function RunsProgressContainer() {
 	const [searchParams] = useSearchParams();
 	const [groupKey, setGroupKey] = useState<string | null>(null);
 	const [timeFrameDays, setTimeFrameDays] = useState<number | null>(null);
+	const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 	const runsQuery = useRunsProgressRuns();
 	const { query } = useRunsQuery();
 
@@ -73,9 +76,28 @@ function RunsProgressContainer() {
 		() => getMetadataKeys(sortedRuns),
 		[sortedRuns]
 	);
+
+	const packages = useMemo(
+		() => buildPackageSummaries(progressRuns),
+		[progressRuns]
+	);
+	const effectivePackage =
+		selectedPackage && packages.some((pkg) => pkg.name === selectedPackage)
+			? selectedPackage
+			: packages[0]?.name ?? null;
+	const focusedRuns = useMemo(
+		() =>
+			effectivePackage
+				? progressRuns.filter(
+						(run) => getRunPackageName(run.root) === effectivePackage
+				  )
+				: progressRuns,
+		[progressRuns, effectivePackage]
+	);
+
 	const { orderedRuns, groups, timeGroups } = useMemo(
-		() => groupRuns(progressRuns, { timeFrameDays, metaKey: groupKey }),
-		[progressRuns, timeFrameDays, groupKey]
+		() => groupRuns(focusedRuns, { timeFrameDays, metaKey: groupKey }),
+		[focusedRuns, timeFrameDays, groupKey]
 	);
 	const rows = useMemo(() => buildRunsProgressRows(orderedRuns), [orderedRuns]);
 	const filters = useMemo(
@@ -104,6 +126,9 @@ function RunsProgressContainer() {
 			onTimeFrameDaysChange={setTimeFrameDays}
 			availableGroupKeys={availableGroupKeys}
 			onGroupKeyChange={setGroupKey}
+			packages={packages}
+			selectedPackage={effectivePackage}
+			onSelectedPackageChange={setSelectedPackage}
 			filters={filters}
 			isFetching={runsQuery.isFetching || statsQuery.isFetching}
 			isCapped={runsQuery.isCapped}

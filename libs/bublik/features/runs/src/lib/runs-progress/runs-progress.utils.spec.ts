@@ -6,6 +6,7 @@ import { NodeEntity, RunData, RunsData, RUN_STATUS } from '@/shared/types';
 
 import {
 	buildFilterSummary,
+	buildPackageSummaries,
 	buildRunsProgressRows,
 	filterChangedRows,
 	filterRunsByDateWindow,
@@ -246,6 +247,43 @@ describe('runs progress utils', () => {
 		expect(filtered[0].id).toBe('root');
 		expect(filtered[0].children).toHaveLength(1);
 		expect(filtered[0].children[0].id).toBe('changed-child');
+	});
+
+	describe('buildPackageSummaries', () => {
+		function rootNamed(name: string): RunData {
+			return { ...createRoot(), test_name: name };
+		}
+
+		it('counts runs per package, ordered by first appearance', () => {
+			expect(
+				buildPackageSummaries([
+					{
+						run: createRun(3, '2024-01-03T00:00:00Z'),
+						root: rootNamed('ipv6')
+					},
+					{
+						run: createRun(2, '2024-01-02T00:00:00Z'),
+						root: rootNamed('perf')
+					},
+					{ run: createRun(1, '2024-01-01T00:00:00Z'), root: rootNamed('ipv6') }
+				])
+			).toEqual([
+				{ name: 'ipv6', runCount: 2 },
+				{ name: 'perf', runCount: 1 }
+			]);
+		});
+
+		it('returns a single entry when every run shares a package', () => {
+			expect(
+				buildPackageSummaries([
+					{
+						run: createRun(2, '2024-01-02T00:00:00Z'),
+						root: rootNamed('ipv6')
+					},
+					{ run: createRun(1, '2024-01-01T00:00:00Z'), root: rootNamed('ipv6') }
+				])
+			).toEqual([{ name: 'ipv6', runCount: 2 }]);
+		});
 	});
 
 	it('collects distinct metadata keys sorted', () => {
