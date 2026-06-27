@@ -1,9 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import {
+	DEFAULT_KEY_VALUE_DISPLAY_DELIMITER,
+	DEFAULT_KEY_VALUE_SUBMIT_DELIMITER,
+	normalizeKeyValueForSubmit
+} from '@/shared/utils';
+
 export interface ParseBadgeStringOptions {
 	separator: string;
-	delimeter: string;
-	originalDelimeter: string;
+	submitDelimiter?: string;
+	displayDelimiter?: string;
 	quote?: string;
 }
 
@@ -11,8 +17,8 @@ const DEFAULT_QUOTE = '"';
 
 const PARSE_CONFIG: ParseBadgeStringOptions = {
 	separator: ',',
-	originalDelimeter: ':',
-	delimeter: '=',
+	displayDelimiter: DEFAULT_KEY_VALUE_DISPLAY_DELIMITER,
+	submitDelimiter: DEFAULT_KEY_VALUE_SUBMIT_DELIMITER,
 	quote: DEFAULT_QUOTE
 };
 
@@ -21,9 +27,32 @@ const normalizeBadgeValue = (
 	wasQuoted: boolean,
 	config: ParseBadgeStringOptions
 ): string => {
-	const normalizedValue = wasQuoted ? value : value.trim();
+	if (wasQuoted) {
+		const leadingWhitespaceLength = value.length - value.trimStart().length;
+		const trailingWhitespaceLength = value.length - value.trimEnd().length;
+		const leadingWhitespace = value.slice(0, leadingWhitespaceLength);
+		const trailingWhitespace = value.slice(
+			value.length - trailingWhitespaceLength
+		);
+		const coreValue = value.slice(
+			leadingWhitespaceLength,
+			value.length - trailingWhitespaceLength
+		);
 
-	return normalizedValue.replace(config.originalDelimeter, config.delimeter);
+		if (!coreValue.length) return value;
+
+		const normalizedCoreValue = normalizeKeyValueForSubmit(coreValue, {
+			displayDelimiter: config.displayDelimiter,
+			submitDelimiter: config.submitDelimiter
+		});
+
+		return `${leadingWhitespace}${normalizedCoreValue}${trailingWhitespace}`;
+	}
+
+	return normalizeKeyValueForSubmit(value, {
+		displayDelimiter: config.displayDelimiter,
+		submitDelimiter: config.submitDelimiter
+	});
 };
 
 export const parseBadgeString = (
@@ -39,7 +68,10 @@ export const parseBadgeString = (
 	let isAfterClosingQuote = false;
 
 	const pushCurrent = (): void => {
-		result.push(normalizeBadgeValue(current, wasQuoted, config));
+		const value = normalizeBadgeValue(current, wasQuoted, config);
+
+		if (value || wasQuoted) result.push(value);
+
 		current = '';
 		wasQuoted = false;
 		isAfterClosingQuote = false;

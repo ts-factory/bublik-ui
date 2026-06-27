@@ -11,6 +11,8 @@ import {
 import { bublikAPI } from '@/services/bublik-api';
 import { RunsData } from '@/shared/types';
 
+import { normalizeRunDataList } from './runs-key-value';
+
 export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()
 });
@@ -38,7 +40,7 @@ export const runsPageSlice = createSlice({
 	initialState: initialRunsPageState,
 	reducers: {
 		updateGlobalFilter: (state, action: PayloadAction<string[]>) => {
-			state.globalFilter = action.payload;
+			state.globalFilter = normalizeRunDataList(action.payload);
 		},
 		resetSelection: (state) => {
 			state.rowSelection = [];

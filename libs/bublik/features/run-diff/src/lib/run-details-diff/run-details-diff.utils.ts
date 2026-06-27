@@ -3,6 +3,7 @@
 import { RunDetailsDiffProps } from './run-details-diff';
 
 import { RunDetailsAPIResponse } from '@/shared/types';
+import { config } from '@/bublik/config';
 
 export const getDiffProps = ({
 	leftData,
@@ -34,12 +35,12 @@ export const getDiffProps = ({
 			label: 'Revisions',
 			left: leftData.revisions.map((revision) => ({
 				className: 'bg-badge-2',
-				value: `${revision.name}=${revision.value}`,
+				value: `${revision.name}${config.keyValueSubmitDelimiter}${revision.value}`,
 				url: revision.url
 			})),
 			right: rightData.revisions.map((revision) => ({
 				className: 'bg-badge-2',
-				value: `${revision.name}=${revision.value}`,
+				value: `${revision.name}${config.keyValueSubmitDelimiter}${revision.value}`,
 				url: revision.url
 			}))
 		},

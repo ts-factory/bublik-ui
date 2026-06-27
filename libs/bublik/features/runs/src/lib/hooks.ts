@@ -21,6 +21,7 @@ import {
 	selectCompareIds,
 	selectRowSelection
 } from './runs-slice.selectors';
+import { normalizeRunDataQuery } from './runs-key-value';
 
 export const useRunsGlobalFilter = () => {
 	const dispatch = useDispatch();
@@ -108,25 +109,28 @@ export const useRunsQuery = () => {
 		};
 	}, [searchParams]);
 
-	const query = useMemo<RunsAPIQuery>(
-		() => ({
+	const query = useMemo<RunsAPIQuery>(() => {
+		const normalizedRunData = normalizeRunDataQuery(
+			searchParams.get('runData') || ''
+		);
+
+		return {
 			startDate: dates.startDate,
 			finishDate: dates.finishDate,
 			page: (pagination.pageIndex + 1).toString() || '1',
 			pageSize: pagination.pageSize.toString() || '25',
-			runData: searchParams.get('runData') || '',
+			runData: normalizedRunData,
 			tagExpr: searchParams.get('tagExpr') || '',
 			projects: projectIds
-		}),
-		[
-			dates.finishDate,
-			dates.startDate,
-			pagination.pageIndex,
-			pagination.pageSize,
-			projectIds,
-			searchParams
-		]
-	);
+		};
+	}, [
+		dates.finishDate,
+		dates.startDate,
+		pagination.pageIndex,
+		pagination.pageSize,
+		projectIds,
+		searchParams
+	]);
 
 	return { query };
 };

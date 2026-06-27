@@ -1,15 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { config } from '@/bublik/config';
 import { Badge, BadgeVariants, Icon, IconProps } from '@/shared/tailwind-ui';
+import { formatKeyValueForDisplay } from '@/shared/utils';
+
+const formatLegendValue = (value: string) =>
+	formatKeyValueForDisplay(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
 
 const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
 	if (!value) return null;
 
 	if (!Array.isArray(value)) {
+		const displayValue = formatLegendValue(value);
+
 		return (
 			<Badge variant={BadgeVariants.Primary} className="bg-primary-wash">
 				<span className="text-[0.6875rem] leading-[0.875rem] text-text-secondary">
-					{value}
+					{displayValue}
 				</span>
 			</Badge>
 		);
@@ -19,17 +29,21 @@ const LegendItemValue = ({ value }: { value?: LegendItemProps['value'] }) => {
 
 	return (
 		<>
-			{value.map((value) => (
-				<Badge
-					key={value}
-					variant={BadgeVariants.Primary}
-					className="bg-primary-wash"
-				>
-					<span className="text-[0.6875rem] leading-[0.875rem] text-text-secondary">
-						{value}
-					</span>
-				</Badge>
-			))}
+			{value.map((value) => {
+				const displayValue = formatLegendValue(value);
+
+				return (
+					<Badge
+						key={value}
+						variant={BadgeVariants.Primary}
+						className="bg-primary-wash"
+					>
+						<span className="text-[0.6875rem] leading-[0.875rem] text-text-secondary">
+							{displayValue}
+						</span>
+					</Badge>
+				);
+			})}
 		</>
 	);
 };

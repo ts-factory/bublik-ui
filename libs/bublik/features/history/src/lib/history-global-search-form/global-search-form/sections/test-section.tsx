@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { config } from '@/bublik/config';
 import { TextField, BadgeField } from '@/shared/tailwind-ui';
 
 import {
@@ -62,6 +63,8 @@ export const TestSection = (props: TestSectionProps) => {
 							label="Parameters"
 							placeholder="time_limit:30"
 							control={control}
+							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
 								<FieldResetButton
 									helpMessage="Clear parameters"

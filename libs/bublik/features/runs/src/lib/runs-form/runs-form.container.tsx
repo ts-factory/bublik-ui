@@ -20,6 +20,7 @@ import {
 } from './runs-form.utils';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
+import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
 
 function RunsFormContainer() {
 	const dispatch = useDispatch();
@@ -29,8 +30,9 @@ function RunsFormContainer() {
 	const allTags = useSelector(selectAllTags);
 
 	useMount(() => {
-		const initialGlobalFilter =
-			searchParams.get('runData')?.split(';')?.filter(Boolean) || [];
+		const initialGlobalFilter = normalizeRunDataList(
+			searchParams.get('runData')?.split(';')?.filter(Boolean) || []
+		);
 
 		dispatch(updateGlobalFilter(initialGlobalFilter));
 	});
@@ -45,7 +47,9 @@ function RunsFormContainer() {
 	);
 
 	function handleFormSubmit(newForm: RunsFormValues) {
-		const selectedRunData = getSelectedRunData(newForm.runData);
+		const selectedRunData = normalizeRunDataList(
+			getSelectedRunData(newForm.runData)
+		);
 
 		trackEvent(analyticsEventNames.runsFormSubmit, {
 			calendarMode: newForm.calendarMode,
@@ -95,6 +99,16 @@ function searchParamsToForm(
 	searchParams: URLSearchParams,
 	allTags: BoxValue[]
 ): RunsFormValues {
+	const normalizedAllTags = allTags.map((tag) => {
+		const normalizedValue = normalizeRunDataValue(tag.value);
+
+		return {
+			...tag,
+			value: normalizedValue,
+			label: normalizedValue
+		};
+	});
+
 	const rawStart = searchParams.get('startDate');
 	const rawEnd = searchParams.get('finishDate');
 	const calendarMode = (searchParams.get('calendarMode') ??
@@ -104,7 +118,7 @@ function searchParamsToForm(
 
 	const defaultValues: RunsFormValues = {
 		calendarMode,
-		runData: allTags,
+		runData: normalizedAllTags,
 		tagExpr,
 		dates: null
 	};
@@ -172,7 +186,7 @@ function formToSearchParams(
 		);
 	}
 
-	const selectedRunData = getSelectedRunData(runData);
+	const selectedRunData = normalizeRunDataList(getSelectedRunData(runData));
 
 	tagExpr ? params.set('tagExpr', tagExpr) : params.delete('tagExpr');
 
