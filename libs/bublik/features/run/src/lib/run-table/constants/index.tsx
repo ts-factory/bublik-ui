@@ -183,6 +183,56 @@ type ColumnGroup = {
 	className?: string;
 };
 
+/**
+ * Prefix for header-group ids so they can never collide with a {@link ColumnId}
+ * (e.g. the `Objective` group vs the `Objective` column). A collision would make
+ * dnd-kit register two draggables with the same id and ghost/duplicate them.
+ */
+const GROUP_ID_PREFIX = 'group:';
+
+/**
+ * Groups a flat column order into header groups using {@link COLUMN_GROUPS}.
+ *
+ * Consecutive columns belonging to the same group are merged into one block.
+ * When the same group appears more than once (e.g. it was fragmented by a
+ * reorder) each later occurrence gets a `-N` suffix so group ids stay unique.
+ * The resulting ids match the group header column ids produced by
+ * `groupColumnsByOrder`, so they can be used to drag whole groups.
+ */
+export function buildColumnGroups(
+	columnIds: ColumnId[]
+): { id: string; columnIds: ColumnId[] }[] {
+	const blocks = columnIds.reduce<{ id: string; columnIds: ColumnId[] }[]>(
+		(groups, columnId) => {
+			const group = COLUMN_GROUPS.find((group) =>
+				group.columns.includes(columnId)
+			);
+			const groupId = group?.id ?? columnId;
+			const lastGroup = groups[groups.length - 1];
+
+			if (lastGroup?.id === groupId) {
+				lastGroup.columnIds.push(columnId);
+			} else {
+				groups.push({ id: groupId, columnIds: [columnId] });
+			}
+
+			return groups;
+		},
+		[]
+	);
+
+	const groupUsageCount = new Map<string, number>();
+
+	return blocks.map(({ id, columnIds }) => {
+		const usedCount = groupUsageCount.get(id) ?? 0;
+		const uniqueId = usedCount === 0 ? id : `${id}-${usedCount}`;
+
+		groupUsageCount.set(id, usedCount + 1);
+
+		return { id: `${GROUP_ID_PREFIX}${uniqueId}`, columnIds };
+	});
+}
+
 export const COLUMN_GROUPS: ColumnGroup[] = [
 	{ id: 'Tree', label: '', columns: [ColumnId.Tree] },
 	{ id: 'Comments', label: '', columns: [ColumnId.Comments] },
