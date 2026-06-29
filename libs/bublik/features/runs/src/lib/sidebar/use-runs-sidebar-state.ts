@@ -17,6 +17,7 @@ import {
 const RUNS_MODES: readonly RunsMode[] = [
 	'list',
 	'charts',
+	'progress',
 	'compare',
 	'multiple'
 ];
@@ -32,6 +33,7 @@ export interface UseRunsSidebarStateReturn {
 	// Last visited URLs (decoded from URL params)
 	lastListUrl: string | null;
 	lastChartsUrl: string | null;
+	lastProgressUrl: string | null;
 	lastCompareUrl: string | null;
 	lastMultipleUrl: string | null;
 	lastMode: RunsMode | null;
@@ -39,6 +41,7 @@ export interface UseRunsSidebarStateReturn {
 	// Computed URLs for navigation
 	listUrl: string;
 	chartsUrl: string;
+	progressUrl: string;
 	compareUrl: string | null;
 	multipleUrl: string | null;
 	mainLinkUrl: string;
@@ -63,6 +66,10 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 	);
 	const lastChartsUrl = useMemo(
 		() => getSidebarStateString(searchParams, RUNS_SIDEBAR_KEYS.LAST_CHARTS),
+		[searchParams]
+	);
+	const lastProgressUrl = useMemo(
+		() => getSidebarStateString(searchParams, RUNS_SIDEBAR_KEYS.LAST_PROGRESS),
 		[searchParams]
 	);
 	const lastCompareUrl = useMemo(
@@ -113,6 +120,15 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 		return lastChartsUrl || '/runs?mode=charts';
 	}, [isOnRunsPage, location.search, lastChartsUrl]);
 
+	const progressUrl = useMemo(() => {
+		if (isOnRunsPage) {
+			const params = new URLSearchParams(location.search);
+			params.set('mode', 'progress');
+			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
+		}
+		return lastProgressUrl || '/runs?mode=progress';
+	}, [isOnRunsPage, location.search, lastProgressUrl]);
+
 	const compareUrl = useMemo(() => {
 		if (!isCompareAvailable) return null;
 		return `/compare?left=${selectedRunIds[0]}&right=${selectedRunIds[1]}`;
@@ -131,6 +147,8 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 				return lastListUrl || '/runs';
 			case 'charts':
 				return lastChartsUrl || '/runs?mode=charts';
+			case 'progress':
+				return lastProgressUrl || '/runs?mode=progress';
 			case 'compare':
 				return lastCompareUrl || '/compare';
 			case 'multiple':
@@ -138,7 +156,14 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 			default:
 				return '/runs';
 		}
-	}, [lastMode, lastListUrl, lastChartsUrl, lastCompareUrl, lastMultipleUrl]);
+	}, [
+		lastMode,
+		lastListUrl,
+		lastChartsUrl,
+		lastProgressUrl,
+		lastCompareUrl,
+		lastMultipleUrl
+	]);
 
 	const setLastVisited = useCallback(
 		(mode: RunsMode, url: string) => {
@@ -159,6 +184,13 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 						setSidebarStateValue(
 							sidebarState,
 							RUNS_SIDEBAR_KEYS.LAST_CHARTS,
+							cleanedUrl
+						);
+						break;
+					case 'progress':
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.LAST_PROGRESS,
 							cleanedUrl
 						);
 						break;
@@ -188,11 +220,13 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 		isMultipleAvailable,
 		lastListUrl,
 		lastChartsUrl,
+		lastProgressUrl,
 		lastCompareUrl,
 		lastMultipleUrl,
 		lastMode,
 		listUrl,
 		chartsUrl,
+		progressUrl,
 		compareUrl,
 		multipleUrl,
 		mainLinkUrl,

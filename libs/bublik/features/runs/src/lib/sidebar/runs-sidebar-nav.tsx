@@ -38,6 +38,7 @@ export function RunsSidebarNav() {
 		mainLinkUrl,
 		listUrl,
 		chartsUrl,
+		progressUrl,
 		compareUrl,
 		multipleUrl,
 		setLastVisited
@@ -83,6 +84,9 @@ export function RunsSidebarNav() {
 
 			if (mode === 'charts') {
 				setLastVisited('charts', location.pathname + location.search);
+				return;
+			} else if (mode === 'progress') {
+				setLastVisited('progress', location.pathname + location.search);
 				return;
 			} else {
 				setLastVisited('list', location.pathname + location.search);
@@ -154,6 +158,22 @@ export function RunsSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunsChartsDialog />
+					</SidebarNavSubmenuItemContainer.InfoButton>
+				</SidebarNavSubmenuItemContainer>
+				<SidebarNavSubmenuItemContainer
+					to={progressUrl}
+					pattern={{ path: '/runs', mode: 'progress' }}
+					linkComponent={LinkWithProject}
+				>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="Aggregation"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Table
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<RunsDialog />
 					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer

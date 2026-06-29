@@ -13,12 +13,13 @@ export const RUNS_SIDEBAR_KEYS = {
 	SELECTED: `${SIDEBAR_PREFIX}.runs.selected`,
 	LAST_LIST: `${SIDEBAR_PREFIX}.runs.lastList`,
 	LAST_CHARTS: `${SIDEBAR_PREFIX}.runs.lastCharts`,
+	LAST_PROGRESS: `${SIDEBAR_PREFIX}.runs.lastProgress`,
 	LAST_COMPARE: `${SIDEBAR_PREFIX}.runs.lastCompare`,
 	LAST_MULTIPLE: `${SIDEBAR_PREFIX}.runs.lastMultiple`,
 	LAST_MODE: `${SIDEBAR_PREFIX}.runs.lastMode`
 } as const;
 
-export type RunsMode = 'list' | 'charts' | 'compare' | 'multiple';
+export type RunsMode = 'list' | 'charts' | 'progress' | 'compare' | 'multiple';
 
 export const RUN_SIDEBAR_KEYS = {
 	LAST_DETAILS: `${SIDEBAR_PREFIX}.run.lastDetails`,
