@@ -1,13 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-/* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties } from 'react';
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { CSSProperties, ReactNode } from 'react';
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 import { useIsScrollbarVisible } from '@/shared/hooks';
 
 import { SidebarLogoButton } from './logo-button';
-import { MainNavigation } from './main-nav';
-import { BottomNavigation } from './bottom-nav';
 
 const getSidebarStyles = (isOpen?: boolean) => {
 	const base = {
@@ -30,7 +28,13 @@ const getSidebarStyles = (isOpen?: boolean) => {
 		: Object.assign(base, closedStyles);
 };
 
-export const Sidebar = () => {
+interface SidebarProps {
+	headerSlot?: ReactNode;
+	footerSlot?: ReactNode;
+	children?: ReactNode;
+}
+
+export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 	const { isSidebarOpen } = useSidebar();
 	const [ref, isVisible] = useIsScrollbarVisible<HTMLDivElement>();
 
@@ -51,7 +55,10 @@ export const Sidebar = () => {
 				className="h-full pt-12 pb-[7px] overflow-y-auto px-[7px] styled-scrollbar"
 				ref={ref}
 			>
-				<MainNavigation />
+				<ul className="flex flex-col gap-3">
+					{headerSlot}
+					{children}
+				</ul>
 			</div>
 			<div
 				className={cn(
@@ -59,7 +66,7 @@ export const Sidebar = () => {
 					isVisible ? 'border-t-border-primary' : 'border-t-transparent'
 				)}
 			>
-				<BottomNavigation />
+				<ul className="flex flex-col gap-3">{footerSlot}</ul>
 			</div>
 		</nav>
 	);

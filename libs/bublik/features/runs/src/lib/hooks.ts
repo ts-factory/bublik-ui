@@ -7,20 +7,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
 import { RunsAPIQuery } from '@/shared/types';
+import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { useProjectSearch } from '@/bublik/features/projects';
+import {
+	RUNS_SIDEBAR_KEYS,
+	getSidebarStateStringArray,
+	setSidebarStateValue,
+	updateSidebarStateSearchParams
+} from '@/bublik/features/sidebar';
 
-import {
-	addToSelection,
-	resetSelection,
-	updateGlobalFilter,
-	removeFromSelection
-} from './runs-slice';
-import {
-	selectGlobalFilter,
-	selectCompareIds,
-	selectRowSelection
-} from './runs-slice.selectors';
+import { updateGlobalFilter } from './runs-slice';
+import { selectGlobalFilter } from './runs-slice.selectors';
+import { normalizeRunDataQuery } from './runs-key-value';
+import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover/selection-popover.constants';
 
 export const useRunsGlobalFilter = () => {
 	const dispatch = useDispatch();
@@ -108,44 +108,145 @@ export const useRunsQuery = () => {
 		};
 	}, [searchParams]);
 
-	const query = useMemo<RunsAPIQuery>(
-		() => ({
+	const query = useMemo<RunsAPIQuery>(() => {
+		const normalizedRunData = normalizeRunDataQuery(
+			searchParams.get('runData') || ''
+		);
+
+		return {
 			startDate: dates.startDate,
 			finishDate: dates.finishDate,
 			page: (pagination.pageIndex + 1).toString() || '1',
 			pageSize: pagination.pageSize.toString() || '25',
-			runData: searchParams.get('runData') || '',
+			runData: normalizedRunData,
 			tagExpr: searchParams.get('tagExpr') || '',
 			projects: projectIds
-		}),
-		[
-			dates.finishDate,
-			dates.startDate,
-			pagination.pageIndex,
-			pagination.pageSize,
-			projectIds,
-			searchParams
-		]
-	);
+		};
+	}, [
+		dates.finishDate,
+		dates.startDate,
+		pagination.pageIndex,
+		pagination.pageSize,
+		projectIds,
+		searchParams
+	]);
 
 	return { query };
 };
 
+/**
+ * Manages run selection state using URL parameters.
+ * Selected run IDs are stored in compressed sidebar state.
+ */
 export const useRunsSelection = () => {
-	const dispatch = useDispatch();
-	const compareIds = useSelector(selectCompareIds);
-	const rowSelection = useSelector(selectRowSelection);
+	const [searchParams, setSearchParams] = useSearchParams();
 
-	const resetSelect = useCallback(() => dispatch(resetSelection()), [dispatch]);
+	const selectedRunIds = useMemo(() => {
+		return getSidebarStateStringArray(searchParams, RUNS_SIDEBAR_KEYS.SELECTED);
+	}, [searchParams]);
+
+	const rowSelection = useMemo(() => {
+		return Object.fromEntries(selectedRunIds.map((id: string) => [id, true]));
+	}, [selectedRunIds]);
+
+	const compareIds = selectedRunIds;
+
+	const resetSelection = useCallback(() => {
+		resetSelectionPopoverOpenState(RUNS_SELECTION_POPOVER_STORAGE_KEY);
+
+		const newParams = updateSidebarStateSearchParams(
+			new URLSearchParams(searchParams),
+			(sidebarState) => {
+				setSidebarStateValue(sidebarState, RUNS_SIDEBAR_KEYS.SELECTED, null);
+			}
+		);
+
+		if (!newParams) {
+			return;
+		}
+
+		setSearchParams(newParams, { replace: true });
+	}, [searchParams, setSearchParams]);
+
+	const resetSelect = resetSelection;
 
 	const removeSelection = useCallback(
-		(runId: string) => dispatch(removeFromSelection(runId)),
-		[dispatch]
+		(runId: string) => {
+			const newSelection = selectedRunIds.filter((id: string) => id !== runId);
+
+			if (newSelection.length === 0) {
+				resetSelectionPopoverOpenState(RUNS_SELECTION_POPOVER_STORAGE_KEY);
+			}
+
+			const newParams = updateSidebarStateSearchParams(
+				new URLSearchParams(searchParams),
+				(sidebarState) => {
+					setSidebarStateValue(
+						sidebarState,
+						RUNS_SIDEBAR_KEYS.SELECTED,
+						newSelection
+					);
+				}
+			);
+
+			if (!newParams) {
+				return;
+			}
+
+			setSearchParams(newParams, { replace: true });
+		},
+		[searchParams, selectedRunIds, setSearchParams]
 	);
 
 	const addSelection = useCallback(
-		(runId: string) => dispatch(addToSelection(runId)),
-		[dispatch]
+		(runId: string) => {
+			if (!selectedRunIds.includes(runId)) {
+				const newSelection = [...selectedRunIds, runId];
+				const newParams = updateSidebarStateSearchParams(
+					new URLSearchParams(searchParams),
+					(sidebarState) => {
+						setSidebarStateValue(
+							sidebarState,
+							RUNS_SIDEBAR_KEYS.SELECTED,
+							newSelection
+						);
+					}
+				);
+
+				if (!newParams) {
+					return;
+				}
+
+				setSearchParams(newParams, { replace: true });
+			}
+		},
+		[searchParams, selectedRunIds, setSearchParams]
+	);
+
+	const replaceSelection = useCallback(
+		(oldRunId: string, newRunId: string) => {
+			const newSelection = selectedRunIds
+				.filter((id: string) => id !== oldRunId && id !== newRunId)
+				.concat(newRunId);
+
+			const newParams = updateSidebarStateSearchParams(
+				new URLSearchParams(searchParams),
+				(sidebarState) => {
+					setSidebarStateValue(
+						sidebarState,
+						RUNS_SIDEBAR_KEYS.SELECTED,
+						newSelection
+					);
+				}
+			);
+
+			if (!newParams) {
+				return;
+			}
+
+			setSearchParams(newParams, { replace: true });
+		},
+		[searchParams, selectedRunIds, setSearchParams]
 	);
 
 	return {
@@ -154,6 +255,7 @@ export const useRunsSelection = () => {
 		resetSelection,
 		resetSelect,
 		removeSelection,
-		addSelection
+		addSelection,
+		replaceSelection
 	};
 };

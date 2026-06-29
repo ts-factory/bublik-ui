@@ -4,10 +4,11 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
 	useQueryParam,
-	JsonParam,
 	withDefault,
 	NumberParam,
-	StringParam
+	StringParam,
+	QueryParamConfig,
+	JsonParam
 } from 'use-query-params';
 import {
 	ExpandedState,
@@ -18,10 +19,15 @@ import {
 } from '@tanstack/react-table';
 
 import { RunData, MergedRun, RunStatsColumn } from '@/shared/types';
-import { useLocalStorage } from '@/shared/hooks';
+import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
+import {
+	decodeCompressedOrJsonState,
+	encodeCompressedState,
+	isCompressedStateValue
+} from '@/bublik/features/sidebar';
 
 import { RowStateContextType, RunRowState } from '../hooks';
 import {
@@ -32,9 +38,69 @@ import {
 import { ColumnId } from './types';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-const GlobalFilterParam = withDefault(JsonParam, []);
-const RowStateParam = withDefault(JsonParam, {});
-const SortingParam = withDefault(JsonParam, []);
+const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
+	encode: (value) => {
+		if (value === null || value === undefined) {
+			return value;
+		}
+
+		return encodeCompressedState(value);
+	},
+	decode: (value) => decodeCompressedOrJsonState(value)
+};
+
+const ExpandedParam = CompressedJsonParam as QueryParamConfig<
+	ExpandedState,
+	ExpandedState
+>;
+const GlobalFilterParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<string[], string[]>,
+	[]
+);
+const RowStateParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<RunRowState, RunRowState>,
+	{}
+);
+const SortingParam = withDefault(
+	CompressedJsonParam as QueryParamConfig<SortingState, SortingState>,
+	[]
+);
+const VisibilityParam = CompressedJsonParam as QueryParamConfig<
+	VisibilityState,
+	VisibilityState
+>;
+const COMPRESSED_RUN_TABLE_QUERY_KEYS = [
+	'expanded',
+	'globalFilter',
+	'rowState',
+	'sorting',
+	'visibility'
+] as const;
+const RUN_TABLE_PERSISTED_QUERY_KEYS = [
+	'expanded',
+	'globalFilter',
+	'rowState',
+	'columnFilters'
+] as const;
+
+function isLegacyJsonStateParamValue(value: string | null): boolean {
+	if (!value || isCompressedStateValue(value)) {
+		return false;
+	}
+
+	try {
+		JSON.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function hasPersistedRunTableState(search: string): boolean {
+	const searchParams = new URLSearchParams(search);
+
+	return RUN_TABLE_PERSISTED_QUERY_KEYS.some((key) => searchParams.has(key));
+}
 
 export function getRowId(
 	original: RunData | MergedRun,
@@ -105,7 +171,7 @@ function useColumnVisibility(
 		);
 
 	const [queryColumnVisibility, setQueryColumnVisibility] =
-		useQueryParam<VisibilityState>('visibility', JsonParam);
+		useQueryParam<VisibilityState>('visibility', VisibilityParam);
 
 	const hasQueryColumnVisibility = hasColumnVisibility(queryColumnVisibility);
 	const hasLocalColumnVisibility = hasStoredColumnVisibility(
@@ -251,10 +317,16 @@ export function migrateExpandedStateUrl(
 	const currentUrl = new URL(window.location.href);
 
 	try {
-		const expandedJson = JSON.stringify(newExpanded);
-		currentUrl.searchParams.set('expanded', expandedJson);
+		// Encode with the same compressed format every other run-table writer
+		// uses, then actually apply the rewritten URL.
+		currentUrl.searchParams.set('expanded', encodeCompressedState(newExpanded));
+		window.history.replaceState(
+			window.history.state,
+			'',
+			currentUrl.toString()
+		);
 	} catch (error) {
-		console.error('Failed to stringify expanded state:', error, newExpanded);
+		console.error('Failed to migrate expanded state:', error, newExpanded);
 	}
 }
 
@@ -272,17 +344,28 @@ export const useRunTableQueryState = (
 	defaultColumns?: RunStatsColumn[],
 	projectId?: number
 ) => {
-	const locationState = useLocation().state as {
+	const location = useLocation();
+	const navigationState = location.state as {
 		openUnexpected?: boolean;
 		openUnexpectedResults?: boolean;
+		openUnexpectedIntentId?: string;
 	};
+	// A fresh navigation carries a unique openUnexpectedIntentId; always honor
+	// it even when the target URL already has persisted table params. Only the
+	// legacy (id-less) booleans are suppressed in that case, since they cannot
+	// be distinguished from a reload of an already-interacted-with table.
+	const hasFreshIntent = Boolean(navigationState?.openUnexpectedIntentId);
+	const locationState =
+		hasFreshIntent || !hasPersistedRunTableState(location.search)
+			? navigationState
+			: undefined;
 	const { targetIterationId } = useTargetIterationId();
 	const [resultFilter] = useQueryParam('resultFilter', StringParam);
 
 	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
 		'expanded',
 		withDefault(
-			JsonParam,
+			ExpandedParam,
 			data && data.length > 0 ? { [getRowId(data[0], 0, undefined)]: true } : {}
 		)
 	);
@@ -313,6 +396,38 @@ export const useRunTableQueryState = (
 		defaultColumns,
 		projectId
 	);
+
+	useMount(() => {
+		const currentSearchParams = new URLSearchParams(window.location.search);
+
+		const keysToMigrate = COMPRESSED_RUN_TABLE_QUERY_KEYS.filter((key) =>
+			isLegacyJsonStateParamValue(currentSearchParams.get(key))
+		);
+
+		if (keysToMigrate.length === 0) {
+			return;
+		}
+
+		if (keysToMigrate.includes('expanded')) {
+			setExpanded(expanded, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('globalFilter')) {
+			setGlobalFilter(globalFilter, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('rowState')) {
+			setRowState(rowState, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('sorting')) {
+			setSorting(sorting, 'replaceIn');
+		}
+
+		if (keysToMigrate.includes('visibility')) {
+			setColumnVisibility(columnVisibility);
+		}
+	});
 
 	return {
 		locationState,

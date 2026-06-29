@@ -11,6 +11,8 @@ import {
 import { bublikAPI } from '@/services/bublik-api';
 import { RunsData } from '@/shared/types';
 
+import { normalizeRunDataList } from './runs-key-value';
+
 export const runsAdapter = createEntityAdapter<RunsData, EntityId>({
 	selectId: (run) => run.id.toString()
 });
@@ -24,13 +26,11 @@ export interface AppStateWithRunsSlice {
 export interface RunsPageSliceState {
 	globalFilter: string[];
 	results: EntityState<RunsData, EntityId>;
-	rowSelection: string[];
 }
 
 export const initialRunsPageState: RunsPageSliceState = {
 	globalFilter: [],
-	results: runsAdapter.getInitialState(),
-	rowSelection: []
+	results: runsAdapter.getInitialState()
 };
 
 export const runsPageSlice = createSlice({
@@ -38,18 +38,7 @@ export const runsPageSlice = createSlice({
 	initialState: initialRunsPageState,
 	reducers: {
 		updateGlobalFilter: (state, action: PayloadAction<string[]>) => {
-			state.globalFilter = action.payload;
-		},
-		resetSelection: (state) => {
-			state.rowSelection = [];
-		},
-		addToSelection: (state, action: PayloadAction<string>) => {
-			state.rowSelection.push(action.payload);
-		},
-		removeFromSelection: (state, action: PayloadAction<string>) => {
-			state.rowSelection = state.rowSelection.filter(
-				(id) => id !== action.payload
-			);
+			state.globalFilter = normalizeRunDataList(action.payload);
 		}
 	},
 	extraReducers: (builder) => {
@@ -63,9 +52,4 @@ export const runsPageSlice = createSlice({
 });
 
 export const runsPageReducer = runsPageSlice.reducer;
-export const {
-	updateGlobalFilter,
-	resetSelection,
-	removeFromSelection,
-	addToSelection
-} = runsPageSlice.actions;
+export const { updateGlobalFilter } = runsPageSlice.actions;

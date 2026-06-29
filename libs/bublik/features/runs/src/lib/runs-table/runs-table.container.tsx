@@ -32,8 +32,13 @@ export const RunsTableContainer = () => {
 	const { userPreferences } = useUserPreferences();
 	const { pagination, handlePaginationChange } = useRunsPagination();
 	const { localGlobalFilter, handleGlobalFilterChange } = useRunsGlobalFilter();
-	const { rowSelection, addSelection, removeSelection, compareIds } =
-		useRunsSelection();
+	const {
+		rowSelection,
+		addSelection,
+		removeSelection,
+		replaceSelection,
+		compareIds
+	} = useRunsSelection();
 	const autoApplyBadgeFilters = userPreferences.runs.autoApplyBadgeFilters;
 	const handleTableGlobalFilterChange: OnChangeFn<string[]> = useCallback(
 		(updater) => {
@@ -90,6 +95,7 @@ export const RunsTableContainer = () => {
 				rowSelection={rowSelection}
 				addSelection={addSelection}
 				removeSelection={removeSelection}
+				replaceSelection={replaceSelection}
 				selection={compareIds}
 			/>
 		</div>

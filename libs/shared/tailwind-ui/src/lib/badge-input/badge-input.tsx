@@ -16,6 +16,11 @@ import { nanoid } from '@reduxjs/toolkit';
 import { mergeRefs } from '@react-aria/utils';
 
 import { useClickOutside } from '@/shared/hooks';
+import {
+	DEFAULT_KEY_VALUE_DISPLAY_DELIMITER,
+	DEFAULT_KEY_VALUE_SUBMIT_DELIMITER,
+	formatKeyValueForDisplay
+} from '@/shared/utils';
 
 import { BadgeItem } from './types';
 import { parseBadgeString } from './utils';
@@ -34,20 +39,24 @@ export interface BadgeInputProps {
 	icon?: ReactNode;
 	trailingContent?: ReactNode;
 	name?: string;
+	keyValueDisplayDelimiter?: string;
+	keyValueSubmitDelimiter?: string;
 }
 
 export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 	(
 		{
 			label,
-			labelTrailingContent,
 			onBadgesChange,
 			badges = [],
 			placeholder,
 			icon,
-			trailingContent,
 			disabled,
-			name
+			name,
+			keyValueDisplayDelimiter,
+			keyValueSubmitDelimiter,
+			labelTrailingContent,
+			trailingContent
 		},
 		ref
 	) => {
@@ -55,6 +64,14 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 		const [isKeyReleased, setIsKeyReleased] = useState(false);
 		const [isFocused, setIsFocused] = useState(false);
 		const inputRef = useRef<HTMLInputElement>(null);
+		const formatBadgeValueForInput = useCallback(
+			(badgeValue: string) =>
+				formatKeyValueForDisplay(badgeValue, {
+					displayDelimiter: keyValueDisplayDelimiter,
+					submitDelimiter: keyValueSubmitDelimiter
+				}),
+			[keyValueDisplayDelimiter, keyValueSubmitDelimiter]
+		);
 
 		/**
     |--------------------------------------------------
@@ -73,14 +90,23 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 			) {
 				e.preventDefault();
 
-				const parsedBadges: BadgeItem[] = parseBadgeString(input).map(
-					(value) => ({
-						id: nanoid(4),
-						value,
-						originalValue: value,
-						isExpression: false
-					})
-				);
+				const parsedConfig = {
+					separator: ',',
+					displayDelimiter:
+						keyValueDisplayDelimiter ?? DEFAULT_KEY_VALUE_DISPLAY_DELIMITER,
+					submitDelimiter:
+						keyValueSubmitDelimiter ?? DEFAULT_KEY_VALUE_SUBMIT_DELIMITER
+				};
+
+				const parsedBadges: BadgeItem[] = parseBadgeString(
+					input,
+					parsedConfig
+				).map((value) => ({
+					id: nanoid(4),
+					value,
+					originalValue: value,
+					isExpression: false
+				}));
 				const newBadgesValue = [...badges, ...parsedBadges];
 
 				setValue('');
@@ -98,7 +124,9 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 				const badgesCopy = [...badges];
 				const poppedBadge = badgesCopy.pop();
 
-				setValue(poppedBadge?.value || '');
+				setValue(
+					poppedBadge ? formatBadgeValueForInput(poppedBadge.value) : ''
+				);
 				onBadgesChange?.(badgesCopy);
 			}
 
@@ -134,11 +162,11 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 
 		const handleBadgeEdit = useCallback(
 			(badgeToEdit: BadgeItem) => {
-				setValue(badgeToEdit.value);
+				setValue(formatBadgeValueForInput(badgeToEdit.value));
 				onBadgesChange?.(badges.filter((badge) => badge.id !== badgeToEdit.id));
 				queueMicrotask(() => inputRef.current?.focus());
 			},
-			[onBadgesChange, badges]
+			[onBadgesChange, badges, formatBadgeValueForInput]
 		);
 
 		const handleBadgeDeleteClick = useCallback(
@@ -193,7 +221,14 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 					) : null}
 
 					<div className="flex flex-wrap flex-grow h-full">
-						{!disabled ? <BadgeList label={label} badges={badges} /> : null}
+						{!disabled ? (
+							<BadgeList
+								label={label}
+								badges={badges}
+								keyValueDisplayDelimiter={keyValueDisplayDelimiter}
+								keyValueSubmitDelimiter={keyValueSubmitDelimiter}
+							/>
+						) : null}
 						<input
 							className="flex w-full outline-none placeholder:font-normal disabled:bg-bg-body pr-2 pl-4 py-2 cursor-[inherit] bg-transparent placeholder:text-text-menu border-none text-text-secondary leading-[1.5rem] font-medium text-[0.875rem] focus:ring-transparent"
 							value={value}

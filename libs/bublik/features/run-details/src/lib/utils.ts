@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { DetailsItem } from '@/shared/types';
+import { config } from '@/bublik/config';
+import { formatKeyValueForDisplay, getKeyValueParts } from '@/shared/utils';
 
 import { InfoListItem } from './info-list/list-item';
 
@@ -43,7 +45,10 @@ export const prepareDuration = (dateString?: string) => {
 };
 
 export const formatSeparator = (value: string) => {
-	return value.replace('=', ': ');
+	return formatKeyValueForDisplay(value, {
+		displayDelimiter: config.keyValueDisplayDelimiter,
+		submitDelimiter: config.keyValueSubmitDelimiter
+	});
 };
 
 export const prepareRevisions = (
@@ -69,11 +74,9 @@ export const prepareInfoListItems =
 	};
 
 export const extractUrlFromLabel = (item: string): string | undefined => {
-	const parts = item.split('=');
+	const [, value] = getKeyValueParts(item, config.keyValueSubmitDelimiter);
 
-	if (parts.length >= 2) {
-		const value = parts.slice(1).join('=');
-
+	if (typeof value !== 'undefined') {
 		if (value.startsWith('https://') || value.startsWith('http://')) {
 			const urlMatch = value.match(/https?:\/\/[^\s,)\]}>]+/);
 			return urlMatch ? urlMatch[0] : undefined;

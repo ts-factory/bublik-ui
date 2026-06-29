@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { MeasurementsRouterParams } from '@/shared/types';
+import { config } from '@/bublik/config';
 
 import {
 	useGetResultInfoQuery,
@@ -141,6 +142,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 					obtainedResult={result_type}
 					parameters={parameters}
 					isError={has_error}
+					separator={config.keyValueSubmitDelimiter}
 				/>
 			</div>
 		</div>

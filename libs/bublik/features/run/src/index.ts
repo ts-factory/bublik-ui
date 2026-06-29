@@ -3,3 +3,4 @@
 export * from './lib/run-table';
 export * from './lib/result-table';
 export { GlobalRequirementsProvider } from './lib/hooks';
+export * from './lib/sidebar';
