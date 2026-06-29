@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
 	getExpandedRowModel,
 	getCoreRowModel,
@@ -12,6 +12,17 @@ import {
 	OnChangeFn,
 	VisibilityState
 } from '@tanstack/react-table';
+import {
+	DndContext,
+	DragEndEvent,
+	DragMoveEvent,
+	DragStartEvent,
+	PointerSensor,
+	closestCenter,
+	useSensor,
+	useSensors
+} from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 
 import { MergedRun, RunData, RunStatsColumn } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
@@ -33,6 +44,7 @@ import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
+import { buildColumnGroups } from './constants';
 import { ColumnId } from './types';
 import { useGlobalRequirements } from '../hooks';
 import {
@@ -147,6 +159,98 @@ export const RunTable = (props: RunTableProps) => {
 	const { showUnexpected, expandUnexpected, expandToIteration } =
 		useExpandUnexpected({ table });
 
+	const sortableColumnIds = useMemo<ColumnId[]>(
+		() => columnOrder.filter((id) => id !== ColumnId.Tree),
+		[columnOrder]
+	);
+
+	const tableRef = useRef<HTMLTableElement>(null);
+	// Columns of the group being dragged. Their cells slide together via the
+	// `--rt-group-dx` CSS variable, which is updated on drag move (no re-render).
+	const [draggingGroupColumns, setDraggingGroupColumns] = useState<
+		ColumnId[] | null
+	>(null);
+
+	const sensors = useSensors(
+		useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+	);
+
+	function handleDragStart(event: DragStartEvent) {
+		if (event.active.data.current?.type !== 'group') return;
+
+		const group = buildColumnGroups(sortableColumnIds).find(
+			(group) => group.id === event.active.id
+		);
+
+		setDraggingGroupColumns(group?.columnIds ?? null);
+		tableRef.current?.style.setProperty('--rt-group-dx', '0px');
+	}
+
+	function handleDragMove(event: DragMoveEvent) {
+		if (event.active.data.current?.type !== 'group') return;
+
+		tableRef.current?.style.setProperty('--rt-group-dx', `${event.delta.x}px`);
+	}
+
+	function resetGroupDrag() {
+		setDraggingGroupColumns(null);
+		tableRef.current?.style.removeProperty('--rt-group-dx');
+	}
+
+	function handleDragEnd(event: DragEndEvent) {
+		const { active, over } = event;
+
+		resetGroupDrag();
+
+		if (!over || active.id === over.id) return;
+
+		if (active.data.current?.type === 'group') {
+			const groups = buildColumnGroups(sortableColumnIds);
+
+			const oldIndex = groups.findIndex((group) => group.id === active.id);
+			// `over` can be another group header or any column under it.
+			let newIndex = groups.findIndex((group) => group.id === over.id);
+			if (newIndex === -1) {
+				newIndex = groups.findIndex((group) =>
+					group.columnIds.includes(over.id as ColumnId)
+				);
+			}
+
+			if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+			const reordered = arrayMove(groups, oldIndex, newIndex).flatMap(
+				(group) => group.columnIds
+			);
+
+			trackEvent(analyticsEventNames.runTableToolbarColumnReorder, {
+				columnId: String(active.id),
+				fromIndex: oldIndex,
+				toIndex: newIndex,
+				source: 'table_group_header'
+			});
+
+			onColumnOrderChange([ColumnId.Tree, ...reordered]);
+			return;
+		}
+
+		const oldIndex = sortableColumnIds.indexOf(active.id as ColumnId);
+		const newIndex = sortableColumnIds.indexOf(over.id as ColumnId);
+
+		if (oldIndex === -1 || newIndex === -1) return;
+
+		trackEvent(analyticsEventNames.runTableToolbarColumnReorder, {
+			columnId: String(active.id),
+			fromIndex: oldIndex,
+			toIndex: newIndex,
+			source: 'table_header'
+		});
+
+		onColumnOrderChange([
+			ColumnId.Tree,
+			...arrayMove(sortableColumnIds, oldIndex, newIndex)
+		]);
+	}
+
 	useMount(() => {
 		if (openUnexpected) showUnexpected();
 		if (openUnexpectedResults) expandUnexpected();
@@ -182,24 +286,40 @@ export const RunTable = (props: RunTableProps) => {
 					<RunTableEmpty />
 				</div>
 			) : (
-				<table
-					className={cn(
-						'w-full p-0 m-0 border-separate h-full border-spacing-0',
-						isFetching && 'opacity-40 pointer-events-none'
-					)}
+				<DndContext
+					sensors={sensors}
+					collisionDetection={closestCenter}
+					onDragStart={handleDragStart}
+					onDragMove={handleDragMove}
+					onDragEnd={handleDragEnd}
+					onDragCancel={resetGroupDrag}
 				>
-					<RunHeader instance={table} />
-					<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
-						{table.getRowModel().rows.map((row) => (
-							<RunRow
-								key={row.id}
-								row={row}
-								runId={runId}
-								targetIterationId={targetIterationId}
-							/>
-						))}
-					</tbody>
-				</table>
+					<table
+						ref={tableRef}
+						className={cn(
+							'w-full p-0 m-0 border-separate h-full border-spacing-0',
+							isFetching && 'opacity-40 pointer-events-none'
+						)}
+					>
+						<RunHeader
+							instance={table}
+							columnOrder={columnOrder}
+							draggingGroupColumns={draggingGroupColumns}
+						/>
+						<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
+							{table.getRowModel().rows.map((row) => (
+								<RunRow
+									key={row.id}
+									row={row}
+									runId={runId}
+									sortableColumnIds={sortableColumnIds}
+									draggingGroupColumns={draggingGroupColumns}
+									targetIterationId={targetIterationId}
+								/>
+							))}
+						</tbody>
+					</table>
+				</DndContext>
 			)}
 		</div>
 	);
