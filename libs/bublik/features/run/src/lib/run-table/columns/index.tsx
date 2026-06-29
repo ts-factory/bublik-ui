@@ -32,7 +32,11 @@ import { stringifySearch } from '@/router';
 import { badgeColumns } from './badge-columns';
 import { TestComments } from '../components/test-comments';
 import { ColumnId } from '../types';
-import { COLUMN_GROUPS, createDefaultColumnOrder } from '../constants';
+import {
+	buildColumnGroups,
+	COLUMN_GROUPS,
+	createDefaultColumnOrder
+} from '../constants';
 
 function getHistoryViewLink(
 	path: string[],
@@ -122,43 +126,28 @@ function groupColumnsByOrder(
 	columns: ColumnDef<RunData | MergedRun>[],
 	helper: ReturnType<typeof createColumnHelper<RunData | MergedRun>>
 ) {
-	const columnGroups = columns.reduce<
-		{
-			id: string;
-			columns: ColumnDef<RunData | MergedRun>[];
-		}[]
-	>((groups, column) => {
-		const columnId = column.id as ColumnId;
-		const group = COLUMN_GROUPS.find((group) =>
-			group.columns.includes(columnId)
-		);
-		const groupId = group?.id ?? columnId;
-		const lastGroup = groups[groups.length - 1];
+	const columnsById = new Map(
+		columns.map((column) => [column.id as ColumnId, column])
+	);
 
-		if (lastGroup?.id === groupId) {
-			lastGroup.columns.push(column);
-		} else {
-			groups.push({ id: groupId, columns: [column] });
+	return buildColumnGroups(columns.map((column) => column.id as ColumnId)).map(
+		({ id, columnIds }) => {
+			const group = COLUMN_GROUPS.find((group) =>
+				group.columns.includes(columnIds[0])
+			);
+
+			return helper.group({
+				id,
+				header: () => group?.label,
+				columns: columnIds.flatMap((columnId) => {
+					const column = columnsById.get(columnId);
+
+					return column ? [column] : [];
+				}),
+				meta: { className: group?.className }
+			});
 		}
-
-		return groups;
-	}, []);
-	const groupUsageCount = new Map<string, number>();
-
-	return columnGroups.map(({ id, columns }) => {
-		const group = COLUMN_GROUPS.find((group) => group.id === id);
-		const usedCount = groupUsageCount.get(id) ?? 0;
-		const groupId = usedCount === 0 ? id : `${id}-${usedCount}`;
-
-		groupUsageCount.set(id, usedCount + 1);
-
-		return helper.group({
-			id: groupId,
-			header: () => group?.label,
-			columns,
-			meta: { className: group?.className }
-		});
-	});
+	);
 }
 
 function getColumns({
