@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, Fragment, ReactNode, useMemo, useState } from 'react';
+import { FC, Fragment, ReactNode, useMemo } from 'react';
 import {
 	ExpandedState,
 	flexRender,
@@ -16,17 +16,11 @@ import {
 
 import { NodeEntity, RunData } from '@/shared/types';
 import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuLabel,
-	DropdownMenuTrigger,
-	Icon,
-	Separator,
+	ColumnsVisibility,
+	ColumnVisibilityItem,
 	Skeleton,
 	TooltipProvider,
-	cn,
-	ButtonTw
+	cn
 } from '@/shared/tailwind-ui';
 import { toolbarIcon } from '@/bublik/run-utils';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -39,8 +33,51 @@ export interface VisibilityProps {
 	table: Table<MergedRunDataWithDiff>;
 }
 
-const ColumnsVisibility = ({ table }: VisibilityProps) => {
-	const [isVisible, setIsVisible] = useState(false);
+const DiffToolbar = ({ table }: VisibilityProps) => {
+	const items: ColumnVisibilityItem[] = table
+		.getAllLeafColumns()
+		.filter(
+			(column) =>
+				!column.id.startsWith('GUTTER') &&
+				!column.id.startsWith('NAME') &&
+				column.id.includes('_LEFT')
+		)
+		.map((leftColumn) => {
+			const rightColumn = table.getColumn(
+				leftColumn.id.replace('_LEFT', '_RIGHT')
+			);
+
+			const id = leftColumn.id.toLowerCase();
+			const icon = id.includes('unexpected')
+				? toolbarIcon['unexpected']
+				: id.includes('expected')
+				? toolbarIcon['expected']
+				: id.includes('abnormal')
+				? toolbarIcon['abnormal']
+				: undefined;
+
+			const label = `${leftColumn.id.charAt(0).toUpperCase()}${leftColumn.id
+				.replace('_LEFT', '')
+				.slice(1)
+				.toLowerCase()}`
+				.split('_')
+				.join(' ')
+				.replace(/expected|unexpected/i, '');
+
+			return {
+				id: leftColumn.id,
+				label,
+				icon,
+				checked: Boolean(
+					leftColumn.getIsVisible() && rightColumn?.getIsVisible()
+				)
+			};
+		});
+
+	const handleToggle = (id: string, checked: boolean) => {
+		table.getColumn(id)?.toggleVisibility(checked);
+		table.getColumn(id.replace('_LEFT', '_RIGHT'))?.toggleVisibility(checked);
+	};
 
 	return (
 		<div className="flex items-center justify-between px-4 py-1 mb-1 bg-white rounded">
@@ -48,76 +85,12 @@ const ColumnsVisibility = ({ table }: VisibilityProps) => {
 				Toolbar
 			</span>
 			<div className="flex items-center gap-2">
-				<DropdownMenu open={isVisible}>
-					<DropdownMenuTrigger asChild onClick={() => setIsVisible(true)}>
-						<ButtonTw
-							variant="secondary"
-							size="xss"
-							state={isVisible && 'active'}
-						>
-							Columns
-							<Icon name="ArrowShortSmall" className="ml-1.5" />
-						</ButtonTw>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						onInteractOutside={() => setIsVisible(false)}
-						onEscapeKeyDown={() => setIsVisible(false)}
-						collisionPadding={{ right: 15 }}
-						className="w-56"
-					>
-						<DropdownMenuLabel className="text-xs">
-							Column Visibility
-						</DropdownMenuLabel>
-						<Separator className="h-px my-1 -mx-1" />
-						{table
-							.getAllLeafColumns()
-							.filter((column) => {
-								return (
-									!column.id.startsWith('GUTTER') &&
-									!column.id.startsWith('NAME') &&
-									column.id.includes('_LEFT')
-								);
-							})
-							.map((leftColumn) => {
-								const rightColumn = table.getColumn(
-									leftColumn.id.replace('_LEFT', '_RIGHT')
-								);
-
-								const handleChange = (isChecked: boolean) => {
-									leftColumn.toggleVisibility(isChecked);
-									rightColumn?.toggleVisibility(isChecked);
-								};
-
-								const icon = leftColumn.id.toLowerCase().includes('unexpected')
-									? toolbarIcon['unexpected']
-									: leftColumn.id.toLowerCase().includes('expected')
-									? toolbarIcon['expected']
-									: leftColumn.id.toLowerCase().includes('abnormal')
-									? toolbarIcon['abnormal']
-									: null;
-
-								return (
-									<DropdownMenuCheckboxItem
-										key={leftColumn.id}
-										checked={
-											leftColumn.getIsVisible() && rightColumn?.getIsVisible()
-										}
-										onCheckedChange={handleChange}
-										className="text-xs"
-									>
-										{`${leftColumn.id.charAt(0).toUpperCase()}${leftColumn.id
-											.replace('_LEFT', '')
-											.slice(1)
-											.toLowerCase()}`
-											.split('_')
-											.join(' ')
-											.replace(/expected|unexpected/i, '')}
-										{icon}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-					</DropdownMenuContent>
-				</DropdownMenu>
+				<ColumnsVisibility
+					items={items}
+					onColumnToggle={handleToggle}
+					label="Column Visibility"
+					triggerIconName="DashboardModeColumns"
+				/>
 			</div>
 		</div>
 	);
@@ -187,7 +160,7 @@ export const RunDiff: FC<RunDiffProps> = ({
 
 	return (
 		<>
-			<ColumnsVisibility table={table} />
+			<DiffToolbar table={table} />
 			<TooltipProvider disableHoverableContent>
 				<table className="w-full bg-white border-separate rounded border-spacing-y-0">
 					<thead className="sticky top-0 z-20 bg-white">

@@ -11,21 +11,6 @@ import {
 	useState
 } from 'react';
 import { VirtualItem, useVirtualizer } from '@tanstack/react-virtual';
-import {
-	DndContext,
-	DragEndEvent,
-	PointerSensor,
-	closestCenter,
-	useSensor,
-	useSensors
-} from '@dnd-kit/core';
-import {
-	SortableContext,
-	arrayMove,
-	useSortable,
-	verticalListSortingStrategy
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { PopoverPortal } from '@radix-ui/react-popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
@@ -44,6 +29,8 @@ import {
 	ButtonTw,
 	CardHeader,
 	ColumnCheckmark,
+	ColumnsVisibility,
+	ColumnVisibilityItem,
 	ConclusionHoverCard,
 	DropdownMenu,
 	DropdownMenuContent,
@@ -696,7 +683,7 @@ function RunsProgress(props: RunsProgressProps) {
 								Changes Only
 							</ButtonTw>
 						</div>
-						<ColumnsVisibility
+						<ProgressColumnsVisibility
 							visibleColumnIds={visibleColumnIds}
 							onVisibleColumnIdsChange={setVisibleColumnIds}
 							columnOrder={columnOrder}
@@ -1084,64 +1071,7 @@ function getExpandableRowIds(rows: RunsProgressRow[]): string[] {
 	return rowIds;
 }
 
-function SortableColumnItem({
-	column,
-	checked,
-	onToggle
-}: {
-	column: RunsProgressColumn;
-	checked: boolean;
-	onToggle: (checked: boolean) => void;
-}) {
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging
-	} = useSortable({ id: column.id });
-
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition
-	};
-
-	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			className={cn(
-				'flex items-center gap-1.5 rounded py-1 pr-2 text-xs hover:bg-primary-wash',
-				isDragging && 'relative z-10 bg-primary-wash shadow-sm'
-			)}
-		>
-			<button
-				type="button"
-				className="grid h-5 w-5 shrink-0 cursor-grab touch-none place-items-center text-text-menu active:cursor-grabbing"
-				aria-label={`Reorder ${column.label} column`}
-				{...attributes}
-				{...listeners}
-			>
-				<Icon name="ThreeDotsVertical" size={20} />
-			</button>
-			<div
-				className="flex flex-1 cursor-pointer items-center gap-2 py-0.5"
-				onClick={() => onToggle(!checked)}
-			>
-				<ColumnCheckmark checked={checked} />
-				<span className="flex flex-1 select-none items-center gap-1.5">
-					{column.label}
-					{column.icon ? (
-						<span className="ml-auto inline-flex">{column.icon}</span>
-					) : null}
-				</span>
-			</div>
-		</div>
-	);
-}
-
-function ColumnsVisibility({
+function ProgressColumnsVisibility({
 	visibleColumnIds,
 	onVisibleColumnIdsChange,
 	columnOrder,
@@ -1156,17 +1086,12 @@ function ColumnsVisibility({
 	showObjective: boolean;
 	onShowObjectiveChange: (showObjective: boolean) => void;
 }) {
-	const [isOpen, setIsOpen] = useState(false);
-	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-	);
-
-	function handleColumnChange(
-		columnId: RunsProgressColumnId,
-		isChecked: boolean
-	) {
+	function handleColumnChange(columnId: string, isChecked: boolean) {
 		if (isChecked) {
-			onVisibleColumnIdsChange([...visibleColumnIds, columnId]);
+			onVisibleColumnIdsChange([
+				...visibleColumnIds,
+				columnId as RunsProgressColumnId
+			]);
 			return;
 		}
 
@@ -1175,70 +1100,42 @@ function ColumnsVisibility({
 		onVisibleColumnIdsChange(visibleColumnIds.filter((id) => id !== columnId));
 	}
 
-	function handleDragEnd(event: DragEndEvent) {
-		const { active, over } = event;
+	const items: ColumnVisibilityItem[] = columnOrder.flatMap((id) => {
+		const column = COLUMN_BY_ID.get(id);
 
-		if (!over || active.id === over.id) return;
+		if (!column) return [];
 
-		const oldIndex = columnOrder.indexOf(active.id as RunsProgressColumnId);
-		const newIndex = columnOrder.indexOf(over.id as RunsProgressColumnId);
-
-		if (oldIndex === -1 || newIndex === -1) return;
-
-		onColumnOrderChange(arrayMove(columnOrder, oldIndex, newIndex));
-	}
+		return [
+			{
+				id,
+				label: column.label,
+				icon: column.icon,
+				checked: visibleColumnIds.includes(id)
+			}
+		];
+	});
 
 	return (
-		<DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-			<DropdownMenuTrigger asChild>
-				<ButtonTw variant="secondary" size="xss" state={isOpen && 'active'}>
-					<Icon name="DashboardModeColumns" size={20} className="mr-1.5" />
-					Columns
-					<Icon name="ArrowShortSmall" className="ml-1.5" />
-				</ButtonTw>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent collisionPadding={{ right: 15 }} className="w-56">
-				<DropdownMenuLabel className="text-xs">Test Info</DropdownMenuLabel>
-				<Separator className="h-px my-1 -mx-1" />
-				<div
-					className="flex cursor-pointer items-center gap-2 rounded py-1.5 pl-[26px] pr-2 text-xs hover:bg-primary-wash"
-					onClick={() => onShowObjectiveChange(!showObjective)}
-				>
-					<ColumnCheckmark checked={showObjective} />
-					<span className="select-none">Objective</span>
-				</div>
-				<Separator className="h-px my-1 -mx-1" />
-				<DropdownMenuLabel className="text-xs">
-					Result Columns
-				</DropdownMenuLabel>
-				<Separator className="h-px my-1 -mx-1" />
-				<DndContext
-					sensors={sensors}
-					collisionDetection={closestCenter}
-					onDragEnd={handleDragEnd}
-				>
-					<SortableContext
-						items={columnOrder}
-						strategy={verticalListSortingStrategy}
-					>
-						{columnOrder.map((id) => {
-							const column = COLUMN_BY_ID.get(id);
-
-							if (!column) return null;
-
-							return (
-								<SortableColumnItem
-									key={id}
-									column={column}
-									checked={visibleColumnIds.includes(id)}
-									onToggle={(isChecked) => handleColumnChange(id, isChecked)}
-								/>
-							);
-						})}
-					</SortableContext>
-				</DndContext>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<ColumnsVisibility
+			items={items}
+			onColumnToggle={handleColumnChange}
+			sortable
+			onReorder={(orderedIds) =>
+				onColumnOrderChange(orderedIds as RunsProgressColumnId[])
+			}
+			label="Result Columns"
+		>
+			<DropdownMenuLabel className="text-xs">Test Info</DropdownMenuLabel>
+			<Separator className="h-px my-1 -mx-1" />
+			<div
+				className="flex cursor-pointer items-center gap-2 rounded py-1.5 pl-[26px] pr-2 text-xs hover:bg-primary-wash"
+				onClick={() => onShowObjectiveChange(!showObjective)}
+			>
+				<ColumnCheckmark checked={showObjective} />
+				<span className="select-none">Objective</span>
+			</div>
+			<Separator className="h-px my-1 -mx-1" />
+		</ColumnsVisibility>
 	);
 }
 
