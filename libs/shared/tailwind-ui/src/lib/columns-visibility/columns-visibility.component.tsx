@@ -39,13 +39,19 @@ export type ColumnVisibilityItem = {
 	checked: boolean;
 };
 
+export type ColumnReorderChange = {
+	activeId: string;
+	fromIndex: number;
+	toIndex: number;
+};
+
 export interface ColumnsVisibilityProps {
 	items: ColumnVisibilityItem[];
 	onColumnToggle: (id: string, checked: boolean) => void;
 	/** Enables drag-to-reorder with a grip handle. Defaults to `false`. */
 	sortable?: boolean;
 	/** Called with the new id order after a drag. Required when `sortable`. */
-	onReorder?: (orderedIds: string[]) => void;
+	onReorder?: (orderedIds: string[], change: ColumnReorderChange) => void;
 	/** Optional controlled open state. */
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
@@ -97,7 +103,11 @@ export function ColumnsVisibility({
 
 		if (oldIndex === -1 || newIndex === -1) return;
 
-		onReorder?.(arrayMove(ids, oldIndex, newIndex));
+		onReorder?.(arrayMove(ids, oldIndex, newIndex), {
+			activeId: active.id as string,
+			fromIndex: oldIndex,
+			toIndex: newIndex
+		});
 	}
 
 	const list = sortable ? (

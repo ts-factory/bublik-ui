@@ -1,36 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Table, VisibilityState } from '@tanstack/react-table';
-import {
-	DndContext,
-	DragEndEvent,
-	PointerSensor,
-	closestCenter,
-	useSensor,
-	useSensors
-} from '@dnd-kit/core';
-import {
-	SortableContext,
-	arrayMove,
-	useSortable,
-	verticalListSortingStrategy
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData } from '@/shared/types';
 import { toolbarIcon } from '@/bublik/run-utils';
 import {
 	ButtonTw,
-	ColumnCheckmark,
-	cn,
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuLabel,
-	DropdownMenuTrigger,
+	ColumnReorderChange,
+	ColumnsVisibility,
+	ColumnVisibilityItem,
 	Icon,
-	Separator,
 	Tooltip
 } from '@/shared/tailwind-ui';
 
@@ -58,63 +39,6 @@ function getColumnIcon(columnId: string): ReactNode {
 	return null;
 }
 
-interface SortableColumnItemProps {
-	id: ColumnId;
-	checked: boolean;
-	onToggle: (checked: boolean) => void;
-}
-
-function SortableColumnItem({
-	id,
-	checked,
-	onToggle
-}: SortableColumnItemProps) {
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging
-	} = useSortable({ id });
-
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition
-	};
-
-	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			className={cn(
-				'flex items-center gap-1.5 rounded py-1 pr-2 text-xs hover:bg-primary-wash',
-				isDragging && 'relative z-10 bg-primary-wash shadow-sm'
-			)}
-		>
-			<button
-				type="button"
-				className="grid h-5 w-5 shrink-0 cursor-grab touch-none place-items-center text-text-menu active:cursor-grabbing"
-				aria-label={`Reorder ${getColumnLabel(id)} column`}
-				{...attributes}
-				{...listeners}
-			>
-				<Icon name="ThreeDotsVertical" size={20} />
-			</button>
-			<div
-				className={cn('flex flex-1 cursor-pointer items-center gap-2 py-0.5')}
-				onClick={() => onToggle(!checked)}
-			>
-				<ColumnCheckmark checked={checked} />
-				<span className="flex flex-1 select-none items-center gap-4">
-					{getColumnLabel(id)}
-					{getColumnIcon(id)}
-				</span>
-			</div>
-		</div>
-	);
-}
-
 export interface ToolbarProps {
 	table: Table<RunData | MergedRun>;
 	defaultColumnVisibility: VisibilityState;
@@ -135,34 +59,43 @@ export const Toolbar = ({
 		table
 	});
 
-	const [isOpen, setIsOpen] = useState(false);
-
-	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-	);
-
 	const sortableColumnIds = useMemo<ColumnId[]>(
 		() => columnOrder.filter((id) => id !== ColumnId.Tree),
 		[columnOrder]
 	);
 
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { active, over } = event;
-		if (!over || active.id === over.id) return;
+	const items: ColumnVisibilityItem[] = sortableColumnIds.flatMap((id) => {
+		const column = table.getColumn(id);
 
-		const oldIndex = sortableColumnIds.indexOf(active.id as ColumnId);
-		const newIndex = sortableColumnIds.indexOf(over.id as ColumnId);
-		if (oldIndex === -1 || newIndex === -1) return;
+		if (!column) return [];
 
-		const reordered = arrayMove(sortableColumnIds, oldIndex, newIndex);
+		return [
+			{
+				id,
+				label: getColumnLabel(id),
+				icon: getColumnIcon(id),
+				checked: column.getIsVisible()
+			}
+		];
+	});
 
-		trackEvent(analyticsEventNames.runTableToolbarColumnReorder, {
-			columnId: active.id,
-			fromIndex: oldIndex,
-			toIndex: newIndex
+	const handleColumnToggle = (id: string, isVisible: boolean) => {
+		trackEvent(analyticsEventNames.runTableToolbarColumnVisibilityToggle, {
+			columnId: id,
+			visible: isVisible
 		});
 
-		onColumnOrderChange([ColumnId.Tree, ...reordered]);
+		table.getColumn(id)?.toggleVisibility(isVisible);
+	};
+
+	const handleReorder = (orderedIds: string[], change: ColumnReorderChange) => {
+		trackEvent(analyticsEventNames.runTableToolbarColumnReorder, {
+			columnId: change.activeId,
+			fromIndex: change.fromIndex,
+			toIndex: change.toIndex
+		});
+
+		onColumnOrderChange([ColumnId.Tree, ...(orderedIds as ColumnId[])]);
 	};
 
 	const handleColumnsOpenChange = (open: boolean) => {
@@ -171,8 +104,6 @@ export const Toolbar = ({
 				source: 'columns_dropdown'
 			});
 		}
-
-		setIsOpen(open);
 	};
 
 	const handleResetState = () => {
@@ -200,57 +131,13 @@ export const Toolbar = ({
 
 	return (
 		<div className="flex gap-3">
-			<DropdownMenu open={isOpen} onOpenChange={handleColumnsOpenChange}>
-				<DropdownMenuTrigger asChild>
-					<ButtonTw size="xss" variant="secondary" state={isOpen && 'active'}>
-						<Icon name="DashboardModeColumns" size={20} className="mr-1.5" />
-						Columns
-						<Icon name="ArrowShortSmall" className="ml-1.5" />
-					</ButtonTw>
-				</DropdownMenuTrigger>
-
-				<DropdownMenuContent
-					className="w-56 rounded-lg"
-					onEscapeKeyDown={() => setIsOpen(false)}
-					onInteractOutside={() => setIsOpen(false)}
-					loop
-					align="start"
-				>
-					<DropdownMenuLabel className="text-xs">Columns</DropdownMenuLabel>
-					<Separator className="h-px my-1 -mx-1" />
-					<DndContext
-						sensors={sensors}
-						collisionDetection={closestCenter}
-						onDragEnd={handleDragEnd}
-					>
-						<SortableContext
-							items={sortableColumnIds}
-							strategy={verticalListSortingStrategy}
-						>
-							{sortableColumnIds.map((id) => {
-								const column = table.getColumn(id);
-								if (!column) return null;
-
-								return (
-									<SortableColumnItem
-										key={id}
-										id={id}
-										checked={column.getIsVisible()}
-										onToggle={(isVisible) => {
-											trackEvent(
-												analyticsEventNames.runTableToolbarColumnVisibilityToggle,
-												{ columnId: id, visible: isVisible }
-											);
-
-											column.toggleVisibility(isVisible);
-										}}
-									/>
-								);
-							})}
-						</SortableContext>
-					</DndContext>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<ColumnsVisibility
+				items={items}
+				onColumnToggle={handleColumnToggle}
+				sortable
+				onReorder={handleReorder}
+				onOpenChange={handleColumnsOpenChange}
+			/>
 			<Tooltip content="Preview rows containing not expected results">
 				<ButtonTw
 					variant="secondary"
