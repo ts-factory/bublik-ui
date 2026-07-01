@@ -3,121 +3,25 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 
-interface SampleTest {
-	name: string;
-	tin: unknown;
-	path: string[];
-	pathStr: string;
-	params: Record<string, string>;
-	reqs: string[];
-	status: string;
-	expectedStatus: string;
-	unexpected: boolean;
-	verdicts: unknown[];
-	artifacts: unknown[];
-	measurements: unknown[];
-}
+import type {
+	Bundle,
+	E2EManifest,
+	ExpectedMatrix,
+	ExpectedRun,
+	IterationEntry,
+	MeasurementSummary,
+	PackageSummary,
+	ReportConfig,
+	Revision
+} from './manifest.gen';
 
-interface Revision {
-	name: string;
-	url?: string;
-	branch?: string;
-	rev?: string;
-}
-
-interface PackageSummary {
-	name: string;
-	total: number;
-	byStatus: Record<string, number>;
-}
-
-interface MeasurementSummary {
-	testPath: string;
-	tool?: string;
-	metric?: string;
-	value?: number;
-	units?: string;
-}
-
-interface ExpectedMatrix {
-	expectedPassed: number;
-	unexpectedPassed: number;
-	expectedFailed: number;
-	unexpectedFailed: number;
-	expectedSkipped: number;
-	unexpectedSkipped: number;
-	expectedKilled: number;
-	unexpectedKilled: number;
-	expectedCored: number;
-	unexpectedCored: number;
-	expectedFaked: number;
-	unexpectedFaked: number;
-	expectedIncomplete: number;
-	unexpectedIncomplete: number;
-	abnormal: number;
-}
-
-interface ExpectedRun {
-	name: string;
-	dashboardDate: string;
-	iterationCount: number;
-	expectedStatus: string;
-	expectedStatusByNok: string;
-	expectedConclusion: string;
-	expectedConclusionReason?: string | null;
-	expectedMatrix: ExpectedMatrix;
-	tags?: Record<string, string | null>;
-	requirements?: string[];
-	verdicts?: string[];
-	measurements?: MeasurementSummary[];
-	packages?: PackageSummary[];
-	sampleTests: Record<string, SampleTest[]>;
-	runUrl?: string;
-	logUrl?: string;
-}
-
-interface BundleEntry {
-	id: string;
-	fixture?: string;
-	conclusionSpec?: string;
-	mix?: string;
-	date?: string;
-	importUrl: string;
-	project: string;
-	e2eRunId: string;
-	runId?: number;
-	runStatus?: string;
-	startTimestamp?: string;
-	finishTimestamp?: string;
-	tags?: Record<string, string | null>;
-	revisions?: Revision[];
-	runUrlTemplate?: string;
-	logUrlTemplate?: string;
-	runUrl?: string;
-	logUrl?: string;
-	expectedRuns: ExpectedRun[];
-}
-
-interface ManifestConfig {
-	project: string;
-	type: string;
-	name: string;
-	description?: string;
-	content: unknown;
-}
-
-interface E2eManifest {
-	version: number;
-	generatedAt?: string;
-	baseUrl: string;
-	uiBaseUrl: string;
-	dashboardUrl?: string;
-	historyUrl?: string;
-	importUrl: string;
-	emptyDates?: string[];
-	configs?: ManifestConfig[];
-	bundles: BundleEntry[];
-}
+// The shapes come from manifest.gen.ts, generated from the bublik-e2e CLI's
+// schema (`pnpm run e2e:codegen`); the aliases keep the suite's historical
+// type names.
+type E2eManifest = E2EManifest;
+type BundleEntry = Bundle;
+type SampleTest = IterationEntry;
+type ManifestConfig = ReportConfig;
 
 function resolveManifestPath(): string {
 	if (process.env['BUBLIK_E2E_RUN_OVERVIEW']) {

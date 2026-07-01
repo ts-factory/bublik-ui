@@ -29,6 +29,10 @@ on:
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
   NODE_OPTIONS: '--max-old-space-size=4096'
+  # Ref of the bublik-e2e CLI (fixture generator/importer) to install. Bump
+  # deliberately: the manifest schema the CLI emits must match the committed
+  # apps/bublik/e2e/support/e2e-manifest.schema.json (checked in the e2e job).
+  BUBLIK_E2E_REF: main
 
 jobs:
   lint:
@@ -200,7 +204,7 @@ jobs:
 
       - name: Install bublik-e2e CLI
         run: |
-          uv tool install git+https://github.com/${{ github.repository_owner }}/bublik-e2e
+          uv tool install "git+https://github.com/${{ github.repository_owner }}/bublik-e2e@${BUBLIK_E2E_REF}"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install Task
@@ -233,6 +237,12 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Playwright version: $VERSION"
 
+      # The Playwright suite's manifest types are generated from the CLI's
+      # Pydantic schema; fail fast (before the docker build) when they drifted.
+      - name: Check manifest schema/types are in sync
+        working-directory: bublik-docker
+        run: task e2e:types:check
+
       # Containers chown their log dirs to www-data:www-data (mode 2775) and then
       # drop to HOST_UID:HOST_GID. HOST_GID must be the www-data gid (33) or the
       # services can't write their logs (PermissionError -> django/celery crash).
@@ -264,28 +274,18 @@ jobs:
         working-directory: bublik-docker
         run: sudo chmod -R a+rwX data
 
-      - name: Generate fixtures
+      # Generate fixtures and import the API-marked bundles through the CLI
+      # (idempotent, per-bundle). Bundles planned with +ui are left for the
+      # Playwright import setup, which imports them through the UI import form
+      # as part of the main run below.
+      - name: Seed fixtures (bublik-e2e CLI)
         working-directory: bublik-docker
-        run: task e2e:fixtures
+        run: task e2e:seed
 
       # Run Playwright from the official image (browsers preinstalled) instead
       # of downloading them on the host. --network host lets the container reach
       # the compose stack (network_mode: host) on 127.0.0.1; the workspace is
       # mounted so it reuses the node_modules installed above.
-      - name: Import fixtures (Playwright)
-        run: |
-          docker run --rm --network host \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/work/bublik-ui \
-            -e CI=1 \
-            -e BASE_URL=http://127.0.0.1/v2/ \
-            -e BUBLIK_E2E_RUN_OVERVIEW=../.e2e/e2e-manifest.json \
-            -v "${{ github.workspace }}/bublik-docker:/work" \
-            -w /work/bublik-ui \
-            mcr.microsoft.com/playwright:v${{ steps.pw.outputs.version }}-noble \
-            ./node_modules/.bin/playwright test --config apps/bublik/playwright.config.ts \
-              --project auth --project import
-
       - name: Run e2e tests (Playwright)
         run: |
           docker run --rm --network host \
@@ -313,4 +313,5 @@ jobs:
             bublik-docker/bublik-ui/dist/.playwright/apps/bublik
             bublik-docker/bublik-ui/playwright-report
             bublik-docker/bublik-ui/test-results
+            bublik-docker/.e2e/e2e-manifest.json
           if-no-files-found: ignore
