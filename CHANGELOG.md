@@ -1,5 +1,20 @@
 
 
+### [2.15.1](https://github.com/okt-limonikas/bublik-docker/compare/v2.15.0...v2.15.1) (2026-07-03)
+
+
+### 🚀 New Feature
+
+* **runs:** focus single test suite in runs progress ([23bab68](https://github.com/okt-limonikas/bublik-docker/commit/23bab68faad6a83bf96d146fb093b69e8b258b82))
+* **ui:** add shared ColumnsVisibility dropdown ([230ca54](https://github.com/okt-limonikas/bublik-docker/commit/230ca541c913883ba8c2f7bf4f284b272ff0c5ed))
+
+
+### ♻ Code Refactoring
+
+* **run:** [diff] use shared `ColumnsVisibility` dropdown ([74eddfe](https://github.com/okt-limonikas/bublik-docker/commit/74eddfe15106ac7f915f10ed6e917de4d47ea674))
+* **run:** [run-table] use shared `ColumnsVisibility` in run table toolbar ([90c4097](https://github.com/okt-limonikas/bublik-docker/commit/90c409762f9bd2097e7e81c5fb80f9f1308d12da))
+* **runs:** [progress] use shared `ColumnsVisibility` in runs progress ([8e0ca3d](https://github.com/okt-limonikas/bublik-docker/commit/8e0ca3d320faf11a0a977fb6dba264b4c0a634a6))
+
 ## [2.15.0](https://github.com/ts-factory/bublik-ui/compare/v2.14.0...v2.15.0) (2026-06-26)
 
 
