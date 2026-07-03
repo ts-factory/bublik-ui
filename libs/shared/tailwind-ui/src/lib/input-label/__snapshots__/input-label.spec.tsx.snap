@@ -2,7 +2,7 @@
 
 exports[`InputLabel > should match snapshot 1`] = `
 <label
-  className="font-normal text-text-secondary text-[0.875rem]"
+  className="font-medium text-text-secondary text-[0.875rem]"
   data-testid="input-label"
 />
 `;

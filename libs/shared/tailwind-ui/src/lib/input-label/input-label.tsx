@@ -11,7 +11,7 @@ export const InputLabel = forwardRef<HTMLLabelElement, InputLabelProps>(
 		return (
 			<label
 				className={cn(
-					'font-normal text-text-secondary text-[0.875rem]',
+					'font-medium text-text-secondary text-[0.875rem]',
 					className
 				)}
 				{...props}

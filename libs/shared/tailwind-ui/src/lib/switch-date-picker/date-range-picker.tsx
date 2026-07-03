@@ -120,7 +120,7 @@ function DateRangePicker(
 							<span
 								{...labelProps}
 								className={cn(
-									'absolute top-[-11px] left-2 z-10 bg-white font-normal text-text-secondary text-[0.875rem]',
+									'absolute top-[-11px] left-2 z-10 bg-white font-medium text-text-secondary text-[0.875rem]',
 									props.hideLabel && 'sr-only'
 								)}
 							>
