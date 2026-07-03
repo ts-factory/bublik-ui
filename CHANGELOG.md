@@ -1,5 +1,20 @@
 
 
+### [2.15.1](https://github.com/ts-factory/bublik-ui/compare/v2.15.0...v2.15.1) (2026-07-03)
+
+
+### 🚀 New Feature
+
+* **runs:** focus single test suite in runs progress ([ec5e44b](https://github.com/ts-factory/bublik-ui/commit/ec5e44bdb337766b8bb38b1625e11fe3edf9d304))
+* **ui:** add shared ColumnsVisibility dropdown ([2dde173](https://github.com/ts-factory/bublik-ui/commit/2dde1738824606568a677603fe4ad9be33928cd2))
+
+
+### ♻ Code Refactoring
+
+* **run:** [diff] use shared `ColumnsVisibility` dropdown ([6d22c51](https://github.com/ts-factory/bublik-ui/commit/6d22c512fdb883ff227cd2efbc58c635cc723181))
+* **run:** [run-table] use shared `ColumnsVisibility` in run table toolbar ([69f9444](https://github.com/ts-factory/bublik-ui/commit/69f9444901c1c9416904f107abd7458dfb4d6812))
+* **runs:** [progress] use shared `ColumnsVisibility` in runs progress ([c41100c](https://github.com/ts-factory/bublik-ui/commit/c41100cdb628d42b3766a03aff398dd9b291c308))
+
 ## [2.15.0](https://github.com/ts-factory/bublik-ui/compare/v2.14.0...v2.15.0) (2026-06-26)
 
 

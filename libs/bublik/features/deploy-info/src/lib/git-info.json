@@ -1,7 +1,7 @@
 {
-	"date": "2026.06.26",
-	"summary": "feat(runs): add new progress mode into nav and mode picker",
-	"revision": "c5ab0fbe",
-	"branch": "release-2.15.0",
-	"latestTag": "v2.15.0"
+	"date": "2026.07.03",
+	"summary": "refactor(runs): [progress] use shared `ColumnsVisibility` in runs progress",
+	"revision": "c41100cd",
+	"branch": "release-2.15.1",
+	"latestTag": "v2.15.1"
 }
