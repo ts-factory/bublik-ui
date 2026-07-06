@@ -90,24 +90,27 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
 		() => initialValue
 	);
 
-	const setValue = (value: T | ((val: T) => T)) => {
-		try {
-			const valueToStore =
-				value instanceof Function
-					? value(readLocalStorageValue(key, initialValue))
-					: value;
-			const rawValue = JSON.stringify(valueToStore);
+	const setValue = useCallback(
+		(value: T | ((val: T) => T)) => {
+			try {
+				const valueToStore =
+					value instanceof Function
+						? value(readLocalStorageValue(key, initialValue))
+						: value;
+				const rawValue = JSON.stringify(valueToStore);
 
-			localStorage.setItem(key, rawValue);
-			localStorageSnapshotCache.set(key, {
-				rawValue,
-				parsedValue: valueToStore
-			});
-			dispatchLocalStorageChange(key);
-		} catch (error) {
-			console.log(error);
-		}
-	};
+				localStorage.setItem(key, rawValue);
+				localStorageSnapshotCache.set(key, {
+					rawValue,
+					parsedValue: valueToStore
+				});
+				dispatchLocalStorageChange(key);
+			} catch (error) {
+				console.log(error);
+			}
+		},
+		[initialValue, key]
+	);
 
 	return [storedValue, setValue] as const;
 };

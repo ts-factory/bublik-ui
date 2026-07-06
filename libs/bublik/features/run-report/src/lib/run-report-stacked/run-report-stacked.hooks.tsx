@@ -9,8 +9,10 @@ import {
 } from 'use-query-params';
 
 import { useGetRunReportQuery } from '@/services/bublik-api';
+import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 
 import {
+	RUN_REPORT_STACKED_SELECTED_STORAGE_KEY,
 	SELECTED_RECORDS_FOR_STACKED_KEY,
 	STACKED_DRAWER_KEY
 } from './run-report-stacked.constants';
@@ -125,12 +127,17 @@ function useRunReportStackedState(runId: number, configId: number) {
 		(id: string) => {
 			if (!selectedIdSet.has(id)) return;
 
+			if (selectedIds.length === 1) {
+				resetSelectionPopoverOpenState(RUN_REPORT_STACKED_SELECTED_STORAGE_KEY);
+			}
+
 			_setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
 		},
 		[_setSelectedIds, selectedIdSet, selectedIds]
 	);
 
 	const clearIds = useCallback(() => {
+		resetSelectionPopoverOpenState(RUN_REPORT_STACKED_SELECTED_STORAGE_KEY);
 		_setSelectedIds([]);
 	}, [_setSelectedIds]);
 

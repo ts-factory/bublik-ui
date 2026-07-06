@@ -73,3 +73,4 @@ export * from './lib/run-running';
 export * from './lib/split-button';
 export * from './lib/state';
 export * from './lib/columns-visibility';
+export * from './lib/selection-popover';

@@ -36,6 +36,7 @@ export interface RunsTableProps {
 	selection: string[];
 	addSelection: (runId: string) => void;
 	removeSelection: (runId: string) => void;
+	replaceSelection: (oldRunId: string, newRunId: string) => void;
 }
 
 function RunsTable(props: RunsTableProps) {
@@ -49,6 +50,7 @@ function RunsTable(props: RunsTableProps) {
 		rowSelection,
 		addSelection,
 		removeSelection,
+		replaceSelection,
 		selection
 	} = props;
 
@@ -102,8 +104,8 @@ function RunsTable(props: RunsTableProps) {
 
 			if (isMaxLength) {
 				const oldestId = selection.at(0);
-				if (oldestId) removeSelection(oldestId);
-				addSelection(row.id);
+				if (oldestId) replaceSelection(oldestId, row.id);
+				else addSelection(row.id);
 				trackEvent(analyticsEventNames.runsRowSelectionChange, {
 					action: 'replace_oldest',
 					selectionCount: selectionKeys.length,

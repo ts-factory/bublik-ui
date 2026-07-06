@@ -13,7 +13,11 @@ import { HISTORY_MAX_RESULTS_IDS } from '@/bublik/config';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import { useHistoryQuery } from '../hooks';
-import { useCombinedCharts } from './combined-charts.context';
+import {
+	HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	useCombinedCharts
+} from './combined-charts.context';
 
 function useGetHistoryMeasurementsByResult() {
 	const { query } = useHistoryQuery();
@@ -98,6 +102,8 @@ function useHistoryMeasurementsTitle(testName?: string) {
 }
 
 export {
+	HISTORY_SERIES_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
+	HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
 	useGetHistoryMeasurements,
 	useCombinedView,
 	useHistoryMeasurementsTitle,
