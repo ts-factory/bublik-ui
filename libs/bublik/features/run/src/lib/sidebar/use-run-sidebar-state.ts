@@ -2,16 +2,18 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
+	RUN_MODE_DEFAULT,
 	RUN_SIDEBAR_KEYS,
 	RunMode,
 	SHARED_SIDEBAR_KEYS,
+	getRunDetailsDefaultUrl,
 	getSidebarStateString,
 	setSidebarStateValue,
-	updateSidebarStateSearchParams,
+	useSidebarStateWriter,
 	stripSidebarParamsFromUrl,
 	extractRunIdFromUrl
 } from '@/bublik/features/sidebar';
@@ -41,8 +43,8 @@ export interface UseRunSidebarStateReturn {
 }
 
 export function useRunSidebarState(): UseRunSidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const writeSidebarState = useSidebarStateWriter();
 
 	const lastDetailsUrl = useMemo(
 		() => getSidebarStateString(searchParams, RUN_SIDEBAR_KEYS.LAST_DETAILS),
@@ -82,7 +84,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		);
 	}, [reportConfigsData]);
 
-	const isDetailsAvailable = !!lastDetailsUrl;
+	const isDetailsAvailable = !!lastDetailsUrl || !!currentRunId;
 	const isReportAvailable =
 		!!lastReportUrl ||
 		(!!currentRunId && !!reportConfigsData?.run_report_configs?.length);
@@ -91,7 +93,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 
 	const detailsUrl = useMemo(() => {
 		if (lastDetailsUrl) return lastDetailsUrl;
-		if (currentRunId) return `/runs/${currentRunId}`;
+		if (currentRunId) return getRunDetailsDefaultUrl(currentRunId);
 		return '/runs';
 	}, [lastDetailsUrl, currentRunId]);
 
@@ -107,74 +109,56 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	}, [lastReportUrl, currentRunId, newestReportConfig]);
 
 	const mainLinkUrl = useMemo(() => {
-		switch (lastMode) {
+		// `lastMode` is omitted from `_s` when it equals the shared default.
+		switch (lastMode ?? RUN_MODE_DEFAULT) {
 			case 'details':
 				return (
-					lastDetailsUrl || (currentRunId ? `/runs/${currentRunId}` : '/runs')
+					lastDetailsUrl ||
+					(currentRunId ? getRunDetailsDefaultUrl(currentRunId) : '/runs')
 				);
 			case 'report':
 				return (
 					lastReportUrl ||
 					(currentRunId ? `/runs/${currentRunId}/report` : '/runs')
 				);
-			default:
-				return currentRunId ? `/runs/${currentRunId}` : '/runs';
 		}
 	}, [lastMode, lastDetailsUrl, lastReportUrl, currentRunId]);
 
 	const setLastVisited = useCallback(
 		(mode: RunMode, url: string, runId?: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 			const extractedRunId = runId || extractRunIdFromUrl(cleanedUrl);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(sidebarState, RUN_SIDEBAR_KEYS.LAST_MODE, mode);
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(sidebarState, RUN_SIDEBAR_KEYS.LAST_MODE, mode);
 
-					switch (mode) {
-						case 'details':
-							setSidebarStateValue(
-								sidebarState,
-								RUN_SIDEBAR_KEYS.LAST_DETAILS,
-								cleanedUrl
-							);
-							break;
-						case 'report':
-							setSidebarStateValue(
-								sidebarState,
-								RUN_SIDEBAR_KEYS.LAST_REPORT,
-								cleanedUrl
-							);
-							break;
-					}
-
-					if (extractedRunId) {
+				switch (mode) {
+					case 'details':
 						setSidebarStateValue(
 							sidebarState,
-							SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID,
-							extractedRunId
+							RUN_SIDEBAR_KEYS.LAST_DETAILS,
+							cleanedUrl
 						);
+						break;
+					case 'report':
 						setSidebarStateValue(
 							sidebarState,
-							SHARED_SIDEBAR_KEYS.LAST_RUN_RUN_ID,
-							extractedRunId
+							RUN_SIDEBAR_KEYS.LAST_REPORT,
+							cleanedUrl
 						);
-					}
+						break;
 				}
-			);
 
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
+				if (extractedRunId) {
+					setSidebarStateValue(
+						sidebarState,
+						SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID,
+						extractedRunId
+					);
+				}
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {

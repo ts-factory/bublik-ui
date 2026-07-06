@@ -95,6 +95,7 @@
 		"humps": "^2.0.1",
 		"lodash": "^4.17.21",
 		"lucide-react": "^0.562.0",
+		"lz-string": "^1.5.0",
 		"monaco-editor": "^0.52.2",
 		"pako": "^2.1.0",
 		"re-resizable": "^6.9.11",
@@ -122,7 +123,6 @@
 		"tslib": "^2.5.0",
 		"use-query-params": "^2.2.1",
 		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-		"zipson": "^0.2.12",
 		"zod": "^3.24.3"
 	},
 	"devDependencies": {

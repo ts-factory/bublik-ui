@@ -2,15 +2,16 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
+	HISTORY_MODE_DEFAULT,
 	HISTORY_SIDEBAR_KEYS,
 	HistorySidebarMode,
 	getSidebarStateString,
 	setSidebarStateValue,
-	updateSidebarStateSearchParams,
+	useSidebarStateWriter,
 	stripSidebarParamsFromUrl
 } from '@/bublik/features/sidebar';
 import {
@@ -59,8 +60,8 @@ export interface UseHistorySidebarStateReturn {
 }
 
 export function useHistorySidebarState(): UseHistorySidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const writeSidebarState = useSidebarStateWriter();
 	const { query } = useHistoryQuery();
 
 	// Fetch trend charts data
@@ -135,16 +136,20 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 		[searchParams]
 	);
 
-	// Computed URLs for each mode
+	// Computed URLs for each mode. Linear and aggregation views paginate
+	// independently, so reset `page` when switching between them — keeping the
+	// current page can land on a non-existent page in the other view.
 	const linearUrl = useMemo(() => {
 		const params = new URLSearchParams(searchParams);
 		params.set('mode', 'linear');
+		params.delete('page');
 		return `/history?${params.toString()}`;
 	}, [searchParams]);
 
 	const aggregationUrl = useMemo(() => {
 		const params = new URLSearchParams(searchParams);
 		params.set('mode', 'aggregation');
+		params.delete('page');
 		return `/history?${params.toString()}`;
 	}, [searchParams]);
 
@@ -173,7 +178,8 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 
 	// Main link URL based on last visited mode
 	const mainLinkUrl = useMemo(() => {
-		switch (lastMode) {
+		// `lastMode` is omitted from `_s` when it equals the shared default.
+		switch (lastMode ?? HISTORY_MODE_DEFAULT) {
 			case 'linear':
 				return lastLinearUrl || linearUrl;
 			case 'aggregation':
@@ -184,8 +190,6 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 				return lastSeriesUrl || seriesUrl;
 			case 'stacked':
 				return lastStackedUrl || stackedUrl || linearUrl;
-			default:
-				return linearUrl;
 		}
 	}, [
 		lastMode,
@@ -204,68 +208,55 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 	// Update last visited state
 	const setLastVisited = useCallback(
 		(mode: HistorySidebarMode, url: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(
-						sidebarState,
-						HISTORY_SIDEBAR_KEYS.LAST_MODE,
-						mode
-					);
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(
+					sidebarState,
+					HISTORY_SIDEBAR_KEYS.LAST_MODE,
+					mode
+				);
 
-					switch (mode) {
-						case 'linear':
-							setSidebarStateValue(
-								sidebarState,
-								HISTORY_SIDEBAR_KEYS.LAST_LINEAR,
-								cleanedUrl
-							);
-							break;
-						case 'aggregation':
-							setSidebarStateValue(
-								sidebarState,
-								HISTORY_SIDEBAR_KEYS.LAST_AGGREGATION,
-								cleanedUrl
-							);
-							break;
-						case 'trend':
-							setSidebarStateValue(
-								sidebarState,
-								HISTORY_SIDEBAR_KEYS.LAST_TREND,
-								cleanedUrl
-							);
-							break;
-						case 'series':
-							setSidebarStateValue(
-								sidebarState,
-								HISTORY_SIDEBAR_KEYS.LAST_SERIES,
-								cleanedUrl
-							);
-							break;
-						case 'stacked':
-							setSidebarStateValue(
-								sidebarState,
-								HISTORY_SIDEBAR_KEYS.LAST_STACKED,
-								cleanedUrl
-							);
-							break;
-					}
+				switch (mode) {
+					case 'linear':
+						setSidebarStateValue(
+							sidebarState,
+							HISTORY_SIDEBAR_KEYS.LAST_LINEAR,
+							cleanedUrl
+						);
+						break;
+					case 'aggregation':
+						setSidebarStateValue(
+							sidebarState,
+							HISTORY_SIDEBAR_KEYS.LAST_AGGREGATION,
+							cleanedUrl
+						);
+						break;
+					case 'trend':
+						setSidebarStateValue(
+							sidebarState,
+							HISTORY_SIDEBAR_KEYS.LAST_TREND,
+							cleanedUrl
+						);
+						break;
+					case 'series':
+						setSidebarStateValue(
+							sidebarState,
+							HISTORY_SIDEBAR_KEYS.LAST_SERIES,
+							cleanedUrl
+						);
+						break;
+					case 'stacked':
+						setSidebarStateValue(
+							sidebarState,
+							HISTORY_SIDEBAR_KEYS.LAST_STACKED,
+							cleanedUrl
+						);
+						break;
 				}
-			);
-
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {

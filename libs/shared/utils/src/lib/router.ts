@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { addDays, addMonths, isBefore, isValid, parseISO } from 'date-fns';
-import { Link, To } from 'react-router-dom';
+import { createPath, Link, parsePath, To } from 'react-router-dom';
 import { ComponentProps } from 'react';
 
 import {
@@ -22,6 +22,25 @@ import {
 import { stringifySearch } from '@/router';
 
 import { formatTimeToAPI } from './time';
+
+/**
+ * Parses a URL, lets the callback rewrite its search params (mutate in place
+ * or return a replacement), and reassembles the URL with the hash intact.
+ */
+export const transformUrlSearch = (
+	url: string,
+	transform: (params: URLSearchParams) => URLSearchParams | void
+): string => {
+	const path = parsePath(url);
+	const params = new URLSearchParams(path.search ?? '');
+	const search = (transform(params) ?? params).toString();
+
+	return createPath({
+		pathname: path.pathname ?? '',
+		search: search ? `?${search}` : '',
+		hash: path.hash
+	});
+};
 
 /**
  * If passed date is older than 3 months we extend to 6 months

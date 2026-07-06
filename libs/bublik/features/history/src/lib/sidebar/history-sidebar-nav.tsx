@@ -35,6 +35,8 @@ export function HistorySidebarNav() {
 		lastTrendUrl,
 		lastSeriesUrl,
 		lastStackedUrl,
+		trendUrl,
+		seriesUrl,
 		mainLinkUrl,
 		setLastVisited
 	} = useHistorySidebarState();
@@ -61,11 +63,6 @@ export function HistorySidebarNav() {
 	const historyBaseUrl = getBaseUrl(mainLinkUrl);
 	const finalLinearUrl = addModeToUrl(historyBaseUrl, 'linear');
 	const finalAggregationUrl = addModeToUrl(historyBaseUrl, 'aggregation');
-	const finalTrendUrl = addModeToUrl(historyBaseUrl, 'measurements');
-	const finalSeriesUrl = addModeToUrl(
-		historyBaseUrl,
-		'measurements-by-iteration'
-	);
 	const finalStackedUrl =
 		lastStackedUrl || addModeToUrl(historyBaseUrl, 'measurements-combined');
 
@@ -120,7 +117,7 @@ export function HistorySidebarNav() {
 					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to={finalTrendUrl}
+					to={trendUrl}
 					pattern={{ path: '/history', mode: 'measurements' }}
 					disabled={!hasTrendUrl}
 					linkComponent={LinkWithProject}
@@ -141,7 +138,7 @@ export function HistorySidebarNav() {
 					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to={finalSeriesUrl}
+					to={seriesUrl}
 					pattern={{ path: '/history', mode: 'measurements-by-iteration' }}
 					disabled={!hasSeriesUrl}
 					linkComponent={LinkWithProject}

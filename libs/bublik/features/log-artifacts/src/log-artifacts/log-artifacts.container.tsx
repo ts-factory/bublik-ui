@@ -67,7 +67,10 @@ async function handleDownloadAttachments(
 			return;
 		}
 
-		const response = await fetch(url, { credentials: 'include' });
+		const response = await fetch(url, {
+			credentials: 'include',
+			referrerPolicy: 'origin'
+		});
 
 		const blob = await response.blob();
 		const downloadUrl = window.URL.createObjectURL(blob);

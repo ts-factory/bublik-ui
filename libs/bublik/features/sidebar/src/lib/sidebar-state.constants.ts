@@ -13,12 +13,17 @@ export const RUNS_SIDEBAR_KEYS = {
 	SELECTED: `${SIDEBAR_PREFIX}.runs.selected`,
 	LAST_LIST: `${SIDEBAR_PREFIX}.runs.lastList`,
 	LAST_CHARTS: `${SIDEBAR_PREFIX}.runs.lastCharts`,
+	LAST_PROGRESS: `${SIDEBAR_PREFIX}.runs.lastProgress`,
 	LAST_COMPARE: `${SIDEBAR_PREFIX}.runs.lastCompare`,
 	LAST_MULTIPLE: `${SIDEBAR_PREFIX}.runs.lastMultiple`,
 	LAST_MODE: `${SIDEBAR_PREFIX}.runs.lastMode`
 } as const;
 
-export type RunsMode = 'list' | 'charts' | 'compare' | 'multiple';
+export type RunsMode = 'list' | 'charts' | 'progress' | 'compare' | 'multiple';
+
+export const RUNS_MODE_DEFAULT: RunsMode = 'list';
+export const RUNS_CHARTS_DEFAULT_URL = '/runs?mode=charts';
+export const RUNS_PROGRESS_DEFAULT_URL = '/runs?mode=progress';
 
 export const RUN_SIDEBAR_KEYS = {
 	LAST_DETAILS: `${SIDEBAR_PREFIX}.run.lastDetails`,
@@ -27,6 +32,11 @@ export const RUN_SIDEBAR_KEYS = {
 } as const;
 
 export type RunMode = 'details' | 'report';
+
+export const RUN_MODE_DEFAULT: RunMode = 'details';
+
+export const getRunDetailsDefaultUrl = (runId: string): string =>
+	`/runs/${runId}`;
 
 export const MEASUREMENTS_SIDEBAR_KEYS = {
 	LAST_MEASUREMENTS: `${SIDEBAR_PREFIX}.measurements.lastMeasurements`,
@@ -40,6 +50,8 @@ export type MeasurementsSidebarMode =
 	| 'split'
 	| 'overlay';
 
+export const MEASUREMENTS_MODE_DEFAULT: MeasurementsSidebarMode = 'default';
+
 export const LOG_SIDEBAR_KEYS = {
 	LAST_LOG: `${SIDEBAR_PREFIX}.log.lastLog`,
 	LAST_MODE: `${SIDEBAR_PREFIX}.log.lastMode`
@@ -50,6 +62,10 @@ export type LogSidebarMode =
 	| 'infoAndlog'
 	| 'treeAndinfoAndlog'
 	| 'treeAndlog';
+
+export const LOG_MODE_DEFAULT: LogSidebarMode = 'treeAndinfoAndlog';
+
+export const getLogDefaultUrl = (runId: string): string => `/log/${runId}`;
 
 export const HISTORY_SIDEBAR_KEYS = {
 	LAST_LINEAR: `${SIDEBAR_PREFIX}.history.lastLinear`,
@@ -67,10 +83,10 @@ export type HistorySidebarMode =
 	| 'series'
 	| 'stacked';
 
+export const HISTORY_MODE_DEFAULT: HistorySidebarMode = 'linear';
+
 export const SHARED_SIDEBAR_KEYS = {
-	CURRENT_RUN_ID: `${SIDEBAR_PREFIX}.shared.currentRunId`,
-	LAST_LOG_RUN_ID: `${SIDEBAR_PREFIX}.shared.lastLogRunId`,
-	LAST_RUN_RUN_ID: `${SIDEBAR_PREFIX}.shared.lastRunRunId`
+	CURRENT_RUN_ID: `${SIDEBAR_PREFIX}.shared.currentRunId`
 } as const;
 
 export const DASHBOARD_SIDEBAR_KEYS = {

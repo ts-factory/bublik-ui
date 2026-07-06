@@ -13,7 +13,7 @@ export type BublikBaseQueryFn = BaseQueryFn;
  * If application is mounted at `/prefix/v2`, root URL would be `/prefix`
  */
 export const getAPIConfig = (): FetchBaseQueryArgs => {
-	return { baseUrl: `${config.rootUrl}` };
+	return { baseUrl: `${config.rootUrl}`, referrerPolicy: 'origin' };
 };
 
 /**

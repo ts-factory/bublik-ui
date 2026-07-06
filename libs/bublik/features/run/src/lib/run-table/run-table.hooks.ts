@@ -7,7 +7,8 @@ import {
 	withDefault,
 	NumberParam,
 	StringParam,
-	QueryParamConfig
+	QueryParamConfig,
+	JsonParam
 } from 'use-query-params';
 import {
 	ExpandedState,
@@ -18,7 +19,7 @@ import {
 } from '@tanstack/react-table';
 
 import { RunData, MergedRun, RunStatsColumn } from '@/shared/types';
-import { useLocalStorage } from '@/shared/hooks';
+import { useLocalStorage, useMount } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
@@ -316,10 +317,16 @@ export function migrateExpandedStateUrl(
 	const currentUrl = new URL(window.location.href);
 
 	try {
-		const expandedJson = JSON.stringify(newExpanded);
-		currentUrl.searchParams.set('expanded', expandedJson);
+		// Encode with the same compressed format every other run-table writer
+		// uses, then actually apply the rewritten URL.
+		currentUrl.searchParams.set('expanded', encodeCompressedState(newExpanded));
+		window.history.replaceState(
+			window.history.state,
+			'',
+			currentUrl.toString()
+		);
 	} catch (error) {
-		console.error('Failed to stringify expanded state:', error, newExpanded);
+		console.error('Failed to migrate expanded state:', error, newExpanded);
 	}
 }
 
@@ -343,9 +350,15 @@ export const useRunTableQueryState = (
 		openUnexpectedResults?: boolean;
 		openUnexpectedIntentId?: string;
 	};
-	const locationState = hasPersistedRunTableState(location.search)
-		? undefined
-		: navigationState;
+	// A fresh navigation carries a unique openUnexpectedIntentId; always honor
+	// it even when the target URL already has persisted table params. Only the
+	// legacy (id-less) booleans are suppressed in that case, since they cannot
+	// be distinguished from a reload of an already-interacted-with table.
+	const hasFreshIntent = Boolean(navigationState?.openUnexpectedIntentId);
+	const locationState =
+		hasFreshIntent || !hasPersistedRunTableState(location.search)
+			? navigationState
+			: undefined;
 	const { targetIterationId } = useTargetIterationId();
 	const [resultFilter] = useQueryParam('resultFilter', StringParam);
 

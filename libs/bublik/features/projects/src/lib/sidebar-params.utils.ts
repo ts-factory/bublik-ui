@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { createPath, parsePath } from 'react-router-dom';
-
 import { SIDEBAR_STATE_PARAM } from '@/shared/types';
+import { transformUrlSearch } from '@/shared/utils';
 
 import { HIDE_SIDEBAR_QUERY_KEY, PROJECT_KEY } from '../constants';
 
@@ -48,19 +47,7 @@ export function mergeStringUrlWithSidebarState(
 	currentSearchParams: URLSearchParams,
 	projectIds: number[]
 ): string {
-	const parsed = parsePath(to);
-	const targetParams = new URLSearchParams(parsed.search || '');
-	const mergedParams = mergeParamsWithSidebarState(
-		targetParams,
-		currentSearchParams,
-		projectIds
+	return transformUrlSearch(to, (targetParams) =>
+		mergeParamsWithSidebarState(targetParams, currentSearchParams, projectIds)
 	);
-
-	const mergedSearch = mergedParams.toString();
-
-	return createPath({
-		pathname: parsed.pathname ?? '',
-		search: mergedSearch ? `?${mergedSearch}` : '',
-		hash: parsed.hash
-	});
 }

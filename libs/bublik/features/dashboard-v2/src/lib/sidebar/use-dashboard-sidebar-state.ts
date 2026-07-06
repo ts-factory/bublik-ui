@@ -2,14 +2,14 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import {
 	DASHBOARD_SIDEBAR_KEYS,
 	getSidebarStateString,
 	setSidebarStateValue,
 	stripSidebarParamsFromUrl,
-	updateSidebarStateSearchParams
+	useSidebarStateWriter
 } from '@/bublik/features/sidebar';
 
 export interface UseDashboardSidebarStateReturn {
@@ -19,8 +19,8 @@ export interface UseDashboardSidebarStateReturn {
 }
 
 export function useDashboardSidebarState(): UseDashboardSidebarStateReturn {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const writeSidebarState = useSidebarStateWriter();
 
 	const lastUrl = useMemo(
 		() => getSidebarStateString(searchParams, DASHBOARD_SIDEBAR_KEYS.LAST_URL),
@@ -33,30 +33,17 @@ export function useDashboardSidebarState(): UseDashboardSidebarStateReturn {
 
 	const setLastUrl = useCallback(
 		(url: string) => {
-			const currentSearchParams = new URLSearchParams(window.location.search);
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 
-			const newParams = updateSidebarStateSearchParams(
-				currentSearchParams,
-				(sidebarState) => {
-					setSidebarStateValue(
-						sidebarState,
-						DASHBOARD_SIDEBAR_KEYS.LAST_URL,
-						cleanedUrl
-					);
-				}
-			);
-
-			if (!newParams) {
-				return;
-			}
-
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(
+					sidebarState,
+					DASHBOARD_SIDEBAR_KEYS.LAST_URL,
+					cleanedUrl
+				);
 			});
 		},
-		[location.state, setSearchParams]
+		[writeSidebarState]
 	);
 
 	return {

@@ -3,3 +3,4 @@
 export * from './lib/sidebar-feature';
 export * from './lib/sidebar-state.constants';
 export * from './lib/sidebar-url.utils';
+export * from './lib/use-sidebar-state-writer';

@@ -9,6 +9,10 @@ import { useRunSidebarState } from './use-run-sidebar-state';
 const setSearchParamsMock = vi.fn();
 const locationState = { openUnexpected: true };
 
+// Values returned by the mocked getSidebarStateString, keyed by sidebar key.
+// Tests mutate this to simulate different `_s` contents.
+const sidebarStateValues: Record<string, string | null> = {};
+
 vi.mock('react-router-dom', async () => {
 	const actual = await vi.importActual<typeof import('react-router-dom')>(
 		'react-router-dom'
@@ -32,10 +36,10 @@ vi.mock('@/bublik/features/sidebar', () => ({
 		LAST_MODE: 'sidebar.run.lastMode'
 	},
 	SHARED_SIDEBAR_KEYS: {
-		CURRENT_RUN_ID: 'sidebar.currentRunId',
-		LAST_RUN_RUN_ID: 'sidebar.lastRunRunId'
+		CURRENT_RUN_ID: 'sidebar.currentRunId'
 	},
-	getSidebarStateString: () => null,
+	getSidebarStateString: (_params: URLSearchParams, key: string) =>
+		sidebarStateValues[key] ?? null,
 	setSidebarStateValue: (
 		sidebarState: Record<string, string>,
 		key: string,
@@ -48,25 +52,25 @@ vi.mock('@/bublik/features/sidebar', () => ({
 
 		sidebarState[key] = value;
 	},
-	updateSidebarStateSearchParams: (
-		current: URLSearchParams,
-		updater: (sidebarState: Record<string, string>) => void
-	) => {
-		const next = new URLSearchParams(current);
-		const previous = next.toString();
-		const state: Record<string, string> = {};
+	useSidebarStateWriter:
+		() => (updater: (sidebarState: Record<string, string>) => void) => {
+			const next = new URLSearchParams(window.location.search);
+			const previous = next.toString();
+			const state: Record<string, string> = {};
 
-		updater(state);
-		next.set('_s', JSON.stringify(state));
+			updater(state);
+			next.set('_s', JSON.stringify(state));
 
-		if (next.toString() === previous) {
-			return null;
-		}
+			if (next.toString() === previous) {
+				return;
+			}
 
-		return next;
-	},
+			setSearchParamsMock(next, { replace: true, state: locationState });
+		},
 	stripSidebarParamsFromUrl: (url: string) => url,
-	extractRunIdFromUrl: () => '42'
+	extractRunIdFromUrl: () => '42',
+	RUN_MODE_DEFAULT: 'details',
+	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`
 }));
 
 function HookRunner() {
@@ -79,9 +83,24 @@ function HookRunner() {
 	return null;
 }
 
+function AvailabilityRunner({
+	onState
+}: {
+	onState: (isDetailsAvailable: boolean) => void;
+}) {
+	const { isDetailsAvailable } = useRunSidebarState();
+
+	onState(isDetailsAvailable);
+
+	return null;
+}
+
 describe('useRunSidebarState', () => {
 	beforeEach(() => {
 		setSearchParamsMock.mockClear();
+		for (const key of Object.keys(sidebarStateValues)) {
+			delete sidebarStateValues[key];
+		}
 	});
 
 	it('preserves navigation state while updating sidebar params', async () => {
@@ -93,5 +112,27 @@ describe('useRunSidebarState', () => {
 				state: locationState
 			});
 		});
+	});
+
+	it('keeps details available when the cached URL is pruned but the run id survives', () => {
+		// Simulates `lastDetails` dropped by prune while `cr` (currentRunId) remains.
+		sidebarStateValues['sidebar.run.lastDetails'] = null;
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+
+		let isDetailsAvailable = false;
+		render(
+			<AvailabilityRunner onState={(value) => (isDetailsAvailable = value)} />
+		);
+
+		expect(isDetailsAvailable).toBe(true);
+	});
+
+	it('marks details unavailable when neither cached URL nor run id is present', () => {
+		let isDetailsAvailable = true;
+		render(
+			<AvailabilityRunner onState={(value) => (isDetailsAvailable = value)} />
+		);
+
+		expect(isDetailsAvailable).toBe(false);
 	});
 });

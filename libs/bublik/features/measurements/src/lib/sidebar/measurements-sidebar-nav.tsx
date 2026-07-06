@@ -17,27 +17,21 @@ import {
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
+import {
+	getModeFromSearch,
+	MeasurementsSidebarMode
+} from '@/bublik/features/sidebar';
 
 import { ResultMeasurementsDialog } from './measurements-dialog';
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
 
-function getModeFromSearch(search: string): MeasurementsSidebarMode {
-	const params = new URLSearchParams(search);
-	const mode = params.get('mode');
-	switch (mode) {
-		case 'charts':
-			return 'charts';
-		case 'tables':
-			return 'tables';
-		case 'split':
-			return 'split';
-		case 'overlay':
-			return 'overlay';
-		case 'default':
-		default:
-			return 'default';
-	}
-}
+const MEASUREMENTS_SIDEBAR_MODES: readonly MeasurementsSidebarMode[] = [
+	'default',
+	'charts',
+	'tables',
+	'split',
+	'overlay'
+];
 
 const MEASUREMENTS_SIDEBAR_PATTERNS = [
 	{ path: '/runs/:runId/results/:resultId/measurements' }
@@ -62,7 +56,11 @@ export function MeasurementsSidebarNav() {
 			location.pathname
 		);
 		if (pathMatch) {
-			const mode = getModeFromSearch(location.search);
+			const mode = getModeFromSearch(
+				location.search,
+				MEASUREMENTS_SIDEBAR_MODES,
+				'default'
+			);
 			setLastVisited(mode, location.pathname);
 		}
 	}, [location.pathname, location.search, setLastVisited]);
@@ -167,10 +165,3 @@ export function MeasurementsSidebarNav() {
 		</SidebarNavCollapsibleContainer>
 	);
 }
-
-type MeasurementsSidebarMode =
-	| 'default'
-	| 'charts'
-	| 'tables'
-	| 'split'
-	| 'overlay';
