@@ -14,3 +14,4 @@ export * from './lib/import';
 export * from './lib/performance';
 export * from './lib/report';
 export * from './lib/analytics';
+export * from './lib/sidebar';

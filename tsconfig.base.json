@@ -110,6 +110,9 @@
 			],
 			"@/bublik/features/analytics": [
 				"libs/bublik/features/analytics/src/index.ts"
+			],
+			"@/bublik/features/sidebar-nav": [
+				"libs/bublik/features/sidebar-nav/src/index.ts"
 			]
 		}
 	},
