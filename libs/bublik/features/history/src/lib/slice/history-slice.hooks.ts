@@ -7,7 +7,10 @@ import { useSearchParams } from 'react-router-dom';
 import { useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
-import { PROJECT_KEY } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from './history-slice';
@@ -70,12 +73,16 @@ export const useHistoryFormSearchState = () => {
 	const globalFilter = useSelector(selectGlobalFilter);
 	const dispatch = useDispatch();
 
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
+	const navigateWithProject = useNavigateWithProject();
 
 	const updateSearchParams = () => {
 		const params = new URLSearchParams(historySearchStateToQuery(state));
 
-		setSearchParams(params);
+		navigateWithProject(
+			{ pathname: '/history', search: `?${params.toString()}` },
+			{ replace: true }
+		);
 	};
 
 	const handleFormChange = useCallback(
@@ -103,11 +110,19 @@ export const useHistoryFormSearchState = () => {
 				newSearchParams.append(PROJECT_KEY, value);
 			}
 
-			setSearchParams(newSearchParams, { replace: true });
+			// Use navigateWithProject to properly preserve sidebar params
+			const searchString = newSearchParams.toString();
+			navigateWithProject(
+				{
+					pathname: '/history',
+					search: searchString ? `?${searchString}` : ''
+				},
+				{ replace: true }
+			);
 			actions.resetGlobalFilter();
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[actions, dispatch, mode, pageSize, searchParams, setSearchParams]
+		[actions, dispatch, mode, pageSize, searchParams, navigateWithProject]
 	);
 
 	return {

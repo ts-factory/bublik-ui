@@ -2,9 +2,10 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation } from 'react-router-dom';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
+import { useRunSidebarState } from '@/bublik/features/run';
 import {
 	ReportStackedContextProvider,
 	RunReportContainer,
@@ -20,7 +21,9 @@ import { BublikEmptyState } from '@/bublik/features/ui-state';
 function RunReportPage() {
 	const [searchParams] = useSearchParams();
 	const { runId } = useParams<{ runId: string }>();
+	const location = useLocation();
 	const configId = searchParams.get('config');
+	const { setLastVisited } = useRunSidebarState();
 	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
 
 	useEffect(() => {
@@ -33,6 +36,12 @@ function RunReportPage() {
 			hasConfigId: Boolean(configId)
 		});
 	}, [configId, runId]);
+
+	useEffect(() => {
+		if (runId && configId) {
+			setLastVisited('report', location.pathname + location.search, runId);
+		}
+	}, [runId, configId, location.pathname, location.search, setLastVisited]);
 
 	if (!configId) {
 		return (

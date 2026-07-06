@@ -91,10 +91,9 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 					'combinedPlots',
 					charts.map((c) => String(c.plot.id)).join(';')
 				);
-				return;
+			} else {
+				params.delete('combinedPlots');
 			}
-
-			params.delete('combinedPlots');
 
 			navigate({ search: params.toString() }, { replace: true });
 		},

@@ -17,7 +17,10 @@ import {
 
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import { historySearchStateToQuery } from '../slice/history-slice.utils';
-import { PROJECT_KEY } from '@/bublik/features/projects';
+import {
+	PROJECT_KEY,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
 
 const globalFilterToQueryAdapter = (
 	globalFilter: HistoryGlobalFilter,
@@ -79,10 +82,11 @@ const globalFilterToQueryAdapter = (
 };
 export const useHistoryRefresh = () => {
 	const { state } = useHistoryFormSearchState();
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 	const mode = searchParams.get('mode') ?? 'linear';
 	const pageSize = searchParams.get('pageSize') ?? 25;
 	const dispatch = useDispatch();
+	const navigateWithProject = useNavigateWithProject();
 
 	return useCallback(
 		(globalFilter: HistoryGlobalFilter) => {
@@ -100,9 +104,18 @@ export const useHistoryRefresh = () => {
 			params.set('mode', mode);
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
-			setSearchParams(params, { replace: true });
+
+			// Use navigateWithProject to properly preserve sidebar params
+			const searchString = params.toString();
+			navigateWithProject(
+				{
+					pathname: '/history',
+					search: searchString ? `?${searchString}` : ''
+				},
+				{ replace: true }
+			);
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[dispatch, mode, pageSize, searchParams, setSearchParams, state]
+		[dispatch, mode, pageSize, searchParams, navigateWithProject, state]
 	);
 };

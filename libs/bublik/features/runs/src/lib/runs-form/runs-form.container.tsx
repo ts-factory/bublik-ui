@@ -11,6 +11,7 @@ import { formatTimeToAPI, parseISODuration } from '@/shared/utils';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { BoxValue } from '@/shared/tailwind-ui';
 import { useMount } from '@/shared/hooks';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { RunsForm, RunsFormValues } from './runs-form.component';
 import {
@@ -25,7 +26,8 @@ import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
 function RunsFormContainer() {
 	const dispatch = useDispatch();
 	const location = useLocation();
-	const [searchParams, setSearchParams] = useSearchParams(location.search);
+	const [searchParams] = useSearchParams(location.search);
+	const navigateWithProject = useNavigateWithProject();
 	const localGlobalFilter = useSelector(selectGlobalFilter);
 	const allTags = useSelector(selectAllTags);
 
@@ -58,9 +60,12 @@ function RunsFormContainer() {
 			selectedRunDataCount: selectedRunData.length
 		});
 
-		setSearchParams(formToSearchParams(searchParams, newForm), {
-			replace: true
-		});
+		const params = formToSearchParams(searchParams, newForm);
+		const searchString = params.toString();
+		navigateWithProject(
+			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
+			{ replace: true }
+		);
 		dispatch(updateGlobalFilter(selectedRunData));
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 	}
@@ -81,7 +86,11 @@ function RunsFormContainer() {
 		const params = formToSearchParams(searchParams, resettedForm);
 		params.delete('duration');
 
-		setSearchParams(params, { replace: true });
+		const searchString = params.toString();
+		navigateWithProject(
+			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
+			{ replace: true }
+		);
 	}
 
 	return (

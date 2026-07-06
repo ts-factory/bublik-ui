@@ -12,3 +12,4 @@ export * from './lib/history-reset-global-filter';
 export * from './lib/history-mode-picker';
 export * from './lib/slice';
 export { CombinedChartsProvider } from './lib/history-measurements/combined-charts.context';
+export * from './lib/sidebar';
