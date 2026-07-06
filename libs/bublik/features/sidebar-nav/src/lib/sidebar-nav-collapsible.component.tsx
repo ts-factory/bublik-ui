@@ -10,7 +10,11 @@ import {
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
-import { wrapperStyles } from './sidebar-nav.styles';
+import {
+	submenuGuideContainerStyles,
+	submenuGuideListStyles,
+	wrapperStyles
+} from './sidebar-nav.styles';
 import { useIsActivePaths, type ActivePattern } from './use-is-active';
 
 interface SidebarCollapsibleContextValue {
@@ -58,7 +62,16 @@ export const SidebarNavCollapsibleContainer = ({
 		<SidebarCollapsibleContext.Provider
 			value={{ isSubmenuOpen, onToggle, isActive }}
 		>
-			<div className="relative">{children}</div>
+			<div
+				className={cn(
+					'relative transition-colors duration-300',
+					!isSidebarOpen && isSubmenuOpen
+						? 'bg-primary-wash rounded-lg delay-700'
+						: ''
+				)}
+			>
+				{children}
+			</div>
 		</SidebarCollapsibleContext.Provider>
 	);
 };
@@ -70,19 +83,28 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 }) {
 	const context = useSidebarCollapsible();
 	const isSubmenuOpen = context?.isSubmenuOpen ?? false;
+	const isActive = context?.isActive ?? false;
+	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
+	const isSidebarOpen = !!isSidebarOpenRaw;
 
 	return (
 		<div
-			className={`
-				[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none
+			className={cn(
+				submenuGuideContainerStyles({
+					isSidebarOpen,
+					isSubmenuOpen,
+					tone: isActive ? 'active' : 'inactive'
+				}),
+				`[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none
 				${
 					isSubmenuOpen
 						? 'grid-rows-[1fr] duration-300'
 						: 'grid-rows-[0fr] duration-500'
 				}
-			`}
+			`
+			)}
 		>
-			<ul className="flex flex-col gap-3">{children}</ul>
+			<ul className={submenuGuideListStyles({ isSidebarOpen })}>{children}</ul>
 		</div>
 	);
 };

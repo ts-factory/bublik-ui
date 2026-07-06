@@ -15,6 +15,12 @@ export {
 	linkStyles,
 	listWrapperStyles,
 	accordionLinkStyles,
+	submenuGuideContainerStyles,
+	submenuGuideListStyles,
+	submenuGuideItemStyles,
+	submenuGuideStemStyles,
+	submenuGuideBranchStyles,
+	submenuGuideBranchExtensionStyles,
 	paddingTransition
 } from './lib/sidebar-nav.styles';
 
