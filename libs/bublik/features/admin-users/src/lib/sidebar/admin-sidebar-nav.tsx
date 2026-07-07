@@ -58,6 +58,19 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
+					to="/admin/issues"
+					pattern={{ path: '/admin/issues' }}
+					linkComponent={LinkWithProject}
+				>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="TriangleExclamationMark"
+						size={24}
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Issues
+					</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
+				<SidebarNavSubmenuItemContainer
 					to="/admin/import"
 					pattern={{ path: '/admin/import' }}
 					linkComponent={LinkWithProject}
