@@ -1,7 +1,7 @@
 {
-	"date": "2026.07.03",
-	"summary": "refactor(runs): [progress] use shared `ColumnsVisibility` in runs progress",
-	"revision": "c41100cd",
-	"branch": "release-2.15.1",
-	"latestTag": "v2.15.1"
+	"date": "2026.07.06",
+	"summary": "feat(sidebar): persist per-feature sidebar URL state",
+	"revision": "210feea0",
+	"branch": "release-2.16.0-rc.0",
+	"latestTag": "v2.16.0-rc.0"
 }

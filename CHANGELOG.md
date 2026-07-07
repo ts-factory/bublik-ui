@@ -1,5 +1,31 @@
 
 
+## [2.16.0-rc.0](https://github.com/ts-factory/bublik-ui/compare/v2.15.1...v2.16.0-rc.0) (2026-07-07)
+
+
+### 🚀 New Feature
+
+* **sidebar:** add sidebar-nav library and primitives ([d3af38e](https://github.com/ts-factory/bublik-ui/commit/d3af38e03ff073a4c8882d40ac37739fd939a174))
+* **sidebar:** persist per-feature sidebar URL state ([210feea](https://github.com/ts-factory/bublik-ui/commit/210feea0ccee03ded234e8e12d2aecb8fb50da39))
+* **sidebar:** sidebar guides and dialogs ([c2682d6](https://github.com/ts-factory/bublik-ui/commit/c2682d66908aaf48773d4a37702a3c0f94ee7927))
+* **ui:** shared selection popover ([f13b0b3](https://github.com/ts-factory/bublik-ui/commit/f13b0b38238925a5011db2e9f60f376f8e5a7c3a))
+
+
+### 💅 Polish
+
+* change default delimeter to be ": " instead of "=" ([90f54f6](https://github.com/ts-factory/bublik-ui/commit/90f54f6d04f39b86ead22bbb881c7edb9b5a957c))
+
+
+### 🐛 Bug Fix
+
+* **history:** wire key-value delimiters into global search BadgeFields ([9a7cbb6](https://github.com/ts-factory/bublik-ui/commit/9a7cbb6679730ae2eb1136599bdfaa57f8a7d5a4))
+* **runs:** use config.queryDelimiter for runData query split/join ([893daa4](https://github.com/ts-factory/bublik-ui/commit/893daa44dd15d5ac31ffed58c43718e6d26be8aa))
+
+
+### ♻ Code Refactoring
+
+* **sidebar:** build app sidebar from per-feature nav items ([2f278f5](https://github.com/ts-factory/bublik-ui/commit/2f278f597ace30c8a9b13c3326b89fdd7abc9589))
+
 ### [2.15.1](https://github.com/ts-factory/bublik-ui/compare/v2.15.0...v2.15.1) (2026-07-03)
 
 
