@@ -61,7 +61,10 @@ export function buildSubmitHandler(
 		const issue =
 			values.mode === 'existing' && values.issueId
 				? values.issueId
-				: { title: values.title || 'Untitled', bug_key: values.bugKey || undefined };
+				: {
+						title: values.title || 'Untitled',
+						bug_key: values.bugKey || undefined
+				  };
 		await submit({
 			issue,
 			category,
@@ -69,8 +72,8 @@ export function buildSubmitHandler(
 				values.expected === 'expected'
 					? true
 					: values.expected === 'unexpected'
-						? false
-						: null,
+					? false
+					: null,
 			scope: values.scope as ClassifyScope,
 			matcher: {
 				matchParameters: values.matchParameters,
@@ -114,7 +117,11 @@ export function ClassifyFields({
 
 			{mode === 'new' ? (
 				<>
-					<Input label="Title" placeholder="Short label" {...register('title')} />
+					<Input
+						label="Title"
+						placeholder="Short label"
+						{...register('title')}
+					/>
 					<Input
 						label="Bug key (optional)"
 						placeholder="ref://JIRA/ISSUE-123"

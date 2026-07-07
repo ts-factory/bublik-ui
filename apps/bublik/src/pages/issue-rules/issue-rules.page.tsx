@@ -12,7 +12,9 @@ export const IssueRulesPage = () => {
 	const projectId = projectIds[0];
 
 	if (!issueId) {
-		return <BublikEmptyState title="No data" description="Issue ID is missing" />;
+		return (
+			<BublikEmptyState title="No data" description="Issue ID is missing" />
+		);
 	}
 
 	return (

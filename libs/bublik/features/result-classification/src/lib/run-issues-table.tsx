@@ -37,8 +37,8 @@ function RunIssueTableRow({
 	const aggregate = dispositions.includes(true)
 		? true
 		: dispositions.includes(false)
-			? false
-			: null;
+		? false
+		: null;
 	const badge = expectedBadge(aggregate);
 
 	return (

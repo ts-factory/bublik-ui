@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 import { useWatch } from 'react-hook-form';
 
-import { Checkbox, RadioGroup, RadioGroupItemWithLabel } from '@/shared/tailwind-ui';
+import {
+	Checkbox,
+	RadioGroup,
+	RadioGroupItemWithLabel
+} from '@/shared/tailwind-ui';
 
 import type { ClassifyForm } from './classify-form';
 import {
@@ -12,7 +16,9 @@ import {
 } from './match-scope.utils';
 
 function writeFlags(form: ClassifyForm, flags: MatchFlags) {
-	form.setValue('matchParameters', flags.matchParameters, { shouldDirty: true });
+	form.setValue('matchParameters', flags.matchParameters, {
+		shouldDirty: true
+	});
 	form.setValue('matchVerdicts', flags.matchVerdicts, { shouldDirty: true });
 	form.setValue('matchImportantTags', flags.matchImportantTags, {
 		shouldDirty: true
@@ -23,7 +29,12 @@ function writeFlags(form: ClassifyForm, flags: MatchFlags) {
 export function MatchScope({ form }: { form: ClassifyForm }) {
 	const flags = useWatch({
 		control: form.control,
-		name: ['matchParameters', 'matchVerdicts', 'matchImportantTags', 'matchAllTags']
+		name: [
+			'matchParameters',
+			'matchVerdicts',
+			'matchImportantTags',
+			'matchAllTags'
+		]
 	});
 	const current: MatchFlags = {
 		matchParameters: flags[0],

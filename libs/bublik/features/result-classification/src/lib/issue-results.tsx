@@ -49,9 +49,13 @@ export function IssueResults({ issueId, projectId }: IssueResultsProps) {
 					key={row.result_id}
 					className="flex items-center gap-3 px-2 py-1 text-sm rounded hover:bg-primary-wash"
 				>
-					<span className="font-medium text-text-primary">{row.name ?? '-'}</span>
+					<span className="font-medium text-text-primary">
+						{row.name ?? '-'}
+					</span>
 					{row.path.length ? (
-						<span className="text-xs text-text-menu">{row.path.join(' / ')}</span>
+						<span className="text-xs text-text-menu">
+							{row.path.join(' / ')}
+						</span>
 					) : null}
 					{row.category ? <Badge>{row.category}</Badge> : null}
 					{row.expected !== undefined ? (

@@ -15,7 +15,9 @@ import { chipsForFlags } from './match-scope.utils';
 import { IssueRuleResults } from './issue-rule-results';
 
 function categoryLabel(category: string): string {
-	return CATEGORY_OPTIONS.find((c) => c.value === category)?.displayValue ?? category;
+	return (
+		CATEGORY_OPTIONS.find((c) => c.value === category)?.displayValue ?? category
+	);
 }
 
 function notifyError(err: unknown) {
@@ -113,7 +115,10 @@ export function IssueRuleRow({ rule, projectId }: IssueRuleRowProps) {
 			</tr>
 			{expanded ? (
 				<tr>
-					<td colSpan={6} className="border-b border-border-primary bg-primary-wash/40">
+					<td
+						colSpan={6}
+						className="border-b border-border-primary bg-primary-wash/40"
+					>
 						<IssueRuleResults ruleId={rule.id} projectId={projectId} />
 					</td>
 				</tr>

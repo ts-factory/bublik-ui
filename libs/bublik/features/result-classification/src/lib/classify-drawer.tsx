@@ -1,5 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-import { ButtonTw, DrawerContent, DrawerRoot, Icon } from '@/shared/tailwind-ui';
+import {
+	ButtonTw,
+	DrawerContent,
+	DrawerRoot,
+	Icon
+} from '@/shared/tailwind-ui';
 
 import {
 	ClassifyFields,
@@ -63,7 +68,11 @@ export function ClassifyDrawer({
 						className="justify-center w-full"
 					>
 						{form.formState.isSubmitting ? (
-							<Icon name="ProgressIndicator" size={18} className="animate-spin" />
+							<Icon
+								name="ProgressIndicator"
+								size={18}
+								className="animate-spin"
+							/>
 						) : (
 							'Classify'
 						)}

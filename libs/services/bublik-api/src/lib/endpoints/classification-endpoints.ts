@@ -85,10 +85,7 @@ export const classificationEndpoints = {
 				BUBLIK_TAG.DashboardData
 			]
 		}),
-		closeIssue: build.mutation<
-			Issue,
-			{ issueId: number; projectId?: number }
-		>({
+		closeIssue: build.mutation<Issue, { issueId: number; projectId?: number }>({
 			query: ({ issueId, projectId }) => ({
 				url: withApiV2(`/issues/${issueId}/close`),
 				method: 'POST',
@@ -100,17 +97,16 @@ export const classificationEndpoints = {
 				BUBLIK_TAG.Run
 			]
 		}),
-		reopenIssue: build.mutation<
-			Issue,
-			{ issueId: number; projectId?: number }
-		>({
-			query: ({ issueId, projectId }) => ({
-				url: withApiV2(`/issues/${issueId}/reopen`),
-				method: 'POST',
-				params: { project: projectId }
-			}),
-			invalidatesTags: [BUBLIK_TAG.Issues, BUBLIK_TAG.Run]
-		}),
+		reopenIssue: build.mutation<Issue, { issueId: number; projectId?: number }>(
+			{
+				query: ({ issueId, projectId }) => ({
+					url: withApiV2(`/issues/${issueId}/reopen`),
+					method: 'POST',
+					params: { project: projectId }
+				}),
+				invalidatesTags: [BUBLIK_TAG.Issues, BUBLIK_TAG.Run]
+			}
+		),
 		deactivateRule: build.mutation<
 			IssueRule,
 			{ ruleId: number; projectId?: number }

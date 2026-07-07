@@ -23,27 +23,57 @@ export interface Preset {
 export const PRESETS: Preset[] = [
 	{
 		label: 'Path only',
-		flags: { matchParameters: false, matchVerdicts: false, matchImportantTags: false, matchAllTags: false }
+		flags: {
+			matchParameters: false,
+			matchVerdicts: false,
+			matchImportantTags: false,
+			matchAllTags: false
+		}
 	},
 	{
 		label: 'Path + Verdicts',
-		flags: { matchParameters: false, matchVerdicts: true, matchImportantTags: false, matchAllTags: false }
+		flags: {
+			matchParameters: false,
+			matchVerdicts: true,
+			matchImportantTags: false,
+			matchAllTags: false
+		}
 	},
 	{
 		label: 'Path + Parameters',
-		flags: { matchParameters: true, matchVerdicts: false, matchImportantTags: false, matchAllTags: false }
+		flags: {
+			matchParameters: true,
+			matchVerdicts: false,
+			matchImportantTags: false,
+			matchAllTags: false
+		}
 	},
 	{
 		label: 'Path + Parameters + Verdicts',
-		flags: { matchParameters: true, matchVerdicts: true, matchImportantTags: false, matchAllTags: false }
+		flags: {
+			matchParameters: true,
+			matchVerdicts: true,
+			matchImportantTags: false,
+			matchAllTags: false
+		}
 	},
 	{
 		label: 'Path + Parameters + Verdicts + Important tags',
-		flags: { matchParameters: true, matchVerdicts: true, matchImportantTags: true, matchAllTags: false }
+		flags: {
+			matchParameters: true,
+			matchVerdicts: true,
+			matchImportantTags: true,
+			matchAllTags: false
+		}
 	},
 	{
 		label: 'Path + Parameters + Verdicts + All tags',
-		flags: { matchParameters: true, matchVerdicts: true, matchImportantTags: false, matchAllTags: true }
+		flags: {
+			matchParameters: true,
+			matchVerdicts: true,
+			matchImportantTags: false,
+			matchAllTags: true
+		}
 	}
 ];
 

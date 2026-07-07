@@ -27,10 +27,19 @@ export interface ClassifyPopoverProps {
 	projectId?: number;
 }
 
-function MatchingSummary({ control }: { control: Control<ClassifyFormValues> }) {
+function MatchingSummary({
+	control
+}: {
+	control: Control<ClassifyFormValues>;
+}) {
 	const flags = useWatch({
 		control,
-		name: ['matchParameters', 'matchVerdicts', 'matchImportantTags', 'matchAllTags']
+		name: [
+			'matchParameters',
+			'matchVerdicts',
+			'matchImportantTags',
+			'matchAllTags'
+		]
 	});
 	const current = {
 		matchParameters: flags[0],
@@ -90,7 +99,9 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"
 					>
-						<span className="text-[0.875rem] font-semibold">Classify failure</span>
+						<span className="text-[0.875rem] font-semibold">
+							Classify failure
+						</span>
 
 						<ClassifyFields form={form} projectId={projectId} />
 
@@ -115,7 +126,11 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 							className="justify-center w-full"
 						>
 							{form.formState.isSubmitting ? (
-								<Icon name="ProgressIndicator" size={18} className="animate-spin" />
+								<Icon
+									name="ProgressIndicator"
+									size={18}
+									className="animate-spin"
+								/>
 							) : (
 								'Classify'
 							)}

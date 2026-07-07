@@ -70,7 +70,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
 				<Icon name="TriangleExclamationMark" size={18} />
-				<h1 className="text-lg font-semibold">{issue?.title ?? `Issue #${issueId}`}</h1>
+				<h1 className="text-lg font-semibold">
+					{issue?.title ?? `Issue #${issueId}`}
+				</h1>
 				{issue?.issue_ext?.key ? (
 					<span className="text-sm text-text-menu">{issue.issue_ext.key}</span>
 				) : null}

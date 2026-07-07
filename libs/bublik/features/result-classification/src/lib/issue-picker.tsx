@@ -45,7 +45,9 @@ export function IssuePicker({ projectId, value, onChange }: IssuePickerProps) {
 			/>
 			<div className="overflow-y-auto max-h-48">
 				{isFetching ? (
-					<div className="py-3 text-xs text-center text-text-menu">Loading…</div>
+					<div className="py-3 text-xs text-center text-text-menu">
+						Loading…
+					</div>
 				) : null}
 				{isError ? (
 					<div className="py-3 text-xs text-center text-text-menu">
