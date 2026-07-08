@@ -86,8 +86,14 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 
 		if (axis.name === 'auto-seqno') {
 			const maxLength = results
-				.map((result) => result.entries.length)
-				.reduce((acc, val) => Math.max(acc, val));
+				.map((result) =>
+					result.entries
+						.filter(
+							(entry) => entry.aggr === 'single' || entry.aggr === 'series'
+						)
+						.reduce((count, entry) => count + (entry.values?.length ?? 1), 0)
+				)
+				.reduce((acc, val) => Math.max(acc, val), 0);
 
 			const data = Array.from({ length: maxLength }, (_, i) => i);
 
@@ -106,12 +112,14 @@ export const convertRawToCharts = (config: Config): ChartConfig[] => {
 		const result = results.find((result) => result.type === axis.type);
 		const units = result?.entries?.[0]?.base_units;
 		const data =
-			result?.entries?.flatMap(
-				(entry) =>
-					entry.values?.map(
-						(value) => Number(value) * Number(entry.multiplier)
-					) || [Number(entry.value) * Number(entry.multiplier)]
-			) || [];
+			result?.entries
+				?.filter((entry) => entry.aggr === 'single' || entry.aggr === 'series')
+				.flatMap(
+					(entry) =>
+						entry.values?.map(
+							(value) => Number(value) * Number(entry.multiplier)
+						) || [Number(entry.value) * Number(entry.multiplier)]
+				) || [];
 		const min = Math.min(...data);
 		const max = Math.max(...data);
 

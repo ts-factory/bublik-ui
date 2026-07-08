@@ -331,28 +331,65 @@
 																											"entries": {
 																												"type": "array",
 																												"items": {
-																													"type": "object",
-																													"properties": {
-																														"aggr": {
-																															"type": "string"
+																													"anyOf": [
+																														{
+																															"type": "object",
+																															"properties": {
+																																"aggr": {
+																																	"type": "string"
+																																},
+																																"value": {
+																																	"type": "number"
+																																},
+																																"values": {
+																																	"not": {}
+																																},
+																																"base_units": {
+																																	"type": "string"
+																																},
+																																"multiplier": {
+																																	"type": "string"
+																																}
+																															},
+																															"required": [
+																																"aggr",
+																																"value",
+																																"base_units",
+																																"multiplier"
+																															],
+																															"additionalProperties": false
 																														},
-																														"value": {
-																															"type": "number"
-																														},
-																														"base_units": {
-																															"type": "string"
-																														},
-																														"multiplier": {
-																															"type": "string"
+																														{
+																															"type": "object",
+																															"properties": {
+																																"aggr": {
+																																	"type": "string"
+																																},
+																																"value": {
+																																	"not": {}
+																																},
+																																"values": {
+																																	"type": "array",
+																																	"items": {
+																																		"type": "number"
+																																	}
+																																},
+																																"base_units": {
+																																	"type": "string"
+																																},
+																																"multiplier": {
+																																	"type": "string"
+																																}
+																															},
+																															"required": [
+																																"aggr",
+																																"values",
+																																"base_units",
+																																"multiplier"
+																															],
+																															"additionalProperties": false
 																														}
-																													},
-																													"required": [
-																														"aggr",
-																														"value",
-																														"base_units",
-																														"multiplier"
-																													],
-																													"additionalProperties": false
+																													]
 																												}
 																											}
 																										},
