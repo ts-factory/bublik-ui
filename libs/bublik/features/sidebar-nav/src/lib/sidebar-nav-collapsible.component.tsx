@@ -5,16 +5,16 @@ import {
 	useContext,
 	ReactNode,
 	useState,
-	useEffect
+	useEffect,
+	useLayoutEffect,
+	useRef
 } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
-import {
-	submenuGuideContainerStyles,
-	submenuGuideListStyles,
-	wrapperStyles
-} from './sidebar-nav.styles';
+import { SidebarNavGuide } from './sidebar-nav-guide.component';
+import { wrapperStyles } from './sidebar-nav.styles';
 import { useIsActivePaths, type ActivePattern } from './use-is-active';
 
 interface SidebarCollapsibleContextValue {
@@ -86,16 +86,44 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 	const isActive = context?.isActive ?? false;
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
+	const location = useLocation();
+	const listRef = useRef<HTMLUListElement>(null);
+	const [guideState, setGuideState] = useState({
+		itemCount: 0,
+		activeIndex: null as number | null,
+		isActiveItemDisabled: false
+	});
+
+	useLayoutEffect(() => {
+		const items = Array.from(
+			listRef.current?.querySelectorAll<HTMLElement>(
+				':scope > [data-sidebar-nav-submenu-guide]'
+			) ?? []
+		);
+		const activeIndex = items.findIndex(
+			(item) => item.dataset.sidebarNavSubmenuGuideActive === 'true'
+		);
+		const nextState = {
+			itemCount: items.length,
+			activeIndex: activeIndex === -1 ? null : activeIndex,
+			isActiveItemDisabled:
+				activeIndex !== -1 &&
+				items[activeIndex].dataset.sidebarNavSubmenuGuideDisabled === 'true'
+		};
+
+		setGuideState((currentState) =>
+			currentState.itemCount === nextState.itemCount &&
+			currentState.activeIndex === nextState.activeIndex &&
+			currentState.isActiveItemDisabled === nextState.isActiveItemDisabled
+				? currentState
+				: nextState
+		);
+	}, [children, location]);
 
 	return (
 		<div
 			className={cn(
-				submenuGuideContainerStyles({
-					isSidebarOpen,
-					isSubmenuOpen,
-					tone: isActive ? 'active' : 'inactive'
-				}),
-				`[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none
+				`relative [&>ul]:overflow-hidden grid transition-all ease-in-out motion-reduce:transition-none
 				${
 					isSubmenuOpen
 						? 'grid-rows-[1fr] duration-300'
@@ -104,7 +132,20 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 			`
 			)}
 		>
-			<ul className={submenuGuideListStyles({ isSidebarOpen })}>{children}</ul>
+			<SidebarNavGuide
+				{...guideState}
+				isGroupActive={isActive}
+				isVisible={isSidebarOpen && isSubmenuOpen}
+			/>
+			<ul
+				ref={listRef}
+				className={cn(
+					'relative flex flex-col transition-colors duration-300',
+					!isSidebarOpen && 'rounded-lg bg-primary-wash delay-700'
+				)}
+			>
+				{children}
+			</ul>
 		</div>
 	);
 };

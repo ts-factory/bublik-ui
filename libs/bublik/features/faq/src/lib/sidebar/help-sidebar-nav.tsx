@@ -7,6 +7,7 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavLinkWrapper,
 	SidebarNavSubmenuItem,
+	SidebarNavSubmenuItemContainer,
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { config } from '@/bublik/config';
@@ -33,6 +34,16 @@ export function HelpSidebarNav() {
 			</SidebarNavCollapsibleContainer.Item>
 
 			<SidebarNavCollapsibleContainer.Submenu>
+				<SidebarNavSubmenuItemContainer
+					to="/help/faq"
+					pattern={{ path: '/help/faq' }}
+					linkComponent={LinkWithProject}
+				>
+					<Icon name="InformationCircleQuestionMark" className="size-7" />
+					<SidebarNavSubmenuItemContainer.Label>
+						FAQ
+					</SidebarNavSubmenuItemContainer.Label>
+				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItem
 					href={`${config.oldBaseUrl}/docs`}
 					isActive={false}

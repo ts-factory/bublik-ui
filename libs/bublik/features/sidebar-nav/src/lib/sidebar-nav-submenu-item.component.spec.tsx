@@ -88,19 +88,24 @@ describe('SidebarNavSubmenuItemContainer', () => {
 	it('shows an active enabled hierarchy guide', () => {
 		const { container } = renderSubmenuItem();
 		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
-		const branch = container.querySelector('[data-sidebar-nav-guide-branch]');
 
 		expect(guide).toBeInstanceOf(HTMLLIElement);
-		expect(branch?.className).toContain('border-primary');
+		expect(guide?.getAttribute('data-sidebar-nav-submenu-guide-active')).toBe(
+			'true'
+		);
+		expect(guide?.hasAttribute('data-sidebar-nav-submenu-guide-disabled')).toBe(
+			false
+		);
 	});
 
 	it('uses the default hierarchy guide for disabled items', () => {
 		const { container } = renderSubmenuItem({ disabled: true });
 		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
-		const branch = container.querySelector('[data-sidebar-nav-guide-branch]');
 
 		expect(guide).toBeInstanceOf(HTMLLIElement);
-		expect(branch?.className).toContain('border-border-primary');
+		expect(guide?.getAttribute('data-sidebar-nav-submenu-guide-disabled')).toBe(
+			'true'
+		);
 	});
 
 	it('keeps info button clicks from triggering link navigation', async () => {

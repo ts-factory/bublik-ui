@@ -51,7 +51,7 @@ function SidebarNavInternalLinkIcon(props: Omit<IconProps, 'ref'>) {
 		<div
 			className={cn(
 				'grid flex-shrink-0 place-items-center',
-				disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
+				disabled && 'cursor-not-allowed opacity-50 pointer-events-none'
 			)}
 		>
 			<Icon {...props} />
@@ -65,7 +65,7 @@ function SidebarNavInternalLinkLabel({ children }: { children: ReactNode }) {
 		<span
 			className={cn(
 				'text-[1.125rem] truncate',
-				disabled && 'cursor-not-allowed opacity-60 pointer-events-none'
+				disabled && 'cursor-not-allowed opacity-50 pointer-events-none'
 			)}
 		>
 			{children}

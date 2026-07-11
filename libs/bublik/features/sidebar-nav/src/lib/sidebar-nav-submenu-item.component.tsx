@@ -28,12 +28,6 @@ import {
 	SidebarAccordionLabel
 } from './sidebar-nav-accordion.component';
 import {
-	submenuGuideBranchExtensionStyles,
-	submenuGuideBranchStyles,
-	submenuGuideItemStyles,
-	submenuGuideStemStyles
-} from './sidebar-nav.styles';
-import {
 	getSubmenuIsActive,
 	type SubmenuMatchPattern
 } from './sidebar-nav.matchers';
@@ -65,7 +59,7 @@ function SidebarNavSubmenuIcon({
 		<div
 			className={cn(
 				'grid flex-shrink-0 place-items-center',
-				disabled && 'opacity-60'
+				disabled && 'opacity-50'
 			)}
 		>
 			<Icon {...props} className={cn('size-[22px]', className)} />
@@ -79,7 +73,7 @@ function SidebarNavSubmenuLabel({ children }: { children: ReactNode }) {
 		<span
 			className={cn(
 				'truncate text-[0.875rem] leading-[1.5rem]',
-				disabled && 'opacity-60'
+				disabled && 'opacity-50'
 			)}
 		>
 			{children}
@@ -107,9 +101,6 @@ type SidebarNavSubmenuItemProps = {
 
 function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 	const { children, isActive, disabled } = props;
-	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
-	const isSidebarOpen = !!isSidebarOpenRaw;
-	const guideTone = disabled ? 'disabled' : isActive ? 'active' : 'inactive';
 
 	const linkProps =
 		'href' in props
@@ -118,38 +109,11 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 
 	return (
 		<li
-			className={submenuGuideItemStyles({
-				isSidebarOpen
-			})}
+			className="relative pt-3 first:pt-0"
 			data-sidebar-nav-submenu-guide
 			data-sidebar-nav-submenu-guide-active={isActive ? 'true' : undefined}
+			data-sidebar-nav-submenu-guide-disabled={disabled ? 'true' : undefined}
 		>
-			<span
-				aria-hidden="true"
-				data-sidebar-nav-guide-part
-				data-sidebar-nav-guide-stem
-				data-sidebar-nav-guide-stem-top
-				className={submenuGuideStemStyles({ segment: 'top' })}
-			/>
-			<span
-				aria-hidden="true"
-				data-sidebar-nav-guide-part
-				data-sidebar-nav-guide-stem
-				data-sidebar-nav-guide-stem-bottom
-				className={submenuGuideStemStyles({ segment: 'bottom' })}
-			/>
-			<span
-				aria-hidden="true"
-				data-sidebar-nav-guide-part
-				data-sidebar-nav-guide-branch
-				className={submenuGuideBranchStyles({ tone: guideTone })}
-			/>
-			<span
-				aria-hidden="true"
-				data-sidebar-nav-guide-part
-				data-sidebar-nav-guide-branch-extension
-				className={submenuGuideBranchExtensionStyles({ tone: guideTone })}
-			/>
 			<SidebarNavSubmenuItemContext.Provider value={{ disabled: !!disabled }}>
 				<SidebarAccordionLink
 					isActive={isActive}
