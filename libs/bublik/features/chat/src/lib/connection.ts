@@ -66,10 +66,11 @@ async function* parseSse(
 				if (!line || !line.startsWith('data:')) continue;
 				const data = line.slice('data:'.length).trim();
 				if (!data || data === '[DONE]') continue;
+				const parsed = JSON.parse(data) as unknown;
 				// The server's MESSAGES_SNAPSHOT echoes the run input, which carries
 				// TanStack's redundant tool/reasoning fan-out entries; strip them so
 				// they never materialize as duplicate messages (see sanitize.ts).
-				yield sanitizeSnapshotChunk(JSON.parse(data) as StreamChunk);
+				yield sanitizeSnapshotChunk(parsed as StreamChunk);
 			}
 		}
 	} finally {
@@ -79,7 +80,7 @@ async function* parseSse(
 
 export function createResumableConnection({
 	sendUrl,
-	subscribeUrl
+	subscribeUrl,
 }: ResumableConnectionUrls) {
 	// `fetchServerSentEvents` builds the AG-UI RunAgentInput body and POSTs it; we
 	// reuse only that. The server's empty 202 yields no chunks, so the loop just

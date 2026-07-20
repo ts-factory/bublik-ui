@@ -72,6 +72,23 @@ export type ChatThreadListItem = z.infer<typeof ChatThreadListItemSchema>;
 
 export const ChatThreadListResponseSchema = z.array(ChatThreadListItemSchema);
 
+// Last known context occupancy of a thread, maintained server-side from real
+// model usage (see bublik/ai/compaction.py). Seeds the composer's context
+// meter on thread load; live updates arrive as AG-UI CUSTOM events.
+export const ChatContextUsageSchema = z.object({
+	tokens: z.number(),
+	context_limit: z.number().nullish(),
+	provider: z.string().nullish(),
+	model: z.string().nullish(),
+	// Whether older turns are summarized for the model (the stored
+	// conversation itself is never trimmed).
+	compacted: z.boolean().nullish(),
+	covered_count: z.number().nullish(),
+	compacted_at: z.string().nullish()
+});
+
+export type ChatContextUsage = z.infer<typeof ChatContextUsageSchema>;
+
 export const ChatThreadDetailSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -80,6 +97,7 @@ export const ChatThreadDetailSchema = z.object({
 	messages: z.array(z.any()),
 	// Id of the run streaming for this thread right now, or null when idle.
 	active_run_id: z.string().nullable(),
+	context_usage: ChatContextUsageSchema.nullish(),
 	created: z.string(),
 	updated: z.string()
 });
@@ -121,7 +139,10 @@ export const chatEndpoints = {
 				url: withApiV2(`/chat/threads/${id}/`, true),
 				cache: 'no-cache'
 			}),
-			responseSchema: ChatThreadDetailSchema
+			responseSchema: ChatThreadDetailSchema,
+			// Always refetch on mount so reopened threads get fresh context
+			// usage / compaction state instead of a stale cached response.
+			refetchOnMountOrArgChange: true
 		}),
 		renameChatThread: build.mutation<
 			ChatThreadListItem,
@@ -149,6 +170,17 @@ export const chatEndpoints = {
 			query: (id) => ({
 				url: withApiV2(`/chat/threads/${id}`),
 				method: 'DELETE'
+			}),
+			invalidatesTags: [BUBLIK_TAG.Chat]
+		}),
+		// Interrupt a thread's in-flight background run. `stop()` on the client
+		// only aborts the local SSE subscription; this tells the server to tear
+		// the run down so it stops streaming and the sidebar indicator clears.
+		// Idempotent server-side: a thread with no running run still succeeds.
+		cancelChatRun: build.mutation<void, { threadId: string }>({
+			query: ({ threadId }) => ({
+				url: withApiV2(`/chat/cancel?thread=${encodeURIComponent(threadId)}`, true),
+				method: 'POST'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Chat]
 		})

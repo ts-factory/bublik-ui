@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 export * from './code-block';
+export * from './context-usage-indicator';
 export * from './conversation';
 export * from './file-card';
 export * from './loader';

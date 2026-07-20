@@ -190,5 +190,6 @@ export const {
 	useGetChatThreadsQuery,
 	useRenameChatThreadMutation,
 	useSetChatThreadArchivedMutation,
-	useDeleteChatThreadMutation
+	useDeleteChatThreadMutation,
+	useCancelChatRunMutation
 } = bublikAPI;
