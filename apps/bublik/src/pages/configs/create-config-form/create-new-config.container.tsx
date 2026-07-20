@@ -92,6 +92,8 @@ function CreateNewConfigScreen() {
 
 	async function handleCreateSubmit(data: CreateConfigInputs) {
 		if (!newConfigParams) return toast.error('No config params present');
+		const isAiGlobalConfig =
+			newConfigParams.type === 'global' && data.name === 'ai';
 
 		trackEvent(analyticsEventNames.configsCreateSubmit, {
 			status: 'pending',
@@ -102,6 +104,7 @@ function CreateNewConfigScreen() {
 		const promise = createConfigMutation({
 			type: newConfigParams.type,
 			...data,
+			project: isAiGlobalConfig ? null : data.project,
 			content: JSON.parse(data.content)
 		}).unwrap();
 
@@ -210,6 +213,13 @@ function CreateNewConfigScreen() {
 	}
 
 	const formValues = form.watch();
+	const isAiGlobalConfig =
+		newConfigParams.type === 'global' && formValues.name === 'ai';
+
+	useEffect(() => {
+		if (isAiGlobalConfig) form.setValue('project', null);
+	}, [form, isAiGlobalConfig]);
+
 	useEffect(
 		() => setSavedValue(JSON.stringify(formValues)),
 		[formValues, setSavedValue]
@@ -268,35 +278,39 @@ function CreateNewConfigScreen() {
 								/>
 							</div>
 						) : null}
-						<Controller
-							name="project"
-							control={form.control}
-							render={({ field }) => (
-								<div className="relative">
-									<label className="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white">
-										Project
-									</label>
-									<select
-										{...field}
-										value={field.value?.toString() ?? 'default'}
-										onChange={(e) => {
-											const value = e.target.value;
-											field.onChange(
-												value === 'default' ? null : parseInt(value, 10)
-											);
-										}}
-										className="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent"
-									>
-										<option value="default">{DEFAULT_PROJECT_LABEL}</option>
-										{projectsQuery.data?.map((project) => (
-											<option key={project.id} value={project.id.toString()}>
-												{project.name}
-											</option>
-										))}
-									</select>
-								</div>
-							)}
-						/>
+						{/* The AI config is global-only: the backend pins it to No
+						    Project, so offering a choice here would be a lie. */}
+						{!isAiGlobalConfig ? (
+							<Controller
+								name="project"
+								control={form.control}
+								render={({ field }) => (
+									<div className="relative">
+										<label className="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white">
+											Project
+										</label>
+										<select
+											{...field}
+											value={field.value?.toString() ?? 'default'}
+											onChange={(e) => {
+												const value = e.target.value;
+												field.onChange(
+													value === 'default' ? null : parseInt(value, 10)
+												);
+											}}
+											className="w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent"
+										>
+											<option value="default">{DEFAULT_PROJECT_LABEL}</option>
+											{projectsQuery.data?.map((project) => (
+												<option key={project.id} value={project.id.toString()}>
+													{project.name}
+												</option>
+											))}
+										</select>
+									</div>
+								)}
+							/>
+						) : null}
 						<Controller
 							name="name"
 							control={form.control}
