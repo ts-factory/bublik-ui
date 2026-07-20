@@ -42,7 +42,7 @@ export function ChatThreadSidebar() {
 	// than the active one (the active thread also refreshes via onFinish).
 	const { data: threads, isLoading } = useGetChatThreadsQuery(
 		{ archived: true },
-		{ pollingInterval: 5000 }
+		{ pollingInterval: 5000, refetchOnMountOrArgChange: true }
 	);
 
 	const activeThreads = threads?.filter((t) => !t.is_archived) ?? [];
@@ -70,9 +70,13 @@ export function ChatThreadSidebar() {
 			error: 'Failed to delete thread',
 			loading: 'Deleting thread…'
 		});
-		await promise;
-		// Leaving the deleted thread open: start a fresh conversation.
-		if (thread.id === threadId) handleNewChat();
+		try {
+			await promise;
+			// Leaving the deleted thread open: start a fresh conversation.
+			if (thread.id === threadId) handleNewChat();
+		} catch {
+			// Error already surfaced via toast.promise above.
+		}
 	}
 
 	return (

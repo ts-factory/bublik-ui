@@ -1,12 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import {
-	ReactNode,
-	createContext,
-	useContext,
-	useRef,
-	useState
-} from 'react';
+import { ReactNode, createContext, useContext, useRef, useState } from 'react';
 import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 
 import {

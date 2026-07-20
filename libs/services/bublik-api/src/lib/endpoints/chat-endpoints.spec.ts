@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { ChatContextUsageSchema } from '@/services/bublik-api';
+import { ChatContextUsageSchema } from './chat-endpoints';
 
 describe('ChatContextUsageSchema', () => {
 	it('parses full context usage with all fields', () => {

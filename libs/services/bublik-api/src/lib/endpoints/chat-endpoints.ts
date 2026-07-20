@@ -97,6 +97,9 @@ export const ChatThreadDetailSchema = z.object({
 	messages: z.array(z.any()),
 	// Id of the run streaming for this thread right now, or null when idle.
 	active_run_id: z.string().nullable(),
+	// Latest run state, retained after it finishes so the UI can distinguish a
+	// background completion from an error/cancellation during polling.
+	latest_run_status: z.string().nullable(),
 	context_usage: ChatContextUsageSchema.nullish(),
 	created: z.string(),
 	updated: z.string()
@@ -139,10 +142,7 @@ export const chatEndpoints = {
 				url: withApiV2(`/chat/threads/${id}/`, true),
 				cache: 'no-cache'
 			}),
-			responseSchema: ChatThreadDetailSchema,
-			// Always refetch on mount so reopened threads get fresh context
-			// usage / compaction state instead of a stale cached response.
-			refetchOnMountOrArgChange: true
+			responseSchema: ChatThreadDetailSchema
 		}),
 		renameChatThread: build.mutation<
 			ChatThreadListItem,
@@ -179,7 +179,10 @@ export const chatEndpoints = {
 		// Idempotent server-side: a thread with no running run still succeeds.
 		cancelChatRun: build.mutation<void, { threadId: string }>({
 			query: ({ threadId }) => ({
-				url: withApiV2(`/chat/cancel?thread=${encodeURIComponent(threadId)}`, true),
+				url: withApiV2(
+					`/chat/cancel?thread=${encodeURIComponent(threadId)}`,
+					true
+				),
 				method: 'POST'
 			}),
 			invalidatesTags: [BUBLIK_TAG.Chat]

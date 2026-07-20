@@ -10,7 +10,11 @@ import {
 } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { useChat, type UIMessage } from '@tanstack/ai-react';
+import {
+	fetchServerSentEvents,
+	useChat,
+	type UIMessage
+} from '@tanstack/ai-react';
 import {
 	CheckIcon,
 	CopyIcon,
@@ -70,10 +74,7 @@ import {
 	isPartStreaming,
 	parseGeneratedFile
 } from './elements';
-import { serverPersistence, reviveCreatedAt } from './persistence';
-import { sanitizeWireMessages } from './sanitize';
 import { regroupTrailingReasoning } from './regroup-reasoning';
-import { createResumableConnection } from './connection';
 import {
 	threadToMarkdown,
 	downloadMarkdown,
@@ -178,6 +179,12 @@ function ChatPanel() {
 	// the panel on every streamed token.
 	const messagesRef = useRef<UIMessage[]>([]);
 
+	// Clear the export ref on thread change so Copy/Download don't carry the
+	// previous thread's messages while the new one is loading.
+	useEffect(() => {
+		messagesRef.current = [];
+	}, [threadId]);
+
 	function exportMarkdown(): string | null {
 		const markdown = threadToMarkdown(messagesRef.current);
 		if (!markdown) {
@@ -225,12 +232,22 @@ function ChatPanel() {
 		setSelection(next);
 	}, [data?.default_model, flatModels, selection, setSelection]);
 
+	// A stale persisted selection (e.g. a model that was removed or renamed
+	// server-side) would otherwise send invalid provider/model ids forever.
+	// Reset it to let the initialisation effect above pick the default.
+	useEffect(() => {
+		if (!selection || flatModels.length === 0) return;
+		const isValid = flatModels.some(
+			(m) => m.provider === selection.provider && m.model.id === selection.model
+		);
+		if (!isValid) setSelection(null);
+	}, [flatModels, selection, setSelection]);
+
 	const selectedModel: ChatModel | undefined = useMemo(
 		() =>
 			flatModels.find(
 				(m) =>
-					m.provider === selection?.provider &&
-					m.model.id === selection?.model
+					m.provider === selection?.provider && m.model.id === selection?.model
 			)?.model,
 		[flatModels, selection]
 	);
@@ -348,40 +365,9 @@ function NoModelsState() {
 }
 
 /**
- * Drop the in-flight run's output (everything after the last user message) from
- * the seed when a run is still active.
- *
- * The live Redis replay rebuilds the active run from scratch, but assistant
- * messages are persisted under client-generated ids (`msg-<ts>-<rand>`, see
- * `generateMessageId` in @tanstack/ai) that are regenerated on each replay --
- * so a seeded copy and the replayed copy don't reconcile by id and render
- * twice. Keeping only up to the last user message (the replay never re-emits
- * user messages) lets the replay be the sole source for the active turn while
- * preserving every user message. Finished threads have no replay, so the full
- * history is kept.
- */
-function seedForActiveRun(
-	messages: UIMessage[],
-	hasActiveRun: boolean
-): UIMessage[] {
-	if (!hasActiveRun) return messages;
-	let lastUserIdx = -1;
-	for (let i = messages.length - 1; i >= 0; i--) {
-		if (messages[i].role === 'user') {
-			lastUserIdx = i;
-			break;
-		}
-	}
-	return lastUserIdx === -1 ? messages : messages.slice(0, lastUserIdx + 1);
-}
-
-/**
- * Loads the thread's persisted history before mounting the conversation, then
- * seeds it into `useChat` via `initialMessages`. This is what fixes resume:
- * `useChat`'s async `getItem` hydration races the live Redis replay and is
- * discarded when the replay (assistant-only) arrives first, dropping every user
- * message. Providing the history synchronously at construction sidesteps the
- * race -- the conversation starts populated and the replay merges by message id.
+ * Loads the server-owned transcript before mounting the conversation. A reload
+ * during an active run shows this durable state and waits for the final server
+ * update instead of replaying partial output.
  */
 function ChatThread({
 	threadId,
@@ -396,10 +382,18 @@ function ChatThread({
 	messagesRef: MutableRefObject<UIMessage[]>;
 	modelControls: ModelControls;
 }) {
-	// A brand-new thread has no row yet (404); treat that (and any error) as an
-	// empty history rather than blocking the chat. `isLoading` is only true on the
-	// first fetch with no cached data, so a background refetch never re-gates.
-	const { data, isLoading } = useGetChatThreadQuery(threadId);
+	// A brand-new thread has no row yet (404); treat that as an empty history
+	// rather than blocking the chat. `isLoading` is only true on the first fetch
+	// with no cached data, so a background refetch never re-gates.
+	const { data, isLoading, error, refetch } = useGetChatThreadQuery(threadId, {
+		refetchOnMountOrArgChange: true
+	});
+
+	useEffect(() => {
+		if (!data?.active_run_id) return;
+		const interval = window.setInterval(() => void refetch(), 1000);
+		return () => window.clearInterval(interval);
+	}, [data?.active_run_id, refetch]);
 
 	if (isLoading) {
 		return (
@@ -409,27 +403,59 @@ function ChatThread({
 		);
 	}
 
-	// Sanitizing heals already-corrupted threads (materialized fan-out messages,
-	// same id stored twice -- see sanitize.ts); seedForActiveRun then drops the
-	// in-flight turn so the live replay owns it.
-	const persisted = sanitizeWireMessages(
-		((data?.messages ?? []) as UIMessage[]).map(reviveCreatedAt)
-	);
-	const initialMessages = seedForActiveRun(
-		persisted,
-		Boolean(data?.active_run_id)
-	);
+	// A 404 is expected for a new thread; other failures block sending against an
+	// unknown server transcript.
+	if (error && !is404Error(error)) {
+		return <ThreadLoadError error={error} />;
+	}
+
+	const initialMessages = (data?.messages ?? []) as UIMessage[];
 
 	return (
 		<ChatThreadConversation
+			key={`${threadId}:${data?.updated ?? ''}:${
+				data?.active_run_id ?? data?.latest_run_status ?? ''
+			}`}
 			threadId={threadId}
 			url={url}
 			centered={centered}
 			initialMessages={initialMessages}
 			initialContextUsage={data?.context_usage ?? null}
+			backgroundRun={Boolean(data?.active_run_id)}
+			terminalRunStatus={
+				data?.active_run_id ? null : data?.latest_run_status ?? null
+			}
 			messagesRef={messagesRef}
 			modelControls={modelControls}
 		/>
+	);
+}
+
+function is404Error(
+	error: unknown
+): error is { status: number; data: unknown } {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'status' in error &&
+		(error as { status: number }).status === 404
+	);
+}
+
+function ThreadLoadError({ error }: { error: unknown }) {
+	const message =
+		typeof error === 'object' && error !== null && 'status' in error
+			? `Server returned ${(error as { status: number }).status}`
+			: 'Unable to reach the server. Check your connection and try again.';
+
+	return (
+		<div className="flex flex-col items-center justify-center flex-grow gap-3 bg-white rounded-b-xl text-center px-6">
+			<Icon name="Bulb" className="size-10 text-bg-error" />
+			<p className="text-[1rem] font-semibold text-text-primary">
+				Failed to load conversation
+			</p>
+			<p className="max-w-md text-[0.8125rem] text-text-secondary">{message}</p>
+		</div>
 	);
 }
 
@@ -447,7 +473,7 @@ function initialUsageState(
 	return {
 		tokens: usage.tokens,
 		compacted: Boolean(usage.compacted),
-		contextLimit: usage.context_limit,
+		contextLimit: usage.context_limit
 	};
 }
 
@@ -457,6 +483,8 @@ function ChatThreadConversation({
 	centered,
 	initialMessages,
 	initialContextUsage,
+	backgroundRun,
+	terminalRunStatus,
 	messagesRef,
 	modelControls
 }: {
@@ -465,6 +493,8 @@ function ChatThreadConversation({
 	centered: boolean;
 	initialMessages: UIMessage[];
 	initialContextUsage: ChatContextUsage | null;
+	backgroundRun: boolean;
+	terminalRunStatus: string | null;
 	messagesRef: MutableRefObject<UIMessage[]>;
 	modelControls: ModelControls;
 }) {
@@ -488,7 +518,11 @@ function ChatThreadConversation({
 		}
 	}, [initialContextUsage]);
 
-	function handleCustomEvent(name: string, value: unknown, _context: { toolCallId?: string }) {
+	function handleCustomEvent(
+		name: string,
+		value: unknown,
+		_context: { toolCallId?: string }
+	) {
 		liveRef.current = true;
 		if (name === 'bublik.chat.context_usage') {
 			const v = value as {
@@ -502,9 +536,7 @@ function ChatThreadConversation({
 					tokens,
 					compacted: prev?.compacted ?? false,
 					contextLimit:
-						typeof contextLimit === 'number'
-							? contextLimit
-							: prev?.contextLimit,
+						typeof contextLimit === 'number' ? contextLimit : prev?.contextLimit
 				}));
 			}
 		} else if (name === 'bublik.chat.compacted') {
@@ -525,53 +557,52 @@ function ChatThreadConversation({
 	// Constrain the conversation + input to a readable centered column without
 	// moving the scrollbar off the panel edge.
 	const contentWidth = cn('w-full', centered && 'mx-auto max-w-4xl');
-	// Decoupled subscribe/send transport so a run keeps streaming server-side when
-	// this thread is left or the page is reloaded; `live` re-subscribes on mount
-	// and resumes the in-progress run.
-	// Use a ref so the connection object stays stable (and StickToBottom keeps its
-	// scroll position) when model/effort changes update the url prop.
+	// Keep the connection stable while model controls update. A reload does not
+	// reconnect to this stream; it reads the server-owned final transcript instead.
 	const urlRef = useRef(url);
 	urlRef.current = url;
 	const connection = useMemo(() => {
 		const thread = encodeURIComponent(threadId);
-		return createResumableConnection({
-			sendUrl: () => `${urlRef.current}&thread=${thread}`,
-			subscribeUrl: () =>
-				`${config.rootUrl}/api/v2/chat/subscribe?thread=${thread}`
-		});
+		return fetchServerSentEvents(
+			() => `${urlRef.current}&thread=${thread}`,
+			() => ({
+				credentials: 'include',
+				headers: { Accept: 'text/event-stream' }
+			})
+		);
 	}, [threadId]);
-	const { messages, sendMessage, reload, isLoading, error, stop, status } =
-		useChat({
-			id: threadId,
-			live: true,
-			connection,
-			// Seed the conversation synchronously so the live replay can't clobber the
-			// persisted history (which holds the user messages). See ChatThread above.
-			initialMessages,
-			persistence: serverPersistence,
-			// A finished response means the thread was just persisted (created or
-			// updated); refresh the sidebar so the new thread + auto title appear.
-			onFinish: () => {
-				dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.Chat]));
-			},
-			onCustomEvent: onCustomEventRef.current
-		});
+	const {
+		messages,
+		sendMessage,
+		reload,
+		isLoading,
+		error,
+		stop,
+		status,
+		sessionGenerating
+	} = useChat({
+		id: threadId,
+		connection,
+		initialMessages,
+		// The server persists before RUN_FINISHED; refresh sidebar metadata only.
+		onFinish: () => {
+			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.Chat]));
+		},
+		onCustomEvent: onCustomEventRef.current
+	});
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		const trimmed = input.trim();
-		if (!trimmed || isLoading) return;
+		if (!trimmed || isLoading || sessionGenerating || backgroundRun) return;
 		setInput('');
 		void sendMessage(trimmed);
 	}
 
 	const [cancelChatRun] = useCancelChatRunMutation();
 
-	// `stop()` alone only aborts this client's SSE subscription -- the run keeps
-	// streaming in the background (status stays `running`), so the thread stays
-	// "streaming" and re-streams on reload. Cancel it server-side too, then stop
-	// the local subscription for an instant UI response; the server's terminal
-	// error event reconciles the persisted message.
+	// Stopping the browser stream does not stop the server task, so always request
+	// cancellation as well. The polling view observes its terminal status.
 	function handleStop() {
 		void cancelChatRun({ threadId });
 		stop();
@@ -596,11 +627,15 @@ function ChatThreadConversation({
 	const lastMessage = messages[messages.length - 1];
 	// The run is in flight but nothing has streamed back yet.
 	const showLoader =
-		isLoading &&
+		(backgroundRun || isLoading || sessionGenerating) &&
 		(!lastMessage ||
 			lastMessage.role !== 'assistant' ||
 			lastMessage.parts.length === 0);
-	const busy = status === 'streaming' || status === 'submitted';
+	const busy =
+		status === 'streaming' ||
+		status === 'submitted' ||
+		sessionGenerating ||
+		backgroundRun;
 
 	return (
 		// `relative` anchors the floating composer; the conversation scrolls the
@@ -616,22 +651,52 @@ function ChatThreadConversation({
 					)}
 				>
 					{messages.length === 0 ? (
-						<EmptyState onSuggestion={(s) => void sendMessage(s)} />
+						<EmptyState
+							onSuggestion={(s) => {
+								if (!backgroundRun) void sendMessage(s);
+							}}
+						/>
 					) : (
 						displayMessages.map((message, idx) => (
 							<ChatMessage
 								key={message.id}
 								message={message}
-								isStreaming={isLoading && idx === displayMessages.length - 1}
+								isStreaming={
+									(isLoading || sessionGenerating) &&
+									idx === displayMessages.length - 1
+								}
 								onRetry={
-									!isLoading && idx === displayMessages.length - 1
+									!isLoading &&
+									!sessionGenerating &&
+									idx === displayMessages.length - 1
 										? () => void reload()
 										: undefined
 								}
 							/>
 						))
 					)}
-					{showLoader ? <Loader /> : null}
+					{showLoader ? (
+						<Loader
+							label={
+								backgroundRun
+									? 'Working in the background. The response will appear here when ready.'
+									: undefined
+							}
+						/>
+					) : null}
+					{terminalRunStatus === 'cancelled' ? (
+						<p className="mt-3 px-3 py-2 text-[0.8125rem] rounded-md text-text-secondary bg-bg-secondary">
+							Response cancelled.
+						</p>
+					) : null}
+					{terminalRunStatus === 'error' ? (
+						<p
+							role="alert"
+							className="mt-3 px-3 py-2 text-[0.8125rem] rounded-md text-bg-error bg-bg-error/10"
+						>
+							The background response failed.
+						</p>
+					) : null}
 					{error ? (
 						<p
 							role="alert"
@@ -753,9 +818,7 @@ function ChatMessage({
 	const from = message.role === 'user' ? 'user' : 'assistant';
 	const lastPart = message.parts[message.parts.length - 1];
 	const waitingForText =
-		isStreaming &&
-		message.parts.length > 0 &&
-		lastPart.type !== 'text';
+		isStreaming && message.parts.length > 0 && lastPart.type !== 'text';
 
 	return (
 		<Message from={from}>
