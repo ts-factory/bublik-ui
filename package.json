@@ -76,6 +76,8 @@
 		"@react-stately/datepicker": "^3.9.0",
 		"@reduxjs/toolkit": "^2.7.0",
 		"@swc/helpers": "~0.5.11",
+		"@tanstack/ai": "^0.38.0",
+		"@tanstack/ai-react": "^0.16.0",
 		"@tanstack/react-hotkeys": "^0.10.0",
 		"@tanstack/react-table": "^8.15.0",
 		"@tanstack/react-table-devtools": "^8.15.0",

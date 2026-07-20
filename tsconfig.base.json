@@ -23,6 +23,7 @@
 				"libs/bublik/features/admin-users/src/index.ts"
 			],
 			"@/bublik/features/auth": ["libs/bublik/features/auth/src/index.ts"],
+			"@/bublik/features/chat": ["libs/bublik/features/chat/src/index.ts"],
 			"@/bublik/features/compromised-form": [
 				"libs/bublik/features/compromised-form/src/index.ts"
 			],
