@@ -6,10 +6,15 @@ import {
 	SidebarNavInternalLink,
 	SidebarNavItem
 } from '@/bublik/features/sidebar-nav';
+import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
 const CHAT_SIDEBAR_PATTERNS = [{ path: '/chat' }, { path: '/chat/:threadId' }];
 
 export function ChatSidebarNav() {
+	const { data: features } = useGetServerFeaturesQuery();
+
+	if (!features?.chat_enabled) return null;
+
 	return (
 		<SidebarNavItem patterns={CHAT_SIDEBAR_PATTERNS}>
 			<SidebarNavLinkWrapper label="Assistant">
