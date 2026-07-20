@@ -75,12 +75,23 @@ const components: Components = {
 	pre: ({ children }) => children,
 	code: ({ className, children }) => {
 		const match = /language-(\w+)/.exec(className ?? '');
+		const content = String(children);
 		if (match) {
 			return (
 				<CodeBlock
-					code={String(children).replace(/\n$/, '')}
+					code={content.replace(/\n$/, '')}
 					language={match[1]}
 				/>
+			);
+		}
+		// Unlabeled fenced code blocks arrive with newlines; inline code is
+		// a single line. Preserve block formatting for the former so line
+		// breaks and indentation are not collapsed.
+		if (content.includes('\n')) {
+			return (
+				<pre className="my-1.5 overflow-x-auto rounded-md bg-white/60 p-3 font-mono text-[0.8125rem]">
+					<code>{content.replace(/\n$/, '')}</code>
+				</pre>
 			);
 		}
 		return (
