@@ -15,6 +15,7 @@ export { ReactComponent as BoxQuestionMark } from './box-question-mark.svg';
 export { ReactComponent as Bulb } from './bulb.svg';
 export { ReactComponent as Calendar } from './calendar.svg';
 export { ReactComponent as Category } from './category.svg';
+export { ReactComponent as Chat } from './chat.svg';
 export { ReactComponent as ChevronDown } from './chevron-down.svg';
 export { ReactComponent as Clock } from './clock.svg';
 export { ReactComponent as CrossSimple } from './cross-simple.svg';
