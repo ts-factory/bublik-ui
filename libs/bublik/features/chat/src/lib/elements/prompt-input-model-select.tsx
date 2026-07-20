@@ -47,8 +47,8 @@ export function ModelSelect({
 	let triggerLabel = 'Model';
 	outer: for (const p of providers) {
 		for (const m of p.models) {
-			if (encode(p.id, m.name) === value) {
-				triggerLabel = `${p.display_name} / ${m.display_name}`;
+			if (encode(p.id, m.id) === value) {
+				triggerLabel = `${p.name} / ${m.name}`;
 				break outer;
 			}
 		}
@@ -91,19 +91,19 @@ export function ModelSelect({
 						{providers.map((p) => (
 							<CommandGroup
 								key={p.id}
-								heading={p.display_name}
+								heading={p.name}
 								className="border-t border-border-primary first:border-t-0 p-0 [&_[cmdk-group-heading]]:border-b [&_[cmdk-group-heading]]:border-border-primary [&_[cmdk-group-heading]]:h-9 [&_[cmdk-group-heading]]:flex [&_[cmdk-group-heading]]:items-center [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-[0.6875rem] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-text-secondary"
 							>
 								{p.models.length ? (
 									p.models.map((m) => {
-										const itemValue = encode(p.id, m.name);
+										const itemValue = encode(p.id, m.id);
 										const isSelected = itemValue === value;
 
 										return (
 											<CommandItem
-												key={`${p.id}:${m.name}`}
+												key={`${p.id}:${m.id}`}
 												value={itemValue}
-												keywords={[p.display_name, m.name]}
+												keywords={[p.name, m.id]}
 												onSelect={() => {
 													onValueChange(itemValue);
 													setOpen(false);
@@ -114,7 +114,7 @@ export function ModelSelect({
 														<div className="h-2 w-2 rounded-full bg-primary" />
 													)}
 												</span>
-												<span className="text-xs">{m.display_name}</span>
+												<span className="text-xs">{m.name}</span>
 											</CommandItem>
 										);
 									})
