@@ -29,9 +29,7 @@ describe('ContextUsageIndicator', () => {
 	it('shows compacted status without tokens or limit', () => {
 		renderIndicator({ tokens: undefined, limit: null, compacted: true });
 		expect(screen.getByText('compacted')).toBeDefined();
-		expect(
-			screen.getByLabelText('Conversation compacted')
-		).toBeDefined();
+		expect(screen.getByLabelText('Conversation compacted')).toBeDefined();
 	});
 
 	it('shows compacted status with zero tokens', () => {
@@ -42,9 +40,7 @@ describe('ContextUsageIndicator', () => {
 	it('shows percentage ring when tokens and limit are known', () => {
 		renderIndicator({ tokens: 5000, limit: 10000 });
 		expect(screen.getByText('50%')).toBeDefined();
-		expect(
-			screen.getByLabelText('Context window 50% full')
-		).toBeDefined();
+		expect(screen.getByLabelText('Context window 50% full')).toBeDefined();
 	});
 
 	it('shows percentage with compacted suffix', () => {

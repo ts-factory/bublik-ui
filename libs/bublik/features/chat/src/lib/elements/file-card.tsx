@@ -81,10 +81,7 @@ function formatSize(bytes: number): string {
 }
 
 function FileTypeIcon({ contentType }: { contentType: string }) {
-	if (
-		contentType.includes('spreadsheet') ||
-		contentType === 'text/csv'
-	) {
+	if (contentType.includes('spreadsheet') || contentType === 'text/csv') {
 		return <FileSpreadsheetIcon className="size-4 text-text-menu" />;
 	}
 	if (
