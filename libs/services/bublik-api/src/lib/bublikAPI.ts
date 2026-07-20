@@ -188,6 +188,7 @@ export const {
 	useLazyGetAnalyticsExportQuery,
 	useImportAnalyticsDataMutation,
 	useGetChatModelsQuery,
+	useGetChatThreadQuery,
 	useGetChatThreadsQuery,
 	useRenameChatThreadMutation,
 	useSetChatThreadArchivedMutation,
