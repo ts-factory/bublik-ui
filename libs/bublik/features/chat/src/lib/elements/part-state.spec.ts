@@ -44,6 +44,38 @@ describe('getToolStatus', () => {
 	it('maps error state to error', () => {
 		expect(getToolStatus(toolCall({ state: 'error' }))).toBe('error');
 	});
+
+	it('detects complete from sibling tool-result part', () => {
+		const part = toolCall({ state: 'input-complete' });
+		const message = {
+			parts: [
+				part,
+				{
+					type: 'tool-result',
+					toolCallId: 'call-1',
+					content: 'stored result',
+					state: 'complete'
+				}
+			]
+		} as unknown as UIMessage;
+		expect(getToolStatus(part, message)).toBe('complete');
+	});
+
+	it('detects error from sibling tool-result part', () => {
+		const part = toolCall({ state: 'input-complete' });
+		const message = {
+			parts: [
+				part,
+				{
+					type: 'tool-result',
+					toolCallId: 'call-1',
+					error: 'something went wrong',
+					state: 'complete'
+				}
+			]
+		} as unknown as UIMessage;
+		expect(getToolStatus(part, message)).toBe('error');
+	});
 });
 
 describe('isPartStreaming', () => {

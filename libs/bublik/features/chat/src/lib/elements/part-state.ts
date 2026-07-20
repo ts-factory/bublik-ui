@@ -17,12 +17,22 @@ export type ToolStatus = 'running' | 'complete' | 'error';
  * Collapse the TanStack AI tool-call lifecycle
  * (awaiting-input | input-streaming | input-complete | approval-* | complete | error)
  * into the three visual states the Tool card renders. Works for persisted
- * history too: a stored call either reached `complete`/`error` or carries an
- * `output`.
+ * history too: a stored call either reached `complete`/`error`, carries an
+ * `output`, or has a sibling `tool-result` part.
  */
-export function getToolStatus(part: ToolCallPart): ToolStatus {
+export function getToolStatus(
+	part: ToolCallPart,
+	message?: UIMessage
+): ToolStatus {
 	if (part.state === 'error') return 'error';
 	if (part.state === 'complete' || part.output !== undefined) return 'complete';
+	if (message) {
+		const result = message.parts.find(
+			(p): p is ToolResultPart =>
+				p.type === 'tool-result' && p.toolCallId === part.id
+		);
+		if (result) return result.error ? 'error' : 'complete';
+	}
 	return 'running';
 }
 

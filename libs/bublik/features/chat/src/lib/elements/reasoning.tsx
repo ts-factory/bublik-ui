@@ -4,7 +4,6 @@ import {
 	ReactNode,
 	createContext,
 	useContext,
-	useEffect,
 	useRef,
 	useState
 } from 'react';
@@ -36,10 +35,9 @@ function useReasoning(): ReasoningContextValue {
 }
 
 /**
- * Collapsible thinking block. Auto-opens while the model streams reasoning and
- * auto-closes shortly after it finishes — unless the user toggled it manually,
- * after which their choice wins. Duration is measured client-side (the part
- * carries no timestamps), so persisted history renders without it.
+ * Collapsible thinking block. The user toggles it manually; auto-open/duration
+ * tracking is intentionally deferred (the part carries no timestamps, and the
+ * streaming lifecycle is already surfaced via the shimmer in the trigger).
  */
 export function Reasoning({
 	isStreaming,
@@ -51,28 +49,10 @@ export function Reasoning({
 	children: ReactNode;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
-	const [duration, setDuration] = useState<number | null>(null);
 	const hasUserToggled = useRef(false);
-	const startRef = useRef<number | null>(null);
-
-	// useEffect(() => {
-	// 	if (isStreaming) {
-	// 		if (startRef.current === null) startRef.current = Date.now();
-	// 		if (!hasUserToggled.current) setIsOpen(true);
-	// 		return;
-	// 	}
-	// 	if (startRef.current === null) return;
-	// 	setDuration(
-	// 		Math.max(1, Math.round((Date.now() - startRef.current) / 1000))
-	// 	);
-	// 	startRef.current = null;
-	// 	if (hasUserToggled.current) return;
-	// 	const timeout = setTimeout(() => setIsOpen(false), 1000);
-	// 	return () => clearTimeout(timeout);
-	// }, [isStreaming]);
 
 	return (
-		<ReasoningContext.Provider value={{ isStreaming, isOpen, duration }}>
+		<ReasoningContext.Provider value={{ isStreaming, isOpen, duration: null }}>
 			<Collapsible
 				open={isOpen}
 				onOpenChange={(open) => {
