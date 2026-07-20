@@ -26,6 +26,8 @@ import {
 	BUBLIK_TAG,
 	useGetChatModelsQuery,
 	useGetChatThreadQuery,
+	useCancelChatRunMutation,
+	type ChatContextUsage,
 	type ChatModel,
 	type ChatProvider
 } from '@/services/bublik-api';
@@ -34,6 +36,7 @@ import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
 
 import {
+	ContextUsageIndicator,
 	Conversation,
 	ConversationContent,
 	ConversationScrollButton,
@@ -423,10 +426,29 @@ function ChatThread({
 			url={url}
 			centered={centered}
 			initialMessages={initialMessages}
+			initialContextUsage={data?.context_usage ?? null}
 			messagesRef={messagesRef}
 			modelControls={modelControls}
 		/>
 	);
+}
+
+/** Live context-meter state: persisted seed, then updated by CUSTOM events. */
+interface ContextUsageState {
+	tokens: number;
+	compacted: boolean;
+	contextLimit: number | null | undefined;
+}
+
+function initialUsageState(
+	usage: ChatContextUsage | null
+): ContextUsageState | null {
+	if (!usage) return null;
+	return {
+		tokens: usage.tokens,
+		compacted: Boolean(usage.compacted),
+		contextLimit: usage.context_limit,
+	};
 }
 
 function ChatThreadConversation({
@@ -434,6 +456,7 @@ function ChatThreadConversation({
 	url,
 	centered,
 	initialMessages,
+	initialContextUsage,
 	messagesRef,
 	modelControls
 }: {
@@ -441,11 +464,64 @@ function ChatThreadConversation({
 	url: string;
 	centered: boolean;
 	initialMessages: UIMessage[];
+	initialContextUsage: ChatContextUsage | null;
 	messagesRef: MutableRefObject<UIMessage[]>;
 	modelControls: ModelControls;
 }) {
 	const dispatch = useDispatch();
 	const [input, setInput] = useState('');
+	// Context meter, seeded from the thread's persisted usage then updated live
+	// by the server's CUSTOM events (context usage at run end, compaction
+	// mid-run). Resets naturally with the thread remount (key=threadId).
+	const [contextUsage, setContextUsage] = useState<ContextUsageState | null>(
+		() => initialUsageState(initialContextUsage)
+	);
+	// Once a live CUSTOM event has been received, prefer it over REST data
+	// (which may be stale from a cached response or an in-flight refetch).
+	const liveRef = useRef(false);
+	// A stale RTK Query cache entry can seed the meter with null/tokens=0 after
+	// the server has already persisted real usage; resync from the prop when a
+	// fresh detail response arrives, unless a live event arrived first.
+	useEffect(() => {
+		if (!liveRef.current) {
+			setContextUsage(initialUsageState(initialContextUsage));
+		}
+	}, [initialContextUsage]);
+
+	function handleCustomEvent(name: string, value: unknown, _context: { toolCallId?: string }) {
+		liveRef.current = true;
+		if (name === 'bublik.chat.context_usage') {
+			const v = value as {
+				tokens?: unknown;
+				context_limit?: unknown;
+			} | null;
+			const tokens = v?.tokens;
+			const contextLimit = v?.context_limit;
+			if (typeof tokens === 'number') {
+				setContextUsage((prev) => ({
+					tokens,
+					compacted: prev?.compacted ?? false,
+					contextLimit:
+						typeof contextLimit === 'number'
+							? contextLimit
+							: prev?.contextLimit,
+				}));
+			}
+		} else if (name === 'bublik.chat.compacted') {
+			setContextUsage((prev) =>
+				prev
+					? { ...prev, compacted: true }
+					: { tokens: 0, compacted: true, contextLimit: null }
+			);
+			toast.info(
+				'Older messages were summarized to fit the model context; the visible conversation is unaffected.'
+			);
+		}
+	}
+	// Same stability trick as urlRef below: the connection object must not be
+	// recreated when render state changes, so it reads the handler via a ref.
+	const onCustomEventRef = useRef(handleCustomEvent);
+	onCustomEventRef.current = handleCustomEvent;
 	// Constrain the conversation + input to a readable centered column without
 	// moving the scrollbar off the panel edge.
 	const contentWidth = cn('w-full', centered && 'mx-auto max-w-4xl');
@@ -457,10 +533,6 @@ function ChatThreadConversation({
 	const urlRef = useRef(url);
 	urlRef.current = url;
 	const connection = useMemo(() => {
-		// The conversation id (the `useChat` id / URL thread id) is the source of
-		// truth for both endpoints. AG-UI's own `RunAgentInput.threadId` is a
-		// client-generated value unrelated to it, so we pass the real id explicitly
-		// as a query param instead of reading it from the request body.
 		const thread = encodeURIComponent(threadId);
 		return createResumableConnection({
 			sendUrl: () => `${urlRef.current}&thread=${thread}`,
@@ -481,7 +553,8 @@ function ChatThreadConversation({
 			// updated); refresh the sidebar so the new thread + auto title appear.
 			onFinish: () => {
 				dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.Chat]));
-			}
+			},
+			onCustomEvent: onCustomEventRef.current
 		});
 
 	function handleSubmit(e: FormEvent) {
@@ -490,6 +563,18 @@ function ChatThreadConversation({
 		if (!trimmed || isLoading) return;
 		setInput('');
 		void sendMessage(trimmed);
+	}
+
+	const [cancelChatRun] = useCancelChatRunMutation();
+
+	// `stop()` alone only aborts this client's SSE subscription -- the run keeps
+	// streaming in the background (status stays `running`), so the thread stays
+	// "streaming" and re-streams on reload. Cancel it server-side too, then stop
+	// the local subscription for an instant UI response; the server's terminal
+	// error event reconciles the persisted message.
+	function handleStop() {
+		void cancelChatRun({ threadId });
+		stop();
 	}
 
 	// Keep the header's export actions fed with the latest messages (see
@@ -597,11 +682,19 @@ function ChatThreadConversation({
 											onValueChange={modelControls.onEffortChange}
 										/>
 									) : null}
+									<ContextUsageIndicator
+										tokens={contextUsage?.tokens}
+										limit={
+											contextUsage?.contextLimit ??
+											selectedModel?.limit?.context
+										}
+										compacted={contextUsage?.compacted}
+									/>
 								</PromptInputTools>
 								<PromptInputSubmit
 									status={status}
 									type={busy ? 'button' : 'submit'}
-									onClick={busy ? () => void stop() : undefined}
+									onClick={busy ? handleStop : undefined}
 									disabled={!busy && !input.trim()}
 								/>
 							</PromptInputToolbar>
