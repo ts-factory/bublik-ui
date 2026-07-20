@@ -92,6 +92,8 @@ function CreateNewConfigScreen() {
 
 	async function handleCreateSubmit(data: CreateConfigInputs) {
 		if (!newConfigParams) return toast.error('No config params present');
+		const isAiGlobalConfig =
+			newConfigParams.type === 'global' && data.name === 'ai';
 
 		trackEvent(analyticsEventNames.configsCreateSubmit, {
 			status: 'pending',
@@ -102,6 +104,7 @@ function CreateNewConfigScreen() {
 		const promise = createConfigMutation({
 			type: newConfigParams.type,
 			...data,
+			project: isAiGlobalConfig ? null : data.project,
 			content: JSON.parse(data.content)
 		}).unwrap();
 
@@ -210,6 +213,13 @@ function CreateNewConfigScreen() {
 	}
 
 	const formValues = form.watch();
+	const isAiGlobalConfig =
+		newConfigParams.type === 'global' && formValues.name === 'ai';
+
+	useEffect(() => {
+		if (isAiGlobalConfig) form.setValue('project', null);
+	}, [form, isAiGlobalConfig]);
+
 	useEffect(
 		() => setSavedValue(JSON.stringify(formValues)),
 		[formValues, setSavedValue]
@@ -278,7 +288,12 @@ function CreateNewConfigScreen() {
 									</label>
 									<select
 										{...field}
-										value={field.value?.toString() ?? 'default'}
+										disabled={isAiGlobalConfig}
+										value={
+											isAiGlobalConfig
+												? 'default'
+												: field.value?.toString() ?? 'default'
+										}
 										onChange={(e) => {
 											const value = e.target.value;
 											field.onChange(
