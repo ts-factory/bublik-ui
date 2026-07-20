@@ -8,6 +8,7 @@ import { RunSidebarNav } from '@/bublik/features/run';
 import { LogSidebarNav } from '@/bublik/features/log';
 import { HistorySidebarNav } from '@/bublik/features/history';
 import { MeasurementsSidebarNav } from '@/bublik/features/measurements';
+import { ChatSidebarNav } from '@/bublik/features/chat';
 import { AdminSidebarNav } from '@/bublik/features/admin-users';
 import { HelpSidebarNav } from '@/bublik/features/faq';
 import { Sidebar } from '@/bublik/features/sidebar';
@@ -31,6 +32,7 @@ export function SidebarContainer() {
 			<LogSidebarNav />
 			<HistorySidebarNav />
 			<MeasurementsSidebarNav />
+			<ChatSidebarNav />
 		</Sidebar>
 	);
 }

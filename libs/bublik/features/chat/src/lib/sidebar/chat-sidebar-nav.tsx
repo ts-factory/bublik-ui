@@ -1,0 +1,23 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	SidebarNavLinkWrapper,
+	SidebarNavInternalLink,
+	SidebarNavItem
+} from '@/bublik/features/sidebar-nav';
+
+const CHAT_SIDEBAR_PATTERNS = [{ path: '/chat' }, { path: '/chat/:threadId' }];
+
+export function ChatSidebarNav() {
+	return (
+		<SidebarNavItem patterns={CHAT_SIDEBAR_PATTERNS}>
+			<SidebarNavLinkWrapper label="Assistant">
+				<SidebarNavInternalLink to="/chat" linkComponent={LinkWithProject}>
+					<SidebarNavInternalLink.Icon name="Chat" />
+					<SidebarNavInternalLink.Label>Assistant</SidebarNavInternalLink.Label>
+				</SidebarNavInternalLink>
+			</SidebarNavLinkWrapper>
+		</SidebarNavItem>
+	);
+}
