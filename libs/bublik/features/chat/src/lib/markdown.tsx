@@ -78,10 +78,7 @@ const components: Components = {
 		const content = String(children);
 		if (match) {
 			return (
-				<CodeBlock
-					code={content.replace(/\n$/, '')}
-					language={match[1]}
-				/>
+				<CodeBlock code={content.replace(/\n$/, '')} language={match[1]} />
 			);
 		}
 		// Unlabeled fenced code blocks arrive with newlines; inline code is

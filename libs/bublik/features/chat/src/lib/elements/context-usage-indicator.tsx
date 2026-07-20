@@ -52,8 +52,8 @@ export function ContextUsageIndicator({
 		fraction >= 0.9
 			? 'text-bg-error'
 			: fraction >= 0.7
-				? 'text-amber-600'
-				: 'text-text-secondary';
+			? 'text-amber-600'
+			: 'text-text-secondary';
 
 	const tooltip = [
 		`~${safeTokens.toLocaleString()} of ${safeLimit.toLocaleString()} context tokens used (${percent}%)`,
