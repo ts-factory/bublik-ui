@@ -38,6 +38,7 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 	EffortSelect,
+	FileCard,
 	Loader,
 	Message,
 	MessageAction,
@@ -63,10 +64,12 @@ import {
 	ToolOutput,
 	getToolOutput,
 	getToolStatus,
-	isPartStreaming
+	isPartStreaming,
+	parseGeneratedFile
 } from './elements';
 import { serverPersistence, reviveCreatedAt } from './persistence';
 import { sanitizeWireMessages } from './sanitize';
+import { regroupTrailingReasoning } from './regroup-reasoning';
 import { createResumableConnection } from './connection';
 import {
 	threadToMarkdown,
@@ -148,7 +151,7 @@ function ChatPanel() {
 			providers.flatMap((p) =>
 				p.models.map((m) => ({
 					provider: p.id,
-					providerName: p.display_name,
+					providerName: p.name,
 					model: m
 				}))
 			),
@@ -202,14 +205,14 @@ function ChatPanel() {
 		if (selection || flatModels.length === 0) return;
 		const fallback = {
 			provider: flatModels[0].provider,
-			model: flatModels[0].model.name
+			model: flatModels[0].model.id
 		};
 		const next =
 			data?.default_model &&
 			flatModels.some(
 				(m) =>
 					m.provider === data.default_model?.provider &&
-					m.model.name === data.default_model?.model
+					m.model.id === data.default_model?.model
 			)
 				? {
 						provider: data.default_model.provider,
@@ -224,7 +227,7 @@ function ChatPanel() {
 			flatModels.find(
 				(m) =>
 					m.provider === selection?.provider &&
-					m.model.name === selection?.model
+					m.model.id === selection?.model
 			)?.model,
 		[flatModels, selection]
 	);
@@ -490,8 +493,18 @@ function ChatThreadConversation({
 	}
 
 	// Keep the header's export actions fed with the latest messages (see
-	// ChatPanel.messagesRef).
+	// ChatPanel.messagesRef). Export uses the raw order; only the rendered list
+	// regroups trailing reasoning into the next turn.
 	messagesRef.current = messages;
+
+	// A message's trailing reasoning is the model deciding its next step, so it
+	// belongs at the head of the following turn -- otherwise the copy/actions bar
+	// (which follows all parts) renders below reasoning meant for the next
+	// message. See regroup-reasoning.ts.
+	const displayMessages = useMemo(
+		() => regroupTrailingReasoning(messages),
+		[messages]
+	);
 
 	const { providers, selection, onSelectionChange, selectedModel, effort } =
 		modelControls;
@@ -520,13 +533,13 @@ function ChatThreadConversation({
 					{messages.length === 0 ? (
 						<EmptyState onSuggestion={(s) => void sendMessage(s)} />
 					) : (
-						messages.map((message, idx) => (
+						displayMessages.map((message, idx) => (
 							<ChatMessage
 								key={message.id}
 								message={message}
-								isStreaming={isLoading && idx === messages.length - 1}
+								isStreaming={isLoading && idx === displayMessages.length - 1}
 								onRetry={
-									!isLoading && idx === messages.length - 1
+									!isLoading && idx === displayMessages.length - 1
 										? () => void reload()
 										: undefined
 								}
@@ -760,6 +773,12 @@ function MessagePartView({
 			);
 		case 'tool-call': {
 			const { output, errorText } = getToolOutput(part, message);
+			// A successful generate_file call renders as a download card;
+			// running/error/unparsable states fall back to the generic tool card.
+			if (part.name === 'generate_file' && !errorText) {
+				const file = parseGeneratedFile(output);
+				if (file) return <FileCard file={file} className="my-1" />;
+			}
 			return (
 				<Tool>
 					<ToolHeader name={part.name} status={getToolStatus(part)} />

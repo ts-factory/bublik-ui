@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 export * from './code-block';
 export * from './conversation';
+export * from './file-card';
 export * from './loader';
 export * from './message';
 export * from './part-state';
