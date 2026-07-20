@@ -15,7 +15,7 @@ export function ChatSidebarNav() {
 			<SidebarNavLinkWrapper label="Assistant">
 				<SidebarNavInternalLink to="/chat" linkComponent={LinkWithProject}>
 					<SidebarNavInternalLink.Icon name="Chat" />
-					<SidebarNavInternalLink.Label>Assistant</SidebarNavInternalLink.Label>
+					<SidebarNavInternalLink.Label>Chat</SidebarNavInternalLink.Label>
 				</SidebarNavInternalLink>
 			</SidebarNavLinkWrapper>
 		</SidebarNavItem>

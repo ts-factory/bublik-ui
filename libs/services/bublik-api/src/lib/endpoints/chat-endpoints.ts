@@ -46,6 +46,8 @@ export const ChatThreadListItemSchema = z.object({
 	id: z.string(),
 	title: z.string(),
 	is_archived: z.boolean(),
+	// Whether a run is streaming for this thread in the background right now.
+	is_streaming: z.boolean(),
 	created: z.string(),
 	updated: z.string()
 });
@@ -53,6 +55,20 @@ export const ChatThreadListItemSchema = z.object({
 export type ChatThreadListItem = z.infer<typeof ChatThreadListItemSchema>;
 
 export const ChatThreadListResponseSchema = z.array(ChatThreadListItemSchema);
+
+export const ChatThreadDetailSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	is_archived: z.boolean(),
+	// Stored UIMessage[] (the exact shape `useChat` persists); kept opaque here.
+	messages: z.array(z.any()),
+	// Id of the run streaming for this thread right now, or null when idle.
+	active_run_id: z.string().nullable(),
+	created: z.string(),
+	updated: z.string()
+});
+
+export type ChatThreadDetail = z.infer<typeof ChatThreadDetailSchema>;
 
 export const chatEndpoints = {
 	endpoints: (
@@ -79,6 +95,17 @@ export const chatEndpoints = {
 			}),
 			responseSchema: ChatThreadListResponseSchema,
 			providesTags: [BUBLIK_TAG.Chat]
+		}),
+		// Full thread (including messages) used to seed `useChat`'s initial
+		// messages on entry. Intentionally NOT tagged with BUBLIK_TAG.Chat so the
+		// onFinish invalidation that refreshes the sidebar doesn't refetch/remount
+		// the active conversation.
+		getChatThread: build.query<ChatThreadDetail, string>({
+			query: (id) => ({
+				url: withApiV2(`/chat/threads/${id}/`, true),
+				cache: 'no-cache'
+			}),
+			responseSchema: ChatThreadDetailSchema
 		}),
 		renameChatThread: build.mutation<
 			ChatThreadListItem,

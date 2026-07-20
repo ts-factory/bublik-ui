@@ -126,6 +126,7 @@
 		"tailwindcss-radix": "^2.8.0",
 		"tslib": "^2.5.0",
 		"use-query-params": "^2.2.1",
+		"use-stick-to-bottom": "^1.1.6",
 		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
 		"zod": "^3.24.3"
 	},

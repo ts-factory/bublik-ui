@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2025-2026 OKTET LTD */
 import { FormEvent, useState } from 'react';
+import { ArchiveIcon, ArchiveRestoreIcon, ChevronDownIcon } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -18,6 +19,9 @@ import { useConfirm } from '@/shared/hooks';
 import {
 	ButtonTw,
 	cn,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
 	ConfirmDialog,
 	Icon,
 	Skeleton,
@@ -25,16 +29,24 @@ import {
 	DropdownMenu,
 	DropdownMenuTrigger,
 	DropdownMenuContent,
-	DropdownMenuItem
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator
 } from '@/shared/tailwind-ui';
 
 export function ChatThreadSidebar() {
 	const { threadId } = useParams();
 	const navigate = useNavigateWithProject();
-	const [showArchived, setShowArchived] = useState(false);
+	const [archivedOpen, setArchivedOpen] = useState(false);
+	// Poll so the background-streaming indicator appears/clears for threads other
+	// than the active one (the active thread also refreshes via onFinish).
 	const { data: threads, isLoading } = useGetChatThreadsQuery(
-		showArchived ? { archived: true } : undefined
+		{ archived: true },
+		{ pollingInterval: 5000 }
 	);
+
+	const activeThreads = threads?.filter((t) => !t.is_archived) ?? [];
+	const archivedThreads = threads?.filter((t) => t.is_archived) ?? [];
 
 	const [deleteThread] = useDeleteChatThreadMutation();
 	const { confirmation, confirm, decline, isVisible } = useConfirm();
@@ -65,17 +77,17 @@ export function ChatThreadSidebar() {
 
 	return (
 		<div className="flex flex-col h-full">
-			<div className="flex items-center justify-between gap-2 px-3 py-3 border-b border-border-primary">
-				<span className="text-[0.8125rem] font-semibold text-text-primary">
+			<div className="flex items-center justify-between gap-2 py-1 px-4 h-9 border-b border-border-primary">
+				<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 					Threads
 				</span>
-				<ButtonTw size="xss" variant="primary" onClick={handleNewChat}>
+				<ButtonTw size="xss" variant="secondary" onClick={handleNewChat}>
 					<Icon name="AddSymbol" className="size-4 mr-1" />
-					New chat
+					New Chat
 				</ButtonTw>
 			</div>
 
-			<div className="flex-grow overflow-y-auto p-2">
+			<div className="flex-grow overflow-y-auto">
 				{isLoading ? (
 					<Skeleton className="h-32 rounded-md" />
 				) : !threads || threads.length === 0 ? (
@@ -83,28 +95,64 @@ export function ChatThreadSidebar() {
 						No threads yet. Start a new chat.
 					</p>
 				) : (
-					<ul className="flex flex-col gap-0.5">
-						{threads.map((thread) => (
-							<ThreadRow
-								key={thread.id}
-								thread={thread}
-								isActive={thread.id === threadId}
-								onDelete={() => handleDelete(thread)}
-							/>
-						))}
-					</ul>
-				)}
-			</div>
+					<div className="flex flex-col">
+						<section className="pb-1">
+							<h3 className="px-3 text-[0.6875rem] font-semibold flex items-center text-text-primary uppercase tracking-wider h-9 border-b border-border-primary">
+								Active
+							</h3>
+							{activeThreads.length === 0 ? (
+								<p className="px-2 py-2 text-[0.8125rem] text-text-secondary">
+									No active threads
+								</p>
+							) : (
+								<ul className="flex flex-col gap-0.5 p-2">
+									{activeThreads.map((thread) => (
+										<ThreadRow
+											key={thread.id}
+											thread={thread}
+											isActive={thread.id === threadId}
+											onDelete={() => handleDelete(thread)}
+										/>
+									))}
+								</ul>
+							)}
+						</section>
 
-			<div className="px-3 py-2 border-t border-border-primary">
-				<label className="flex items-center gap-2 text-[0.75rem] text-text-secondary cursor-pointer">
-					<input
-						type="checkbox"
-						checked={showArchived}
-						onChange={(e) => setShowArchived(e.target.checked)}
-					/>
-					Show archived
-				</label>
+						<Collapsible
+							open={archivedOpen}
+							onOpenChange={setArchivedOpen}
+							className=""
+						>
+							<CollapsibleTrigger className="flex border-y border-border-primary items-center gap-1 w-full px-3 py-1.5 h-9 text-[0.6875rem] font-semibold text-text-primary uppercase tracking-wider transition-colors focus:outline-none">
+								<ChevronDownIcon
+									className={cn(
+										'size-3 transition-transform',
+										archivedOpen ? 'rotate-0' : '-rotate-90'
+									)}
+								/>
+								Archived ({archivedThreads.length})
+							</CollapsibleTrigger>
+							<CollapsibleContent>
+								{archivedThreads.length === 0 ? (
+									<p className="px-2 py-2 text-[0.8125rem] text-text-secondary">
+										No archived threads
+									</p>
+								) : (
+									<ul className="flex flex-col gap-0.5 p-2">
+										{archivedThreads.map((thread) => (
+											<ThreadRow
+												key={thread.id}
+												thread={thread}
+												isActive={thread.id === threadId}
+												onDelete={() => handleDelete(thread)}
+											/>
+										))}
+									</ul>
+								)}
+							</CollapsibleContent>
+						</Collapsible>
+					</div>
+				)}
 			</div>
 
 			<ConfirmDialog
@@ -112,7 +160,9 @@ export function ChatThreadSidebar() {
 				title="Delete thread"
 				description={
 					pendingDelete
-						? `Delete "${pendingDelete.title || 'this thread'}"? This cannot be undone.`
+						? `Delete "${
+								pendingDelete.title || 'this thread'
+						  }"? This cannot be undone.`
 						: 'Delete this thread? This cannot be undone.'
 				}
 				onCancelClick={decline}
@@ -189,28 +239,58 @@ function ThreadRow({ thread, isActive, onDelete }: ThreadRowProps) {
 			<LinkWithProject
 				to={`/chat/${thread.id}`}
 				className={cn(
-					'flex-grow min-w-0 px-2 py-2 text-[0.8125rem] text-text-primary truncate',
+					'flex items-center gap-2 flex-grow min-w-0 px-2 py-2 text-[0.8125rem] text-text-primary',
 					thread.is_archived && 'italic opacity-60'
 				)}
-				title={thread.title}
+				title={
+					thread.is_streaming
+						? `${thread.title || 'Untitled'} (streaming…)`
+						: thread.title
+				}
 			>
-				{thread.title || 'Untitled'}
+				{thread.is_streaming ? (
+					<span
+						aria-label="Streaming"
+						className="size-2 flex-shrink-0 rounded-full bg-primary animate-pulse"
+					/>
+				) : null}
+				<span className="truncate">{thread.title || 'Untitled'}</span>
 			</LinkWithProject>
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					aria-label="Thread actions"
 					className="px-2 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 text-text-menu"
 				>
-					<Icon name="SettingsSliders" className="size-3.5" />
+					<Icon name="ThreeDotsVertical" className="size-6" />
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
-					<DropdownMenuItem onClick={() => setIsRenaming(true)}>
+				<DropdownMenuContent align="end" className="w-44">
+					<DropdownMenuLabel className="text-xs">Actions</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						className="gap-2 px-2"
+						onClick={() => setIsRenaming(true)}
+					>
+						<Icon name="Edit" className="size-3.5 shrink-0" />
 						Rename
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleArchiveToggle}>
+					<DropdownMenuItem
+						className="gap-2 px-2"
+						onClick={handleArchiveToggle}
+					>
+						{thread.is_archived ? (
+							<ArchiveRestoreIcon className="size-3.5 shrink-0" />
+						) : (
+							<ArchiveIcon className="size-3.5 shrink-0" />
+						)}
 						{thread.is_archived ? 'Unarchive' : 'Archive'}
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={onDelete}>Delete</DropdownMenuItem>
+					<DropdownMenuItem
+						className="gap-2 px-2 text-bg-error focus:text-bg-error focus:bg-bg-error/10"
+						onClick={onDelete}
+					>
+						<Icon name="Bin" className="size-3.5 shrink-0" />
+						Delete
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</li>
