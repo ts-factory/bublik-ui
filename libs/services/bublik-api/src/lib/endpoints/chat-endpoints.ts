@@ -7,16 +7,32 @@ import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
 import { API_REDUCER_PATH } from '../constants';
 
-// Reasoning effort levels are admin-defined per model (free-form strings),
-// so they are not constrained to a fixed set here.
+// Reasoning effort levels come from pydantic-ai's unified thinking vocabulary
+// (minimal/low/medium/high/xhigh), derived server-side from the model's
+// `reasoning` flag rather than configured, so they stay free-form strings here.
 export const ReasoningEffortSchema = z.string();
 
 export type ReasoningEffort = z.infer<typeof ReasoningEffortSchema>;
 
+// Field names mirror models.dev: `id` is the model id sent to the provider,
+// `name` is the human-readable display label.
 export const ChatModelSchema = z.object({
+	id: z.string(),
 	name: z.string(),
-	display_name: z.string(),
-	capabilities: z.record(z.unknown()),
+	limit: z
+		.object({
+			context: z.number().optional(),
+			output: z.number().optional()
+		})
+		.nullish(),
+	modalities: z
+		.object({
+			input: z.array(z.string()),
+			output: z.array(z.string())
+		})
+		.nullish(),
+	tool_call: z.boolean().nullish(),
+	reasoning: z.boolean().nullish(),
 	supports_reasoning_effort: z.boolean(),
 	reasoning_efforts: z.array(z.string()),
 	default_reasoning_effort: z.string().nullable()
@@ -27,7 +43,7 @@ export type ChatModel = z.infer<typeof ChatModelSchema>;
 export const ChatProviderSchema = z.object({
 	id: z.string(),
 	type: z.string(),
-	display_name: z.string(),
+	name: z.string(),
 	models: z.array(ChatModelSchema)
 });
 
