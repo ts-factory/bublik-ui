@@ -4,6 +4,8 @@ import type { UIMessage } from '@tanstack/ai-react';
 
 import { config } from '@/bublik/config';
 
+import { sanitizeWireMessages } from './sanitize';
+
 /**
  * Server-backed persistence adapter for TanStack AI's `useChat`.
  *
@@ -21,7 +23,7 @@ function threadUrl(id: string): string {
  * `UIMessage.createdAt` is a `Date` that `JSON.stringify` turned into a string
  * on the way to the server; revive it on read.
  */
-function reviveCreatedAt(message: UIMessage): UIMessage {
+export function reviveCreatedAt(message: UIMessage): UIMessage {
 	if (typeof message.createdAt === 'string') {
 		return { ...message, createdAt: new Date(message.createdAt) };
 	}
@@ -41,11 +43,13 @@ export const serverPersistence = {
 	},
 	setItem: async (id: string, messages: UIMessage[]): Promise<void> => {
 		try {
+			// Never persist fan-out artifacts or same-id duplicates (resume/replay
+			// leftovers; see sanitize.ts).
 			await fetch(threadUrl(id), {
 				method: 'PUT',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ messages })
+				body: JSON.stringify({ messages: sanitizeWireMessages(messages) })
 			});
 		} catch {
 			// best-effort: ignore storage failures
