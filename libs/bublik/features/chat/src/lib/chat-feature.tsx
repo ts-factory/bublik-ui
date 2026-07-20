@@ -874,7 +874,7 @@ function MessagePartView({
 			}
 			return (
 				<Tool>
-					<ToolHeader name={part.name} status={getToolStatus(part)} />
+					<ToolHeader name={part.name} status={getToolStatus(part, message)} />
 					<ToolContent>
 						<ToolInput input={part.arguments} />
 						<ToolOutput output={output} errorText={errorText} />
