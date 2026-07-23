@@ -125,6 +125,7 @@ export const {
 	useGetRunTableByRunIdQuery,
 	useGetMultipleRunsByRunIdsQuery,
 	useGetRunsStatsByRunIdsQuery,
+	useLazyGetRunsStatsByRunIdsQuery,
 	useGetResultsTableQuery,
 	useGetRunSourceQuery,
 	useGetRunRequirementsQuery,
@@ -137,6 +138,7 @@ export const {
 	useGetTestSearchOptionsQuery,
 	// Runs
 	useGetRunsTablePageQuery,
+	useGetRunsProgressInfiniteQuery,
 	useGetRunsChartsQuery,
 	useGetResultInfoQuery,
 	// Measurements

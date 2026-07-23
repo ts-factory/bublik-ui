@@ -3,15 +3,16 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { useGetRunsStatsByRunIdsQuery } from '@/services/bublik-api';
-
 import {
 	RunsProgress,
 	RunsProgressEmpty,
 	RunsProgressError,
 	RunsProgressLoading
 } from './runs-progress.component';
-import { useRunsProgressRuns } from './runs-progress.hooks';
+import {
+	useRunsProgressRuns,
+	useRunsProgressStats
+} from './runs-progress.hooks';
 import {
 	buildFilterSummary,
 	buildPackageSummaries,
@@ -47,30 +48,17 @@ function RunsProgressContainer() {
 		() => sortRunsNewestFirst(windowedRuns),
 		[windowedRuns]
 	);
-	const statsParams = useMemo(
-		() => sortedRuns.map((run) => ({ runId: run.id })),
-		[sortedRuns]
-	);
-	const statsQuery = useGetRunsStatsByRunIdsQuery(statsParams, {
-		skip: statsParams.length === 0
-	});
+	const statsQuery = useRunsProgressStats(sortedRuns);
 
 	const progressRuns = useMemo(() => {
-		const statsByRunId = new Map(
-			(statsQuery.currentData?.runs ?? []).map((run) => [
-				run.runId,
-				run.results[0]
-			])
-		);
-
 		return sortedRuns
 			.map((run) => {
-				const root = statsByRunId.get(run.id);
+				const root = statsQuery.statsByRunId.get(run.id);
 
 				return root ? { run, root } : null;
 			})
 			.filter((run): run is RunsProgressRun => run !== null);
-	}, [sortedRuns, statsQuery.currentData?.runs]);
+	}, [sortedRuns, statsQuery.statsByRunId]);
 
 	const availableGroupKeys = useMemo(
 		() => getMetadataKeys(sortedRuns),
@@ -105,7 +93,7 @@ function RunsProgressContainer() {
 		[searchParams]
 	);
 
-	const statsPending = statsParams.length > 0 && !statsQuery.currentData;
+	const statsPending = sortedRuns.length > 0 && !progressRuns.length;
 
 	if (runsQuery.error || statsQuery.error) {
 		return <RunsProgressError error={runsQuery.error || statsQuery.error} />;
@@ -130,10 +118,12 @@ function RunsProgressContainer() {
 			selectedPackage={effectivePackage}
 			onSelectedPackageChange={setSelectedPackage}
 			filters={filters}
-			isFetching={runsQuery.isFetching || statsQuery.isFetching}
-			isCapped={runsQuery.isCapped}
+			isFetching={runsQuery.isFetching && !runsQuery.isFetchingNextPage}
+			isLoadingMore={runsQuery.isFetchingNextPage || statsQuery.isFetching}
+			hasNextPage={runsQuery.hasNextPage}
+			onLoadMore={runsQuery.fetchNextPage}
+			loaded={runsQuery.runs.length}
 			total={runsQuery.total}
-			cap={runsQuery.cap}
 		/>
 	);
 }

@@ -580,6 +580,20 @@ function buildFilterSummary(
 	return summary;
 }
 
+function shouldLoadRunsProgressPage(
+	lastVisibleRunIndex: number | undefined,
+	runCount: number,
+	hasNextPage: boolean,
+	isLoadingMore: boolean
+): boolean {
+	return (
+		lastVisibleRunIndex !== undefined &&
+		lastVisibleRunIndex >= runCount - 5 &&
+		hasNextPage &&
+		!isLoadingMore
+	);
+}
+
 export type { MetricChange, MetricDelta, MetricDeltaStatus };
 
 export {
@@ -601,6 +615,7 @@ export {
 	getUnexpectedTotal,
 	groupRuns,
 	rowHasChange,
+	shouldLoadRunsProgressPage,
 	sortRunsNewestFirst,
 	toneTierClassName
 };

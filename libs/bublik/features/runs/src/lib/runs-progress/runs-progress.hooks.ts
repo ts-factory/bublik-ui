@@ -1,19 +1,28 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { RunsAPIQuery, RunsData } from '@/shared/types';
-import { useGetRunsTablePageQuery } from '@/services/bublik-api';
+import { RunData, RunsAPIQuery, RunsData } from '@/shared/types';
+import {
+	useGetRunsProgressInfiniteQuery,
+	useLazyGetRunsStatsByRunIdsQuery
+} from '@/services/bublik-api';
 
 import { useRunsQuery } from '../hooks';
-
-const SAFETY_CAP = 200;
 
 type RunsProgressRunsResult = {
 	runs: RunsData[];
 	total: number;
-	cap: number;
-	isCapped: boolean;
+	isLoading: boolean;
+	isFetching: boolean;
+	isFetchingNextPage: boolean;
+	hasNextPage: boolean;
+	fetchNextPage: () => void;
+	error: unknown;
+};
+
+type RunsProgressStatsResult = {
+	statsByRunId: Map<number, RunData>;
 	isLoading: boolean;
 	isFetching: boolean;
 	error: unknown;
@@ -21,8 +30,6 @@ type RunsProgressRunsResult = {
 
 function useRunsProgressRuns(): RunsProgressRunsResult {
 	const { query } = useRunsQuery();
-	const hasDateBoundary = Boolean(query.startDate) || Boolean(query.finishDate);
-
 	const baseQuery = useMemo<RunsAPIQuery>(
 		() => ({
 			startDate: query.startDate,
@@ -39,39 +46,73 @@ function useRunsProgressRuns(): RunsProgressRunsResult {
 			query.projects
 		]
 	);
-
-	const probeQuery = useGetRunsTablePageQuery(
-		{ ...baseQuery, page: '1', pageSize: '1' },
-		{ refetchOnFocus: true, refetchOnMountOrArgChange: true }
+	const runsQuery = useGetRunsProgressInfiniteQuery(baseQuery, {
+		refetchOnFocus: true,
+		refetchOnMountOrArgChange: true
+	});
+	const runs = useMemo(
+		() => runsQuery.currentData?.pages.flatMap((page) => page.results) ?? [],
+		[runsQuery.currentData?.pages]
 	);
-
-	const total = probeQuery.currentData?.pagination.count ?? 0;
-	const isCapped = !hasDateBoundary && total > SAFETY_CAP;
-	const effectiveSize = hasDateBoundary ? total : Math.min(total, SAFETY_CAP);
-
-	const fullQuery = useGetRunsTablePageQuery(
-		{ ...baseQuery, page: '1', pageSize: effectiveSize.toString() },
-		{
-			skip: effectiveSize === 0,
-			refetchOnFocus: true,
-			refetchOnMountOrArgChange: true
-		}
-	);
-
-	const runs = fullQuery.currentData?.results ?? [];
-	const isLoading =
-		!probeQuery.currentData || (effectiveSize > 0 && !fullQuery.currentData);
-	const isFetching = probeQuery.isFetching || fullQuery.isFetching;
 
 	return {
 		runs,
-		total,
-		cap: SAFETY_CAP,
-		isCapped,
-		isLoading,
-		isFetching,
-		error: probeQuery.error || fullQuery.error
+		total: runsQuery.currentData?.pages[0]?.pagination.count ?? 0,
+		isLoading: runsQuery.isLoading,
+		isFetching: runsQuery.isFetching,
+		isFetchingNextPage: runsQuery.isFetchingNextPage,
+		hasNextPage: runsQuery.hasNextPage,
+		fetchNextPage: () => {
+			void runsQuery.fetchNextPage();
+		},
+		error: runsQuery.error
 	};
 }
 
-export { useRunsProgressRuns };
+function useRunsProgressStats(runs: RunsData[]): RunsProgressStatsResult {
+	const [fetchStats, statsQuery] = useLazyGetRunsStatsByRunIdsQuery();
+	const [statsByRunId, setStatsByRunId] = useState<Map<number, RunData>>(
+		() => new Map()
+	);
+	const requestedRunIdsRef = useRef(new Set<number>());
+
+	useEffect(() => {
+		const missingRuns = runs.filter(
+			(run) => !requestedRunIdsRef.current.has(run.id)
+		);
+
+		if (!missingRuns.length) return;
+
+		missingRuns.forEach((run) => requestedRunIdsRef.current.add(run.id));
+		const request = fetchStats(missingRuns.map((run) => ({ runId: run.id })));
+
+		void request
+			.unwrap()
+			.then((response) => {
+				setStatsByRunId((current) => {
+					const next = new Map(current);
+
+					response.runs.forEach((run) => {
+						const root = run.results[0];
+						if (root) next.set(run.runId, root);
+					});
+
+					return next;
+				});
+			})
+			.catch(() => {
+				missingRuns.forEach((run) => requestedRunIdsRef.current.delete(run.id));
+			});
+	}, [fetchStats, runs]);
+
+	const isLoading = runs.some((run) => !statsByRunId.has(run.id));
+
+	return {
+		statsByRunId,
+		isLoading,
+		isFetching: statsQuery.isFetching,
+		error: statsQuery.error
+	};
+}
+
+export { useRunsProgressRuns, useRunsProgressStats };

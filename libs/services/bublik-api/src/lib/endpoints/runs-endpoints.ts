@@ -16,6 +16,14 @@ import { BUBLIK_TAG } from '../types';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 
+const RUNS_PROGRESS_PAGE_SIZE = 50;
+
+const getRunsProgressNextPageParam = (
+	lastPage: RunsAPIResponse,
+	lastPageParam: number
+): number | undefined =>
+	lastPage.pagination.next ? lastPageParam + 1 : undefined;
+
 const getRunsTablePageParams = (queryParams: RunsAPIQuery) => {
 	const { projects, runData, ...rest } = queryParams;
 
@@ -50,6 +58,25 @@ export const runsEndpoints = {
 			},
 			providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
 		}),
+		getRunsProgress: build.infiniteQuery<RunsAPIResponse, RunsAPIQuery, number>(
+			{
+				infiniteQueryOptions: {
+					initialPageParam: 1,
+					getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+						getRunsProgressNextPageParam(lastPage, lastPageParam)
+				},
+				query: ({ queryArg, pageParam }) => ({
+					url: withApiV2('/runs'),
+					params: getRunsTablePageParams({
+						...queryArg,
+						page: pageParam.toString(),
+						pageSize: RUNS_PROGRESS_PAGE_SIZE.toString()
+					}),
+					cache: 'no-cache'
+				}),
+				providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
+			}
+		),
 		getRunsCharts: build.query<RunsChartsAPIResponse, RunsChartsAPIQuery>({
 			query: (queryParams) => {
 				return {
@@ -65,4 +92,9 @@ export const runsEndpoints = {
 	})
 };
 
-export { getRunsTablePageParams, getRunsChartsParams };
+export {
+	RUNS_PROGRESS_PAGE_SIZE,
+	getRunsProgressNextPageParam,
+	getRunsTablePageParams,
+	getRunsChartsParams
+};

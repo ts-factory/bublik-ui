@@ -18,6 +18,7 @@ import {
 	getUnexpectedTotal,
 	groupRuns,
 	rowHasChange,
+	shouldLoadRunsProgressPage,
 	sortRunsNewestFirst
 } from './runs-progress.utils';
 import { RunsProgressCell, RunsProgressRow } from './runs-progress.types';
@@ -31,6 +32,21 @@ const baseStats = {
 	skipped: 0,
 	skipped_unexpected: 0
 };
+
+describe('shouldLoadRunsProgressPage', () => {
+	it('loads near the last visible run', () => {
+		expect(shouldLoadRunsProgressPage(45, 50, true, false)).toBe(true);
+	});
+
+	it('does not load before the threshold', () => {
+		expect(shouldLoadRunsProgressPage(44, 50, true, false)).toBe(false);
+	});
+
+	it('does not load while fetching or after the final page', () => {
+		expect(shouldLoadRunsProgressPage(49, 50, true, true)).toBe(false);
+		expect(shouldLoadRunsProgressPage(49, 50, false, false)).toBe(false);
+	});
+});
 
 function createRun(id: number, start: string): RunsData {
 	return {

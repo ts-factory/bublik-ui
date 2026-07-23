@@ -69,7 +69,8 @@ import {
 	getMetricToneClassName,
 	getNodeStats,
 	getStatsTotal,
-	getUnexpectedTotal
+	getUnexpectedTotal,
+	shouldLoadRunsProgressPage
 } from './runs-progress.utils';
 import {
 	Sparkline,
@@ -307,9 +308,11 @@ interface RunsProgressProps {
 	onSelectedPackageChange: (packageName: string | null) => void;
 	filters: RunsProgressFilterSummary[];
 	isFetching?: boolean;
-	isCapped?: boolean;
+	isLoadingMore?: boolean;
+	hasNextPage?: boolean;
+	onLoadMore?: () => void;
+	loaded?: number;
 	total?: number;
-	cap?: number;
 }
 
 function RunsProgress(props: RunsProgressProps) {
@@ -327,9 +330,11 @@ function RunsProgress(props: RunsProgressProps) {
 		selectedPackage,
 		onSelectedPackageChange,
 		isFetching,
-		isCapped,
-		total,
-		cap
+		isLoadingMore,
+		hasNextPage,
+		onLoadMore,
+		loaded,
+		total
 	} = props;
 	const parentRef = useRef<HTMLDivElement>(null);
 	const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
@@ -523,6 +528,27 @@ function RunsProgress(props: RunsProgressProps) {
 	const virtualColumns = columnVirtualizer.getVirtualItems();
 	const totalWidth = leftColumnWidth + columnVirtualizer.getTotalSize();
 	const totalHeight = headerHeight + rowVirtualizer.getTotalSize();
+	const lastVirtualColumnIndex = virtualColumns.at(-1)?.index;
+
+	useEffect(() => {
+		if (
+			!shouldLoadRunsProgressPage(
+				lastVirtualColumnIndex,
+				runs.length,
+				Boolean(hasNextPage),
+				Boolean(isLoadingMore)
+			)
+		)
+			return;
+
+		onLoadMore?.();
+	}, [
+		hasNextPage,
+		isLoadingMore,
+		lastVirtualColumnIndex,
+		onLoadMore,
+		runs.length
+	]);
 
 	useEffect(() => {
 		const element: HTMLDivElement | null = parentRef.current;
@@ -667,13 +693,13 @@ function RunsProgress(props: RunsProgressProps) {
 										). Narrow by a meta filter or a project.
 									</span>
 								</>
-							) : isCapped ? (
+							) : null}
+							{total ? (
 								<>
 									<Separator orientation="vertical" className="h-4" />
-									<span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-unexpected">
-										<Icon name="InformationCircleExclamationMark" size={12} />
-										Showing latest {cap} of {total} runs — pick a date range or
-										duration for all.
+									<span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary">
+										Loaded {loaded ?? runs.length} of {total} runs
+										{isLoadingMore ? '...' : ''}
 									</span>
 								</>
 							) : null}
