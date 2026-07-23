@@ -11,6 +11,13 @@ module.exports = {
 		join(__dirname, '../../libs/**/*!(*.stories|*.spec).{ts,tsx,html}'),
 		...createGlobPatternsForDependencies(__dirname)
 	],
-	theme: { extend: {} },
+	theme: {
+		extend: {
+			colors: {
+				'history-placeholder':
+					'hsl(var(--colors-history-placeholder) / <alpha-value>)'
+			}
+		}
+	},
 	plugins: []
 };
