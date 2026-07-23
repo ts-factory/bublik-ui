@@ -1,5 +1,12 @@
 
 
+## [2.16.0](https://github.com/ts-factory/bublik-ui/compare/v2.16.0-rc.0...v2.16.0) (2026-07-23)
+
+
+### 🐛 Bug Fix
+
+* **sidebar:** prevent guide lines misalignment when using zoom levels ([9f47d0a](https://github.com/ts-factory/bublik-ui/commit/9f47d0aaef7af8ccc496311de14696a48b502e4a))
+
 ## [2.16.0-rc.0](https://github.com/ts-factory/bublik-ui/compare/v2.15.1...v2.16.0-rc.0) (2026-07-07)
 
 

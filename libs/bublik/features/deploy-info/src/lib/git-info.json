@@ -1,7 +1,7 @@
 {
-	"date": "2026.07.06",
-	"summary": "feat(sidebar): persist per-feature sidebar URL state",
-	"revision": "210feea0",
-	"branch": "release-2.16.0-rc.0",
-	"latestTag": "v2.16.0-rc.0"
+	"date": "2026.07.24",
+	"summary": "fix(sidebar): prevent guide lines misalignment when using zoom levels",
+	"revision": "9f47d0aa",
+	"branch": "sidebar-improve",
+	"latestTag": "v2.16.0"
 }
