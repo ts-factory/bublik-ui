@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { addDays } from 'date-fns';
+import { addMonths } from 'date-fns';
 
 import {
 	RESULT_TYPE,
@@ -63,8 +63,11 @@ export const DEFAULT_RESULT_PROPERTIES: RESULT_PROPERTIES[] = [
 
 export const DEFAULT_VERDICT_LOOKUP: VERDICT_TYPE = VERDICT_TYPE.String;
 
-export const DEFAULT_HISTORY_START_DATE = addDays(new Date(), -31);
-
-export const DEFAULT_HISTORY_END_DATE = new Date();
+export const getDefaultHistoryDateRange = (
+	finishDate: Date = new Date()
+): { startDate: Date; finishDate: Date } => ({
+	startDate: addMonths(finishDate, -3),
+	finishDate
+});
 
 export const HISTORY_MAX_RESULTS_IDS = 6000;

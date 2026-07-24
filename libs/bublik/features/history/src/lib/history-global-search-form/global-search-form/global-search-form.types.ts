@@ -7,8 +7,11 @@ import { VERDICT_TYPE } from '@/shared/types';
 import {
 	DEFAULT_RESULT_PROPERTIES,
 	DEFAULT_RESULT_TYPES,
-	DEFAULT_RUN_PROPERTIES
+	DEFAULT_RUN_PROPERTIES,
+	getDefaultHistoryDateRange
 } from '@/bublik/config';
+
+const defaultHistoryDateRange = getDefaultHistoryDateRange();
 
 export const ValidationSchema = z
 	.object({
@@ -56,7 +59,10 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	runIds: '',
 	labels: [],
 	hash: '',
-	dates: { startDate: new Date(), endDate: new Date() },
+	dates: {
+		startDate: defaultHistoryDateRange.startDate,
+		endDate: defaultHistoryDateRange.finishDate
+	},
 	revisions: [],
 	tagExpr: '',
 	branches: [],

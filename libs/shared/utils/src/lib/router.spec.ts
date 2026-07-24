@@ -4,7 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
 
-import { getHistorySearch, HistorySearch } from './router';
+import {
+	getHistorySearch,
+	HistorySearch,
+	HistorySearchBuilder
+} from './router';
 
 const runFixture: RunDetailsAPIResponse = {
 	finish: '2026-02-10T08:15:00.000Z',
@@ -85,6 +89,36 @@ describe('getHistorySearch', () => {
 		expect(getSearchParams(direct.testNameAndParameters).get('mode')).toBe(
 			'aggregation'
 		);
+	});
+
+	it('uses the latest three months for every shortcut regardless of run age', () => {
+		vi.setSystemTime(new Date('2026-07-24T12:00:00'));
+		const oldRun = { ...runFixture, finish: '2024-01-10T08:15:00.000Z' };
+		const { direct, prefilled } = getHistorySearch(
+			oldRun,
+			resultFixture,
+			'linear'
+		);
+
+		for (const shortcuts of [direct, prefilled]) {
+			for (const shortcut of Object.values(shortcuts)) {
+				const query = getSearchParams(shortcut);
+
+				expect(query.get('startDate')).toBe('2026-04-24');
+				expect(query.get('finishDate')).toBe('2026-07-24');
+			}
+		}
+	});
+
+	it('can anchor a run-scoped search to the selected run', () => {
+		const query = new HistorySearchBuilder('suite/test')
+			.withRunIds([42])
+			.withAnchorDate('2024-01-10T08:15:00.000Z')
+			.build();
+
+		expect(query.runIds).toBe('42');
+		expect(query.startDate).toBe('2023-10-10');
+		expect(query.finishDate).toBe('2024-01-10');
 	});
 
 	it('keeps testName + parameters link focused on parameters only', () => {

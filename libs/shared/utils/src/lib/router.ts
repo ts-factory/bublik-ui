@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { addDays, addMonths, isBefore, isValid, parseISO } from 'date-fns';
+import { isValid, parseISO } from 'date-fns';
 import { createPath, Link, parsePath, To } from 'react-router-dom';
 import { ComponentProps } from 'react';
 
@@ -15,9 +15,9 @@ import {
 } from '@/shared/types';
 import {
 	config,
-	DEFAULT_HISTORY_END_DATE,
 	DEFAULT_RESULT_TYPES,
-	DEFAULT_VERDICT_LOOKUP
+	DEFAULT_VERDICT_LOOKUP,
+	getDefaultHistoryDateRange
 } from '@/bublik/config';
 import { stringifySearch } from '@/router';
 
@@ -42,47 +42,19 @@ export const transformUrlSearch = (
 	});
 };
 
-/**
- * If passed date is older than 3 months we extend to 6 months
- * else we default to 3 months range
- */
-const getFromDate = (maybeDate: string) => {
-	const today = new Date();
-	const parsedDate = isValid(parseISO(maybeDate)) ? parseISO(maybeDate) : today;
-	const isOlderThanThreeMonths = isBefore(parsedDate, addMonths(today, -3));
-	const offsetFromSixMonths = addMonths(parsedDate, -6);
-	const passedOffset = addMonths(parsedDate, -3);
-
-	if (isOlderThanThreeMonths) {
-		return formatTimeToAPI(addDays(offsetFromSixMonths, -3));
-	} else {
-		return formatTimeToAPI(addDays(passedOffset, -3));
-	}
-};
-
-const getToDate = (maybeDate: string) => {
-	const parsedDate = isValid(parseISO(maybeDate))
-		? parseISO(maybeDate)
-		: new Date();
-
-	return formatTimeToAPI(parsedDate);
-};
-
 export const buildQuery = (config: {
 	result: RunDataResults;
 	details: RunDetailsAPIResponse;
 }): HistorySearchParams => {
-	const { result, details } = config;
+	const { result } = config;
 
 	const query = new HistorySearchBuilder(result.name)
-		.withAnchorDate(details.start)
 		.withParameters(result.parameters)
 		.withResultPropertiesBasedOnError(result.has_error)
 		.build();
 
 	return {
 		...query,
-		finishDate: formatTimeToAPI(DEFAULT_HISTORY_END_DATE),
 		results: result.obtained_result.result_type,
 		pageSize: '25'
 	};
@@ -102,22 +74,27 @@ class HistorySearchBuilder {
 	private delimiter = config.queryDelimiter;
 
 	constructor(testName: string) {
-		const today = new Date().toISOString();
+		const { startDate, finishDate } = getDefaultHistoryDateRange();
 
 		this.query = {
 			page: '1',
 			results: DEFAULT_RESULT_TYPES.join(this.delimiter),
 			verdictLookup: DEFAULT_VERDICT_LOOKUP,
-			startDate: getFromDate(today),
-			finishDate: getToDate(today),
+			startDate: formatTimeToAPI(startDate),
+			finishDate: formatTimeToAPI(finishDate),
 			testName,
 			runProperties: RUN_PROPERTIES.NotCompromised
 		};
 	}
 
 	withAnchorDate(anchorDate: string): HistorySearchBuilder {
-		this.query.startDate = getFromDate(anchorDate);
-		this.query.finishDate = getToDate(anchorDate);
+		const parsedDate = parseISO(anchorDate);
+
+		if (!isValid(parsedDate)) return this;
+
+		const { startDate, finishDate } = getDefaultHistoryDateRange(parsedDate);
+		this.query.startDate = formatTimeToAPI(startDate);
+		this.query.finishDate = formatTimeToAPI(finishDate);
 
 		return this;
 	}
@@ -219,24 +196,19 @@ function getHistorySearch(
 	const { relevant_tags, important_tags } = run;
 	const testNameOrPath = path ?? result.name;
 
-	const testName = new HistorySearchBuilder(testNameOrPath)
-		.withAnchorDate(run.finish)
-		.build();
+	const testName = new HistorySearchBuilder(testNameOrPath).build();
 
 	const testNameAndVerdicts = new HistorySearchBuilder(testNameOrPath)
-		.withAnchorDate(run.finish)
 		.withVerdicts(result.obtained_result.verdicts)
 		.build();
 
 	const testNameAndParameters = new HistorySearchBuilder(testNameOrPath)
-		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.build();
 
 	const testNameAndParametersAndVerdicts = new HistorySearchBuilder(
 		testNameOrPath
 	)
-		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withVerdicts(result.obtained_result.verdicts)
 		.build();
@@ -244,7 +216,6 @@ function getHistorySearch(
 	const testNameAndParametersAndImportantTags = new HistorySearchBuilder(
 		testNameOrPath
 	)
-		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withTags(important_tags)
 		.build();
@@ -252,7 +223,6 @@ function getHistorySearch(
 	const testNameAndParametersAndAllTags = new HistorySearchBuilder(
 		testNameOrPath
 	)
-		.withAnchorDate(run.finish)
 		.withParameters(result.parameters)
 		.withTags(relevant_tags)
 		.withTags(important_tags)
