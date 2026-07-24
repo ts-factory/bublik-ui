@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
 	BooleanParam,
 	DateParam,
@@ -11,6 +12,8 @@ import {
 import { addDays } from 'date-fns';
 
 import {
+	BUBLIK_TAG,
+	bublikAPI,
 	useGetDashboardByDateQuery,
 	useGetDashboardModeQuery,
 	usePrefetch
@@ -121,32 +124,27 @@ export const useDashboardClock = () => {
 	const { date: mainDate } = useDashboardDate(DASHBOARD_TABLE_ID.Main);
 	const { date: secondDate } = useDashboardDate(DASHBOARD_TABLE_ID.Secondary);
 	const { projectIds } = useProjectSearch();
+	const dispatch = useDispatch();
 
-	const {
-		fulfilledTimeStamp: todayTimetamp = new Date().getTime(),
-		refetch: refetchToday
-	} = useGetDashboardByDateQuery({ projects: projectIds });
-	const {
-		fulfilledTimeStamp: mainTimestamp = new Date().getTime(),
-		refetch: refetchMain
-	} = useGetDashboardByDateQuery(
-		mainDate
-			? { date: formatTimeToAPI(mainDate), projects: projectIds }
-			: undefined
-	);
-	const {
-		fulfilledTimeStamp: secondTimestamp = new Date().getTime(),
-		refetch: refetchSecond
-	} = useGetDashboardByDateQuery(
-		secondDate
-			? { date: formatTimeToAPI(secondDate), projects: projectIds }
-			: undefined
-	);
+	const { fulfilledTimeStamp: todayTimetamp = new Date().getTime() } =
+		useGetDashboardByDateQuery({ projects: projectIds });
+	const { fulfilledTimeStamp: mainTimestamp = new Date().getTime() } =
+		useGetDashboardByDateQuery(
+			mainDate
+				? { date: formatTimeToAPI(mainDate), projects: projectIds }
+				: undefined,
+			{ skip: !mainDate }
+		);
+	const { fulfilledTimeStamp: secondTimestamp = new Date().getTime() } =
+		useGetDashboardByDateQuery(
+			secondDate
+				? { date: formatTimeToAPI(secondDate), projects: projectIds }
+				: undefined,
+			{ skip: !secondDate }
+		);
 
 	const refetch = () => {
-		if (!mainDate && !secondDate) return refetchToday();
-		if (mainDate) refetchMain();
-		if (secondDate) refetchSecond();
+		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.DashboardData]));
 	};
 
 	return {
