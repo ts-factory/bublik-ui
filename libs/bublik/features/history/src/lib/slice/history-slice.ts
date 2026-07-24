@@ -9,12 +9,11 @@ import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 
 import {
-	DEFAULT_HISTORY_END_DATE,
-	DEFAULT_HISTORY_START_DATE,
 	DEFAULT_RESULT_PROPERTIES,
 	DEFAULT_RESULT_TYPES,
 	DEFAULT_RUN_PROPERTIES,
-	DEFAULT_VERDICT_LOOKUP
+	DEFAULT_VERDICT_LOOKUP,
+	getDefaultHistoryDateRange
 } from '@/bublik/config';
 
 import { HistoryGlobalFilter, HistorySliceState } from './history-slice.types';
@@ -32,6 +31,8 @@ export const DEFAULT_GLOBAL_FILTER: HistorySliceState['globalFilter'] = {
 	substringFilter: ''
 };
 
+const defaultHistoryDateRange = getDefaultHistoryDateRange();
+
 export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	/* Test section */
 	testName: '',
@@ -42,8 +43,8 @@ export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	revisions: [],
 	branches: [],
 	/* Run section */
-	startDate: DEFAULT_HISTORY_START_DATE,
-	finishDate: DEFAULT_HISTORY_END_DATE,
+	startDate: defaultHistoryDateRange.startDate,
+	finishDate: defaultHistoryDateRange.finishDate,
 	runData: [],
 	tagExpr: '',
 	runIds: [],

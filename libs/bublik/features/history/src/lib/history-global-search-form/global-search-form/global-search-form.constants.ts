@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { addDays } from 'date-fns';
+import { getDefaultHistoryDateRange } from '@/bublik/config';
 import {
 	VERDICT_TYPE,
 	RESULT_TYPE,
@@ -36,16 +36,15 @@ const createHistoryConfig = (): HistoryConfig => {
 		RESULT_PROPERTIES.Unexpected
 	];
 
-	const defaultStartDate = addDays(new Date(), -93);
-	const defaultEndDate = new Date();
+	const defaultDates = getDefaultHistoryDateRange();
 
 	return {
 		verdict: defaultVerdict,
 		results: defaultResults,
 		runProperties: defaultRunProperties,
 		resultProperties: defaultResultProperties,
-		startDate: defaultStartDate,
-		endDate: defaultEndDate
+		startDate: defaultDates.startDate,
+		endDate: defaultDates.finishDate
 	};
 };
 
