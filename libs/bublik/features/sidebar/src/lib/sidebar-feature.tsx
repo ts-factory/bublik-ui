@@ -52,7 +52,7 @@ export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 				<SidebarLogoButton />
 			</div>
 			<div
-				className="h-full pt-12 pb-[7px] overflow-y-auto px-[7px] styled-scrollbar"
+				className="h-full pt-12 pb-[7px] overflow-x-hidden overflow-y-auto px-[7px] styled-scrollbar"
 				ref={ref}
 			>
 				<ul className="flex flex-col gap-3">
