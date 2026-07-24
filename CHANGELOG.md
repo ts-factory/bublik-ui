@@ -1,5 +1,27 @@
 
 
+## [2.17.0](https://github.com/ts-factory/bublik-ui/compare/v2.16.0...v2.17.0) (2026-07-24)
+
+
+### 🚀 New Feature
+
+* **log:** support new aggregation type in MI logs ([996f0e9](https://github.com/ts-factory/bublik-ui/commit/996f0e9b27442e0dce9b50318a174b1f8f34fc01))
+* **run:** [table] add ability to reorder columns by dragging them ([60b2655](https://github.com/ts-factory/bublik-ui/commit/60b26557c7328c8cbf2ee6a7d54968ef6e23613a))
+* **runs:** [progress] lazy load progress runs in batches of 50 ([2616efa](https://github.com/ts-factory/bublik-ui/commit/2616efaeead85edf8b92eb790e920dcbda71241b))
+
+
+### 💅 Polish
+
+* **history:** [form] make input label bolder ([982683c](https://github.com/ts-factory/bublik-ui/commit/982683c4cb4a084df93fd7757327cd9ab0e7dc32))
+* **history:** [form] make inputs placeholders to use `#ccc` color ([8ddc001](https://github.com/ts-factory/bublik-ui/commit/8ddc001601904b420667dbc62a9c7981aab2bac8))
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** manual refresh not updating run statuses ([0502759](https://github.com/ts-factory/bublik-ui/commit/0502759633f7f1599d1a4661c3adbdf1d7f42233))
+* **log:** render new series aggregation on auto-seqno MI charts ([9152b0a](https://github.com/ts-factory/bublik-ui/commit/9152b0a46755aa6d7d89a6a863d091d81bebd422))
+* **sidebar:** hide horizontal overflow when collapsed ([85c45d9](https://github.com/ts-factory/bublik-ui/commit/85c45d9151fd8a4afd08bd3357396ae37541479a))
+
 ## [2.16.0](https://github.com/ts-factory/bublik-ui/compare/v2.16.0-rc.0...v2.16.0) (2026-07-23)
 
 
