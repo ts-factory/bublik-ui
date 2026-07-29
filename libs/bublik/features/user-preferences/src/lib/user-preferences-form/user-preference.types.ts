@@ -12,20 +12,23 @@ export const UserPreferencesSchema = z
 			})
 			.default({ defaultMode: 'linear' }),
 		log: z
-			.object({ preferLegacyLog: z.boolean().default(false) })
-			.default({ preferLegacyLog: false }),
+			.object({
+				preferLegacyLog: z.boolean().default(false),
+				rememberAllPages: z.boolean().default(true)
+			})
+			.default({ preferLegacyLog: false, rememberAllPages: true }),
 		runs: z
 			.object({ autoApplyBadgeFilters: z.boolean().default(true) })
 			.default({ autoApplyBadgeFilters: true })
 	})
 	.default({
 		history: { defaultMode: 'linear' },
-		log: { preferLegacyLog: false },
+		log: { preferLegacyLog: false, rememberAllPages: true },
 		runs: { autoApplyBadgeFilters: true }
 	})
 	.catch({
 		history: { defaultMode: 'linear' },
-		log: { preferLegacyLog: false },
+		log: { preferLegacyLog: false, rememberAllPages: true },
 		runs: { autoApplyBadgeFilters: true }
 	});
 

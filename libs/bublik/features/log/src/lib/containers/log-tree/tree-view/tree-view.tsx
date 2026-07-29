@@ -8,7 +8,6 @@ import {
 	useImperativeHandle,
 	useRef
 } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import {
 	FixedSizeNodeData,
 	FixedSizeTree,
@@ -26,6 +25,7 @@ import {
 } from '@/shared/hooks';
 import { NodeData } from '@/shared/types';
 
+import { useLogPage } from '../../../hooks';
 import { Node } from '../tree-node';
 
 export type TreeNode = Readonly<NodeData>;
@@ -85,7 +85,7 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 	} = props;
 
 	const treeRef = useRef<FixedSizeTree<TreeData>>(null);
-	const [, setSearchParams] = useSearchParams();
+	const { setFocusId } = useLogPage();
 
 	const treeWalker = useCallback(
 		function* treeWalkerFn(): ReturnType<TreeWalker<TreeData, NodeMeta>> {
@@ -393,18 +393,13 @@ export const TreeView: FC<TreeViewProps> = forwardRef<
 			});
 		}
 
-		if (tree[currentScrollId.current].entity !== 'suite') {
-			setSearchParams((params) => {
-				if (params.get('focusId') !== currentScrollId.current) {
-					params.delete('lineNumber');
-				}
-
-				params.set('focusId', currentScrollId.current);
-
-				return params;
-			});
+		if (
+			tree[currentScrollId.current].entity !== 'suite' &&
+			focusId !== currentScrollId.current
+		) {
+			setFocusId(currentScrollId.current);
 		}
-	}, [main_package, setSearchParams, tree]);
+	}, [focusId, main_package, setFocusId, tree]);
 
 	usePhysicalHotkeys(
 		[

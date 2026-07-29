@@ -16,7 +16,7 @@ function LogPreferencesForm() {
 	});
 
 	return (
-		<div className="max-w-md">
+		<div className="max-w-md space-y-4">
 			<Controller
 				name="log.preferLegacyLog"
 				control={control}
@@ -43,6 +43,40 @@ function LogPreferencesForm() {
 						</div>
 						<p className="text-xs text-text-menu ml-8">
 							Make legacy logs your default choice
+						</p>
+					</div>
+				)}
+			></Controller>
+			<Controller
+				name="log.rememberAllPages"
+				control={control}
+				render={({ field }) => (
+					<div>
+						<div className="flex items-center">
+							<Checkbox
+								id="remember-all-log-pages"
+								checked={field.value}
+								onCheckedChange={(checked) => {
+									field.onChange(checked);
+									setUserPreferences({
+										...userPreferences,
+										log: {
+											...userPreferences.log,
+											rememberAllPages: checked === true
+										}
+									});
+								}}
+							/>
+							<label
+								htmlFor="remember-all-log-pages"
+								className="pl-2 text-sm font-normal"
+							>
+								Remember "All pages" for 24 hours
+							</label>
+						</div>
+						<p className="text-xs text-text-menu ml-8">
+							Reopen each test or package in "All pages" mode within the same
+							run
 						</p>
 					</div>
 				)}

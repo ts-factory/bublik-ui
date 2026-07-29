@@ -6,6 +6,8 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { toast } from '@/shared/tailwind-ui';
 import { LogPageParams } from '@/shared/types';
 
+export { useAllPagesMemory } from './all-pages-memory';
+
 const EXPERIMENTAL_KEY = 'experimental';
 const LEGACY_KEY = 'legacy';
 const FOCUS_ID_KEY = 'focusId';

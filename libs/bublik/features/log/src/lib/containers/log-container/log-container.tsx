@@ -6,7 +6,8 @@ import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	useGetLogJsonQuery,
 	useGetLogUrlByResultIdQuery,
-	useGetRunDetailsQuery
+	useGetRunDetailsQuery,
+	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import {
 	LogTableContext,
@@ -19,7 +20,7 @@ import { cn, RunRunning } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { RUN_STATUS } from '@/shared/types';
 
-import { useIsLogLegacy, useLogPage } from '../../hooks';
+import { useAllPagesMemory, useIsLogLegacy, useLogPage } from '../../hooks';
 
 const highlightRow = (el: HTMLElement) => {
 	el.classList.add('animate-highlight-row');
@@ -58,6 +59,20 @@ export function LogPickerContainer() {
 		page,
 		setPage
 	} = useLogPage();
+	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
+	const { data: treeData } = useGetTreeByRunIdQuery(runId ?? skipToken);
+	const { isRemembered, remember, forget } = useAllPagesMemory();
+	const focusedNode = focusId ? treeData?.tree[focusId] : undefined;
+	const allPagesIdentity =
+		details && focusedNode?.path
+			? {
+					projectId: details.project_id,
+					runId: details.id,
+					path: focusedNode.path
+			  }
+			: null;
+	const effectivePage =
+		page ?? (allPagesIdentity && isRemembered(allPagesIdentity) ? '0' : null);
 
 	if (!runId) {
 		return <BublikEmptyState title="No data" description="Run ID is missing" />;
@@ -67,6 +82,14 @@ export function LogPickerContainer() {
 		trackEvent(analyticsEventNames.logPageChange, {
 			page
 		});
+
+		if (allPagesIdentity) {
+			if (page === 0) {
+				remember(allPagesIdentity);
+			} else {
+				forget(allPagesIdentity);
+			}
+		}
 
 		setPage(page);
 	};
@@ -123,7 +146,7 @@ export function LogPickerContainer() {
 			<JsonLog
 				runId={runId}
 				focusId={focusId}
-				page={page}
+				page={effectivePage}
 				isShowingRunLog={isShowingRunLog}
 			/>
 		</LogTableContextProvider>
