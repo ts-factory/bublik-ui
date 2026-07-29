@@ -11,6 +11,32 @@ interface ArgValNavigationItem {
 	label: string;
 }
 
+function scrollToReportItem(id: string): boolean {
+	const element = document.getElementById(encodeURIComponent(id));
+	const scroller = document.getElementById('page-container');
+
+	if (!scroller || !element) return false;
+
+	const offsetElement = element.closest<HTMLElement>('[data-offset]');
+	const offset = Number(offsetElement?.dataset.offset || 0);
+	const elementRect = element.getBoundingClientRect();
+	const scrollerRect = scroller.getBoundingClientRect();
+	const relativeTop = elementRect.top - scrollerRect.top;
+	const targetScroll = scroller.scrollTop + relativeTop - offset;
+
+	scroller.scrollTo({ top: targetScroll, behavior: 'smooth' });
+
+	return true;
+}
+
+function getReportRecordRenderCount(
+	progressiveCount: number,
+	totalCount: number,
+	hasAnchor: boolean
+): number {
+	return hasAnchor ? totalCount : progressiveCount;
+}
+
 function getVisibleArgsValNavigationItems(
 	blocks: TestBlock[]
 ): ArgValNavigationItem[] {
@@ -72,8 +98,10 @@ function getCurrentArgsValNavigationItem(
 
 export {
 	RUN_REPORT_TABLE_OF_CONTENTS_ID,
+	getReportRecordRenderCount,
 	getArgsValNavigationTarget,
 	getCurrentArgsValNavigationItem,
-	getVisibleArgsValNavigationItems
+	getVisibleArgsValNavigationItems,
+	scrollToReportItem
 };
 export type { ArgValNavigationDirection, ArgValNavigationItem };

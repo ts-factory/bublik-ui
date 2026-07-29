@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useCallback } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { updateSidebarStateSearchParams } from './sidebar-url.utils';
 
@@ -22,7 +22,7 @@ type SidebarStateUpdater = Parameters<typeof updateSidebarStateSearchParams>[1];
 export function useSidebarStateWriter(): (
 	updater: SidebarStateUpdater
 ) => void {
-	const [, setSearchParams] = useSearchParams();
+	const navigate = useNavigate();
 	const location = useLocation();
 
 	return useCallback(
@@ -37,11 +37,17 @@ export function useSidebarStateWriter(): (
 				return;
 			}
 
-			setSearchParams(newParams, {
-				replace: true,
-				state: location.state
-			});
+			navigate(
+				{
+					search: newParams.toString(),
+					hash: window.location.hash
+				},
+				{
+					replace: true,
+					state: location.state
+				}
+			);
 		},
-		[location.state, setSearchParams]
+		[location.state, navigate]
 	);
 }

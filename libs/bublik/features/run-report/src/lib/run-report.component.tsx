@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
@@ -32,7 +32,7 @@ import {
 } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
-import { useMount, usePhysicalHotkeys } from '@/shared/hooks';
+import { usePhysicalHotkeys } from '@/shared/hooks';
 
 import { RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
@@ -42,28 +42,10 @@ import {
 	RUN_REPORT_TABLE_OF_CONTENTS_ID,
 	getArgsValNavigationTarget,
 	getCurrentArgsValNavigationItem,
-	getVisibleArgsValNavigationItems
+	getVisibleArgsValNavigationItems,
+	scrollToReportItem
 } from './run-report-navigation.utils';
 import type { ArgValNavigationItem } from './run-report-navigation.utils';
-
-function scrollToItem(id: string) {
-	const elem = document.getElementById(encodeURIComponent(id));
-	const scroller = document.getElementById('page-container');
-	const offset = Number(elem?.dataset.offset || 0);
-
-	if (!scroller || !elem) {
-		console.warn('Element or scroller not found', scroller, elem);
-		return;
-	}
-
-	const elemRect = elem.getBoundingClientRect();
-	const scrollerRect = scroller.getBoundingClientRect();
-
-	const relativeTop = elemRect.top - scrollerRect.top;
-	const targetScroll = scroller.scrollTop + relativeTop - offset;
-
-	scroller.scrollTo({ top: targetScroll, behavior: 'smooth' });
-}
 
 interface UseArgValBlockKeyboardNavigationConfig {
 	items: ArgValNavigationItem[];
@@ -250,7 +232,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 								? 'font-semibold'
 								: 'font-medium'
 						)}
-						onClick={() => scrollToItem(item.id)}
+						onClick={() => scrollToReportItem(item.id)}
 					>
 						{item.label}
 					</LinkWithProject>
@@ -308,7 +290,7 @@ function RunReport(props: RunReportProps) {
 	);
 	const navigateToArgValBlock = useCallback(
 		(id: string) => {
-			scrollToItem(id);
+			scrollToReportItem(id);
 			navigate({
 				search: searchParams.toString(),
 				hash: encodeURIComponent(id)
@@ -317,7 +299,7 @@ function RunReport(props: RunReportProps) {
 		[navigate, searchParams]
 	);
 	const navigateToTableOfContents = useCallback(() => {
-		scrollToItem(RUN_REPORT_TABLE_OF_CONTENTS_ID);
+		scrollToReportItem(RUN_REPORT_TABLE_OF_CONTENTS_ID);
 		navigate({
 			search: searchParams.toString(),
 			hash: RUN_REPORT_TABLE_OF_CONTENTS_ID
@@ -338,12 +320,16 @@ function RunReport(props: RunReportProps) {
 		onPairGainColumnsToggle: togglePairGainColumns
 	});
 
-	useMount(() => {
-		setTimeout(() => {
+	useEffect(() => {
+		if (!location.hash) return;
+
+		const animationFrame = requestAnimationFrame(() => {
 			const id = decodeURIComponent(location.hash.slice(1));
-			scrollToItem(id);
-		}, 0);
-	});
+			scrollToReportItem(id);
+		});
+
+		return () => cancelAnimationFrame(animationFrame);
+	}, [location.hash]);
 
 	return (
 		<div className="flex flex-col gap-1 relative">

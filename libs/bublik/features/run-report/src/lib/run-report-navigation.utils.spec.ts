@@ -5,7 +5,9 @@ import { TestBlock } from '@/shared/types';
 import {
 	getArgsValNavigationTarget,
 	getCurrentArgsValNavigationItem,
-	getVisibleArgsValNavigationItems
+	getReportRecordRenderCount,
+	getVisibleArgsValNavigationItems,
+	scrollToReportItem
 } from './run-report-navigation.utils';
 
 function createTestBlock(
@@ -30,6 +32,43 @@ function createTestBlock(
 }
 
 describe('run report arg-val navigation', () => {
+	it('scrolls to a report anchor containing an encoded colon', () => {
+		const scroller = document.createElement('div');
+		const offsetContainer = document.createElement('div');
+		const target = document.createElement('div');
+		const scrollTo = vi.fn();
+
+		scroller.id = 'page-container';
+		scroller.scrollTop = 100;
+		scroller.scrollTo = scrollTo;
+		scroller.getBoundingClientRect = vi.fn(() => ({ top: 50 } as DOMRect));
+		offsetContainer.dataset.offset = '20';
+		target.id = encodeURIComponent('memcached_requests_per_connection:1');
+		target.getBoundingClientRect = vi.fn(() => ({ top: 250 } as DOMRect));
+		offsetContainer.append(target);
+		document.body.append(scroller, offsetContainer);
+
+		expect(scrollToReportItem('memcached_requests_per_connection:1')).toBe(
+			true
+		);
+		expect(scrollToReportItem('memcached_requests_per_connection:1')).toBe(
+			true
+		);
+		expect(scrollTo).toHaveBeenCalledTimes(2);
+		expect(scrollTo).toHaveBeenLastCalledWith({
+			top: 280,
+			behavior: 'smooth'
+		});
+
+		scroller.remove();
+		offsetContainer.remove();
+	});
+
+	it('renders every record shell while navigating to an anchor', () => {
+		expect(getReportRecordRenderCount(10, 24, true)).toBe(24);
+		expect(getReportRecordRenderCount(10, 24, false)).toBe(10);
+	});
+
 	it('returns visible arg-val blocks in report order', () => {
 		const items = getVisibleArgsValNavigationItems([
 			createTestBlock('test-1', [

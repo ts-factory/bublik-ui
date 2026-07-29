@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
 import {
@@ -27,7 +27,10 @@ import { RunReportTable } from '../run-report-table';
 import { RunReportArgs } from '../run-report-args';
 import { WarningsHoverCard } from '../run-report-warnings';
 import { useDelegatedTableWheelScroll } from './run-report-test.hooks';
-import { getArgsValNavigationTarget } from '../run-report-navigation.utils';
+import {
+	getArgsValNavigationTarget,
+	getReportRecordRenderCount
+} from '../run-report-navigation.utils';
 import type { ArgValNavigationItem } from '../run-report-navigation.utils';
 
 const INITIAL_RECORDS_RENDER_COUNT = 10;
@@ -256,12 +259,18 @@ function MeasurementRecordList(props: MeasurementRecordListProps) {
 	const { records, enableChartView, enableTableView, offset, pageContainer } =
 		props;
 	const { enablePairGainColumns } = props;
-	const visibleCount = useProgressiveVisibleCount({
+	const { hash } = useLocation();
+	const progressiveVisibleCount = useProgressiveVisibleCount({
 		totalCount: records.length,
 		initialCount: INITIAL_RECORDS_RENDER_COUNT,
 		chunkSize: RECORDS_RENDER_CHUNK_SIZE,
 		idleTimeoutMs: 180
 	});
+	const visibleCount = getReportRecordRenderCount(
+		progressiveVisibleCount,
+		records.length,
+		Boolean(hash)
+	);
 
 	const visibleRecords = useMemo(
 		() => records.slice(0, visibleCount),
