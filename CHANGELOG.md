@@ -1,5 +1,18 @@
 
 
+### [2.17.1](https://github.com/ts-factory/bublik-ui/compare/v2.17.0...v2.17.1) (2026-07-30)
+
+
+### 🚀 New Feature
+
+* **log:** add setting to remember all-pages selection ([1cfccbd](https://github.com/ts-factory/bublik-ui/commit/1cfccbd08bc3fd433dca854c75d66b29419a5d71))
+
+
+### 🐛 Bug Fix
+
+* **log:** keep pagination available in all-pages mode ([18b227a](https://github.com/ts-factory/bublik-ui/commit/18b227a61d9174e314f5bb4c1f0a9c6dadfdf79e))
+* **report:** preserve deep-link anchors scroll ([76dd5b6](https://github.com/ts-factory/bublik-ui/commit/76dd5b6a65e57d3d5b05776ed674ec81eeca22c5))
+
 ## [2.17.0](https://github.com/ts-factory/bublik-ui/compare/v2.16.0...v2.17.0) (2026-07-24)
 
 
