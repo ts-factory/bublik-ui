@@ -137,13 +137,9 @@ export const normalizeLogJsonInput = (
 export const constructJsonUrl = (input: GetLogJsonInputs): string => {
 	const PREFIX = '/api/v2';
 
-	if (!input.page) return `${PREFIX}/logs/${input.id}/json/`;
+	if (input.page == null) return `${PREFIX}/logs/${input.id}/json/`;
 
-	let result = `${PREFIX}/logs/${input.id}/json`;
-
-	if (input.page) result += `/?page=${input.page}`;
-
-	return result;
+	return `${PREFIX}/logs/${input.id}/json/?page=${input.page}`;
 };
 
 const fetchJson = async <T = unknown>(
@@ -325,7 +321,7 @@ function addArtifactsVerdicts(
 	});
 }
 
-function fixPagesCountForAllView(
+export function fixPagesCountForAllView(
 	logBlocks: RootBlock,
 	id: string | number | null | undefined,
 	api: BaseQueryApi
@@ -355,10 +351,10 @@ function fixPagesCountForAllView(
 		const cached = queries[key];
 		if (String(cached?.originalArgs?.id) !== String(id)) continue;
 
-		// Skip page=0 entries (they also have pages_count=0)
-		// Skip page=null/undefined (all pages view)
+		// Only page=0 is the all-pages view. An omitted page is the canonical
+		// first page and can provide the page count.
 		const cachedPage = cached.originalArgs?.page;
-		if (cachedPage == null || cachedPage === 0 || cachedPage === '0') continue;
+		if (cachedPage === 0 || cachedPage === '0') continue;
 
 		const cachedTeLog = cached.data?.root.find((b) => b.type === 'te-log');
 		if (

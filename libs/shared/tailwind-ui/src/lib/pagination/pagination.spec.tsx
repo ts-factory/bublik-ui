@@ -12,4 +12,19 @@ describe('components/Pagination', () => {
 		const badge = getByTestId('tw-pagination');
 		expect(badge).toBeVisible();
 	});
+
+	it('can render navigation without an active numbered page', () => {
+		const { getByRole } = render(
+			<Pagination
+				totalCount={3}
+				pageSize={1}
+				currentPage={1}
+				showCurrentPage={false}
+			/>
+		);
+
+		expect(getByRole('button', { name: '1' })).not.toHaveAttribute(
+			'aria-current'
+		);
+	});
 });

@@ -72,6 +72,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 	const { pagination, totalCount } = useLogTablePagination({
 		context: paginationContext
 	});
+	const hasPagination = Boolean(paginationContext?.pagination);
 
 	const table = useReactTable<LogTableData>({
 		pageCount: totalCount,
@@ -137,7 +138,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 						Logs
 					</h2>
 					<LogTableToolbar {...toolbarProps} />
-					{pagination && totalCount ? (
+					{hasPagination ? (
 						<LogPagination
 							id={id}
 							pageIndex={paginationContext?.pagination?.state.pageIndex}
@@ -199,7 +200,7 @@ export const BlockLogTable = (props: LogTableBlock & { id: string }) => {
 							</tbody>
 						</table>
 					</div>
-					{pagination && totalCount ? (
+					{hasPagination ? (
 						<LogPagination
 							id={id}
 							pageIndex={paginationContext?.pagination?.state.pageIndex}
@@ -266,16 +267,32 @@ interface LogPaginationProps extends ComponentProps<typeof Pagination> {
 	onPageClick?: (id: string, page: number) => void;
 }
 
-function LogPagination(props: LogPaginationProps) {
-	const { pageIndex, id, onPageClick, ...restProps } = props;
+export function LogPagination(props: LogPaginationProps) {
+	const { pageIndex, id, onPageClick, totalCount, ...restProps } = props;
+	const isAllPages = pageIndex === -1;
 
 	return (
 		<div className="flex justify-center gap-4 my-4">
-			<Pagination {...restProps} />
+			{totalCount > 0 ? (
+				<Pagination
+					{...restProps}
+					totalCount={totalCount}
+					showCurrentPage={!isAllPages}
+				/>
+			) : isAllPages ? (
+				<ButtonTw
+					size="md"
+					variant="outline"
+					onClick={() => onPageClick?.(id, 1)}
+				>
+					Page 1
+				</ButtonTw>
+			) : null}
 			<ButtonTw
 				size="md"
 				variant="outline"
-				state={pageIndex === -1 ? 'active' : 'default'}
+				state={isAllPages ? 'active' : 'default'}
+				aria-pressed={isAllPages}
 				onClick={() => onPageClick?.(id, 0)}
 			>
 				All pages

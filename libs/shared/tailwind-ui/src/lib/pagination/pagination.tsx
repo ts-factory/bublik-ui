@@ -82,6 +82,7 @@ export interface PaginationRangeProps {
 	variant?: VariantProps<typeof buttonStyles>['variant'];
 	range: (string | number)[];
 	currentPage: number;
+	showCurrentPage: boolean;
 	siblingCount: number;
 	handlePageIndexClick: (page: number) => void;
 	handleDotsClick: (page: number) => void;
@@ -91,6 +92,7 @@ const PaginationRange = ({
 	variant,
 	range,
 	currentPage,
+	showCurrentPage,
 	siblingCount,
 	handleDotsClick,
 	handlePageIndexClick
@@ -128,12 +130,15 @@ const PaginationRange = ({
 					);
 				}
 
+				const isActive = showCurrentPage && currentPage === pageNumber;
+
 				return (
 					<PageButton
 						key={pageNumber}
 						variant={variant}
 						onClick={() => handlePageIndexClick(pageNumber as number)}
-						isActive={currentPage === pageNumber}
+						isActive={isActive}
+						aria-current={isActive ? 'page' : undefined}
 					>
 						{pageNumber}
 					</PageButton>
@@ -167,6 +172,7 @@ export interface PaginationProps extends ComponentPropsWithoutRef<'div'> {
 	totalCount: number;
 	pageSize?: number;
 	currentPage?: number;
+	showCurrentPage?: boolean;
 	siblingCount?: number;
 	onPageChange?: (newPageIndex: number) => void;
 	onPageSizeChange?: (newPageSize: number) => void;
@@ -179,6 +185,7 @@ export const Pagination = (props: PaginationProps) => {
 		totalCount,
 		pageSize = 25,
 		currentPage = 1,
+		showCurrentPage = true,
 		siblingCount = 1,
 		onPageChange,
 		onPageSizeChange,
@@ -233,6 +240,7 @@ export const Pagination = (props: PaginationProps) => {
 				variant={variant}
 				range={paginationRange}
 				currentPage={currentPage}
+				showCurrentPage={showCurrentPage}
 				siblingCount={siblingCount}
 				handleDotsClick={handleDotsClick}
 				handlePageIndexClick={handlePageIndexClick}
