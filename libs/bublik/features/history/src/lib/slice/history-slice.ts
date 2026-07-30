@@ -57,7 +57,10 @@ export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	revisionExpr: '',
 	testArgExpr: '',
 	verdictExpr: '',
-	branchExpr: ''
+	branchExpr: '',
+	/* Classification section */
+	categories: [],
+	untriaged: false
 };
 
 const initialState: HistorySliceState = {

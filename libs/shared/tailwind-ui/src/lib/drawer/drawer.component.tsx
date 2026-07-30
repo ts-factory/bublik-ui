@@ -5,6 +5,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogOverlay,
+	DialogPortal,
 	DialogTrigger,
 	dialogOverlayStyles
 } from '../dialog';
@@ -25,22 +26,30 @@ export const DrawerTrigger = forwardRef<HTMLButtonElement, DialogTriggerProps>(
 	}
 );
 
-export const DrawerContent = forwardRef<HTMLDivElement, DialogContentProps>(
-	({ className, children, ...props }, ref) => {
-		return (
-			<>
-				<DialogOverlay className={dialogOverlayStyles()} />
-				<DialogContent
-					{...props}
-					className={cn(
-						'fixed top-0 right-0 z-50 h-screen h-svh bg-white rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
-						className
-					)}
-					ref={ref}
-				>
-					{children}
-				</DialogContent>
-			</>
-		);
-	}
-);
+export const DrawerContent = forwardRef<
+	HTMLDivElement,
+	// portal escapes the trigger's stacking context (e.g. a table row) so rows
+	// can't paint over the drawer. Opt-in to keep the inline behavior other
+	// callers rely on.
+	DialogContentProps & { portal?: boolean }
+>(({ className, children, portal, ...props }, ref) => {
+	const content = (
+		<>
+			<DialogOverlay className={dialogOverlayStyles()} />
+			<DialogContent
+				{...props}
+				className={cn(
+					'fixed top-0 right-0 z-50 h-screen h-svh bg-white rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
+					className
+				)}
+				ref={ref}
+			>
+				{children}
+			</DialogContent>
+		</>
+	);
+
+	// Portal (to document.body) escapes the trigger's stacking context so the
+	// drawer layers above the table instead of behind it.
+	return portal ? <DialogPortal>{content}</DialogPortal> : content;
+});

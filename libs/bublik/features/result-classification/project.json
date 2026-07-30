@@ -1,0 +1,21 @@
+{
+	"name": "bublik-features-result-classification",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/bublik/features/result-classification/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": [
+				"{workspaceRoot}/coverage/libs/bublik/features/result-classification"
+			],
+			"options": {
+				"passWithNoTests": true
+			}
+		}
+	}
+}

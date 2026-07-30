@@ -16,5 +16,8 @@ export const enum BUBLIK_TAG {
 	importEvents = 'import-events',
 	SessionList = 'session-list',
 	Project = 'project',
-	Analytics = 'analytics'
+	Analytics = 'analytics',
+	Issues = 'issues',
+	IssueRules = 'issue-rules',
+	ResultClassification = 'result-classification'
 }

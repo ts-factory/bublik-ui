@@ -22,7 +22,7 @@ import {
 	onBadgeClick,
 	onResultTypeClick
 } from './history-linear.utils';
-import { Links, RunTime, RunTimeProps } from './column-components';
+import { IssueBadges, Links, RunTime, RunTimeProps } from './column-components';
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { HistoryContextMenuContainer } from '../history-context-menu';
 
@@ -143,26 +143,29 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 				globalFilter.resultType === result;
 
 			return (
-				<HistoryContextMenuContainer
-					badges={verdicts.map((verdict) => ({ payload: verdict }))}
-					label="verdicts"
-					filterKey="verdicts"
-					resultType={result}
-					isNotExpected={isNotExpected}
-				>
-					<VerdictList
-						variant={VerdictVariant.Obtained}
-						result={result}
-						verdicts={verdicts}
-						selectedVerdicts={cell.table.getState().globalFilter['verdicts']}
-						onVerdictClick={onBadgeClick(cell, 'verdicts')}
-						onResultClick={(resultType) =>
-							onResultTypeClick(cell)(resultType, isNotExpected)
-						}
+				<div className="flex flex-col">
+					<HistoryContextMenuContainer
+						badges={verdicts.map((verdict) => ({ payload: verdict }))}
+						label="verdicts"
+						filterKey="verdicts"
+						resultType={result}
 						isNotExpected={isNotExpected}
-						isResultSelected={isResultSelected}
-					/>
-				</HistoryContextMenuContainer>
+					>
+						<VerdictList
+							variant={VerdictVariant.Obtained}
+							result={result}
+							verdicts={verdicts}
+							selectedVerdicts={cell.table.getState().globalFilter['verdicts']}
+							onVerdictClick={onBadgeClick(cell, 'verdicts')}
+							onResultClick={(resultType) =>
+								onResultTypeClick(cell)(resultType, isNotExpected)
+							}
+							isNotExpected={isNotExpected}
+							isResultSelected={isResultSelected}
+						/>
+					</HistoryContextMenuContainer>
+					<IssueBadges issues={cell.row.original.issues} />
+				</div>
 			);
 		}
 	},

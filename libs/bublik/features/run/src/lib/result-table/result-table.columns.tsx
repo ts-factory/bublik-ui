@@ -13,6 +13,10 @@ import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
+	ClassifyPopover,
+	expectedBadge
+} from '@/bublik/features/result-classification';
+import {
 	Badge,
 	Icon,
 	ButtonTw,
@@ -70,9 +74,10 @@ export const getColumns = ({
 			id: 'links',
 			cell: (cell) => {
 				const value = cell.getValue();
+				const isFailed = value.has_error || (value.issues?.length ?? 0) > 0;
 
 				return (
-					<div className="flex items-center h-full">
+					<div className="flex items-center gap-2 h-full">
 						<ResultLinksContainer
 							runId={String(value.run_id)}
 							resultId={value.result_id}
@@ -80,6 +85,22 @@ export const getColumns = ({
 							showLinkToRun={showLinkToRun}
 							path={path}
 						/>
+						{(value.issues ?? []).map((ref) => (
+							<Badge
+								key={ref.rule_id}
+								variant={expectedBadge(ref.expected).variant}
+								overflowWrap
+							>
+								{ref.category}
+								{ref.issue_state === 'closed' ? ' (closed)' : ''}
+							</Badge>
+						))}
+						{isFailed ? (
+							<ClassifyPopover
+								resultId={value.result_id}
+								projectId={value.project_id}
+							/>
+						) : null}
 					</div>
 				);
 			},
