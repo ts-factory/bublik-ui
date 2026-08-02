@@ -1,12 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { parse } from 'date-fns';
+import { isValid, parse } from 'date-fns';
 
 import {
 	API_DATE_FORMAT,
 	config,
-	DEFAULT_HISTORY_END_DATE,
-	DEFAULT_HISTORY_START_DATE
+	getDefaultHistoryDateRange
 } from '@/bublik/config';
 import {
 	HistoryAPIBackendQuery,
@@ -51,13 +50,14 @@ const withDefault = <T>(
 export const queryToHistorySearchState = (
 	query: HistoryAPIBackendQuery
 ): HistorySearchFormState => {
+	const defaultDates = getDefaultHistoryDateRange();
 	const startDate = query.fromDate
 		? parse(query.fromDate, API_DATE_FORMAT, new Date())
-		: DEFAULT_HISTORY_START_DATE;
+		: defaultDates.startDate;
 
 	const finishDate = query.toDate
 		? parse(query.toDate, API_DATE_FORMAT, new Date())
-		: DEFAULT_HISTORY_END_DATE;
+		: defaultDates.finishDate;
 
 	return {
 		labels: withDefault(parseArray(query.labels), []),
@@ -122,6 +122,13 @@ export const historySearchStateToForm = (
 export function searchQueryToBackendQuery(
 	query: HistoryAPIQuery
 ): HistoryAPIBackendQuery {
+	const parsedFinishDate = query.finishDate
+		? parse(query.finishDate, API_DATE_FORMAT, new Date())
+		: new Date();
+	const defaultDates = getDefaultHistoryDateRange(
+		isValid(parsedFinishDate) ? parsedFinishDate : new Date()
+	);
+
 	return {
 		testName: query.testName,
 		hash: query.hash,
@@ -137,8 +144,8 @@ export function searchQueryToBackendQuery(
 		testArgExpr: query.testArgExpr,
 		revExpr: query.revisionExpr,
 		verdictExpr: query.verdictExpr,
-		fromDate: query.startDate,
-		toDate: query.finishDate,
+		fromDate: query.startDate || formatTimeToAPI(defaultDates.startDate),
+		toDate: query.finishDate || formatTimeToAPI(defaultDates.finishDate),
 		runIds: query.runIds,
 		/* Result section */
 		resultTypes: query.resultProperties,
@@ -188,9 +195,10 @@ export const historySearchStateToQuery = (
 export const formToSearchState = (
 	form: HistoryGlobalSearchFormValues
 ): Omit<HistorySearchFormState, 'page' | 'pageSize'> => {
+	const defaultDates = getDefaultHistoryDateRange();
 	const dates = form.dates ?? {
-		startDate: DEFAULT_HISTORY_START_DATE,
-		endDate: DEFAULT_HISTORY_END_DATE
+		startDate: defaultDates.startDate,
+		endDate: defaultDates.finishDate
 	};
 
 	return {
