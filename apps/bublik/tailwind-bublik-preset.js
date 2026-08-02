@@ -201,6 +201,10 @@ module.exports = {
 						color: 'white',
 						backgroundColor: 'hsl(var(--colors-primary))'
 					}
+				},
+				shimmer: {
+					'0%': { backgroundPosition: '150% center' },
+					'100%': { backgroundPosition: '-150% center' }
 				}
 			},
 			animation: {
@@ -244,7 +248,8 @@ module.exports = {
 				'toast-swipe-out': 'toast-swipe-out 100ms ease-out forwards',
 				'collapsible-slide-up': 'collapsible-slide-up 300ms ease-out',
 				'collapsible-slide-down': 'collapsible-slide-down 300ms ease-out',
-				'highlight-row': 'highlight-row 0.6s 6 alternate'
+				'highlight-row': 'highlight-row 0.6s 6 alternate',
+				shimmer: 'shimmer 2s linear infinite'
 			}
 		}
 	},
