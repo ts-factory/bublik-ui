@@ -142,7 +142,44 @@ export const constructJsonUrl = (input: GetLogJsonInputs): string => {
 	return `${PREFIX}/logs/${input.id}/json/?page=${input.page}`;
 };
 
-const fetchJson = async <T = unknown>(
+const LOG_JSON_RETRY_DELAYS_MS = [250, 1000] as const;
+
+const isRetryableLogStatus = (status: number): boolean =>
+	status === 404 ||
+	status === 408 ||
+	status === 425 ||
+	status === 429 ||
+	status >= 500;
+
+const waitForLogRetry = (
+	delay: number,
+	signal?: AbortSignal
+): Promise<void> => {
+	if (signal?.aborted) {
+		return Promise.reject(
+			signal.reason ??
+				new DOMException('The operation was aborted', 'AbortError')
+		);
+	}
+
+	return new Promise((resolve, reject) => {
+		const onAbort = () => {
+			clearTimeout(timeoutId);
+			reject(
+				signal?.reason ??
+					new DOMException('The operation was aborted', 'AbortError')
+			);
+		};
+		const timeoutId = setTimeout(() => {
+			signal?.removeEventListener('abort', onAbort);
+			resolve();
+		}, delay);
+
+		signal?.addEventListener('abort', onAbort, { once: true });
+	});
+};
+
+export const fetchJson = async <T = unknown>(
 	externalUrl: string,
 	signal?: AbortSignal
 ): Promise<T> => {
@@ -157,11 +194,51 @@ const fetchJson = async <T = unknown>(
 		signal
 	};
 
-	const response = await fetch(externalUrl, options);
+	for (let attempt = 0; attempt <= LOG_JSON_RETRY_DELAYS_MS.length; attempt++) {
+		try {
+			const response = await fetch(externalUrl, options);
 
-	if (!response.ok) throw getBublikFromStatusCode(response);
+			if (!response.ok) {
+				const error = getBublikFromStatusCode(response);
+				const retryDelay = LOG_JSON_RETRY_DELAYS_MS[attempt];
 
-	return response.json();
+				if (
+					!isRetryableLogStatus(response.status) ||
+					retryDelay === undefined
+				) {
+					throw error;
+				}
+
+				await waitForLogRetry(retryDelay, signal);
+				continue;
+			}
+
+			return await response.json();
+		} catch (error) {
+			if (signal?.aborted) throw signal.reason ?? error;
+			if (!(error instanceof SyntaxError) && !(error instanceof TypeError)) {
+				throw error;
+			}
+
+			const retryDelay = LOG_JSON_RETRY_DELAYS_MS[attempt];
+			if (retryDelay === undefined) {
+				if (error instanceof TypeError) throw error;
+
+				const generationError: BublikError = {
+					status: 503,
+					title: 'Log is not ready',
+					description:
+						'Log generation did not complete. Please retry in a moment.'
+				};
+
+				throw generationError;
+			}
+
+			await waitForLogRetry(retryDelay, signal);
+		}
+	}
+
+	throw new Error('Log JSON retry loop finished unexpectedly');
 };
 
 export const logEndpoints = {
