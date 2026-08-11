@@ -3,17 +3,12 @@
 import { expect, test } from '@playwright/test';
 
 import { RunsPage } from './pages/runs-page';
-import { BundleEntry, requireManifest } from './support/manifest';
+import { importedRunId } from './support/e2e-data';
+import { requireManifest } from './support/manifest';
+import type { Bundle } from './support/manifest';
 import { representativeRun } from './support/sample-cases';
 
-function importedRunId(bundle: BundleEntry): number {
-	if (!bundle.runId) {
-		throw new Error(`Fixture run "${bundle.id}" has no imported runId.`);
-	}
-	return bundle.runId;
-}
-
-function fixtureTagExpr(bundle: BundleEntry): string {
+function fixtureTagExpr(bundle: Bundle): string {
 	return `fixture_id=${bundle.e2eRunId}`;
 }
 

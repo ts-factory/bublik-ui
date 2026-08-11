@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import {
-	BundleEntry,
-	E2eManifest,
+import { readManifest } from './manifest';
+import type {
+	Bundle,
+	E2EManifest,
 	ExpectedRun,
-	readManifest,
-	SampleTest
+	IterationEntry
 } from './manifest';
 
 interface SampleCase {
@@ -13,7 +13,7 @@ interface SampleCase {
 	runIndex: number;
 	testName: string;
 	testPath: string;
-	sample: SampleTest;
+	sample: IterationEntry;
 }
 
 const labelsByCategory: Record<string, string> = {
@@ -28,7 +28,7 @@ const labelsByCategory: Record<string, string> = {
 	abnormal: 'ABNORMAL'
 };
 
-function sampleCases(bundle: BundleEntry): SampleCase[] {
+function sampleCases(bundle: Bundle): SampleCase[] {
 	return bundle.expectedRuns.flatMap((expectedRun, runIndex) =>
 		Object.entries(labelsByCategory).flatMap(([category, label]) =>
 			(expectedRun.sampleTests[category] ?? []).slice(0, 1).map((sample) => ({
@@ -42,8 +42,8 @@ function sampleCases(bundle: BundleEntry): SampleCase[] {
 	);
 }
 
-function representativeRun(manifest: E2eManifest): {
-	bundle: BundleEntry;
+function representativeRun(manifest: E2EManifest): {
+	bundle: Bundle;
 	expectedRun: ExpectedRun;
 } {
 	for (const bundle of manifest.bundles) {
@@ -54,8 +54,8 @@ function representativeRun(manifest: E2eManifest): {
 	throw new Error('Fixture manifest does not contain an expected run.');
 }
 
-function representativeNokRun(manifest: E2eManifest): {
-	bundle: BundleEntry;
+function representativeNokRun(manifest: E2EManifest): {
+	bundle: Bundle;
 	expectedRun: ExpectedRun;
 	sampleNames: string[];
 } | null {
@@ -79,9 +79,7 @@ function representativeNokRun(manifest: E2eManifest): {
 }
 
 function firstHistoryTestPath(fallback = 'net-drv-ts/rx_path/rx_fcs'): string {
-	const manifest = readManifestSafe();
-
-	if (!manifest) return fallback;
+	const manifest = readManifest();
 
 	for (const bundle of manifest.bundles) {
 		for (const run of bundle.expectedRuns) {
@@ -100,10 +98,6 @@ function firstHistoryTestPath(fallback = 'net-drv-ts/rx_path/rx_fcs'): string {
 	}
 
 	return fallback;
-}
-
-function readManifestSafe() {
-	return readManifest() as E2eManifest | null;
 }
 
 export {

@@ -5,6 +5,18 @@
       "description": "One generated+published fixture run and everything derived from it.",
       "properties": {
         "conclusionSpec": {
+          "enum": [
+            "ok",
+            "nok-warning",
+            "nok-error",
+            "warning",
+            "error",
+            "running",
+            "busy",
+            "stopped",
+            "interrupted",
+            "compromised"
+          ],
           "type": "string"
         },
         "date": {
@@ -86,6 +98,15 @@
         "runStatus": {
           "anyOf": [
             {
+              "enum": [
+                "DONE",
+                "WARNING",
+                "ERROR",
+                "RUNNING",
+                "BUSY",
+                "STOPPED",
+                "INTERRUPTED"
+              ],
               "type": "string"
             },
             {
@@ -219,6 +240,16 @@
           "type": "string"
         },
         "expectedConclusion": {
+          "enum": [
+            "run-ok",
+            "run-warning",
+            "run-error",
+            "run-running",
+            "run-busy",
+            "run-stopped",
+            "run-interrupted",
+            "run-compromised"
+          ],
           "type": "string"
         },
         "expectedConclusionReason": {
@@ -235,9 +266,23 @@
           "$ref": "#/$defs/ExpectedMatrix"
         },
         "expectedStatus": {
+          "enum": [
+            "DONE",
+            "WARNING",
+            "ERROR",
+            "RUNNING",
+            "BUSY",
+            "STOPPED",
+            "INTERRUPTED"
+          ],
           "type": "string"
         },
         "expectedStatusByNok": {
+          "enum": [
+            "success",
+            "warning",
+            "error"
+          ],
           "type": "string"
         },
         "iterationCount": {
@@ -333,6 +378,16 @@
           "type": "array"
         },
         "expectedStatus": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
           "type": "string"
         },
         "measurements": {
@@ -369,6 +424,16 @@
           "type": "array"
         },
         "status": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
           "type": "string"
         },
         "tin": {

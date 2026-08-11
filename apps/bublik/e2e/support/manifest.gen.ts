@@ -29,7 +29,17 @@ export interface E2EManifest {
  * One generated+published fixture run and everything derived from it.
  */
 export interface Bundle {
-	conclusionSpec: string;
+	conclusionSpec:
+		| 'ok'
+		| 'nok-warning'
+		| 'nok-error'
+		| 'warning'
+		| 'error'
+		| 'running'
+		| 'busy'
+		| 'stopped'
+		| 'interrupted'
+		| 'compromised';
 	date: string;
 	e2eRunId: string;
 	expectedRuns: ExpectedRun[];
@@ -44,7 +54,17 @@ export interface Bundle {
 	project: string;
 	revisions: Revision[];
 	runId?: number | null;
-	runStatus: string | null;
+	runStatus:
+		| (
+				| 'DONE'
+				| 'WARNING'
+				| 'ERROR'
+				| 'RUNNING'
+				| 'BUSY'
+				| 'STOPPED'
+				| 'INTERRUPTED'
+		  )
+		| null;
 	runUrl?: string | null;
 	runUrlTemplate: string;
 	startTimestamp: string | null;
@@ -57,11 +77,26 @@ export interface Bundle {
  */
 export interface ExpectedRun {
 	dashboardDate: string;
-	expectedConclusion: string;
+	expectedConclusion:
+		| 'run-ok'
+		| 'run-warning'
+		| 'run-error'
+		| 'run-running'
+		| 'run-busy'
+		| 'run-stopped'
+		| 'run-interrupted'
+		| 'run-compromised';
 	expectedConclusionReason: string | null;
 	expectedMatrix: ExpectedMatrix;
-	expectedStatus: string;
-	expectedStatusByNok: string;
+	expectedStatus:
+		| 'DONE'
+		| 'WARNING'
+		| 'ERROR'
+		| 'RUNNING'
+		| 'BUSY'
+		| 'STOPPED'
+		| 'INTERRUPTED';
+	expectedStatusByNok: 'success' | 'warning' | 'error';
 	iterationCount: number;
 	logUrl?: string | null;
 	measurements: MeasurementSummary[];
@@ -132,7 +167,15 @@ export interface PackageSummary {
  */
 export interface IterationEntry {
 	artifacts: unknown[];
-	expectedStatus: string;
+	expectedStatus:
+		| 'PASSED'
+		| 'FAILED'
+		| 'SKIPPED'
+		| 'KILLED'
+		| 'CORED'
+		| 'FAKED'
+		| 'INCOMPLETE'
+		| 'EMPTY';
 	measurements: unknown[];
 	name: string | null;
 	params: {
@@ -141,7 +184,15 @@ export interface IterationEntry {
 	path: string[];
 	pathStr: string;
 	reqs: string[];
-	status: string;
+	status:
+		| 'PASSED'
+		| 'FAILED'
+		| 'SKIPPED'
+		| 'KILLED'
+		| 'CORED'
+		| 'FAKED'
+		| 'INCOMPLETE'
+		| 'EMPTY';
 	tin: number | null;
 	unexpected: boolean;
 	verdicts: unknown[];

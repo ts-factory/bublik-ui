@@ -1,8 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { APIRequestContext, expect, Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 
-import { BundleEntry, E2eManifest, ExpectedRun, SampleTest } from './manifest';
+import type {
+	Bundle,
+	E2EManifest,
+	ExpectedRun,
+	IterationEntry
+} from './manifest';
 import { representativeRun } from './sample-cases';
 
 interface TreeNode {
@@ -20,7 +26,7 @@ interface TreeResponse {
 }
 
 interface ImportedRunCase {
-	bundle: BundleEntry;
+	bundle: Bundle;
 	expectedRun: ExpectedRun;
 	runId: number;
 }
@@ -35,14 +41,14 @@ interface ReportConfig {
 	name: string;
 }
 
-function importedRunId(bundle: BundleEntry): number {
+function importedRunId(bundle: Bundle): number {
 	if (!bundle.runId) {
 		throw new Error(`Fixture run "${bundle.id}" has no imported runId.`);
 	}
 	return bundle.runId;
 }
 
-function representativeImportedRun(manifest: E2eManifest): ImportedRunCase {
+function representativeImportedRun(manifest: E2EManifest): ImportedRunCase {
 	const { bundle, expectedRun } = representativeRun(manifest);
 	return { bundle, expectedRun, runId: importedRunId(bundle) };
 }
@@ -72,7 +78,7 @@ function findFirstErrorTestNode(tree: TreeResponse): TreeNode | null {
 
 function findSampleNode(
 	tree: TreeResponse,
-	sample: SampleTest
+	sample: IterationEntry
 ): TreeNode | null {
 	const path = sample.pathStr || sample.path.join('/');
 
@@ -107,7 +113,7 @@ async function firstErrorResultNode(
 
 async function firstMeasurementResultNode(
 	request: APIRequestContext,
-	manifest: E2eManifest
+	manifest: E2EManifest
 ): Promise<ResultNodeCase | null> {
 	for (const bundle of manifest.bundles) {
 		if (!bundle.runId) continue;

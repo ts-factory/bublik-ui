@@ -3,9 +3,10 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import { E2eManifest, resolveManifestPath } from './manifest';
+import { resolveManifestPath } from './manifest';
+import type { E2EManifest } from './manifest';
 
-function writeManifest(manifest: E2eManifest): void {
+function writeManifest(manifest: E2EManifest): void {
 	const resolvedPath = resolveManifestPath();
 	const dir = path.dirname(resolvedPath);
 

@@ -1,21 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { expect, Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 import { DashboardPage } from './pages/dashboard-page';
 import { RunPage } from './pages/run-page';
-import { BundleEntry, requireManifest } from './support/manifest';
+import { importedRunId } from './support/e2e-data';
+import { requireManifest } from './support/manifest';
 import {
 	representativeNokRun,
 	representativeRun
 } from './support/sample-cases';
-
-function importedRunId(bundle: BundleEntry): number {
-	if (!bundle.runId) {
-		throw new Error(`Fixture run "${bundle.id}" has no imported runId.`);
-	}
-	return bundle.runId;
-}
 
 async function getRunDetails(page: Page, runId: number) {
 	const response = await page.request.get(`/api/v2/runs/${runId}/details`);

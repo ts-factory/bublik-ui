@@ -3,7 +3,8 @@
 import { test as setup } from '@playwright/test';
 
 import { ImportPage, normalizeUrl } from './pages/import-page';
-import { BundleEntry, E2eManifest, requireManifest } from './support/manifest';
+import { requireManifest } from './support/manifest';
+import type { Bundle, E2EManifest } from './support/manifest';
 import { writeManifest } from './support/manifest-writer';
 
 // The bublik-e2e CLI is the canonical seeding path: `bublik-e2e run/import
@@ -60,7 +61,7 @@ setup(
 
 async function importThroughUi(
 	importPage: ImportPage,
-	bundles: BundleEntry[]
+	bundles: Bundle[]
 ): Promise<void> {
 	const scheduledTasks = await importPage.scheduleImports(
 		bundles.map((bundle) => bundle.importUrl)
@@ -104,7 +105,7 @@ async function importThroughUi(
 	}
 }
 
-function resolveDeepLinks(manifest: E2eManifest): void {
+function resolveDeepLinks(manifest: E2EManifest): void {
 	for (const bundle of manifest.bundles) {
 		if (!bundle.runId) continue;
 		const runUrl = bundle.runUrlTemplate?.replace(
