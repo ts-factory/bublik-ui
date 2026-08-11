@@ -19,6 +19,30 @@ on:
         type: boolean
         description: Dry release
         default: false
+      backend_repository:
+        type: string
+        description: Backend repo (owner/bublik), including public forks
+        required: false
+        default: ''
+      backend_ref:
+        type: string
+        description: Backend branch, tag, or SHA
+        required: false
+        default: main
+      docker_repository:
+        type: string
+        description: Docker repo (owner/bublik-docker), including public forks
+        required: false
+        default: ''
+      docker_ref:
+        type: string
+        description: Docker branch, tag, or SHA
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 jobs:
@@ -62,9 +86,22 @@ jobs:
         run: pnpm install
       - name: Code Linting
         run: pnpm run lint
+  e2e:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/e2e.yml
+    with:
+      frontend_repository: ${{ github.repository }}
+      frontend_ref: ${{ github.sha }}
+      backend_repository: ${{ inputs.backend_repository }}
+      backend_ref: ${{ inputs.backend_ref }}
+      docker_repository: ${{ inputs.docker_repository }}
+      docker_ref: ${{ inputs.docker_ref }}
   release:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, e2e]
+    permissions:
+      contents: write
     strategy:
       matrix:
         node-version: [20]
@@ -87,7 +124,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Create release
-        run: pnpm run release --ci --verbose $TYPE_ARG $BETA_ARG $DRY_ARG
+        run: |
+          release_args=(--ci --verbose)
+          [[ -n "$TYPE_ARG" ]] && release_args+=("$TYPE_ARG")
+          [[ -n "$BETA_ARG" ]] && release_args+=("$BETA_ARG")
+          [[ -n "$DRY_ARG" ]] && release_args+=("$DRY_ARG")
+          pnpm run release "${release_args[@]}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TYPE_ARG: ${{ fromJSON('{"auto":"", "patch":"--patch", "minor":"--minor", "major":"--major"}')[github.event.inputs.type] }}
