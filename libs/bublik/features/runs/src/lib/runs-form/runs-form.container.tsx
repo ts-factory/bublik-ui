@@ -20,7 +20,7 @@ import {
 	getSelectedRunData
 } from './runs-form.utils';
 import { updateGlobalFilter } from '../runs-slice';
-import { selectAllTags, selectGlobalFilter } from '../runs-slice.selectors';
+import { selectAllTags } from '../runs-slice.selectors';
 import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
 
 function RunsFormContainer() {
@@ -28,7 +28,6 @@ function RunsFormContainer() {
 	const location = useLocation();
 	const [searchParams] = useSearchParams(location.search);
 	const navigateWithProject = useNavigateWithProject();
-	const localGlobalFilter = useSelector(selectGlobalFilter);
 	const allTags = useSelector(selectAllTags);
 
 	useMount(() => {
@@ -95,7 +94,6 @@ function RunsFormContainer() {
 
 	return (
 		<RunsForm
-			key={`${localGlobalFilter.length}_${defaultValues.runData.length}`}
 			defaultValues={defaultValues}
 			appliedFilters={appliedFilters}
 			onRunsFormSubmit={handleFormSubmit}

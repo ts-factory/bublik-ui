@@ -42,7 +42,11 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 		ref
 	) => {
 		const { control, register, handleSubmit, reset, getValues, setValue } =
-			useForm<RunsFormValues>({ defaultValues });
+			useForm<RunsFormValues>({
+				defaultValues,
+				values: defaultValues,
+				resetOptions: { keepDirtyValues: true }
+			});
 		const watchedValues = useWatch({ control });
 
 		const currentDates: RunsFormValues['dates'] = useMemo(
