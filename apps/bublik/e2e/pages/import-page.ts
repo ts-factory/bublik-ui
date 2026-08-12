@@ -1,16 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
+import type { APIResponse, Response } from '@playwright/test';
+
+import {
+	selectReusableSuccessfulTask,
+	successfulImportedRunId
+} from '../support/import-task-state';
+import type { ImportTaskRow } from '../support/import-task-state';
 
 interface ScheduledImportTask {
 	jobId: number;
 	runSourceUrl: string;
-}
-
-interface ImportTaskRow {
-	status: string;
-	run_source_url: string;
-	run_id: number | null;
 }
 
 interface ImportTaskListResponse {
@@ -104,8 +105,43 @@ class ImportPage {
 		await this.page.getByRole('option', { name: projectName }).click();
 	}
 
-	async submit(): Promise<void> {
-		await this.submitButton.click();
+	async submit(expectedRequestCount = 1): Promise<void> {
+		const responses: Response[] = [];
+		const collectImportResponse = (response: Response): void => {
+			if (
+				new URL(response.url()).pathname.endsWith('/api/v2/importruns/source/')
+			) {
+				responses.push(response);
+			}
+		};
+		this.page.on('response', collectImportResponse);
+
+		try {
+			await this.submitButton.click();
+			await expect
+				.poll(() => responses.length, {
+					timeout: 60_000,
+					message: `Expected ${expectedRequestCount} import API responses, received ${responses.length}`
+				})
+				.toBeGreaterThanOrEqual(expectedRequestCount);
+		} finally {
+			this.page.off('response', collectImportResponse);
+		}
+
+		const failedResponses = responses.filter((response) => !response.ok());
+		if (failedResponses.length) {
+			const failures = await Promise.all(
+				failedResponses.map(async (response) => {
+					await response.finished();
+					const body = await response
+						.text()
+						.catch(() => '<unreadable response>');
+					return `${response.status()} ${response.url()}: ${body}`;
+				})
+			);
+			throw new Error(`Import API request failed:\n${failures.join('\n')}`);
+		}
+
 		await expect(
 			this.importModal.getByText(
 				'Scheduled runs will be imported in the background'
@@ -128,7 +164,7 @@ class ImportPage {
 		await this.openImportForm();
 		if (projectName) await this.selectProject(projectName);
 		await this.fillUrls(importUrls);
-		await this.submit();
+		await this.submit(importUrls.length);
 
 		const tasks = await this.collectScheduledImportTasks();
 		await this.closeResultModal();
@@ -149,27 +185,25 @@ class ImportPage {
 			const runSourceUrl =
 				(await task.getAttribute('data-run-source-url')) ?? '';
 
-			if (Number.isFinite(jobId) && jobId > 0 && runSourceUrl) {
-				tasks.push({ jobId, runSourceUrl });
+			if (!Number.isFinite(jobId) || jobId <= 0 || !runSourceUrl) {
+				throw new Error(
+					`Import result task ${index} is missing data-job-id or data-run-source-url.`
+				);
 			}
+
+			tasks.push({ jobId, runSourceUrl });
 		}
 
 		return tasks;
 	}
 
 	async getImportTasksByJob(jobId: number): Promise<ImportTaskRow[]> {
-		return this.page.evaluate(async (id) => {
-			const response = await fetch(
-				`${window.location.origin}/api/v2/session_import/${id}/`,
-				{ credentials: 'include', cache: 'no-cache' }
-			);
+		const response = await this.page.request.get(
+			`/api/v2/session_import/${jobId}/`
+		);
+		await assertApiResponse(response, `load import job ${jobId}`);
 
-			if (response.status === 404) return [];
-			if (!response.ok) {
-				throw new Error(`Failed to load import job ${id}: ${response.status}`);
-			}
-			return response.json();
-		}, jobId);
+		return response.json() as Promise<ImportTaskRow[]>;
 	}
 
 	async getImportTasksByUrl(runSourceUrl: string): Promise<ImportTaskRow[]> {
@@ -177,7 +211,7 @@ class ImportPage {
 			params: { url: runSourceUrl, page_size: 10000 }
 		});
 
-		if (!response.ok()) return [];
+		await assertApiResponse(response, `load import task for ${runSourceUrl}`);
 
 		const payload = (await response.json()) as ImportTaskListResponse;
 
@@ -189,7 +223,7 @@ class ImportPage {
 			params: { page, page_size: 10000 }
 		});
 
-		if (!response.ok()) return { pagination: { count: 0 }, results: [] };
+		await assertApiResponse(response, `load import tasks page ${page}`);
 
 		return (await response.json()) as ImportTaskListResponse;
 	}
@@ -213,40 +247,36 @@ class ImportPage {
 		return tasks;
 	}
 
-	async findImportedRunIdsByUrls(
+	async findImportTaskHistoryByUrls(
 		runSourceUrls: string[]
-	): Promise<Map<string, number>> {
+	): Promise<Map<string, ImportTaskRow[]>> {
 		const expectedUrls = new Set(runSourceUrls.map(normalizeUrl));
-		const runIdsByUrl = new Map<string, number>();
+		const tasksByUrl = new Map<string, ImportTaskRow[]>();
 
 		for (const task of await this.getAllImportTasks()) {
 			const normalizedUrl = normalizeUrl(task.run_source_url);
-			const runId = getImportedRunId(task);
 
-			if (
-				expectedUrls.has(normalizedUrl) &&
-				runId !== null &&
-				!runIdsByUrl.has(normalizedUrl)
-			) {
-				runIdsByUrl.set(normalizedUrl, runId);
-			}
+			if (!expectedUrls.has(normalizedUrl)) continue;
+
+			const tasks = tasksByUrl.get(normalizedUrl) ?? [];
+			tasks.push(task);
+			tasksByUrl.set(normalizedUrl, tasks);
 		}
 
-		return runIdsByUrl;
+		return tasksByUrl;
 	}
 
 	async findSuccessfulRunIdByUrl(runSourceUrl: string): Promise<number> {
 		const expectedUrl = normalizeUrl(runSourceUrl);
+		const taskHistory = (await this.getImportTasksByUrl(runSourceUrl)).filter(
+			(task) => normalizeUrl(task.run_source_url) === expectedUrl
+		);
+		const successfulTask = selectReusableSuccessfulTask(taskHistory);
+		const runId = successfulTask
+			? successfulImportedRunId(successfulTask)
+			: null;
 
-		for (const task of await this.getImportTasksByUrl(runSourceUrl)) {
-			const runId = getImportedRunId(task);
-
-			if (normalizeUrl(task.run_source_url) === expectedUrl && runId !== null) {
-				return runId;
-			}
-		}
-
-		return 0;
+		return runId ?? 0;
 	}
 
 	async filterImportEventsByUrl(runSourceUrl: string): Promise<void> {
@@ -305,39 +335,52 @@ class ImportPage {
 		expectedUrls: string[]
 	): Promise<ImportTaskRow[]> {
 		const expected = new Set(expectedUrls.map(normalizeUrl));
+		const deadline = Date.now() + 600_000;
 		let lastTasks: ImportTaskRow[] = [];
+		let delay = 1000;
 
-		await expect
-			.poll(
-				async () => {
-					lastTasks = await this.getImportTasksByJob(jobId);
-					const failed = lastTasks.some(
-						(task) =>
-							task.status.toUpperCase() === 'FAILURE' &&
-							getImportedRunId(task) === null
+		while (Date.now() < deadline) {
+			lastTasks = await this.getImportTasksByJob(jobId);
+			const relevantTasks = lastTasks.filter((task) =>
+				expected.has(normalizeUrl(task.run_source_url))
+			);
+			const latestTasksByUrl = new Map<string, ImportTaskRow>();
+			// The job endpoint returns task rows in ascending ID order.
+			for (const task of relevantTasks) {
+				latestTasksByUrl.set(normalizeUrl(task.run_source_url), task);
+			}
+			const failed = [...latestTasksByUrl.values()].find(
+				(task) => task.status.toUpperCase() === 'FAILURE'
+			);
+			if (failed) {
+				throw new Error(
+					`Import job ${jobId} failed for ${failed.run_source_url}: ${
+						failed.error_msg || JSON.stringify(failed)
+					}`
+				);
+			}
+
+			if (
+				[...expected].every((url) => {
+					const latestTask = latestTasksByUrl.get(url);
+					return (
+						latestTask !== undefined &&
+						successfulImportedRunId(latestTask) !== null
 					);
-					if (failed) {
-						throw new Error(
-							`Import job ${jobId} failed: ${JSON.stringify(lastTasks)}`
-						);
-					}
+				})
+			) {
+				return lastTasks;
+			}
 
-					const completed = new Set(
-						lastTasks
-							.filter((task) => getImportedRunId(task) !== null)
-							.map((task) => normalizeUrl(task.run_source_url))
-					);
-					return [...expected].every((url) => completed.has(url));
-				},
-				{
-					timeout: 600_000,
-					intervals: [1000, 2000, 5000],
-					message: `Timed out waiting for import job ${jobId}`
-				}
-			)
-			.toBe(true);
+			await sleep(delay);
+			delay = Math.min(delay * 2, 5000);
+		}
 
-		return lastTasks;
+		throw new Error(
+			`Timed out waiting for import job ${jobId}. Last tasks: ${JSON.stringify(
+				lastTasks
+			)}`
+		);
 	}
 
 	async closeResultModal(): Promise<void> {
@@ -353,10 +396,20 @@ class ImportPage {
 	}
 }
 
-function getImportedRunId(task: ImportTaskRow): number | null {
-	const runId = Number(task.run_id);
+function sleep(delay: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, delay));
+}
 
-	return Number.isFinite(runId) && runId > 0 ? runId : null;
+async function assertApiResponse(
+	response: APIResponse,
+	action: string
+): Promise<void> {
+	if (response.ok()) return;
+
+	const body = await response.text().catch(() => '<unreadable response>');
+	throw new Error(
+		`Failed to ${action}: ${response.status()} ${response.statusText()} at ${response.url()}\n${body}`
+	);
 }
 
 function normalizeUrl(value: string): string {
@@ -369,4 +422,4 @@ function normalizeUrl(value: string): string {
 }
 
 export { ImportPage, normalizeUrl };
-export type { ImportTaskRow, ScheduledImportTask };
+export type { ScheduledImportTask };

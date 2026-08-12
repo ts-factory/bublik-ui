@@ -57,6 +57,7 @@
 			}
 		},
 		"e2e": {
+			"cache": false,
 			"dependsOn": ["e2e-typecheck"],
 			"executor": "@nx/playwright:playwright",
 			"outputs": ["{workspaceRoot}/dist/.playwright/apps/bublik"],

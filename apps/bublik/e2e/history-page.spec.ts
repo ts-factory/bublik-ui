@@ -17,8 +17,17 @@ test.describe('History Page', () => {
 		await historyPage.expectReady();
 		await historyPage.openGlobalSearchForm();
 		await historyPage.globalSearchForm.fillTestPath(testPath);
+		const historyResponsePromise = page.waitForResponse((response) => {
+			const url = new URL(response.url());
+			return (
+				url.pathname.endsWith('/api/v2/history/') &&
+				url.searchParams.get('test_name') === testPath
+			);
+		});
 		await historyPage.globalSearchForm.applySearch();
+		const historyResponse = await historyResponsePromise;
 
+		expect(historyResponse.ok()).toBeTruthy();
 		await expect(page).toHaveURL(/\/history/, { timeout: 15_000 });
 		await historyPage.globalSearchForm.expectHidden();
 	});

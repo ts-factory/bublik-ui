@@ -41,6 +41,16 @@ on:
         required: false
         default: 'main'
         type: string
+      bublik_e2e_repository:
+        description: 'bublik-e2e CLI repo (owner/bublik-e2e), including public forks'
+        required: false
+        default: ''
+        type: string
+      bublik_e2e_ref:
+        description: 'bublik-e2e CLI branch, tag, or SHA'
+        required: false
+        default: '50e427a'
+        type: string
 
   workflow_call:
     inputs:
@@ -68,6 +78,14 @@ on:
         required: false
         default: ''
         type: string
+      bublik_e2e_repository:
+        required: false
+        default: ''
+        type: string
+      bublik_e2e_ref:
+        required: false
+        default: '50e427a'
+        type: string
 
 permissions:
   contents: read
@@ -79,16 +97,14 @@ concurrency:
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
   NODE_OPTIONS: '--max-old-space-size=4096'
-  # Ref of the bublik-e2e CLI (fixture generator/importer) to install. Bump
-  # deliberately: the manifest schema the CLI emits must match the committed
-  # apps/bublik/e2e/support/e2e-manifest.schema.json (checked below).
-  BUBLIK_E2E_REF: main
+  BUBLIK_E2E_EMAIL: admin@bublik.com
+  BUBLIK_E2E_PASSWORD: admin
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve frontend/backend/docker revisions
+      - name: Resolve frontend/backend/docker/bublik-e2e revisions
         id: revisions
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -103,6 +119,8 @@ jobs:
           INPUT_BACKEND_REF: ${{ inputs.backend_ref }}
           INPUT_DOCKER_REPOSITORY: ${{ inputs.docker_repository }}
           INPUT_DOCKER_REF: ${{ inputs.docker_ref }}
+          INPUT_BUBLIK_E2E_REPOSITORY: ${{ inputs.bublik_e2e_repository }}
+          INPUT_BUBLIK_E2E_REF: ${{ inputs.bublik_e2e_ref }}
         run: |
           python3 - <<'PY'
           import os
@@ -114,6 +132,8 @@ jobs:
               "backend_ref",
               "docker_repository",
               "docker_ref",
+              "bublik_e2e_repository",
+              "bublik_e2e_ref",
           }
           body = os.environ.get("PR_BODY", "")
           block_pattern = re.compile(
@@ -180,6 +200,14 @@ jobs:
                   f"{owner}/bublik-docker",
               ),
               "docker_ref": select("INPUT_DOCKER_REF", "docker_ref", "main"),
+              "bublik_e2e_repository": select(
+                  "INPUT_BUBLIK_E2E_REPOSITORY",
+                  "bublik_e2e_repository",
+                  f"{owner}/bublik-e2e",
+              ),
+              "bublik_e2e_ref": select(
+                  "INPUT_BUBLIK_E2E_REF", "bublik_e2e_ref", "50e427a"
+              ),
           }
 
           repository_pattern = re.compile(
@@ -190,11 +218,17 @@ jobs:
               "frontend_repository",
               "backend_repository",
               "docker_repository",
+              "bublik_e2e_repository",
           ):
               if not repository_pattern.fullmatch(revisions[key]):
                   raise SystemExit(f"Invalid GitHub repository for {key}: {revisions[key]!r}")
 
-          for key in ("frontend_ref", "backend_ref", "docker_ref"):
+          for key in (
+              "frontend_ref",
+              "backend_ref",
+              "docker_ref",
+              "bublik_e2e_ref",
+          ):
               result = subprocess.run(
                   ["git", "check-ref-format", "--branch", revisions[key]],
                   capture_output=True,
@@ -217,6 +251,8 @@ jobs:
                   "INPUT_BACKEND_REF",
                   "INPUT_DOCKER_REPOSITORY",
                   "INPUT_DOCKER_REF",
+                  "INPUT_BUBLIK_E2E_REPOSITORY",
+                  "INPUT_BUBLIK_E2E_REF",
               )
           )
           source = (
@@ -268,6 +304,8 @@ jobs:
           BACKEND_REF: ${{ steps.revisions.outputs.backend_ref }}
           DOCKER_REPOSITORY: ${{ steps.revisions.outputs.docker_repository }}
           DOCKER_REF: ${{ steps.revisions.outputs.docker_ref }}
+          BUBLIK_E2E_REPOSITORY: ${{ steps.revisions.outputs.bublik_e2e_repository }}
+          BUBLIK_E2E_REF: ${{ steps.revisions.outputs.bublik_e2e_ref }}
         run: |
           {
             echo '### E2E revisions'
@@ -276,14 +314,18 @@ jobs:
             echo "| Frontend | $FRONTEND_REPOSITORY | \`$FRONTEND_REF\` | \`$(git -C bublik-docker/bublik-ui rev-parse HEAD)\` |"
             echo "| Backend | $BACKEND_REPOSITORY | \`$BACKEND_REF\` | \`$(git -C bublik-docker/bublik rev-parse HEAD)\` |"
             echo "| Docker | $DOCKER_REPOSITORY | \`$DOCKER_REF\` | \`$(git -C bublik-docker rev-parse HEAD)\` |"
+            echo "| bublik-e2e CLI | $BUBLIK_E2E_REPOSITORY | \`$BUBLIK_E2E_REF\` | resolved by uv |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Install bublik-e2e CLI
+        env:
+          BUBLIK_E2E_REPOSITORY: ${{ steps.revisions.outputs.bublik_e2e_repository }}
+          BUBLIK_E2E_REF: ${{ steps.revisions.outputs.bublik_e2e_ref }}
         run: |
-          uv tool install "git+https://github.com/${{ github.repository_owner }}/bublik-e2e@${BUBLIK_E2E_REF}"
+          uv tool install "git+https://github.com/${BUBLIK_E2E_REPOSITORY}.git@${BUBLIK_E2E_REF}"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install Task
@@ -334,6 +376,8 @@ jobs:
             echo "HOST_UID=$(id -u)"
             echo "HOST_GID=$(getent group www-data | cut -d: -f3)"
             echo "UMASK=022"
+            echo "DJANGO_SUPERUSER_EMAIL=$BUBLIK_E2E_EMAIL"
+            echo "DJANGO_SUPERUSER_PASSWORD=$BUBLIK_E2E_PASSWORD"
           } >> .env
           mkdir -p data/logs/logs
 
@@ -343,7 +387,7 @@ jobs:
 
       - name: Start services
         working-directory: bublik-docker
-        run: task e2e:up
+        run: task e2e:up:fresh
 
       # The containers chown data/logs to www-data; the host bublik-e2e tool runs
       # as the runner user (not in that group) and must write the fixture bundles
@@ -372,6 +416,8 @@ jobs:
             -e CI=1 \
             -e BASE_URL=http://127.0.0.1/v2/ \
             -e BUBLIK_E2E_RUN_OVERVIEW=../.e2e/e2e-manifest.json \
+            -e BUBLIK_E2E_EMAIL="$BUBLIK_E2E_EMAIL" \
+            -e BUBLIK_E2E_PASSWORD="$BUBLIK_E2E_PASSWORD" \
             -v "${{ github.workspace }}/bublik-docker:/work" \
             -w /work/bublik-ui \
             mcr.microsoft.com/playwright:v${{ steps.playwright.outputs.version }}-noble \
@@ -380,7 +426,7 @@ jobs:
       - name: Dump service logs on failure
         if: ${{ failure() }}
         working-directory: bublik-docker
-        run: docker compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=200
+        run: task e2e:logs -- --tail=200
 
       - name: Upload Playwright artifacts
         if: ${{ !cancelled() }}
@@ -393,3 +439,8 @@ jobs:
             bublik-docker/bublik-ui/test-results
             bublik-docker/.e2e/e2e-manifest.json
           if-no-files-found: ignore
+
+      - name: Tear down fresh e2e stack
+        if: ${{ always() }}
+        working-directory: bublik-docker
+        run: task e2e:down:fresh

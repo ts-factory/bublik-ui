@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 import type { APIRequestContext, Page } from '@playwright/test';
 
 import type {
@@ -51,6 +51,23 @@ function importedRunId(bundle: Bundle): number {
 function representativeImportedRun(manifest: E2EManifest): ImportedRunCase {
 	const { bundle, expectedRun } = representativeRun(manifest);
 	return { bundle, expectedRun, runId: importedRunId(bundle) };
+}
+
+function reportConfiguredImportedRun(manifest: E2EManifest): ImportedRunCase {
+	const configuredProjects = new Set(
+		manifest.configs.map((config) => config.project)
+	);
+
+	for (const bundle of manifest.bundles) {
+		const expectedRun = bundle.expectedRuns[0];
+		if (bundle.runId && expectedRun && configuredProjects.has(bundle.project)) {
+			return { bundle, expectedRun, runId: importedRunId(bundle) };
+		}
+	}
+
+	throw new Error(
+		'Required E2E capability is missing: no imported run project has an applicable manifest report config.'
+	);
 }
 
 async function getTree(
@@ -154,13 +171,6 @@ async function firstReportConfig(
 	return payload.run_report_configs?.[0] ?? null;
 }
 
-function skipIfMissing<T>(value: T | null | undefined, reason: string): T {
-	// eslint-disable-next-line playwright/no-skipped-test
-	test.skip(!value, reason);
-	if (!value) throw new Error(reason);
-	return value;
-}
-
 export {
 	firstErrorResultNode,
 	firstMeasurementResultNode,
@@ -168,8 +178,8 @@ export {
 	firstResultNode,
 	getTree,
 	importedRunId,
-	representativeImportedRun,
-	skipIfMissing
+	reportConfiguredImportedRun,
+	representativeImportedRun
 };
 
 export type { ImportedRunCase, ResultNodeCase, TreeNode, TreeResponse };

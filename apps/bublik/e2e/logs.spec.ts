@@ -6,6 +6,7 @@ import type { Page } from '@playwright/test';
 import { DashboardPage } from './pages/dashboard-page';
 import { RunPage } from './pages/run-page';
 import { importedRunId } from './support/e2e-data';
+import { requireCapability } from './support/capabilities';
 import { requireManifest } from './support/manifest';
 import {
 	representativeNokRun,
@@ -45,11 +46,10 @@ test.describe('E2E: Imported Runs UI', () => {
 	});
 
 	test('representative NOK run renders preview samples', async ({ page }) => {
-		const representative = representativeNokRun(requireManifest());
-		// eslint-disable-next-line playwright/no-skipped-test
-		test.skip(!representative, 'Fixture manifest contains no NOK samples.');
-		// eslint-disable-next-line playwright/no-conditional-in-test
-		if (!representative) return;
+		const representative = requireCapability(
+			representativeNokRun(requireManifest()),
+			'Fixture manifest contains no NOK samples.'
+		);
 
 		const runPage = new RunPage(page);
 		await runPage.goto(importedRunId(representative.bundle));
@@ -79,14 +79,14 @@ test.describe('E2E: Imported Runs UI', () => {
 	// eslint-disable-next-line playwright/expect-expect
 	test('empty fixture date contains no generated runs', async ({ page }) => {
 		const manifest = requireManifest();
-		const emptyDate = manifest.emptyDates?.[0];
-		// eslint-disable-next-line playwright/no-skipped-test
-		test.skip(!emptyDate, 'Fixture manifest contains no empty date.');
-		// eslint-disable-next-line playwright/no-conditional-in-test
-		if (!emptyDate) return;
+		const emptyDate = requireCapability(
+			manifest.emptyDates[0],
+			'Fixture manifest contains no empty date.'
+		);
 
 		const dashboardPage = new DashboardPage(page);
-		await dashboardPage.goto(emptyDate);
+		await dashboardPage.goto(emptyDate, { mode: 'rows' });
+		await dashboardPage.expectEmpty();
 		for (const bundle of manifest.bundles) {
 			await dashboardPage.expectRunIdHidden(importedRunId(bundle));
 		}

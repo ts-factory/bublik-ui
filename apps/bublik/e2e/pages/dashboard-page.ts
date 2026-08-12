@@ -2,11 +2,21 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
 
+interface DashboardNavigationOptions {
+	mode?: 'rows';
+}
+
 class DashboardPage {
 	constructor(private readonly page: Page) {}
 
-	async goto(date?: string): Promise<void> {
-		await this.page.goto(date ? `dashboard?main=${date}` : 'dashboard');
+	async goto(date?: string, options: DashboardNavigationOptions = {}): Promise<void> {
+		const searchParams = new URLSearchParams();
+
+		if (date) searchParams.set('main', date);
+		if (options.mode) searchParams.set('mode', options.mode);
+
+		const search = searchParams.size ? `?${searchParams.toString()}` : '';
+		await this.page.goto(`dashboard${search}`);
 		await expect(this.page).toHaveURL(/\/dashboard(?:$|\?)/);
 	}
 
@@ -28,6 +38,12 @@ class DashboardPage {
 		await expect(
 			this.page.locator(`[data-testid="dashboard-row"][data-run-id="${runId}"]`)
 		).toHaveCount(0);
+	}
+
+	async expectEmpty(): Promise<void> {
+		await expect(
+			this.page.getByRole('heading', { name: 'No data', exact: true })
+		).toBeVisible({ timeout: 30_000 });
 	}
 
 	async openRun(runName: string): Promise<number> {

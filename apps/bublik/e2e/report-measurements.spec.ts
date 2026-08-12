@@ -6,16 +6,16 @@ import { test } from '@playwright/test';
 import { MeasurementsPage } from './pages/measurements-page';
 import { RunReportPage } from './pages/run-report-page';
 import { requireManifest } from './support/manifest';
+import { requireCapability } from './support/capabilities';
 import {
 	firstMeasurementResultNode,
 	firstReportConfig,
-	representativeImportedRun,
-	skipIfMissing
+	reportConfiguredImportedRun
 } from './support/e2e-data';
 
 test.describe('Report and Measurements Pages', () => {
 	test('report page shows missing-config empty state', async ({ page }) => {
-		const runCase = representativeImportedRun(requireManifest());
+		const runCase = reportConfiguredImportedRun(requireManifest());
 		const reportPage = new RunReportPage(page);
 
 		await reportPage.goto(runCase.runId);
@@ -23,8 +23,8 @@ test.describe('Report and Measurements Pages', () => {
 	});
 
 	test('report page loads the first configured report', async ({ page }) => {
-		const runCase = representativeImportedRun(requireManifest());
-		const config = skipIfMissing(
+		const runCase = reportConfiguredImportedRun(requireManifest());
+		const config = requireCapability(
 			await firstReportConfig(page, runCase.runId),
 			'Fixture setup did not create a report config for this run.'
 		);
@@ -38,7 +38,7 @@ test.describe('Report and Measurements Pages', () => {
 		page,
 		request
 	}) => {
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstMeasurementResultNode(request, requireManifest()),
 			'Fixture manifest contains no result with measurements.'
 		);
@@ -58,7 +58,7 @@ test.describe('Report and Measurements Pages', () => {
 		page,
 		request
 	}) => {
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstMeasurementResultNode(request, requireManifest()),
 			'Fixture manifest contains no result with measurements.'
 		);

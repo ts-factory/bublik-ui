@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
 import Ajv2020 from 'ajv/dist/2020';
@@ -12,11 +12,45 @@ const ajv = new Ajv2020({ allErrors: true });
 const validateManifest = ajv.compile<E2EManifest>(manifestSchema);
 
 function resolveManifestPath(): string {
-	if (process.env['BUBLIK_E2E_RUN_OVERVIEW']) {
-		return path.resolve(process.env['BUBLIK_E2E_RUN_OVERVIEW']);
+	const configuredPath = process.env['BUBLIK_E2E_RUN_OVERVIEW']?.trim();
+	if (configuredPath) {
+		return path.resolve(configuredPath);
 	}
 
-	return path.resolve(process.cwd(), '..', '..', '.e2e', 'e2e-manifest.json');
+	const searchRoots = [process.cwd(), path.resolve(__dirname, '../../../..')];
+	for (const searchRoot of searchRoots) {
+		let current = searchRoot;
+		let reachedFilesystemRoot = false;
+
+		while (!reachedFilesystemRoot) {
+			const candidate = path.join(current, '.e2e', 'e2e-manifest.json');
+			if (existsSync(candidate)) return candidate;
+
+			const parent = path.dirname(current);
+			reachedFilesystemRoot = parent === current;
+			current = parent;
+		}
+	}
+
+	throw new Error(
+		'Unable to resolve the E2E manifest. Set BUBLIK_E2E_RUN_OVERVIEW to ' +
+			'the generated e2e-manifest.json path or generate .e2e/e2e-manifest.json ' +
+			'in the workspace hierarchy.'
+	);
+}
+
+function assertValidManifest(
+	value: unknown,
+	manifestPath = 'E2E manifest'
+): asserts value is E2EManifest {
+	if (!validateManifest(value)) {
+		throw new Error(
+			`${manifestPath} does not match the committed schema:\n${ajv.errorsText(
+				validateManifest.errors,
+				{ separator: '\n' }
+			)}`
+		);
+	}
 }
 
 function readManifest(): E2EManifest {
@@ -48,14 +82,7 @@ function readManifest(): E2EManifest {
 		);
 	}
 
-	if (!validateManifest(parsed)) {
-		throw new Error(
-			`E2E manifest at "${manifestPath}" does not match the committed schema:\n${ajv.errorsText(
-				validateManifest.errors,
-				{ separator: '\n' }
-			)}`
-		);
-	}
+	assertValidManifest(parsed, `E2E manifest at "${manifestPath}"`);
 
 	return parsed;
 }
@@ -64,7 +91,12 @@ function requireManifest(): E2EManifest {
 	return readManifest();
 }
 
-export { readManifest, requireManifest, resolveManifestPath };
+export {
+	assertValidManifest,
+	readManifest,
+	requireManifest,
+	resolveManifestPath
+};
 
 export type {
 	Bundle,

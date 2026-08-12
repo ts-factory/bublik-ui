@@ -7,16 +7,24 @@ import { LogPage } from './pages/log-page';
 import { RunDiffPage } from './pages/run-diff-page';
 import { RunMultiplePage } from './pages/run-multiple-page';
 import { requireManifest } from './support/manifest';
-import { importedRunId, representativeImportedRun } from './support/e2e-data';
+import { representativeImportedRun } from './support/e2e-data';
 
 function firstTwoRunIds(): [number, number] {
 	const manifest = requireManifest();
-	const ids = manifest.bundles
-		.map((bundle) => bundle.runId)
-		.filter((runId): runId is number => Number(runId) > 0);
-	const first = ids[0] ?? importedRunId(manifest.bundles[0]);
+	const ids = [
+		...new Set(
+			manifest.bundles
+				.map((bundle) => bundle.runId)
+				.filter((runId): runId is number => Number(runId) > 0)
+		)
+	];
+	if (ids.length < 2) {
+		throw new Error(
+			'Required E2E capability is missing: compare coverage requires two distinct imported run IDs.'
+		);
+	}
 
-	return [first, ids[1] ?? first];
+	return [ids[0], ids[1]];
 }
 
 test.describe('Compare and Multiple Pages', () => {

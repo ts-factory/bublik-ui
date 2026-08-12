@@ -5,13 +5,13 @@ import { expect, test } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
 import { requireManifest } from './support/manifest';
+import { requireCapability } from './support/capabilities';
 import {
 	firstErrorResultNode,
 	firstMeasurementResultNode,
 	firstResultNode,
 	importedRunId,
-	representativeImportedRun,
-	skipIfMissing
+	representativeImportedRun
 } from './support/e2e-data';
 import { representativeNokRun } from './support/sample-cases';
 
@@ -36,7 +36,7 @@ test.describe('Log Page', () => {
 		request
 	}) => {
 		const runCase = representativeImportedRun(requireManifest());
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstResultNode(request, runCase),
 			'Fixture tree contains no test result node.'
 		);
@@ -59,7 +59,7 @@ test.describe('Log Page', () => {
 		page,
 		request
 	}) => {
-		const representative = skipIfMissing(
+		const representative = requireCapability(
 			representativeNokRun(requireManifest()),
 			'Fixture manifest contains no NOK samples.'
 		);
@@ -68,7 +68,7 @@ test.describe('Log Page', () => {
 			expectedRun: representative.expectedRun,
 			runId: importedRunId(representative.bundle)
 		};
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstErrorResultNode(request, runCase),
 			'Fixture tree contains no error result node.'
 		);
@@ -105,7 +105,7 @@ test.describe('Log Page', () => {
 		request
 	}) => {
 		const runCase = representativeImportedRun(requireManifest());
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstResultNode(request, runCase),
 			'Fixture tree contains no test result node.'
 		);
@@ -126,7 +126,7 @@ test.describe('Log Page', () => {
 		page,
 		request
 	}) => {
-		const result = skipIfMissing(
+		const result = requireCapability(
 			await firstMeasurementResultNode(request, requireManifest()),
 			'Fixture manifest contains no result with measurements.'
 		);
