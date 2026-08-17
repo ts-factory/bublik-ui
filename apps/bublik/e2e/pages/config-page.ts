@@ -18,6 +18,54 @@ class ConfigPage {
 		await expect(this.newProjectButton).toBeVisible();
 	}
 
+	async gotoConfig(configId: number): Promise<void> {
+		await this.page.goto(`admin/config?configId=${configId}`);
+		await expect(this.page).toHaveURL(new RegExp(`configId=${configId}`));
+	}
+
+	get editor(): Locator {
+		return this.page.getByRole('textbox', { name: 'Editor content' });
+	}
+
+	/** The config list, scoped past the sidebar's own project picker. */
+	projectEntry(projectName: string): Locator {
+		return this.page
+			.locator('#page-container')
+			.getByRole('button', { name: projectName, exact: true });
+	}
+
+	async expectProjectListed(projectName: string): Promise<void> {
+		await expect(this.projectEntry(projectName).first()).toBeVisible({
+			timeout: 30_000
+		});
+	}
+
+	/**
+	 * Monaco keeps its text in rendered view lines, not in the textarea it
+	 * exposes to assistive tech, so the content is read from the <code> block.
+	 */
+	async expectEditorReady(): Promise<void> {
+		await expect(this.editor).toBeVisible({ timeout: 30_000 });
+		await expect
+			.poll(
+				async () =>
+					(await this.page.locator('.view-lines').first().innerText()).trim()
+						.length,
+				{ timeout: 30_000 }
+			)
+			.toBeGreaterThan(0);
+	}
+
+	async openSchema(): Promise<void> {
+		await this.page.getByRole('button', { name: 'Schema' }).click();
+	}
+
+	async expectSchemaVisible(): Promise<void> {
+		await expect(
+			this.page.getByRole('button', { name: 'Copy' }).first()
+		).toBeVisible({ timeout: 30_000 });
+	}
+
 	async ensureProjectExists(projectName: string): Promise<void> {
 		await this.goto();
 

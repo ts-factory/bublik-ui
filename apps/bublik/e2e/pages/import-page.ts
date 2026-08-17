@@ -68,8 +68,15 @@ class ImportPage {
 		return this.page.getByTestId('import-event-status');
 	}
 
+	/**
+	 * A filter that matches nothing is answered by the API with a 404 body
+	 * ("Tasks corresponding to the passed parameters doesn't exist"), which the
+	 * page renders as an error panel rather than a plain empty list.
+	 */
 	get importEventEmptyState(): Locator {
-		return this.page.getByText('No results found', { exact: true });
+		return this.page.getByText(
+			"Tasks corresponding to the passed parameters doesn't exist"
+		);
 	}
 
 	async goto(): Promise<void> {
