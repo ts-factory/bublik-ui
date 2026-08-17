@@ -33,7 +33,7 @@ class RunReportPage {
 			.first()
 			.click();
 
-    await expect(this.page).toHaveURL(/\/admin\/config\?configId=/, {
+		await expect(this.page).toHaveURL(/\/admin\/config\?configId=/, {
 			timeout: 15_000
 		});
 	}

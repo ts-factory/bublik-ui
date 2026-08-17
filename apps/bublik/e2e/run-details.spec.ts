@@ -32,7 +32,9 @@ test.describe('Run Details Page', () => {
 		{ tag: ['@smoke'] },
 		async ({ page }) => {
 			const runPage = new RunPage(page);
-			const { expectedRun, runId } = representativeImportedRun(requireManifest());
+			const { expectedRun, runId } = representativeImportedRun(
+				requireManifest()
+			);
 
 			await given('the fixture manifest describes an imported run', () =>
 				expect(runId).toBeGreaterThan(0)
@@ -52,7 +54,9 @@ test.describe('Run Details Page', () => {
 
 	// Assertions are encapsulated by RunPage.
 	// eslint-disable-next-line playwright/expect-expect
-	test('Exposing the run info reveals the full detail set', async ({ page }) => {
+	test('Exposing the run info reveals the full detail set', async ({
+		page
+	}) => {
 		const runPage = new RunPage(page);
 		const { expectedRun, runId } = representativeImportedRun(requireManifest());
 
@@ -61,13 +65,18 @@ test.describe('Run Details Page', () => {
 			await runPage.expectLoaded(expectedRun.name);
 		});
 		await when('I expose the full run info', () => runPage.toggleFullMode());
-		await then('the info card also shows the run status and duration', async () => {
-			await runPage.expectDetail('Status');
-			await runPage.expectDetail('Duration');
-		});
+		await then(
+			'the info card also shows the run status and duration',
+			async () => {
+				await runPage.expectDetail('Status');
+				await runPage.expectDetail('Duration');
+			}
+		);
 	});
 
-	test('Expanding a package reveals the tests it contains', async ({ page }) => {
+	test('Expanding a package reveals the tests it contains', async ({
+		page
+	}) => {
 		const runPage = new RunPage(page);
 		const { expectedRun, runId } = representativeImportedRun(requireManifest());
 		let rowsBefore = 0;
@@ -210,7 +219,9 @@ test.describe('Run Details Page', () => {
 		);
 	});
 
-	test('The compare form rejects a value that is not a run', async ({ page }) => {
+	test('The compare form rejects a value that is not a run', async ({
+		page
+	}) => {
 		const runPage = new RunPage(page);
 		const { expectedRun, runId } = representativeImportedRun(requireManifest());
 
@@ -247,10 +258,13 @@ test.describe('Run Details Page', () => {
 				'Fixture manifest contains no report config.'
 			);
 
-			await given('I open a run whose project has a report config', async () => {
-				await runPage.goto(runId);
-				await runPage.expectLoaded(expectedRun.name);
-			});
+			await given(
+				'I open a run whose project has a report config',
+				async () => {
+					await runPage.goto(runId);
+					await runPage.expectLoaded(expectedRun.name);
+				}
+			);
 			await when('I open the reports menu', () => runPage.openReports());
 			await then('the configured report is offered', () =>
 				expect(page.getByRole('menuitem', { name: configName })).toBeVisible({

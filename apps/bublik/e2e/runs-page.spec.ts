@@ -34,8 +34,9 @@ test.describe('Runs Page', () => {
 			await given('the fixture manifest describes an imported run', () =>
 				expect(importedRunId(bundle)).toBeGreaterThan(0)
 			);
-			await when("I open the runs page filtered by that run's fixture tag", () =>
-				runsPage.gotoWithTagExpr(fixtureTagExpr(bundle))
+			await when(
+				"I open the runs page filtered by that run's fixture tag",
+				() => runsPage.gotoWithTagExpr(fixtureTagExpr(bundle))
 			);
 			await then('the runs table lists that run', async () => {
 				await runsPage.expectTableLoaded();
@@ -81,7 +82,9 @@ test.describe('Runs Page', () => {
 	// order cannot change, so this guards that toggling the sort does not break
 	// the table and keeps the run visible.
 	// eslint-disable-next-line playwright/expect-expect
-	test('Sorting by statistic summary keeps the run listed', async ({ page }) => {
+	test('Sorting by statistic summary keeps the run listed', async ({
+		page
+	}) => {
 		const runsPage = new RunsPage(page);
 		const { bundle } = representativeRun(requireManifest());
 
@@ -116,8 +119,9 @@ test.describe('Runs Page', () => {
 				'the fixture manifest describes a run with unexpected results',
 				() => expect(nokCount).toBeGreaterThan(0)
 			);
-			await when("I open the runs page filtered by that run's fixture tag", () =>
-				runsPage.gotoWithTagExpr(fixtureTagExpr(representative.bundle))
+			await when(
+				"I open the runs page filtered by that run's fixture tag",
+				() => runsPage.gotoWithTagExpr(fixtureTagExpr(representative.bundle))
 			);
 			await then(
 				"the row's NOK badge shows the unexpected result count from the manifest",
@@ -142,8 +146,9 @@ test.describe('Runs Page', () => {
 				'the fixture manifest describes a run with unexpected results',
 				() => expect(representative.sampleNames.length).toBeGreaterThan(0)
 			);
-			await when("I open the runs page filtered by that run's fixture tag", () =>
-				runsPage.gotoWithTagExpr(fixtureTagExpr(representative.bundle))
+			await when(
+				"I open the runs page filtered by that run's fixture tag",
+				() => runsPage.gotoWithTagExpr(fixtureTagExpr(representative.bundle))
 			);
 			await and("I click the row's NOK badge", () => runsPage.openNok(runId));
 			await then('the run page for that run is open', () =>
@@ -166,10 +171,13 @@ test.describe('Runs Page', () => {
 		const runsPage = new RunsPage(page);
 		const { expectedRun } = representativeRun(requireManifest());
 
-		await given('I open the runs page for a date covered by the fixtures', async () => {
-			await runsPage.gotoForDate(expectedRun.dashboardDate);
-			await runsPage.expectReady();
-		});
+		await given(
+			'I open the runs page for a date covered by the fixtures',
+			async () => {
+				await runsPage.gotoForDate(expectedRun.dashboardDate);
+				await runsPage.expectReady();
+			}
+		);
 		await when('I type a tag expression and submit the form', async () => {
 			await runsPage.fillTagExpr('linux');
 			await runsPage.submit();
@@ -179,7 +187,9 @@ test.describe('Runs Page', () => {
 		);
 	});
 
-	test('Resetting the form clears the filters from the URL', async ({ page }) => {
+	test('Resetting the form clears the filters from the URL', async ({
+		page
+	}) => {
 		const runsPage = new RunsPage(page);
 		const { expectedRun } = representativeRun(requireManifest());
 		const date = expectedRun.dashboardDate;

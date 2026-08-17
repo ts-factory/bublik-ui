@@ -15,52 +15,58 @@ import { representativeImportedRun } from './support/e2e-data';
 import { given, then, when } from './support/gherkin';
 
 test.describe('Navigation', () => {
-	test('The root address opens the dashboard', { tag: ['@smoke'] }, async ({
-		page
-	}) => {
-		await when('I open the root address', () => page.goto('./'));
-		await then('the dashboard is open', () =>
-			expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 })
-		);
-	});
+	test(
+		'The root address opens the dashboard',
+		{ tag: ['@smoke'] },
+		async ({ page }) => {
+			await when('I open the root address', () => page.goto('./'));
+			await then('the dashboard is open', () =>
+				expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 })
+			);
+		}
+	);
 
-	test('The main pages load their shells', { tag: ['@smoke'] }, async ({
-		page
-	}) => {
-		const runCase = representativeImportedRun(requireManifest());
-		const dashboardPage = new DashboardPage(page);
-		const runsPage = new RunsPage(page);
-		const historyPage = new HistoryPage(page);
+	test(
+		'The main pages load their shells',
+		{ tag: ['@smoke'] },
+		async ({ page }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const dashboardPage = new DashboardPage(page);
+			const runsPage = new RunsPage(page);
+			const historyPage = new HistoryPage(page);
 
-		await when('I open the dashboard for a fixture date', () =>
-			dashboardPage.goto(runCase.expectedRun.dashboardDate)
-		);
-		await then('the run of that date is listed', () =>
-			dashboardPage.expectRunIdVisible(runCase.runId)
-		);
-		await when('I open the runs page for that date', () =>
-			runsPage.gotoForDate(runCase.expectedRun.dashboardDate)
-		);
-		await then('the runs filter form is ready', () => runsPage.expectReady());
-		await when('I open the history page', () => historyPage.goto());
-		await then('the history page is ready', () => historyPage.expectReady());
-	});
+			await when('I open the dashboard for a fixture date', () =>
+				dashboardPage.goto(runCase.expectedRun.dashboardDate)
+			);
+			await then('the run of that date is listed', () =>
+				dashboardPage.expectRunIdVisible(runCase.runId)
+			);
+			await when('I open the runs page for that date', () =>
+				runsPage.gotoForDate(runCase.expectedRun.dashboardDate)
+			);
+			await then('the runs filter form is ready', () => runsPage.expectReady());
+			await when('I open the history page', () => historyPage.goto());
+			await then('the history page is ready', () => historyPage.expectReady());
+		}
+	);
 
-	test('The admin pages load their shells', { tag: ['@smoke'] }, async ({
-		page
-	}) => {
-		const configPage = new ConfigPage(page);
-		const importPage = new ImportPage(page);
+	test(
+		'The admin pages load their shells',
+		{ tag: ['@smoke'] },
+		async ({ page }) => {
+			const configPage = new ConfigPage(page);
+			const importPage = new ImportPage(page);
 
-		await when('I open the configuration page', () => configPage.goto());
-		await then('the configuration page is ready', () =>
-			expect(configPage.newProjectButton).toBeVisible()
-		);
-		await when('I open the import page', () => importPage.goto());
-		await then('the import page is ready', () =>
-			expect(importPage.importButton).toBeVisible()
-		);
-	});
+			await when('I open the configuration page', () => configPage.goto());
+			await then('the configuration page is ready', () =>
+				expect(configPage.newProjectButton).toBeVisible()
+			);
+			await when('I open the import page', () => importPage.goto());
+			await then('the import page is ready', () =>
+				expect(importPage.importButton).toBeVisible()
+			);
+		}
+	);
 
 	test('The command palette navigates to a main page', async ({ page }) => {
 		const dashboardPage = new DashboardPage(page);

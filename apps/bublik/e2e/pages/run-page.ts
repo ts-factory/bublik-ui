@@ -26,7 +26,9 @@ class RunPage {
 	/** Package (or session/suite) rows of the run tree, by their expanded state. */
 	packageRows(options: { expanded?: boolean } = {}): Locator {
 		const expanded =
-			options.expanded === undefined ? '' : `[data-expanded="${options.expanded}"]`;
+			options.expanded === undefined
+				? ''
+				: `[data-expanded="${options.expanded}"]`;
 
 		return this.page.locator(
 			`[data-testid="run-row"]:not([data-node-type="test"])${expanded}`
@@ -69,12 +71,16 @@ class RunPage {
 	}
 
 	async resetTable(): Promise<void> {
-		await this.toolbar.getByRole('button', { name: 'Reset', exact: true }).click();
+		await this.toolbar
+			.getByRole('button', { name: 'Reset', exact: true })
+			.click();
 	}
 
 	/** A `<dd>` of the info card, addressed by the label of its `<dt>`. */
 	detail(label: string): Locator {
-		return this.page.locator(`[data-testid="run-detail"][data-label="${label}"]`);
+		return this.page.locator(
+			`[data-testid="run-detail"][data-label="${label}"]`
+		);
 	}
 
 	async expectDetail(label: string, value?: string): Promise<void> {
@@ -107,7 +113,9 @@ class RunPage {
 	 * are visible is user state, so prefer `firstCountBadge` over naming one.
 	 */
 	countBadge(row: Locator, columnId: string): Locator {
-		return row.locator(`[data-testid="tw-badge"][data-column-id="${columnId}"]`);
+		return row.locator(
+			`[data-testid="tw-badge"][data-column-id="${columnId}"]`
+		);
 	}
 
 	firstCountBadge(row: Locator): Locator {

@@ -16,7 +16,9 @@ test.describe('Authentication', () => {
 	}) => {
 		const loginPage = new LoginPage(page);
 
-		await given('I am signed out and on the login page', () => loginPage.goto());
+		await given('I am signed out and on the login page', () =>
+			loginPage.goto()
+		);
 		await when('I sign in with the administrator credentials', () =>
 			loginPage.signIn(adminEmail(), adminPassword())
 		);
@@ -28,7 +30,9 @@ test.describe('Authentication', () => {
 	test('Signing in with the wrong password is refused', async ({ page }) => {
 		const loginPage = new LoginPage(page);
 
-		await given('I am signed out and on the login page', () => loginPage.goto());
+		await given('I am signed out and on the login page', () =>
+			loginPage.goto()
+		);
 		await when('I sign in with a wrong password', () =>
 			loginPage.signIn(adminEmail(), 'definitely-not-the-password')
 		);
@@ -47,9 +51,12 @@ test.describe('Authentication', () => {
 	}) => {
 		const loginPage = new LoginPage(page);
 
-		await given('I am signed out and on the login page', () => loginPage.goto());
-		await when('I try to sign in with something that is not an email address', () =>
-			loginPage.signIn('not-an-email', 'some-password')
+		await given('I am signed out and on the login page', () =>
+			loginPage.goto()
+		);
+		await when(
+			'I try to sign in with something that is not an email address',
+			() => loginPage.signIn('not-an-email', 'some-password')
 		);
 		await then('the form reports the invalid field', () =>
 			expect(page.getByTestId('input-error-message').first()).toBeVisible({
@@ -64,7 +71,9 @@ test.describe('Authentication', () => {
 	test('The login page offers password recovery', async ({ page }) => {
 		const loginPage = new LoginPage(page);
 
-		await given('I am signed out and on the login page', () => loginPage.goto());
+		await given('I am signed out and on the login page', () =>
+			loginPage.goto()
+		);
 		await when('I follow the forgot-password link', () =>
 			page.getByRole('link', { name: 'Forgot password?' }).click()
 		);

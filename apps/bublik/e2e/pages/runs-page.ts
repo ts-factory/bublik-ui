@@ -148,7 +148,10 @@ class RunsPage {
 	 * react-router state so the run table opens on the unexpected results; ctrl
 	 * additionally expands their result tables.
 	 */
-	async openNok(runId: number, options: { ctrl?: boolean } = {}): Promise<void> {
+	async openNok(
+		runId: number,
+		options: { ctrl?: boolean } = {}
+	): Promise<void> {
 		const badge = this.summaryBadge(runId, 'nok');
 		await expect(badge).toBeVisible({ timeout: 30_000 });
 		await badge.click(options.ctrl ? { modifiers: ['Control'] } : undefined);

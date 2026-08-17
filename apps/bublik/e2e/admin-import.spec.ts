@@ -112,7 +112,9 @@ test.describe('Import Page', () => {
 				// starting count is whatever the shared storage state carries.
 				rowsBefore = await importPage.urlInputs.count();
 			});
-			await when('I add another URL row', () => importPage.addUrlButton.click());
+			await when('I add another URL row', () =>
+				importPage.addUrlButton.click()
+			);
 			await then('the form offers one more URL input than before', () =>
 				expect(importPage.urlInputs).toHaveCount(rowsBefore + 1, {
 					timeout: 15_000

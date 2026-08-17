@@ -19,32 +19,34 @@ import { and, given, then, when } from './support/gherkin';
 import { representativeNokRun } from './support/sample-cases';
 
 test.describe('Log Page', () => {
-	test('The log layout follows the selected mode', { tag: ['@smoke'] }, async ({
-		page
-	}) => {
-		const runCase = representativeImportedRun(requireManifest());
-		const logPage = new LogPage(page);
+	test(
+		'The log layout follows the selected mode',
+		{ tag: ['@smoke'] },
+		async ({ page }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const logPage = new LogPage(page);
 
-		await given('the fixture manifest describes an imported run', () =>
-			expect(runCase.runId).toBeGreaterThan(0)
-		);
-		await when('I open its log in the tree-and-info mode', async () => {
-			await logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog');
-			await logPage.expectLoaded();
-		});
-		await then('both the tree and the info panel are shown', async () => {
-			await logPage.expectTreeVisible();
-			await logPage.expectInfoVisible();
-		});
-		await when('I open its log in the log-only mode', async () => {
-			await logPage.goto(runCase.runId, 'mode=log');
-			await logPage.expectLoaded();
-		});
-		await then('neither the tree nor the info panel is shown', async () => {
-			await logPage.expectTreeHidden();
-			await logPage.expectInfoHidden();
-		});
-	});
+			await given('the fixture manifest describes an imported run', () =>
+				expect(runCase.runId).toBeGreaterThan(0)
+			);
+			await when('I open its log in the tree-and-info mode', async () => {
+				await logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog');
+				await logPage.expectLoaded();
+			});
+			await then('both the tree and the info panel are shown', async () => {
+				await logPage.expectTreeVisible();
+				await logPage.expectInfoVisible();
+			});
+			await when('I open its log in the log-only mode', async () => {
+				await logPage.goto(runCase.runId, 'mode=log');
+				await logPage.expectLoaded();
+			});
+			await then('neither the tree nor the info panel is shown', async () => {
+				await logPage.expectTreeHidden();
+				await logPage.expectInfoHidden();
+			});
+		}
+	);
 
 	test("Focusing a tree item loads that result's log", async ({
 		page,
@@ -73,7 +75,9 @@ test.describe('Log Page', () => {
 		);
 		await and('the JSON log is rendered', () => logPage.expectJsonLogVisible());
 		await when('I go back to the run log', () => logPage.showRunLog());
-		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
+		await then('the JSON log is rendered', () =>
+			logPage.expectJsonLogVisible()
+		);
 	});
 
 	test(
@@ -107,7 +111,9 @@ test.describe('Log Page', () => {
 				await logPage.expectLoaded();
 			});
 			await and('I turn on the NOK-only tree', () => logPage.toggleOnlyNok());
-			await and('I scroll to the focused result', () => logPage.scrollToFocus());
+			await and('I scroll to the focused result', () =>
+				logPage.scrollToFocus()
+			);
 			await then('the tree marks that result as focused', () =>
 				logPage.expectFocusedTreeItem(result.node.id)
 			);
@@ -121,7 +127,9 @@ test.describe('Log Page', () => {
 		await given('I open the log of an imported run', () =>
 			logPage.goto(runCase.runId)
 		);
-		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
+		await then('the JSON log is rendered', () =>
+			logPage.expectJsonLogVisible()
+		);
 		await when('I turn on the legacy log', async () => {
 			await logPage.toggleLegacyLog();
 			await expect(page).toHaveURL(/legacy=true/, { timeout: 15_000 });
@@ -133,10 +141,15 @@ test.describe('Log Page', () => {
 			await logPage.toggleLegacyLog();
 			await expect(page).toHaveURL(/legacy=false/, { timeout: 15_000 });
 		});
-		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
+		await then('the JSON log is rendered', () =>
+			logPage.expectJsonLogVisible()
+		);
 	});
 
-	test('Bookmarking a log line survives a reload', async ({ page, request }) => {
+	test('Bookmarking a log line survives a reload', async ({
+		page,
+		request
+	}) => {
 		const runCase = representativeImportedRun(requireManifest());
 		const logPage = new LogPage(page);
 		const result = requireCapability(
@@ -173,8 +186,9 @@ test.describe('Log Page', () => {
 				'Fixture manifest contains no result with measurements.'
 			);
 
-			await given('the fixture manifest describes a result with measurements', () =>
-				expect(result.node.id).toBeTruthy()
+			await given(
+				'the fixture manifest describes a result with measurements',
+				() => expect(result.node.id).toBeTruthy()
 			);
 			await when('I open the log focused on that result', async () => {
 				await logPage.goto(

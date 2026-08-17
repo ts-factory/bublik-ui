@@ -28,8 +28,9 @@ test.describe('Run Report Page', () => {
 			'the fixture manifest describes a run whose project has a report config',
 			() => expect(runCase.runId).toBeGreaterThan(0)
 		);
-		await when("I open that run's report without choosing a configuration", () =>
-			reportPage.goto(runCase.runId)
+		await when(
+			"I open that run's report without choosing a configuration",
+			() => reportPage.goto(runCase.runId)
 		);
 		await then('the page reports that the config id is missing', () =>
 			reportPage.expectMissingConfig()
@@ -55,7 +56,9 @@ test.describe('Run Report Page', () => {
 			await when("I open the run's report for that config", () =>
 				reportPage.goto(runCase.runId, config.id)
 			);
-			await then('the report page is rendered', () => reportPage.expectLoaded());
+			await then('the report page is rendered', () =>
+				reportPage.expectLoaded()
+			);
 		}
 	);
 
@@ -76,7 +79,9 @@ test.describe('Run Report Page', () => {
 				await reportPage.goto(runCase.runId, config.id);
 				await reportPage.expectLoaded();
 			});
-			await when('I follow the Config link', () => reportPage.openConfigEditor());
+			await when('I follow the Config link', () =>
+				reportPage.openConfigEditor()
+			);
 			await then('the configuration editor opens for that config', () =>
 				expect(page).toHaveURL(/\/admin\/config\?configId=/)
 			);
@@ -177,28 +182,34 @@ test.describe('Measurements Page', () => {
 			);
 			let tables: { tool: string; name: string }[] = [];
 
-			await given('the API reports measurement tables for that result', async () => {
-				const response = await request.get(
-					`/api/v2/results/${result.node.id}/measurements`
-				);
-				expect(response.ok()).toBeTruthy();
+			await given(
+				'the API reports measurement tables for that result',
+				async () => {
+					const response = await request.get(
+						`/api/v2/results/${result.node.id}/measurements`
+					);
+					expect(response.ok()).toBeTruthy();
 
-				const payload = (await response.json()) as {
-					tables?: { tool: string; name: string }[];
-				};
-				tables = requireCapability(
-					payload.tables?.length ? payload.tables : null,
-					`Result ${result.node.id} reports no measurement tables.`
-				);
-			});
-			await when('I open the measurements page in the tables mode', async () => {
-				await measurementsPage.goto(
-					result.runCase.runId,
-					result.node.id,
-					'mode=tables'
-				);
-				await measurementsPage.expectLoaded('tables');
-			});
+					const payload = (await response.json()) as {
+						tables?: { tool: string; name: string }[];
+					};
+					tables = requireCapability(
+						payload.tables?.length ? payload.tables : null,
+						`Result ${result.node.id} reports no measurement tables.`
+					);
+				}
+			);
+			await when(
+				'I open the measurements page in the tables mode',
+				async () => {
+					await measurementsPage.goto(
+						result.runCase.runId,
+						result.node.id,
+						'mode=tables'
+					);
+					await measurementsPage.expectLoaded('tables');
+				}
+			);
 			await then(
 				'every reported measurement is listed with its tool and name',
 				async () => {

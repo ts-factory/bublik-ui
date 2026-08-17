@@ -184,8 +184,12 @@ async function dashboardCellDestination(
 		}[];
 	};
 
-	const row = payload.rows.find((candidate) => candidate.context.run_id === runId);
-	const cell = row?.row_cells[cellKey] as { payload?: { url?: string } } | undefined;
+	const row = payload.rows.find(
+		(candidate) => candidate.context.run_id === runId
+	);
+	const cell = row?.row_cells[cellKey] as
+		| { payload?: { url?: string } }
+		| undefined;
 
 	switch (cell?.payload?.url) {
 		case 'runs':

@@ -102,7 +102,9 @@ function parseFeature(absolutePath) {
 		if (!line || line.startsWith('#')) return;
 
 		if (line.startsWith('@')) {
-			pendingTags.push(...line.split(/\s+/).filter((tag) => tag.startsWith('@')));
+			pendingTags.push(
+				...line.split(/\s+/).filter((tag) => tag.startsWith('@'))
+			);
 			return;
 		}
 

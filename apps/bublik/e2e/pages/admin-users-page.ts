@@ -42,7 +42,9 @@ class AdminUsersPage {
 		await this.dialog.getByLabel('Email').fill(input.email);
 		await this.dialog.getByLabel('First name').fill(input.firstName);
 		await this.dialog.getByLabel('Last name').fill(input.lastName);
-		await this.dialog.getByLabel('Password', { exact: true }).fill(input.password);
+		await this.dialog
+			.getByLabel('Password', { exact: true })
+			.fill(input.password);
 		await this.dialog
 			.getByLabel('Password Confirm')
 			.fill(input.passwordConfirm);

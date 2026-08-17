@@ -38,8 +38,9 @@ test.describe('Dashboard', () => {
 		const dashboard = new DashboardPage(page);
 		const { expectedRun, runId } = anyRun();
 
-		await given('the fixture manifest describes a run with a dashboard date', () =>
-			expect(expectedRun.dashboardDate).toBeTruthy()
+		await given(
+			'the fixture manifest describes a run with a dashboard date',
+			() => expect(expectedRun.dashboardDate).toBeTruthy()
 		);
 		await when('I open the dashboard for that date', () =>
 			dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' })
@@ -47,10 +48,13 @@ test.describe('Dashboard', () => {
 		await then('the run appears as a row in the dashboard table', () =>
 			dashboard.expectRunIdVisible(runId)
 		);
-		await and('the row shows its conclusion, total and NOK counters', async () => {
-			await dashboard.expectCellVisible(runId, 'total');
-			await dashboard.expectCellVisible(runId, 'unexpected');
-		});
+		await and(
+			'the row shows its conclusion, total and NOK counters',
+			async () => {
+				await dashboard.expectCellVisible(runId, 'total');
+				await dashboard.expectCellVisible(runId, 'unexpected');
+			}
+		);
 	});
 
 	test('Dashboard shows an empty state for a date without runs', async ({
@@ -206,8 +210,9 @@ test.describe('Dashboard', () => {
 		const dashboard = new DashboardPage(page);
 		const { expectedRun, runId } = anyRun();
 
-		await given('the fixture manifest describes a run with a dashboard date', () =>
-			expect(expectedRun.dashboardDate).toBeTruthy()
+		await given(
+			'the fixture manifest describes a run with a dashboard date',
+			() => expect(expectedRun.dashboardDate).toBeTruthy()
 		);
 		await when('I open the dashboard for that date', async () => {
 			await dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' });
@@ -231,8 +236,9 @@ test.describe('Dashboard', () => {
 		const dashboard = new DashboardPage(page);
 		const { expectedRun, runId } = anyRun();
 
-		await given('the fixture manifest describes a run with a dashboard date', () =>
-			expect(expectedRun.dashboardDate).toBeTruthy()
+		await given(
+			'the fixture manifest describes a run with a dashboard date',
+			() => expect(expectedRun.dashboardDate).toBeTruthy()
 		);
 		await when('I open the dashboard for that date', async () => {
 			await dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' });
@@ -258,8 +264,9 @@ test.describe('Dashboard', () => {
 		const dashboard = new DashboardPage(page);
 		const { expectedRun, runId } = anyRun();
 
-		await given('the fixture manifest describes a run with a dashboard date', () =>
-			expect(expectedRun.dashboardDate).toBeTruthy()
+		await given(
+			'the fixture manifest describes a run with a dashboard date',
+			() => expect(expectedRun.dashboardDate).toBeTruthy()
 		);
 		await when('I open the dashboard for that date', async () => {
 			await dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' });
@@ -284,8 +291,9 @@ test.describe('Dashboard', () => {
 		const dashboard = new DashboardPage(page);
 		const { expectedRun, runId } = anyRun();
 
-		await given('the fixture manifest describes a run with a dashboard date', () =>
-			expect(expectedRun.dashboardDate).toBeTruthy()
+		await given(
+			'the fixture manifest describes a run with a dashboard date',
+			() => expect(expectedRun.dashboardDate).toBeTruthy()
 		);
 		await when('I open the dashboard for that date', async () => {
 			await dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' });

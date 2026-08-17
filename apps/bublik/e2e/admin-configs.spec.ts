@@ -27,7 +27,10 @@ async function firstConfig(
 		| { results?: ConfigListItem[] };
 	const configs = Array.isArray(payload) ? payload : payload.results ?? [];
 
-	return requireCapability(configs[0], 'Instance has no configuration to open.');
+	return requireCapability(
+		configs[0],
+		'Instance has no configuration to open.'
+	);
 }
 
 test.describe('Configuration Page', () => {
@@ -41,11 +44,14 @@ test.describe('Configuration Page', () => {
 			];
 
 			await when('I open the configuration page', () => configPage.goto());
-			await then('every project from the fixture manifest is listed', async () => {
-				for (const project of projects) {
-					await configPage.expectProjectListed(project);
+			await then(
+				'every project from the fixture manifest is listed',
+				async () => {
+					for (const project of projects) {
+						await configPage.expectProjectListed(project);
+					}
 				}
-			});
+			);
 		}
 	);
 
