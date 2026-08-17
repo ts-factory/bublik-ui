@@ -22,6 +22,7 @@
 		"generate-schema": "ts-node ./tools/generate-log-schema.ts",
 		"e2e:codegen": "node ./tools/generate-e2e-manifest-types.cjs",
 		"e2e:codegen:check": "node ./tools/generate-e2e-manifest-types.cjs --check",
+		"e2e:features:check": "node ./tools/check-e2e-features.cjs",
 		"e2e:typecheck": "nx run bublik:e2e-typecheck",
 		"e2e": "nx e2e",
 		"affected:apps": "nx affected:apps",

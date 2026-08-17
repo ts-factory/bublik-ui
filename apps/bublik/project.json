@@ -56,9 +56,15 @@
 				"command": "tsc --noEmit -p apps/bublik/tsconfig.e2e.json"
 			}
 		},
+		"e2e-features-check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node ./tools/check-e2e-features.cjs"
+			}
+		},
 		"e2e": {
 			"cache": false,
-			"dependsOn": ["e2e-typecheck"],
+			"dependsOn": ["e2e-typecheck", "e2e-features-check"],
 			"executor": "@nx/playwright:playwright",
 			"outputs": ["{workspaceRoot}/dist/.playwright/apps/bublik"],
 			"options": {
