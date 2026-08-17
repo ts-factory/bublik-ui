@@ -42,10 +42,11 @@ class ConfigPage {
 
 	/**
 	 * Monaco keeps its text in rendered view lines, not in the textarea it
-	 * exposes to assistive tech, so the content is read from the <code> block.
+	 * exposes to assistive tech — and that textarea is an offscreen input that
+	 * Firefox reports as hidden, so it is only checked for presence.
 	 */
 	async expectEditorReady(): Promise<void> {
-		await expect(this.editor).toBeVisible({ timeout: 30_000 });
+		await expect(this.editor).toBeAttached({ timeout: 30_000 });
 		await expect
 			.poll(
 				async () =>

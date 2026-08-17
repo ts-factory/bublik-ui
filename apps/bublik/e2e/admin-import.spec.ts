@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
 
 import { ImportPage, normalizeUrl } from './pages/import-page';
-import { and, given, then, when } from './support/gherkin';
+import { given, then, when } from './support/gherkin';
 import { requireCapability } from './support/capabilities';
 
 /**

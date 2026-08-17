@@ -9,10 +9,6 @@ Every route in `apps/bublik/src/app/router.tsx` has a `.feature` file here descr
 its user stories in Gherkin, and every `Scenario` is backed by a real Playwright test in
 `apps/bublik/e2e/**/*.spec.ts`.
 
-There is **no BDD runner** — no `playwright-bdd`, no Cucumber. Playwright's `testMatch`
-only picks up `*.spec.ts`, so these files are inert documentation. The binding is a
-naming convention, enforced by `pnpm run e2e:features:check`.
-
 ## The contract
 
 | Gherkin | Playwright |

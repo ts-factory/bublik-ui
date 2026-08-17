@@ -255,7 +255,11 @@ test.describe('Runs Page', () => {
 		);
 	});
 
+	// Both modes aggregate over every run the current filter allows, which on a
+	// seeded instance takes noticeably longer than the table view.
 	test.describe('The runs page renders every view mode', () => {
+		test.slow();
+
 		test('charts', async ({ page }) => {
 			const runsPage = new RunsPage(page);
 
@@ -264,7 +268,7 @@ test.describe('Runs Page', () => {
 			);
 			await then("the mode's own section is rendered", () =>
 				expect(page.getByText('Runs Stats').first()).toBeVisible({
-					timeout: 30_000
+					timeout: 60_000
 				})
 			);
 		});
@@ -277,7 +281,7 @@ test.describe('Runs Page', () => {
 			);
 			await then("the mode's own section is rendered", () =>
 				expect(page.getByText('Runs Progress').first()).toBeVisible({
-					timeout: 30_000
+					timeout: 60_000
 				})
 			);
 		});

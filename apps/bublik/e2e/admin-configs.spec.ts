@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* Implements apps/bublik/e2e/features/admin-configs.feature */
+/* Assertions are encapsulated by ConfigPage. */
+/* eslint-disable playwright/expect-expect */
 import { expect, test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
 
