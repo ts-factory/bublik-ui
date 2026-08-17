@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+/* Implements apps/bublik/e2e/features/log.feature */
+/* Assertions are encapsulated by LogPage. */
 /* eslint-disable playwright/expect-expect */
 import { expect, test } from '@playwright/test';
 
@@ -13,133 +15,180 @@ import {
 	importedRunId,
 	representativeImportedRun
 } from './support/e2e-data';
+import { and, given, then, when } from './support/gherkin';
 import { representativeNokRun } from './support/sample-cases';
 
 test.describe('Log Page', () => {
-	test('renders mode-specific tree and info panels', async ({ page }) => {
+	test('The log layout follows the selected mode', { tag: ['@smoke'] }, async ({
+		page
+	}) => {
 		const runCase = representativeImportedRun(requireManifest());
 		const logPage = new LogPage(page);
 
-		await logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog');
-		await logPage.expectLoaded();
-		await logPage.expectTreeVisible();
-		await logPage.expectInfoVisible();
-
-		await logPage.goto(runCase.runId, 'mode=log');
-		await logPage.expectLoaded();
-		await logPage.expectTreeHidden();
-		await logPage.expectInfoHidden();
+		await given('the fixture manifest describes an imported run', () =>
+			expect(runCase.runId).toBeGreaterThan(0)
+		);
+		await when('I open its log in the tree-and-info mode', async () => {
+			await logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog');
+			await logPage.expectLoaded();
+		});
+		await then('both the tree and the info panel are shown', async () => {
+			await logPage.expectTreeVisible();
+			await logPage.expectInfoVisible();
+		});
+		await when('I open its log in the log-only mode', async () => {
+			await logPage.goto(runCase.runId, 'mode=log');
+			await logPage.expectLoaded();
+		});
+		await then('neither the tree nor the info panel is shown', async () => {
+			await logPage.expectTreeHidden();
+			await logPage.expectInfoHidden();
+		});
 	});
 
-	test('loads a focused result and can return to the run log', async ({
+	test("Focusing a tree item loads that result's log", async ({
 		page,
 		request
 	}) => {
 		const runCase = representativeImportedRun(requireManifest());
+		const logPage = new LogPage(page);
 		const result = requireCapability(
 			await firstResultNode(request, runCase),
 			'Fixture tree contains no test result node.'
 		);
-		const logPage = new LogPage(page);
 
-		await logPage.goto(
-			runCase.runId,
-			`mode=treeAndlog&focusId=${result.node.id}`
+		await given("the run's tree contains a test result", () =>
+			expect(result.node.id).toBeTruthy()
 		);
-		await logPage.expectLoaded();
-		await logPage.expectTreeVisible();
-		await logPage.expectFocusedTreeItem(result.node.id);
-		await logPage.expectJsonLogVisible();
-
-		await logPage.showRunLog();
-		await logPage.expectJsonLogVisible();
+		await when('I open the log focused on that result', async () => {
+			await logPage.goto(
+				runCase.runId,
+				`mode=treeAndlog&focusId=${result.node.id}`
+			);
+			await logPage.expectLoaded();
+			await logPage.expectTreeVisible();
+		});
+		await then('the tree marks that result as focused', () =>
+			logPage.expectFocusedTreeItem(result.node.id)
+		);
+		await and('the JSON log is rendered', () => logPage.expectJsonLogVisible());
+		await when('I go back to the run log', () => logPage.showRunLog());
+		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
 	});
 
-	test('toggles NOK-only tree and scrolls to a focused error result', async ({
-		page,
-		request
-	}) => {
-		const representative = requireCapability(
-			representativeNokRun(requireManifest()),
-			'Fixture manifest contains no NOK samples.'
-		);
-		const runCase = {
-			bundle: representative.bundle,
-			expectedRun: representative.expectedRun,
-			runId: importedRunId(representative.bundle)
-		};
-		const result = requireCapability(
-			await firstErrorResultNode(request, runCase),
-			'Fixture tree contains no error result node.'
-		);
-		const logPage = new LogPage(page);
+	test(
+		'The NOK-only tree keeps the focused error result reachable',
+		{ tag: ['@needs-nok'] },
+		async ({ page, request }) => {
+			const logPage = new LogPage(page);
+			const representative = requireCapability(
+				representativeNokRun(requireManifest()),
+				'Fixture manifest contains no NOK samples.'
+			);
+			const runCase = {
+				bundle: representative.bundle,
+				expectedRun: representative.expectedRun,
+				runId: importedRunId(representative.bundle)
+			};
+			const result = requireCapability(
+				await firstErrorResultNode(request, runCase),
+				'Fixture tree contains no error result node.'
+			);
 
-		await logPage.goto(
-			runCase.runId,
-			`mode=treeAndlog&focusId=${result.node.id}`
-		);
-		await logPage.expectLoaded();
-		await logPage.toggleOnlyNok();
-		await logPage.scrollToFocus();
-		await logPage.expectFocusedTreeItem(result.node.id);
-	});
+			await given(
+				'a run with unexpected results has an error result in its tree',
+				() => expect(result.node.id).toBeTruthy()
+			);
+			await when('I open the log focused on that error result', async () => {
+				await logPage.goto(
+					runCase.runId,
+					`mode=treeAndlog&focusId=${result.node.id}`
+				);
+				await logPage.expectLoaded();
+			});
+			await and('I turn on the NOK-only tree', () => logPage.toggleOnlyNok());
+			await and('I scroll to the focused result', () => logPage.scrollToFocus());
+			await then('the tree marks that result as focused', () =>
+				logPage.expectFocusedTreeItem(result.node.id)
+			);
+		}
+	);
 
-	test('switches between JSON and legacy log renderers', async ({ page }) => {
+	test('The legacy toggle switches the log renderer', async ({ page }) => {
 		const runCase = representativeImportedRun(requireManifest());
 		const logPage = new LogPage(page);
 
-		await logPage.goto(runCase.runId);
-		await logPage.expectJsonLogVisible();
-
-		await logPage.toggleLegacyLog();
-		await expect(page).toHaveURL(/legacy=true/, { timeout: 15_000 });
-		await logPage.expectLegacyLogVisible();
-
-		await logPage.toggleLegacyLog();
-		await expect(page).toHaveURL(/legacy=false/, { timeout: 15_000 });
-		await logPage.expectJsonLogVisible();
+		await given('I open the log of an imported run', () =>
+			logPage.goto(runCase.runId)
+		);
+		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
+		await when('I turn on the legacy log', async () => {
+			await logPage.toggleLegacyLog();
+			await expect(page).toHaveURL(/legacy=true/, { timeout: 15_000 });
+		});
+		await then('the legacy log frame is shown', () =>
+			logPage.expectLegacyLogVisible()
+		);
+		await when('I turn off the legacy log', async () => {
+			await logPage.toggleLegacyLog();
+			await expect(page).toHaveURL(/legacy=false/, { timeout: 15_000 });
+		});
+		await then('the JSON log is rendered', () => logPage.expectJsonLogVisible());
 	});
 
-	test('bookmarks log table line location and preserves focused result', async ({
-		page,
-		request
-	}) => {
+	test('Bookmarking a log line survives a reload', async ({ page, request }) => {
 		const runCase = representativeImportedRun(requireManifest());
+		const logPage = new LogPage(page);
 		const result = requireCapability(
 			await firstResultNode(request, runCase),
 			'Fixture tree contains no test result node.'
 		);
-		const logPage = new LogPage(page);
+		let line = '1';
 
-		await logPage.goto(runCase.runId, `focusId=${result.node.id}`);
-		await logPage.expectJsonLogVisible();
-		const line = await logPage.bookmarkFirstLine();
-
-		await page.reload();
-		await logPage.expectJsonLogVisible();
-		await expect(page).toHaveURL(new RegExp(`lineNumber=.*_${line}`), {
-			timeout: 15_000
+		await given('I open the log focused on a test result', async () => {
+			await logPage.goto(runCase.runId, `focusId=${result.node.id}`);
+			await logPage.expectJsonLogVisible();
 		});
+		await when('I click a log line number', async () => {
+			line = await logPage.bookmarkFirstLine();
+		});
+		await and('I reload the page', async () => {
+			await page.reload();
+			await logPage.expectJsonLogVisible();
+		});
+		await then('the bookmarked line is still recorded in the URL', () =>
+			expect(page).toHaveURL(new RegExp(`lineNumber=.*_${line}`), {
+				timeout: 15_000
+			})
+		);
 	});
 
-	test('opens measurements from a focused result when fixture data supports it', async ({
-		page,
-		request
-	}) => {
-		const result = requireCapability(
-			await firstMeasurementResultNode(request, requireManifest()),
-			'Fixture manifest contains no result with measurements.'
-		);
-		const logPage = new LogPage(page);
+	test(
+		'A result with measurements links to its measurements page',
+		{ tag: ['@needs-measurements'] },
+		async ({ page, request }) => {
+			const logPage = new LogPage(page);
+			const result = requireCapability(
+				await firstMeasurementResultNode(request, requireManifest()),
+				'Fixture manifest contains no result with measurements.'
+			);
 
-		await logPage.goto(
-			result.runCase.runId,
-			`mode=treeAndinfoAndlog&focusId=${result.node.id}`
-		);
-		await logPage.expectLoaded();
-		await logPage.openFocusedResultMeasurements();
-		await expect(page).toHaveURL(/\/measurements(?:$|\?)/, {
-			timeout: 15_000
-		});
-	});
+			await given('the fixture manifest describes a result with measurements', () =>
+				expect(result.node.id).toBeTruthy()
+			);
+			await when('I open the log focused on that result', async () => {
+				await logPage.goto(
+					result.runCase.runId,
+					`mode=treeAndinfoAndlog&focusId=${result.node.id}`
+				);
+				await logPage.expectLoaded();
+			});
+			await and('I follow the Result link', () =>
+				logPage.openFocusedResultMeasurements()
+			);
+			await then('the measurements page is open', () =>
+				expect(page).toHaveURL(/\/measurements(?:$|\?)/, { timeout: 15_000 })
+			);
+		}
+	);
 });
