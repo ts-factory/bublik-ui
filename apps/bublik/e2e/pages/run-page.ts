@@ -52,19 +52,24 @@ class RunPage {
 		await expect(this.resultTables()).toHaveCount(0);
 	}
 
+	/**
+	 * Scoped to the toolbar because the requirements filter and every expanded
+	 * result table carry a Reset button of their own.
+	 */
+	get toolbar(): Locator {
+		return this.page.getByTestId('run-table-toolbar');
+	}
+
 	async previewNok(): Promise<void> {
-		await this.page.getByRole('button', { name: 'Preview NOK' }).click();
+		await this.toolbar.getByRole('button', { name: 'Preview NOK' }).click();
 	}
 
 	async openNok(): Promise<void> {
-		await this.page.getByRole('button', { name: 'Open NOK' }).click();
+		await this.toolbar.getByRole('button', { name: 'Open NOK' }).click();
 	}
 
 	async resetTable(): Promise<void> {
-		await this.page
-			.getByTestId('run-table')
-			.getByRole('button', { name: 'Reset', exact: true })
-			.click();
+		await this.toolbar.getByRole('button', { name: 'Reset', exact: true }).click();
 	}
 
 	/** A `<dd>` of the info card, addressed by the label of its `<dt>`. */
@@ -96,12 +101,17 @@ class RunPage {
 	}
 
 	/**
-	 * Count badges carry their run-table column id (`TOTAL`, `UNEXPECTED_TOTAL`,
+	 * Count badges carry their run-table column id (`RUN`, `PASSED_EXPECTED`,
 	 * ...); clicking one on a test row opens that test's result table filtered to
-	 * the column, and on a package row expands the subtree instead.
+	 * the column, and on a package row expands the subtree instead. Which columns
+	 * are visible is user state, so prefer `firstCountBadge` over naming one.
 	 */
 	countBadge(row: Locator, columnId: string): Locator {
 		return row.locator(`[data-testid="tw-badge"][data-column-id="${columnId}"]`);
+	}
+
+	firstCountBadge(row: Locator): Locator {
+		return row.locator('[data-testid="tw-badge"][data-column-id]').first();
 	}
 
 	/** The tree cell is a button labelled with the node name; it toggles the row. */
