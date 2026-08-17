@@ -78,6 +78,45 @@ function representativeNokRun(manifest: E2EManifest): {
 	return null;
 }
 
+/**
+ * Two imported runs sharing a dashboard date, so a single runs-page query lists
+ * both — what the selection popover, /compare and /multiple scenarios need.
+ */
+function runPairOnSameDate(manifest: E2EManifest): {
+	date: string;
+	bundles: [Bundle, Bundle];
+} | null {
+	const byDate = new Map<string, Bundle[]>();
+
+	for (const bundle of manifest.bundles) {
+		const date = bundle.expectedRuns[0]?.dashboardDate;
+		if (!bundle.runId || !date) continue;
+
+		const bundles = byDate.get(date) ?? [];
+		bundles.push(bundle);
+		byDate.set(date, bundles);
+
+		if (bundles.length >= 2) {
+			return { date, bundles: [bundles[0], bundles[1]] };
+		}
+	}
+
+	return null;
+}
+
+/**
+ * The NOK counter on the dashboard and the runs table is the backend's
+ * `unexpected` stat: every result carrying an "err" meta. In the fixture
+ * manifest those are the `unexpected*` matrix entries plus `abnormal`.
+ */
+function expectedNokCount(expectedRun: ExpectedRun): number {
+	return Object.entries(expectedRun.expectedMatrix)
+		.filter(
+			([category]) => category.startsWith('unexpected') || category === 'abnormal'
+		)
+		.reduce((total, [, count]) => total + count, 0);
+}
+
 function firstHistoryTestPath(fallback = 'net-drv-ts/rx_path/rx_fcs'): string {
 	const manifest = readManifest();
 
@@ -101,9 +140,11 @@ function firstHistoryTestPath(fallback = 'net-drv-ts/rx_path/rx_fcs'): string {
 }
 
 export {
+	expectedNokCount,
 	firstHistoryTestPath,
 	representativeNokRun,
 	representativeRun,
+	runPairOnSameDate,
 	sampleCases
 };
 export type { SampleCase };

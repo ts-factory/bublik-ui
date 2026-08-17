@@ -34,6 +34,8 @@ interface ImportedRunCase {
 interface ResultNodeCase {
 	runCase: ImportedRunCase;
 	node: TreeNode;
+	/** Set when the node was located from a manifest sample (measurements). */
+	sample?: IterationEntry;
 }
 
 interface ReportConfig {
@@ -149,13 +151,50 @@ async function firstMeasurementResultNode(
 					if (!sample.measurements?.length) continue;
 
 					const node = findSampleNode(tree, sample);
-					if (node) return { runCase: { ...runCase, expectedRun }, node };
+					if (node) {
+						return { runCase: { ...runCase, expectedRun }, node, sample };
+					}
 				}
 			}
 		}
 	}
 
 	return null;
+}
+
+/**
+ * Which page a dashboard counter opens is deployment configuration: the backend
+ * attaches a handler per column (`go_run`, `go_log`, ...) and the cell payload
+ * carries the resulting `url` kind. Resolve it from the API so scenarios assert
+ * the mapping the UI performs instead of one deployment's column layout.
+ */
+async function dashboardCellDestination(
+	request: APIRequestContext,
+	date: string,
+	runId: number,
+	cellKey: string
+): Promise<RegExp | null> {
+	const response = await request.get(`/api/v2/dashboard/?date=${date}`);
+	expect(response.ok()).toBeTruthy();
+
+	const payload = (await response.json()) as {
+		rows: {
+			context: { run_id: number };
+			row_cells: Record<string, { payload?: { url?: string } } | unknown>;
+		}[];
+	};
+
+	const row = payload.rows.find((candidate) => candidate.context.run_id === runId);
+	const cell = row?.row_cells[cellKey] as { payload?: { url?: string } } | undefined;
+
+	switch (cell?.payload?.url) {
+		case 'runs':
+			return new RegExp(`/runs/${runId}(?:$|[?#/])`);
+		case 'tree':
+			return new RegExp(`/log/${runId}(?:$|[?#/])`);
+		default:
+			return null;
+	}
 }
 
 async function firstReportConfig(
@@ -172,6 +211,7 @@ async function firstReportConfig(
 }
 
 export {
+	dashboardCellDestination,
 	firstErrorResultNode,
 	firstMeasurementResultNode,
 	firstReportConfig,
