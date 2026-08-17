@@ -2,6 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
 
+/** Sidebar view modes of the runs page: the table, the charts, the matrix. */
+type RunsMode = 'table' | 'charts' | 'progress';
+
 class RunsPage {
 	constructor(private readonly page: Page) {}
 
@@ -28,6 +31,11 @@ class RunsPage {
 		const params = new URLSearchParams({ tagExpr, mode: 'table' });
 		await this.page.goto(`runs?${params.toString()}`);
 		await expect(this.page).toHaveURL(/\/runs\?/);
+	}
+
+	async gotoWithMode(mode: RunsMode): Promise<void> {
+		await this.page.goto(`runs?mode=${mode}`);
+		await expect(this.page).toHaveURL(new RegExp(`mode=${mode}`));
 	}
 
 	get table(): Locator {
@@ -115,6 +123,90 @@ class RunsPage {
 	async resetForm(): Promise<void> {
 		await this.page.getByRole('button', { name: 'Reset form' }).click();
 	}
+
+	async expectEmptyState(): Promise<void> {
+		await expect(
+			this.page.getByRole('heading', { name: 'No runs found' })
+		).toBeVisible({ timeout: 30_000 });
+	}
+
+	/** Total / OK / NOK badge of a row; `summary` is the lower-cased label. */
+	summaryBadge(runId: number, summary: 'total' | 'ok' | 'nok'): Locator {
+		return this.row(runId).locator(
+			`[data-testid="run-summary-badge"][data-summary="${summary}"]`
+		);
+	}
+
+	async expectNokCount(runId: number, count: number): Promise<void> {
+		await expect(this.summaryBadge(runId, 'nok')).toContainText(String(count), {
+			timeout: 30_000
+		});
+	}
+
+	/**
+	 * Like the dashboard NOK cell, this badge preventDefault()s and navigates with
+	 * react-router state so the run table opens on the unexpected results; ctrl
+	 * additionally expands their result tables.
+	 */
+	async openNok(runId: number, options: { ctrl?: boolean } = {}): Promise<void> {
+		const badge = this.summaryBadge(runId, 'nok');
+		await expect(badge).toBeVisible({ timeout: 30_000 });
+		await badge.click(options.ctrl ? { modifiers: ['Control'] } : undefined);
+		await expect(this.page).toHaveURL(new RegExp(`/runs/${runId}(?:$|[?#/])`), {
+			timeout: 15_000
+		});
+	}
+
+	/**
+	 * Selection is toggled by clicking the row background: the handler ignores
+	 * clicks whose target is not a TD or DIV, so links and badges navigate
+	 * instead. Aim at a cell's padding to land on the TD itself.
+	 */
+	async selectRow(runId: number): Promise<void> {
+		await this.row(runId)
+			.locator('td')
+			.first()
+			.click({ position: { x: 2, y: 2 } });
+	}
+
+	get selectionTrigger(): Locator {
+		return this.page.getByRole('button', { name: /\d+ runs selected/ });
+	}
+
+	async expectSelectedCount(count: number): Promise<void> {
+		await expect(this.selectionTrigger).toHaveText(
+			new RegExp(`${count} runs selected`),
+			{ timeout: 15_000 }
+		);
+	}
+
+	// The sidebar carries its own Multiple/Compare entries pointing at the same
+	// selection, so the popover's links have to be scoped to the page body.
+	multipleLink(): Locator {
+		return this.page
+			.locator('#page-container')
+			.getByRole('link', { name: 'Multiple' });
+	}
+
+	compareLink(): Locator {
+		return this.page
+			.locator('#page-container')
+			.getByRole('link', { name: 'Compare' });
+	}
+
+	async expectMultipleOffered(runIds: number[]): Promise<void> {
+		const href = await this.multipleLink().getAttribute('href');
+		for (const runId of runIds) {
+			expect(href).toContain(`runIds=${runId}`);
+		}
+	}
+
+	async expectCompareOffered(runIds: [number, number]): Promise<void> {
+		const href = await this.compareLink().getAttribute('href');
+		expect(href).toContain(`left=${runIds[0]}`);
+		expect(href).toContain(`right=${runIds[1]}`);
+	}
 }
 
 export { RunsPage };
+export type { RunsMode };
