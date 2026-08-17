@@ -1,13 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+/* Implements features/run-compare.feature and features/run-multiple.feature */
+/* Assertions are encapsulated by the page objects. */
 /* eslint-disable playwright/expect-expect */
 import { expect, test } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
 import { RunDiffPage } from './pages/run-diff-page';
 import { RunMultiplePage } from './pages/run-multiple-page';
+import { RunPage } from './pages/run-page';
 import { requireManifest } from './support/manifest';
-import { representativeImportedRun } from './support/e2e-data';
+import { requireCapability } from './support/capabilities';
+import { importedRunId } from './support/e2e-data';
+import { and, given, then, when } from './support/gherkin';
+import { representativeNokRun } from './support/sample-cases';
 
 function firstTwoRunIds(): [number, number] {
 	const manifest = requireManifest();
@@ -27,59 +33,110 @@ function firstTwoRunIds(): [number, number] {
 	return [ids[0], ids[1]];
 }
 
-test.describe('Compare and Multiple Pages', () => {
-	test('compare page shows missing-runs state without query parameters', async ({
+test.describe('Compare Page', () => {
+	test('Comparing without a run selection explains what is missing', async ({
 		page
 	}) => {
 		const comparePage = new RunDiffPage(page);
 
-		await comparePage.goto();
-		await comparePage.expectMissingRunsError();
+		await when('I open the compare page without run parameters', () =>
+			comparePage.goto()
+		);
+		await then('it reports that no runs are selected', () =>
+			comparePage.expectMissingRunsError()
+		);
 	});
 
-	test('compare page loads selected runs and links to a log page', async ({
+	test("Comparing two runs shows the diff and links to a run's log", async ({
 		page
 	}) => {
+		const comparePage = new RunDiffPage(page);
+		const logPage = new LogPage(page);
 		const [leftRunId, rightRunId] = firstTwoRunIds();
-		const comparePage = new RunDiffPage(page);
-		const logPage = new LogPage(page);
 
-		await comparePage.goto(leftRunId, rightRunId);
-		await comparePage.expectLoaded();
-		await comparePage.showInfoDiff();
-		await comparePage.openLeftLog();
-		await logPage.expectLoaded();
+		await given('the fixture manifest describes two imported runs', () =>
+			expect(leftRunId).not.toBe(rightRunId)
+		);
+		await when('I open the compare page for both runs', () =>
+			comparePage.goto(leftRunId, rightRunId)
+		);
+		await then('the diff is rendered', () => comparePage.expectLoaded());
+		await when('I switch to the info diff', () => comparePage.showInfoDiff());
+		await and("I follow the left run's Log link", () =>
+			comparePage.openLeftLog()
+		);
+		await then('the log page is open', () => logPage.expectLoaded());
 	});
+});
 
-	test('multiple page shows missing-runs state without query parameters', async ({
+test.describe('Multiple Runs Page', () => {
+	test('Opening the multiple view without runs explains what is missing', async ({
 		page
 	}) => {
 		const multiplePage = new RunMultiplePage(page);
 
-		await multiplePage.goto([]);
-		await multiplePage.expectMissingRunsEmptyState();
+		await when('I open the multiple page without run parameters', () =>
+			multiplePage.goto([])
+		);
+		await then('it reports that the run ids are missing', () =>
+			multiplePage.expectMissingRunsEmptyState()
+		);
 	});
 
-	test('multiple page switches selected run and links to its log', async ({
-		page
-	}) => {
+	test('The multiple view switches which run is selected', async ({ page }) => {
+		const multiplePage = new RunMultiplePage(page);
+		const logPage = new LogPage(page);
 		const [firstRunId, secondRunId] = firstTwoRunIds();
-		const multiplePage = new RunMultiplePage(page);
-		const logPage = new LogPage(page);
 
-		await multiplePage.goto([firstRunId, secondRunId]);
-		await multiplePage.expectLoaded();
-		await multiplePage.selectRun(secondRunId);
-		await multiplePage.openSelectedLog();
-		await logPage.expectLoaded();
+		await given('the fixture manifest describes two imported runs', () =>
+			expect(firstRunId).not.toBe(secondRunId)
+		);
+		await when('I open the multiple page for both runs', async () => {
+			await multiplePage.goto([firstRunId, secondRunId]);
+			await multiplePage.expectLoaded();
+		});
+		await and('I select the second run', () =>
+			multiplePage.selectRun(secondRunId)
+		);
+		await then('the selection is recorded in the URL', () =>
+			expect(page).toHaveURL(new RegExp(`selected=${secondRunId}`))
+		);
+		await when("I follow the selected run's Log link", () =>
+			multiplePage.openSelectedLog()
+		);
+		await then('the log page is open', () => logPage.expectLoaded());
 	});
 
-	test('run page header opens the log page', async ({ page }) => {
-		const runCase = representativeImportedRun(requireManifest());
+	test(
+		'Preview NOK applies across the merged runs',
+		{ tag: ['@needs-nok'] },
+		async ({ page }) => {
+			const multiplePage = new RunMultiplePage(page);
+			const runPage = new RunPage(page);
+			const representative = requireCapability(
+				representativeNokRun(requireManifest()),
+				'Fixture manifest contains no NOK samples.'
+			);
+			const nokRunId = importedRunId(representative.bundle);
+			const otherRunId = firstTwoRunIds().find((id) => id !== nokRunId);
 
-		await page.goto(`runs/${runCase.runId}`);
-		await page.getByRole('banner').getByRole('link', { name: /^Log$/ }).click();
-		await expect(page).toHaveURL(new RegExp(`/log/${runCase.runId}`));
-		await new LogPage(page).expectLoaded();
-	});
+			await given(
+				'I open the multiple page for a run with unexpected results',
+				async () => {
+					await multiplePage.goto(
+						otherRunId ? [nokRunId, otherRunId] : [nokRunId]
+					);
+					await multiplePage.expectLoaded();
+				}
+			);
+			await when('I press Preview NOK', () => runPage.previewNok());
+			await then('the tests with unexpected results are listed', async () => {
+				for (const sampleName of representative.sampleNames) {
+					await expect(page.getByText(sampleName).first()).toBeVisible({
+						timeout: 15_000
+					});
+				}
+			});
+		}
+	);
 });

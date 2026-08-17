@@ -49,6 +49,11 @@ Feature: Run details
     When I click a count badge of that test row
     Then that test's result table is expanded
 
+  Scenario: The run header opens the log of the whole run
+    Given I open an imported run's page
+    When I follow the header's Log link
+    Then the log page for that run is open
+
   Scenario: A result row links to the log of that result
     Given I open an imported run's page with a result table expanded
     When I follow the result's Log link

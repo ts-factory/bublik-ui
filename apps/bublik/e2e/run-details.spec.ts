@@ -3,6 +3,7 @@
 /* Implements apps/bublik/e2e/features/run-details.feature */
 import { expect, test } from '@playwright/test';
 
+import { LogPage } from './pages/log-page';
 import { RunPage } from './pages/run-page';
 import {
 	importedRunId,
@@ -159,6 +160,24 @@ test.describe('Run Details Page', () => {
 		await then("that test's result table is expanded", () =>
 			expect(runPage.resultTable(testName)).toBeVisible({ timeout: 30_000 })
 		);
+	});
+
+	test('The run header opens the log of the whole run', async ({ page }) => {
+		const runPage = new RunPage(page);
+		const logPage = new LogPage(page);
+		const { expectedRun, runId } = representativeImportedRun(requireManifest());
+
+		await given("I open an imported run's page", async () => {
+			await runPage.goto(runId);
+			await runPage.expectLoaded(expectedRun.name);
+		});
+		await when("I follow the header's Log link", () =>
+			page.getByRole('banner').getByRole('link', { name: /^Log$/ }).click()
+		);
+		await then('the log page for that run is open', async () => {
+			await expect(page).toHaveURL(new RegExp(`/log/${runId}`));
+			await logPage.expectLoaded();
+		});
 	});
 
 	test('A result row links to the log of that result', async ({ page }) => {
