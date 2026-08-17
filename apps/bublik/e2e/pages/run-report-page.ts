@@ -24,12 +24,16 @@ class RunReportPage {
 		});
 	}
 
+	// Scoped to the report itself: the admin sidebar carries its own "Configs"
+	// entry, which is hidden while its submenu is collapsed.
 	async openConfigEditor(): Promise<void> {
 		await this.page
-			.getByRole('link', { name: /config/i })
+			.getByTestId('run-report-page')
+			.getByRole('link', { name: 'Config', exact: true })
 			.first()
 			.click();
-		await expect(this.page).toHaveURL(/\/admin\/config\?configId=/, {
+
+    await expect(this.page).toHaveURL(/\/admin\/config\?configId=/, {
 			timeout: 15_000
 		});
 	}
