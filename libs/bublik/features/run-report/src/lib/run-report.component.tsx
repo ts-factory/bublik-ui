@@ -11,7 +11,6 @@ import {
 } from '@tanstack/react-table';
 
 import {
-	Badge,
 	ButtonTw,
 	CardHeader,
 	cn,
@@ -20,6 +19,7 @@ import {
 	CollapsibleTrigger,
 	Icon,
 	Kbd,
+	ParameterValue,
 	Separator,
 	Spinner,
 	Tooltip
@@ -452,9 +452,11 @@ const columns = [
 				<ul className="flex flex-wrap gap-1">
 					{Object.entries(commonArgs).map(([name, value]) => (
 						<li key={`${name}_${value}`}>
-							<Badge className="bg-badge-1">
-								{name}: {value}
-							</Badge>
+							<ParameterValue
+								name={name}
+								value={value.toString()}
+								className="bg-badge-1"
+							/>
 						</li>
 					))}
 				</ul>
@@ -470,9 +472,11 @@ const columns = [
 				<ul className="flex flex-wrap gap-1">
 					{Object.entries(args).map(([name, value]) => (
 						<li key={`${name}_${value}`}>
-							<Badge className="bg-badge-1">
-								{name}: {value}
-							</Badge>
+							<ParameterValue
+								name={name}
+								value={value.toString()}
+								className="bg-badge-1"
+							/>
 						</li>
 					))}
 				</ul>

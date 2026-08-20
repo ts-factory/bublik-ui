@@ -14,6 +14,7 @@ import {
 	DataTableFacetedFilter,
 	Icon
 } from '@/shared/tailwind-ui';
+import { isPreformattedParameterValue } from '@/shared/utils';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from '../slice';
@@ -142,6 +143,7 @@ export function PlotListContainerByResult() {
 		const all = Array.from(
 			new Set(data?.map((d) => d.parameters_list).flat()) ?? []
 		)
+			.filter((param) => !isPreformattedParameterValue(param))
 			.sort()
 			.map((param) => ({ label: param, value: param }));
 
