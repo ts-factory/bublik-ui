@@ -4,18 +4,14 @@ import { forwardRef, useMemo } from 'react';
 
 import {
 	DEFAULT_KEY_VALUE_SUBMIT_DELIMITER,
-	formatKeyValueForDisplay,
 	isBranch,
 	isRevision,
+	parseParameter,
 	trimBranch,
 	trimRevision
 } from '@/shared/utils';
 
-import { Badge } from '../badge';
-import { EnvBadge } from '../env-badge';
-
-const isEnv = (value: string, delimiter = DEFAULT_KEY_VALUE_SUBMIT_DELIMITER) =>
-	value.startsWith(`env${delimiter}`);
+import { ParameterValue } from '../parameter-value';
 
 export type BadgeListItem = {
 	payload: string;
@@ -43,70 +39,65 @@ export const BadgeList = forwardRef<HTMLDivElement, BadgeListProps>(
 		},
 		ref
 	) => {
-		const { filterBadges, envBadges } = useMemo(() => {
+		const { plainBadges, preformattedBadges } = useMemo(() => {
 			const submitDelimiter =
 				keyValueSubmitDelimiter ?? DEFAULT_KEY_VALUE_SUBMIT_DELIMITER;
-			const filterBadges = badges.filter(
-				(badge) => !isEnv(badge.payload, submitDelimiter)
-			);
-			const envBadges = badges.filter((badge) =>
-				isEnv(badge.payload, submitDelimiter)
-			);
 
-			return { filterBadges, envBadges };
-		}, [badges, keyValueSubmitDelimiter]);
+			const parsed = badges.map((badge) => {
+				let payload = badge.payload;
+				if (isRevision(payload)) payload = trimRevision(payload);
+				if (isBranch(payload)) payload = trimBranch(payload);
 
-		const badgeNodes = filterBadges.map((badge, idx) => {
-			const isSelected = selectedBadges?.includes(badge.payload);
-			const finalClass = badge.isImportant
-				? 'bg-badge-6'
-				: className
-				? className
-				: 'bg-badge-0';
-
-			let value = badge.payload;
-			if (isRevision(badge.payload)) value = trimRevision(badge.payload);
-			if (isBranch(badge.payload)) value = trimBranch(badge.payload);
-			value = formatKeyValueForDisplay(value, {
-				displayDelimiter: keyValueDisplayDelimiter,
-				submitDelimiter: keyValueSubmitDelimiter
+				return { badge, parsed: parseParameter(payload, submitDelimiter) };
 			});
 
-			return (
-				<Badge
-					key={idx}
-					onClick={onBadgeClick ? () => onBadgeClick?.(badge) : undefined}
-					className={finalClass}
-					isSelected={isSelected}
-					overflowWrap
-				>
-					{value}
-				</Badge>
-			);
-		});
+			return {
+				plainBadges: parsed.filter((item) => !item.parsed.isPreformatted),
+				preformattedBadges: parsed.filter((item) => item.parsed.isPreformatted)
+			};
+		}, [badges, keyValueSubmitDelimiter]);
 
-		const envBadgeNodes = envBadges.map((envBadge, idx) => (
-			<EnvBadge
+		const renderBadge = (
+			{ badge, parsed }: (typeof plainBadges)[number],
+			idx: number,
+			mode: 'badge' | 'pre'
+		) => (
+			<ParameterValue
 				key={idx}
-				value={envBadge.payload}
-				keyValueDisplayDelimiter={keyValueDisplayDelimiter}
-				keyValueSubmitDelimiter={keyValueSubmitDelimiter}
-				onContentClick={
-					onBadgeClick ? () => onBadgeClick?.(envBadge) : undefined
+				name={parsed.name}
+				value={parsed.value}
+				mode={mode}
+				className={
+					badge.isImportant
+						? 'bg-badge-6'
+						: className
+						? className
+						: 'bg-badge-0'
 				}
-				isSelected={selectedBadges?.includes(envBadge.payload)}
+				isSelected={selectedBadges?.includes(badge.payload)}
+				onClick={onBadgeClick ? () => onBadgeClick?.(badge) : undefined}
+				displayDelimiter={keyValueDisplayDelimiter}
+				submitDelimiter={keyValueSubmitDelimiter}
 			/>
-		));
+		);
 
-		if (envBadges.length) {
+		const badgeNodes = plainBadges.map((item, idx) =>
+			renderBadge(item, idx, 'badge')
+		);
+
+		const preformattedNodes = preformattedBadges.map((item, idx) =>
+			renderBadge(item, idx, 'pre')
+		);
+
+		if (preformattedNodes.length) {
 			return (
 				<div
 					className="flex flex-col gap-1"
 					ref={ref}
 					data-testid="tw-badge-list"
 				>
-					<div className="flex flex-wrap gap-1">{envBadgeNodes}</div>
 					<div className="flex flex-wrap gap-1">{badgeNodes}</div>
+					<div className="flex flex-col gap-1">{preformattedNodes}</div>
 				</div>
 			);
 		}
