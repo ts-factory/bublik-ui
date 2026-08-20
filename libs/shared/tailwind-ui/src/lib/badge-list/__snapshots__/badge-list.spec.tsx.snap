@@ -155,6 +155,7 @@ exports[`components/BadgeList > should render preformatted parameters as their o
     >
       <div
         class="group relative w-full rounded border border-transparent text-[0.75rem] bg-badge-10"
+        data-testid="tw-parameter-block"
       >
         <div
           class="flex items-center justify-between gap-2 px-2 pt-1"
@@ -162,7 +163,7 @@ exports[`components/BadgeList > should render preformatted parameters as their o
           <span
             class="font-medium leading-[1.125rem]"
           >
-            env
+            env:
           </span>
           <button
             aria-label="Copy env"
@@ -207,6 +208,7 @@ exports[`components/BadgeList > should render preformatted parameters as their o
       </div>
       <div
         class="group relative w-full rounded border border-transparent text-[0.75rem] bg-badge-10"
+        data-testid="tw-parameter-block"
       >
         <div
           class="flex items-center justify-between gap-2 px-2 pt-1"
@@ -214,7 +216,7 @@ exports[`components/BadgeList > should render preformatted parameters as their o
           <span
             class="font-medium leading-[1.125rem]"
           >
-            tmpl
+            tmpl:
           </span>
           <button
             aria-label="Copy tmpl"

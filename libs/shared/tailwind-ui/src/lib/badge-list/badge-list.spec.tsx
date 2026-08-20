@@ -71,12 +71,12 @@ describe('components/BadgeList', () => {
 	it('should keep the raw payload when a preformatted badge is clicked', () => {
 		const mock = vi.fn();
 		const payload = 'env={ addr 1, port 2 }';
-		const { getByLabelText } = render(
+		const { getByTestId, getByLabelText } = render(
 			<BadgeList badges={[{ payload }]} onBadgeClick={mock} />
 		);
 		fireEvent.click(getByLabelText('Copy env'));
 		expect(mock).not.toHaveBeenCalled();
-		fireEvent.click(getByLabelText('Copy env').closest('div')!.parentElement!);
+		fireEvent.click(getByTestId('tw-parameter-block'));
 		expect(mock).toHaveBeenCalledWith({ payload });
 	});
 	it('should call onClick with badge item payload', async () => {

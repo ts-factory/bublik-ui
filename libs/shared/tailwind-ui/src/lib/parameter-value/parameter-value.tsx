@@ -71,10 +71,13 @@ export const ParameterValue: FC<ParameterValueProps> = (props) => {
 	const rawValue = joinKeyValue(name, value, submitDelimiter);
 	const formattedValue = formatParameterValue(value);
 
+	const label = `${name}${displayDelimiter.trimEnd()}`;
+
 	if (mode === 'pre') {
 		return (
 			<ParameterBlock
 				name={name}
+				label={label}
 				rawValue={rawValue}
 				formattedValue={formattedValue}
 				isSelected={isSelected}
@@ -87,6 +90,7 @@ export const ParameterValue: FC<ParameterValueProps> = (props) => {
 	return (
 		<CollapsedParameter
 			name={name}
+			label={label}
 			rawValue={rawValue}
 			formattedValue={formattedValue}
 			isSelected={isSelected}
@@ -98,6 +102,8 @@ export const ParameterValue: FC<ParameterValueProps> = (props) => {
 
 interface PreformattedParameterProps {
 	name: string;
+	/** Parameter name suffixed with the configured display delimiter. */
+	label: string;
 	rawValue: string;
 	formattedValue: string;
 	isSelected?: boolean;
@@ -106,8 +112,15 @@ interface PreformattedParameterProps {
 }
 
 function CollapsedParameter(props: PreformattedParameterProps) {
-	const { name, rawValue, formattedValue, isSelected, onClick, className } =
-		props;
+	const {
+		name,
+		label,
+		rawValue,
+		formattedValue,
+		isSelected,
+		onClick,
+		className
+	} = props;
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
@@ -119,7 +132,7 @@ function CollapsedParameter(props: PreformattedParameterProps) {
 					overflowWrap
 				>
 					<div className="flex items-center gap-2">
-						{name}
+						{label}
 						<div
 							className="grid place-items-center"
 							aria-label={`Expand ${name}`}
@@ -147,8 +160,15 @@ function CollapsedParameter(props: PreformattedParameterProps) {
 }
 
 function ParameterBlock(props: PreformattedParameterProps) {
-	const { name, rawValue, formattedValue, isSelected, onClick, className } =
-		props;
+	const {
+		name,
+		label,
+		rawValue,
+		formattedValue,
+		isSelected,
+		onClick,
+		className
+	} = props;
 	const [, copy] = useCopyToClipboard();
 
 	function handleCopy() {
@@ -170,9 +190,10 @@ function ParameterBlock(props: PreformattedParameterProps) {
 				onClick && 'cursor-pointer'
 			)}
 			onClick={onClick}
+			data-testid="tw-parameter-block"
 		>
 			<div className="flex items-center justify-between gap-2 px-2 pt-1">
-				<span className="font-medium leading-[1.125rem]">{name}</span>
+				<span className="font-medium leading-[1.125rem]">{label}</span>
 				<button
 					type="button"
 					aria-label={`Copy ${name}`}
