@@ -1,32 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-export const indentEnv = (string: string, indentLevel = 6) => {
-	let level = 0;
-	let indented = '';
-
-	for (let i = 0; i < string.length; i++) {
-		if (string[i] === '{') {
-			indented += string[i];
-			indented += '\n';
-			level += indentLevel;
-			indented += Array(level).join(' ');
-		} else if (string[i] === '}') {
-			indented += '\n';
-			level -= indentLevel;
-			indented += Array(level).join(' ');
-			indented += string[i];
-		} else if (string[i] === ',') {
-			indented += string[i];
-			indented += '\n';
-			indented += Array(level).join(' ');
-		} else {
-			indented += string[i];
-		}
-	}
-
-	return indented;
-};
-
 /**
 |--------------------------------------------------
 | REVISION
