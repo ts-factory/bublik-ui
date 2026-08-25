@@ -23,7 +23,7 @@ export const getChunks = <T>({
 		const current = data[i];
 
 		if (skip?.(current)) {
-			if (!equality(last, current) && last && current) {
+			if (!equality(last, current) && last && current && lastUniqueIdx < i) {
 				result.push(data.slice(lastUniqueIdx, i));
 			}
 
