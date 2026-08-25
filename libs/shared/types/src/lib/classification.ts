@@ -65,7 +65,11 @@ export interface RunIssueRow {
 	issue_id: number;
 	title: string;
 	state: IssueState;
+	/** External tracker key, e.g. `ref://JIRA/FOO-123`. */
 	bug_key: string | null;
+	/** Resolved tracker URL for `bug_key`, when the project can resolve it. */
+	bug_url: string | null;
+	/** Distinct results in this run stamped under this issue. */
 	result_count: number;
 	categories: { category: IssueCategory; expected: boolean | null }[];
 }

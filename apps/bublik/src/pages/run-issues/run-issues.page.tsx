@@ -1,16 +1,33 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 
-import { RunIssuesTable } from '@/bublik/features/result-classification';
+import {
+	RunIssuesTable,
+	runIssueEffect
+} from '@/bublik/features/result-classification';
 import {
 	getErrorMessage,
 	useApplyRulesToRunMutation,
-	useGetRunDetailsQuery
+	useGetRunDetailsQuery,
+	useGetRunIssuesQuery
 } from '@/services/bublik-api';
+import { RunDetailsContainer } from '@/bublik/features/run-details';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
-import { ButtonTw, Icon, Tooltip, toast } from '@/shared/tailwind-ui';
+import { routes } from '@/router';
+import {
+	ButtonTw,
+	CardHeader,
+	Icon,
+	RunModeToggle,
+	Tooltip,
+	toast
+} from '@/shared/tailwind-ui';
+import { RunPageParams } from '@/shared/types';
 
 interface ApplyRulesButtonProps {
 	runId: string;
@@ -53,8 +70,71 @@ function ApplyRulesButton({ runId, projectId }: ApplyRulesButtonProps) {
 	);
 }
 
+interface RunIssuesHeaderProps {
+	runId: string;
+	projectId?: number;
+}
+
+function RunIssuesHeader({ runId, projectId }: RunIssuesHeaderProps) {
+	const [isFullMode, setIsFullMode] = useState(false);
+
+	return (
+		<header className="flex flex-col bg-white rounded">
+			<CardHeader label="Info">
+				<div className="flex h-full gap-3">
+					<RunModeToggle
+						isFullMode={isFullMode}
+						onToggleClick={() => setIsFullMode((prev) => !prev)}
+					/>
+					<ApplyRulesButton runId={runId} projectId={projectId} />
+					<ButtonTw asChild variant="secondary" size="xss">
+						<LinkWithProject to={routes.run({ runId })}>
+							<Icon name="PieChart" size={16} className="mr-1.5" />
+							Run
+						</LinkWithProject>
+					</ButtonTw>
+					<ButtonTw asChild variant="secondary" size="xss">
+						<LinkWithProject to={routes.log({ runId })}>
+							<Icon name="BoxArrowRight" size={16} className="mr-1.5" />
+							Log
+						</LinkWithProject>
+					</ButtonTw>
+					<CopyShortUrlButtonContainer />
+				</div>
+			</CardHeader>
+			<RunDetailsContainer runId={runId} isFullMode={isFullMode} />
+		</header>
+	);
+}
+
+interface IssuesSummaryProps {
+	runId: string;
+	projectId?: number;
+}
+
+/** Reads the same cache entry as the table, so this costs no extra request. */
+function IssuesSummary({ runId, projectId }: IssuesSummaryProps) {
+	const { data } = useGetRunIssuesQuery(
+		projectId === undefined ? skipToken : { runId, projectId }
+	);
+
+	if (!data?.length) return null;
+
+	const results = data.reduce((sum, issue) => sum + issue.result_count, 0);
+	const suppressed = data
+		.filter((issue) => runIssueEffect(issue).value === 'suppressed')
+		.reduce((sum, issue) => sum + issue.result_count, 0);
+
+	return (
+		<span className="text-xs text-text-menu tabular-nums">
+			{data.length} {data.length === 1 ? 'issue' : 'issues'} · {results}{' '}
+			{results === 1 ? 'result' : 'results'} · {suppressed} suppressed
+		</span>
+	);
+}
+
 function RunIssuesPage() {
-	const { runId } = useParams<{ runId: string }>();
+	const { runId } = useParams<RunPageParams>();
 	const { data: details } = useGetRunDetailsQuery(
 		runId ? Number(runId) : skipToken
 	);
@@ -63,16 +143,17 @@ function RunIssuesPage() {
 		return <BublikEmptyState title="No data" description="Run ID is missing" />;
 	}
 
+	const projectId = details?.project_id;
+
 	return (
 		<div className="flex flex-col gap-1 p-2" data-testid="run-issues-page">
-			{/* The button lives on the page, not in the table: the table renders an
-			    empty state when the run has no issues, which is exactly when you
-			    most need to apply rules. */}
-			<div className="flex items-center justify-between px-4 py-2 bg-white rounded-t-xl">
-				<h1 className="text-lg font-semibold">Issues</h1>
-				<ApplyRulesButton runId={runId} projectId={details?.project_id} />
+			<RunIssuesHeader runId={runId} projectId={projectId} />
+			<div className="flex flex-col bg-white rounded">
+				<CardHeader label="Issues">
+					<IssuesSummary runId={runId} projectId={projectId} />
+				</CardHeader>
+				<RunIssuesTable runId={runId} projectId={projectId} />
 			</div>
-			<RunIssuesTable runId={runId} projectId={details?.project_id} />
 		</div>
 	);
 }
