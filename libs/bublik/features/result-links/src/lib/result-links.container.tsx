@@ -10,6 +10,7 @@ import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
+import { ClassifyPopover } from '@/bublik/features/result-classification';
 
 export interface ResultLinksProps {
 	runId: string;
@@ -37,6 +38,9 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		showLinkToRun = false,
 		path
 	} = props;
+
+	// Same gate the Actions cell used before Classify moved into this stack.
+	const isFailed = result.has_error || (result.issues?.length ?? 0) > 0;
 
 	return (
 		<div className="flex flex-col justify-start gap-3 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
@@ -105,6 +109,14 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						</button>
 					</LogPreviewContainer>
 				</li>
+				{isFailed ? (
+					<li className="pl-2">
+						<ClassifyPopover
+							resultId={resultId}
+							projectId={result.project_id}
+						/>
+					</li>
+				) : null}
 			</ul>
 		</div>
 	);

@@ -12,10 +12,7 @@ import { createNextState } from '@reduxjs/toolkit';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import {
-	ClassifyPopover,
-	expectedBadge
-} from '@/bublik/features/result-classification';
+import { expectedBadge } from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
@@ -74,7 +71,6 @@ export const getColumns = ({
 			id: 'links',
 			cell: (cell) => {
 				const value = cell.getValue();
-				const isFailed = value.has_error || (value.issues?.length ?? 0) > 0;
 
 				return (
 					<div className="flex items-center gap-2 h-full">
@@ -95,12 +91,6 @@ export const getColumns = ({
 								{ref.issue_state === 'closed' ? ' (closed)' : ''}
 							</Badge>
 						))}
-						{isFailed ? (
-							<ClassifyPopover
-								resultId={value.result_id}
-								projectId={value.project_id}
-							/>
-						) : null}
 					</div>
 				);
 			},
