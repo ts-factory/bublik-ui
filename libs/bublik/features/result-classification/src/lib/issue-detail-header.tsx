@@ -10,7 +10,6 @@ import {
 import {
 	Badge,
 	ButtonTw,
-	Icon,
 	Skeleton,
 	Tooltip,
 	cn,
@@ -20,6 +19,7 @@ import { BublikErrorState } from '@/bublik/features/ui-state';
 import { formatTimestampToFull } from '@/shared/utils';
 
 import {
+	CLASSIFICATION_BADGE_CLASS,
 	ISSUE_RULES_STATE_META,
 	formatBugKey,
 	issueRulesState,
@@ -120,17 +120,17 @@ export function IssueDetailHeader({
 					</Tooltip>
 				) : null}
 				<Tooltip content={stateMeta.description}>
-					<Badge className={cn('gap-1', stateMeta.className)}>
-						<Icon name={stateMeta.iconName} size={14} />
+					<Badge
+						className={cn(CLASSIFICATION_BADGE_CLASS, stateMeta.className)}
+					>
 						{stateMeta.label}
 					</Badge>
 				</Tooltip>
 				<Tooltip content={rulesMeta.description}>
 					<Badge
-						className={cn('gap-1', rulesMeta.className)}
+						className={cn(CLASSIFICATION_BADGE_CLASS, rulesMeta.className)}
 						data-rules-state={rulesMeta.value}
 					>
-						<Icon name={rulesMeta.iconName} size={14} />
 						{rules?.length
 							? `${activeCount} of ${rules.length} rules active`
 							: ISSUE_RULES_STATE_META.unruled.label}

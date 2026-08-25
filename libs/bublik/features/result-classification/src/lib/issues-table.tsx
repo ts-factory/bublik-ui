@@ -6,7 +6,6 @@ import {
 	ColumnFiltersState,
 	FilterFn,
 	SortingState,
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -29,7 +28,6 @@ import {
 	Icon,
 	Input,
 	Skeleton,
-	TableSort,
 	Tooltip,
 	cn,
 	toast
@@ -40,6 +38,7 @@ import type { Issue, IssueCategory, IssueRule } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
+	CLASSIFICATION_BADGE_CLASS,
 	ISSUE_RULES_STATE_META,
 	type IssueRulesState,
 	categoryMeta,
@@ -47,6 +46,10 @@ import {
 	issueRulesState,
 	issueStateMeta
 } from './classification-colors';
+import {
+	ClassificationTable,
+	ClassificationToolbar
+} from './classification-table';
 
 const COLUMN_ID = {
 	ISSUE: 'issue',
@@ -245,8 +248,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 
 				return (
 					<Tooltip content={meta.description}>
-						<Badge className={cn('gap-1', meta.className)}>
-							<Icon name={meta.iconName} size={14} />
+						<Badge className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}>
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -273,10 +275,9 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 							return (
 								<Tooltip key={category} content={meta.description}>
 									<Badge
-										className={cn('gap-1', meta.className)}
+										className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
 										data-category={category}
 									>
-										<Icon name={meta.iconName} size={14} />
 										{meta.label}
 									</Badge>
 								</Tooltip>
@@ -300,10 +301,9 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 				return (
 					<Tooltip content={meta.description}>
 						<Badge
-							className={cn('gap-1', meta.className)}
+							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
 							data-rules-state={meta.value}
 						>
-							<Icon name={meta.iconName} size={14} />
 							{ruleCount === 0
 								? meta.label
 								: `${activeRuleCount} of ${ruleCount} active`}
@@ -356,12 +356,6 @@ function IssuesTableLoading() {
 		</div>
 	);
 }
-
-const headerClassName =
-	'px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase text-text-menu';
-
-const cellClassName =
-	'px-4 py-2 text-sm border-t border-b border-transparent first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary';
 
 interface FacetOption {
 	label: string;
@@ -483,8 +477,8 @@ export function IssuesTable() {
 	}
 
 	return (
-		<div className="flex flex-col" data-testid="issues-table">
-			<div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-border-primary">
+		<div className="flex flex-col">
+			<ClassificationToolbar>
 				<Input
 					type="text"
 					placeholder="Search title, description or key"
@@ -541,7 +535,7 @@ export function IssuesTable() {
 							onClick={() => table.resetColumnFilters()}
 							data-testid="issues-reset-filters"
 						>
-							<Icon name="Bin" size={16} className="mr-1.5" />
+							<Icon name="Bin" size={18} className="mr-1.5" />
 							Reset
 						</ButtonTw>
 					</Tooltip>
@@ -549,7 +543,7 @@ export function IssuesTable() {
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
 					{visibleRows.length} of {rows.length} in {scopeLabel}
 				</span>
-			</div>
+			</ClassificationToolbar>
 
 			{visibleRows.length === 0 ? (
 				<BublikEmptyState
@@ -558,74 +552,16 @@ export function IssuesTable() {
 					className="h-64"
 				/>
 			) : (
-				<div className="px-2 pb-2 overflow-x-auto">
-					<table className="min-w-full border-separate border-spacing-y-1">
-						<thead>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<tr key={headerGroup.id} className="h-8.5">
-									{headerGroup.headers.map((header) => {
-										const canSort = header.column.getCanSort();
-
-										return (
-											<th
-												key={header.id}
-												className={cn(
-													headerClassName,
-													header.column.columnDef.meta?.className,
-													canSort && 'cursor-pointer select-none'
-												)}
-												onClick={
-													canSort
-														? header.column.getToggleSortingHandler()
-														: undefined
-												}
-											>
-												<span className="inline-flex items-center gap-1">
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext()
-														  )}
-													{canSort ? (
-														<TableSort
-															sortDescription={header.column.getIsSorted()}
-														/>
-													) : null}
-												</span>
-											</th>
-										);
-									})}
-								</tr>
-							))}
-						</thead>
-						<tbody>
-							{visibleRows.map((row) => (
-								<tr
-									key={row.id}
-									className="group"
-									data-testid="issue-row"
-									data-issue-id={row.original.id}
-									data-issue-state={row.original.state}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<td
-											key={cell.id}
-											className={cn(
-												cellClassName,
-												cell.column.columnDef.meta?.className
-											)}
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</td>
-									))}
-								</tr>
-							))}
-						</tbody>
-					</table>
+				<div className="overflow-x-auto">
+					<ClassificationTable
+						table={table}
+						testId="issues-table"
+						getRowAttributes={(row) => ({
+							'data-testid': 'issue-row',
+							'data-issue-id': row.original.id,
+							'data-issue-state': row.original.state
+						})}
+					/>
 				</div>
 			)}
 		</div>

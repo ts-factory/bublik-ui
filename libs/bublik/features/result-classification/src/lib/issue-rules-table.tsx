@@ -1,12 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
 	ColumnDef,
 	ColumnFiltersState,
 	FilterFn,
 	SortingState,
-	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -27,7 +26,6 @@ import {
 	Icon,
 	Input,
 	Skeleton,
-	TableSort,
 	Tooltip,
 	cn,
 	toast
@@ -37,9 +35,14 @@ import type { IssueRule } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
+	CLASSIFICATION_BADGE_CLASS,
 	categoryMeta,
 	ruleActiveMeta
 } from './classification-colors';
+import {
+	ClassificationTable,
+	ClassificationToolbar
+} from './classification-table';
 import { expectedBadge } from './expected';
 import { chipsForFlags } from './match-scope.utils';
 
@@ -249,10 +252,9 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 				return (
 					<Tooltip content={meta.description}>
 						<Badge
-							className={cn('gap-1', meta.className)}
+							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
 							data-category={row.original.category}
 						>
-							<Icon name={meta.iconName} size={14} />
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -279,7 +281,12 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 								: 'This rule only marks results — it changes no count.'
 						}
 					>
-						<Badge variant={badge.variant}>{badge.label}</Badge>
+						<Badge
+							variant={badge.variant}
+							className={CLASSIFICATION_BADGE_CLASS}
+						>
+							{badge.label}
+						</Badge>
 					</Tooltip>
 				);
 			}
@@ -323,8 +330,7 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 
 				return (
 					<Tooltip content={meta.description}>
-						<Badge className={cn('gap-1', meta.className)}>
-							<Icon name={meta.iconName} size={14} />
+						<Badge className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}>
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -344,12 +350,6 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 		}
 	];
 }
-
-const headerClassName =
-	'px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase text-text-menu';
-
-const cellClassName =
-	'px-4 py-2 text-sm border-t border-b border-transparent first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary';
 
 export interface IssueRulesTableProps {
 	issueId: number;
@@ -454,8 +454,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	}
 
 	return (
-		<div className="flex flex-col" data-testid="issue-rules-table">
-			<div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-border-primary">
+		<div className="flex flex-col">
+			<ClassificationToolbar>
 				<Input
 					type="text"
 					placeholder="Search test"
@@ -512,7 +512,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 							onClick={() => table.resetColumnFilters()}
 							data-testid="issue-rules-reset-filters"
 						>
-							<Icon name="Bin" size={16} className="mr-1.5" />
+							<Icon name="Bin" size={18} className="mr-1.5" />
 							Reset
 						</ButtonTw>
 					</Tooltip>
@@ -520,7 +520,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
 					{rows.length} of {rules.length} rules
 				</span>
-			</div>
+			</ClassificationToolbar>
 
 			{rows.length === 0 ? (
 				<BublikEmptyState
@@ -529,85 +529,17 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					className="h-64"
 				/>
 			) : (
-				<div className="px-2 pb-2 overflow-x-auto">
-					<table className="min-w-full border-separate border-spacing-y-1">
-						<thead>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<tr key={headerGroup.id} className="h-8.5">
-									{headerGroup.headers.map((header) => {
-										const canSort = header.column.getCanSort();
-
-										return (
-											<th
-												key={header.id}
-												className={cn(
-													headerClassName,
-													header.column.columnDef.meta?.className,
-													canSort && 'cursor-pointer select-none'
-												)}
-												onClick={
-													canSort
-														? header.column.getToggleSortingHandler()
-														: undefined
-												}
-											>
-												<span className="inline-flex items-center gap-1">
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext()
-														  )}
-													{canSort ? (
-														<TableSort
-															sortDescription={header.column.getIsSorted()}
-														/>
-													) : null}
-												</span>
-											</th>
-										);
-									})}
-								</tr>
-							))}
-						</thead>
-						<tbody>
-							{rows.map((row) => (
-								<Fragment key={row.id}>
-									<tr
-										className="group"
-										data-testid="issue-rule-row"
-										data-rule-id={row.original.id}
-										data-rule-active={row.original.active ? 'true' : 'false'}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<td
-												key={cell.id}
-												className={cn(
-													cellClassName,
-													cell.column.columnDef.meta?.className
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext()
-												)}
-											</td>
-										))}
-									</tr>
-									{row.getIsExpanded() ? (
-										<tr>
-											<td
-												colSpan={row.getVisibleCells().length}
-												className="border rounded border-border-primary bg-primary-wash/40"
-											>
-												<MatcherDetail rule={row.original} />
-											</td>
-										</tr>
-									) : null}
-								</Fragment>
-							))}
-						</tbody>
-					</table>
+				<div className="overflow-x-auto">
+					<ClassificationTable
+						table={table}
+						testId="issue-rules-table"
+						getRowAttributes={(row) => ({
+							'data-testid': 'issue-rule-row',
+							'data-rule-id': row.original.id,
+							'data-rule-active': row.original.active ? 'true' : 'false'
+						})}
+						renderSubRow={(row) => <MatcherDetail rule={row.original} />}
+					/>
 				</div>
 			)}
 		</div>

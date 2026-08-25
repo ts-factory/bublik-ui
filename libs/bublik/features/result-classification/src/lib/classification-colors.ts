@@ -13,6 +13,14 @@ type IconName = IconProps['name'];
  * still needs a human does not disappear into a wall of red failures.
  */
 
+/**
+ * Classification chips live in dense table cells, so they keep the standard
+ * Badge box and only shrink the label, which is uppercased to read as a status
+ * rather than as content. The meaning lives in the tooltip, not in an icon.
+ */
+export const CLASSIFICATION_BADGE_CLASS =
+	'text-[0.6875rem] leading-[1.125rem] uppercase tracking-wide';
+
 export interface CategoryMeta {
 	value: IssueCategory;
 	/** Short form, for chips inside a table cell. */
