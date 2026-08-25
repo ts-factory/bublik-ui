@@ -57,6 +57,10 @@ body,
 	--colors-text-unexpected: 0 89% 64%;
 	--colors-text-menu: 51 3.1% 43.7%;
 	--colors-text-menu: 211 11% 39%;
+	/* Triage violet: "a human still needs to look at this". Deliberately
+	   outside the red/orange (known-bad) and green (accepted) families so a
+	   wall of failures does not swallow the rows that need attention. */
+	--colors-text-triage: 258 55% 45%;
 
 	/* BACKGROUND */
 	--colors-bg-primary: 0 0% 100%;

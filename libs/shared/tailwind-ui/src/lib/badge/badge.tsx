@@ -12,7 +12,9 @@ export const enum BadgeVariants {
 	Unexpected = 'unexpected',
 	PrimaryActive = 'primary-active',
 	ExpectedActive = 'expected-active',
-	UnexpectedActive = 'unexpected-active'
+	UnexpectedActive = 'unexpected-active',
+	/** "Needs a human" — violet, so triage never blends into a failure. */
+	Triage = 'triage'
 }
 
 export const badgeBaseStyles = cva({
@@ -41,7 +43,8 @@ export const badgeVariantStyles = cva({
 			[BadgeVariants.Expected]: 'text-text-expected bg-badge-3',
 			[BadgeVariants.ExpectedActive]: 'bg-badge-3',
 			[BadgeVariants.Unexpected]: 'bg-bg-fillError text-text-unexpected',
-			[BadgeVariants.UnexpectedActive]: 'bg-bg-fillError'
+			[BadgeVariants.UnexpectedActive]: 'bg-bg-fillError',
+			[BadgeVariants.Triage]: 'text-text-triage bg-badge-2'
 		}
 	}
 });
@@ -55,7 +58,8 @@ export const badgeSelectedStyles = cva({
 			[BadgeVariants.Unexpected]: 'border-text-unexpected',
 			[BadgeVariants.PrimaryActive]: 'text-white bg-primary',
 			[BadgeVariants.ExpectedActive]: 'text-white bg-bg-ok',
-			[BadgeVariants.UnexpectedActive]: 'text-white bg-bg-error'
+			[BadgeVariants.UnexpectedActive]: 'text-white bg-bg-error',
+			[BadgeVariants.Triage]: 'border-text-triage'
 		}
 	}
 });

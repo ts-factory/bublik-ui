@@ -16,13 +16,13 @@ describe('expectedBadge', () => {
 			label: 'Unexpected'
 		});
 	});
-	it('maps null/undefined to none (transparent)', () => {
+	it('maps null/undefined to none (triage violet)', () => {
 		expect(expectedBadge(null)).toEqual({
-			variant: 'transparent',
+			variant: 'triage',
 			label: 'None'
 		});
 		expect(expectedBadge(undefined)).toEqual({
-			variant: 'transparent',
+			variant: 'triage',
 			label: 'None'
 		});
 	});
