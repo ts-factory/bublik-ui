@@ -50,6 +50,8 @@ const LineNumber = (props: { lineNumber: number; id?: string }) => {
 			onClick={() =>
 				context?.onLineNumberClick?.(props.id || '1', props.lineNumber)
 			}
+			data-testid="log-line-number"
+			data-log-line-number={props.lineNumber}
 			className="text-primary hover:underline"
 		>
 			{props.lineNumber}
@@ -177,6 +179,8 @@ export const getColumns = (
 						{canExpand ? (
 							<button
 								onClick={onClick}
+								aria-label={isExpanded ? 'Collapse log row' : 'Expand log row'}
+								data-testid="log-row-expand"
 								className={cn(
 									'flex items-center justify-center size-6 rounded border',
 									isExpanded

@@ -13,6 +13,7 @@ exports[`components/Badge > should display passed background color and override 
 <DocumentFragment>
   <div
     class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-primary-wash border-primary"
+    data-badge-selected=""
     data-testid="tw-badge"
   />
 </DocumentFragment>
@@ -22,6 +23,7 @@ exports[`components/Badge > should display selected variant 1`] = `
 <DocumentFragment>
   <div
     class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-primary-wash border-primary"
+    data-badge-selected=""
     data-testid="tw-badge"
   />
 </DocumentFragment>

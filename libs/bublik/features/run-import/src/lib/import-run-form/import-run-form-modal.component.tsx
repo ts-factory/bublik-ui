@@ -61,6 +61,7 @@ function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 							<ButtonTw
 								variant="ghost"
 								className="absolute top-4 right-4 p-1.5 hover:text-primary text-text-menu"
+								aria-label="Close Import Dialog"
 							>
 								<Icon name="Cross" size={14} />
 							</ButtonTw>

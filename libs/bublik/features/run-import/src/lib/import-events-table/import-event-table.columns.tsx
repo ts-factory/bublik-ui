@@ -219,7 +219,17 @@ export const columns = [
 		header: () => <span className="pl-2.5">Status</span>,
 		cell: (cell) => {
 			const status = cell.getValue();
-			return <StatusBadge status={status} />;
+			const row = cell.row.original;
+			return (
+				<StatusBadge
+					status={status}
+					data-testid="import-event-status"
+					data-job-id={row.job_id}
+					data-run-id={row.run_id ?? ''}
+					data-run-source-url={row.run_source_url}
+					data-status={status}
+				/>
+			);
 		},
 		meta: { width: 'min-content' }
 	}),

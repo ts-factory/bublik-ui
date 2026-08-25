@@ -166,6 +166,7 @@ function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 	return (
 		<div
 			id={RUN_REPORT_TABLE_OF_CONTENTS_ID}
+			data-testid="run-report-toc"
 			className="bg-white flex flex-col rounded"
 		>
 			<CardHeader label="Table Of Contents" />
@@ -203,6 +204,10 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
 			<div
+				data-testid="run-report-toc-item"
+				data-report-item-id={item.id}
+				data-report-item-type={item.type}
+				data-report-item-open={String(open)}
 				className={cn(
 					'flex items-center gap-1 h-[22px] pr-2',
 					// In case of an empty label, hide the item (argument values block might be empty)
@@ -212,7 +217,11 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 			>
 				<div className="border h-full rounded border-transparent px-1 hover:border-primary flex items-center gap-1 w-full">
 					{item.children ? (
-						<CollapsibleTrigger className="grid place-items-center p-0.5 rounded hover:bg-primary-wash hover:text-text-primary">
+						<CollapsibleTrigger
+							data-testid="run-report-toc-toggle"
+							aria-label={`Toggle ${item.label}`}
+							className="grid place-items-center p-0.5 rounded hover:bg-primary-wash hover:text-text-primary"
+						>
 							<Icon
 								name="ChevronDown"
 								className={cn('size-3', open ? '' : '-rotate-90')}
@@ -222,6 +231,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 						<div className="size-4 rounded-full" />
 					)}
 					<LinkWithProject
+						data-testid="run-report-toc-link"
 						to={{
 							search: `?config=${configid}`,
 							hash: encodeURIComponent(item.id)
@@ -653,6 +663,8 @@ function RunReportContentItem({
 	return (
 		<div
 			id={encodeURIComponent(block.id)}
+			data-testid="run-report-test-block"
+			data-report-item-id={block.id}
 			className="flex flex-col bg-white rounded pl-1"
 		>
 			{/* LEVEL 1 */}

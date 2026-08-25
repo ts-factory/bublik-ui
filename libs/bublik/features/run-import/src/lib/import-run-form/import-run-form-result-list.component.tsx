@@ -52,7 +52,13 @@ function RunImportResult({
 					const hasTask = Boolean(task.celery_task_id);
 
 					return (
-						<li key={i} className="space-y-2 p-4">
+						<li
+							key={i}
+							className="space-y-2 p-4"
+							data-testid="import-result-task"
+							data-job-id={task.jobId}
+							data-run-source-url={task.run_source_url ?? ''}
+						>
 							<div className="flex items-center justify-between gap-2">
 								<div className="flex items-center gap-2">
 									<StatusBadge status={hasTask ? 'SUCCESS' : 'FAILURE'} />

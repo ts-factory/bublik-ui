@@ -58,6 +58,8 @@ export const columns: ColumnDef<RunsData>[] = [
 					align="start"
 				>
 					<div
+						data-testid="run-conclusion"
+						data-conclusion={cell.getValue<RUN_STATUS>()}
 						className={`flex flex-col items-center justify-start w-full h-full pt-3 rounded-l ${bg} ${color}`}
 					>
 						{icon}

@@ -133,6 +133,7 @@ function LogFeature(props: LogFeatureProps) {
 								state={isLegacyLog && 'active'}
 								size="xss"
 								onClick={handleLegacyLogToggle}
+								data-testid="log-legacy-toggle"
 							>
 								Legacy Log
 							</ButtonTw>

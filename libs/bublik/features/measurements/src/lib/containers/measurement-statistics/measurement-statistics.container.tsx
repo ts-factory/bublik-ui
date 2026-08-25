@@ -30,7 +30,10 @@ export const MeasurementStatisticsLoading: FC<
 	MeasurementStatisticsLoadingProps
 > = ({ runId, resultId, path }) => {
 	return (
-		<div className="flex-shrink-0 w-full bg-white rounded-md">
+		<div
+			className="flex-shrink-0 w-full bg-white rounded-md"
+			data-testid="measurement-statistics"
+		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
 					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
@@ -123,7 +126,10 @@ export const MeasurementStatisticsContainer: FC = () => {
 	} = data;
 
 	return (
-		<div className="flex-shrink-0 w-full bg-white rounded-md">
+		<div
+			className="flex-shrink-0 w-full bg-white rounded-md"
+			data-testid="measurement-statistics"
+		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
 					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />

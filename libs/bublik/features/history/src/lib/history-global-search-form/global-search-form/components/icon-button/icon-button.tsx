@@ -19,6 +19,7 @@ export const IconButton = ({
 	return (
 		<Tooltip content={helpMessage}>
 			<button
+				aria-label={helpMessage}
 				className={cn(
 					'inline-flex h-7 w-7 items-center justify-center rounded-md text-text-menu hover:bg-primary-wash hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
 					className
