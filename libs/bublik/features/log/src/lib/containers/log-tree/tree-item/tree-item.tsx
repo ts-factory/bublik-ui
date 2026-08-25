@@ -111,6 +111,12 @@ export const TreeItem: FC<TreeItemProps> = memo((props) => {
 						isFocus && 'text-primary bg-primary-wash',
 						isScroll && 'bg-white border-primary'
 					)}
+					data-testid="log-tree-item"
+					data-log-tree-item-id={props.id}
+					data-log-tree-item-entity={entity}
+					data-log-tree-item-focused={isFocus ? 'true' : 'false'}
+					data-log-tree-item-scrolled={isScroll ? 'true' : 'false'}
+					data-log-tree-item-error={hasError ? 'true' : 'false'}
 					style={selectStyles}
 					onClick={onClick}
 				>

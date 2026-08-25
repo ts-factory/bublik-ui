@@ -248,6 +248,8 @@ function TableBadgeModel({
 		return (
 			<div className="flex items-center gap-1">
 				<Badge
+					data-column-id={columnId}
+					data-selected={isActive}
 					variant={variant}
 					isSelected={isActive}
 					onClick={handleClick}
@@ -271,6 +273,8 @@ function TableBadgeModel({
 
 	return (
 		<Badge
+			data-column-id={columnId}
+			data-selected={isActive}
 			variant={variant}
 			isSelected={isActive}
 			onClick={handleClick}

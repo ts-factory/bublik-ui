@@ -55,7 +55,11 @@ function RunReportContainer(props: RunReportContainerProps) {
 
 	if (!blocks || !details) return <RunReportEmpty />;
 
-	return <RunReport runId={Number(runId)} blocks={blocks} details={details} />;
+	return (
+		<div data-testid="run-report-page">
+			<RunReport runId={Number(runId)} blocks={blocks} details={details} />
+		</div>
+	);
 }
 
 export { RunReportContainer };

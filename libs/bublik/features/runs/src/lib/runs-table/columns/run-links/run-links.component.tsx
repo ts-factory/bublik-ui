@@ -14,6 +14,7 @@ export const RunLinks = ({ runId }: RunLinksProps) => {
 		<div className="flex flex-col items-start justify-center gap-1">
 			<ButtonTw asChild variant="secondary" size="xss">
 				<LinkWithProject
+					data-testid="run-log-link"
 					to={routes.log({ runId, mode: LogPageMode.TreeAndLog })}
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -21,7 +22,10 @@ export const RunLinks = ({ runId }: RunLinksProps) => {
 				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.run({ runId })}>
+				<LinkWithProject
+					data-testid="run-details-link"
+					to={routes.run({ runId })}
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</LinkWithProject>

@@ -44,6 +44,8 @@ export const DetailItem = ({
 				{label}
 			</dt>
 			<dd
+				data-testid="run-detail"
+				data-label={label}
 				className={cn(
 					'text-[0.6875rem] font-medium leading-[0.875rem] flex items-center gap-1 group',
 					canCopy && 'cursor-pointer hover:text-primary'

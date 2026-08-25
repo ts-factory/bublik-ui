@@ -111,6 +111,7 @@ export const Badge = forwardRef(
 				onClick={onClick}
 				{...props}
 				data-testid="tw-badge"
+				data-badge-selected={isSelected ? '' : undefined}
 				ref={ref}
 			>
 				{children}

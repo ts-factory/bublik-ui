@@ -48,6 +48,10 @@ export const RunRow = ({
 	return (
 		<Fragment>
 			<tr
+				data-testid="run-row"
+				data-node-type={row.original?.type}
+				data-test-name={row.original?.test_name}
+				data-expanded={isExpanded}
 				className={cn(
 					'[&>*]:hover:bg-gray-50 h-full relative',
 					isExpandedTest &&
@@ -97,7 +101,11 @@ export const RunRow = ({
 			{row.getIsExpanded() && row.original?.type === NodeEntity.Test ? (
 				<tr role="row">
 					<td colSpan={row.getVisibleCells().length} className="p-0 bg-white">
-						<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
+						<div
+							data-testid="run-result-table"
+							data-test-name={row.original?.test_name}
+							style={{ paddingLeft: `${row.depth * 0.8}rem` }}
+						>
 							<ResultTableContainer
 								runId={runId}
 								row={row}

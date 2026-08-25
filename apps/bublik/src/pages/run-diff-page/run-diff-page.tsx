@@ -197,7 +197,7 @@ export const RunDiffPage = () => {
 	}
 
 	return (
-		<div className="p-2">
+		<div className="p-2" data-testid="run-diff-page">
 			<RunDiffHeader leftRunId={leftRunId} rightRunId={rightRunId} />
 			<RunDiffContainer leftRunId={leftRunId} rightRunId={rightRunId} />
 			<ScrollToTopPage offset={158} />

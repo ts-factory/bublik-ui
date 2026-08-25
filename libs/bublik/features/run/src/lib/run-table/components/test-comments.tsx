@@ -184,7 +184,10 @@ function TestComments(props: TestCommentsProps) {
 
 	if (!comments || !comments?.length) {
 		return (
-			<div className="flex items-center gap-1 justify-end pr-2">
+			<div
+				data-testid="run-note-cell"
+				className="flex items-center gap-1 justify-end pr-2"
+			>
 				<Popover>
 					<Tooltip content="Add Node">
 						<PopoverTrigger asChild>
@@ -220,6 +223,7 @@ function TestComments(props: TestCommentsProps) {
 	return (
 		<div
 			key={c.comment_id}
+			data-testid="run-note-cell"
 			className="flex items-center gap-2 justify-end max-w-[15vw] px-2"
 		>
 			<Popover

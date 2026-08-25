@@ -221,6 +221,7 @@ export const TwTable = <T extends Record<string, unknown>>(
 								<div
 									role="cell"
 									key={cell.id}
+									data-column-id={cell.column.id}
 									className={cn(
 										`tw-table-cell tw-table-cell-${cell.column.id}`,
 										isFunction(classNames?.bodyCell)

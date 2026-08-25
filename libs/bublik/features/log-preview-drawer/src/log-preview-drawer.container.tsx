@@ -99,7 +99,10 @@ function LogPreviewContainer(
 			{resultId ? (
 				<DialogPortal>
 					<DrawerContent asChild>
-						<div className="bg-white flex flex-col h-[95vh] w-[80vw]">
+						<div
+							data-testid="log-preview-drawer"
+							className="bg-white flex flex-col h-[95vh] w-[80vw]"
+						>
 							{/* To fetch only on mount. Do not remove check */}
 							{_open ? (
 								<div className="h-full flex flex-col overflow-hidden">
@@ -158,7 +161,11 @@ function LogPreviewContainer(
 												<NewBugContainer runId={runId} resultId={resultId} />
 											) : null}
 											<DialogClose asChild>
-												<ButtonTw variant={'secondary'} size={'xss'}>
+												<ButtonTw
+													variant={'secondary'}
+													size={'xss'}
+													aria-label="Close log preview"
+												>
 													<Icon name="CrossSimple" size={20} />
 												</ButtonTw>
 											</DialogClose>

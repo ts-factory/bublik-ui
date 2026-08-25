@@ -365,6 +365,7 @@ function RunReportStackedChartContainer() {
 	return (
 		<DrawerRoot open={isStackedOpen} onOpenChange={toggleStacked}>
 			<DrawerContent
+				data-testid="run-report-stacked-drawer"
 				className={cn(
 					'bg-white shadow-popover flex flex-col overflow-hidden w-[80vw]'
 				)}

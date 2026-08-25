@@ -272,7 +272,10 @@ const COLUMN_BY_ID = new Map<RunsProgressColumnId, RunsProgressColumn>(
 
 function RunsProgressLoading() {
 	return (
-		<main className="flex flex-col bg-white rounded-md">
+		<main
+			className="flex flex-col bg-white rounded-md"
+			data-testid="runs-progress-loading"
+		>
 			<CardHeader label="Runs Progress" />
 			<Skeleton className="h-[calc(100vh-220px)] rounded-none" />
 		</main>
@@ -657,7 +660,10 @@ function RunsProgress(props: RunsProgressProps) {
 
 	return (
 		<HighlightContext.Provider value={store}>
-			<main className={cn('bg-white rounded-md', isFetching && 'opacity-40')}>
+			<main
+				className={cn('bg-white rounded-md', isFetching && 'opacity-40')}
+				data-testid="runs-progress"
+			>
 				<CardHeader
 					label={
 						<div className="flex items-center gap-3">

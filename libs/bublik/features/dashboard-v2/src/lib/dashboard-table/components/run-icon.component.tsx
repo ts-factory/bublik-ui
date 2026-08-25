@@ -18,6 +18,8 @@ function RunIcon({ runStatus, conclusionReason }: RunStatusIconProps) {
 			side="right"
 		>
 			<div
+				data-testid="run-conclusion"
+				data-conclusion={runStatus}
 				className={`flex items-center z-20 justify-center w-full absolute -top-px -left-px rounded-l-md ${color} ${bg}`}
 				style={{ height: 'calc(100% + 2px)' }}
 			>

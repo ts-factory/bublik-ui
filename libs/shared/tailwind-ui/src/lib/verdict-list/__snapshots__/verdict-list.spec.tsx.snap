@@ -17,6 +17,7 @@ exports[`VerdictList > should highlight selected verdicts 1`] = `
     >
       <div
         class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors overflow-wrap-anywhere text-start bg-primary-wash border-primary"
+        data-badge-selected=""
         data-testid="tw-badge"
       >
         verdict-1

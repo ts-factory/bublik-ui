@@ -43,6 +43,7 @@ function ProjectPickerContainer() {
 		>
 			<Tooltip content="Projects" side="right" sideOffset={14}>
 				<div
+					data-testid="project-picker-trigger"
 					className={cn(
 						'group w-full relative rounded-[0.625rem] py-[7px] cursor-pointer',
 						'hover:bg-primary-wash text-text-menu hover:text-primary',
@@ -87,6 +88,8 @@ function ProjectPickerContainer() {
 				</div>
 			</Tooltip>
 			<div
+				data-testid="project-picker-list"
+				data-state={isOpen && isSidebarOpen ? 'open' : 'closed'}
 				className={cn(
 					'[&>ul]:overflow-hidden grid transition-all transform-gpu ease-in-out motion-reduce:transition-none duration-500',
 					isOpen && isSidebarOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -96,6 +99,8 @@ function ProjectPickerContainer() {
 					<li
 						onClick={() => handleValueChange(undefined)}
 						role="button"
+						data-testid="project-picker-option"
+						data-project-id="all"
 						className={cn(
 							'flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group pl-8 pr-[18px] text-text-menu hover:text-primary group',
 							!projectIds?.length &&
@@ -119,6 +124,8 @@ function ProjectPickerContainer() {
 							<li
 								key={project.id}
 								role="button"
+								data-testid="project-picker-option"
+								data-project-id={project.id}
 								onClick={() => handleValueChange(project.id)}
 								className={cn(
 									'flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group pl-8 pr-[18px] text-text-menu hover:text-primary group',

@@ -89,6 +89,8 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 					<li
 						id={encodeURIComponent(argsValBlock.id)}
 						key={argsValBlock.id}
+						data-testid="run-report-arg-val-block"
+						data-report-item-id={argsValBlock.id}
 						className="relative"
 						data-offset={offsetTop}
 					>
@@ -136,6 +138,8 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 									<li
 										id={encodeURIComponent(measurement.id)}
 										key={measurement.id}
+										data-testid="run-report-measurement-block"
+										data-report-item-id={measurement.id}
 										className="relative"
 										data-offset={headerOffsetTop + offsetTop}
 									>
@@ -336,7 +340,12 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 
 	return (
 		<div className="flex flex-col pl-1" ref={contentRef}>
-			<div className="flex flex-col h-[412px]" id={encodeURIComponent(id)}>
+			<div
+				className="flex flex-col h-[412px]"
+				id={encodeURIComponent(id)}
+				data-testid="run-report-record-block"
+				data-report-item-id={id}
+			>
 				{/* LEVEL 4 */}
 				<CardHeader
 					label={

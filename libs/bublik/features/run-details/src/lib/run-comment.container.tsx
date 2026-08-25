@@ -75,7 +75,10 @@ function RunCommentFormContainer(props: RunCommentFormContainerProps) {
 				<span className="text-text-menu text-[0.6875rem] font-medium leading-[0.875rem] mr-20">
 					Comment
 				</span>
-				<pre className="text-[0.6875rem] font-medium leading-[0.875rem]">
+				<pre
+					data-testid="run-comment-value"
+					className="text-[0.6875rem] font-medium leading-[0.875rem]"
+				>
 					{defaultValues.comment || '—'}
 				</pre>
 				<Tooltip content="Edit Run Comment">

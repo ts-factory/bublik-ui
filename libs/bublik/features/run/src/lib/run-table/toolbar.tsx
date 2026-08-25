@@ -130,7 +130,7 @@ export const Toolbar = ({
 	);
 
 	return (
-		<div className="flex gap-3">
+		<div data-testid="run-table-toolbar" className="flex gap-3">
 			<ColumnsVisibility
 				items={items}
 				onColumnToggle={handleColumnToggle}

@@ -4,6 +4,13 @@ import { FC } from 'react';
 
 import { Skeleton, cn } from '@/shared/tailwind-ui';
 
+export type HistoryLegendItem =
+	| 'runs'
+	| 'iterations'
+	| 'results'
+	| 'expected'
+	| 'unexpected';
+
 export interface HistoryLegendBadgeProps {
 	resultType: 'expected' | 'unexpected';
 }
@@ -56,18 +63,25 @@ export const HistoryLegendCountItemLoading = (
 export interface HistoryLegendCountItemProps {
 	count: number;
 	label: string;
+	item: HistoryLegendItem;
 	resultType?: 'expected' | 'unexpected';
 }
 
 export const HistoryLegendCountItem: FC<HistoryLegendCountItemProps> = (
 	props
 ) => {
-	const { count, label, resultType } = props;
+	const { count, label, item, resultType } = props;
 
 	return (
-		<div className="flex flex-col justify-between gap-1">
+		<div
+			className="flex flex-col justify-between gap-1"
+			data-legend-item={item}
+		>
 			<div className="flex items-center justify-start gap-2">
-				<span className="text-[0.875rem] font-semibold leading-[1.125rem]">
+				<span
+					className="text-[0.875rem] font-semibold leading-[1.125rem]"
+					data-legend-count={item}
+				>
 					{count}
 				</span>
 				{resultType ? <HistoryLegendBadge resultType={resultType} /> : null}
@@ -81,7 +95,7 @@ export const HistoryLegendCountItem: FC<HistoryLegendCountItemProps> = (
 
 export const HistoryLegendCountLoading = () => {
 	return (
-		<div className="flex flex-wrap gap-14">
+		<div className="flex flex-wrap gap-14" data-testid="history-legend-count">
 			<HistoryLegendCountItemLoading label="Runs" />
 			<HistoryLegendCountItemLoading label="Iterations" />
 			<HistoryLegendCountItemLoading label="Test Results" />
@@ -115,16 +129,26 @@ export const HistoryLegendCount = (props: HeaderStatsProps) => {
 	} = props;
 
 	return (
-		<div className="flex flex-wrap gap-14">
-			<HistoryLegendCountItem label="Runs" count={runs} />
-			<HistoryLegendCountItem label="Iterations" count={iterations} />
-			<HistoryLegendCountItem label="Test Results" count={results} />
+		<div className="flex flex-wrap gap-14" data-testid="history-legend-count">
+			<HistoryLegendCountItem item="runs" label="Runs" count={runs} />
 			<HistoryLegendCountItem
+				item="iterations"
+				label="Iterations"
+				count={iterations}
+			/>
+			<HistoryLegendCountItem
+				item="results"
+				label="Test Results"
+				count={results}
+			/>
+			<HistoryLegendCountItem
+				item="expected"
 				label="Expected Results"
 				count={expected}
 				resultType="expected"
 			/>
 			<HistoryLegendCountItem
+				item="unexpected"
 				label="Unexpected Results"
 				count={unexpected}
 				resultType="unexpected"

@@ -374,6 +374,7 @@ function ResultRow(props: ResultRowProps) {
 				return (
 					<div
 						key={cell.id}
+						data-column-id={cell.column.id}
 						onMouseEnter={() => setHovered(true)}
 						onMouseLeave={() => setHovered(false)}
 						className={cn(

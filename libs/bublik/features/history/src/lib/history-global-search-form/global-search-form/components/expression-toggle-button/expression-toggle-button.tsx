@@ -55,6 +55,8 @@ function ExpressionToggleButton(props: ExpressionToggleButtonProps) {
 	return (
 		<Tooltip content={helpMessage}>
 			<button
+				aria-label={helpMessage}
+				aria-expanded={isOpen}
 				className={cn(
 					buttonStyles({ state: isOpen ? 'active' : 'default' }),
 					className
