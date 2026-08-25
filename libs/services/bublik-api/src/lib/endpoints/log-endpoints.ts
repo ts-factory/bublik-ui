@@ -241,6 +241,33 @@ export const fetchJson = async <T = unknown>(
 	throw new Error('Log JSON retry loop finished unexpectedly');
 };
 
+async function fetchPagesCount(
+	id: string | number | null | undefined,
+	api: BaseQueryApi,
+	baseQuery: (
+		arg: Parameters<BublikBaseQueryFn>[0]
+	) => ReturnType<BublikBaseQueryFn>
+): Promise<number | undefined> {
+	if (id === null || id === undefined) return undefined;
+
+	try {
+		const jsonUrl = (await baseQuery(
+			constructJsonUrl({ id })
+		)) as QueryReturnValue<LogUrlResponse>;
+
+		if (jsonUrl.error || !jsonUrl.data) return undefined;
+
+		const firstPage = await fetchJson<RootBlock>(jsonUrl.data.url, api.signal);
+
+		return firstPage.root.find((b) => b.type === 'te-log')?.pagination
+			?.pages_count;
+	} catch (e) {
+		console.error(e);
+
+		return undefined;
+	}
+}
+
 export const logEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
@@ -345,10 +372,11 @@ export const logEndpoints = {
 						? addArtifactsVerdicts(blocksJson, artifactsAndVerdicts.data)
 						: blocksJson;
 
-					const result = fixPagesCountForAllView(
+					const result = await fixPagesCountForAllView(
 						blocksWithAddedVerdictsAndArtifacts,
 						id,
-						api
+						api,
+						() => fetchPagesCount(id, api, baseQuery)
 					);
 
 					return { data: result };
@@ -398,18 +426,10 @@ function addArtifactsVerdicts(
 	});
 }
 
-export function fixPagesCountForAllView(
-	logBlocks: RootBlock,
+export function cachedPagesCount(
 	id: string | number | null | undefined,
 	api: BaseQueryApi
-): RootBlock {
-	const teLog = logBlocks.root.find((b) => b.type === 'te-log');
-
-	// Only fix when pages_count is 0 (ALL PAGES)
-	if (!teLog?.pagination || teLog.pagination.pages_count !== 0) {
-		return logBlocks;
-	}
-
+): number | undefined {
 	const state = api.getState() as {
 		bublikApi?: {
 			queries?: Record<
@@ -420,8 +440,6 @@ export function fixPagesCountForAllView(
 	};
 	const queries = state?.bublikApi?.queries ?? {};
 
-	// Find cached query for same id with valid pages_count
-	let cachedPagesCount: number | undefined;
 	for (const key of Object.keys(queries)) {
 		if (!key.startsWith('getLogJson')) continue;
 
@@ -438,19 +456,34 @@ export function fixPagesCountForAllView(
 			cachedTeLog?.pagination?.pages_count &&
 			cachedTeLog.pagination.pages_count > 0
 		) {
-			cachedPagesCount = cachedTeLog.pagination.pages_count;
-			break;
+			return cachedTeLog.pagination.pages_count;
 		}
 	}
 
-	if (cachedPagesCount) {
-		return createNextState(logBlocks, (draft) => {
-			const teLogDraft = draft.root.find((b) => b.type === 'te-log');
-			if (teLogDraft?.pagination) {
-				teLogDraft.pagination.pages_count = cachedPagesCount;
-			}
-		});
+	return undefined;
+}
+
+export async function fixPagesCountForAllView(
+	logBlocks: RootBlock,
+	id: string | number | null | undefined,
+	api: BaseQueryApi,
+	readPagesCount: () => Promise<number | undefined>
+): Promise<RootBlock> {
+	const teLog = logBlocks.root.find((b) => b.type === 'te-log');
+
+	// Only fix when pages_count is 0 (ALL PAGES)
+	if (!teLog?.pagination || teLog.pagination.pages_count !== 0) {
+		return logBlocks;
 	}
 
-	return logBlocks;
+	const pagesCount = cachedPagesCount(id, api) ?? (await readPagesCount());
+
+	if (!pagesCount || pagesCount <= 0) return logBlocks;
+
+	return createNextState(logBlocks, (draft) => {
+		const teLogDraft = draft.root.find((b) => b.type === 'te-log');
+		if (teLogDraft?.pagination) {
+			teLogDraft.pagination.pages_count = pagesCount;
+		}
+	});
 }
