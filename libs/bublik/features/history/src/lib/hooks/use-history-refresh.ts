@@ -67,9 +67,6 @@ const globalFilterToQueryAdapter = (
 		return '';
 	};
 
-	console.log('PARAMS', parameters, query.parameters);
-	console.log('FINAL', mergeWithPriority(parameters, query.parameters));
-
 	return {
 		...query,
 		results: getResultType().join(';'),
