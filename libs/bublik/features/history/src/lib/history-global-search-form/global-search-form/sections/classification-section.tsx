@@ -20,9 +20,8 @@ const CATEGORY_OPTIONS: { value: string; label: string }[] = [
 ];
 
 /**
- * Control for the `issue` param. It was reachable only by deep link before —
- * `/runs/:runId/issues` links to `/history?issue=N` — which left the user
- * unable to see, change or clear the filter they had landed in.
+ * Control for the `issue` param, which is otherwise reachable only by deep
+ * link — and a deep link the user cannot see, change or clear is a dead end.
  */
 const IssueField = () => {
 	const { control } = useFormContext<HistoryGlobalSearchFormValues>();

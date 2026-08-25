@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
 	ColumnFiltersState,
 	FilterFn,
 	SortingState,
-	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -24,7 +23,6 @@ import {
 	Icon,
 	Input,
 	Skeleton,
-	TableSort,
 	Tooltip,
 	cn
 } from '@/shared/tailwind-ui';
@@ -33,6 +31,7 @@ import type { IssueCategory, RunIssueRow } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
+	CLASSIFICATION_BADGE_CLASS,
 	RUN_ISSUE_EFFECT_META,
 	type RunIssueEffect,
 	aggregateExpected,
@@ -41,6 +40,10 @@ import {
 	issueStateMeta,
 	runIssueEffect
 } from './classification-colors';
+import {
+	ClassificationTable,
+	ClassificationToolbar
+} from './classification-table';
 import { expectedBadge } from './expected';
 import { RunIssueResults } from './run-issue-results';
 
@@ -57,8 +60,7 @@ const COLUMN_ID = {
 	CATEGORIES: 'categories',
 	DISPOSITION: 'disposition',
 	EFFECT: 'effect',
-	RESULTS: 'result_count',
-	ACTIONS: 'actions'
+	RESULTS: 'result_count'
 } as const;
 
 const EFFECT_ORDER: RunIssueEffect[] = [
@@ -114,10 +116,9 @@ function CategoryChips({ categories }: CategoryChipsProps) {
 				return (
 					<Tooltip key={category} content={meta.description}>
 						<Badge
-							className={cn('gap-1', meta.className)}
+							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
 							data-category={category}
 						>
-							<Icon name={meta.iconName} size={14} />
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -127,7 +128,7 @@ function CategoryChips({ categories }: CategoryChipsProps) {
 	);
 }
 
-function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
+function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.EXPANDER,
@@ -159,12 +160,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 		{
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.bug_key ?? `#${row.issue_id}`,
-			header: () => (
-				<span className="inline-flex items-center gap-1">
-					<Icon name="TriangleExclamationMark" size={14} />
-					Issue
-				</span>
-			),
+			header: 'Issue',
 			meta: { className: 'w-44' },
 			filterFn: searchFilter,
 			cell: ({ row }) => {
@@ -215,7 +211,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-28' },
+			meta: { className: 'w-24' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => {
@@ -223,8 +219,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 
 				return (
 					<Tooltip content={meta.description}>
-						<Badge className={cn('gap-1', meta.className)}>
-							<Icon name={meta.iconName} size={14} />
+						<Badge className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}>
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -235,7 +230,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories.map((c) => c.category),
 			header: 'Categories',
-			meta: { className: 'w-64' },
+			meta: { className: 'w-56' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <CategoryChips categories={row.original.categories} />
@@ -244,7 +239,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.DISPOSITION,
 			accessorFn: (row) => aggregateExpected(row.categories),
 			header: 'Disposition',
-			meta: { className: 'w-32' },
+			meta: { className: 'w-28' },
 			enableSorting: false,
 			cell: ({ row }) => {
 				const expected = aggregateExpected(row.original.categories);
@@ -260,7 +255,12 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 								: 'The rules set no disposition, so nothing changes.'
 						}
 					>
-						<Badge variant={badge.variant}>{badge.label}</Badge>
+						<Badge
+							variant={badge.variant}
+							className={CLASSIFICATION_BADGE_CLASS}
+						>
+							{badge.label}
+						</Badge>
 					</Tooltip>
 				);
 			}
@@ -269,7 +269,7 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.EFFECT,
 			accessorFn: (row) => runIssueEffect(row).value,
 			header: 'Effect on run',
-			meta: { className: 'w-40' },
+			meta: { className: 'w-36' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => {
@@ -278,10 +278,9 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 				return (
 					<Tooltip content={meta.description}>
 						<Badge
-							className={cn('gap-1', meta.className)}
+							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
 							data-effect={meta.value}
 						>
-							<Icon name={meta.iconName} size={14} />
 							{meta.label}
 						</Badge>
 					</Tooltip>
@@ -304,27 +303,6 @@ function getColumns(runId: number | string): ColumnDef<RunIssueRow, unknown>[] {
 					{row.original.result_count}
 				</button>
 			)
-		},
-		{
-			id: COLUMN_ID.ACTIONS,
-			header: () => <span className="sr-only">Actions</span>,
-			meta: { className: 'w-28' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<div className="flex items-center justify-end gap-2">
-					<Tooltip content="See every result of this issue across all runs">
-						<ButtonTw asChild variant="secondary" size="xss">
-							<LinkWithProject
-								to={`/history?issue=${row.original.issue_id}`}
-								data-testid="run-issue-history-link"
-							>
-								<Icon name="LineChart" size={14} className="mr-1.5" />
-								History
-							</LinkWithProject>
-						</ButtonTw>
-					</Tooltip>
-				</div>
-			)
 		}
 	];
 }
@@ -338,12 +316,6 @@ export function RunIssuesTableLoading() {
 		</div>
 	);
 }
-
-const headerClassName =
-	'px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase text-text-menu';
-
-const cellClassName =
-	'px-4 py-2 text-sm border-t border-b border-transparent first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary';
 
 interface FacetOption {
 	label: string;
@@ -407,7 +379,7 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 	]);
 
 	const issues = useMemo(() => data ?? [], [data]);
-	const columns = useMemo(() => getColumns(runId), [runId]);
+	const columns = useMemo(() => getColumns(), []);
 	const { stateOptions, effectOptions, categoryOptions } =
 		useFacetOptions(issues);
 
@@ -455,8 +427,8 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 	}
 
 	return (
-		<div className="flex flex-col" data-testid="run-issues-table">
-			<div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-border-primary">
+		<div className="flex flex-col">
+			<ClassificationToolbar>
 				<Input
 					type="text"
 					placeholder="Search title or key"
@@ -513,7 +485,7 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 							onClick={() => table.resetColumnFilters()}
 							data-testid="run-issues-reset-filters"
 						>
-							<Icon name="Bin" size={16} className="mr-1.5" />
+							<Icon name="Bin" size={18} className="mr-1.5" />
 							Reset
 						</ButtonTw>
 					</Tooltip>
@@ -521,7 +493,7 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
 					{rows.length} of {issues.length} issues
 				</span>
-			</div>
+			</ClassificationToolbar>
 
 			{rows.length === 0 ? (
 				<BublikEmptyState
@@ -530,89 +502,23 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 					className="h-64"
 				/>
 			) : (
-				<div className="px-2 pb-2 overflow-x-auto">
-					<table className="min-w-full border-separate border-spacing-y-1">
-						<thead>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<tr key={headerGroup.id} className="h-8.5">
-									{headerGroup.headers.map((header) => {
-										const canSort = header.column.getCanSort();
-
-										return (
-											<th
-												key={header.id}
-												className={cn(
-													headerClassName,
-													header.column.columnDef.meta?.className,
-													canSort && 'cursor-pointer select-none'
-												)}
-												onClick={
-													canSort
-														? header.column.getToggleSortingHandler()
-														: undefined
-												}
-											>
-												<span className="inline-flex items-center gap-1">
-													{header.isPlaceholder
-														? null
-														: flexRender(
-																header.column.columnDef.header,
-																header.getContext()
-														  )}
-													{canSort ? (
-														<TableSort
-															sortDescription={header.column.getIsSorted()}
-														/>
-													) : null}
-												</span>
-											</th>
-										);
-									})}
-								</tr>
-							))}
-						</thead>
-						<tbody>
-							{rows.map((row) => (
-								<Fragment key={row.id}>
-									<tr
-										className="group"
-										data-testid="run-issue-row"
-										data-issue-id={row.original.issue_id}
-										data-issue-state={row.original.state}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<td
-												key={cell.id}
-												className={cn(
-													cellClassName,
-													cell.column.columnDef.meta?.className
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext()
-												)}
-											</td>
-										))}
-									</tr>
-									{row.getIsExpanded() ? (
-										<tr>
-											<td
-												colSpan={row.getVisibleCells().length}
-												className="border rounded border-border-primary bg-primary-wash/40"
-											>
-												<RunIssueResults
-													runId={runId}
-													issueId={row.original.issue_id}
-													projectId={projectId}
-												/>
-											</td>
-										</tr>
-									) : null}
-								</Fragment>
-							))}
-						</tbody>
-					</table>
+				<div className="overflow-x-auto">
+					<ClassificationTable
+						table={table}
+						testId="run-issues-table"
+						getRowAttributes={(row) => ({
+							'data-testid': 'run-issue-row',
+							'data-issue-id': row.original.issue_id,
+							'data-issue-state': row.original.state
+						})}
+						renderSubRow={(row) => (
+							<RunIssueResults
+								runId={runId}
+								issueId={row.original.issue_id}
+								projectId={projectId}
+							/>
+						)}
+					/>
 				</div>
 			)}
 		</div>

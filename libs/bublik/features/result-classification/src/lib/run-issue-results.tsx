@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useMemo } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
+import {
+	ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table';
 
 import { useGetRunIssueResultsQuery } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { Badge, Icon, Skeleton } from '@/shared/tailwind-ui';
+import { HistoryLinkContainer } from '@/bublik/features/history-link';
+import { Icon, Skeleton, VerdictList } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
-import type { RunIssueResultRow } from '@/shared/types';
+import type { RESULT_TYPE, RunIssueResultRow } from '@/shared/types';
+
+import { ClassificationTable } from './classification-table';
 
 interface RunIssueResultsProps {
 	runId: number | string;
@@ -14,22 +25,106 @@ interface RunIssueResultsProps {
 	projectId?: number;
 }
 
-function groupByPath(
-	rows: RunIssueResultRow[]
-): { path: string; rows: RunIssueResultRow[] }[] {
-	const groups = new Map<string, RunIssueResultRow[]>();
+interface ResultLinksProps {
+	runId: number | string;
+	row: RunIssueResultRow;
+}
 
-	for (const row of rows) {
-		const key = row.path.join(' / ');
-		const existing = groups.get(key);
-		if (existing) existing.push(row);
-		else groups.set(key, [row]);
-	}
+/**
+ * The same vertical link stack the run's result table uses, so a result found
+ * through an issue offers the same next steps as one found through the tree.
+ *
+ * History goes through `HistoryLinkContainer`, which resolves the result's own
+ * test path and parameters. A link built from the issue alone lands on an empty
+ * history page, because an issue is not a query.
+ */
+function ResultLinks({ runId, row }: ResultLinksProps) {
+	return (
+		<ul className="flex flex-col items-start gap-3 py-1 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
+			<li className="pl-2">
+				<LinkWithProject
+					className="flex items-center w-full gap-1"
+					to={routes.run({ runId, targetIterationId: row.result_id })}
+				>
+					<Icon name="Paper" className="size-5" />
+					Run {runId}
+				</LinkWithProject>
+			</li>
+			<li className="pl-2">
+				<LinkWithProject
+					className="flex items-center w-full gap-1"
+					to={routes.log({ runId, focusId: row.result_id })}
+				>
+					<Icon name="BoxArrowRight" className="grid place-items-center" />
+					Log
+				</LinkWithProject>
+			</li>
+			<li className="pl-0.5">
+				<HistoryLinkContainer
+					runId={Number(runId)}
+					resultId={row.result_id}
+					path={row.path.length ? row.path.join('/') : undefined}
+				/>
+			</li>
+		</ul>
+	);
+}
 
-	return Array.from(groups.entries()).map(([path, groupRows]) => ({
-		path,
-		rows: groupRows
-	}));
+function getColumns(
+	runId: number | string
+): ColumnDef<RunIssueResultRow, unknown>[] {
+	return [
+		{
+			id: 'links',
+			header: 'Actions',
+			meta: { className: 'w-[168px]' },
+			enableSorting: false,
+			cell: ({ row }) => <ResultLinks runId={runId} row={row.original} />
+		},
+		{
+			id: 'name',
+			accessorFn: (row) => row.name ?? '',
+			header: 'Test',
+			meta: { className: 'w-64' },
+			cell: ({ row }) => (
+				<span className="font-medium text-text-primary">
+					{row.original.name ?? '-'}
+				</span>
+			)
+		},
+		{
+			id: 'obtained',
+			accessorFn: (row) => row.obtained_result ?? '',
+			header: 'Obtained Result',
+			enableSorting: false,
+			cell: ({ row }) => {
+				const { obtained_result, verdicts } = row.original;
+
+				if (!obtained_result) return <span className="text-text-menu">-</span>;
+
+				return (
+					<VerdictList
+						variant="obtained"
+						result={obtained_result as RESULT_TYPE}
+						verdicts={verdicts}
+						isNotExpected
+					/>
+				);
+			}
+		},
+		{
+			id: 'path',
+			accessorFn: (row) => row.path.join(' / '),
+			header: 'Package',
+			meta: { className: 'w-72' },
+			cell: ({ row }) => (
+				<span className="flex items-center gap-1 text-text-menu">
+					<Icon name="Folder" size={14} className="shrink-0" />
+					{row.original.path.join(' / ') || '(root)'}
+				</span>
+			)
+		}
+	];
 }
 
 export function RunIssueResults({
@@ -43,72 +138,44 @@ export function RunIssueResults({
 		projectId === undefined ? skipToken : { runId, issueId, projectId }
 	);
 
+	const results = useMemo(() => data ?? [], [data]);
+	const columns = useMemo(() => getColumns(runId), [runId]);
+
+	const table = useReactTable({
+		data: results,
+		columns,
+		getRowId: (row) => String(row.result_id),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	});
+
 	// projectId undefined => query skipped, so isLoading is false. Keep the
 	// skeleton up rather than flashing an empty list.
 	if (isLoading || projectId === undefined) {
 		return (
-			<div className="flex flex-col gap-1 py-2">
+			<div className="flex flex-col gap-1 p-2">
 				{Array.from({ length: 3 }, () => 0).map((_, idx) => (
-					<Skeleton key={idx} className="h-8 rounded-md" />
+					<Skeleton key={idx} className="h-10 rounded-md" />
 				))}
 			</div>
 		);
 	}
 
-	if (error) {
-		return <BublikErrorState error={error} className="py-4" />;
-	}
+	if (error) return <BublikErrorState error={error} className="py-4" />;
 
-	const results = data ?? [];
-
-	if (results.length === 0) {
+	if (!results.length) {
 		return <div className="px-4 py-3 text-sm text-text-menu">No results</div>;
 	}
 
-	const groups = groupByPath(results);
-
 	return (
-		<div
-			className="flex flex-col gap-3 px-4 py-3"
-			data-testid="run-issue-results"
-		>
-			{groups.map((group) => (
-				<div key={group.path} className="flex flex-col gap-1">
-					<div className="flex items-center gap-1 text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
-						<Icon name="Folder" size={14} />
-						{group.path || '(root)'}
-					</div>
-					<ul className="flex flex-col gap-0.5">
-						{group.rows.map((row) => (
-							<li
-								data-testid="run-issue-result-row"
-								data-result-id={row.result_id}
-								key={row.result_id}
-								className="flex items-center gap-3 px-2 py-1 text-sm rounded hover:bg-primary-wash"
-							>
-								<span className="font-medium text-text-primary">
-									{row.name ?? '-'}
-								</span>
-								{row.obtained_result ? (
-									<Badge variant="unexpected">{row.obtained_result}</Badge>
-								) : null}
-								{row.verdicts.length ? (
-									<span className="text-text-menu">
-										{row.verdicts.join(', ')}
-									</span>
-								) : null}
-								<LinkWithProject
-									to={routes.log({ runId, focusId: row.result_id })}
-									className="inline-flex items-center gap-1 ml-auto hover:text-primary hover:underline"
-								>
-									<Icon name="BoxArrowRight" size={14} />
-									Log
-								</LinkWithProject>
-							</li>
-						))}
-					</ul>
-				</div>
-			))}
+		<div className="pl-8" data-testid="run-issue-results">
+			<ClassificationTable
+				table={table}
+				getRowAttributes={(row) => ({
+					'data-testid': 'run-issue-result-row',
+					'data-result-id': row.original.result_id
+				})}
+			/>
 		</div>
 	);
 }
