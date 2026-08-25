@@ -212,6 +212,80 @@ export function runIssueEffect(issue: RunIssueRow): RunIssueEffectMeta {
 	return RUN_ISSUE_EFFECT_META.marked;
 }
 
+/**
+ * Whether an issue's rules are actually doing anything.
+ *
+ * `dormant` is the one that matters: `reopen` is not the inverse of `close`.
+ * Closing an issue deactivates its rules, and reopening it does *not* switch
+ * them back on, so a reopened issue silently stops matching anything.
+ */
+export type IssueRulesState =
+	| 'enforced'
+	| 'dormant'
+	| 'deactivated'
+	| 'unruled';
+
+export interface IssueRulesStateMeta {
+	value: IssueRulesState;
+	label: string;
+	description: string;
+	className: string;
+	iconName: IconName;
+}
+
+export const ISSUE_RULES_STATE_META: Record<
+	IssueRulesState,
+	IssueRulesStateMeta
+> = {
+	enforced: {
+		value: 'enforced',
+		label: 'Active',
+		description:
+			'This issue has active rules, so future imports will keep matching results to it.',
+		className: 'bg-badge-3 text-text-expected',
+		iconName: 'InformationCircleCheckmark'
+	},
+	dormant: {
+		value: 'dormant',
+		label: 'No active rules',
+		description:
+			'The issue is open but none of its rules are active. Reopening an issue does not re-activate the rules that closing it deactivated — enable them by hand.',
+		className: 'bg-badge-2 text-text-triage',
+		iconName: 'TriangleQuestionMark'
+	},
+	deactivated: {
+		value: 'deactivated',
+		label: 'Deactivated',
+		description:
+			'Closing the issue deactivated its rules, so nothing new will be matched to it.',
+		className: 'bg-badge-14 text-text-primary',
+		iconName: 'InformationCircleStop'
+	},
+	unruled: {
+		value: 'unruled',
+		label: 'No rules',
+		description:
+			'This issue has no rules yet. Rules are created by classifying a result, never on their own.',
+		className: 'bg-badge-0 text-text-menu',
+		iconName: 'InformationCircleQuestionMark'
+	}
+};
+
+export function issueRulesState(input: {
+	state: IssueState;
+	total: number;
+	active: number;
+}): IssueRulesStateMeta {
+	const { state, total, active } = input;
+
+	if (total === 0) return ISSUE_RULES_STATE_META.unruled;
+	if (active > 0) return ISSUE_RULES_STATE_META.enforced;
+
+	return state === 'closed'
+		? ISSUE_RULES_STATE_META.deactivated
+		: ISSUE_RULES_STATE_META.dormant;
+}
+
 /** Strips the `ref://TRACKER/` prefix so chips show `FOO-123`, not the URI. */
 export function formatBugKey(bugKey: string | null): string | null {
 	if (!bugKey) return null;

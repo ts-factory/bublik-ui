@@ -9,6 +9,7 @@ import {
 	aggregateExpected,
 	categoryMeta,
 	formatBugKey,
+	issueRulesState,
 	issueStateMeta,
 	runIssueEffect
 } from './classification-colors';
@@ -106,6 +107,32 @@ describe('issueStateMeta', () => {
 	it('warns that a closed issue stops suppressing', () => {
 		expect(issueStateMeta('closed').description).toMatch(
 			/no longer suppressed/
+		);
+	});
+});
+
+describe('issueRulesState', () => {
+	it('is enforced while any rule is active', () => {
+		expect(issueRulesState({ state: 'open', total: 3, active: 1 }).value).toBe(
+			'enforced'
+		);
+	});
+
+	it('flags an open issue whose rules are all off — reopen does not re-activate', () => {
+		expect(issueRulesState({ state: 'open', total: 3, active: 0 }).value).toBe(
+			'dormant'
+		);
+	});
+
+	it('treats the same shape on a closed issue as expected, not a warning', () => {
+		expect(
+			issueRulesState({ state: 'closed', total: 3, active: 0 }).value
+		).toBe('deactivated');
+	});
+
+	it('reports no rules before anything has been classified', () => {
+		expect(issueRulesState({ state: 'open', total: 0, active: 0 }).value).toBe(
+			'unruled'
 		);
 	});
 });
