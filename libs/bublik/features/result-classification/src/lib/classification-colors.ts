@@ -271,6 +271,31 @@ export const ISSUE_RULES_STATE_META: Record<
 	}
 };
 
+/**
+ * A single rule's lifecycle flag. Inactive is grey, not red: a deactivated
+ * rule is a deliberate state, not a failure.
+ */
+export function ruleActiveMeta(active: boolean): IssueRulesStateMeta {
+	if (active) {
+		return {
+			value: 'enforced',
+			label: 'Active',
+			description: 'This rule is applied to every future import.',
+			className: 'bg-badge-3 text-text-expected',
+			iconName: 'InformationCircleCheckmark'
+		};
+	}
+
+	return {
+		value: 'deactivated',
+		label: 'Inactive',
+		description:
+			'This rule matches nothing new. Existing stamps it already laid down are left alone.',
+		className: 'bg-badge-0 text-text-menu',
+		iconName: 'InformationCircleStop'
+	};
+}
+
 export function issueRulesState(input: {
 	state: IssueState;
 	total: number;
