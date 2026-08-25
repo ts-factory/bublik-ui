@@ -1,5 +1,7 @@
 export { ClassifyPopover } from './lib/classify-popover';
 export type { ClassifyPopoverProps } from './lib/classify-popover';
+export { ClassifyResultContainer } from './lib/classify-result.container';
+export type { ClassifyResultContainerProps } from './lib/classify-result.container';
 export {
 	CATEGORY_OPTIONS,
 	defaultExpectedFor,

@@ -36,6 +36,7 @@ import {
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
+import { ClassifyResultContainer } from '@/bublik/features/result-classification';
 import { RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -157,6 +158,12 @@ function LogPreviewContainer(
 											{resultId && runId ? (
 												<NewBugContainer runId={runId} resultId={resultId} />
 											) : null}
+											{/* Triage happens here — you open the preview to read the
+											    failure, so you should be able to classify without leaving it. */}
+											<ClassifyResultContainer
+												resultId={resultId}
+												runId={runId}
+											/>
 											<DialogClose asChild>
 												<ButtonTw variant={'secondary'} size={'xss'}>
 													<Icon name="CrossSimple" size={20} />
