@@ -42,6 +42,7 @@ export function IssuePicker({ projectId, value, onChange }: IssuePickerProps) {
 				onChange={(e) => setQuery(e.target.value)}
 				placeholder="Search issue by key or title…"
 				className="px-3 py-2 text-sm border-b outline-none border-border-primary placeholder:text-text-menu"
+				data-testid="issue-picker-input"
 			/>
 			<div className="overflow-y-auto max-h-48">
 				{isFetching ? (
@@ -64,6 +65,9 @@ export function IssuePicker({ projectId, value, onChange }: IssuePickerProps) {
 						type="button"
 						key={o.id}
 						onClick={() => onChange(o.id)}
+						data-testid="issue-picker-option"
+						data-issue-id={o.id}
+						data-selected={value === o.id ? 'true' : 'false'}
 						className={cn(
 							'flex w-full items-center px-3 py-2 text-sm text-left hover:bg-primary-wash',
 							value === o.id && 'bg-primary-wash font-semibold'

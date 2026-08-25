@@ -68,7 +68,10 @@ export function RunIssueResults({
 	const groups = groupByPath(results);
 
 	return (
-		<div className="flex flex-col gap-3 px-4 py-3">
+		<div
+			className="flex flex-col gap-3 px-4 py-3"
+			data-testid="run-issue-results"
+		>
 			{groups.map((group) => (
 				<div key={group.path} className="flex flex-col gap-1">
 					<div className="flex items-center gap-1 text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
@@ -78,6 +81,8 @@ export function RunIssueResults({
 					<ul className="flex flex-col gap-0.5">
 						{group.rows.map((row) => (
 							<li
+								data-testid="run-issue-result-row"
+								data-result-id={row.result_id}
 								key={row.result_id}
 								className="flex items-center gap-3 px-2 py-1 text-sm rounded hover:bg-primary-wash"
 							>

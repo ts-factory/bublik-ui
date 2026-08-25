@@ -37,6 +37,7 @@ export function ClassifyDrawer({
 			<DrawerContent
 				portal
 				className="z-[55] w-[28rem] max-w-[90vw] flex flex-col"
+				data-testid="classify-drawer"
 			>
 				<div className="flex items-center justify-between px-5 py-4 border-b border-border-primary">
 					<span className="text-base font-semibold">Classify failure</span>

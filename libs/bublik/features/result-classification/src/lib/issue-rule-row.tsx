@@ -55,7 +55,12 @@ export function IssueRuleRow({ rule, projectId }: IssueRuleRowProps) {
 	const exp = expectedBadge(rule.expected);
 
 	return (
-		<tr className="group">
+		<tr
+			className="group"
+			data-testid="issue-rule-row"
+			data-rule-id={rule.id}
+			data-rule-active={rule.active ? 'true' : 'false'}
+		>
 			<td className={cn(cellClassName, 'font-medium text-text-primary')}>
 				{rule.test_name}
 			</td>
@@ -87,6 +92,7 @@ export function IssueRuleRow({ rule, projectId }: IssueRuleRowProps) {
 						size="xss"
 						state={isBusy ? 'loading' : 'default'}
 						onClick={toggleActive}
+						data-testid="issue-rule-toggle"
 					>
 						{rule.active ? 'Disable' : 'Enable'}
 					</ButtonTw>

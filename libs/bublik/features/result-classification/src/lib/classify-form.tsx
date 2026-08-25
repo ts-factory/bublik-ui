@@ -98,33 +98,37 @@ export function ClassifyFields({
 
 	return (
 		<>
-			<Controller
-				control={control}
-				name="mode"
-				render={({ field }) => (
-					<SelectInput
-						label="Issue"
-						value={field.value}
-						onValueChange={field.onChange}
-						name={field.name}
-						options={[
-							{ value: 'new', displayValue: 'New issue' },
-							{ value: 'existing', displayValue: 'Existing issue' }
-						]}
-					/>
-				)}
-			/>
+			<div data-testid="classify-mode">
+				<Controller
+					control={control}
+					name="mode"
+					render={({ field }) => (
+						<SelectInput
+							label="Issue"
+							value={field.value}
+							onValueChange={field.onChange}
+							name={field.name}
+							options={[
+								{ value: 'new', displayValue: 'New issue' },
+								{ value: 'existing', displayValue: 'Existing issue' }
+							]}
+						/>
+					)}
+				/>
+			</div>
 
 			{mode === 'new' ? (
 				<>
 					<Input
 						label="Title"
 						placeholder="Short label"
+						data-testid="classify-title"
 						{...register('title')}
 					/>
 					<Input
 						label="Bug key (optional)"
 						placeholder="ref://JIRA/ISSUE-123"
+						data-testid="classify-bug-key"
 						{...register('bugKey')}
 					/>
 				</>
@@ -142,54 +146,63 @@ export function ClassifyFields({
 				/>
 			)}
 
-			<Controller
-				control={control}
-				name="category"
-				render={({ field }) => (
-					<SelectInput
-						label="Category"
-						value={field.value}
-						onValueChange={field.onChange}
-						name={field.name}
-						options={CATEGORY_OPTIONS}
-					/>
-				)}
-			/>
+			<div data-testid="classify-category">
+				<Controller
+					control={control}
+					name="category"
+					render={({ field }) => (
+						<SelectInput
+							label="Category"
+							value={field.value}
+							onValueChange={field.onChange}
+							name={field.name}
+							options={CATEGORY_OPTIONS}
+						/>
+					)}
+				/>
+			</div>
 
-			<Controller
-				control={control}
-				name="expected"
-				render={({ field }) => (
-					<SelectInput
-						label="Expected"
-						value={field.value}
-						onValueChange={field.onChange}
-						name={field.name}
-						options={[
-							{ value: 'none', displayValue: "Don't change" },
-							{ value: 'expected', displayValue: 'Expected' },
-							{ value: 'unexpected', displayValue: 'Unexpected' }
-						]}
-					/>
-				)}
-			/>
+			<div data-testid="classify-expected">
+				<Controller
+					control={control}
+					name="expected"
+					render={({ field }) => (
+						<SelectInput
+							label="Expected"
+							value={field.value}
+							onValueChange={field.onChange}
+							name={field.name}
+							options={[
+								{ value: 'none', displayValue: "Don't change" },
+								{ value: 'expected', displayValue: 'Expected' },
+								{ value: 'unexpected', displayValue: 'Unexpected' }
+							]}
+						/>
+					)}
+				/>
+			</div>
 
-			<Controller
-				control={control}
-				name="scope"
-				render={({ field }) => (
-					<SelectInput
-						label="Apply to"
-						value={field.value}
-						onValueChange={field.onChange}
-						name={field.name}
-						options={[
-							{ value: 'future', displayValue: 'This + future matching runs' },
-							{ value: 'oneoff', displayValue: 'Just this result' }
-						]}
-					/>
-				)}
-			/>
+			<div data-testid="classify-scope">
+				<Controller
+					control={control}
+					name="scope"
+					render={({ field }) => (
+						<SelectInput
+							label="Apply to"
+							value={field.value}
+							onValueChange={field.onChange}
+							name={field.name}
+							options={[
+								{
+									value: 'future',
+									displayValue: 'This + future matching runs'
+								},
+								{ value: 'oneoff', displayValue: 'Just this result' }
+							]}
+						/>
+					)}
+				/>
+			</div>
 		</>
 	);
 }

@@ -49,7 +49,12 @@ function IssueRow({ issue, projectId }: IssueRowProps) {
 	}
 
 	return (
-		<tr className="group">
+		<tr
+			className="group"
+			data-testid="issue-row"
+			data-issue-id={issue.id}
+			data-issue-state={issue.state}
+		>
 			<td className="px-4 py-2 text-sm font-medium border-t border-b border-transparent text-text-primary first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary">
 				<LinkWithProject
 					to={`/admin/issues/${issue.id}`}
@@ -82,6 +87,7 @@ function IssueRow({ issue, projectId }: IssueRowProps) {
 							size="xss"
 							state={isBusy ? 'loading' : 'default'}
 							onClick={handleClose}
+							data-testid="issue-close"
 						>
 							Close
 						</ButtonTw>
@@ -91,6 +97,7 @@ function IssueRow({ issue, projectId }: IssueRowProps) {
 							size="xss"
 							state={isBusy ? 'loading' : 'default'}
 							onClick={handleReopen}
+							data-testid="issue-reopen"
 						>
 							Reopen
 						</ButtonTw>

@@ -65,6 +65,8 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 					if (hit) writeFlags(form, hit.flags);
 				}}
 				className="flex flex-col gap-1.5"
+				data-testid="match-scope-preset"
+				data-preset={preset}
 			>
 				{PRESETS.map((p) => (
 					<RadioGroupItemWithLabel
@@ -88,6 +90,8 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 					<Checkbox
 						checked={current.matchParameters}
 						onCheckedChange={(c) => toggle('matchParameters', c === true)}
+						data-testid="match-scope-flag"
+						data-flag="matchParameters"
 					/>
 					Parameters
 				</label>
@@ -95,6 +99,8 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 					<Checkbox
 						checked={current.matchVerdicts}
 						onCheckedChange={(c) => toggle('matchVerdicts', c === true)}
+						data-testid="match-scope-flag"
+						data-flag="matchVerdicts"
 					/>
 					Verdicts
 				</label>
@@ -102,6 +108,8 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 					<Checkbox
 						checked={current.matchImportantTags}
 						onCheckedChange={(c) => toggle('matchImportantTags', c === true)}
+						data-testid="match-scope-flag"
+						data-flag="matchImportantTags"
 					/>
 					Important tags
 				</label>
@@ -109,6 +117,8 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 					<Checkbox
 						checked={current.matchAllTags}
 						onCheckedChange={(c) => toggle('matchAllTags', c === true)}
+						data-testid="match-scope-flag"
+						data-flag="matchAllTags"
 					/>
 					All tags
 				</label>

@@ -44,6 +44,7 @@ function ApplyRulesButton({ runId, projectId }: ApplyRulesButtonProps) {
 				size="xss"
 				state={isLoading ? 'loading' : 'default'}
 				onClick={handleApply}
+				data-testid="apply-rules-button"
 			>
 				<Icon name="Refresh" size={16} className="mr-1.5" />
 				Apply rules
@@ -63,7 +64,7 @@ function RunIssuesPage() {
 	}
 
 	return (
-		<div className="flex flex-col gap-1 p-2">
+		<div className="flex flex-col gap-1 p-2" data-testid="run-issues-page">
 			{/* The button lives on the page, not in the table: the table renders an
 			    empty state when the run has no issues, which is exactly when you
 			    most need to apply rules. */}

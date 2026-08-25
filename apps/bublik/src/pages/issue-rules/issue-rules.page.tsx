@@ -18,7 +18,7 @@ export const IssueRulesPage = () => {
 	}
 
 	return (
-		<div className="flex flex-col p-2">
+		<div className="flex flex-col p-2" data-testid="issue-rules-page">
 			<header className="px-6 py-4 bg-white rounded-t-xl">
 				<LinkWithProject
 					to="/admin/issues"

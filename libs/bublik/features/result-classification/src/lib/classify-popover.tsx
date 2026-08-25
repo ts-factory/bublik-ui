@@ -85,6 +85,8 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 						size="xss"
 						disabled={!canClassify}
 						title={!canClassify ? 'Select a project first' : undefined}
+						data-testid="classify-trigger"
+						data-result-id={resultId}
 					>
 						<Icon name="TriangleExclamationMark" size={18} className="mr-1" />
 						Classify
@@ -94,7 +96,12 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 				    z-50 portal paints over us and clicks read as outside -> dismiss)
 				    but below the nested SelectInput dropdown (z-[60]) so its options
 				    open in front of the popover instead of behind it. */}
-				<PopoverContent sideOffset={8} portal className="z-[55]">
+				<PopoverContent
+					sideOffset={8}
+					portal
+					className="z-[55]"
+					data-testid="classify-popover"
+				>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="min-w-[320px] p-4 bg-white rounded-md shadow-popover flex flex-col gap-4"
@@ -124,6 +131,7 @@ export function ClassifyPopover({ resultId, projectId }: ClassifyPopoverProps) {
 							size="md"
 							rounded="lg"
 							className="justify-center w-full"
+							data-testid="classify-submit"
 						>
 							{form.formState.isSubmitting ? (
 								<Icon

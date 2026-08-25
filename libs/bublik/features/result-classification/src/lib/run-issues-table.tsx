@@ -44,7 +44,11 @@ function RunIssueTableRow({
 
 	return (
 		<>
-			<tr className="group">
+			<tr
+				className="group"
+				data-testid="run-issue-row"
+				data-issue-id={issue.issue_id}
+			>
 				<td
 					className={cn(cellClassName, 'truncate')}
 					title={`Manage rules for ${issue.bug_key ?? `#${issue.issue_id}`}`}
@@ -73,6 +77,7 @@ function RunIssueTableRow({
 						onClick={onToggle}
 						className="inline-flex items-center gap-1 ml-auto hover:text-primary"
 						aria-expanded={isExpanded}
+						data-testid="run-issue-expander"
 					>
 						{issue.result_count}
 						<Icon

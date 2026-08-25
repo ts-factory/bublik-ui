@@ -3,7 +3,7 @@ import { IssuesTable } from '@/bublik/features/result-classification';
 
 export const AdminIssuesPage = () => {
 	return (
-		<div className="flex flex-col p-2">
+		<div className="flex flex-col p-2" data-testid="admin-issues-page">
 			<header className="px-6 py-4 bg-white rounded-t-xl">
 				<h1 className="text-xl font-semibold">Issues</h1>
 			</header>
