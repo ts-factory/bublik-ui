@@ -18,7 +18,11 @@ import {
 	stripSidebarParamsFromUrl,
 	extractRunIdFromUrl
 } from '@/bublik/features/sidebar';
-import { useGetRunReportConfigsQuery } from '@/services/bublik-api';
+import {
+	useGetRunDetailsQuery,
+	useGetRunIssuesQuery,
+	useGetRunReportConfigsQuery
+} from '@/services/bublik-api';
 
 const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues'];
 
@@ -42,6 +46,9 @@ export interface UseRunSidebarStateReturn {
 	isMainLinkAvailable: boolean;
 
 	isReportLoading: boolean;
+	isIssuesLoading: boolean;
+	/** Issues classified in the current run; 0 means there is nothing to show. */
+	issueCount: number;
 
 	setLastVisited: (mode: RunMode, url: string, runId?: string) => void;
 }
@@ -85,6 +92,18 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	const { data: reportConfigsData, isLoading: isReportLoading } =
 		useGetRunReportConfigsQuery(currentRunId ? currentRunId : skipToken);
 
+	// Same args the issues page uses, so both share one cache entry.
+	const { data: runDetails } = useGetRunDetailsQuery(
+		currentRunId ? Number(currentRunId) : skipToken
+	);
+	const projectId = runDetails?.project_id;
+	const { data: runIssues, isLoading: isIssuesLoading } = useGetRunIssuesQuery(
+		currentRunId && projectId !== undefined
+			? { runId: currentRunId, projectId }
+			: skipToken
+	);
+	const issueCount = runIssues?.length ?? 0;
+
 	const newestReportConfig = useMemo(() => {
 		if (!reportConfigsData?.run_report_configs?.length) return null;
 		return reportConfigsData.run_report_configs.reduce((max, config) =>
@@ -96,8 +115,15 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	const isReportAvailable =
 		!!lastReportUrl ||
 		(!!currentRunId && !!reportConfigsData?.run_report_configs?.length);
-	// Every run can have issues, unlike reports which need a config.
-	const isIssuesAvailable = !!lastIssuesUrl || !!currentRunId;
+	// Unlike Details, Issues has nothing to show for a run with no classified
+	// results, so it stays disabled until we know there is at least one. While
+	// the count is still in flight we trust a previous visit rather than
+	// flashing an enabled link that turns out to lead to an empty page.
+	const isIssuesAvailable =
+		!!currentRunId &&
+		(isIssuesLoading || projectId === undefined
+			? !!lastIssuesUrl
+			: issueCount > 0);
 	const isMainLinkAvailable =
 		isDetailsAvailable || isReportAvailable || !!currentRunId;
 
@@ -138,12 +164,25 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 					(currentRunId ? `/runs/${currentRunId}/report` : '/runs')
 				);
 			case 'issues':
+				// A run that lost (or never had) issues must not strand the Run
+				// link on a page with nothing on it.
+				if (!isIssuesAvailable) {
+					return currentRunId ? getRunDetailsDefaultUrl(currentRunId) : '/runs';
+				}
+
 				return (
 					lastIssuesUrl ||
 					(currentRunId ? getRunIssuesDefaultUrl(currentRunId) : '/runs')
 				);
 		}
-	}, [lastMode, lastDetailsUrl, lastReportUrl, lastIssuesUrl, currentRunId]);
+	}, [
+		lastMode,
+		lastDetailsUrl,
+		lastReportUrl,
+		lastIssuesUrl,
+		currentRunId,
+		isIssuesAvailable
+	]);
 
 	const setLastVisited = useCallback(
 		(mode: RunMode, url: string, runId?: string) => {
@@ -204,6 +243,8 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		isIssuesAvailable,
 		isMainLinkAvailable,
 		isReportLoading,
+		isIssuesLoading,
+		issueCount,
 		setLastVisited
 	};
 }

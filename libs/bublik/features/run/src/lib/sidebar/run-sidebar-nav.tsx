@@ -19,6 +19,7 @@ import { useRunSidebarState } from './use-run-sidebar-state';
 import {
 	RunDetailsDialog,
 	RunReportDialog,
+	RunIssuesDialog,
 	RunMainDialog
 } from './run-dialogs';
 
@@ -43,6 +44,8 @@ export function RunSidebarNav() {
 		issuesUrl,
 		mainLinkUrl,
 		isReportLoading,
+		isIssuesLoading,
+		issueCount,
 		setLastVisited
 	} = useRunSidebarState();
 
@@ -130,6 +133,23 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Issues
 					</SidebarNavSubmenuItemContainer.Label>
+					{isIssuesLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : issueCount > 0 ? (
+						<span
+							className="ml-auto rounded bg-badge-0 px-1.5 text-[0.6875rem] font-medium leading-[1.125rem] tabular-nums text-text-menu"
+							data-testid="run-sidebar-issue-count"
+						>
+							{issueCount}
+						</span>
+					) : (
+						<SidebarNavSubmenuItemContainer.InfoButton>
+							<RunIssuesDialog />
+						</SidebarNavSubmenuItemContainer.InfoButton>
+					)}
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

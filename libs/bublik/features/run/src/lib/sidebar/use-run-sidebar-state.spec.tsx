@@ -25,8 +25,16 @@ vi.mock('react-router-dom', async () => {
 	};
 });
 
+// Mutated per-test to simulate the run-issues query resolving.
+const runIssuesResult: { data: unknown[] | undefined; isLoading: boolean } = {
+	data: undefined,
+	isLoading: false
+};
+
 vi.mock('@/services/bublik-api', () => ({
-	useGetRunReportConfigsQuery: () => ({ data: undefined, isLoading: false })
+	useGetRunReportConfigsQuery: () => ({ data: undefined, isLoading: false }),
+	useGetRunDetailsQuery: () => ({ data: { project_id: 1 } }),
+	useGetRunIssuesQuery: () => runIssuesResult
 }));
 
 vi.mock('@/bublik/features/sidebar', () => ({
@@ -97,12 +105,34 @@ function AvailabilityRunner({
 	return null;
 }
 
+function IssuesAvailabilityRunner({
+	onState
+}: {
+	onState: (state: { isIssuesAvailable: boolean; issueCount: number }) => void;
+}) {
+	const { isIssuesAvailable, issueCount } = useRunSidebarState();
+
+	onState({ isIssuesAvailable, issueCount });
+
+	return null;
+}
+
+function renderIssuesAvailability() {
+	let state = { isIssuesAvailable: false, issueCount: -1 };
+
+	render(<IssuesAvailabilityRunner onState={(value) => (state = value)} />);
+
+	return state;
+}
+
 describe('useRunSidebarState', () => {
 	beforeEach(() => {
 		setSearchParamsMock.mockClear();
 		for (const key of Object.keys(sidebarStateValues)) {
 			delete sidebarStateValues[key];
 		}
+		runIssuesResult.data = undefined;
+		runIssuesResult.isLoading = false;
 	});
 
 	it('preserves navigation state while updating sidebar params', async () => {
@@ -136,5 +166,54 @@ describe('useRunSidebarState', () => {
 		);
 
 		expect(isDetailsAvailable).toBe(false);
+	});
+
+	it('marks issues unavailable when the run has no classified results', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		runIssuesResult.data = [];
+
+		expect(renderIssuesAvailability()).toEqual({
+			isIssuesAvailable: false,
+			issueCount: 0
+		});
+	});
+
+	it('marks issues available once the run has at least one issue', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		runIssuesResult.data = [{ issue_id: 1 }];
+
+		expect(renderIssuesAvailability()).toEqual({
+			isIssuesAvailable: true,
+			issueCount: 1
+		});
+	});
+
+	it('trusts a previous visit while the issue count is still loading', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		runIssuesResult.isLoading = true;
+
+		expect(renderIssuesAvailability().isIssuesAvailable).toBe(false);
+
+		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/42/issues';
+
+		expect(renderIssuesAvailability().isIssuesAvailable).toBe(true);
+	});
+
+	it('sends the Run link to details when the last mode has no issues left', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		sidebarStateValues['sidebar.run.lastMode'] = 'issues';
+		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/42/issues';
+		runIssuesResult.data = [];
+
+		let mainLinkUrl = '';
+
+		function MainLinkRunner() {
+			mainLinkUrl = useRunSidebarState().mainLinkUrl;
+			return null;
+		}
+
+		render(<MainLinkRunner />);
+
+		expect(mainLinkUrl).toBe('/runs/42');
 	});
 });
