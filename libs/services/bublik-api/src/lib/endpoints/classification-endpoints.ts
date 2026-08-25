@@ -7,7 +7,6 @@ import {
 	Issue,
 	IssuePickerOption,
 	IssueRule,
-	RuleResultRow,
 	RunIssueResultRow,
 	RunIssueRow
 } from '@/shared/types';
@@ -58,7 +57,7 @@ export const classificationEndpoints = {
 			{ projectId?: number; issue?: number }
 		>({
 			query: (args) => ({
-				url: withApiV2('/issue-rules'),
+				url: withApiV2('/issue_rules'),
 				params: { project: args.projectId, issue: args.issue },
 				cache: 'no-cache'
 			}),
@@ -112,7 +111,7 @@ export const classificationEndpoints = {
 			{ ruleId: number; projectId?: number }
 		>({
 			query: ({ ruleId, projectId }) => ({
-				url: withApiV2(`/issue-rules/${ruleId}/deactivate`),
+				url: withApiV2(`/issue_rules/${ruleId}/deactivate`),
 				method: 'POST',
 				params: { project: projectId }
 			}),
@@ -131,33 +130,11 @@ export const classificationEndpoints = {
 			{ ruleId: number; projectId?: number }
 		>({
 			query: ({ ruleId, projectId }) => ({
-				url: withApiV2(`/issue-rules/${ruleId}/activate`),
+				url: withApiV2(`/issue_rules/${ruleId}/activate`),
 				method: 'POST',
 				params: { project: projectId }
 			}),
 			invalidatesTags: [BUBLIK_TAG.IssueRules, BUBLIK_TAG.Run]
-		}),
-		getIssueRuleResults: build.query<
-			RuleResultRow[],
-			{ ruleId: number; projectId?: number; limit?: number }
-		>({
-			query: ({ ruleId, projectId, limit }) => ({
-				url: withApiV2(`/issue-rules/${ruleId}/results`),
-				params: { project: projectId, limit },
-				cache: 'no-cache'
-			}),
-			providesTags: [BUBLIK_TAG.ResultClassification]
-		}),
-		getIssueResults: build.query<
-			RuleResultRow[],
-			{ issueId: number; projectId?: number; limit?: number }
-		>({
-			query: ({ issueId, projectId, limit }) => ({
-				url: withApiV2(`/issues/${issueId}/results`),
-				params: { project: projectId, limit },
-				cache: 'no-cache'
-			}),
-			providesTags: [BUBLIK_TAG.ResultClassification]
 		}),
 		getRunIssues: build.query<
 			RunIssueRow[],
@@ -186,7 +163,7 @@ export const classificationEndpoints = {
 			{ runId: number | string; projectId?: number }
 		>({
 			query: ({ runId, projectId }) => ({
-				url: withApiV2(`/runs/${runId}/apply-rules`),
+				url: withApiV2(`/runs/${runId}/apply_rules`),
 				method: 'POST',
 				params: { project: projectId }
 			}),

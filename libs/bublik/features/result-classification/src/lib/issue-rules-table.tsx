@@ -10,7 +10,6 @@ import { Badge, ButtonTw, Icon, Skeleton, toast } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { IssueRuleRow } from './issue-rule-row';
-import { IssueResults } from './issue-results';
 
 const sectionHeaderClassName =
 	'text-xs font-bold tracking-wider uppercase text-text-menu';
@@ -120,11 +119,6 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					</table>
 				</div>
 			)}
-
-			<section className="flex flex-col gap-2">
-				<h2 className={sectionHeaderClassName}>Results</h2>
-				<IssueResults issueId={issueId} projectId={projectId} />
-			</section>
 		</div>
 	);
 }

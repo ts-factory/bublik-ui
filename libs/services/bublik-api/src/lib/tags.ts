@@ -8,6 +8,7 @@ export const tagTypes: BUBLIK_TAG[] = [
 	BUBLIK_TAG.HistoryData,
 	BUBLIK_TAG.LogData,
 	BUBLIK_TAG.User,
+	BUBLIK_TAG.Run,
 	BUBLIK_TAG.Analytics,
 	BUBLIK_TAG.Issues,
 	BUBLIK_TAG.IssueRules,

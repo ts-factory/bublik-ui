@@ -58,7 +58,7 @@ export type ResultIssueRef = {
 	category: IssueCategory;
 	expected: boolean | null;
 	rule_id: number;
-	origin: 'import' | 'manual_apply' | 'manual_oneoff';
+	origin: 'import' | 'manual_persistent' | 'manual_oneoff';
 };
 
 export interface RunIssueRow {
@@ -105,17 +105,3 @@ export type ClassifyRequest = {
 	// the backend defaults (path + params + verdicts + important tags).
 	matcher?: ClassifyMatcher;
 };
-
-export interface RuleResultRow {
-	result_id: number;
-	run_id: number | null;
-	run_start: string | null;
-	name: string | null;
-	path: string[];
-	obtained_result: string | null;
-	verdicts: string[];
-	// Present on the per-issue aggregate (results span multiple rules/categories).
-	rule_id?: number;
-	category?: IssueCategory;
-	expected?: boolean | null;
-}

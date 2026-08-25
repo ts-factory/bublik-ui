@@ -170,6 +170,7 @@ const HistoryIssueRefSchema = z.object({
 	issue_title: z.string(),
 	issue_state: z.enum(['open', 'closed']),
 	bug_key: z.string().nullable().optional(),
+	bug_url: z.string().nullable().optional(),
 	category: z.enum([
 		'product-defect',
 		'test-bug',
@@ -180,7 +181,7 @@ const HistoryIssueRefSchema = z.object({
 	]),
 	expected: z.boolean().nullable(),
 	rule_id: z.number(),
-	origin: z.enum(['import', 'manual_apply', 'manual_oneoff'])
+	origin: z.enum(['import', 'manual_persistent', 'manual_oneoff'])
 });
 
 export const HistoryDataLinearSchema = z.object({
