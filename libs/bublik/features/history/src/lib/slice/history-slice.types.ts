@@ -61,4 +61,6 @@ export type HistoryStateSearch = {
 	/* Classification section */
 	categories: string[];
 	untriaged: boolean;
+	explained: boolean;
+	issue: number | null;
 };

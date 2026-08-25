@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { nanoid } from '@reduxjs/toolkit';
-import { format, parse } from 'date-fns';
-import { decamelizeKeys } from 'humps';
+import { parse } from 'date-fns';
 
 import { API_DATE_FORMAT } from '@/bublik/config';
 import { BadgeItem } from '@/shared/tailwind-ui';
@@ -18,13 +17,6 @@ export const split = (str: string | undefined, fallback: string[] = []) => {
 	return str.split(';');
 };
 
-const badgesToValues = (badges: BadgeItem[]) => {
-	const expressions = badges.map((badge) => badge.value);
-	const values = badges.map((badge) => badge.value);
-
-	return [values, expressions] as const;
-};
-
 export const valuesToBadges = (
 	arr: string | undefined,
 	fallback: BadgeItem[] = []
@@ -32,71 +24,6 @@ export const valuesToBadges = (
 	if (!arr) return fallback;
 
 	return arr.split(';').map((value) => ({ id: nanoid(4), value }));
-};
-
-export const convertHistoryFormToQuery = (
-	values: HistoryGlobalSearchFormValues
-): HistoryAPIQuery => {
-	const {
-		testName,
-		hash,
-		parameters,
-		runData,
-		dates,
-		runProperties,
-		resultProperties,
-		results,
-		verdictLookup,
-		verdict,
-		branches,
-		revisions,
-		branchExpr,
-		labelExpr,
-		labels,
-		revisionExpr,
-		tagExpr,
-		testArgExpr,
-		verdictExpr
-	} = values;
-
-	const [simpleParams] = badgesToValues(parameters);
-	const [simpleRunData] = badgesToValues(runData);
-	const [simpleBranches] = badgesToValues(branches);
-	const [simpleRevisions] = badgesToValues(revisions);
-	const [simpleVerdicts] = badgesToValues(verdict);
-	const [simpleLabels] = badgesToValues(labels);
-
-	const startDate = dates?.startDate
-		? format(dates.startDate, API_DATE_FORMAT)
-		: '';
-	const finishDate = dates?.endDate
-		? format(dates.endDate, API_DATE_FORMAT)
-		: '';
-
-	const query: HistoryAPIQuery = {
-		testName,
-		hash,
-		startDate,
-		finishDate,
-		parameters: join(simpleParams),
-		runData: join(simpleRunData),
-		branches: join(simpleBranches),
-		revisions: join(simpleRevisions),
-		runProperties: join(runProperties),
-		resultProperties: join(resultProperties),
-		results: join(results),
-		verdict: join(simpleVerdicts),
-		labels: join(simpleLabels),
-		verdictLookup,
-		branchExpr,
-		labelExpr,
-		revisionExpr,
-		tagExpr,
-		testArgExpr,
-		verdictExpr
-	};
-
-	return decamelizeKeys(query, { separator: '_' }) as HistoryAPIQuery;
 };
 
 export const getInitialGlobalSearch = (

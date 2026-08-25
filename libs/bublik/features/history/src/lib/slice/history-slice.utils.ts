@@ -87,7 +87,9 @@ export const queryToHistorySearchState = (
 		verdict: withDefault(parseArray(query.verdict), []),
 		/* Classification section */
 		categories: withDefault(parseArray(query.categories), []),
-		untriaged: query.untriaged === 'true'
+		untriaged: query.untriaged === 'true',
+		explained: query.explained === 'true',
+		issue: query.issue ? Number(query.issue) : null
 	};
 };
 
@@ -121,7 +123,9 @@ export const historySearchStateToForm = (
 		verdict: arrayToBadgeItem(state.verdict),
 		/* Classification section */
 		categories: state.categories,
-		untriaged: state.untriaged
+		untriaged: state.untriaged,
+		explained: state.explained,
+		issue: state.issue
 	};
 };
 
@@ -157,6 +161,7 @@ export function searchQueryToBackendQuery(
 		categories: query.categories,
 		issue: query.issue,
 		untriaged: query.untriaged,
+		explained: query.explained,
 		page: query.page,
 		pageSize: query.pageSize,
 		projects: query.project ? [Number(query.project)] : undefined
@@ -194,7 +199,9 @@ export const historySearchStateToQuery = (
 		verdict: withDefault(arrayToString(state.verdict), ''),
 		/* Classification section */
 		categories: withDefault(arrayToString(state.categories), ''),
-		untriaged: state.untriaged ? 'true' : undefined
+		untriaged: state.untriaged ? 'true' : '',
+		explained: state.explained ? 'true' : '',
+		issue: state.issue !== null ? String(state.issue) : ''
 	};
 };
 
@@ -234,6 +241,8 @@ export const formToSearchState = (
 		verdict: badgeItemToArray(form.verdict),
 		/* Classification section */
 		categories: form.categories ?? [],
-		untriaged: form.untriaged ?? false
+		untriaged: form.untriaged ?? false,
+		explained: form.explained ?? false,
+		issue: form.issue ?? null
 	};
 };

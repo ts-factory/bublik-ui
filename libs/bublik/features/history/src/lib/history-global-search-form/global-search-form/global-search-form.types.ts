@@ -49,6 +49,9 @@ export interface HistoryGlobalSearchFormValues {
 	/* Classification section */
 	categories: string[];
 	untriaged: boolean;
+	explained: boolean;
+	/** Single issue id, or null. Matches the `?issue=42` deep link. */
+	issue: number | null;
 }
 
 export const defaultValues: HistoryGlobalSearchFormValues = {
@@ -73,5 +76,7 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	testArgExpr: '',
 	labelExpr: '',
 	categories: [],
-	untriaged: false
+	untriaged: false,
+	explained: false,
+	issue: null
 };

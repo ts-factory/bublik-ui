@@ -46,6 +46,7 @@ export type HistoryAPIBackendQuery = {
 	categories?: string;
 	issue?: string;
 	untriaged?: string;
+	explained?: string;
 
 	page?: string;
 	pageSize?: string;
@@ -83,6 +84,7 @@ export const HistoryAPIBackendQuerySchema = z.object({
 	categories: z.string().optional(),
 	issue: z.string().optional(),
 	untriaged: z.string().optional(),
+	explained: z.string().optional(),
 
 	page: z.string().optional(),
 	pageSize: z.string().optional(),
@@ -123,6 +125,7 @@ export type HistoryAPIQuery = {
 	categories?: string;
 	issue?: string;
 	untriaged?: string;
+	explained?: string;
 
 	project?: string;
 };

@@ -60,7 +60,9 @@ export const DEFAULT_SEARCH_FORM_STATE: HistorySliceState['searchForm'] = {
 	branchExpr: '',
 	/* Classification section */
 	categories: [],
-	untriaged: false
+	untriaged: false,
+	explained: false,
+	issue: null
 };
 
 const initialState: HistorySliceState = {

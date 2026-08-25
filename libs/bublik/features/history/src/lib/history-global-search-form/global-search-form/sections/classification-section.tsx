@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useFormContext } from 'react-hook-form';
+import { useController, useFormContext } from 'react-hook-form';
 
-import { CheckboxField } from '@/shared/tailwind-ui';
+import { ButtonTw, CheckboxField } from '@/shared/tailwind-ui';
+import { IssuePicker } from '@/bublik/features/result-classification';
+import { useProjectSearch } from '@/bublik/features/projects';
 
 import { FormSection, FormSectionSubheader } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
@@ -17,6 +19,41 @@ const CATEGORY_OPTIONS: { value: string; label: string }[] = [
 	{ value: 'to-investigate', label: 'To investigate' }
 ];
 
+/**
+ * Control for the `issue` param. It was reachable only by deep link before —
+ * `/runs/:runId/issues` links to `/history?issue=N` — which left the user
+ * unable to see, change or clear the filter they had landed in.
+ */
+const IssueField = () => {
+	const { control } = useFormContext<HistoryGlobalSearchFormValues>();
+	const { projectIds } = useProjectSearch();
+	const { field } = useController({ name: 'issue', control });
+
+	return (
+		<div className="flex flex-col gap-2">
+			<IssuePicker
+				projectId={projectIds[0]}
+				value={field.value ?? undefined}
+				onChange={(id) => field.onChange(id === field.value ? null : id)}
+			/>
+			{field.value !== null && field.value !== undefined ? (
+				<div className="flex items-center gap-2">
+					<span className="text-xs text-text-menu">
+						Filtering by issue #{field.value}
+					</span>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						onClick={() => field.onChange(null)}
+					>
+						Clear
+					</ButtonTw>
+				</div>
+			) : null}
+		</div>
+	);
+};
+
 export const ClassificationSection = () => {
 	const { control } = useFormContext<HistoryGlobalSearchFormValues>();
 
@@ -26,6 +63,8 @@ export const ClassificationSection = () => {
 			<div className="mb-5">
 				<FormSection.Header className="mb-0" name="Classification" />
 				<FormSectionSubheader name="Triage state" />
+				{/* The two halves of the triage question: what still needs a
+				    decision, and what already has one. */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
 					<CheckboxField
 						iconName="TriangleExclamationMark"
@@ -34,7 +73,18 @@ export const ClassificationSection = () => {
 						label="Untriaged unexpected only"
 						control={control}
 					/>
+					<CheckboxField
+						iconName="TriangleQuestionMark"
+						iconSize={16}
+						name="explained"
+						label="Explained only"
+						control={control}
+					/>
 				</div>
+			</div>
+			<div className="mb-5">
+				<FormSectionSubheader name="Issue" />
+				<IssueField />
 			</div>
 			<div>
 				<FormSectionSubheader name="Category" />
