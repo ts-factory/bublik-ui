@@ -24,7 +24,8 @@ import {
 
 const RUN_SIDEBAR_PATTERNS = [
 	{ path: '/runs/:runId' },
-	{ path: '/runs/:runId/report' }
+	{ path: '/runs/:runId/report' },
+	{ path: '/runs/:runId/issues' }
 ];
 
 export function RunSidebarNav() {
@@ -33,11 +34,13 @@ export function RunSidebarNav() {
 	const {
 		isDetailsAvailable,
 		isReportAvailable,
+		isIssuesAvailable,
 		isMainLinkAvailable,
 		lastDetailsUrl,
 		lastReportUrl,
 		detailsUrl,
 		reportUrl,
+		issuesUrl,
 		mainLinkUrl,
 		isReportLoading,
 		setLastVisited
@@ -46,6 +49,8 @@ export function RunSidebarNav() {
 	useEffect(() => {
 		if (matchPath('/runs/:runId/report', location.pathname) && runId) {
 			setLastVisited('report', location.pathname + location.search, runId);
+		} else if (matchPath('/runs/:runId/issues', location.pathname) && runId) {
+			setLastVisited('issues', location.pathname + location.search, runId);
 		} else if (matchPath('/runs/:runId', location.pathname) && runId) {
 			setLastVisited('details', location.pathname + location.search, runId);
 		}
@@ -111,6 +116,20 @@ export function RunSidebarNav() {
 							<RunReportDialog />
 						</SidebarNavSubmenuItemContainer.InfoButton>
 					)}
+				</SidebarNavSubmenuItemContainer>
+				<SidebarNavSubmenuItemContainer
+					to={issuesUrl}
+					pattern={{ path: '/runs/:runId/issues' }}
+					disabled={!isIssuesAvailable}
+					linkComponent={LinkWithProject}
+				>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="TriangleExclamationMark"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Issues
+					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

@@ -11,6 +11,7 @@ import {
 	RunMode,
 	SHARED_SIDEBAR_KEYS,
 	getRunDetailsDefaultUrl,
+	getRunIssuesDefaultUrl,
 	getSidebarStateString,
 	setSidebarStateValue,
 	useSidebarStateWriter,
@@ -19,11 +20,12 @@ import {
 } from '@/bublik/features/sidebar';
 import { useGetRunReportConfigsQuery } from '@/services/bublik-api';
 
-const RUN_MODES: readonly RunMode[] = ['details', 'report'];
+const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues'];
 
 export interface UseRunSidebarStateReturn {
 	lastDetailsUrl: string | null;
 	lastReportUrl: string | null;
+	lastIssuesUrl: string | null;
 	lastMode: RunMode | null;
 
 	// Current run context from shared state
@@ -31,10 +33,12 @@ export interface UseRunSidebarStateReturn {
 
 	detailsUrl: string;
 	reportUrl: string | null;
+	issuesUrl: string;
 	mainLinkUrl: string;
 
 	isDetailsAvailable: boolean;
 	isReportAvailable: boolean;
+	isIssuesAvailable: boolean;
 	isMainLinkAvailable: boolean;
 
 	isReportLoading: boolean;
@@ -52,6 +56,10 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	);
 	const lastReportUrl = useMemo(
 		() => getSidebarStateString(searchParams, RUN_SIDEBAR_KEYS.LAST_REPORT),
+		[searchParams]
+	);
+	const lastIssuesUrl = useMemo(
+		() => getSidebarStateString(searchParams, RUN_SIDEBAR_KEYS.LAST_ISSUES),
 		[searchParams]
 	);
 
@@ -88,6 +96,8 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	const isReportAvailable =
 		!!lastReportUrl ||
 		(!!currentRunId && !!reportConfigsData?.run_report_configs?.length);
+	// Every run can have issues, unlike reports which need a config.
+	const isIssuesAvailable = !!lastIssuesUrl || !!currentRunId;
 	const isMainLinkAvailable =
 		isDetailsAvailable || isReportAvailable || !!currentRunId;
 
@@ -108,6 +118,12 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		return null;
 	}, [lastReportUrl, currentRunId, newestReportConfig]);
 
+	const issuesUrl = useMemo(() => {
+		if (lastIssuesUrl) return lastIssuesUrl;
+		if (currentRunId) return getRunIssuesDefaultUrl(currentRunId);
+		return '/runs';
+	}, [lastIssuesUrl, currentRunId]);
+
 	const mainLinkUrl = useMemo(() => {
 		// `lastMode` is omitted from `_s` when it equals the shared default.
 		switch (lastMode ?? RUN_MODE_DEFAULT) {
@@ -121,8 +137,13 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 					lastReportUrl ||
 					(currentRunId ? `/runs/${currentRunId}/report` : '/runs')
 				);
+			case 'issues':
+				return (
+					lastIssuesUrl ||
+					(currentRunId ? getRunIssuesDefaultUrl(currentRunId) : '/runs')
+				);
 		}
-	}, [lastMode, lastDetailsUrl, lastReportUrl, currentRunId]);
+	}, [lastMode, lastDetailsUrl, lastReportUrl, lastIssuesUrl, currentRunId]);
 
 	const setLastVisited = useCallback(
 		(mode: RunMode, url: string, runId?: string) => {
@@ -147,6 +168,13 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 							cleanedUrl
 						);
 						break;
+					case 'issues':
+						setSidebarStateValue(
+							sidebarState,
+							RUN_SIDEBAR_KEYS.LAST_ISSUES,
+							cleanedUrl
+						);
+						break;
 				}
 
 				if (extractedRunId) {
@@ -164,13 +192,16 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	return {
 		lastDetailsUrl,
 		lastReportUrl,
+		lastIssuesUrl,
 		lastMode,
 		currentRunId,
 		detailsUrl,
 		reportUrl,
+		issuesUrl,
 		mainLinkUrl,
 		isDetailsAvailable,
 		isReportAvailable,
+		isIssuesAvailable,
 		isMainLinkAvailable,
 		isReportLoading,
 		setLastVisited

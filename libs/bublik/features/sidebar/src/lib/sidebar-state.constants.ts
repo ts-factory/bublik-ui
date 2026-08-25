@@ -28,15 +28,19 @@ export const RUNS_PROGRESS_DEFAULT_URL = '/runs?mode=progress';
 export const RUN_SIDEBAR_KEYS = {
 	LAST_DETAILS: `${SIDEBAR_PREFIX}.run.lastDetails`,
 	LAST_REPORT: `${SIDEBAR_PREFIX}.run.lastReport`,
+	LAST_ISSUES: `${SIDEBAR_PREFIX}.run.lastIssues`,
 	LAST_MODE: `${SIDEBAR_PREFIX}.run.lastMode`
 } as const;
 
-export type RunMode = 'details' | 'report';
+export type RunMode = 'details' | 'report' | 'issues';
 
 export const RUN_MODE_DEFAULT: RunMode = 'details';
 
 export const getRunDetailsDefaultUrl = (runId: string): string =>
 	`/runs/${runId}`;
+
+export const getRunIssuesDefaultUrl = (runId: string): string =>
+	`/runs/${runId}/issues`;
 
 export const MEASUREMENTS_SIDEBAR_KEYS = {
 	LAST_MEASUREMENTS: `${SIDEBAR_PREFIX}.measurements.lastMeasurements`,

@@ -33,6 +33,7 @@ vi.mock('@/bublik/features/sidebar', () => ({
 	RUN_SIDEBAR_KEYS: {
 		LAST_DETAILS: 'sidebar.run.lastDetails',
 		LAST_REPORT: 'sidebar.run.lastReport',
+		LAST_ISSUES: 'sidebar.run.lastIssues',
 		LAST_MODE: 'sidebar.run.lastMode'
 	},
 	SHARED_SIDEBAR_KEYS: {
@@ -70,7 +71,8 @@ vi.mock('@/bublik/features/sidebar', () => ({
 	stripSidebarParamsFromUrl: (url: string) => url,
 	extractRunIdFromUrl: () => '42',
 	RUN_MODE_DEFAULT: 'details',
-	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`
+	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`,
+	getRunIssuesDefaultUrl: (runId: string) => `/runs/${runId}/issues`
 }));
 
 function HookRunner() {
