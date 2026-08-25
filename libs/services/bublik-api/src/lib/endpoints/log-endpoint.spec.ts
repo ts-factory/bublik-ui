@@ -214,7 +214,9 @@ describe('normalizeLogJsonInput', () => {
 });
 
 describe('fixPagesCountForAllView', () => {
-	test('uses the cached canonical first page count', () => {
+	const noFetch = () => Promise.reject(new Error('should not be fetched'));
+
+	test('uses the cached canonical first page count', async () => {
 		const allPages = createLogBlocks(0, 0);
 		const api = createApi({
 			'getLogJson({"id":"1"})': {
@@ -223,13 +225,52 @@ describe('fixPagesCountForAllView', () => {
 			}
 		});
 
-		const result = fixPagesCountForAllView(allPages, 1, api);
+		const result = await fixPagesCountForAllView(allPages, 1, api, noFetch);
 
 		expect(result.root[0].pagination?.pages_count).toBe(12);
 		expect(allPages.root[0].pagination?.pages_count).toBe(0);
 	});
 
-	test('does not use another all-pages cache entry', () => {
+	test('fetches the count when no numbered page has landed yet', async () => {
+		const allPages = createLogBlocks(0, 0);
+
+		const result = await fixPagesCountForAllView(
+			allPages,
+			1,
+			createApi({}),
+			() => Promise.resolve(12)
+		);
+
+		expect(result.root[0].pagination?.pages_count).toBe(12);
+	});
+
+	test('leaves the blocks alone when the count cannot be told', async () => {
+		const allPages = createLogBlocks(0, 0);
+
+		const result = await fixPagesCountForAllView(
+			allPages,
+			1,
+			createApi({}),
+			() => Promise.resolve(undefined)
+		);
+
+		expect(result.root[0].pagination?.pages_count).toBe(0);
+	});
+
+	test('leaves a numbered page alone', async () => {
+		const firstPage = createLogBlocks(1, 12);
+
+		const result = await fixPagesCountForAllView(
+			firstPage,
+			1,
+			createApi({}),
+			noFetch
+		);
+
+		expect(result.root[0].pagination?.pages_count).toBe(12);
+	});
+
+	test('does not use another all-pages cache entry', async () => {
 		const allPages = createLogBlocks(0, 0);
 		const api = createApi({
 			'getLogJson({"id":"1","page":"0"})': {
@@ -238,7 +279,9 @@ describe('fixPagesCountForAllView', () => {
 			}
 		});
 
-		const result = fixPagesCountForAllView(allPages, 1, api);
+		const result = await fixPagesCountForAllView(allPages, 1, api, () =>
+			Promise.resolve(undefined)
+		);
 
 		expect(result.root[0].pagination?.pages_count).toBe(0);
 	});
