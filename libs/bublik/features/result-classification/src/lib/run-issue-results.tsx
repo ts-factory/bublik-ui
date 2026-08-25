@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+import { skipToken } from '@reduxjs/toolkit/query';
+
 import { useGetRunIssueResultsQuery } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -35,13 +37,15 @@ export function RunIssueResults({
 	issueId,
 	projectId
 }: RunIssueResultsProps) {
-	const { data, isLoading, error } = useGetRunIssueResultsQuery({
-		runId,
-		issueId,
-		projectId
-	});
+	// Run-scoped: an unscoped answer is never the one we want, and projectId
+	// arrives a render late (it comes from the run details query).
+	const { data, isLoading, error } = useGetRunIssueResultsQuery(
+		projectId === undefined ? skipToken : { runId, issueId, projectId }
+	);
 
-	if (isLoading) {
+	// projectId undefined => query skipped, so isLoading is false. Keep the
+	// skeleton up rather than flashing an empty list.
+	if (isLoading || projectId === undefined) {
 		return (
 			<div className="flex flex-col gap-1 py-2">
 				{Array.from({ length: 3 }, () => 0).map((_, idx) => (

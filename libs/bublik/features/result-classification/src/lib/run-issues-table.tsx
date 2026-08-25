@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 import { useState } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useGetRunIssuesQuery } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -116,7 +117,11 @@ const headerClassName =
 	'px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase';
 
 export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
-	const { data, isLoading, error } = useGetRunIssuesQuery({ runId, projectId });
+	// Run-scoped: an unscoped answer is never the one we want, and projectId
+	// arrives a render late (it comes from the run details query).
+	const { data, isLoading, error } = useGetRunIssuesQuery(
+		projectId === undefined ? skipToken : { runId, projectId }
+	);
 	const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
 	const toggleExpanded = (issueId: number) => {
@@ -128,7 +133,9 @@ export function RunIssuesTable({ runId, projectId }: RunIssuesTableProps) {
 		});
 	};
 
-	if (isLoading) return <RunIssuesTableLoading />;
+	// projectId undefined => query skipped, so isLoading is false. Keep the
+	// skeleton up rather than flashing the empty state.
+	if (isLoading || projectId === undefined) return <RunIssuesTableLoading />;
 
 	if (error) {
 		return <BublikErrorState error={error} className="h-[calc(100vh-256px)]" />;

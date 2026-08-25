@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 import {
+	bublikAPI,
 	getErrorMessage,
 	useCloseIssueMutation,
 	useGetIssuesQuery,
@@ -110,27 +111,32 @@ function IssuesTableLoading() {
 	);
 }
 
-export function IssuesTable() {
-	const { projectIds } = useProjectSearch();
-	const projectId = projectIds[0];
+interface IssuesTableContentProps {
+	issues: Issue[];
+	isLoading: boolean;
+	error: unknown;
+	projectId?: number;
+	scopeLabel: string;
+}
 
-	const { data, isLoading, error } = useGetIssuesQuery(
-		projectId ? { projectId } : {}
-	);
-
+function IssuesTableContent({
+	issues,
+	isLoading,
+	error,
+	projectId,
+	scopeLabel
+}: IssuesTableContentProps) {
 	if (isLoading) return <IssuesTableLoading />;
 
 	if (error) {
 		return <BublikErrorState error={error} className="h-[calc(100vh-256px)]" />;
 	}
 
-	const issues = data ?? [];
-
 	if (issues.length === 0) {
 		return (
 			<BublikEmptyState
 				title="No issues"
-				description="No issues found for the active project"
+				description={`No issues found in ${scopeLabel}`}
 				className="h-[calc(100vh-256px)]"
 			/>
 		);
@@ -161,6 +167,40 @@ export function IssuesTable() {
 					))}
 				</tbody>
 			</table>
+		</div>
+	);
+}
+
+export function IssuesTable() {
+	const { projectIds } = useProjectSearch();
+	const projectId = projectIds[0];
+
+	// Issues are global; `project` is an optional filter on the backend, so an
+	// unscoped request legitimately lists every project. Say which it is.
+	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
+
+	const { data, isLoading, error } = useGetIssuesQuery(
+		projectId ? { projectId } : {}
+	);
+
+	const scopeLabel =
+		projectId === undefined
+			? 'all projects'
+			: projects?.find((project) => project.id === projectId)?.name ??
+			  `project ${projectId}`;
+
+	return (
+		<div className="flex flex-col gap-2">
+			<span className="text-xs text-text-menu">
+				Showing issues in {scopeLabel}
+			</span>
+			<IssuesTableContent
+				issues={data ?? []}
+				isLoading={isLoading}
+				error={error}
+				projectId={projectId}
+				scopeLabel={scopeLabel}
+			/>
 		</div>
 	);
 }
