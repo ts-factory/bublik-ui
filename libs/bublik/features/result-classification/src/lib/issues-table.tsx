@@ -61,22 +61,26 @@ import {
 import { useClassificationTableState } from './use-classification-table-state';
 
 /**
- * Ordered so the row reads left to right as one sentence: *which* issue — the
- * tracker key, then the title — *why* it is wrong, *whether it still bites*,
- * *how much machinery* is behind it, *when* it appeared, and finally what you
- * can do to it.
+ * Deliberately the same sequence the run's issue table uses for the columns
+ * they share — key, title, results, state, categories — so moving between
+ * `/issues` and `/runs/:runId/issues` does not mean re-finding every column.
+ * The two used to disagree on exactly one pair, `Categories` and `State`, which
+ * was enough to make them read as unrelated tables.
  *
- * `Categories` sits directly after the title because the two answer the same
- * question, and `State`/`Rules` are kept adjacent because they are one
- * mechanism: closing an issue deactivates its rules. `Created` is second to
- * last — a date is reference material, not something anyone triages on — and
- * the actions are pinned to the right edge, out of the reading path.
+ * `State` earns its place that early on both: closing an issue deactivates
+ * every rule under it, so it silently overrides the columns after it.
+ *
+ * What follows is what only this table has — `Rules` next to `State` because
+ * they are one mechanism, then `Created`, reference material rather than
+ * something anyone triages on — and the actions are pinned to the right edge,
+ * out of the reading path.
  */
 const COLUMN_ID = {
 	KEY: 'key',
 	ISSUE: 'issue',
-	CATEGORIES: 'categories',
+	RESULTS: 'result_count',
 	STATE: 'state',
+	CATEGORIES: 'categories',
 	RULES: 'rules',
 	CREATED: 'created',
 	ACTIONS: 'actions'
@@ -263,6 +267,34 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			)
 		},
 		{
+			// Mirrors the run table's result count, down to the expand-toggle
+			// behaviour a later commit gives it. Renders `-` rather than `0` when
+			// the field is absent, so "no results" and "not reported" stay
+			// distinguishable.
+			// TODO(api): `/issues/` does not return `result_count` yet.
+			id: COLUMN_ID.RESULTS,
+			accessorFn: (row) => row.result_count ?? -1,
+			header: 'Results',
+			meta: { className: 'w-24' },
+			cell: ({ row }) => {
+				const count = row.original.result_count;
+
+				if (count === undefined)
+					return <span className="text-text-menu">-</span>;
+
+				return <span className="font-medium tabular-nums">{count}</span>;
+			}
+		},
+		{
+			id: COLUMN_ID.STATE,
+			accessorFn: (row) => row.state,
+			header: 'State',
+			meta: { className: 'w-24 whitespace-nowrap' },
+			enableSorting: false,
+			filterFn: someOfFilter,
+			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
+		},
+		{
 			// Two badges at most in practice, so it is sized to that. It used to
 			// carry `min-w-` with no ceiling, which under `table-auto` made it the
 			// one column free to absorb every spare pixel in the table.
@@ -275,15 +307,6 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => (
 				<CategoryBadgeList categories={row.original.categories} />
 			)
-		},
-		{
-			id: COLUMN_ID.STATE,
-			accessorFn: (row) => row.state,
-			header: 'State',
-			meta: { className: 'w-24 whitespace-nowrap' },
-			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
 		},
 		{
 			id: COLUMN_ID.RULES,
@@ -405,7 +428,11 @@ export function IssuesTable() {
 	});
 
 	const rows = useMemo(
-		() => buildRows(issuesQuery.data?.results ?? [], rulesQuery.data?.results ?? []),
+		() =>
+			buildRows(
+				issuesQuery.data?.results ?? [],
+				rulesQuery.data?.results ?? []
+			),
 		[issuesQuery.data, rulesQuery.data]
 	);
 	const columns = useMemo(() => getColumns(projectId), [projectId]);
