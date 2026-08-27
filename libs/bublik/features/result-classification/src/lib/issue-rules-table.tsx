@@ -26,7 +26,6 @@ import {
 	Pagination,
 	Skeleton,
 	Tooltip,
-	cn,
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -54,7 +53,8 @@ import {
 	ClassificationFooter,
 	ClassificationSearch,
 	ClassificationTable,
-	ClassificationToolbar
+	ClassificationToolbar,
+	ExpandButton
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -273,25 +273,14 @@ function getColumns({
 			meta: { className: 'w-9' },
 			enableSorting: false,
 			cell: ({ row }) => (
-				<button
-					type="button"
+				<ExpandButton
+					isExpanded={row.getIsExpanded()}
 					onClick={row.getToggleExpandedHandler()}
-					aria-expanded={row.getIsExpanded()}
-					aria-label={
+					label={
 						row.getIsExpanded() ? 'Hide matcher' : 'Show what this rule matches'
 					}
-					className="grid p-1 rounded place-items-center text-text-menu hover:bg-primary-wash hover:text-primary"
-					data-testid="issue-rule-expander"
-				>
-					<Icon
-						name="ArrowShortSmall"
-						size={18}
-						className={cn(
-							'transition-transform',
-							row.getIsExpanded() ? 'rotate-0' : '-rotate-90'
-						)}
-					/>
-				</button>
+					testId="issue-rule-expander"
+				/>
 			)
 		},
 		...(showIssue ? [ISSUE_COLUMN] : []),

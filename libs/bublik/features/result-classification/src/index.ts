@@ -5,7 +5,7 @@ export type { ClassifyResultContainerProps } from './lib/classify-result.contain
 export { CATEGORY_OPTIONS } from './lib/category';
 export { IssuesTable } from './lib/issues-table';
 export { RunIssuesTable, RunIssuesTableLoading } from './lib/run-issues-table';
-export { RunIssueResults } from './lib/run-issue-results';
+export { IssueResults, RunIssueResults } from './lib/issue-results';
 export { IssuePicker } from './lib/issue-picker';
 export type { IssuePickerProps } from './lib/issue-picker';
 export { issueTag } from './lib/issue-picker.utils';

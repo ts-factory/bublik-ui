@@ -9,25 +9,53 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 
-import { useGetRunIssueResultsQuery } from '@/services/bublik-api';
+import {
+	useGetIssueResultsQuery,
+	useGetRunIssueResultsQuery
+} from '@/services/bublik-api';
 import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 import { Icon, Skeleton, VerdictList } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
-import type { RESULT_TYPE, RunIssueResultRow } from '@/shared/types';
+import type {
+	RESULT_TYPE,
+	RunIssueResultRow,
+	IssueResultRow
+} from '@/shared/types';
 
 import { ClassificationTable } from './classification-table';
 
-interface RunIssueResultsProps {
-	runId: number | string;
+/**
+ * A run-scoped row has no `run_id` — the run is the scope. An issue-scoped one
+ * carries its own, because the same issue is stamped across many runs.
+ */
+type ResultRow = RunIssueResultRow & { run_id?: number };
+
+interface IssueResultsProps {
 	issueId: number;
 	projectId?: number;
+	/**
+	 * The run to scope to. Omit for the issue-wide view, where results are
+	 * gathered across every run the issue appears in.
+	 */
+	runId?: number | string;
 }
 
 interface ResultLinksProps {
 	runId: number | string;
-	row: RunIssueResultRow;
+	row: ResultRow;
+}
+
+export function issueResultRunId(
+	runId: number | string | undefined,
+	row: ResultRow
+): number | string | undefined {
+	return runId ?? row.run_id;
+}
+
+export function issueResultTestPath(row: ResultRow): string {
+	return [...row.path, row.name].filter(Boolean).join('/');
 }
 
 /**
@@ -70,16 +98,24 @@ function ResultLinks({ runId, row }: ResultLinksProps) {
 	);
 }
 
-function getColumns(
-	runId: number | string
-): ColumnDef<RunIssueResultRow, unknown>[] {
+function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 	return [
 		{
 			id: 'links',
 			header: 'Actions',
 			meta: { className: 'w-[168px]' },
 			enableSorting: false,
-			cell: ({ row }) => <ResultLinks runId={runId} row={row.original} />
+			cell: ({ row }) => {
+				const rowRunId = issueResultRunId(runId, row.original);
+
+				// Every link in the stack is run-scoped, so without a run there is
+				// nothing to point at.
+				if (rowRunId === undefined) {
+					return <span className="text-text-menu">-</span>;
+				}
+
+				return <ResultLinks runId={rowRunId} row={row.original} />;
+			}
 		},
 		{
 			id: 'name',
@@ -127,18 +163,35 @@ function getColumns(
 	];
 }
 
-export function RunIssueResults({
-	runId,
-	issueId,
-	projectId
-}: RunIssueResultsProps) {
+/**
+ * The results an issue is stamped on, either within one run or across all of
+ * them. One component for both because the row is the same shape and the reader
+ * wants the same next steps; only the scope of the question differs.
+ */
+export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
+	const isRunScoped = runId !== undefined;
+
 	// Run-scoped: an unscoped answer is never the one we want, and projectId
 	// arrives a render late (it comes from the run details query).
-	const { data, isLoading, error } = useGetRunIssueResultsQuery(
-		projectId === undefined ? skipToken : { runId, issueId, projectId }
+	const runQuery = useGetRunIssueResultsQuery(
+		isRunScoped && projectId !== undefined
+			? { runId, issueId, projectId }
+			: skipToken
 	);
 
-	const results = useMemo(() => data ?? [], [data]);
+	// TODO(api): `/issues/{id}/results` does not exist yet, so the issue-wide
+	// view 404s into the error state. The wiring is here so the sub-row starts
+	// working the moment the endpoint lands.
+	const issueQuery = useGetIssueResultsQuery(
+		!isRunScoped ? { issueId, projectId } : skipToken
+	);
+
+	const { data, isLoading, error } = isRunScoped ? runQuery : issueQuery;
+
+	const results = useMemo<ResultRow[]>(
+		() => (data as ResultRow[] | IssueResultRow[] | undefined) ?? [],
+		[data]
+	);
 	const columns = useMemo(() => getColumns(runId), [runId]);
 
 	const table = useReactTable({
@@ -149,9 +202,9 @@ export function RunIssueResults({
 		getSortedRowModel: getSortedRowModel()
 	});
 
-	// projectId undefined => query skipped, so isLoading is false. Keep the
-	// skeleton up rather than flashing an empty list.
-	if (isLoading || projectId === undefined) {
+	// A run-scoped query with no projectId yet is skipped, so isLoading is false.
+	// Keep the skeleton up rather than flashing an empty list.
+	if (isLoading || (isRunScoped && projectId === undefined)) {
 		return (
 			<div className="flex flex-col gap-1 p-2">
 				{Array.from({ length: 3 }, () => 0).map((_, idx) => (
@@ -168,14 +221,24 @@ export function RunIssueResults({
 	}
 
 	return (
-		<div className="pl-8" data-testid="run-issue-results">
+		<div className="pl-8" data-testid="issue-results">
 			<ClassificationTable
 				table={table}
 				getRowAttributes={(row) => ({
-					'data-testid': 'run-issue-result-row',
+					'data-testid': 'issue-result-row',
 					'data-result-id': row.original.result_id
 				})}
 			/>
 		</div>
 	);
+}
+
+/**
+ * Run-scoped wrapper. A plain alias would make `runId` optional at every run
+ * call site, where it never is — the run *is* the scope.
+ */
+export function RunIssueResults(
+	props: IssueResultsProps & { runId: number | string }
+) {
+	return <IssueResults {...props} />;
 }

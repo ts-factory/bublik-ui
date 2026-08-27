@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { flexRender, type Row, type Table } from '@tanstack/react-table';
 
 import { useDebounce } from '@/shared/hooks';
-import { Input, TableSort, cn } from '@/shared/tailwind-ui';
+import { Icon, Input, TableSort, cn } from '@/shared/tailwind-ui';
 
 /**
  * The run table's markup, factored out so every classification table looks the
@@ -215,5 +215,45 @@ export function ClassificationSearch({
 			onChange={(event) => setDraft(event.target.value)}
 			data-testid={testId}
 		/>
+	);
+}
+
+export interface ExpandButtonProps {
+	isExpanded: boolean;
+	onClick: () => void;
+	/** What expanding reveals — every table shows something different. */
+	label: string;
+	testId: string;
+}
+
+/**
+ * The disclosure control for a `renderSubRow` table. Lives here rather than in
+ * each table because all three drew the identical chevron and only disagreed on
+ * the label, which is exactly the part that should differ.
+ */
+export function ExpandButton({
+	isExpanded,
+	onClick,
+	label,
+	testId
+}: ExpandButtonProps) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-expanded={isExpanded}
+			aria-label={label}
+			className="grid p-1 rounded place-items-center text-text-menu hover:bg-primary-wash hover:text-primary"
+			data-testid={testId}
+		>
+			<Icon
+				name="ArrowShortSmall"
+				size={18}
+				className={cn(
+					'transition-transform',
+					isExpanded ? 'rotate-0' : '-rotate-90'
+				)}
+			/>
+		</button>
 	);
 }

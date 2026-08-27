@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
 	ColumnDef,
 	getCoreRowModel,
+	getExpandedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
@@ -51,7 +52,8 @@ import {
 	ClassificationFooter,
 	ClassificationSearch,
 	ClassificationTable,
-	ClassificationToolbar
+	ClassificationToolbar,
+	ExpandButton
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -59,6 +61,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { IssueResults } from './issue-results';
 
 /**
  * Deliberately the same sequence the run's issue table uses for the columns
@@ -76,6 +79,7 @@ import { useClassificationTableState } from './use-classification-table-state';
  * out of the reading path.
  */
 const COLUMN_ID = {
+	EXPANDER: 'expander',
 	KEY: 'key',
 	ISSUE: 'issue',
 	RESULTS: 'result_count',
@@ -217,6 +221,22 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
+			id: COLUMN_ID.EXPANDER,
+			header: () => null,
+			meta: { className: 'w-9' },
+			enableSorting: false,
+			cell: ({ row }) => (
+				<ExpandButton
+					isExpanded={row.getIsExpanded()}
+					onClick={row.getToggleExpandedHandler()}
+					label={
+						row.getIsExpanded() ? 'Hide results' : 'Show classified results'
+					}
+					testId="issue-expander"
+				/>
+			)
+		},
+		{
 			// Leftmost so the tracker key starts every row in the same place, and
 			// — once the API resolves `bug_url` — the way out to the tracker sits
 			// on that same line, matching the run's issue table. The chip and the
@@ -279,10 +299,17 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => {
 				const count = row.original.result_count;
 
-				if (count === undefined)
-					return <span className="text-text-menu">-</span>;
-
-				return <span className="font-medium tabular-nums">{count}</span>;
+				return (
+					<button
+						type="button"
+						onClick={row.getToggleExpandedHandler()}
+						aria-expanded={row.getIsExpanded()}
+						className="font-medium tabular-nums hover:text-primary hover:underline"
+						data-testid="issue-result-count"
+					>
+						{count ?? '-'}
+					</button>
+				);
 			}
 		},
 		{
@@ -446,10 +473,12 @@ export function IssuesTable() {
 		onSortingChange,
 		onPaginationChange,
 		getRowId: (row) => String(row.id),
+		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
 	});
 
 	const pageCount = table.getPageCount();
@@ -573,6 +602,9 @@ export function IssuesTable() {
 							'data-issue-id': row.original.id,
 							'data-issue-state': row.original.state
 						})}
+						renderSubRow={(row) => (
+							<IssueResults issueId={row.original.id} projectId={projectId} />
+						)}
 					/>
 				)}
 			</div>
