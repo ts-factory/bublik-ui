@@ -446,7 +446,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	});
 
 	const rules = useMemo(
-		() => buildRows(rulesData ?? [], issuesData ?? []),
+		() => buildRows(rulesData?.results ?? [], issuesData?.results ?? []),
 		[rulesData, issuesData]
 	);
 	const columns = useMemo(

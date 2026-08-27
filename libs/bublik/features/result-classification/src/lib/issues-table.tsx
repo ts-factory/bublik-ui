@@ -396,7 +396,7 @@ export function IssuesTable() {
 	});
 
 	const rows = useMemo(
-		() => buildRows(issuesQuery.data ?? [], rulesQuery.data ?? []),
+		() => buildRows(issuesQuery.data?.results ?? [], rulesQuery.data?.results ?? []),
 		[issuesQuery.data, rulesQuery.data]
 	);
 	const columns = useMemo(() => getColumns(projectId), [projectId]);

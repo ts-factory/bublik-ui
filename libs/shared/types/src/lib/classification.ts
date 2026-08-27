@@ -28,7 +28,46 @@ export type Issue = {
 	created_at: string;
 	updated_at: string;
 	closed_at: string | null;
+	/**
+	 * Everything below is what the issues list needs to be triaged from, and
+	 * none of it is on `/issues/` yet — `/runs/{id}/issues/` already returns the
+	 * same shape, so this is the contract the list endpoint is growing towards.
+	 *
+	 * Optional on purpose: `IssuesTable` reads each field when it arrives and
+	 * falls back to joining `/issue_rules/` client-side until then. Dropping the
+	 * optionality is the signal that the fallback can go.
+	 */
+	/** TODO(api): resolve like `run_issues_summary` does, via `resolve_ref`. */
+	bug_url?: string | null;
+	/** TODO(api): distinct categories across the issue's rules. */
+	categories?: IssueCategory[];
+	/** TODO(api): total rules on the issue, in the requested project. */
+	rule_count?: number;
+	/** TODO(api): of those, how many are active. */
+	active_rule_count?: number;
+	/** TODO(api): distinct results stamped under this issue. */
+	result_count?: number;
 };
+
+/** DRF's list envelope — `bublik/core/pagination.py`. */
+export interface PaginatedResponse<T> {
+	pagination: { count: number; next: string | null; previous: string | null };
+	results: T[];
+}
+
+/**
+ * Facet counts computed over the whole filtered set rather than the current
+ * page. Once paging moves server-side the page cannot answer "how many closed
+ * issues are there", and a facet labelled with a page-local count is worse than
+ * one with no count at all.
+ *
+ * TODO(api): `GET /issues/facets`.
+ */
+export interface IssueFacets {
+	state: Record<string, number>;
+	categories: Record<string, number>;
+	rules: Record<string, number>;
+}
 
 export type IssueRule = {
 	id: number;
@@ -78,10 +117,22 @@ export interface RunIssueRow {
 
 export interface RunIssueResultRow {
 	result_id: number;
+	/** Test name. The run tree folds this into `path`; here it stays separate. */
 	name: string | null;
+	/** Package chain only, top-down — the test's own name is **not** included. */
 	path: string[];
 	obtained_result: string | null;
 	verdicts: string[];
+}
+
+/**
+ * The same row seen from the issue rather than from one run, so it has to say
+ * which run each result came from.
+ *
+ * TODO(api): `GET /issues/{id}/results`.
+ */
+export interface IssueResultRow extends RunIssueResultRow {
+	run_id: number;
 }
 
 export interface IssuePickerOption {

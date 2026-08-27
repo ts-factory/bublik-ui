@@ -99,10 +99,11 @@ export function IssueDetailHeader({
 	const isOpen = issue.state === 'open';
 	const isBusy = closeState.isLoading || reopenState.isLoading;
 	const stateMeta = issueStateMeta(issue.state);
-	const activeCount = (rules ?? []).filter((rule) => rule.active).length;
+	const issueRules = rules?.results ?? [];
+	const activeCount = issueRules.filter((rule) => rule.active).length;
 	const rulesMeta = issueRulesState({
 		state: issue.state,
-		total: rules?.length ?? 0,
+		total: issueRules.length,
 		active: activeCount
 	});
 
@@ -147,8 +148,8 @@ export function IssueDetailHeader({
 						className={cn(CLASSIFICATION_BADGE_CLASS, rulesMeta.className)}
 						data-rules-state={rulesMeta.value}
 					>
-						{rules?.length
-							? `${activeCount} of ${rules.length} rules active`
+						{issueRules.length
+							? `${activeCount} of ${issueRules.length} rules active`
 							: ISSUE_RULES_STATE_META.unruled.label}
 					</Badge>
 				</Tooltip>
