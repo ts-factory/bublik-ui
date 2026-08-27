@@ -118,15 +118,24 @@ function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 			}
 		},
 		{
-			id: 'name',
-			accessorFn: (row) => row.name ?? '',
-			header: 'Test',
-			meta: { className: 'w-64' },
-			cell: ({ row }) => (
-				<span className="font-medium text-text-primary">
-					{row.original.name ?? '-'}
-				</span>
-			)
+			// One column, not two. The API hands back the package chain and the
+			// test name separately, but nobody reads a test's identity in halves —
+			// and splitting them left the name in a `w-64` column while its own
+			// path sat three columns away.
+			id: 'test_path',
+			accessorFn: (row) => issueResultTestPath(row),
+			header: 'Test Path',
+			meta: { className: 'w-96' },
+			cell: ({ row }) => {
+				const path = issueResultTestPath(row.original);
+
+				return (
+					<span className="flex items-center gap-1 font-medium text-text-primary">
+						<Icon name="Folder" size={14} className="shrink-0 text-text-menu" />
+						<span className="truncate">{path || '-'}</span>
+					</span>
+				);
+			}
 		},
 		{
 			id: 'obtained',
@@ -147,18 +156,6 @@ function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 					/>
 				);
 			}
-		},
-		{
-			id: 'path',
-			accessorFn: (row) => row.path.join(' / '),
-			header: 'Package',
-			meta: { className: 'w-72' },
-			cell: ({ row }) => (
-				<span className="flex items-center gap-1 text-text-menu">
-					<Icon name="Folder" size={14} className="shrink-0" />
-					{row.original.path.join(' / ') || '(root)'}
-				</span>
-			)
 		}
 	];
 }
