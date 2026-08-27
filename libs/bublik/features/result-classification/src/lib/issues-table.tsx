@@ -107,6 +107,7 @@ interface IssueTableRow extends Issue {
 	activeRuleCount: number;
 	rulesState: IssueRulesState;
 	bugKey: string | null;
+	bugUrl: string | null;
 }
 
 function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
@@ -134,7 +135,12 @@ function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
 				total: issueRules.length,
 				active: activeRuleCount
 			}).value,
-			bugKey: issue.issue_ext?.key ?? null
+			bugKey: issue.issue_ext?.key ?? null,
+			// TODO(api): `/issues/` returns no resolved tracker URL, so this is
+			// null today and the chip renders without its link. The run-scoped
+			// endpoint already resolves it (`run_issues_summary` -> `resolve_ref`);
+			// the list endpoint needs the same treatment.
+			bugUrl: issue.bug_url ?? null
 		};
 	});
 }
@@ -207,10 +213,11 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
-			// Leftmost so the tracker key starts every row in the same place.
-			// `/issues/` carries no resolved tracker URL — only `issue_ext.key` —
-			// so this chip is deliberately link-less; the row's own link is the
-			// title beside it.
+			// Leftmost so the tracker key starts every row in the same place, and
+			// — once the API resolves `bug_url` — the way out to the tracker sits
+			// on that same line, matching the run's issue table. The chip and the
+			// link sit at opposite ends of the cell so the links land in one
+			// vertical run however short the key is.
 			id: COLUMN_ID.KEY,
 			accessorFn: (row) => row.bugKey ?? '',
 			header: 'Key',
@@ -222,7 +229,9 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => (
 				<BugKeyChip
 					bugKey={row.original.bugKey}
+					bugUrl={row.original.bugUrl}
 					fallback={`#${row.original.id}`}
+					className="flex justify-between w-full gap-2"
 				/>
 			)
 		},
