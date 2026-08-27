@@ -63,8 +63,15 @@ export function issueResultTestPath(row: ResultRow): string {
  * through an issue offers the same next steps as one found through the tree.
  *
  * History goes through `HistoryLinkContainer`, which resolves the result's own
- * test path and parameters. A link built from the issue alone lands on an empty
- * history page, because an issue is not a query.
+ * parameters and the run's anchor date. A link built from the issue alone lands
+ * on an empty history page, because an issue is not a query.
+ *
+ * `path` must be the *full* test path. `getHistorySearch` uses it verbatim as
+ * the `testName` query param, and history answers "Test with the specified name
+ * was not found" for anything that is not a real test — a package path being
+ * exactly that. The run tree gets this right for free (it builds
+ * `path = [...parents, test_name]`); this endpoint reports the package chain
+ * and the test name separately, so they have to be rejoined here.
  */
 function ResultLinks({ runId, row }: ResultLinksProps) {
 	return (
@@ -91,7 +98,7 @@ function ResultLinks({ runId, row }: ResultLinksProps) {
 				<HistoryLinkContainer
 					runId={Number(runId)}
 					resultId={row.result_id}
-					path={row.path.length ? row.path.join('/') : undefined}
+					path={issueResultTestPath(row) || undefined}
 				/>
 			</li>
 		</ul>
