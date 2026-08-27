@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { flexRender, type Row, type Table } from '@tanstack/react-table';
 
-import { TableSort, cn } from '@/shared/tailwind-ui';
+import { useDebounce } from '@/shared/hooks';
+import { Input, TableSort, cn } from '@/shared/tailwind-ui';
 
 /**
  * The run table's markup, factored out so every classification table looks the
@@ -16,6 +17,12 @@ import { TableSort, cn } from '@/shared/tailwind-ui';
 
 export interface ClassificationTableProps<T> {
 	table: Table<T>;
+	/**
+	 * Pins the header row while the body scrolls. Off by default because the
+	 * same component renders expanded sub-tables, which scroll with their parent
+	 * and would otherwise pin a second header mid-page.
+	 */
+	stickyHeader?: boolean;
 	/** Rendered in a full-width row under an expanded row. */
 	renderSubRow?: (row: Row<T>) => ReactNode;
 	/** Extra attributes per row, typically `data-*` hooks for e2e. */
@@ -25,6 +32,7 @@ export interface ClassificationTableProps<T> {
 
 export function ClassificationTable<T>({
 	table,
+	stickyHeader = false,
 	renderSubRow,
 	getRowAttributes,
 	testId
@@ -46,6 +54,10 @@ export function ClassificationTable<T>({
 									colSpan={header.colSpan}
 									className={cn(
 										'px-2 bg-primary-wash border-b border-border-primary',
+										// The border lives on the `th`, not the `tr`, so it travels
+										// with the sticky cell — under `border-separate` a row-level
+										// border would be left behind by the scrolling body.
+										stickyHeader && 'sticky top-0 z-10',
 										idx !== arr.length - 1 && 'border-r',
 										header.column.columnDef.meta?.className
 									)}
@@ -124,8 +136,81 @@ export function ClassificationToolbar({
 	children
 }: ClassificationToolbarProps) {
 	return (
-		<div className="flex flex-wrap items-center gap-2 px-4 py-1 bg-white border-b border-border-primary">
+		<div className="flex flex-wrap items-center gap-2 px-4 py-1 bg-white border-b border-border-primary shrink-0">
 			{children}
 		</div>
+	);
+}
+
+export interface ClassificationFooterProps {
+	children: ReactNode;
+}
+
+/**
+ * The toolbar's mirror, pinned under the scrolling body.
+ *
+ * It always renders, because the shared `Pagination` hides itself below two
+ * pages and an empty bar would look broken — the row count keeps it occupied.
+ */
+export function ClassificationFooter({ children }: ClassificationFooterProps) {
+	return (
+		<div className="flex items-center gap-2 px-4 py-2 bg-white border-t border-border-primary shrink-0">
+			{children}
+		</div>
+	);
+}
+
+export interface ClassificationSearchProps {
+	value: string;
+	onChange: (value: string) => void;
+	placeholder: string;
+	testId: string;
+	className?: string;
+}
+
+/**
+ * The toolbar's free-text box.
+ *
+ * The committed value lives in the URL, but typing must not write a query
+ * param per keystroke, so the draft is local and only the debounced value is
+ * pushed out. `lastPushed` is what keeps the two directions from fighting: it
+ * marks the value this input is responsible for, so an external change — the
+ * Reset button, a back navigation, a pasted link — is adopted into the draft
+ * while our own echo is ignored.
+ */
+export function ClassificationSearch({
+	value,
+	onChange,
+	placeholder,
+	testId,
+	className
+}: ClassificationSearchProps) {
+	const [draft, setDraft] = useState(value);
+	const debounced = useDebounce(draft, 300);
+	const lastPushed = useRef(value);
+
+	useEffect(() => {
+		if (debounced === lastPushed.current) return;
+
+		lastPushed.current = debounced;
+		onChange(debounced);
+	}, [debounced, onChange]);
+
+	useEffect(() => {
+		if (value === lastPushed.current) return;
+
+		lastPushed.current = value;
+		setDraft(value);
+	}, [value]);
+
+	return (
+		<Input
+			type="text"
+			placeholder={placeholder}
+			className={cn('h-7 text-xs', className)}
+			value={draft}
+			onChange={(event) => setDraft(event.target.value)}
+			data-testid={testId}
+		/>
 	);
 }

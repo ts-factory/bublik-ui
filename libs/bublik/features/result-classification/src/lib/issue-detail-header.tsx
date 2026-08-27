@@ -16,7 +16,7 @@ import {
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
-import { formatTimestampToFull } from '@/shared/utils';
+import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
 import {
 	CLASSIFICATION_BADGE_CLASS,
@@ -43,12 +43,28 @@ interface FactProps {
 
 function Fact({ label, children }: FactProps) {
 	return (
-		<div className="flex flex-col gap-0.5">
-			<span className="text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
+		<>
+			<dt className="text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
 				{label}
-			</span>
-			<span className="text-sm text-text-primary">{children}</span>
-		</div>
+			</dt>
+			<dd className="text-[0.6875rem] font-medium leading-[0.875rem]">
+				{children}
+			</dd>
+		</>
+	);
+}
+
+/**
+ * Dates read at the run-details scale: the minute-precision form in the row,
+ * the full millisecond form in the tooltip -- same split the issues table uses.
+ */
+function TimeValue({ value }: { value: string }) {
+	const formatted = parseDetailDate(value);
+
+	return (
+		<Tooltip content={formatTimestampToFull(value)}>
+			<span className="tabular-nums">{formatted ?? '-'}</span>
+		</Tooltip>
 	);
 }
 
@@ -109,7 +125,7 @@ export function IssueDetailHeader({
 			data-issue-state={issue.state}
 		>
 			<div className="flex flex-wrap items-center gap-2">
-				<h1 className="text-base font-semibold text-text-primary">
+				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>
 				{issue.issue_ext?.key ? (
@@ -157,21 +173,27 @@ export function IssueDetailHeader({
 			</div>
 
 			{issue.description ? (
-				<p className="text-sm whitespace-pre-wrap text-text-secondary">
+				<p className="text-xs leading-[1.125rem] whitespace-pre-wrap text-text-menu">
 					{issue.description}
 				</p>
 			) : null}
 
-			<div className="flex flex-wrap gap-8">
-				<Fact label="Created">{formatTimestampToFull(issue.created_at)}</Fact>
-				<Fact label="Updated">{formatTimestampToFull(issue.updated_at)}</Fact>
+			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4 pt-3 border-t border-border-primary">
+				<Fact label="Created">
+					<TimeValue value={issue.created_at} />
+				</Fact>
+				<Fact label="Updated">
+					<TimeValue value={issue.updated_at} />
+				</Fact>
 				{issue.closed_at ? (
-					<Fact label="Closed">{formatTimestampToFull(issue.closed_at)}</Fact>
+					<Fact label="Closed">
+						<TimeValue value={issue.closed_at} />
+					</Fact>
 				) : null}
 				{issue.issue_ext?.status ? (
 					<Fact label="Tracker status">{issue.issue_ext.status}</Fact>
 				) : null}
-			</div>
+			</dl>
 		</div>
 	);
 }

@@ -95,6 +95,10 @@ body,
 	--colors-badge-14: 34 100% 90%;
 	--colors-badge-15: 353 100% 81%;
 	--colors-badge-16: 120 33% 94%;
+	/* Pale yellow — FLAKY. Yellow is the intermittent/pending family: it must
+	   not sit in the orange washes (badge-4/14) that carry "test bug" and
+	   "state changed", or the two become indistinguishable at chip size. */
+	--colors-badge-17: 47 100% 90%;
 
 	/* DIFF */
 	--diff-added: 134 100% 95%;

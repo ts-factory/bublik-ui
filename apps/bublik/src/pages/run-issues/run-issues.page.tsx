@@ -70,12 +70,7 @@ function ApplyRulesButton({ runId, projectId }: ApplyRulesButtonProps) {
 	);
 }
 
-interface RunIssuesHeaderProps {
-	runId: string;
-	projectId?: number;
-}
-
-function RunIssuesHeader({ runId, projectId }: RunIssuesHeaderProps) {
+function RunIssuesHeader({ runId }: { runId: string }) {
 	const [isFullMode, setIsFullMode] = useState(false);
 
 	return (
@@ -86,7 +81,6 @@ function RunIssuesHeader({ runId, projectId }: RunIssuesHeaderProps) {
 						isFullMode={isFullMode}
 						onToggleClick={() => setIsFullMode((prev) => !prev)}
 					/>
-					<ApplyRulesButton runId={runId} projectId={projectId} />
 					<ButtonTw asChild variant="secondary" size="xss">
 						<LinkWithProject to={routes.run({ runId })}>
 							<Icon name="PieChart" size={16} className="mr-1.5" />
@@ -147,12 +141,14 @@ function RunIssuesPage() {
 
 	return (
 		<div className="flex flex-col gap-1 p-2" data-testid="run-issues-page">
-			<RunIssuesHeader runId={runId} projectId={projectId} />
+			<RunIssuesHeader runId={runId} />
 			<div className="flex flex-col bg-white rounded">
-				<CardHeader label="Issues">
-					<IssuesSummary runId={runId} projectId={projectId} />
-				</CardHeader>
-				<RunIssuesTable runId={runId} projectId={projectId} />
+				<RunIssuesTable
+					runId={runId}
+					projectId={projectId}
+					toolbarActions={<ApplyRulesButton runId={runId} projectId={projectId} />}
+					toolbarSummary={<IssuesSummary runId={runId} projectId={projectId} />}
+				/>
 			</div>
 		</div>
 	);

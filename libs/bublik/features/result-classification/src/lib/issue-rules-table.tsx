@@ -20,7 +20,6 @@ import {
 	useGetIssueRulesQuery
 } from '@/services/bublik-api';
 import {
-	Badge,
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
@@ -33,17 +32,16 @@ import {
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import type { IssueRule } from '@/shared/types';
 
+import { CATEGORY_ORDER, categoryMeta, ruleActiveMeta } from './classification-colors';
 import {
-	CATEGORY_ORDER,
-	CLASSIFICATION_BADGE_CLASS,
-	categoryMeta,
-	ruleActiveMeta
-} from './classification-colors';
+	CategoryBadge,
+	DispositionBadge,
+	RuleActiveBadge
+} from './classification-badges';
 import {
 	ClassificationTable,
 	ClassificationToolbar
 } from './classification-table';
-import { expectedBadge } from './expected';
 import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
@@ -59,7 +57,7 @@ const COLUMN_ID = {
 const DISPOSITION_OPTIONS = [
 	{ value: 'true', label: 'Expected' },
 	{ value: 'false', label: 'Unexpected' },
-	{ value: 'none', label: 'None' }
+	{ value: 'none', label: 'Marked' }
 ];
 
 function dispositionKey(expected: boolean | null): string {
@@ -246,20 +244,7 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 			meta: { className: 'w-44' },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				const meta = categoryMeta(row.original.category);
-
-				return (
-					<Tooltip content={meta.description}>
-						<Badge
-							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
-							data-category={row.original.category}
-						>
-							{meta.label}
-						</Badge>
-					</Tooltip>
-				);
-			}
+			cell: ({ row }) => <CategoryBadge category={row.original.category} />
 		},
 		{
 			id: COLUMN_ID.DISPOSITION,
@@ -268,28 +253,7 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 			meta: { className: 'w-32' },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				const badge = expectedBadge(row.original.expected);
-
-				return (
-					<Tooltip
-						content={
-							row.original.expected === true
-								? 'Results matching this rule stop counting as unexpected, as long as the issue stays open.'
-								: row.original.expected === false
-								? 'Results matching this rule are explained but still count as unexpected.'
-								: 'This rule only marks results — it changes no count.'
-						}
-					>
-						<Badge
-							variant={badge.variant}
-							className={CLASSIFICATION_BADGE_CLASS}
-						>
-							{badge.label}
-						</Badge>
-					</Tooltip>
-				);
-			}
+			cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
 		},
 		{
 			id: COLUMN_ID.SCOPE,
@@ -325,17 +289,7 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 			meta: { className: 'w-28' },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				const meta = ruleActiveMeta(row.original.active);
-
-				return (
-					<Tooltip content={meta.description}>
-						<Badge className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}>
-							{meta.label}
-						</Badge>
-					</Tooltip>
-				);
-			}
+			cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
 		},
 		{
 			id: COLUMN_ID.ACTIONS,
@@ -388,7 +342,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 				(category) => categoryCounts[category]
 			).map((category) => ({
 				value: category,
-				label: `${categoryMeta(category).label} (${categoryCounts[category]})`
+				label: `${categoryMeta(category).displayValue} (${
+					categoryCounts[category]
+				})`
 			})),
 			dispositionOptions: DISPOSITION_OPTIONS.filter(
 				(option) => dispositionCounts[option.value]

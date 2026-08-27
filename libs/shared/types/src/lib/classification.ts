@@ -48,6 +48,8 @@ export type IssueRule = {
 	tags: string[];
 };
 
+export type RuleResultOrigin = 'import' | 'manual_persistent' | 'manual_oneoff';
+
 /** Per-result classification badge data (embedded in run result rows). */
 export type ResultIssueRef = {
 	issue_id: number;
@@ -58,7 +60,7 @@ export type ResultIssueRef = {
 	category: IssueCategory;
 	expected: boolean | null;
 	rule_id: number;
-	origin: 'import' | 'manual_persistent' | 'manual_oneoff';
+	origin: RuleResultOrigin;
 };
 
 export interface RunIssueRow {

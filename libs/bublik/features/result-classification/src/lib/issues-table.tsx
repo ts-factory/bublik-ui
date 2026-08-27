@@ -22,14 +22,12 @@ import {
 } from '@/services/bublik-api';
 import { useProjectSearch, LinkWithProject } from '@/bublik/features/projects';
 import {
-	Badge,
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
 	Input,
 	Skeleton,
 	Tooltip,
-	cn,
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -38,14 +36,18 @@ import type { Issue, IssueCategory, IssueRule } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
-	CLASSIFICATION_BADGE_CLASS,
 	ISSUE_RULES_STATE_META,
-	type IssueRulesState,
 	categoryMeta,
-	formatBugKey,
 	issueRulesState,
-	issueStateMeta
+	issueStateMeta,
+	type IssueRulesState
 } from './classification-colors';
+import {
+	BugKeyChip,
+	CategoryBadgeList,
+	IssueRulesBadge,
+	IssueStateBadge
+} from './classification-badges';
 import {
 	ClassificationTable,
 	ClassificationToolbar
@@ -221,11 +223,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 							{row.original.title}
 						</LinkWithProject>
 						{row.original.bugKey ? (
-							<Tooltip content={row.original.bugKey}>
-								<span className="px-1.5 rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
-									{formatBugKey(row.original.bugKey)}
-								</span>
-							</Tooltip>
+							<BugKeyChip bugKey={row.original.bugKey} />
 						) : null}
 					</div>
 					{row.original.description ? (
@@ -243,17 +241,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			meta: { className: 'w-28' },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				const meta = issueStateMeta(row.original.state);
-
-				return (
-					<Tooltip content={meta.description}>
-						<Badge className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}>
-							{meta.label}
-						</Badge>
-					</Tooltip>
-				);
-			}
+			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
 		},
 		{
 			id: COLUMN_ID.CATEGORIES,
@@ -267,24 +255,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 					return <span className="text-text-menu">-</span>;
 				}
 
-				return (
-					<div className="flex flex-wrap items-center gap-1">
-						{row.original.categories.map((category) => {
-							const meta = categoryMeta(category);
-
-							return (
-								<Tooltip key={category} content={meta.description}>
-									<Badge
-										className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
-										data-category={category}
-									>
-										{meta.label}
-									</Badge>
-								</Tooltip>
-							);
-						})}
-					</div>
-				);
+				return <CategoryBadgeList categories={row.original.categories} />;
 			}
 		},
 		{
@@ -294,23 +265,13 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			meta: { className: 'w-52' },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				const meta = ISSUE_RULES_STATE_META[row.original.rulesState];
-				const { activeRuleCount, ruleCount } = row.original;
-
-				return (
-					<Tooltip content={meta.description}>
-						<Badge
-							className={cn(CLASSIFICATION_BADGE_CLASS, meta.className)}
-							data-rules-state={meta.value}
-						>
-							{ruleCount === 0
-								? meta.label
-								: `${activeRuleCount} of ${ruleCount} active`}
-						</Badge>
-					</Tooltip>
-				);
-			}
+			cell: ({ row }) => (
+				<IssueRulesBadge
+					state={row.original.state}
+					total={row.original.ruleCount}
+					active={row.original.activeRuleCount}
+				/>
+			)
 		},
 		{
 			id: COLUMN_ID.CREATED,
@@ -392,7 +353,7 @@ function useFacetOptions(rows: IssueTableRow[]) {
 			(category) => categoryCounts[category]
 		).map((category) => ({
 			value: category,
-			label: `${categoryMeta(category).label} (${categoryCounts[category]})`
+			label: `${categoryMeta(category).displayValue} (${categoryCounts[category]})`
 		}));
 
 		return { stateOptions, rulesOptions, categoryOptions };

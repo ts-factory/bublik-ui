@@ -1,9 +1,30 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { BadgeVariants } from '@/shared/tailwind-ui';
 import type { IconProps } from '@/shared/tailwind-ui';
-import type { IssueCategory, IssueState, RunIssueRow } from '@/shared/types';
+import type {
+	IssueCategory,
+	IssueState,
+	ResultIssueRef,
+	RunIssueRow
+} from '@/shared/types';
 
 type IconName = IconProps['name'];
+
+/**
+ * Builds an ordering tuple that the compiler checks for completeness.
+ *
+ * The order arrays below are the display order for chips and facet lists, and
+ * they are hand-written, so nothing but this stops one from drifting out of
+ * step with its meta map. Miss a member and the call is a type error rather
+ * than a value that silently vanishes from every filter dropdown.
+ */
+const orderOf =
+	<U extends string>() =>
+	<T extends readonly U[]>(
+		tuple: T & (Exclude<U, T[number]> extends never ? T : never)
+	): readonly U[] =>
+		tuple;
 
 /**
  * Colour policy for classification, in one place.
@@ -35,11 +56,15 @@ export interface CategoryMeta {
 /**
  * Mirrors the backend's `_EXPECTED_BY_CATEGORY` policy table. Shown as the
  * category's *default* disposition; the rule's own `expected` still wins.
+ *
+ * `label` is the chip text and stays short — it is uppercased by the chip
+ * shell, and a wide chip is a scanning hazard. The self-explanatory long form
+ * lives in `displayValue` for the classify form and facet filters.
  */
 export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 	'product-defect': {
 		value: 'product-defect',
-		label: 'Product defect',
+		label: 'Defect',
 		displayValue: 'Product defect',
 		description:
 			'A real defect in the product under test. Counts as unexpected.',
@@ -56,7 +81,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 	},
 	env: {
 		value: 'env',
-		label: 'Environment',
+		label: 'Env',
 		displayValue: 'Environment / infra',
 		description: 'Caused by the environment or the infrastructure.',
 		className: 'bg-badge-7 text-text-primary',
@@ -64,7 +89,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 	},
 	'known-issue': {
 		value: 'known-issue',
-		label: 'Known issue',
+		label: 'Known',
 		displayValue: 'Known issue',
 		description: 'A known, already-triaged failure.',
 		className: 'bg-badge-1 text-text-primary',
@@ -75,12 +100,12 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Flaky',
 		displayValue: 'Flaky / intermittent',
 		description: 'Passes and fails without a change in the product.',
-		className: 'bg-badge-4 text-text-primary',
+		className: 'bg-badge-17 text-text-primary',
 		iconName: 'InformationCircleProgress'
 	},
 	'to-investigate': {
 		value: 'to-investigate',
-		label: 'To investigate',
+		label: 'Investigate',
 		displayValue: 'To investigate',
 		description: 'Noted, but nobody has worked out the cause yet.',
 		className: 'bg-badge-2 text-text-triage',
@@ -88,14 +113,14 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 	}
 };
 
-export const CATEGORY_ORDER: IssueCategory[] = [
+export const CATEGORY_ORDER = orderOf<IssueCategory>()([
 	'product-defect',
 	'test-bug',
 	'env',
 	'known-issue',
 	'flaky',
 	'to-investigate'
-];
+] as const);
 
 export function categoryMeta(category: IssueCategory): CategoryMeta {
 	return (
@@ -186,13 +211,93 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 		},
 		marked: {
 			value: 'marked',
-			label: 'Marked only',
+			label: 'Marked',
 			description:
 				'Stamped with no disposition, so nothing was decided and nothing is suppressed.',
 			className: 'bg-badge-2 text-text-triage',
 			iconName: 'TriangleQuestionMark'
 		}
 	};
+
+export const EFFECT_ORDER = orderOf<RunIssueEffect>()([
+	'suppressed',
+	'stale',
+	'unexpected',
+	'marked'
+] as const);
+
+/**
+ * The disposition axis: what a rule's tri-state `expected` decides.
+ *
+ * `null` is not "unknown pending a value" — it is a deliberate third choice
+ * that stamps the result and changes no count, and it is the classify form's
+ * default, so it is the disposition you see most often.
+ */
+export type Disposition = 'expected' | 'unexpected' | 'none';
+
+export interface DispositionMeta {
+	value: Disposition;
+	label: string;
+	/** Reads as one rule's decision, for `/admin/issues/:issueId`. */
+	description: string;
+	/** Reads as an OR over several rules, for the per-issue row. */
+	aggregateDescription: string;
+	variant: BadgeVariants;
+	iconName: IconName;
+}
+
+export const DISPOSITION_META: Record<Disposition, DispositionMeta> = {
+	expected: {
+		value: 'expected',
+		label: 'Expected',
+		description:
+			'Results matching this rule stop counting as unexpected, as long as the issue stays open.',
+		aggregateDescription:
+			'At least one rule marks these results expected, so they stop counting while the issue is open.',
+		variant: BadgeVariants.Expected,
+		iconName: 'EyeHide'
+	},
+	unexpected: {
+		value: 'unexpected',
+		label: 'Unexpected',
+		description:
+			'Results matching this rule are explained but still count as unexpected.',
+		aggregateDescription:
+			'The rules explain these results but still call them unexpected, so they keep counting.',
+		variant: BadgeVariants.Unexpected,
+		iconName: 'InformationCircleCrossMark'
+	},
+	none: {
+		value: 'none',
+		label: 'Marked',
+		description: 'This rule only marks results \u2014 it changes no count.',
+		aggregateDescription:
+			'The rules set no disposition, so the results are marked and nothing is suppressed.',
+		variant: BadgeVariants.Triage,
+		iconName: 'TriangleQuestionMark'
+	}
+};
+
+export const DISPOSITION_ORDER = orderOf<Disposition>()([
+	'expected',
+	'unexpected',
+	'none'
+] as const);
+
+/** The tri-state `expected` flag, as the key its meta is stored under. */
+export function dispositionKey(
+	expected: boolean | null | undefined
+): Disposition {
+	if (expected === true) return 'expected';
+	if (expected === false) return 'unexpected';
+	return 'none';
+}
+
+export function dispositionMeta(
+	expected: boolean | null | undefined
+): DispositionMeta {
+	return DISPOSITION_META[dispositionKey(expected)];
+}
 
 /**
  * OR over the issue's rules, matching the backend's suppression filter:
@@ -279,6 +384,13 @@ export const ISSUE_RULES_STATE_META: Record<
 	}
 };
 
+export const RULES_STATE_ORDER = orderOf<IssueRulesState>()([
+	'enforced',
+	'dormant',
+	'deactivated',
+	'unruled'
+] as const);
+
 /**
  * A single rule's lifecycle flag. Inactive is grey, not red: a deactivated
  * rule is a deliberate state, not a failure.
@@ -324,4 +436,46 @@ export function formatBugKey(bugKey: string | null): string | null {
 	if (!bugKey) return null;
 	const match = /^ref:\/\/[^/\s]+\/(.+)$/.exec(bugKey);
 	return match ? match[1] : bugKey;
+}
+
+export type RuleResultOrigin = ResultIssueRef['origin'];
+
+export interface OriginMeta {
+	value: RuleResultOrigin;
+	label: string;
+	description: string;
+}
+
+/**
+ * Where a stamp came from. Deliberately not a chip: origin explains *who laid
+ * the stamp*, which matters only when a stamp looks wrong, so it lives in
+ * tooltips rather than adding a fourth badge to a history row.
+ */
+export const ORIGIN_META: Record<RuleResultOrigin, OriginMeta> = {
+	import: {
+		value: 'import',
+		label: 'Import',
+		description: 'Stamped automatically when the run was imported.'
+	},
+	manual_persistent: {
+		value: 'manual_persistent',
+		label: 'Manual',
+		description:
+			'Stamped by hand — also applies to matching results in future imports.'
+	},
+	manual_oneoff: {
+		value: 'manual_oneoff',
+		label: 'One-off',
+		description: 'Stamped by hand — applies to this result only.'
+	}
+};
+
+export function originMeta(origin: RuleResultOrigin): OriginMeta {
+	return (
+		ORIGIN_META[origin] ?? {
+			value: origin,
+			label: origin,
+			description: 'Unknown stamp origin.'
+		}
+	);
 }

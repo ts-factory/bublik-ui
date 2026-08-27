@@ -12,7 +12,7 @@ import { createNextState } from '@reduxjs/toolkit';
 import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import { expectedBadge } from '@/bublik/features/result-classification';
+import { ResultIssueBadges } from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
@@ -81,16 +81,7 @@ export const getColumns = ({
 							showLinkToRun={showLinkToRun}
 							path={path}
 						/>
-						{(value.issues ?? []).map((ref) => (
-							<Badge
-								key={ref.rule_id}
-								variant={expectedBadge(ref.expected).variant}
-								overflowWrap
-							>
-								{ref.category}
-								{ref.issue_state === 'closed' ? ' (closed)' : ''}
-							</Badge>
-						))}
+						<ResultIssueBadges issues={value.issues} />
 					</div>
 				);
 			},

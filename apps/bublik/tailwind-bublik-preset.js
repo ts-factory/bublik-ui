@@ -53,6 +53,7 @@ module.exports = {
 				'badge-14': 'hsl(var(--colors-badge-14) / <alpha-value>)',
 				'badge-15': 'hsl(var(--colors-badge-15) / <alpha-value>)',
 				'badge-16': 'hsl(var(--colors-badge-16) / <alpha-value>)',
+				'badge-17': 'hsl(var(--colors-badge-17) / <alpha-value>)',
 				'diff-added': 'hsl(var(--diff-added) / <alpha-value>)',
 				'diff-removed': 'hsl(var(--diff-removed) / <alpha-value>)',
 				'diff-changed': 'hsl(var(--diff-changed) / <alpha-value>)',
@@ -266,7 +267,8 @@ module.exports = {
 		'bg-badge-13',
 		'bg-badge-14',
 		'bg-badge-15',
-		'bg-badge-16'
+		'bg-badge-16',
+		'bg-badge-17'
 	],
 	plugins: [
 		require('tailwindcss-radix')({ variantPrefix: 'rdx' }),
