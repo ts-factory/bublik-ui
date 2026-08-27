@@ -40,6 +40,7 @@ import {
 	categoryMeta,
 	dispositionKey,
 	formatBugKey,
+	issueStateMeta,
 	ruleActiveMeta
 } from './classification-colors';
 import {
@@ -67,6 +68,7 @@ import { chipsForFlags } from './match-scope.utils';
 const COLUMN_ID = {
 	EXPANDER: 'expander',
 	ISSUE: 'issue',
+	ISSUE_STATE: 'issueState',
 	TEST: 'test',
 	CATEGORY: 'category',
 	DISPOSITION: 'disposition',
@@ -77,6 +79,7 @@ const COLUMN_ID = {
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
+	COLUMN_ID.ISSUE_STATE,
 	COLUMN_ID.CATEGORY,
 	COLUMN_ID.DISPOSITION,
 	COLUMN_ID.ACTIVE
@@ -249,11 +252,31 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 					{row.original.issueTitle}
 				</LinkWithProject>
 			</Tooltip>
-			{row.original.issueState ? (
-				<IssueStateBadge state={row.original.issueState} />
-			) : null}
 		</div>
 	)
+};
+
+/**
+ * The issue's own open/closed state, in a column of its own so it sits where
+ * `IssuesTable` and `RunIssuesTable` put it instead of trailing the title.
+ *
+ * It matters here for the same reason it does there: closing an issue
+ * deactivates every rule under it, so a closed issue overrides the Rule column
+ * further along the row.
+ */
+const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.ISSUE_STATE,
+	accessorFn: (row) => row.issueState ?? '',
+	header: 'State',
+	meta: { className: 'w-24 whitespace-nowrap' },
+	enableSorting: false,
+	filterFn: someOfFilter,
+	cell: ({ row }) =>
+		row.original.issueState ? (
+			<IssueStateBadge state={row.original.issueState} />
+		) : (
+			<span className="text-text-menu">-</span>
+		)
 };
 
 interface GetColumnsArgs {
@@ -283,7 +306,7 @@ function getColumns({
 				/>
 			)
 		},
-		...(showIssue ? [ISSUE_COLUMN] : []),
+		...(showIssue ? [ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		{
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
@@ -347,9 +370,14 @@ function getColumns({
 			}
 		},
 		{
+			// Headed `Rule`, not `State`. This is the *rule's* active flag, and the
+			// issue's open/closed state now has a column of its own — two columns
+			// both headed `State` meaning different things is worse than a slightly
+			// terse header. The id and its URL filter key are unchanged, so shared
+			// links keep resolving.
 			id: COLUMN_ID.ACTIVE,
 			accessorFn: (row) => String(row.active),
-			header: 'State',
+			header: 'Rule',
 			meta: { className: 'w-28' },
 			enableSorting: false,
 			filterFn: someOfFilter,
@@ -386,6 +414,13 @@ function useFacetOptions(rules: IssueRuleRow[]) {
 				values: rules.map((rule) => String(rule.active) as ActiveKey),
 				order: ACTIVE_ORDER,
 				labelFor: (value) => ruleActiveMeta(value === 'true').label
+			}),
+			issueStateOptions: buildFacetOptions({
+				values: rules
+					.map((rule) => rule.issueState)
+					.filter((state): state is IssueState => state !== null),
+				order: ['open', 'closed'] as const,
+				labelFor: (state) => issueStateMeta(state).label
 			})
 		}),
 		[rules]
@@ -442,8 +477,12 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		() => getColumns({ projectId, showIssue }),
 		[projectId, showIssue]
 	);
-	const { categoryOptions, dispositionOptions, activeOptions } =
-		useFacetOptions(rules);
+	const {
+		categoryOptions,
+		dispositionOptions,
+		activeOptions,
+		issueStateOptions
+	} = useFacetOptions(rules);
 
 	const table = useReactTable({
 		data: rules,
@@ -524,6 +563,16 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					testId="issue-rules-search"
 					className="min-w-[220px]"
 				/>
+				{showIssue ? (
+					<DataTableFacetedFilter
+						title="State"
+						size="xss"
+						options={issueStateOptions}
+						value={getFilterValue(COLUMN_ID.ISSUE_STATE)}
+						onChange={(values) => setFilterValue(COLUMN_ID.ISSUE_STATE, values)}
+						disabled={!issueStateOptions.length}
+					/>
+				) : null}
 				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
@@ -541,7 +590,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					disabled={!dispositionOptions.length}
 				/>
 				<DataTableFacetedFilter
-					title="State"
+					title="Rule"
 					size="xss"
 					options={activeOptions}
 					value={getFilterValue(COLUMN_ID.ACTIVE)}
