@@ -167,7 +167,12 @@ export function issueStateMeta(state: IssueState): IssueStateMeta {
 }
 
 /**
- * An issue's effect on this run's unexpected count.
+ * Whether this issue's results still count as unexpected in this run.
+ *
+ * The four values are the answers to that one question — one "no", and three
+ * different "yes"es that differ only in *why*. The stored values are part of
+ * the run page's filter URL, so they are frozen; only the labels are free to
+ * change.
  *
  * The backend suppresses a result when *any* stamp has `expected=true` on an
  * open issue, so the aggregate is an OR, not a majority — and a closed issue
@@ -189,7 +194,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			value: 'suppressed',
 			label: 'Suppressed',
 			description:
-				'At least one rule marks these results expected and the issue is open, so they do not count as unexpected.',
+				'Does not count as unexpected: at least one rule marks these results expected, and the issue is open.',
 			className: 'bg-badge-3 text-text-expected',
 			iconName: 'EyeHide'
 		},
@@ -197,7 +202,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			value: 'stale',
 			label: 'Counting again',
 			description:
-				'These results were suppressed, but the issue is closed — they count as unexpected again.',
+				'Counts as unexpected again: these results were suppressed, but closing the issue un-suppressed them.',
 			className: 'bg-badge-14 text-text-primary',
 			iconName: 'InformationCircleStop'
 		},
@@ -205,15 +210,15 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			value: 'unexpected',
 			label: 'Unexpected',
 			description:
-				'Explained, but still a real failure — these results keep counting as unexpected.',
+				'Counts as unexpected: the rules explain these results, but still call them a real failure.',
 			className: 'bg-badge-13 text-text-unexpected',
 			iconName: 'InformationCircleCrossMark'
 		},
 		marked: {
 			value: 'marked',
-			label: 'Marked',
+			label: 'Undecided',
 			description:
-				'Stamped with no disposition, so nothing was decided and nothing is suppressed.',
+				'Counts as unexpected: the rules stamp these results but set no disposition, so nothing was decided and nothing is suppressed.',
 			className: 'bg-badge-2 text-text-triage',
 			iconName: 'TriangleQuestionMark'
 		}
@@ -238,7 +243,7 @@ export type Disposition = 'expected' | 'unexpected' | 'none';
 export interface DispositionMeta {
 	value: Disposition;
 	label: string;
-	/** Reads as one rule's decision, for `/admin/issues/:issueId`. */
+	/** Reads as one rule's decision, for `/issues/:issueId`. */
 	description: string;
 	/** Reads as an OR over several rules, for the per-issue row. */
 	aggregateDescription: string;

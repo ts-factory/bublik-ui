@@ -1,2 +1,2 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-export * from './admin-issues.page';
+export * from './issue-rules-list.page';

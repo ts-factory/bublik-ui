@@ -1,0 +1,71 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useParams } from 'react-router-dom';
+import { skipToken } from '@reduxjs/toolkit/query';
+
+import {
+	IssueDetailHeader,
+	IssueRulesTable
+} from '@/bublik/features/result-classification';
+import {
+	useProjectSearch,
+	useTabTitleWithPrefix,
+	LinkWithProject
+} from '@/bublik/features/projects';
+import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+import { routes } from '@/router';
+import { useGetIssueQuery } from '@/services/bublik-api';
+import { CardHeader, Icon } from '@/shared/tailwind-ui';
+import { BublikEmptyState } from '@/bublik/features/ui-state';
+
+export const IssuePage = () => {
+	const { issueId } = useParams<{ issueId: string }>();
+	const { projectIds } = useProjectSearch();
+	const projectId = projectIds[0];
+
+	// `/issues/rules` also matches the `/issues/:issueId` pattern in matchPath —
+	// route ranking keeps it off this component, but a hand-typed or stale
+	// non-numeric id would otherwise reach the API as `NaN`.
+	const isValidId = !!issueId && /^\d+$/.test(issueId);
+	const numericIssueId = isValidId ? Number(issueId) : undefined;
+
+	const { data: issue } = useGetIssueQuery(
+		numericIssueId !== undefined
+			? { issueId: numericIssueId, projectId }
+			: skipToken
+	);
+
+	useTabTitleWithPrefix([issue?.title, 'Issue - Bublik']);
+
+	if (numericIssueId === undefined) {
+		return (
+			<BublikEmptyState
+				title="No data"
+				description="Issue ID is missing or invalid"
+			/>
+		);
+	}
+
+	return (
+		<div className="flex flex-col h-full gap-1 p-2" data-testid="issue-page">
+			<header className="flex flex-col bg-white rounded shrink-0">
+				<CardHeader label="Info">
+					<div className="flex items-center gap-2">
+						<LinkWithProject
+							to={routes.issues({})}
+							className="inline-flex items-center gap-1 text-xs text-text-menu hover:text-primary"
+						>
+							<Icon name="ArrowShortSmall" className="rotate-90" size={14} />
+							All issues
+						</LinkWithProject>
+						<CopyShortUrlButtonContainer />
+					</div>
+				</CardHeader>
+				<IssueDetailHeader issueId={numericIssueId} projectId={projectId} />
+			</header>
+			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+				<IssueRulesTable issueId={numericIssueId} projectId={projectId} />
+			</div>
+		</div>
+	);
+};

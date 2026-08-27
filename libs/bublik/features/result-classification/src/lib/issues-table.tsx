@@ -1,13 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
 	ColumnDef,
-	ColumnFiltersState,
-	FilterFn,
-	SortingState,
 	getCoreRowModel,
 	getFilteredRowModel,
+	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
@@ -25,12 +23,13 @@ import {
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
-	Input,
+	Pagination,
 	Skeleton,
 	Tooltip,
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import { routes } from '@/router';
 import { formatTimeToDot, formatTimestampToFull } from '@/shared/utils';
 import type { Issue, IssueCategory, IssueRule } from '@/shared/types';
 
@@ -49,18 +48,46 @@ import {
 	IssueStateBadge
 } from './classification-badges';
 import {
+	ClassificationFooter,
+	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar
 } from './classification-table';
+import {
+	buildFacetOptions,
+	makeSearchFilter,
+	someOfFilter
+} from './classification-table.utils';
+import { useClassificationTableState } from './use-classification-table-state';
 
+/**
+ * Ordered so the row reads left to right as one sentence: *which* issue — the
+ * tracker key, then the title — *why* it is wrong, *whether it still bites*,
+ * *how much machinery* is behind it, *when* it appeared, and finally what you
+ * can do to it.
+ *
+ * `Categories` sits directly after the title because the two answer the same
+ * question, and `State`/`Rules` are kept adjacent because they are one
+ * mechanism: closing an issue deactivates its rules. `Created` is second to
+ * last — a date is reference material, not something anyone triages on — and
+ * the actions are pinned to the right edge, out of the reading path.
+ */
 const COLUMN_ID = {
+	KEY: 'key',
 	ISSUE: 'issue',
-	STATE: 'state',
 	CATEGORIES: 'categories',
+	STATE: 'state',
 	RULES: 'rules',
 	CREATED: 'created',
 	ACTIONS: 'actions'
 } as const;
+
+/** Module-level so the URL-state hook's memos do not churn every render. */
+const FILTER_KEYS = [
+	COLUMN_ID.STATE,
+	COLUMN_ID.CATEGORIES,
+	COLUMN_ID.RULES
+] as const;
 
 const RULES_STATE_ORDER: IssueRulesState[] = [
 	'enforced',
@@ -112,36 +139,12 @@ function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
 	});
 }
 
-/** Matches when the row carries *any* of the selected values. */
-const someOfFilter: FilterFn<IssueTableRow> = (row, columnId, filterValue) => {
-	const selected = filterValue as string[] | undefined;
-	if (!selected?.length) return true;
-
-	const value = row.getValue(columnId);
-	const values = Array.isArray(value) ? value : [value];
-
-	return values.some((v) => selected.includes(String(v)));
-};
-
-const searchFilter: FilterFn<IssueTableRow> = (row, _columnId, filterValue) => {
-	const query = String(filterValue ?? '')
-		.trim()
-		.toLowerCase();
-	if (!query) return true;
-
-	const issue = row.original;
-	const haystack = [
-		issue.title,
-		issue.description,
-		issue.bugKey,
-		`#${issue.id}`
-	]
-		.filter(Boolean)
-		.join(' ')
-		.toLowerCase();
-
-	return haystack.includes(query);
-};
+const searchFilter = makeSearchFilter<IssueTableRow>((issue) => [
+	issue.title,
+	issue.description,
+	issue.bugKey,
+	`#${issue.id}`
+]);
 
 function notifyError(err: unknown) {
 	const m = getErrorMessage(err);
@@ -175,7 +178,7 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 	return (
 		<div className="flex items-center justify-end gap-2">
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={`/admin/issues/${issue.id}`}>
+				<LinkWithProject to={routes.issue({ issueId: issue.id })}>
 					<Icon name="Paper" size={14} className="mr-1.5" />
 					Rules
 				</LinkWithProject>
@@ -204,30 +207,46 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
+			// Leftmost so the tracker key starts every row in the same place.
+			// `/issues/` carries no resolved tracker URL — only `issue_ext.key` —
+			// so this chip is deliberately link-less; the row's own link is the
+			// title beside it.
+			id: COLUMN_ID.KEY,
+			accessorFn: (row) => row.bugKey ?? '',
+			header: 'Key',
+			// `w-px` + `whitespace-nowrap` is the shrink-to-fit idiom under
+			// `table-auto`: the declared width is only a floor, so the column
+			// collapses to its widest chip and stops stealing slack.
+			meta: { className: 'w-px whitespace-nowrap' },
+			enableSorting: false,
+			cell: ({ row }) => (
+				<BugKeyChip
+					bugKey={row.original.bugKey}
+					fallback={`#${row.original.id}`}
+				/>
+			)
+		},
+		{
+			// Capped, not flexible: a title is a handful of words, and letting the
+			// column soak up every spare pixel pushes the badges off to the edge of
+			// the table. Anything longer truncates — the tooltip carries the rest.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
-			header: () => (
-				<span className="inline-flex items-center gap-1">
-					<Icon name="TriangleExclamationMark" size={14} />
-					Issue
-				</span>
-			),
+			header: 'Issue',
+			meta: { className: 'w-[26rem]' },
 			filterFn: searchFilter,
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-0.5">
-					<div className="flex items-center gap-2">
+					<Tooltip content={`Manage the rules behind ${row.original.title}`}>
 						<LinkWithProject
-							to={`/admin/issues/${row.original.id}`}
-							className="font-medium text-text-primary hover:text-primary hover:underline"
+							to={routes.issue({ issueId: row.original.id })}
+							className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
 						>
 							{row.original.title}
 						</LinkWithProject>
-						{row.original.bugKey ? (
-							<BugKeyChip bugKey={row.original.bugKey} />
-						) : null}
-					</div>
+					</Tooltip>
 					{row.original.description ? (
-						<span className="text-xs truncate text-text-menu">
+						<span className="block max-w-[25rem] text-xs truncate text-text-menu">
 							{row.original.description}
 						</span>
 					) : null}
@@ -235,34 +254,33 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			)
 		},
 		{
+			// Two badges at most in practice, so it is sized to that. It used to
+			// carry `min-w-` with no ceiling, which under `table-auto` made it the
+			// one column free to absorb every spare pixel in the table.
+			id: COLUMN_ID.CATEGORIES,
+			accessorFn: (row) => row.categories,
+			header: 'Categories',
+			meta: { className: 'w-52' },
+			enableSorting: false,
+			filterFn: someOfFilter,
+			cell: ({ row }) => (
+				<CategoryBadgeList categories={row.original.categories} />
+			)
+		},
+		{
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-28' },
+			meta: { className: 'w-24 whitespace-nowrap' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
 		},
 		{
-			id: COLUMN_ID.CATEGORIES,
-			accessorFn: (row) => row.categories,
-			header: 'Categories',
-			meta: { className: 'w-64' },
-			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => {
-				if (!row.original.categories.length) {
-					return <span className="text-text-menu">-</span>;
-				}
-
-				return <CategoryBadgeList categories={row.original.categories} />;
-			}
-		},
-		{
 			id: COLUMN_ID.RULES,
 			accessorFn: (row) => row.rulesState,
 			header: 'Rules',
-			meta: { className: 'w-52' },
+			meta: { className: 'w-36 whitespace-nowrap' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
@@ -277,7 +295,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.CREATED,
 			accessorFn: (row) => row.created_at ?? '',
 			header: 'Created',
-			meta: { className: 'w-32' },
+			meta: { className: 'w-28 whitespace-nowrap' },
 			cell: ({ row }) => {
 				const { created_at, closed_at, state } = row.original;
 
@@ -297,9 +315,13 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			}
 		},
 		{
+			// Pinned to the right edge and shrunk to its buttons: "Rules" (the way
+			// into this issue's rule list) and the lifecycle toggle both live here,
+			// so every control on the page sits in one column instead of being
+			// split between the title link and the row end.
 			id: COLUMN_ID.ACTIONS,
-			header: () => <span className="sr-only">Actions</span>,
-			meta: { className: 'w-44' },
+			header: 'Actions',
+			meta: { className: 'w-px whitespace-nowrap' },
 			enableSorting: false,
 			cell: ({ row }) => (
 				<IssueStateActions issue={row.original} projectId={projectId} />
@@ -318,46 +340,27 @@ function IssuesTableLoading() {
 	);
 }
 
-interface FacetOption {
-	label: string;
-	value: string;
-}
-
 function useFacetOptions(rows: IssueTableRow[]) {
-	return useMemo(() => {
-		const countBy = (values: string[]) =>
-			values.reduce<Record<string, number>>((acc, value) => {
-				acc[value] = (acc[value] ?? 0) + 1;
-				return acc;
-			}, {});
-
-		const stateCounts = countBy(rows.map((row) => row.state));
-		const rulesCounts = countBy(rows.map((row) => row.rulesState));
-		const categoryCounts = countBy(rows.flatMap((row) => row.categories));
-
-		const stateOptions: FacetOption[] = (['open', 'closed'] as const)
-			.filter((state) => stateCounts[state])
-			.map((state) => ({
-				value: state,
-				label: `${issueStateMeta(state).label} (${stateCounts[state]})`
-			}));
-
-		const rulesOptions: FacetOption[] = RULES_STATE_ORDER.filter(
-			(value) => rulesCounts[value]
-		).map((value) => ({
-			value,
-			label: `${ISSUE_RULES_STATE_META[value].label} (${rulesCounts[value]})`
-		}));
-
-		const categoryOptions: FacetOption[] = CATEGORY_ORDER.filter(
-			(category) => categoryCounts[category]
-		).map((category) => ({
-			value: category,
-			label: `${categoryMeta(category).displayValue} (${categoryCounts[category]})`
-		}));
-
-		return { stateOptions, rulesOptions, categoryOptions };
-	}, [rows]);
+	return useMemo(
+		() => ({
+			stateOptions: buildFacetOptions({
+				values: rows.map((row) => row.state),
+				order: ['open', 'closed'] as const,
+				labelFor: (state) => issueStateMeta(state).label
+			}),
+			rulesOptions: buildFacetOptions({
+				values: rows.map((row) => row.rulesState),
+				order: RULES_STATE_ORDER,
+				labelFor: (value) => ISSUE_RULES_STATE_META[value].label
+			}),
+			categoryOptions: buildFacetOptions({
+				values: rows.flatMap((row) => row.categories),
+				order: CATEGORY_ORDER,
+				labelFor: (category) => categoryMeta(category).displayValue
+			})
+		}),
+		[rows]
+	);
 }
 
 export function IssuesTable() {
@@ -373,10 +376,24 @@ export function IssuesTable() {
 	// both, and this page is the one place worth the second request for them.
 	const rulesQuery = useGetIssueRulesQuery(projectId ? { projectId } : {});
 
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: COLUMN_ID.CREATED, desc: true }
-	]);
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const {
+		pagination,
+		onPaginationChange,
+		columnFilters,
+		onColumnFiltersChange,
+		sorting,
+		onSortingChange,
+		search,
+		setSearch,
+		hasFilters,
+		resetFilters,
+		clampPage
+	} = useClassificationTableState({
+		filterKeys: FILTER_KEYS,
+		searchColumnId: COLUMN_ID.ISSUE,
+		defaultSorting: [{ id: COLUMN_ID.CREATED, desc: true }]
+	});
 
 	const rows = useMemo(
 		() => buildRows(issuesQuery.data ?? [], rulesQuery.data ?? []),
@@ -388,14 +405,23 @@ export function IssuesTable() {
 	const table = useReactTable({
 		data: rows,
 		columns,
-		state: { columnFilters, sorting },
-		onColumnFiltersChange: setColumnFilters,
-		onSortingChange: setSorting,
+		state: { columnFilters, sorting, pagination },
+		onColumnFiltersChange,
+		onSortingChange,
+		onPaginationChange,
 		getRowId: (row) => String(row.id),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel()
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
 	});
+
+	const pageCount = table.getPageCount();
+
+	// A shared link can outlive the rows it pointed at. Client-side pagination
+	// does not clamp on its own, so `?page=9` on a four-page table would render
+	// nothing at all, with no hint why.
+	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
 	const scopeLabel =
 		projectId === undefined
@@ -406,25 +432,25 @@ export function IssuesTable() {
 	const getFilterValue = (columnId: string) =>
 		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
 
-	const search =
-		(table.getColumn(COLUMN_ID.ISSUE)?.getFilterValue() as
-			| string
-			| undefined) ?? '';
+	const setFilterValue = (columnId: string, values: string[] | undefined) =>
+		table
+			.getColumn(columnId)
+			?.setFilterValue(values?.length ? values : undefined);
 
-	const hasFilters = columnFilters.length > 0;
 	const visibleRows = table.getRowModel().rows;
+	const matchedCount = table.getFilteredRowModel().rows.length;
+
+	function goToPage(page: number) {
+		table.setPageIndex(page - 1);
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 
 	if (issuesQuery.isLoading || rulesQuery.isLoading) {
 		return <IssuesTableLoading />;
 	}
 
 	if (issuesQuery.error) {
-		return (
-			<BublikErrorState
-				error={issuesQuery.error}
-				className="h-[calc(100vh-256px)]"
-			/>
-		);
+		return <BublikErrorState error={issuesQuery.error} className="h-full" />;
 	}
 
 	if (!rows.length) {
@@ -432,36 +458,32 @@ export function IssuesTable() {
 			<BublikEmptyState
 				title="No issues"
 				description={`No issues found in ${scopeLabel}. Issues are created by classifying a failing result.`}
-				className="h-[calc(100vh-256px)]"
+				className="h-full"
 			/>
 		);
 	}
 
 	return (
-		<div className="flex flex-col">
+		<div className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
-				<Input
-					type="text"
-					placeholder="Search title, description or key"
-					className="h-7 min-w-[240px] text-xs"
+				<Tooltip content="An issue is the cause identity — what is wrong. Its rules decide which results get stamped with it, and whether those results still count as unexpected.">
+					<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
+						Issues
+					</span>
+				</Tooltip>
+				<ClassificationSearch
 					value={search}
-					onChange={(event) =>
-						table
-							.getColumn(COLUMN_ID.ISSUE)
-							?.setFilterValue(event.target.value || undefined)
-					}
-					data-testid="issues-search"
+					onChange={setSearch}
+					placeholder="Search title, description or key"
+					testId="issues-search"
+					className="min-w-[240px]"
 				/>
 				<DataTableFacetedFilter
 					title="State"
 					size="xss"
 					options={stateOptions}
 					value={getFilterValue(COLUMN_ID.STATE)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.STATE)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
+					onChange={(values) => setFilterValue(COLUMN_ID.STATE, values)}
 					disabled={!stateOptions.length}
 				/>
 				<DataTableFacetedFilter
@@ -469,11 +491,7 @@ export function IssuesTable() {
 					size="xss"
 					options={categoryOptions}
 					value={getFilterValue(COLUMN_ID.CATEGORIES)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.CATEGORIES)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
+					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
 				/>
 				<DataTableFacetedFilter
@@ -481,11 +499,7 @@ export function IssuesTable() {
 					size="xss"
 					options={rulesOptions}
 					value={getFilterValue(COLUMN_ID.RULES)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.RULES)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
+					onChange={(values) => setFilterValue(COLUMN_ID.RULES, values)}
 					disabled={!rulesOptions.length}
 				/>
 				{hasFilters ? (
@@ -493,7 +507,7 @@ export function IssuesTable() {
 						<ButtonTw
 							variant="secondary"
 							size="xss"
-							onClick={() => table.resetColumnFilters()}
+							onClick={resetFilters}
 							data-testid="issues-reset-filters"
 						>
 							<Icon name="Bin" size={18} className="mr-1.5" />
@@ -502,20 +516,21 @@ export function IssuesTable() {
 					</Tooltip>
 				) : null}
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
-					{visibleRows.length} of {rows.length} in {scopeLabel}
+					{matchedCount} of {rows.length} in {scopeLabel}
 				</span>
 			</ClassificationToolbar>
 
-			{visibleRows.length === 0 ? (
-				<BublikEmptyState
-					title="No matching issues"
-					description="No issue matches the current filters."
-					className="h-64"
-				/>
-			) : (
-				<div className="overflow-x-auto">
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+				{visibleRows.length === 0 ? (
+					<BublikEmptyState
+						title="No matching issues"
+						description="No issue matches the current filters."
+						className="h-64"
+					/>
+				) : (
 					<ClassificationTable
 						table={table}
+						stickyHeader
 						testId="issues-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'issue-row',
@@ -523,8 +538,23 @@ export function IssuesTable() {
 							'data-issue-state': row.original.state
 						})}
 					/>
-				</div>
-			)}
+				)}
+			</div>
+
+			<ClassificationFooter>
+				<span className="text-xs text-text-menu tabular-nums">
+					{matchedCount} of {rows.length} issues
+				</span>
+				<Pagination
+					className="ml-auto"
+					variant="bordered"
+					totalCount={matchedCount}
+					pageSize={pagination.pageSize}
+					currentPage={pagination.pageIndex + 1}
+					onPageChange={goToPage}
+					onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+				/>
+			</ClassificationFooter>
 		</div>
 	);
 }

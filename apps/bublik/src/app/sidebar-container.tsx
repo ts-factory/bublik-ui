@@ -5,6 +5,10 @@ import { SettingsModal } from '@/bublik/features/settings';
 import { DashboardSidebarNav } from '@/bublik/features/dashboard-v2';
 import { RunsSidebarNav } from '@/bublik/features/runs';
 import { RunSidebarNav } from '@/bublik/features/run';
+import {
+	IssuesSidebarNav,
+	IssueSidebarNav
+} from '@/bublik/features/result-classification';
 import { LogSidebarNav } from '@/bublik/features/log';
 import { HistorySidebarNav } from '@/bublik/features/history';
 import { MeasurementsSidebarNav } from '@/bublik/features/measurements';
@@ -28,6 +32,8 @@ export function SidebarContainer() {
 			<DashboardSidebarNav />
 			<RunsSidebarNav />
 			<RunSidebarNav />
+			<IssuesSidebarNav />
+			<IssueSidebarNav />
 			<LogSidebarNav />
 			<HistorySidebarNav />
 			<MeasurementsSidebarNav />

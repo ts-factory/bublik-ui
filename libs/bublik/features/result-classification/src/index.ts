@@ -13,3 +13,4 @@ export * from './lib/issue-rules-table';
 export * from './lib/issue-detail-header';
 export * from './lib/classification-colors';
 export * from './lib/classification-badges';
+export * from './lib/sidebar';

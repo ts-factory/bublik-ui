@@ -4,7 +4,10 @@ import { To } from 'react-router-dom';
 
 import {
 	DashboardConfig,
+	IssueConfig,
+	IssuesConfig,
 	RunConfig,
+	RunIssuesConfig,
 	LogConfig,
 	MeasurementsConfig,
 	HistoryConfig
@@ -55,6 +58,14 @@ export const routes = {
 		getPathname: ({ runId, resultId }) =>
 			`/runs/${runId}/results/${resultId}/measurements`,
 		getSearch: () => 'mode=default'
+	}),
+	issues: buildRoute<IssuesConfig>({ getPathname: () => `/issues` }),
+	issueRules: buildRoute<IssuesConfig>({ getPathname: () => `/issues/rules` }),
+	issue: buildRoute<IssueConfig>({
+		getPathname: ({ issueId }) => `/issues/${issueId}`
+	}),
+	runIssues: buildRoute<RunIssuesConfig>({
+		getPathname: ({ runId }) => `/runs/${runId}/issues`
 	}),
 	runs: buildRoute<never>('/runs'),
 	flower: buildRoute('/flower'),

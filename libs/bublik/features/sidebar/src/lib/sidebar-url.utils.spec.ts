@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import * as sidebarStateConstants from './sidebar-state.constants';
 import {
 	DASHBOARD_SIDEBAR_KEYS,
 	HISTORY_SIDEBAR_KEYS,
@@ -39,12 +40,35 @@ function updateState(
 }
 
 describe('sidebar URL state', () => {
-	it('registers every key exactly once with a unique alias', () => {
+	it('registers every declared key exactly once with a unique alias', () => {
+		// Completeness matters as much as uniqueness: `compactSidebarState`
+		// skips keys with no alias, so a key that is declared and used but
+		// never registered is silently dropped on every encode rather than
+		// failing loudly.
+		const declaredKeys = Object.entries(sidebarStateConstants)
+			.filter(([name]) => name.endsWith('_SIDEBAR_KEYS'))
+			.flatMap(([, group]) => Object.values(group as Record<string, string>));
+
 		const keys = SIDEBAR_KEY_REGISTRY.map(({ key }) => key);
 		const aliases = SIDEBAR_KEY_REGISTRY.map(({ alias }) => alias);
 
 		expect(new Set(keys).size).toBe(keys.length);
 		expect(new Set(aliases).size).toBe(aliases.length);
+		expect([...keys].sort()).toEqual([...declaredKeys].sort());
+	});
+
+	it('round-trips the run issues URL', () => {
+		const params = updateState(new URLSearchParams(), (sidebarState) => {
+			setSidebarStateValue(
+				sidebarState,
+				RUN_SIDEBAR_KEYS.LAST_ISSUES,
+				'/runs/42/issues?q=timeout'
+			);
+		});
+
+		expect(getSidebarStateString(params, RUN_SIDEBAR_KEYS.LAST_ISSUES)).toBe(
+			'/runs/42/issues?q=timeout'
+		);
 	});
 
 	it('stores sidebar state in compact v3 format and reads it through logical keys', () => {

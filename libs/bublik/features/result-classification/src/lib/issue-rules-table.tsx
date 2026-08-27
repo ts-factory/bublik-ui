@@ -1,14 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
-	ColumnFiltersState,
-	FilterFn,
-	SortingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
+	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
@@ -17,35 +16,57 @@ import {
 	getErrorMessage,
 	useActivateRuleMutation,
 	useDeactivateRuleMutation,
-	useGetIssueRulesQuery
+	useGetIssueRulesQuery,
+	useGetIssuesQuery
 } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
-	Input,
+	Pagination,
 	Skeleton,
 	Tooltip,
 	cn,
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
-import type { IssueRule } from '@/shared/types';
+import { LinkWithProject } from '@/bublik/features/projects';
+import { routes } from '@/router';
+import type { Issue, IssueRule, IssueState } from '@/shared/types';
 
-import { CATEGORY_ORDER, categoryMeta, ruleActiveMeta } from './classification-colors';
 import {
+	CATEGORY_ORDER,
+	DISPOSITION_ORDER,
+	DISPOSITION_META,
+	categoryMeta,
+	dispositionKey,
+	formatBugKey,
+	ruleActiveMeta
+} from './classification-colors';
+import {
+	BugKeyChip,
 	CategoryBadge,
 	DispositionBadge,
+	IssueStateBadge,
 	RuleActiveBadge
 } from './classification-badges';
 import {
+	ClassificationFooter,
+	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar
 } from './classification-table';
+import {
+	buildFacetOptions,
+	makeSearchFilter,
+	someOfFilter
+} from './classification-table.utils';
+import { useClassificationTableState } from './use-classification-table-state';
 import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
 	EXPANDER: 'expander',
+	ISSUE: 'issue',
 	TEST: 'test',
 	CATEGORY: 'category',
 	DISPOSITION: 'disposition',
@@ -54,33 +75,45 @@ const COLUMN_ID = {
 	ACTIONS: 'actions'
 } as const;
 
-const DISPOSITION_OPTIONS = [
-	{ value: 'true', label: 'Expected' },
-	{ value: 'false', label: 'Unexpected' },
-	{ value: 'none', label: 'Marked' }
-];
+/** Module-level so the URL-state hook's memos do not churn every render. */
+const FILTER_KEYS = [
+	COLUMN_ID.CATEGORY,
+	COLUMN_ID.DISPOSITION,
+	COLUMN_ID.ACTIVE
+] as const;
 
-function dispositionKey(expected: boolean | null): string {
-	if (expected === true) return 'true';
-	if (expected === false) return 'false';
-	return 'none';
+const ACTIVE_ORDER = ['true', 'false'] as const;
+
+type ActiveKey = (typeof ACTIVE_ORDER)[number];
+
+/**
+ * A rule plus the issue it belongs to.
+ *
+ * `IssueRule` carries only `issue: number`, so the cross-issue view has to join
+ * against the issues list to say anything more than an id. The per-issue view
+ * needs none of it — the issue is already the page — so the join is skipped
+ * there and the fields fall back to the id.
+ */
+interface IssueRuleRow extends IssueRule {
+	issueTitle: string;
+	issueState: IssueState | null;
+	bugKey: string | null;
 }
 
-const someOfFilter: FilterFn<IssueRule> = (row, columnId, filterValue) => {
-	const selected = filterValue as string[] | undefined;
-	if (!selected?.length) return true;
+function buildRows(rules: IssueRule[], issues: Issue[]): IssueRuleRow[] {
+	const byId = new Map(issues.map((issue) => [issue.id, issue]));
 
-	return selected.includes(String(row.getValue(columnId)));
-};
+	return rules.map((rule) => {
+		const issue = byId.get(rule.issue);
 
-const searchFilter: FilterFn<IssueRule> = (row, _columnId, filterValue) => {
-	const query = String(filterValue ?? '')
-		.trim()
-		.toLowerCase();
-	if (!query) return true;
-
-	return (row.original.test_name ?? '').toLowerCase().includes(query);
-};
+		return {
+			...rule,
+			issueTitle: issue?.title ?? `#${rule.issue}`,
+			issueState: issue?.state ?? null,
+			bugKey: formatBugKey(issue?.issue_ext?.key ?? null)
+		};
+	});
+}
 
 function notifyError(err: unknown) {
 	const m = getErrorMessage(err);
@@ -197,7 +230,42 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 	);
 }
 
-function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
+const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.ISSUE,
+	accessorFn: (row) => row.issueTitle,
+	header: 'Issue',
+	meta: { className: 'w-[22rem]' },
+	cell: ({ row }) => (
+		<div className="flex items-center min-w-0 gap-2">
+			<BugKeyChip
+				bugKey={row.original.bugKey}
+				fallback={`#${row.original.issue}`}
+			/>
+			<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
+				<LinkWithProject
+					to={routes.issue({ issueId: row.original.issue })}
+					className="block min-w-0 font-medium truncate text-text-primary hover:text-primary hover:underline"
+				>
+					{row.original.issueTitle}
+				</LinkWithProject>
+			</Tooltip>
+			{row.original.issueState ? (
+				<IssueStateBadge state={row.original.issueState} />
+			) : null}
+		</div>
+	)
+};
+
+interface GetColumnsArgs {
+	projectId?: number;
+	/** Only the cross-issue view needs to say which issue a rule belongs to. */
+	showIssue: boolean;
+}
+
+function getColumns({
+	projectId,
+	showIssue
+}: GetColumnsArgs): ColumnDef<IssueRuleRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.EXPANDER,
@@ -226,11 +294,18 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 				</button>
 			)
 		},
+		...(showIssue ? [ISSUE_COLUMN] : []),
 		{
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			filterFn: searchFilter,
+			// The toolbar's free-text box lives on this column. On the cross-issue
+			// view the issue is part of the row, so it is part of the haystack.
+			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
+				showIssue
+					? [row.test_name, row.issueTitle, row.bugKey]
+					: [row.test_name]
+			),
 			cell: ({ row }) => (
 				<span className="font-medium text-text-primary">
 					{row.original.test_name}
@@ -305,89 +380,122 @@ function getColumns(projectId?: number): ColumnDef<IssueRule, unknown>[] {
 	];
 }
 
+function useFacetOptions(rules: IssueRuleRow[]) {
+	return useMemo(
+		() => ({
+			categoryOptions: buildFacetOptions({
+				values: rules.map((rule) => rule.category),
+				order: CATEGORY_ORDER,
+				labelFor: (category) => categoryMeta(category).displayValue
+			}),
+			dispositionOptions: buildFacetOptions({
+				values: rules.map((rule) => dispositionKey(rule.expected)),
+				order: DISPOSITION_ORDER,
+				labelFor: (disposition) => DISPOSITION_META[disposition].label
+			}),
+			activeOptions: buildFacetOptions({
+				values: rules.map((rule) => String(rule.active) as ActiveKey),
+				order: ACTIVE_ORDER,
+				labelFor: (value) => ruleActiveMeta(value === 'true').label
+			})
+		}),
+		[rules]
+	);
+}
+
 export interface IssueRulesTableProps {
-	issueId: number;
+	/** Omit for the cross-issue view: every rule in the project. */
+	issueId?: number;
 	projectId?: number;
 }
 
 export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
-	const { data, isLoading, error } = useGetIssueRulesQuery({
-		projectId,
-		issue: issueId
+	const showIssue = issueId === undefined;
+
+	const {
+		data: rulesData,
+		isLoading: isRulesLoading,
+		error: rulesError
+	} = useGetIssueRulesQuery({ projectId, issue: issueId });
+
+	// Same args `IssuesTable` uses, so the cross-issue view reuses that cache
+	// entry rather than issuing a second identical request.
+	const {
+		data: issuesData,
+		isLoading: isIssuesLoading,
+		error: issuesError
+	} = useGetIssuesQuery(showIssue ? { projectId } : skipToken);
+
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const {
+		pagination,
+		onPaginationChange,
+		columnFilters,
+		onColumnFiltersChange,
+		sorting,
+		onSortingChange,
+		search,
+		setSearch,
+		hasFilters,
+		resetFilters,
+		clampPage
+	} = useClassificationTableState({
+		filterKeys: FILTER_KEYS,
+		searchColumnId: COLUMN_ID.TEST,
+		defaultSorting: [{ id: COLUMN_ID.TEST, desc: false }]
 	});
 
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: COLUMN_ID.TEST, desc: false }
-	]);
-
-	const rules = useMemo(() => data ?? [], [data]);
-	const columns = useMemo(() => getColumns(projectId), [projectId]);
-
-	const facets = useMemo(() => {
-		const countBy = (values: string[]) =>
-			values.reduce<Record<string, number>>((acc, value) => {
-				acc[value] = (acc[value] ?? 0) + 1;
-				return acc;
-			}, {});
-
-		const categoryCounts = countBy(rules.map((rule) => rule.category));
-		const dispositionCounts = countBy(
-			rules.map((rule) => dispositionKey(rule.expected))
-		);
-		const activeCounts = countBy(rules.map((rule) => String(rule.active)));
-
-		return {
-			categoryOptions: CATEGORY_ORDER.filter(
-				(category) => categoryCounts[category]
-			).map((category) => ({
-				value: category,
-				label: `${categoryMeta(category).displayValue} (${
-					categoryCounts[category]
-				})`
-			})),
-			dispositionOptions: DISPOSITION_OPTIONS.filter(
-				(option) => dispositionCounts[option.value]
-			).map((option) => ({
-				...option,
-				label: `${option.label} (${dispositionCounts[option.value]})`
-			})),
-			activeOptions: (['true', 'false'] as const)
-				.filter((value) => activeCounts[value])
-				.map((value) => ({
-					value,
-					label: `${ruleActiveMeta(value === 'true').label} (${
-						activeCounts[value]
-					})`
-				}))
-		};
-	}, [rules]);
+	const rules = useMemo(
+		() => buildRows(rulesData ?? [], issuesData ?? []),
+		[rulesData, issuesData]
+	);
+	const columns = useMemo(
+		() => getColumns({ projectId, showIssue }),
+		[projectId, showIssue]
+	);
+	const { categoryOptions, dispositionOptions, activeOptions } =
+		useFacetOptions(rules);
 
 	const table = useReactTable({
 		data: rules,
 		columns,
-		state: { columnFilters, sorting },
-		onColumnFiltersChange: setColumnFilters,
-		onSortingChange: setSorting,
+		state: { columnFilters, sorting, pagination },
+		onColumnFiltersChange,
+		onSortingChange,
+		onPaginationChange,
 		getRowId: (row) => String(row.id),
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	});
+
+	const pageCount = table.getPageCount();
+
+	// A shared link can outlive the rows it pointed at. Client-side pagination
+	// does not clamp on its own, so `?page=9` on a four-page table would render
+	// nothing at all, with no hint why.
+	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
 	const getFilterValue = (columnId: string) =>
 		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
 
-	const search =
-		(table.getColumn(COLUMN_ID.TEST)?.getFilterValue() as string | undefined) ??
-		'';
+	const setFilterValue = (columnId: string, values: string[] | undefined) =>
+		table
+			.getColumn(columnId)
+			?.setFilterValue(values?.length ? values : undefined);
 
-	const hasFilters = columnFilters.length > 0;
 	const rows = table.getRowModel().rows;
+	const matchedCount = table.getFilteredRowModel().rows.length;
 
-	if (isLoading) {
+	function goToPage(page: number) {
+		table.setPageIndex(page - 1);
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	if (isRulesLoading || isIssuesLoading) {
 		return (
 			<div className="flex flex-col gap-1 p-2">
 				{Array.from({ length: 6 }, () => 0).map((_, idx) => (
@@ -397,75 +505,66 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		);
 	}
 
+	const error = rulesError ?? issuesError;
 	if (error) return <BublikErrorState error={error} className="h-[40vh]" />;
 
 	if (!rules.length) {
 		return (
 			<BublikEmptyState
 				title="No rules"
-				description="This issue has no rules in the active project. Rules are created by classifying a result, never on their own."
+				description={
+					showIssue
+						? 'No rules in the active project. Rules are created by classifying a result, never on their own.'
+						: 'This issue has no rules in the active project. Rules are created by classifying a result, never on their own.'
+				}
 				className="h-[40vh]"
 			/>
 		);
 	}
 
 	return (
-		<div className="flex flex-col">
+		<div className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
-				<Input
-					type="text"
-					placeholder="Search test"
-					className="h-7 min-w-[200px] text-xs"
+				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
+					Rules
+				</span>
+				<ClassificationSearch
 					value={search}
-					onChange={(event) =>
-						table
-							.getColumn(COLUMN_ID.TEST)
-							?.setFilterValue(event.target.value || undefined)
-					}
-					data-testid="issue-rules-search"
+					onChange={setSearch}
+					placeholder={showIssue ? 'Search test or issue' : 'Search test'}
+					testId="issue-rules-search"
+					className="min-w-[220px]"
 				/>
 				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
-					options={facets.categoryOptions}
+					options={categoryOptions}
 					value={getFilterValue(COLUMN_ID.CATEGORY)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.CATEGORY)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
-					disabled={!facets.categoryOptions.length}
+					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORY, values)}
+					disabled={!categoryOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Disposition"
 					size="xss"
-					options={facets.dispositionOptions}
+					options={dispositionOptions}
 					value={getFilterValue(COLUMN_ID.DISPOSITION)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.DISPOSITION)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
-					disabled={!facets.dispositionOptions.length}
+					onChange={(values) => setFilterValue(COLUMN_ID.DISPOSITION, values)}
+					disabled={!dispositionOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="State"
 					size="xss"
-					options={facets.activeOptions}
+					options={activeOptions}
 					value={getFilterValue(COLUMN_ID.ACTIVE)}
-					onChange={(values) =>
-						table
-							.getColumn(COLUMN_ID.ACTIVE)
-							?.setFilterValue(values?.length ? values : undefined)
-					}
-					disabled={!facets.activeOptions.length}
+					onChange={(values) => setFilterValue(COLUMN_ID.ACTIVE, values)}
+					disabled={!activeOptions.length}
 				/>
 				{hasFilters ? (
 					<Tooltip content="Reset all filters">
 						<ButtonTw
 							variant="secondary"
 							size="xss"
-							onClick={() => table.resetColumnFilters()}
+							onClick={resetFilters}
 							data-testid="issue-rules-reset-filters"
 						>
 							<Icon name="Bin" size={18} className="mr-1.5" />
@@ -473,21 +572,19 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 						</ButtonTw>
 					</Tooltip>
 				) : null}
-				<span className="ml-auto text-xs text-text-menu tabular-nums">
-					{rows.length} of {rules.length} rules
-				</span>
 			</ClassificationToolbar>
 
-			{rows.length === 0 ? (
-				<BublikEmptyState
-					title="No matching rules"
-					description="No rule matches the current filters."
-					className="h-64"
-				/>
-			) : (
-				<div className="overflow-x-auto">
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+				{rows.length === 0 ? (
+					<BublikEmptyState
+						title="No matching rules"
+						description="No rule matches the current filters."
+						className="h-64"
+					/>
+				) : (
 					<ClassificationTable
 						table={table}
+						stickyHeader
 						testId="issue-rules-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'issue-rule-row',
@@ -496,8 +593,23 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 						})}
 						renderSubRow={(row) => <MatcherDetail rule={row.original} />}
 					/>
-				</div>
-			)}
+				)}
+			</div>
+
+			<ClassificationFooter>
+				<span className="text-xs text-text-menu tabular-nums">
+					{matchedCount} of {rules.length} rules
+				</span>
+				<Pagination
+					className="ml-auto"
+					variant="bordered"
+					totalCount={matchedCount}
+					pageSize={pagination.pageSize}
+					currentPage={pagination.pageIndex + 1}
+					onPageChange={goToPage}
+					onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+				/>
+			</ClassificationFooter>
 		</div>
 	);
 }

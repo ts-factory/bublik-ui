@@ -72,7 +72,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={`/runs/${runId}/issues`}>
+						<LinkWithProject to={routes.runIssues({ runId })}>
 							<Icon name="TriangleExclamationMark" className="mr-1.5" />
 							Issues
 						</LinkWithProject>

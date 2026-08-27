@@ -39,7 +39,10 @@ export function ClassificationTable<T>({
 }: ClassificationTableProps<T>) {
 	return (
 		<table
-			className="w-full h-full p-0 m-0 border-separate border-spacing-0"
+			// Width fills, height does not: inside a `flex-1` scroll pane a
+			// `h-full` table stretches to the pane and the leftover height is
+			// dumped into the first row, which then towers over the rest.
+			className="w-full p-0 m-0 border-separate border-spacing-0"
 			data-testid={testId}
 		>
 			<thead className="text-left text-[0.6875rem] font-semibold leading-[0.875rem]">

@@ -42,6 +42,25 @@ export const getRunDetailsDefaultUrl = (runId: string): string =>
 export const getRunIssuesDefaultUrl = (runId: string): string =>
 	`/runs/${runId}/issues`;
 
+export const ISSUES_SIDEBAR_KEYS = {
+	LAST_LIST: `${SIDEBAR_PREFIX}.issues.lastList`,
+	LAST_RULES: `${SIDEBAR_PREFIX}.issues.lastRules`,
+	LAST_MODE: `${SIDEBAR_PREFIX}.issues.lastMode`
+} as const;
+
+export type IssuesMode = 'issues' | 'rules';
+
+export const ISSUES_MODE_DEFAULT: IssuesMode = 'issues';
+
+/**
+ * The issue detail URL is stored whole rather than as an id: only this one key
+ * derives from it, so the compact form would save nothing while inheriting the
+ * "re-materialize from a shared id" hazard that `CURRENT_RUN_ID` carries.
+ */
+export const ISSUE_SIDEBAR_KEYS = {
+	LAST_ISSUE: `${SIDEBAR_PREFIX}.issue.lastIssue`
+} as const;
+
 export const MEASUREMENTS_SIDEBAR_KEYS = {
 	LAST_MEASUREMENTS: `${SIDEBAR_PREFIX}.measurements.lastMeasurements`,
 	LAST_MODE: `${SIDEBAR_PREFIX}.measurements.lastMode`

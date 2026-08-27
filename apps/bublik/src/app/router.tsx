@@ -16,12 +16,17 @@ import { ErrorBoundary } from '@/shared/tailwind-ui';
 
 import { AnalyticsRouteTracker } from './analytics-route-tracker.component';
 import { Layout } from './layout';
-import { RedirectToDashboard, RedirectToLogPage } from './redirects';
+import {
+	RedirectToDashboard,
+	RedirectToIssues,
+	RedirectToLogPage
+} from './redirects';
 
 import { AdminAnalyticsPage } from '../pages/admin-analytics';
 import { AuthLayout } from '../pages/auth/auth.layout';
-import { AdminIssuesPage } from '../pages/admin-issues';
-import { IssueRulesPage } from '../pages/issue-rules';
+import { IssuesPage } from '../pages/issues';
+import { IssuePage } from '../pages/issue';
+import { IssueRulesListPage } from '../pages/issue-rules-list';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -131,6 +136,10 @@ function BublikCommand() {
 						<CommandItem onSelect={handleSelect(() => navigate('/runs'))}>
 							<Icon name="Play" className="w-4 h-4 mr-2" />
 							<span>Runs</span>
+						</CommandItem>
+						<CommandItem onSelect={handleSelect(() => navigate('/issues'))}>
+							<Icon name="TriangleExclamationMark" className="w-4 h-4 mr-2" />
+							<span>Issues</span>
 						</CommandItem>
 					</CommandGroup>
 					<CommandSeparator />
@@ -309,6 +318,12 @@ const router = createBrowserRouter(
 							path: '/runs/:runId',
 							element: <RunPage />
 						},
+						{ path: '/issues', element: <IssuesPage /> },
+						// Declared before the dynamic sibling for readability;
+						// react-router ranks static segments above dynamic ones
+						// regardless of order.
+						{ path: '/issues/rules', element: <IssueRulesListPage /> },
+						{ path: '/issues/:issueId', element: <IssuePage /> },
 						{
 							path: '/admin',
 							element: <DevelopersLayout />,
@@ -334,14 +349,7 @@ const router = createBrowserRouter(
 									path: 'analytics',
 									element: <AdminAnalyticsPage />
 								},
-								{
-									path: 'issues',
-									element: <AdminIssuesPage />
-								},
-								{
-									path: 'issues/:issueId',
-									element: <IssueRulesPage />
-								},
+								{ path: 'issues/*', element: <RedirectToIssues /> },
 								{
 									path: 'config',
 									element: (

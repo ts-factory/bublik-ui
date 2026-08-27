@@ -24,6 +24,7 @@ import {
 	cn
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import { routes } from '@/router';
 import type { IssueCategory, RunIssueRow } from '@/shared/types';
 
 import {
@@ -66,26 +67,32 @@ interface RunIssuesTableProps {
 }
 
 /**
- * Ordered so the row reads as a sentence: *which* issue, *how much* of the run
- * it accounts for, *what it does* to the unexpected count, and only then the
- * three fields that explain that verdict — the cause, the decision, and the
- * lifecycle flag that can quietly cancel the decision.
+ * Ordered so the row reads as a sentence: *which* issue — its tracker key, then
+ * its title — *how much* of the run it accounts for, whether it is still open,
+ * *what it does* to the unexpected count, and only then the two fields that
+ * explain that verdict — the cause and the decision.
+ *
+ * State sits that early because it outranks everything after it: closing an
+ * issue deactivates its rules and un-suppresses every result they were hiding,
+ * so a closed issue quietly cancels the disposition further down the row.
  */
 const COLUMN_ID = {
 	EXPANDER: 'expander',
+	BUG_KEY: 'bug_key',
 	ISSUE: 'issue',
 	RESULTS: 'result_count',
+	STATE: 'state',
 	EFFECT: 'effect',
 	CATEGORIES: 'categories',
 	DISPOSITION: 'disposition',
-	STATE: 'state'
+	FILLER: 'filler'
 } as const;
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
 	COLUMN_ID.STATE,
-	COLUMN_ID.CATEGORIES,
-	COLUMN_ID.EFFECT
+	COLUMN_ID.EFFECT,
+	COLUMN_ID.CATEGORIES
 ] as const;
 
 const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
@@ -145,31 +152,54 @@ function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 			)
 		},
 		{
-			// Title and tracker key are one identity, not two columns: the key is
-			// absent on most issues and never worth a column of its own.
+			// The external identity, on the same line as the title rather than
+			// wrapped under it: the chip plus, when the project resolves one, the
+			// link out to the tracker.
+			//
+			// `w-px` is under min-content, so the column collapses to exactly the
+			// widest key it holds — `whitespace-nowrap` keeps that from being
+			// measured mid-key, since `E2E-105` would otherwise break at the dash.
+			// Inside the cell the chip and the link sit at opposite ends, so the
+			// links land in one vertical line no matter how short the key is.
+			id: COLUMN_ID.BUG_KEY,
+			accessorFn: (row) => row.bug_key ?? '',
+			header: 'Key',
+			meta: { className: 'w-px whitespace-nowrap' },
+			enableSorting: false,
+			cell: ({ row }) => {
+				const { issue_id, bug_key, bug_url } = row.original;
+
+				return (
+					<BugKeyChip
+						bugKey={bug_key}
+						bugUrl={bug_url}
+						fallback={`#${issue_id}`}
+						className="flex justify-between w-full gap-2"
+					/>
+				);
+			}
+		},
+		{
+			// Capped, not flexible: a title is a handful of words, and letting the
+			// column soak up every spare pixel pushes the badges off to the edge of
+			// the table. Anything longer truncates — the tooltip carries the rest.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
 			header: 'Issue',
+			meta: { className: 'w-[26rem]' },
 			filterFn: searchFilter,
 			cell: ({ row }) => {
-				const { issue_id, title, bug_key, bug_url } = row.original;
+				const { issue_id, title } = row.original;
 
 				return (
-					<div className="flex flex-col gap-0.5">
-						<Tooltip content={`Manage the rules behind ${title}`}>
-							<LinkWithProject
-								to={`/admin/issues/${issue_id}`}
-								className="font-medium text-text-primary hover:text-primary hover:underline"
-							>
-								{title}
-							</LinkWithProject>
-						</Tooltip>
-						<BugKeyChip
-							bugKey={bug_key}
-							bugUrl={bug_url}
-							fallback={`#${issue_id}`}
-						/>
-					</div>
+					<Tooltip content={`Manage the rules behind ${title}`}>
+						<LinkWithProject
+							to={routes.issue({ issueId: issue_id })}
+							className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
+						>
+							{title}
+						</LinkWithProject>
+					</Tooltip>
 				);
 			}
 		},
@@ -191,10 +221,22 @@ function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 			)
 		},
 		{
+			id: COLUMN_ID.STATE,
+			accessorFn: (row) => row.state,
+			header: 'State',
+			meta: { className: 'w-24' },
+			enableSorting: false,
+			filterFn: someOfFilter,
+			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
+		},
+		{
 			id: COLUMN_ID.EFFECT,
 			accessorFn: (row) => runIssueEffect(row).value,
-			header: 'Effect on run',
-			meta: { className: 'w-36' },
+			// Named for the question it answers rather than for the axis it belongs
+			// to: "effect on run" never said *which* effect. The column id stays
+			// `effect` — it is a filter key in the URL.
+			header: 'Counts as unexpected',
+			meta: { className: 'w-44' },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
@@ -228,13 +270,15 @@ function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 			)
 		},
 		{
-			id: COLUMN_ID.STATE,
-			accessorFn: (row) => row.state,
-			header: 'State',
-			meta: { className: 'w-24' },
+			// A `w-full` table has to spend its spare width on *some* column, and on
+			// a wide screen that is hundreds of pixels. Spent on a data column it
+			// reads as a broken layout — a lone chip stranded in an empty cell, or
+			// a gap between the badges and the verdict. This column exists to be
+			// empty, so every column that carries something stays snug.
+			id: COLUMN_ID.FILLER,
+			header: () => null,
 			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
+			cell: () => null
 		}
 	];
 }
@@ -388,20 +432,20 @@ export function RunIssuesTable({
 					disabled={!stateOptions.length}
 				/>
 				<DataTableFacetedFilter
+					title="Counts as unexpected"
+					size="xss"
+					options={effectOptions}
+					value={getFilterValue(COLUMN_ID.EFFECT)}
+					onChange={(values) => setFilterValue(COLUMN_ID.EFFECT, values)}
+					disabled={!effectOptions.length}
+				/>
+				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
 					options={categoryOptions}
 					value={getFilterValue(COLUMN_ID.CATEGORIES)}
 					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
-				/>
-				<DataTableFacetedFilter
-					title="Effect on run"
-					size="xss"
-					options={effectOptions}
-					value={getFilterValue(COLUMN_ID.EFFECT)}
-					onChange={(values) => setFilterValue(COLUMN_ID.EFFECT, values)}
-					disabled={!effectOptions.length}
 				/>
 				{hasFilters ? (
 					<Tooltip content="Reset all filters">
