@@ -21,10 +21,10 @@ import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 import {
 	CLASSIFICATION_BADGE_CLASS,
 	ISSUE_RULES_STATE_META,
-	formatBugKey,
 	issueRulesState,
 	issueStateMeta
 } from './classification-colors';
+import { BugKeyChip } from './classification-badges';
 
 export interface IssueDetailHeaderProps {
 	issueId: number;
@@ -129,13 +129,7 @@ export function IssueDetailHeader({
 				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>
-				{issue.issue_ext?.key ? (
-					<Tooltip content={issue.issue_ext.key}>
-						<span className="px-1.5 rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
-							{formatBugKey(issue.issue_ext.key)}
-						</span>
-					</Tooltip>
-				) : null}
+				<BugKeyChip bugKey={issue.issue_ext?.key ?? null} />
 				<Tooltip content={stateMeta.description}>
 					<Badge
 						className={cn(CLASSIFICATION_BADGE_CLASS, stateMeta.className)}

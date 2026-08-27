@@ -36,6 +36,11 @@ import {
  * cannot invent a seventh category chip or style a state badge by hand.
  */
 
+/**
+ * `CLASSIFICATION_BADGE_CLASS` without the casing transform — see `BugKeyChip`.
+ */
+const BUG_KEY_BADGE_CLASS = 'text-[0.6875rem] leading-[1.125rem]';
+
 interface BadgeExtras {
 	className?: string;
 	/** Renders the filter-selected outline; see `badgeSelectedStyles`. */
@@ -276,6 +281,13 @@ export interface BugKeyChipProps {
 /**
  * The external identity of an issue. `formatBugKey` strips the `ref://TRACKER/`
  * prefix so the chip reads `FOO-123`, with the raw URI kept in the tooltip.
+ *
+ * Built on `Badge` like every other chip in this module, so it shares their
+ * padding, radius and transparent border and sits on the same baseline. It
+ * takes `CLASSIFICATION_BADGE_CLASS` for size but deliberately *not* the
+ * `uppercase tracking-wide` the meta badges carry: a tracker key is an
+ * identifier to be matched against a bug tracker character for character, and
+ * letter-spacing a value like `FOO-123` makes that harder, not easier.
  */
 export function BugKeyChip({
 	bugKey,
@@ -297,9 +309,14 @@ export function BugKeyChip({
 	return (
 		<span className={cn('inline-flex items-center gap-1', className)}>
 			<Tooltip content={tooltip}>
-				<span className="px-1.5 rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
+				<Badge
+					className={cn(
+						BUG_KEY_BADGE_CLASS,
+						'bg-badge-0 text-text-menu normal-case tracking-normal'
+					)}
+				>
 					{label}
-				</span>
+				</Badge>
 			</Tooltip>
 			{bugUrl ? (
 				<Tooltip content="Open in the issue tracker">
