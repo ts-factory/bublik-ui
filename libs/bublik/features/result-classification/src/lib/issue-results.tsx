@@ -16,7 +16,7 @@ import {
 import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-import { Icon, Skeleton, VerdictList } from '@/shared/tailwind-ui';
+import { ButtonTw, Icon, Skeleton, VerdictList } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import type {
 	RESULT_TYPE,
@@ -75,26 +75,33 @@ export function issueResultTestPath(row: ResultRow): string {
  */
 function ResultLinks({ runId, row }: ResultLinksProps) {
 	return (
-		<ul className="flex flex-col items-start gap-3 py-1 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
-			<li className="pl-2">
-				<LinkWithProject
-					className="flex items-center w-full gap-1"
-					to={routes.run({ runId, targetIterationId: row.result_id })}
-				>
-					<Icon name="Paper" className="size-5" />
-					Run {runId}
-				</LinkWithProject>
+		// `secondary` is what `HistoryLinkContainer` already renders as, so Run and
+		// Log wear it too. Left as bare anchors they read as a stray pair of links
+		// hanging off one filled chip rather than as three peers.
+		<ul className="flex flex-col items-start gap-2 py-1">
+			<li>
+				<ButtonTw asChild variant="secondary" size="xss">
+					<LinkWithProject
+						to={routes.run({ runId, targetIterationId: row.result_id })}
+					>
+						<Icon name="Paper" size={20} className="mr-1" />
+						Run {runId}
+					</LinkWithProject>
+				</ButtonTw>
 			</li>
-			<li className="pl-2">
-				<LinkWithProject
-					className="flex items-center w-full gap-1"
-					to={routes.log({ runId, focusId: row.result_id })}
-				>
-					<Icon name="BoxArrowRight" className="grid place-items-center" />
-					Log
-				</LinkWithProject>
+			<li>
+				<ButtonTw asChild variant="secondary" size="xss">
+					<LinkWithProject to={routes.log({ runId, focusId: row.result_id })}>
+						<Icon
+							name="BoxArrowRight"
+							size={20}
+							className="grid mr-1 place-items-center"
+						/>
+						Log
+					</LinkWithProject>
+				</ButtonTw>
 			</li>
-			<li className="pl-0.5">
+			<li>
 				<HistoryLinkContainer
 					runId={Number(runId)}
 					resultId={row.result_id}
