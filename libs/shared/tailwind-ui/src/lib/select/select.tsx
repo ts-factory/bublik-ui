@@ -54,7 +54,11 @@ const selectTriggerStyles = cva({
 		variant: {
 			primary: 'hover:text-primary',
 			bordered:
-				'border border-border-primary py-2 hover:border-primary hover:bg-primary-wash hover:text-primary'
+				'border border-border-primary py-2 hover:border-primary hover:bg-primary-wash hover:text-primary',
+			// Sized to sit in a table footer next to `xss` toolbar controls, where
+			// the `px-4 text-[1rem]` base towers over everything around it.
+			compact:
+				'!px-2 !text-xs h-7 border border-border-primary hover:border-primary hover:bg-primary-wash hover:text-primary'
 		}
 	}
 });

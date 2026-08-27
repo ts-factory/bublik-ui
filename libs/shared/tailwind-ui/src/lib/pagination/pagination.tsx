@@ -28,6 +28,14 @@ const buttonStyles = cva({
 			],
 			log: [
 				'relative inline-flex items-center px-4 py-2 border text-sm font-medium first:rounded-l-lg last:rounded-r-lg'
+			],
+			// `bordered`, shrunk to table-footer scale. The data tables put this bar
+			// beside `xss` toolbar controls, where the shared `py-2 px-4 text-[1rem]`
+			// buttons read as a second, heavier toolbar.
+			compact: [
+				'flex items-center h-7 px-2 rounded border text-xs',
+				'hover:border-primary hover:bg-primary-wash hover:text-primary',
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu disabled:hover:border-border-primary'
 			]
 		},
 		isActive: { true: '', false: '' }
@@ -63,6 +71,16 @@ const buttonStyles = cva({
 			variant: 'log',
 			isActive: true,
 			className: 'bg-primary-wash border-primary text-primary z-10'
+		},
+		{
+			variant: 'compact',
+			isActive: false,
+			className: 'bg-white border-border-primary text-text-primary'
+		},
+		{
+			variant: 'compact',
+			isActive: true,
+			className: 'bg-primary-wash border-primary text-primary'
 		}
 	]
 });
@@ -73,7 +91,8 @@ const wrapperStyles = cva({
 		variant: {
 			primary: 'gap-1',
 			bordered: 'gap-1',
-			log: 'relative rounded-md -space-x-px'
+			log: 'relative rounded-md -space-x-px',
+			compact: 'items-center gap-1'
 		}
 	}
 });
@@ -192,10 +211,20 @@ export const Pagination = (props: PaginationProps) => {
 		pageSize
 	});
 
-	if (currentPage === 0 || paginationRange.length < 2) return null;
+	// `compact` lives in a table footer that already shows a row count beside it,
+	// so hiding the controls at one page leaves a half-empty bar that reads as
+	// broken rather than as "there is only one page". Every other variant keeps
+	// the original bail — the runs, history and log pages rely on it.
+	const isCompact = variant === 'compact';
 
-	const lastPage = paginationRange[paginationRange.length - 1];
-	const isLastPage = currentPage === lastPage;
+	if (currentPage === 0 || (!isCompact && paginationRange.length < 2)) {
+		return null;
+	}
+
+	// At one page the range is `[1]`, at zero rows it is empty, so read the last
+	// page defensively instead of off the end of the array.
+	const lastPage = paginationRange[paginationRange.length - 1] ?? 1;
+	const isLastPage = currentPage >= Number(lastPage);
 	const isFirstPage = currentPage === 1;
 
 	const handleNextClick = () => onPageChange?.(currentPage + 1);
@@ -250,7 +279,9 @@ export const Pagination = (props: PaginationProps) => {
 					options={DEFAULT_PAGE_SIZES}
 					defaultValue={pageSize.toString() || DEFAULT_PAGE_SIZES[1]}
 					onValueChange={handlePageSizeChange}
-					triggerVariant={variant === 'bordered' ? 'bordered' : 'primary'}
+					triggerVariant={
+						isCompact ? 'compact' : variant === 'bordered' ? 'bordered' : 'primary'
+					}
 				/>
 			)}
 		</div>
