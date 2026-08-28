@@ -26,6 +26,20 @@ describe('components/Pagination', () => {
 		expect(queryByTestId('tw-pagination')).not.toBeInTheDocument();
 	});
 
+	// Every table footer passes `ml-auto`. Spread through `restProps` it replaced
+	// the wrapper's own `flex`, and since the buttons are `display: flex` they
+	// went block-level and stacked into a column.
+	it('should merge a caller className instead of replacing its own', () => {
+		const { getByTestId } = render(
+			<Pagination {...getPaginationProps()} className="ml-auto" />
+		);
+
+		const wrapper = getByTestId('tw-pagination');
+
+		expect(wrapper).toHaveClass('ml-auto');
+		expect(wrapper).toHaveClass('flex');
+	});
+
 	// The table footers pair this bar with a row count, so an empty footer reads
 	// as broken. `compact` stays put and simply disables both directions.
 	it('should stay visible at a single page when compact', () => {

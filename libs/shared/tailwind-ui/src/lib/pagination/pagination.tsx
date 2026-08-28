@@ -8,7 +8,7 @@ import {
 
 import { usePagination } from '@/shared/hooks';
 
-import { cva, VariantProps } from '../utils';
+import { cn, cva, VariantProps } from '../utils';
 import { RadixSelect } from '../select';
 
 const DEFAULT_PAGE_SIZES = ['10', '25', '50', '75', '100'];
@@ -202,6 +202,7 @@ export const Pagination = (props: PaginationProps) => {
 		onPageChange,
 		onPageSizeChange,
 		disablePageSizeSelect,
+		className,
 		...restProps
 	} = props;
 	const paginationRange = usePagination({
@@ -246,8 +247,12 @@ export const Pagination = (props: PaginationProps) => {
 	};
 
 	return (
+		// `className` is merged rather than spread through `restProps`, which would
+		// let a caller's `ml-auto` replace the wrapper's own `flex` outright — the
+		// buttons are `display: flex`, so without a flex parent they turn
+		// block-level and stack into a column.
 		<div
-			className={wrapperStyles({ variant })}
+			className={cn(wrapperStyles({ variant }), className)}
 			data-testid="tw-pagination"
 			{...restProps}
 		>
