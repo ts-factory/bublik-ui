@@ -102,11 +102,15 @@ const COLUMN_ID = {
  * and already spelled out in the expanded row; as columns they are for the rare
  * case where you want to compare them across rules without opening each one.
  */
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
-	[COLUMN_ID.PARAMETERS]: false,
-	[COLUMN_ID.VERDICTS]: false,
-	[COLUMN_ID.TAGS]: false
-};
+const MATCHER_COLUMN_IDS = [
+	COLUMN_ID.PARAMETERS,
+	COLUMN_ID.VERDICTS,
+	COLUMN_ID.TAGS
+] as const;
+
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = Object.fromEntries(
+	MATCHER_COLUMN_IDS.map((id) => [id, false])
+);
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
@@ -456,7 +460,7 @@ const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 			.map(([key, value]) => formatRuleParameter(key, value))
 			.join(' '),
 	header: 'Parameters',
-	meta: { className: 'w-64', badgeCell: true },
+	meta: { badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<MatcherValues
@@ -472,7 +476,7 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.VERDICTS,
 	accessorFn: (row) => (row.verdicts ?? []).join(' '),
 	header: 'Verdicts',
-	meta: { className: 'w-64', badgeCell: true },
+	meta: { badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<MatcherValues
@@ -486,7 +490,7 @@ const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.TAGS,
 	accessorFn: (row) => (row.tags ?? []).join(' '),
 	header: 'Tags',
-	meta: { className: 'w-64', badgeCell: true },
+	meta: { badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<MatcherValues values={row.original.tags ?? []} className="bg-badge-0" />
@@ -660,6 +664,18 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
 		DEFAULT_COLUMN_VISIBILITY
 	);
+
+	// The filler exists only to absorb width no data column wants. The matcher
+	// columns hold long, wrappable content and are the one thing here that
+	// should grow, so when any of them is on the filler stands down and they
+	// share the space instead of being pinned beside an empty column.
+	const effectiveColumnVisibility = useMemo<VisibilityState>(() => {
+		const showsMatcher = MATCHER_COLUMN_IDS.some(
+			(id) => columnVisibility[id] !== false
+		);
+
+		return { ...columnVisibility, [COLUMN_ID.FILLER]: !showsMatcher };
+	}, [columnVisibility]);
 	const {
 		pagination,
 		onPaginationChange,
@@ -739,7 +755,12 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const table = useReactTable({
 		data: rules,
 		columns,
-		state: { columnFilters, sorting, pagination, columnVisibility },
+		state: {
+			columnFilters,
+			sorting,
+			pagination,
+			columnVisibility: effectiveColumnVisibility
+		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
