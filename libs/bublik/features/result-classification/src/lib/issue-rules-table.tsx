@@ -377,7 +377,7 @@ const DISPOSITION_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.DISPOSITION,
 	accessorFn: (row) => dispositionKey(row.expected),
 	header: 'Disposition',
-	meta: { className: 'w-32', badgeCell: true },
+	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
@@ -397,7 +397,7 @@ const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ACTIVE,
 	accessorFn: (row) => String(row.active),
 	header: 'Rule',
-	meta: { className: 'w-28', badgeCell: true },
+	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
@@ -407,7 +407,7 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE_STATE,
 	accessorFn: (row) => row.issueState ?? '',
 	header: 'State',
-	meta: { className: 'w-24 whitespace-nowrap', badgeCell: true },
+	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row }) =>

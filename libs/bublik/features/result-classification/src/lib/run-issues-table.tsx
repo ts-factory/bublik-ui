@@ -204,7 +204,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count,
 			header: 'Results',
-			meta: { className: 'w-24' },
+			meta: { className: 'w-px whitespace-nowrap' },
 			cell: ({ row }) => (
 				<button
 					type="button"
@@ -221,7 +221,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-24', badgeCell: true },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
@@ -234,7 +234,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// "Counts as unexpected" read as a yes-or-no question that three of
 			// those four answers do not answer. The badges carry the specifics.
 			header: 'Effect On Run',
-			meta: { className: 'w-44', badgeCell: true },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (

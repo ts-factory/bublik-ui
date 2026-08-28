@@ -240,7 +240,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.CREATED,
 			accessorFn: (row) => row.created_at ?? '',
 			header: 'Created',
-			meta: { className: 'w-28 whitespace-nowrap' },
+			meta: { className: 'w-px whitespace-nowrap' },
 			cell: ({ row }) => {
 				const { created_at, closed_at, state } = row.original;
 
@@ -263,7 +263,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-24 whitespace-nowrap', badgeCell: true },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
@@ -275,7 +275,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories,
 			header: 'Categories',
-			meta: { className: 'w-52', badgeCell: true },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
