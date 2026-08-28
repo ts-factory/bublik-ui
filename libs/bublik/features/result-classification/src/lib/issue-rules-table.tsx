@@ -68,6 +68,7 @@ import { chipsForFlags } from './match-scope.utils';
 const COLUMN_ID = {
 	EXPANDER: 'expander',
 	ACTIONS: 'actions',
+	KEY: 'key',
 	ISSUE: 'issue',
 	ISSUE_STATE: 'issueState',
 	TEST: 'test',
@@ -245,26 +246,44 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 	);
 }
 
+/**
+ * The tracker key, in its own column so it starts every row in the same place
+ * — the shape the issues list and the run's issue table already use. Sharing a
+ * cell with the title meant the titles started at a different offset on every
+ * row, according to how long the key beside them happened to be.
+ *
+ * `w-px` + `whitespace-nowrap` is the shrink-to-fit idiom: the width is only a
+ * floor, so the column collapses to its widest key, and the key is never
+ * measured mid-break (`E2E-105` would otherwise split at the dash).
+ */
+const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.KEY,
+	accessorFn: (row) => row.bugKey ?? '',
+	header: 'Key',
+	meta: { className: 'w-px whitespace-nowrap' },
+	enableSorting: false,
+	cell: ({ row }) => (
+		<BugKeyChip
+			bugKey={row.original.bugKey}
+			fallback={`#${row.original.issue}`}
+		/>
+	)
+};
+
 const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE,
 	accessorFn: (row) => row.issueTitle,
 	header: 'Issue',
 	meta: { className: 'w-[22rem]' },
 	cell: ({ row }) => (
-		<div className="flex items-center min-w-0 gap-2">
-			<BugKeyChip
-				bugKey={row.original.bugKey}
-				fallback={`#${row.original.issue}`}
-			/>
-			<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
-				<LinkWithProject
-					to={routes.issue({ issueId: row.original.issue })}
-					className="block min-w-0 font-medium truncate text-text-primary hover:text-primary hover:underline"
-				>
-					{row.original.issueTitle}
-				</LinkWithProject>
-			</Tooltip>
-		</div>
+		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
+			<LinkWithProject
+				to={routes.issue({ issueId: row.original.issue })}
+				className="block min-w-0 font-medium truncate text-text-primary hover:text-primary hover:underline"
+			>
+				{row.original.issueTitle}
+			</LinkWithProject>
+		</Tooltip>
 	)
 };
 
@@ -329,7 +348,7 @@ function getColumns({
 				<RuleToggle rule={row.original} projectId={projectId} />
 			)
 		},
-		...(showIssue ? [ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
+		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		{
 			// Capped like every other data column. Left unsized it was the only
 			// column free to absorb the table's spare width, which on a wide screen
