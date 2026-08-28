@@ -126,8 +126,8 @@ export function ClassifyFields({
 						{...register('title')}
 					/>
 					<Input
-						label="Bug key (optional)"
-						placeholder="ref://JIRA/ISSUE-123"
+						label="Bug Key"
+						placeholder="Optional — ref://JIRA/ISSUE-123"
 						data-testid="classify-bug-key"
 						{...register('bugKey')}
 					/>

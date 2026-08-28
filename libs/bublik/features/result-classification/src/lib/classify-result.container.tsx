@@ -7,7 +7,7 @@ import {
 	useGetRunDetailsQuery
 } from '@/services/bublik-api';
 
-import { ClassifyPopover } from './classify-popover';
+import { ClassifyButton } from './classify-button';
 
 export interface ClassifyResultContainerProps {
 	/** Focused result. Undefined (no test node focused) renders nothing. */
@@ -21,7 +21,7 @@ export interface ClassifyResultContainerProps {
  * preview drawer. Both need the same two facts before they can show it (did
  * the result fail, and which project is it in), and `GET /results/{id}`
  * carries both. The run table does not use this: its rows already have the
- * full result, so it renders `ClassifyPopover` directly.
+ * full result, so it renders `ClassifyButton` directly.
  */
 export function ClassifyResultContainer({
 	resultId,
@@ -37,7 +37,7 @@ export function ClassifyResultContainer({
 	if (!isFailed) return null;
 
 	return (
-		<ClassifyPopover
+		<ClassifyButton
 			resultId={resultId}
 			projectId={result.project_id ?? details?.project_id}
 		/>

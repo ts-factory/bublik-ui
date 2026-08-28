@@ -10,7 +10,7 @@ import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-import { ClassifyPopover } from '@/bublik/features/result-classification';
+import { ClassifyButton } from '@/bublik/features/result-classification';
 
 export interface ResultLinksProps {
 	runId: string;
@@ -111,10 +111,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				</li>
 				{isFailed ? (
 					<li className="pl-2">
-						<ClassifyPopover
-							resultId={resultId}
-							projectId={result.project_id}
-						/>
+						<ClassifyButton resultId={resultId} projectId={result.project_id} />
 					</li>
 				) : null}
 			</ul>

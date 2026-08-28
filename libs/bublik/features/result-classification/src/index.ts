@@ -1,5 +1,5 @@
-export { ClassifyPopover } from './lib/classify-popover';
-export type { ClassifyPopoverProps } from './lib/classify-popover';
+export { ClassifyButton } from './lib/classify-button';
+export type { ClassifyButtonProps } from './lib/classify-button';
 export { ClassifyResultContainer } from './lib/classify-result.container';
 export type { ClassifyResultContainerProps } from './lib/classify-result.container';
 export { CATEGORY_OPTIONS } from './lib/category';

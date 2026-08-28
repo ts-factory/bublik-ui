@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useIsScrollbarVisible } from '@/shared/hooks';
 import {
 	ButtonTw,
+	DialogClose,
 	DrawerContent,
 	DrawerRoot,
-	Icon
+	Icon,
+	cn
 } from '@/shared/tailwind-ui';
 
 import {
@@ -21,6 +25,17 @@ export interface ClassifyDrawerProps {
 	submit: Parameters<typeof buildSubmitHandler>[0];
 }
 
+/**
+ * Deliberately built to the history global search form's proportions — see
+ * `history-global-search-form/global-search-form/global-search-form.component.tsx`.
+ * These are the app's two form drawers, and they should not feel like two
+ * different applications.
+ *
+ * Its `FormHeader`/`FormSection` parts are not exported from the history lib's
+ * public entry point, so the header and sticky footer are reproduced here. That
+ * is the same convention `classification-table` follows for `run-table`: mirror
+ * the markup, name the reference, keep the class strings in step.
+ */
 export function ClassifyDrawer({
 	open,
 	onOpenChange,
@@ -29,56 +44,89 @@ export function ClassifyDrawer({
 	submit
 }: ClassifyDrawerProps) {
 	const onSubmit = buildSubmitHandler(submit, () => onOpenChange(false));
+	const [scrollableRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 
-	// Modal (like the History drawer) traps focus; portal layers the panel above
-	// the table so clicks land inside, not on rows behind.
+	// `portal` escapes the trigger's stacking context — the trigger sits in a
+	// table row, which would otherwise paint over the panel. z-[55] clears the
+	// z-50 dialog layer but stays under the nested `SelectInput` dropdown
+	// (z-[60]) so its options open in front of the drawer, not behind it.
 	return (
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
 			<DrawerContent
 				portal
-				className="z-[55] w-[28rem] max-w-[90vw] flex flex-col"
+				className="z-[55] w-screen max-w-[32rem] flex flex-col"
 				data-testid="classify-drawer"
 			>
-				<div className="flex items-center justify-between px-5 py-4 border-b border-border-primary">
-					<span className="text-base font-semibold">Classify failure</span>
-					<button
-						type="button"
-						onClick={() => onOpenChange(false)}
-						className="grid place-items-center w-7 h-7 rounded hover:bg-primary-wash"
-						aria-label="Close"
-					>
-						<Icon name="CrossSimple" size={16} />
-					</button>
+				<div className="px-6 py-4 border-b border-border-primary shrink-0">
+					<div className="flex items-start justify-between gap-4">
+						<div className="flex flex-col gap-1">
+							<span className="text-[1.125rem] font-semibold leading-6 text-text-primary">
+								Classify Failure
+							</span>
+							<span className="text-[0.8125rem] leading-[1.125rem] text-text-secondary">
+								Record why this result failed, and decide which future results
+								inherit the verdict.
+							</span>
+						</div>
+						<DialogClose
+							onClick={() => onOpenChange(false)}
+							className="p-2 rounded text-text-menu hover:bg-primary-wash hover:text-primary"
+							aria-label="Close"
+						>
+							<Icon name="Cross" className="size-4" />
+						</DialogClose>
+					</div>
 				</div>
 
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="flex flex-col gap-4 p-5 overflow-y-auto"
+				<div
+					ref={scrollableRef}
+					className="flex flex-col flex-1 min-h-0 overflow-y-auto styled-scrollbar"
 				>
-					<ClassifyFields form={form} projectId={projectId} />
-
-					<div className="pt-2 border-t border-border-primary">
-						<MatchScope form={form} />
-					</div>
-
-					<ButtonTw
-						type="submit"
-						variant="primary"
-						size="md"
-						rounded="lg"
-						className="justify-center w-full"
+					<form
+						onSubmit={form.handleSubmit(onSubmit)}
+						className="flex flex-col flex-1 gap-6 px-6 pt-6"
 					>
-						{form.formState.isSubmitting ? (
-							<Icon
-								name="ProgressIndicator"
-								size={18}
-								className="animate-spin"
-							/>
-						) : (
-							'Classify'
-						)}
-					</ButtonTw>
-				</form>
+						<ClassifyFields form={form} projectId={projectId} />
+
+						<div className="pt-2 border-t border-border-primary">
+							<MatchScope form={form} />
+						</div>
+
+						{/* Negative margins cancel the form's padding so the bar bleeds
+						    the full width of the drawer, and the shadow appears only once
+						    there is actually something scrolled under it. */}
+						<div
+							className={cn(
+								'sticky bottom-0 z-20 mt-auto -mx-6 bg-white px-6 py-4 backdrop-blur-sm',
+								isScrollable && 'shadow-sticky'
+							)}
+						>
+							<ButtonTw
+								type="submit"
+								variant="primary"
+								size="md"
+								rounded="lg"
+								className="justify-center w-full"
+								data-testid="classify-submit"
+							>
+								{form.formState.isSubmitting ? (
+									<Icon
+										name="ProgressIndicator"
+										size={20}
+										className="mr-1.5 animate-spin"
+									/>
+								) : (
+									<Icon
+										name="TriangleExclamationMark"
+										size={20}
+										className="mr-1.5"
+									/>
+								)}
+								<span>Classify</span>
+							</ButtonTw>
+						</div>
+					</form>
+				</div>
 			</DrawerContent>
 		</DrawerRoot>
 	);
