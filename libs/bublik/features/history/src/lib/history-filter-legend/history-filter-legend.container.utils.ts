@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { HistoryAPIQuery } from '@/shared/types';
+import { HistoryAPIQuery, IssueCategory } from '@/shared/types';
 import { formatTimeToDot } from '@/shared/utils';
+import { categoryMeta } from '@/bublik/features/result-classification';
 
 import { LegendItem } from './history-filter-legend.component';
 import { queryToHistorySearchState } from '../slice/history-slice.utils';
@@ -136,16 +137,25 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 			iconName: 'PaperShort',
 			iconSize: 24,
 			label: 'Categories',
-			value: state.categories
+			// Through the badge vocabulary, not the raw slug: the pill used to
+			// read `product-defect` while the checkbox that set it said Defect
+			// and the chip it matches says DEFECT — three names for one thing.
+			value: state.categories.map(
+				(category) => categoryMeta(category as IssueCategory).label
+			)
 		},
 		{
 			iconName: 'TriangleExclamationMark',
 			iconSize: 24,
-			label: 'Untriaged Unexpected',
+			// Named as the form names it, and as the badge it selects now reads.
+			label: 'Untriaged',
 			value: state.untriaged ? 'Yes' : undefined
 		},
 		{
-			iconName: 'TriangleQuestionMark',
+			// Was TriangleQuestionMark, which means *undecided* everywhere else
+			// in classification — the To Investigate category and the Undecided
+			// effect. This matches the Explained checkbox instead.
+			iconName: 'InformationCircleCheckmark',
 			iconSize: 24,
 			label: 'Explained',
 			value: state.explained ? 'Yes' : undefined
