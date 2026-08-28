@@ -458,6 +458,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	} = useClassificationTableState({
 		filterKeys: FILTER_KEYS,
 		searchColumnId: COLUMN_ID.TEST,
+		// Same reasoning as the issues list: rules are read as a set.
+		defaultPageSize: 100,
 		defaultSorting: [{ id: COLUMN_ID.TEST, desc: false }]
 	});
 

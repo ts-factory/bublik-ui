@@ -418,6 +418,9 @@ export function IssuesTable() {
 	} = useClassificationTableState({
 		filterKeys: FILTER_KEYS,
 		searchColumnId: COLUMN_ID.ISSUE,
+		// Triage means scanning the whole list, not paging through it. The server
+		// caps `page_size` at 10000, so 100 is well inside what it will serve.
+		defaultPageSize: 100,
 		defaultSorting: [{ id: COLUMN_ID.CREATED, desc: true }]
 	});
 
