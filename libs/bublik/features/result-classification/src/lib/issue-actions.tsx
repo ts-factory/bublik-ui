@@ -46,8 +46,9 @@ function notifyError(err: unknown) {
  * own header. One component so the two cannot drift: the wording of the
  * consequence matters, and it was previously written out twice.
  *
- * Fixed-width because `Close` and `Reopen` are different lengths, and a column
- * of buttons that resize row to row reads as ragged.
+ * Sized to its label. In a stack it still lines up with its neighbour, because
+ * the stack stretches its children to the widest of them rather than each
+ * button reserving a fixed width of its own.
  */
 export function IssueStateToggle({
 	issueId,
@@ -87,7 +88,7 @@ export function IssueStateToggle({
 				state={isBusy ? 'loading' : 'default'}
 				onClick={handleToggle}
 				className={cn(
-					'w-[5.75rem] justify-center',
+					'justify-center whitespace-nowrap',
 					isOpen && DESTRUCTIVE_FILL_CLASS,
 					className
 				)}
@@ -121,13 +122,18 @@ export function IssueStateActions({
 	return (
 		// Stacked, not side by side: the column is the narrowest thing in the
 		// table and two buttons in a row set its width for every other cell.
-		<div className="flex flex-col items-stretch gap-1">
+		//
+		// `items-stretch` with no width on either button is what keeps them equal
+		// *and* minimal — the pair takes the width of the longer label instead of
+		// each reserving a fixed size, and `w-fit` stops the stack itself from
+		// growing to fill the cell.
+		<div className="flex flex-col items-stretch gap-1 w-fit">
 			<Tooltip content={`Manage the rules behind ${title}`}>
 				<ButtonTw
 					asChild
 					variant="secondary"
 					size="xss"
-					className="w-[5.75rem] justify-center"
+					className="justify-center whitespace-nowrap"
 				>
 					<LinkWithProject
 						to={routes.issue({ issueId })}

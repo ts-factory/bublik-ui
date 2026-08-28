@@ -160,7 +160,7 @@ function RuleToggle({ rule, projectId }: RuleToggleProps) {
 				state={isBusy ? 'loading' : 'default'}
 				onClick={toggleActive}
 				className={cn(
-					'w-[5.75rem] justify-center',
+					'justify-center whitespace-nowrap',
 					rule.active && DESTRUCTIVE_FILL_CLASS
 				)}
 				data-testid="issue-rule-toggle"
