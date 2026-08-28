@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
 	ColumnDef,
 	getCoreRowModel,
-	getExpandedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
 
@@ -49,8 +48,7 @@ import {
 	ClassificationFooter,
 	ClassificationSearch,
 	ClassificationTable,
-	ClassificationToolbar,
-	ExpandButton
+	ClassificationToolbar
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -58,7 +56,6 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
-import { IssueResults } from './issue-results';
 
 /**
  * Deliberately the same sequence the run's issue table uses for the columns
@@ -76,7 +73,6 @@ import { IssueResults } from './issue-results';
  * out of the reading path.
  */
 const COLUMN_ID = {
-	EXPANDER: 'expander',
 	KEY: 'key',
 	ISSUE: 'issue',
 	RESULTS: 'result_count',
@@ -228,22 +224,6 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
-			id: COLUMN_ID.EXPANDER,
-			header: () => null,
-			meta: { className: 'w-9' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<ExpandButton
-					isExpanded={row.getIsExpanded()}
-					onClick={row.getToggleExpandedHandler()}
-					label={
-						row.getIsExpanded() ? 'Hide results' : 'Show classified results'
-					}
-					testId="issue-expander"
-				/>
-			)
-		},
-		{
 			// Leftmost so the tracker key starts every row in the same place, and
 			// — once the API resolves `bug_url` — the way out to the tracker sits
 			// on that same line, matching the run's issue table. The chip and the
@@ -294,11 +274,12 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			)
 		},
 		{
-			// Mirrors the run table's result count, down to the expand-toggle
-			// behaviour a later commit gives it. Renders `-` rather than `0` when
-			// the field is absent, so "no results" and "not reported" stay
-			// distinguishable.
-			// TODO(api): `/issues/` does not return `result_count` yet.
+			// Read-only for now. The run table makes this an expand toggle, and
+			// `IssueResults` already supports the issue-wide query behind it, but
+			// `/issues/{id}/results` 404s — so the control is left off rather than
+			// offered and broken. Renders `-` rather than `0` when the field is
+			// absent, keeping "no results" distinct from "not reported".
+			// TODO(api): `/issues/` does not return `result_count` yet either.
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count ?? -1,
 			header: 'Results',
@@ -306,16 +287,17 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => {
 				const count = row.original.result_count;
 
+				if (count === undefined) {
+					return <span className="text-text-menu">-</span>;
+				}
+
 				return (
-					<button
-						type="button"
-						onClick={row.getToggleExpandedHandler()}
-						aria-expanded={row.getIsExpanded()}
-						className="font-medium tabular-nums hover:text-primary hover:underline"
+					<span
+						className="font-medium tabular-nums"
 						data-testid="issue-result-count"
 					>
-						{count ?? '-'}
-					</button>
+						{count}
+					</span>
 				);
 			}
 		},
@@ -512,9 +494,7 @@ export function IssuesTable() {
 		manualFiltering: true,
 		manualSorting: true,
 		getRowId: (row) => String(row.id),
-		getRowCanExpand: () => true,
-		getCoreRowModel: getCoreRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getCoreRowModel: getCoreRowModel()
 	});
 
 	const pageCount = table.getPageCount();
@@ -638,9 +618,6 @@ export function IssuesTable() {
 							'data-issue-id': row.original.id,
 							'data-issue-state': row.original.state
 						})}
-						renderSubRow={(row) => (
-							<IssueResults issueId={row.original.id} projectId={projectId} />
-						)}
 					/>
 				)}
 			</div>
