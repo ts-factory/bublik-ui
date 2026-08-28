@@ -81,7 +81,6 @@ export const getColumns = ({
 							showLinkToRun={showLinkToRun}
 							path={path}
 						/>
-						<ResultIssueBadges issues={value.issues} />
 					</div>
 				);
 			},
@@ -91,7 +90,8 @@ export const getColumns = ({
 			(data) => ({
 				isNotExpected: data.has_error,
 				verdicts: data.obtained_result.verdicts,
-				result: data.obtained_result.result_type
+				result: data.obtained_result.result_type,
+				issues: data.issues
 			}),
 			{
 				header: 'Obtained Result',
@@ -116,7 +116,12 @@ export const getColumns = ({
 						(!filterValue.resultProperties.length ||
 							filterValue.resultProperties.includes(resultProperty));
 
-					if (!obtainedResult.result || !obtainedResult.verdicts) return;
+					// No result to render, but the stamps still explain why — they used
+					// to live in another column and were unaffected by this guard, so
+					// returning nothing here would quietly lose them.
+					if (!obtainedResult.result || !obtainedResult.verdicts) {
+						return <ResultIssueBadges issues={obtainedResult.issues} />;
+					}
 
 					function handleVerdictClick(verdict: string) {
 						cell.column.setFilterValue(
@@ -156,17 +161,24 @@ export const getColumns = ({
 						);
 					}
 
+					// Under the verdicts, exactly as the history table lays it out.
+					// The stamps explain the result, so they belong beside it rather
+					// than in the Actions column, where they sat among the links and
+					// widened a column meant for buttons.
 					return (
-						<VerdictList
-							variant="obtained"
-							verdicts={obtainedResult.verdicts}
-							result={obtainedResult.result}
-							isNotExpected={obtainedResult.isNotExpected}
-							onVerdictClick={handleVerdictClick}
-							selectedVerdicts={verdicts}
-							onResultClick={handleResultClick}
-							isResultSelected={isResultSelected}
-						/>
+						<div className="flex flex-col gap-1.5">
+							<VerdictList
+								variant="obtained"
+								verdicts={obtainedResult.verdicts}
+								result={obtainedResult.result}
+								isNotExpected={obtainedResult.isNotExpected}
+								onVerdictClick={handleVerdictClick}
+								selectedVerdicts={verdicts}
+								onResultClick={handleResultClick}
+								isResultSelected={isResultSelected}
+							/>
+							<ResultIssueBadges issues={obtainedResult.issues} withSeparator />
+						</div>
 					);
 				},
 				filterFn: (

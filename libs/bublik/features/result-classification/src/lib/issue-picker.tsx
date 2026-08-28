@@ -230,7 +230,12 @@ export function IssuePicker({
 									data-issue-id={item.id}
 									data-selected={value === item.id ? 'true' : 'false'}
 								>
-									<span className="px-1.5 shrink-0 rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
+									{/* A common minimum width, so `#20` and `E2E-114` occupy
+									    the same space and every title starts on the same
+									    vertical line. Left-aligned within it — the keys read
+									    as a column of their own, and centring made short ones
+									    drift away from that edge. */}
+									<span className="px-1.5 shrink-0 min-w-[4.5rem] text-left rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
 										{issueKeyLabel(item)}
 									</span>
 									<span

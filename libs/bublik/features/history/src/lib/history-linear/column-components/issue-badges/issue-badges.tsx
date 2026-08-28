@@ -13,5 +13,5 @@ export interface IssueBadgesProps {
  * result-classification lib — this wrapper only keeps the history column
  * API stable. */
 export function IssueBadges({ issues }: IssueBadgesProps) {
-	return <ResultIssueBadges issues={issues} />;
+	return <ResultIssueBadges issues={issues} withSeparator />;
 }

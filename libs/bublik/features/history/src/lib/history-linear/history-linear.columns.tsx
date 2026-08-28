@@ -143,7 +143,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 				globalFilter.resultType === result;
 
 			return (
-				<div className="flex flex-col">
+				<div className="flex flex-col gap-1.5">
 					<HistoryContextMenuContainer
 						badges={verdicts.map((verdict) => ({ payload: verdict }))}
 						label="verdicts"

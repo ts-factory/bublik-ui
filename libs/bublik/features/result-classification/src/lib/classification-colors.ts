@@ -73,7 +73,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 	},
 	'test-bug': {
 		value: 'test-bug',
-		label: 'Test bug',
+		label: 'Test Bug',
 		displayValue: 'Test/automation bug',
 		description: 'A bug in the test or the automation, not in the product.',
 		className: 'bg-badge-14 text-text-primary',

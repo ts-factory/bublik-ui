@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 
-import { Badge, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
+import { Badge, Icon, Separator, Tooltip, cn } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { routes } from '@/router';
 import type {
@@ -360,32 +359,48 @@ export function BugKeyChip({
 export interface ResultIssueBadgesProps {
 	issues?: ResultIssueRef[];
 	className?: string;
+	/**
+	 * Draws a rule above the stamps. Lives here rather than at the call site
+	 * because the separator must not appear when there is nothing to separate,
+	 * and this is where that is already known.
+	 */
+	withSeparator?: boolean;
 }
 
 /**
- * The per-result stamp, composed so the row reads as a sentence — *which*
- * issue (key chip), *why* it failed (category), *so what* (disposition):
+ * The per-result stamps, one per line:
  *
- *     [E2E-105] DEFECT UNEXPECTED
- *     [E2E-105] KNOWN EXPECTED
- *     [E2E-105] DEFECT CLOSED
+ *     [E2E-114]  FLAKY  EXPECTED
+ *     [E2E-114]  ENV    EXPECTED
+ *     [#20]      DEFECT UNEXPECTED
  *
- * A closed issue renders CLOSED and drops the disposition: its `expected`
- * value is moot, since closing un-suppresses every result regardless (§1 of
- * RESULT-CLASSIFICATION.md). The issue title and stamp origin travel in the
- * key chip's tooltip. This component is the only renderer of per-result
- * stamps — history rows and the run-details Actions cell both consume it.
+ * A column, not a wrapping run. Inline, a result matched by several rules ran
+ * its stamps together and could break mid-stamp, so `E2E-114 FLAKY EXPECTED
+ * E2E-114 ENV EXPECTED` read as though two different bugs were involved. Each
+ * line is now one complete statement — which issue, why, so what — and the key
+ * repeats because a line that omitted it would depend on the line above.
+ *
+ * A closed issue renders CLOSED and drops the disposition: its `expected` value
+ * is moot, since closing un-suppresses every result regardless (§1 of
+ * RESULT-CLASSIFICATION.md). The issue title and stamp origin travel in the key
+ * chip's tooltip. This component is the only renderer of per-result stamps.
  */
 export function ResultIssueBadges({
 	issues,
-	className
+	className,
+	withSeparator
 }: ResultIssueBadgesProps) {
 	if (!issues?.length) return null;
 
-	return (
-		<div className={cn('flex flex-wrap items-center gap-1', className)}>
+	const stamps = (
+		<div className={cn('flex flex-col gap-1', className)}>
 			{issues.map((issue) => (
-				<Fragment key={issue.rule_id}>
+				<div
+					key={issue.rule_id}
+					className="flex flex-wrap items-center gap-1"
+					data-testid="result-issue-stamp"
+					data-issue-id={issue.issue_id}
+				>
 					<BugKeyChip
 						bugKey={issue.bug_key ?? null}
 						issueId={issue.issue_id}
@@ -400,8 +415,17 @@ export function ResultIssueBadges({
 					) : (
 						<DispositionBadge expected={issue.expected} />
 					)}
-				</Fragment>
+				</div>
 			))}
+		</div>
+	);
+
+	if (!withSeparator) return stamps;
+
+	return (
+		<div className="flex flex-col gap-1.5">
+			<Separator className="bg-border-primary" />
+			{stamps}
 		</div>
 	);
 }
