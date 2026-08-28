@@ -51,13 +51,6 @@ export const IssuePage = () => {
 			<header className="flex flex-col bg-white rounded shrink-0">
 				<CardHeader label="Info">
 					<div className="flex items-center gap-2">
-						<LinkWithProject
-							to={routes.issues({})}
-							className="inline-flex items-center gap-1 text-xs text-text-menu hover:text-primary"
-						>
-							<Icon name="ArrowShortSmall" className="rotate-90" size={14} />
-							All issues
-						</LinkWithProject>
 						<CopyShortUrlButtonContainer />
 					</div>
 				</CardHeader>

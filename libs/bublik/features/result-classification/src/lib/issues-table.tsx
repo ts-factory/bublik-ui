@@ -53,7 +53,11 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
-import { ISSUE_ACTIONS_COLUMN_CLASS, IssueStateActions } from './issue-actions';
+import {
+	ISSUE_ACTIONS_COLUMN_CLASS,
+	ISSUE_ACTIONS_HEADER_CLASS,
+	IssueStateActions
+} from './issue-actions';
 
 /**
  * Actions lead, the way they do on the run's result table: the controls sit
@@ -165,7 +169,10 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// making you track to the far edge of a wide row to reach them.
 			id: COLUMN_ID.ACTIONS,
 			header: 'Actions',
-			meta: { className: ISSUE_ACTIONS_COLUMN_CLASS },
+			meta: {
+				className: ISSUE_ACTIONS_COLUMN_CLASS,
+				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
+			},
 			enableSorting: false,
 			cell: ({ row }) => (
 				<IssueStateActions
@@ -188,7 +195,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// `w-px` + `whitespace-nowrap` is the shrink-to-fit idiom under
 			// `table-auto`: the declared width is only a floor, so the column
 			// collapses to its widest chip and stops stealing slack.
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			cell: ({ row }) => (
 				<BugKeyChip
@@ -253,7 +260,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-24 whitespace-nowrap' },
+			meta: { className: 'w-24 whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
@@ -265,7 +272,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories,
 			header: 'Categories',
-			meta: { className: 'w-52' },
+			meta: { className: 'w-52', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
@@ -276,7 +283,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.RULES,
 			accessorFn: (row) => row.rulesState,
 			header: 'Rules',
-			meta: { className: 'w-36 whitespace-nowrap' },
+			meta: { className: 'w-36 whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (

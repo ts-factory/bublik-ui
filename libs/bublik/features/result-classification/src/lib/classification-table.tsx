@@ -1,10 +1,35 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { flexRender, type Row, type Table } from '@tanstack/react-table';
+import {
+	flexRender,
+	type Row,
+	type RowData,
+	type Table
+} from '@tanstack/react-table';
 
 import { useDebounce } from '@/shared/hooks';
 import { Icon, Input, Separator, TableSort, cn } from '@/shared/tailwind-ui';
+
+declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface ColumnMeta<TData extends RowData, TValue> {
+		/**
+		 * A column whose cells hold badges rather than bare text. A badge carries
+		 * its own `px-2` on top of the cell's, so its text starts 8px further in
+		 * than a plain cell's — enough that the header above it reads as
+		 * misaligned. Flagging the column pads the header to match, instead of
+		 * hand-tuning a class on each one.
+		 */
+		badgeCell?: boolean;
+		/**
+		 * Applied to the header cell only. `className` lands on both the `th` and
+		 * every `td`, which is right for width but not for padding a label into
+		 * line with content that starts further in than the cell does.
+		 */
+		headerClassName?: string;
+	}
+}
 
 /**
  * The run table's markup, factored out so every classification table looks the
@@ -62,7 +87,12 @@ export function ClassificationTable<T>({
 										// border would be left behind by the scrolling body.
 										stickyHeader && 'sticky top-0 z-10',
 										idx !== arr.length - 1 && 'border-r',
-										header.column.columnDef.meta?.className
+										// A sortable header already gains 4px from its own
+										// wrapper, so it needs 4px less here to land on 16px.
+										header.column.columnDef.meta?.badgeCell &&
+											(canSort ? 'pl-3' : 'pl-4'),
+										header.column.columnDef.meta?.className,
+										header.column.columnDef.meta?.headerClassName
 									)}
 								>
 									{header.isPlaceholder ? null : canSort ? (

@@ -21,6 +21,7 @@ import {
 	DataTableFacetedFilter,
 	Icon,
 	Pagination,
+	Separator,
 	Skeleton,
 	Tooltip,
 	cn,
@@ -62,16 +63,21 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
-import { DESTRUCTIVE_FILL_CLASS } from './issue-actions';
+import {
+	DESTRUCTIVE_FILL_CLASS,
+	ISSUE_ACTIONS_COLUMN_CLASS,
+	ISSUE_ACTIONS_HEADER_CLASS,
+	IssueLinkButton
+} from './issue-actions';
 import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
 	EXPANDER: 'expander',
 	ACTIONS: 'actions',
+	TEST: 'test',
 	KEY: 'key',
 	ISSUE: 'issue',
 	ISSUE_STATE: 'issueState',
-	TEST: 'test',
 	CATEGORY: 'category',
 	DISPOSITION: 'disposition',
 	SCOPE: 'scope',
@@ -260,7 +266,7 @@ const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.KEY,
 	accessorFn: (row) => row.bugKey ?? '',
 	header: 'Key',
-	meta: { className: 'w-px whitespace-nowrap' },
+	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<BugKeyChip
@@ -295,11 +301,30 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
  * deactivates every rule under it, so a closed issue overrides the Rule column
  * further along the row.
  */
+/**
+ * Headed `Rule`, not `State`. This is the *rule's* active flag, and the issue's
+ * open/closed state has a column of its own — two columns both headed `State`
+ * meaning different things is worse than a slightly terse header. The id and
+ * its URL filter key are unchanged, so shared links keep resolving.
+ *
+ * Sits directly after the test and the issue it belongs to, because it decides
+ * whether anything further along the row is in force at all.
+ */
+const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.ACTIVE,
+	accessorFn: (row) => String(row.active),
+	header: 'Rule',
+	meta: { className: 'w-28', badgeCell: true },
+	enableSorting: false,
+	filterFn: someOfFilter,
+	cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
+};
+
 const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE_STATE,
 	accessorFn: (row) => row.issueState ?? '',
 	header: 'State',
-	meta: { className: 'w-24 whitespace-nowrap' },
+	meta: { className: 'w-24 whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row }) =>
@@ -342,13 +367,28 @@ function getColumns({
 			// sit where the row starts rather than at its far edge.
 			id: COLUMN_ID.ACTIONS,
 			header: 'Actions',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: {
+				className: ISSUE_ACTIONS_COLUMN_CLASS,
+				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
+			},
 			enableSorting: false,
 			cell: ({ row }) => (
-				<RuleToggle rule={row.original} projectId={projectId} />
+				<div className="flex items-center gap-1.5 w-fit">
+					{/* Cross-issue view only — on an issue's own page you are already
+					    where this would take you. */}
+					{showIssue ? (
+						<>
+							<IssueLinkButton
+								issueId={row.original.issue}
+								title={row.original.issueTitle}
+							/>
+							<Separator orientation="vertical" className="h-5" />
+						</>
+					) : null}
+					<RuleToggle rule={row.original} projectId={projectId} />
+				</div>
 			)
 		},
-		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		{
 			// Capped like every other data column. Left unsized it was the only
 			// column free to absorb the table's spare width, which on a wide screen
@@ -370,11 +410,13 @@ function getColumns({
 				</span>
 			)
 		},
+		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
+		ACTIVE_COLUMN,
 		{
 			id: COLUMN_ID.CATEGORY,
 			accessorFn: (row) => row.category,
 			header: 'Category',
-			meta: { className: 'w-44' },
+			meta: { className: 'w-44', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <CategoryBadge category={row.original.category} />
@@ -383,7 +425,7 @@ function getColumns({
 			id: COLUMN_ID.DISPOSITION,
 			accessorFn: (row) => dispositionKey(row.expected),
 			header: 'Disposition',
-			meta: { className: 'w-32' },
+			meta: { className: 'w-32', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
@@ -414,20 +456,6 @@ function getColumns({
 					</div>
 				);
 			}
-		},
-		{
-			// Headed `Rule`, not `State`. This is the *rule's* active flag, and the
-			// issue's open/closed state now has a column of its own — two columns
-			// both headed `State` meaning different things is worse than a slightly
-			// terse header. The id and its URL filter key are unchanged, so shared
-			// links keep resolving.
-			id: COLUMN_ID.ACTIVE,
-			accessorFn: (row) => String(row.active),
-			header: 'Rule',
-			meta: { className: 'w-28' },
-			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
 		},
 		{
 			// Somewhere for `table-auto` to put the spare width of a `w-full`

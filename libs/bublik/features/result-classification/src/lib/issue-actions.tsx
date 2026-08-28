@@ -17,8 +17,15 @@ import {
 import { routes } from '@/router';
 import type { IssueState } from '@/shared/types';
 
-/** Shared by the issues list and the run's issue table. */
+/** Shared by the issues list, the run's issue table and the rules table. */
 export const ISSUE_ACTIONS_COLUMN_CLASS = 'w-px whitespace-nowrap';
+
+/**
+ * The buttons in this column start well inside the cell — each carries its own
+ * horizontal padding — so a header sitting at the cell's own padding reads as
+ * detached from the controls beneath it.
+ */
+export const ISSUE_ACTIONS_HEADER_CLASS = 'pl-8';
 
 /**
  * `destruction-secondary` carries its red as a hover state only, which leaves a
@@ -46,6 +53,41 @@ export interface IssueStateActionsProps extends IssueStateToggleProps {
 function notifyError(err: unknown) {
 	const m = getErrorMessage(err);
 	return `${m.title}\n${m.description}`;
+}
+
+export interface IssueLinkButtonProps {
+	issueId: number;
+	/** Only used to name the destination in the tooltip. */
+	title: string;
+}
+
+/**
+ * The way through to an issue's own page, from any table that lists something
+ * belonging to one.
+ *
+ * Labelled for the destination rather than its contents: `Rules` read as if it
+ * opened a rules list, and `Bug` was not available — the tracker link a couple
+ * of columns away already owns that word and points somewhere else entirely.
+ */
+export function IssueLinkButton({ issueId, title }: IssueLinkButtonProps) {
+	return (
+		<Tooltip content={`Open ${title} and the rules behind it`}>
+			<ButtonTw
+				asChild
+				variant="secondary"
+				size="xss"
+				className="justify-center whitespace-nowrap"
+			>
+				<LinkWithProject
+					to={routes.issue({ issueId })}
+					data-testid="issue-rules-link"
+				>
+					<Icon name="Paper" size={14} className="mr-1" />
+					Issue
+				</LinkWithProject>
+			</ButtonTw>
+		</Tooltip>
+	);
 }
 
 /**
@@ -131,26 +173,7 @@ export function IssueStateActions({
 		// the group off the cell's full width; neither button carries a width of
 		// its own, so the column collapses to what the labels need.
 		<div className="flex items-center gap-1.5 w-fit">
-			{/* Labelled for the destination, not its contents. `Rules` read as if
-			    it opened a rules list, and the tracker link two columns away is
-			    already the thing called a bug — using that word here would put one
-			    label on two links that go to different places. */}
-			<Tooltip content={`Open ${title} and the rules behind it`}>
-				<ButtonTw
-					asChild
-					variant="secondary"
-					size="xss"
-					className="justify-center whitespace-nowrap"
-				>
-					<LinkWithProject
-						to={routes.issue({ issueId })}
-						data-testid="issue-rules-link"
-					>
-						<Icon name="Paper" size={14} className="mr-1" />
-						Issue
-					</LinkWithProject>
-				</ButtonTw>
-			</Tooltip>
+			<IssueLinkButton issueId={issueId} title={title} />
 			<Separator orientation="vertical" className="h-5" />
 			<IssueStateToggle issueId={issueId} state={state} projectId={projectId} />
 		</div>

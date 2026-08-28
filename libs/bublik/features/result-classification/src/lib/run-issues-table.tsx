@@ -56,7 +56,11 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
-import { ISSUE_ACTIONS_COLUMN_CLASS, IssueStateActions } from './issue-actions';
+import {
+	ISSUE_ACTIONS_COLUMN_CLASS,
+	ISSUE_ACTIONS_HEADER_CLASS,
+	IssueStateActions
+} from './issue-actions';
 import { RunIssueResults } from './issue-results';
 
 interface RunIssuesTableProps {
@@ -129,7 +133,10 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// table behind it re-reads on success.
 			id: COLUMN_ID.ACTIONS,
 			header: 'Actions',
-			meta: { className: ISSUE_ACTIONS_COLUMN_CLASS },
+			meta: {
+				className: ISSUE_ACTIONS_COLUMN_CLASS,
+				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
+			},
 			enableSorting: false,
 			cell: ({ row }) => (
 				<IssueStateActions
@@ -153,7 +160,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.BUG_KEY,
 			accessorFn: (row) => row.bug_key ?? '',
 			header: 'Key',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			cell: ({ row }) => {
 				const { issue_id, bug_key, bug_url } = row.original;
@@ -213,7 +220,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-24' },
+			meta: { className: 'w-24', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
@@ -225,7 +232,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// to: "effect on run" never said *which* effect. The column id stays
 			// `effect` — it is a filter key in the URL.
 			header: 'Counts as unexpected',
-			meta: { className: 'w-44' },
+			meta: { className: 'w-44', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
@@ -236,7 +243,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories.map((c) => c.category),
 			header: 'Categories',
-			meta: { className: 'w-56' },
+			meta: { className: 'w-56', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (
@@ -249,7 +256,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.DISPOSITION,
 			accessorFn: (row) => aggregateExpected(row.categories),
 			header: 'Disposition',
-			meta: { className: 'w-28' },
+			meta: { className: 'w-28', badgeCell: true },
 			enableSorting: false,
 			cell: ({ row }) => (
 				<DispositionBadge
