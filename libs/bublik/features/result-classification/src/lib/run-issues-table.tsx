@@ -32,7 +32,6 @@ import {
 	CATEGORY_ORDER,
 	EFFECT_ORDER,
 	RUN_ISSUE_EFFECT_META,
-	aggregateExpected,
 	categoryMeta,
 	issueStateMeta,
 	runIssueEffect
@@ -40,7 +39,6 @@ import {
 import {
 	BugKeyChip,
 	CategoryBadgeList,
-	DispositionBadge,
 	IssueStateBadge,
 	RunEffectBadge
 } from './classification-badges';
@@ -77,12 +75,12 @@ interface RunIssuesTableProps {
 /**
  * Ordered so the row reads as a sentence: *which* issue — its tracker key, then
  * its title — *how much* of the run it accounts for, whether it is still open,
- * *what it does* to the unexpected count, and only then the two fields that
- * explain that verdict — the cause and the decision.
+ * *what it does* to the unexpected count, and only then the cause behind that.
  *
  * State sits that early because it outranks everything after it: closing an
- * issue deactivates its rules and un-suppresses every result they were hiding,
- * so a closed issue quietly cancels the disposition further down the row.
+ * issue deactivates its rules and un-suppresses every result they were hiding.
+ * Effect On Run already accounts for that — it reads "counting again" on a
+ * closed issue whose rules would otherwise suppress.
  */
 const COLUMN_ID = {
 	EXPANDER: 'expander',
@@ -93,7 +91,6 @@ const COLUMN_ID = {
 	STATE: 'state',
 	EFFECT: 'effect',
 	CATEGORIES: 'categories',
-	DISPOSITION: 'disposition',
 	FILLER: 'filler'
 } as const;
 
@@ -257,19 +254,6 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			cell: ({ row }) => (
 				<CategoryBadgeList
 					categories={row.original.categories.map((c) => c.category)}
-				/>
-			)
-		},
-		{
-			id: COLUMN_ID.DISPOSITION,
-			accessorFn: (row) => aggregateExpected(row.categories),
-			header: 'Disposition',
-			meta: { className: 'w-28', badgeCell: true },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<DispositionBadge
-					expected={aggregateExpected(row.original.categories)}
-					aggregate
 				/>
 			)
 		},
