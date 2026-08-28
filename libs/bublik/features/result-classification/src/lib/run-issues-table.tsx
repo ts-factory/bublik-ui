@@ -55,6 +55,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { ISSUE_ACTIONS_COLUMN_CLASS, IssueStateActions } from './issue-actions';
 import { RunIssueResults } from './issue-results';
 
 interface RunIssuesTableProps {
@@ -78,6 +79,7 @@ interface RunIssuesTableProps {
  */
 const COLUMN_ID = {
 	EXPANDER: 'expander',
+	ACTIONS: 'actions',
 	BUG_KEY: 'bug_key',
 	ISSUE: 'issue',
 	RESULTS: 'result_count',
@@ -101,7 +103,7 @@ const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
 	`#${issue.issue_id}`
 ]);
 
-function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
+function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.EXPANDER,
@@ -116,6 +118,24 @@ function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 						row.getIsExpanded() ? 'Hide results' : 'Show classified results'
 					}
 					testId="run-issue-expander"
+				/>
+			)
+		},
+		{
+			// Straight after the expander, matching the issues list: an issue can be
+			// closed from wherever you found it, without a detour through its own
+			// page. Closing here un-suppresses results in this very run, so the
+			// table behind it re-reads on success.
+			id: COLUMN_ID.ACTIONS,
+			header: 'Actions',
+			meta: { className: ISSUE_ACTIONS_COLUMN_CLASS },
+			enableSorting: false,
+			cell: ({ row }) => (
+				<IssueStateActions
+					issueId={row.original.issue_id}
+					title={row.original.title}
+					state={row.original.state}
+					projectId={projectId}
 				/>
 			)
 		},
@@ -319,7 +339,7 @@ export function RunIssuesTable({
 	});
 
 	const issues = useMemo(() => data ?? [], [data]);
-	const columns = useMemo(() => getColumns(), []);
+	const columns = useMemo(() => getColumns(projectId), [projectId]);
 	const { stateOptions, effectOptions, categoryOptions } =
 		useFacetOptions(issues);
 

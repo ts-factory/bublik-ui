@@ -23,6 +23,7 @@ import {
 	Pagination,
 	Skeleton,
 	Tooltip,
+	cn,
 	toast
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -60,6 +61,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { DESTRUCTIVE_FILL_CLASS } from './issue-actions';
 import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
@@ -157,7 +159,10 @@ function RuleToggle({ rule, projectId }: RuleToggleProps) {
 				size="xss"
 				state={isBusy ? 'loading' : 'default'}
 				onClick={toggleActive}
-				className="w-[5.75rem] justify-center"
+				className={cn(
+					'w-[5.75rem] justify-center',
+					rule.active && DESTRUCTIVE_FILL_CLASS
+				)}
 				data-testid="issue-rule-toggle"
 			>
 				<Icon

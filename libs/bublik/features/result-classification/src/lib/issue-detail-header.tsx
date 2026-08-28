@@ -1,21 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import {
-	getErrorMessage,
-	useCloseIssueMutation,
-	useGetIssueQuery,
-	useGetIssueRulesQuery,
-	useReopenIssueMutation
-} from '@/services/bublik-api';
-import {
-	Badge,
-	ButtonTw,
-	Icon,
-	Skeleton,
-	Tooltip,
-	cn,
-	toast
-} from '@/shared/tailwind-ui';
+import { useGetIssueQuery, useGetIssueRulesQuery } from '@/services/bublik-api';
+import { Badge, Skeleton, Tooltip, cn } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
@@ -26,15 +12,11 @@ import {
 	issueStateMeta
 } from './classification-colors';
 import { BugKeyChip } from './classification-badges';
+import { IssueStateToggle } from './issue-actions';
 
 export interface IssueDetailHeaderProps {
 	issueId: number;
 	projectId?: number;
-}
-
-function notifyError(err: unknown) {
-	const m = getErrorMessage(err);
-	return `${m.title}\n${m.description}`;
 }
 
 interface FactProps {
@@ -82,8 +64,6 @@ export function IssueDetailHeader({
 		projectId
 	});
 	const { data: rules } = useGetIssueRulesQuery({ projectId, issue: issueId });
-	const [closeIssue, closeState] = useCloseIssueMutation();
-	const [reopenIssue, reopenState] = useReopenIssueMutation();
 
 	if (isLoading) {
 		return (
@@ -97,8 +77,6 @@ export function IssueDetailHeader({
 	if (error) return <BublikErrorState error={error} className="h-40" />;
 	if (!issue) return null;
 
-	const isOpen = issue.state === 'open';
-	const isBusy = closeState.isLoading || reopenState.isLoading;
 	const stateMeta = issueStateMeta(issue.state);
 	const issueRules = rules?.results ?? [];
 	const activeCount = issueRules.filter((rule) => rule.active).length;
@@ -108,18 +86,6 @@ export function IssueDetailHeader({
 		active: activeCount
 	});
 
-	function handleToggleState() {
-		const action = isOpen ? closeIssue : reopenIssue;
-		const promise = action({ issueId, projectId }).unwrap();
-
-		toast.promise(promise, {
-			loading: isOpen ? 'Closing issue...' : 'Reopening issue...',
-			success: isOpen ? 'Issue closed' : 'Issue reopened',
-			error: notifyError,
-			position: 'top-center'
-		});
-	}
-
 	return (
 		<div
 			className="flex flex-col gap-3 p-4"
@@ -127,31 +93,15 @@ export function IssueDetailHeader({
 			data-issue-state={issue.state}
 		>
 			<div className="flex flex-wrap items-center gap-2">
-				{/* Leads the row rather than floating at the far right. It is the
-				    only action on the page, and it was the hardest thing here to
-				    find. */}
-				<Tooltip
-					content={
-						isOpen
-							? 'Closing also deactivates every active rule, and un-suppresses every result they were hiding — those failures start counting again.'
-							: 'Reopening clears the closed state but does not re-activate the rules, so you may need to enable them by hand.'
-					}
-				>
-					<ButtonTw
-						variant={isOpen ? 'destruction-secondary' : 'secondary'}
-						size="xss"
-						state={isBusy ? 'loading' : 'default'}
-						onClick={handleToggleState}
-						data-testid={isOpen ? 'issue-close' : 'issue-reopen'}
-					>
-						<Icon
-							name={isOpen ? 'CrossSimple' : 'Refresh'}
-							size={14}
-							className="mr-1.5"
-						/>
-						{isOpen ? 'Close issue' : 'Reopen issue'}
-					</ButtonTw>
-				</Tooltip>
+				{/* The same control the tables render, so the button that closes an
+				    issue looks and reads the same wherever you meet it. Leads the
+				    row rather than floating at the far right: it is the only action
+				    on the page, and it was the hardest thing here to find. */}
+				<IssueStateToggle
+					issueId={issueId}
+					state={issue.state}
+					projectId={projectId}
+				/>
 				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>

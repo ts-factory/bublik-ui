@@ -9,11 +9,8 @@ import {
 
 import {
 	bublikAPI,
-	getErrorMessage,
-	useCloseIssueMutation,
 	useGetIssueRulesQuery,
-	useGetIssuesQuery,
-	useReopenIssueMutation
+	useGetIssuesQuery
 } from '@/services/bublik-api';
 import { useProjectSearch, LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -22,8 +19,7 @@ import {
 	Icon,
 	Pagination,
 	Skeleton,
-	Tooltip,
-	toast
+	Tooltip
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { routes } from '@/router';
@@ -56,6 +52,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { ISSUE_ACTIONS_COLUMN_CLASS, IssueStateActions } from './issue-actions';
 
 /**
  * Actions lead, the way they do on the run's result table: the controls sit
@@ -75,7 +72,8 @@ const COLUMN_ID = {
 	CREATED: 'created',
 	STATE: 'state',
 	CATEGORIES: 'categories',
-	RULES: 'rules'
+	RULES: 'rules',
+	FILLER: 'filler'
 } as const;
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
@@ -158,75 +156,6 @@ const searchFilter = makeSearchFilter<IssueTableRow>((issue) => [
 	`#${issue.id}`
 ]);
 
-function notifyError(err: unknown) {
-	const m = getErrorMessage(err);
-	return `${m.title}\n${m.description}`;
-}
-
-interface IssueStateActionsProps {
-	issue: IssueTableRow;
-	projectId?: number;
-}
-
-function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
-	const [closeIssue, closeState] = useCloseIssueMutation();
-	const [reopenIssue, reopenState] = useReopenIssueMutation();
-
-	const isOpen = issue.state === 'open';
-	const isBusy = closeState.isLoading || reopenState.isLoading;
-
-	function handleToggle() {
-		const action = isOpen ? closeIssue : reopenIssue;
-		const promise = action({ issueId: issue.id, projectId }).unwrap();
-
-		toast.promise(promise, {
-			loading: isOpen ? 'Closing issue...' : 'Reopening issue...',
-			success: isOpen ? 'Issue closed' : 'Issue reopened',
-			error: notifyError,
-			position: 'top-center'
-		});
-	}
-
-	return (
-		<div className="flex items-center gap-1.5">
-			<Tooltip content={`Manage the rules behind ${issue.title}`}>
-				<ButtonTw asChild variant="secondary" size="xss">
-					<LinkWithProject to={routes.issue({ issueId: issue.id })}>
-						<Icon name="Paper" size={14} className="mr-1" />
-						Rules
-					</LinkWithProject>
-				</ButtonTw>
-			</Tooltip>
-			<Tooltip
-				content={
-					isOpen
-						? 'Closing also deactivates every active rule, and un-suppresses every result they were hiding.'
-						: 'Reopening clears the closed state but does not re-activate the rules.'
-				}
-			>
-				{/* Fixed width, because `Close` and `Reopen` are different lengths
-				    and a column of buttons that change size row to row reads as
-				    ragged. Sized to the longer of the two. */}
-				<ButtonTw
-					variant={isOpen ? 'destruction-secondary' : 'secondary'}
-					size="xss"
-					state={isBusy ? 'loading' : 'default'}
-					onClick={handleToggle}
-					className="w-[5.75rem] justify-center"
-					data-testid={isOpen ? 'issue-close' : 'issue-reopen'}
-				>
-					<Icon
-						name={isOpen ? 'CrossSimple' : 'Refresh'}
-						size={14}
-						className="mr-1"
-					/>
-					{isOpen ? 'Close' : 'Reopen'}
-				</ButtonTw>
-			</Tooltip>
-		</div>
-	);
-}
-
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
@@ -235,10 +164,15 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// making you track to the far edge of a wide row to reach them.
 			id: COLUMN_ID.ACTIONS,
 			header: 'Actions',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: { className: ISSUE_ACTIONS_COLUMN_CLASS },
 			enableSorting: false,
 			cell: ({ row }) => (
-				<IssueStateActions issue={row.original} projectId={projectId} />
+				<IssueStateActions
+					issueId={row.original.id}
+					title={row.original.title}
+					state={row.original.state}
+					projectId={projectId}
+				/>
 			)
 		},
 		{
@@ -351,6 +285,17 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 					active={row.original.activeRuleCount}
 				/>
 			)
+		},
+		{
+			// A `w-full` table has to spend its spare width on *some* column, and on
+			// a wide screen that is hundreds of pixels. Without somewhere to put it,
+			// `table-auto` shares it out across every column — including the ones
+			// declared `w-px` to shrink to their contents, which is why Key and
+			// Actions were not staying narrow. This column exists to be empty.
+			id: COLUMN_ID.FILLER,
+			header: () => null,
+			enableSorting: false,
+			cell: () => null
 		}
 	];
 }
