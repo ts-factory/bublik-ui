@@ -64,7 +64,7 @@ function ApplyRulesButton({ runId, projectId }: ApplyRulesButtonProps) {
 				data-testid="apply-rules-button"
 			>
 				<Icon name="Refresh" size={16} className="mr-1.5" />
-				Apply rules
+				Apply Rules
 			</ButtonTw>
 		</Tooltip>
 	);
@@ -153,7 +153,9 @@ function RunIssuesPage() {
 				<RunIssuesTable
 					runId={runId}
 					projectId={projectId}
-					toolbarActions={<ApplyRulesButton runId={runId} projectId={projectId} />}
+					toolbarActions={
+						<ApplyRulesButton runId={runId} projectId={projectId} />
+					}
 					toolbarSummary={<IssuesSummary runId={runId} projectId={projectId} />}
 				/>
 			</div>

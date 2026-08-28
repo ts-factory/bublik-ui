@@ -201,6 +201,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 				<BugKeyChip
 					bugKey={row.original.bugKey}
 					bugUrl={row.original.bugUrl}
+					issueId={row.original.id}
 					fallback={`#${row.original.id}`}
 					className="flex justify-between w-full gap-2"
 				/>

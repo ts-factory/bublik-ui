@@ -82,7 +82,7 @@ export function IssueLinkButton({ issueId, title }: IssueLinkButtonProps) {
 					to={routes.issue({ issueId })}
 					data-testid="issue-rules-link"
 				>
-					<Icon name="Paper" size={14} className="mr-1" />
+					<Icon name="BoxArrowRight" size={16} className="mr-1" />
 					Issue
 				</LinkWithProject>
 			</ButtonTw>

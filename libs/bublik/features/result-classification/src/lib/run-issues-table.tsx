@@ -169,6 +169,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 					<BugKeyChip
 						bugKey={bug_key}
 						bugUrl={bug_url}
+						issueId={issue_id}
 						fallback={`#${issue_id}`}
 						className="flex justify-between w-full gap-2"
 					/>
@@ -228,10 +229,11 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 		{
 			id: COLUMN_ID.EFFECT,
 			accessorFn: (row) => runIssueEffect(row).value,
-			// Named for the question it answers rather than for the axis it belongs
-			// to: "effect on run" never said *which* effect. The column id stays
-			// `effect` — it is a filter key in the URL.
-			header: 'Counts as unexpected',
+			// Named for the axis rather than for one end of it: the column reports
+			// suppressed / counting again / unexpected / undecided, and heading it
+			// "Counts as unexpected" read as a yes-or-no question that three of
+			// those four answers do not answer. The badges carry the specifics.
+			header: 'Effect On Run',
 			meta: { className: 'w-44', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
@@ -429,7 +431,7 @@ export function RunIssuesTable({
 					disabled={!stateOptions.length}
 				/>
 				<DataTableFacetedFilter
-					title="Counts as unexpected"
+					title="Effect On Run"
 					size="xss"
 					options={effectOptions}
 					value={getFilterValue(COLUMN_ID.EFFECT)}
@@ -459,7 +461,12 @@ export function RunIssuesTable({
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				{toolbarActions}
+				{toolbarActions ? (
+					<>
+						<ClassificationToolbarSeparator />
+						{toolbarActions}
+					</>
+				) : null}
 				{toolbarSummary ? (
 					<div className="flex items-center ml-auto">{toolbarSummary}</div>
 				) : null}

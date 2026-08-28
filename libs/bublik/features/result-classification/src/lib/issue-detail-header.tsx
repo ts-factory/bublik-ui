@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useGetIssueQuery, useGetIssueRulesQuery } from '@/services/bublik-api';
-import { Badge, Skeleton, Tooltip, cn } from '@/shared/tailwind-ui';
+import { Badge, Separator, Skeleton, Tooltip, cn } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
@@ -92,37 +92,15 @@ export function IssueDetailHeader({
 			data-testid="issue-detail-header"
 			data-issue-state={issue.state}
 		>
+			{/* Identity only. The badges used to trail the title on this line,
+			    which put four differently shaped things in a row and left none of
+			    them labelled — you had to already know that `2 of 9 rules active`
+			    was about rules. */}
 			<div className="flex flex-wrap items-center gap-2">
-				{/* The same control the tables render, so the button that closes an
-				    issue looks and reads the same wherever you meet it. Leads the
-				    row rather than floating at the far right: it is the only action
-				    on the page, and it was the hardest thing here to find. */}
-				<IssueStateToggle
-					issueId={issueId}
-					state={issue.state}
-					projectId={projectId}
-				/>
 				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>
 				<BugKeyChip bugKey={issue.issue_ext?.key ?? null} />
-				<Tooltip content={stateMeta.description}>
-					<Badge
-						className={cn(CLASSIFICATION_BADGE_CLASS, stateMeta.className)}
-					>
-						{stateMeta.label}
-					</Badge>
-				</Tooltip>
-				<Tooltip content={rulesMeta.description}>
-					<Badge
-						className={cn(CLASSIFICATION_BADGE_CLASS, rulesMeta.className)}
-						data-rules-state={rulesMeta.value}
-					>
-						{issueRules.length
-							? `${activeCount} of ${issueRules.length} rules active`
-							: ISSUE_RULES_STATE_META.unruled.label}
-					</Badge>
-				</Tooltip>
 			</div>
 
 			{issue.description ? (
@@ -131,7 +109,43 @@ export function IssueDetailHeader({
 				</p>
 			) : null}
 
+			{/* Each badge now sits against its own label, in the same two-column
+			    list as the dates — one vertical run of `label: value` rather than
+			    a header row of unlabelled chips and a list underneath. */}
 			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4 pt-3 border-t border-border-primary">
+				<Fact label="State">
+					<div className="flex items-center gap-2">
+						<Tooltip content={stateMeta.description}>
+							<Badge
+								className={cn(CLASSIFICATION_BADGE_CLASS, stateMeta.className)}
+							>
+								{stateMeta.label}
+							</Badge>
+						</Tooltip>
+						<Separator orientation="vertical" className="h-4" />
+						{/* The same control the tables render, so the button that
+						    closes an issue looks and reads the same wherever you meet
+						    it — and here it sits directly against the state it
+						    changes. */}
+						<IssueStateToggle
+							issueId={issueId}
+							state={issue.state}
+							projectId={projectId}
+						/>
+					</div>
+				</Fact>
+				<Fact label="Rules">
+					<Tooltip content={rulesMeta.description}>
+						<Badge
+							className={cn(CLASSIFICATION_BADGE_CLASS, rulesMeta.className)}
+							data-rules-state={rulesMeta.value}
+						>
+							{issueRules.length
+								? `${activeCount} of ${issueRules.length} rules active`
+								: ISSUE_RULES_STATE_META.unruled.label}
+						</Badge>
+					</Tooltip>
+				</Fact>
 				<Fact label="Created">
 					<TimeValue value={issue.created_at} />
 				</Fact>

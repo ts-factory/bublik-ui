@@ -4,6 +4,8 @@ import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 
 import { Badge, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
+import { LinkWithProject } from '@/bublik/features/projects';
+import { routes } from '@/router';
 import type {
 	IssueCategory,
 	IssueState,
@@ -276,6 +278,11 @@ export interface BugKeyChipProps {
 	 */
 	description?: string;
 	className?: string;
+	/**
+	 * Makes the chip a link to the issue's own page. Omit on that page itself —
+	 * a link back to where you already are is noise.
+	 */
+	issueId?: number;
 }
 
 /**
@@ -294,7 +301,8 @@ export function BugKeyChip({
 	bugUrl,
 	fallback,
 	description,
-	className
+	className,
+	issueId
 }: BugKeyChipProps) {
 	const label = formatBugKey(bugKey) ?? fallback;
 
@@ -306,17 +314,31 @@ export function BugKeyChip({
 			: description
 		: bugKey ?? 'No tracker key linked to this issue';
 
+	const chip = (
+		<Badge
+			className={cn(
+				BUG_KEY_BADGE_CLASS,
+				'bg-badge-0 text-text-menu normal-case tracking-normal',
+				issueId !== undefined && 'hover:text-primary hover:underline'
+			)}
+		>
+			{label}
+		</Badge>
+	);
+
 	return (
 		<span className={cn('inline-flex items-center gap-1', className)}>
 			<Tooltip content={tooltip}>
-				<Badge
-					className={cn(
-						BUG_KEY_BADGE_CLASS,
-						'bg-badge-0 text-text-menu normal-case tracking-normal'
-					)}
-				>
-					{label}
-				</Badge>
+				{issueId !== undefined ? (
+					<LinkWithProject
+						to={routes.issue({ issueId })}
+						data-testid="issue-key-link"
+					>
+						{chip}
+					</LinkWithProject>
+				) : (
+					chip
+				)}
 			</Tooltip>
 			{bugUrl ? (
 				<Tooltip content="Open in the issue tracker">
@@ -366,8 +388,11 @@ export function ResultIssueBadges({
 				<Fragment key={issue.rule_id}>
 					<BugKeyChip
 						bugKey={issue.bug_key ?? null}
+						issueId={issue.issue_id}
 						fallback={`#${issue.issue_id}`}
-						description={`${issue.issue_title}. ${originMeta(issue.origin).description}`}
+						description={`${issue.issue_title}. ${
+							originMeta(issue.origin).description
+						}`}
 					/>
 					<CategoryBadge category={issue.category} />
 					{issue.issue_state === 'closed' ? (

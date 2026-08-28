@@ -17,6 +17,8 @@ import {
 	useGetIssuesQuery
 } from '@/services/bublik-api';
 import {
+	Badge,
+	BadgeVariants,
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
@@ -195,21 +197,35 @@ interface MatcherDetailProps {
  */
 function MatcherDetail({ rule }: MatcherDetailProps) {
 	const parameters = Object.entries(rule.parameters ?? {});
-	const sections: { label: string; hint: string; values: string[] }[] = [
+
+	// Colours taken from wherever the run page shows the same thing, so a
+	// parameter looks like a parameter whether you are reading a result or the
+	// rule that matched it: parameters `bg-badge-1` (result table), verdicts
+	// transparent-on-border (`VerdictList`), tags `bg-badge-0` (run details).
+	const sections: {
+		label: string;
+		hint: string;
+		values: string[];
+		variant?: BadgeVariants;
+		className?: string;
+	}[] = [
 		{
 			label: 'Parameters',
 			hint: 'The result must carry all of these, matched exactly.',
-			values: parameters.map(([key, value]) => `${key} = ${value}`)
+			values: parameters.map(([key, value]) => `${key} = ${value}`),
+			className: 'bg-badge-1'
 		},
 		{
 			label: 'Verdicts',
 			hint: 'The result must carry all of these verdicts.',
-			values: rule.verdicts ?? []
+			values: rule.verdicts ?? [],
+			variant: BadgeVariants.Transparent
 		},
 		{
 			label: 'Tags',
 			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
-			values: rule.tags ?? []
+			values: rule.tags ?? [],
+			className: 'bg-badge-0'
 		}
 	];
 
@@ -233,12 +249,14 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 					{section.values.length ? (
 						<div className="flex flex-wrap gap-1">
 							{section.values.map((value) => (
-								<span
+								<Badge
 									key={value}
-									className="px-1.5 py-0.5 text-[0.6875rem] border rounded bg-white border-border-primary"
+									variant={section.variant}
+									className={section.className}
+									overflowWrap
 								>
 									{value}
-								</span>
+								</Badge>
 							))}
 						</div>
 					) : (
@@ -271,6 +289,7 @@ const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	cell: ({ row }) => (
 		<BugKeyChip
 			bugKey={row.original.bugKey}
+			issueId={row.original.issue}
 			fallback={`#${row.original.issue}`}
 		/>
 	)
@@ -310,6 +329,54 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
  * Sits directly after the test and the issue it belongs to, because it decides
  * whether anything further along the row is in force at all.
  */
+const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.SCOPE,
+	header: 'Match scope',
+	meta: { className: 'w-64' },
+	enableSorting: false,
+	cell: ({ row }) => {
+		const chips = chipsForFlags({
+			matchParameters: row.original.match_parameters,
+			matchVerdicts: row.original.match_verdicts,
+			matchImportantTags: row.original.match_important_tags,
+			matchAllTags: row.original.match_all_tags
+		});
+
+		return (
+			<div className="flex flex-wrap gap-1">
+				{chips.map((chip) => (
+					<span
+						key={chip}
+						className="px-1.5 py-0.5 text-[0.6875rem] rounded bg-primary-wash border border-border-primary"
+					>
+						{chip}
+					</span>
+				))}
+			</div>
+		);
+	}
+};
+
+const DISPOSITION_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.DISPOSITION,
+	accessorFn: (row) => dispositionKey(row.expected),
+	header: 'Disposition',
+	meta: { className: 'w-32', badgeCell: true },
+	enableSorting: false,
+	filterFn: someOfFilter,
+	cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
+};
+
+const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.CATEGORY,
+	accessorFn: (row) => row.category,
+	header: 'Category',
+	meta: { className: 'w-44', badgeCell: true },
+	enableSorting: false,
+	filterFn: someOfFilter,
+	cell: ({ row }) => <CategoryBadge category={row.original.category} />
+};
+
 const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ACTIVE,
 	accessorFn: (row) => String(row.active),
@@ -390,13 +457,13 @@ function getColumns({
 			)
 		},
 		{
-			// Capped like every other data column. Left unsized it was the only
-			// column free to absorb the table's spare width, which on a wide screen
-			// meant a test name floating in a few hundred pixels of nothing.
+			// Shrink-to-fit rather than capped: a test path is one unbroken token,
+			// so wrapping it helps nobody, and the filler column takes the slack
+			// this would otherwise absorb.
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			meta: { className: 'w-[26rem]' },
+			meta: { className: 'w-px whitespace-nowrap' },
 			// The toolbar's free-text box lives on this column. On the cross-issue
 			// view the issue is part of the row, so it is part of the haystack.
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
@@ -410,53 +477,11 @@ function getColumns({
 				</span>
 			)
 		},
-		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		ACTIVE_COLUMN,
-		{
-			id: COLUMN_ID.CATEGORY,
-			accessorFn: (row) => row.category,
-			header: 'Category',
-			meta: { className: 'w-44', badgeCell: true },
-			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => <CategoryBadge category={row.original.category} />
-		},
-		{
-			id: COLUMN_ID.DISPOSITION,
-			accessorFn: (row) => dispositionKey(row.expected),
-			header: 'Disposition',
-			meta: { className: 'w-32', badgeCell: true },
-			enableSorting: false,
-			filterFn: someOfFilter,
-			cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
-		},
-		{
-			id: COLUMN_ID.SCOPE,
-			header: 'Match scope',
-			meta: { className: 'w-64' },
-			enableSorting: false,
-			cell: ({ row }) => {
-				const chips = chipsForFlags({
-					matchParameters: row.original.match_parameters,
-					matchVerdicts: row.original.match_verdicts,
-					matchImportantTags: row.original.match_important_tags,
-					matchAllTags: row.original.match_all_tags
-				});
-
-				return (
-					<div className="flex flex-wrap gap-1">
-						{chips.map((chip) => (
-							<span
-								key={chip}
-								className="px-1.5 py-0.5 text-[0.6875rem] rounded bg-primary-wash border border-border-primary"
-							>
-								{chip}
-							</span>
-						))}
-					</div>
-				);
-			}
-		},
+		SCOPE_COLUMN,
+		DISPOSITION_COLUMN,
+		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
+		CATEGORY_COLUMN,
 		{
 			// Somewhere for `table-auto` to put the spare width of a `w-full`
 			// table. Without it the slack is shared across the data columns, and
