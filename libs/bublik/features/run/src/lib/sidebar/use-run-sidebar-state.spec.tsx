@@ -9,6 +9,9 @@ import { useRunSidebarState } from './use-run-sidebar-state';
 const setSearchParamsMock = vi.fn();
 const locationState = { openUnexpected: true };
 
+// Mutated per-test: the hook anchors on the run id in the current path.
+let currentPathname = '/';
+
 // Values returned by the mocked getSidebarStateString, keyed by sidebar key.
 // Tests mutate this to simulate different `_s` contents.
 const sidebarStateValues: Record<string, string | null> = {};
@@ -20,7 +23,7 @@ vi.mock('react-router-dom', async () => {
 
 	return {
 		...actual,
-		useLocation: () => ({ state: locationState }),
+		useLocation: () => ({ state: locationState, pathname: currentPathname }),
 		useSearchParams: () => [new URLSearchParams(), setSearchParamsMock]
 	};
 });
@@ -77,7 +80,9 @@ vi.mock('@/bublik/features/sidebar', () => ({
 			setSearchParamsMock(next, { replace: true, state: locationState });
 		},
 	stripSidebarParamsFromUrl: (url: string) => url,
-	extractRunIdFromUrl: () => '42',
+	extractRunIdFromUrl: (url: string) => url.match(/\/runs\/(\d+)/)?.[1] ?? null,
+	extractRunIdFromLogUrl: (url: string) =>
+		url.match(/\/log\/(\d+)/)?.[1] ?? null,
 	RUN_MODE_DEFAULT: 'details',
 	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`,
 	getRunIssuesDefaultUrl: (runId: string) => `/runs/${runId}/issues`
@@ -125,8 +130,23 @@ function renderIssuesAvailability() {
 	return state;
 }
 
+function renderUrls() {
+	let urls = { detailsUrl: '', issuesUrl: '' };
+
+	function UrlsRunner() {
+		const { detailsUrl, issuesUrl } = useRunSidebarState();
+		urls = { detailsUrl, issuesUrl };
+		return null;
+	}
+
+	render(<UrlsRunner />);
+
+	return urls;
+}
+
 describe('useRunSidebarState', () => {
 	beforeEach(() => {
+		currentPathname = '/';
 		setSearchParamsMock.mockClear();
 		for (const key of Object.keys(sidebarStateValues)) {
 			delete sidebarStateValues[key];
@@ -197,6 +217,58 @@ describe('useRunSidebarState', () => {
 		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/42/issues';
 
 		expect(renderIssuesAvailability().isIssuesAvailable).toBe(true);
+	});
+
+	it('ignores a remembered URL left behind by another run', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '200';
+		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/100?foo=1';
+		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/100/issues';
+
+		expect(renderUrls()).toEqual({
+			detailsUrl: '/runs/200',
+			issuesUrl: '/runs/200/issues'
+		});
+	});
+
+	it('keeps a remembered URL that belongs to the active run', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '200';
+		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200?foo=1';
+
+		expect(renderUrls().detailsUrl).toBe('/runs/200?foo=1');
+	});
+
+	it('anchors on the run in the URL before the writer catches up', () => {
+		currentPathname = '/runs/300';
+		sidebarStateValues['sidebar.currentRunId'] = '200';
+		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200';
+		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/200/issues';
+
+		expect(renderUrls()).toEqual({
+			detailsUrl: '/runs/300',
+			issuesUrl: '/runs/300/issues'
+		});
+	});
+
+	it('follows the run of the log page as well', () => {
+		currentPathname = '/log/500';
+		sidebarStateValues['sidebar.currentRunId'] = '200';
+		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200';
+
+		expect(renderUrls().detailsUrl).toBe('/runs/500');
+	});
+
+	it('drops the other runs URLs when the recorded run changes', async () => {
+		render(<HookRunner />);
+
+		await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalled());
+
+		const [params] = setSearchParamsMock.mock.calls[0];
+
+		expect(JSON.parse(params.get('_s') as string)).toEqual({
+			'sidebar.run.lastMode': 'details',
+			'sidebar.currentRunId': '42',
+			'sidebar.run.lastDetails': '/runs/42'
+		});
 	});
 
 	it('sends the Run link to details when the last mode has no issues left', () => {
