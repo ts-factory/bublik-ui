@@ -107,7 +107,7 @@ export function ClassificationTable<T>({
 								<td
 									key={cell.id}
 									className={cn(
-										'px-2 py-1 align-top bg-white',
+										'px-2 py-1 align-middle bg-white',
 										idx !== arr.length - 1 && 'border-r border-border-primary',
 										cell.column.columnDef.meta?.className
 									)}
