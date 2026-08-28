@@ -681,8 +681,14 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	// Keyed by mode, not by the component. These are two different pages -- the
+	// project's whole rule list and one issue's rules -- and they do not even
+	// show the same columns, since Issue is meaningless once every row shares
+	// one. Sharing a key meant hiding a column on one hid it on the other.
+	// The per-issue view keeps the original key so its stored preference
+	// survives; the cross-issue list starts from the defaults.
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
-		'issue-rules',
+		showIssue ? 'issue-rules-all' : 'issue-rules',
 		DEFAULT_COLUMN_VISIBILITY
 	);
 
