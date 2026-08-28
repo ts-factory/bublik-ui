@@ -40,7 +40,7 @@ export function ClassifyButton({ resultId, projectId }: ClassifyButtonProps) {
 				data-testid="classify-trigger"
 				data-result-id={resultId}
 			>
-				<Icon name="TriangleExclamationMark" size={18} className="mr-1" />
+				<Icon name="TriangleExclamationMark" size={20} className="mr-1.5" />
 				Classify
 			</ButtonTw>
 

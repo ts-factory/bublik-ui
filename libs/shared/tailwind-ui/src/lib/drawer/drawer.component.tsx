@@ -39,7 +39,10 @@ export const DrawerContent = forwardRef<
 			<DialogContent
 				{...props}
 				className={cn(
-					'fixed top-0 right-0 z-50 h-screen h-svh bg-white rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
+					// The panel is white and so is most of what it covers — a drawer over
+					// the log preview is white on white. The hairline carries the edge;
+					// `shadow-dialog-sheet` (5%) is too soft to do it alone.
+					'fixed top-0 right-0 z-50 h-screen h-svh bg-white border-l border-border-primary shadow-dialog-sheet rdx-state-open:animate-drawer-slide-in-right rdx-state-closed:animate-drawer-slide-out-right',
 					className
 				)}
 				ref={ref}

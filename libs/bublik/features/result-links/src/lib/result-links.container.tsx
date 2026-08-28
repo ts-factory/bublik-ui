@@ -109,8 +109,11 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						</button>
 					</LogPreviewContainer>
 				</li>
+				{/* `pl-0.5` rather than the `pl-2` the bare links use: the chip brings
+				    its own `px-1.5`, so this puts its icon on the same left edge as
+				    every other item. Same reason the History chip above uses it. */}
 				{isFailed ? (
-					<li className="pl-2">
+					<li className="pl-0.5">
 						<ClassifyButton resultId={resultId} projectId={result.project_id} />
 					</li>
 				) : null}

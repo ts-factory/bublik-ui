@@ -3,8 +3,8 @@
 import { useIsScrollbarVisible } from '@/shared/hooks';
 import {
 	ButtonTw,
-	DialogClose,
 	DrawerContent,
+	DrawerFormHeader,
 	DrawerRoot,
 	Icon,
 	cn
@@ -31,10 +31,11 @@ export interface ClassifyDrawerProps {
  * These are the app's two form drawers, and they should not feel like two
  * different applications.
  *
- * Its `FormHeader`/`FormSection` parts are not exported from the history lib's
- * public entry point, so the header and sticky footer are reproduced here. That
- * is the same convention `classification-table` follows for `run-table`: mirror
- * the markup, name the reference, keep the class strings in step.
+ * The header is genuinely shared — `DrawerFormHeader` in `@/shared/tailwind-ui`.
+ * The sticky footer is still mirrored markup, because the search form's carries
+ * two buttons and a hint line and this one carries neither; that is the same
+ * convention `classification-table` follows for `run-table`: name the
+ * reference, keep the class strings in step.
  */
 export function ClassifyDrawer({
 	open,
@@ -54,28 +55,23 @@ export function ClassifyDrawer({
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
 			<DrawerContent
 				portal
-				className="z-[55] w-screen max-w-[32rem] flex flex-col"
+				// `portal` is a React portal, and React events bubble through the
+				// component tree rather than the DOM one — so without this, a click
+				// on the drawer reaches the table cell that rendered the trigger
+				// (`handleRowClick` in `result-table.component.tsx`), toggles row
+				// state, and re-renders the row out from under the drawer. The data
+				// attribute is that same handler's opt-out, for its DOM-side check.
+				onClick={(event) => event.stopPropagation()}
+				data-stop-row-click="true"
+				className="z-[55] w-screen max-w-3xl flex flex-col"
 				data-testid="classify-drawer"
 			>
 				<div className="px-6 py-4 border-b border-border-primary shrink-0">
-					<div className="flex items-start justify-between gap-4">
-						<div className="flex flex-col gap-1">
-							<span className="text-[1.125rem] font-semibold leading-6 text-text-primary">
-								Classify Failure
-							</span>
-							<span className="text-[0.8125rem] leading-[1.125rem] text-text-secondary">
-								Record why this result failed, and decide which future results
-								inherit the verdict.
-							</span>
-						</div>
-						<DialogClose
-							onClick={() => onOpenChange(false)}
-							className="p-2 rounded text-text-menu hover:bg-primary-wash hover:text-primary"
-							aria-label="Close"
-						>
-							<Icon name="Cross" className="size-4" />
-						</DialogClose>
-					</div>
+					<DrawerFormHeader
+						name="Classify Failure"
+						description="Record why this result failed, and decide which future results inherit the verdict."
+						onClose={() => onOpenChange(false)}
+					/>
 				</div>
 
 				{/* The issue picker's popup portals in here rather than to
