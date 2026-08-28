@@ -93,7 +93,10 @@ export function ClassificationTable<T>({
 					</tr>
 				))}
 			</thead>
-			<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*:not(:last-child)>*]:border-b [&>*:not(:last-child)>*]:border-border-primary">
+			{/* Every row gets a bottom rule, the last one included. Excluding it
+			    left the table trailing off into whitespace above the footer, so a
+			    short list read as if it had failed to finish rendering. */}
+			<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*>*]:border-b [&>*>*]:border-border-primary">
 				{table.getRowModel().rows.map((row) => (
 					<Fragment key={row.id}>
 						<tr
