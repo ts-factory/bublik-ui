@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 
 import { issueResultRunId, issueResultTestPath } from './issue-results';
 
-const row = (over: Partial<Parameters<typeof issueResultTestPath>[0]> = {}) => ({
+const row = (
+	over: Partial<Parameters<typeof issueResultTestPath>[0]> = {}
+) => ({
 	result_id: 1,
 	name: 'test_name',
 	path: ['pkg', 'subpkg'],

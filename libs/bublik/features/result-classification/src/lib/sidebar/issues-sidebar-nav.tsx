@@ -49,7 +49,10 @@ export function IssuesSidebarNav() {
 						to={mainLinkUrl}
 						linkComponent={LinkWithProject}
 					>
-						<SidebarNavInternalLink.Icon name="TriangleExclamationMark" className='size-7' />
+						<SidebarNavInternalLink.Icon
+							name="TriangleExclamationMark"
+							className="size-7"
+						/>
 						<SidebarNavInternalLink.Label>Issues</SidebarNavInternalLink.Label>
 					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>

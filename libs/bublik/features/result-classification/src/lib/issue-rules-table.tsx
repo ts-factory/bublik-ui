@@ -69,6 +69,7 @@ import {
 import {
 	buildFacetOptions,
 	makeSearchFilter,
+	openFacetOptions,
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
@@ -117,7 +118,10 @@ const FILTER_KEYS = [
 	COLUMN_ID.ISSUE_STATE,
 	COLUMN_ID.CATEGORY,
 	COLUMN_ID.DISPOSITION,
-	COLUMN_ID.ACTIVE
+	COLUMN_ID.ACTIVE,
+	COLUMN_ID.PARAMETERS,
+	COLUMN_ID.VERDICTS,
+	COLUMN_ID.TAGS
 ] as const;
 
 const ACTIVE_ORDER = ['true', 'false'] as const;
@@ -261,7 +265,7 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 		{
 			label: 'Tags',
 			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
-			values: rule.tags ?? [],
+			values: ruleTags(rule),
 			className: 'bg-badge-0'
 		}
 	];
@@ -414,6 +418,26 @@ const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	cell: ({ row }) => <CategoryBadge category={row.original.category} />
 };
 
+/**
+ * Tags are `key=value` too, so they take the same display delimiter as
+ * parameters — the run details panel formats them the same way.
+ */
+function ruleTags(rule: Pick<IssueRule, 'tags'>): string[] {
+	return (rule.tags ?? []).map((tag) =>
+		formatKeyValueForDisplay(tag, {
+			displayDelimiter: config.keyValueDisplayDelimiter,
+			submitDelimiter: config.keyValueSubmitDelimiter
+		})
+	);
+}
+
+/** Matcher parameters in display form, which is also what the facet offers. */
+function ruleParameters(rule: Pick<IssueRule, 'parameters'>): string[] {
+	return Object.entries(rule.parameters ?? {}).map(([key, value]) =>
+		formatRuleParameter(key, value)
+	);
+}
+
 /** The display form of a matcher parameter — see `MatcherDetail`. */
 function formatRuleParameter(key: string, value: string) {
 	return formatKeyValueForDisplay(
@@ -455,18 +479,14 @@ function MatcherValues({
  */
 const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PARAMETERS,
-	accessorFn: (row) =>
-		Object.entries(row.parameters ?? {})
-			.map(([key, value]) => formatRuleParameter(key, value))
-			.join(' '),
+	accessorFn: (row) => ruleParameters(row),
 	header: 'Parameters',
 	meta: { badgeCell: true },
 	enableSorting: false,
+	filterFn: someOfFilter,
 	cell: ({ row }) => (
 		<MatcherValues
-			values={Object.entries(row.original.parameters ?? {}).map(
-				([key, value]) => formatRuleParameter(key, value)
-			)}
+			values={ruleParameters(row.original)}
 			className="bg-badge-1"
 		/>
 	)
@@ -474,10 +494,11 @@ const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 
 const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.VERDICTS,
-	accessorFn: (row) => (row.verdicts ?? []).join(' '),
+	accessorFn: (row) => row.verdicts ?? [],
 	header: 'Verdicts',
 	meta: { badgeCell: true },
 	enableSorting: false,
+	filterFn: someOfFilter,
 	cell: ({ row }) => (
 		<MatcherValues
 			values={row.original.verdicts ?? []}
@@ -488,12 +509,13 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 
 const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.TAGS,
-	accessorFn: (row) => (row.tags ?? []).join(' '),
+	accessorFn: (row) => ruleTags(row),
 	header: 'Tags',
 	meta: { badgeCell: true },
 	enableSorting: false,
+	filterFn: someOfFilter,
 	cell: ({ row }) => (
-		<MatcherValues values={row.original.tags ?? []} className="bg-badge-0" />
+		<MatcherValues values={ruleTags(row.original)} className="bg-badge-0" />
 	)
 };
 
@@ -639,6 +661,13 @@ function useFacetOptions(rules: IssueRuleRow[]) {
 				order: ACTIVE_ORDER,
 				labelFor: (value) => ruleActiveMeta(value === 'true').label
 			}),
+			// Open-ended axes: the values come from the data, so the display order
+			// is alphabetical rather than a fixed meaning-carrying sequence.
+			parameterOptions: openFacetOptions(rules.flatMap(ruleParameters)),
+			verdictOptions: openFacetOptions(
+				rules.flatMap((rule) => rule.verdicts ?? [])
+			),
+			tagOptions: openFacetOptions(rules.flatMap(ruleTags)),
 			issueStateOptions: buildFacetOptions({
 				values: rules
 					.map((rule) => rule.issueState)
@@ -746,7 +775,10 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		categoryOptions,
 		dispositionOptions,
 		activeOptions,
-		issueStateOptions
+		issueStateOptions,
+		parameterOptions,
+		verdictOptions,
+		tagOptions
 	} = useFacetOptions(rules);
 
 	// Server-owned paging, filtering and sorting: this table holds one page, and
@@ -887,6 +919,30 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					value={getFilterValue(COLUMN_ID.ACTIVE)}
 					onChange={(values) => setFilterValue(COLUMN_ID.ACTIVE, values)}
 					disabled={!activeOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Parameters"
+					size="xss"
+					options={parameterOptions}
+					value={getFilterValue(COLUMN_ID.PARAMETERS)}
+					onChange={(values) => setFilterValue(COLUMN_ID.PARAMETERS, values)}
+					disabled={!parameterOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Verdicts"
+					size="xss"
+					options={verdictOptions}
+					value={getFilterValue(COLUMN_ID.VERDICTS)}
+					onChange={(values) => setFilterValue(COLUMN_ID.VERDICTS, values)}
+					disabled={!verdictOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Tags"
+					size="xss"
+					options={tagOptions}
+					value={getFilterValue(COLUMN_ID.TAGS)}
+					onChange={(values) => setFilterValue(COLUMN_ID.TAGS, values)}
+					disabled={!tagOptions.length}
 				/>
 				<ClassificationToolbarSeparator />
 				<Tooltip

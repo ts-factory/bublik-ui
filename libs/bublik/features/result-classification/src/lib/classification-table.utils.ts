@@ -97,3 +97,18 @@ export function buildFacetOptions<V extends string>({
 			label: `${labelFor(value)} (${counts[value]})`
 		}));
 }
+
+/**
+ * Facet options for an axis whose values come from the data rather than from a
+ * fixed vocabulary — parameters, verdicts, tags. There is no meaningful order
+ * to preserve, so they are listed alphabetically.
+ */
+export function openFacetOptions(values: string[]): FacetOption[] {
+	const unique = Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+
+	return buildFacetOptions({
+		values,
+		order: unique,
+		labelFor: (value) => value
+	});
+}
