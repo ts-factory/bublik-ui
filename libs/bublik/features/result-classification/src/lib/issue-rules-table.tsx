@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
@@ -64,7 +64,8 @@ import {
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
 	ExpandButton,
-	columnVisibilityItems
+	columnVisibilityItems,
+	useColumnVisibility
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -690,7 +691,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
+		'issue-rules',
 		DEFAULT_COLUMN_VISIBILITY
 	);
 

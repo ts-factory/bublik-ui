@@ -5,10 +5,11 @@ import {
 	flexRender,
 	type Row,
 	type RowData,
-	type Table
+	type Table,
+	type VisibilityState
 } from '@tanstack/react-table';
 
-import { useDebounce } from '@/shared/hooks';
+import { useDebounce, useLocalStorage } from '@/shared/hooks';
 import {
 	Icon,
 	Input,
@@ -331,4 +332,26 @@ export function columnVisibilityItems<T>(
 				checked: column.getIsVisible()
 			};
 		});
+}
+
+/**
+ * Column visibility, remembered per table.
+ *
+ * These tables carry ten columns or so and which ones matter is a standing
+ * preference, not a per-visit one — re-hiding the same four columns on every
+ * navigation is exactly the chore the control was added to remove. Scoped by
+ * `tableKey` so the issues list, the rules list and a run's issues each keep
+ * their own answer.
+ *
+ * `defaults` must be module-level: it feeds the stored snapshot's dependencies,
+ * and a fresh object each render would re-read storage on every pass.
+ */
+export function useColumnVisibility(
+	tableKey: string,
+	defaults: VisibilityState
+) {
+	return useLocalStorage<VisibilityState>(
+		`bublik.columns.${tableKey}`,
+		defaults
+	);
 }

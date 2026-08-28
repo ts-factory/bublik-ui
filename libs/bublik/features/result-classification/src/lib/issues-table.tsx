@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
 	ColumnDef,
 	type VisibilityState,
@@ -50,7 +50,8 @@ import {
 	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	columnVisibilityItems
+	columnVisibilityItems,
+	useColumnVisibility
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -365,7 +366,8 @@ export function IssuesTable() {
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
+		'issues',
 		DEFAULT_COLUMN_VISIBILITY
 	);
 	const {

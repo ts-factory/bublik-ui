@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
@@ -51,7 +51,8 @@ import {
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
 	ExpandButton,
-	columnVisibilityItems
+	columnVisibilityItems,
+	useColumnVisibility
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -335,7 +336,8 @@ export function RunIssuesTable({
 	);
 
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
+		'run-issues',
 		DEFAULT_COLUMN_VISIBILITY
 	);
 	const {
