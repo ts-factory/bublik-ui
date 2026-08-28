@@ -1,23 +1,33 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { useRef } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
-import { ButtonTw, CheckboxField } from '@/shared/tailwind-ui';
-import { IssuePicker } from '@/bublik/features/result-classification';
+import { CheckboxField } from '@/shared/tailwind-ui';
+import {
+	CATEGORY_META,
+	CATEGORY_ORDER,
+	IssuePicker
+} from '@/bublik/features/result-classification';
 import { useProjectSearch } from '@/bublik/features/projects';
 
 import { FormSection, FormSectionSubheader } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
 
-/** Mirrors the backend IssueCategory values (Plan 2). */
-const CATEGORY_OPTIONS: { value: string; label: string }[] = [
-	{ value: 'product-defect', label: 'Product defect' },
-	{ value: 'test-bug', label: 'Test/automation bug' },
-	{ value: 'env', label: 'Environment / infra' },
-	{ value: 'known-issue', label: 'Known issue' },
-	{ value: 'flaky', label: 'Flaky / intermittent' },
-	{ value: 'to-investigate', label: 'To investigate' }
-];
+/**
+ * Taken from the badge vocabulary rather than restated here. This list used to
+ * be a hand-copied duplicate carrying the long forms — `Product defect`,
+ * `Test/automation bug` — while the badges these checkboxes filter for read
+ * `Defect` and `Test bug`, so the form named things the results did not.
+ *
+ * Reusing `CATEGORY_META` also means a seventh category cannot appear in the
+ * app without appearing here.
+ */
+const CATEGORY_OPTIONS = CATEGORY_ORDER.map((category) => ({
+	value: category,
+	label: CATEGORY_META[category].label,
+	iconName: CATEGORY_META[category].iconName
+}));
 
 /**
  * Control for the `issue` param, which is otherwise reachable only by deep
@@ -27,28 +37,24 @@ const IssueField = () => {
 	const { control } = useFormContext<HistoryGlobalSearchFormValues>();
 	const { projectIds } = useProjectSearch();
 	const { field } = useController({ name: 'issue', control });
+	const portalRef = useRef<HTMLDivElement>(null);
 
+	// The picker shows and clears its own selection now, so the "Filtering by
+	// issue #42" line and its Clear button that used to sit under it are gone —
+	// they existed only because the old input could not say what was chosen.
+	//
+	// The popup portals into `portalRef` rather than to `document.body`, the same
+	// way the test path field does: this form lives in a modal drawer, and Radix
+	// reads a click on a body-level popup as a click outside the dialog — which
+	// dismisses the drawer instead of selecting the option.
 	return (
-		<div className="flex flex-col gap-2">
+		<div ref={portalRef}>
 			<IssuePicker
 				projectId={projectIds[0]}
-				value={field.value ?? undefined}
-				onChange={(id) => field.onChange(id === field.value ? null : id)}
+				value={field.value}
+				onChange={(id) => field.onChange(id)}
+				container={portalRef}
 			/>
-			{field.value !== null && field.value !== undefined ? (
-				<div className="flex items-center gap-2">
-					<span className="text-xs text-text-menu">
-						Filtering by issue #{field.value}
-					</span>
-					<ButtonTw
-						variant="secondary"
-						size="xss"
-						onClick={() => field.onChange(null)}
-					>
-						Clear
-					</ButtonTw>
-				</div>
-			) : null}
 		</div>
 	);
 };
@@ -69,14 +75,14 @@ export const ClassificationSection = () => {
 						iconName="TriangleExclamationMark"
 						iconSize={16}
 						name="untriaged"
-						label="Untriaged unexpected only"
+						label="Untriaged"
 						control={control}
 					/>
 					<CheckboxField
-						iconName="TriangleQuestionMark"
+						iconName="InformationCircleCheckmark"
 						iconSize={16}
 						name="explained"
-						label="Explained only"
+						label="Explained"
 						control={control}
 					/>
 				</div>
@@ -91,7 +97,7 @@ export const ClassificationSection = () => {
 					{CATEGORY_OPTIONS.map((option) => (
 						<CheckboxField
 							key={option.value}
-							iconName="TriangleQuestionMark"
+							iconName={option.iconName}
 							iconSize={16}
 							name="categories"
 							value={option.value}

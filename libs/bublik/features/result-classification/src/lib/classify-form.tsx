@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+import type { RefObject } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -88,10 +89,13 @@ export function buildSubmitHandler(
 
 export function ClassifyFields({
 	form,
-	projectId
+	projectId,
+	container
 }: {
 	form: ClassifyForm;
 	projectId?: number;
+	/** Portal target for the issue picker's popup — see `IssuePickerProps`. */
+	container?: RefObject<HTMLElement>;
 }) {
 	const { register, control, watch } = form;
 	const mode = watch('mode');
@@ -141,6 +145,7 @@ export function ClassifyFields({
 							projectId={projectId}
 							value={field.value}
 							onChange={(id) => field.onChange(id)}
+							container={container}
 						/>
 					)}
 				/>

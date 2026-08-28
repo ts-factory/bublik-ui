@@ -78,6 +78,10 @@ export function ClassifyDrawer({
 					</div>
 				</div>
 
+				{/* The issue picker's popup portals in here rather than to
+				    `document.body`: this is a modal dialog, and Radix reads a click
+				    on a body-level popup as a click outside — which closes the
+				    drawer instead of selecting the option. */}
 				<div
 					ref={scrollableRef}
 					className="flex flex-col flex-1 min-h-0 overflow-y-auto styled-scrollbar"
@@ -86,7 +90,11 @@ export function ClassifyDrawer({
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="flex flex-col flex-1 gap-6 px-6 pt-6"
 					>
-						<ClassifyFields form={form} projectId={projectId} />
+						<ClassifyFields
+							form={form}
+							projectId={projectId}
+							container={scrollableRef}
+						/>
 
 						<div className="pt-2 border-t border-border-primary">
 							<MatchScope form={form} />
