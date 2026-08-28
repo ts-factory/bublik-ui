@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { flexRender, type Row, type Table } from '@tanstack/react-table';
 
 import { useDebounce } from '@/shared/hooks';
-import { Icon, Input, TableSort, cn } from '@/shared/tailwind-ui';
+import { Icon, Input, Separator, TableSort, cn } from '@/shared/tailwind-ui';
 
 /**
  * The run table's markup, factored out so every classification table looks the
@@ -142,7 +142,7 @@ export function ClassificationToolbar({
 	children
 }: ClassificationToolbarProps) {
 	return (
-		<div className="flex flex-wrap items-center gap-2 px-4 py-1 bg-white border-b border-border-primary shrink-0">
+		<div className="flex flex-wrap items-center gap-2 px-4 py-1.5 bg-white border-b border-border-primary shrink-0">
 			{children}
 		</div>
 	);
@@ -259,4 +259,13 @@ export function ExpandButton({
 			/>
 		</button>
 	);
+}
+
+/**
+ * Divides the toolbar into its three jobs — what this table is, what is
+ * narrowing it, what you can do to it — so a row of otherwise identically
+ * styled controls reads as groups rather than as one undifferentiated strip.
+ */
+export function ClassificationToolbarSeparator() {
+	return <Separator orientation="vertical" className="h-5" />;
 }

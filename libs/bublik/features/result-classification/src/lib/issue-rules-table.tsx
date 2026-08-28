@@ -53,6 +53,7 @@ import {
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
+	ClassificationToolbarSeparator,
 	ExpandButton
 } from './classification-table';
 import {
@@ -73,7 +74,8 @@ const COLUMN_ID = {
 	CATEGORY: 'category',
 	DISPOSITION: 'disposition',
 	SCOPE: 'scope',
-	ACTIVE: 'active'
+	ACTIVE: 'active',
+	FILLER: 'filler'
 } as const;
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
@@ -329,9 +331,13 @@ function getColumns({
 		},
 		...(showIssue ? [ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		{
+			// Capped like every other data column. Left unsized it was the only
+			// column free to absorb the table's spare width, which on a wide screen
+			// meant a test name floating in a few hundred pixels of nothing.
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
+			meta: { className: 'w-[26rem]' },
 			// The toolbar's free-text box lives on this column. On the cross-issue
 			// view the issue is part of the row, so it is part of the haystack.
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
@@ -403,6 +409,16 @@ function getColumns({
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
+		},
+		{
+			// Somewhere for `table-auto` to put the spare width of a `w-full`
+			// table. Without it the slack is shared across the data columns, and
+			// the ones declared to shrink to their contents quietly stop doing so.
+			// This column exists to be empty.
+			id: COLUMN_ID.FILLER,
+			header: () => null,
+			enableSorting: false,
+			cell: () => null
 		}
 	];
 }
@@ -597,6 +613,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Rules
 				</span>
+				<ClassificationToolbarSeparator />
 				<ClassificationSearch
 					value={search}
 					onChange={setSearch}
@@ -638,19 +655,21 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					onChange={(values) => setFilterValue(COLUMN_ID.ACTIVE, values)}
 					disabled={!activeOptions.length}
 				/>
-				{hasFilters ? (
-					<Tooltip content="Reset all filters">
-						<ButtonTw
-							variant="secondary"
-							size="xss"
-							onClick={resetFilters}
-							data-testid="issue-rules-reset-filters"
-						>
-							<Icon name="Bin" size={18} className="mr-1.5" />
-							Reset
-						</ButtonTw>
-					</Tooltip>
-				) : null}
+				<ClassificationToolbarSeparator />
+				<Tooltip
+					content={hasFilters ? 'Reset all filters' : 'No filters to reset'}
+				>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						disabled={!hasFilters}
+						onClick={resetFilters}
+						data-testid="issue-rules-reset-filters"
+					>
+						<Icon name="Bin" size={18} className="mr-1.5" />
+						Reset
+					</ButtonTw>
+				</Tooltip>
 			</ClassificationToolbar>
 
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">

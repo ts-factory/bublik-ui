@@ -44,7 +44,8 @@ import {
 	ClassificationFooter,
 	ClassificationSearch,
 	ClassificationTable,
-	ClassificationToolbar
+	ClassificationToolbar,
+	ClassificationToolbarSeparator
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -477,6 +478,7 @@ export function IssuesTable() {
 						Issues
 					</span>
 				</Tooltip>
+				<ClassificationToolbarSeparator />
 				<ClassificationSearch
 					value={search}
 					onChange={setSearch}
@@ -508,19 +510,21 @@ export function IssuesTable() {
 					onChange={(values) => setFilterValue(COLUMN_ID.RULES, values)}
 					disabled={!rulesOptions.length}
 				/>
-				{hasFilters ? (
-					<Tooltip content="Reset all filters">
-						<ButtonTw
-							variant="secondary"
-							size="xss"
-							onClick={resetFilters}
-							data-testid="issues-reset-filters"
-						>
-							<Icon name="Bin" size={18} className="mr-1.5" />
-							Reset
-						</ButtonTw>
-					</Tooltip>
-				) : null}
+				<ClassificationToolbarSeparator />
+				<Tooltip
+					content={hasFilters ? 'Reset all filters' : 'No filters to reset'}
+				>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						disabled={!hasFilters}
+						onClick={resetFilters}
+						data-testid="issues-reset-filters"
+					>
+						<Icon name="Bin" size={18} className="mr-1.5" />
+						Reset
+					</ButtonTw>
+				</Tooltip>
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
 					{totalCount} in {scopeLabel}
 				</span>

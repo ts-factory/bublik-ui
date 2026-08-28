@@ -47,6 +47,7 @@ import {
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
+	ClassificationToolbarSeparator,
 	ExpandButton
 } from './classification-table';
 import {
@@ -404,6 +405,7 @@ export function RunIssuesTable({
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Issues
 				</span>
+				<ClassificationToolbarSeparator />
 				<ClassificationSearch
 					value={search}
 					onChange={setSearch}
@@ -435,19 +437,21 @@ export function RunIssuesTable({
 					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
 				/>
-				{hasFilters ? (
-					<Tooltip content="Reset all filters">
-						<ButtonTw
-							variant="secondary"
-							size="xss"
-							onClick={resetFilters}
-							data-testid="run-issues-reset-filters"
-						>
-							<Icon name="Bin" size={18} className="mr-1.5" />
-							Reset
-						</ButtonTw>
-					</Tooltip>
-				) : null}
+				<ClassificationToolbarSeparator />
+				<Tooltip
+					content={hasFilters ? 'Reset all filters' : 'No filters to reset'}
+				>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						disabled={!hasFilters}
+						onClick={resetFilters}
+						data-testid="run-issues-reset-filters"
+					>
+						<Icon name="Bin" size={18} className="mr-1.5" />
+						Reset
+					</ButtonTw>
+				</Tooltip>
 				{toolbarActions}
 				{toolbarSummary ? (
 					<div className="flex items-center ml-auto">{toolbarSummary}</div>

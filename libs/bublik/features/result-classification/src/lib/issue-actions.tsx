@@ -131,7 +131,11 @@ export function IssueStateActions({
 		// the group off the cell's full width; neither button carries a width of
 		// its own, so the column collapses to what the labels need.
 		<div className="flex items-center gap-1.5 w-fit">
-			<Tooltip content={`Manage the rules behind ${title}`}>
+			{/* Labelled for the destination, not its contents. `Rules` read as if
+			    it opened a rules list, and the tracker link two columns away is
+			    already the thing called a bug — using that word here would put one
+			    label on two links that go to different places. */}
+			<Tooltip content={`Open ${title} and the rules behind it`}>
 				<ButtonTw
 					asChild
 					variant="secondary"
@@ -143,7 +147,7 @@ export function IssueStateActions({
 						data-testid="issue-rules-link"
 					>
 						<Icon name="Paper" size={14} className="mr-1" />
-						Rules
+						Issue
 					</LinkWithProject>
 				</ButtonTw>
 			</Tooltip>
