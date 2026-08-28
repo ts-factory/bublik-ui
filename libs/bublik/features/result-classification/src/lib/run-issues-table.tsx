@@ -248,7 +248,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories.map((c) => c.category),
 			header: 'Categories',
-			meta: { className: 'w-56', badgeCell: true },
+			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => (

@@ -125,7 +125,12 @@ export function CategoryBadgeList({
 	if (!unique.length) return <span className="text-text-menu">-</span>;
 
 	return (
-		<div className={cn('flex flex-wrap items-center gap-1', className)}>
+		// Never wraps. Badge columns size themselves with `w-px`, so the cell is
+		// as wide as its min-content -- and a wrapping flex row's min-content is
+		// one badge, which stacked the chips into a column and made the column
+		// taller instead of wider. Without the wrap, min-content is the whole
+		// row, so the cell takes exactly the width the chips need.
+		<div className={cn('flex items-center gap-1', className)}>
 			{unique.map((category) => (
 				<CategoryBadge key={category} category={category} />
 			))}
