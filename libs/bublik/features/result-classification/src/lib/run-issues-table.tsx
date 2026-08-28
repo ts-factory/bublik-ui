@@ -468,7 +468,7 @@ export function RunIssuesTable({
 				</span>
 				<Pagination
 					className="ml-auto"
-					variant="bordered"
+					variant="compact"
 					totalCount={matchedCount}
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}

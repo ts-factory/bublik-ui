@@ -651,7 +651,7 @@ export function IssuesTable() {
 				</span>
 				<Pagination
 					className="ml-auto"
-					variant="bordered"
+					variant="compact"
 					totalCount={totalCount}
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
