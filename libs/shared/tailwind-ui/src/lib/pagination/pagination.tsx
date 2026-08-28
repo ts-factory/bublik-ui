@@ -263,14 +263,24 @@ export const Pagination = (props: PaginationProps) => {
 			>
 				Previous
 			</PageButton>
-			<PaginationRange
-				variant={variant}
-				range={paginationRange}
-				currentPage={currentPage}
-				siblingCount={siblingCount}
-				handleDotsClick={handleDotsClick}
-				handlePageIndexClick={handlePageIndexClick}
-			/>
+			{/* `compact` shows position instead of a numbered range. It sits in a
+			    table footer beside a row count, where a strip of page numbers is
+			    more chrome than the footer can carry — and with 100 rows a page,
+			    jumping to page 7 is rarely the thing you want. */}
+			{isCompact ? (
+				<span className="px-1 text-xs text-text-menu tabular-nums">
+					{currentPage} / {lastPage}
+				</span>
+			) : (
+				<PaginationRange
+					variant={variant}
+					range={paginationRange}
+					currentPage={currentPage}
+					siblingCount={siblingCount}
+					handleDotsClick={handleDotsClick}
+					handlePageIndexClick={handlePageIndexClick}
+				/>
+			)}
 			<PageButton
 				variant={variant}
 				onClick={handleNextClick}
@@ -285,7 +295,11 @@ export const Pagination = (props: PaginationProps) => {
 					defaultValue={pageSize.toString() || DEFAULT_PAGE_SIZES[1]}
 					onValueChange={handlePageSizeChange}
 					triggerVariant={
-						isCompact ? 'compact' : variant === 'bordered' ? 'bordered' : 'primary'
+						isCompact
+							? 'compact'
+							: variant === 'bordered'
+							? 'bordered'
+							: 'primary'
 					}
 				/>
 			)}
