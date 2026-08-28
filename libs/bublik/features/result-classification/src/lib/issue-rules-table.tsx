@@ -93,9 +93,9 @@ const COLUMN_ID = {
 	DISPOSITION: 'disposition',
 	SCOPE: 'scope',
 	ACTIVE: 'active',
-	PARAMETERS: 'parameters',
-	VERDICTS: 'verdicts',
 	TAGS: 'tags',
+	VERDICTS: 'verdicts',
+	PARAMETERS: 'parameters',
 	FILLER: 'filler'
 } as const;
 
@@ -104,10 +104,14 @@ const COLUMN_ID = {
  * and already spelled out in the expanded row; as columns they are for the rare
  * case where you want to compare them across rules without opening each one.
  */
+/**
+ * Widest gate first: tags decide whether the run is even considered, verdicts
+ * narrow to a failure mode, parameters to one iteration.
+ */
 const MATCHER_COLUMN_IDS = [
-	COLUMN_ID.PARAMETERS,
+	COLUMN_ID.TAGS,
 	COLUMN_ID.VERDICTS,
-	COLUMN_ID.TAGS
+	COLUMN_ID.PARAMETERS
 ] as const;
 
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = Object.fromEntries(
@@ -120,9 +124,9 @@ const FILTER_KEYS = [
 	COLUMN_ID.CATEGORY,
 	COLUMN_ID.DISPOSITION,
 	COLUMN_ID.ACTIVE,
-	COLUMN_ID.PARAMETERS,
+	COLUMN_ID.TAGS,
 	COLUMN_ID.VERDICTS,
-	COLUMN_ID.TAGS
+	COLUMN_ID.PARAMETERS
 ] as const;
 
 const ACTIVE_ORDER = ['true', 'false'] as const;
@@ -226,8 +230,6 @@ interface MatcherDetailProps {
  * exact — no operators, no regex — and an empty one is simply ignored.
  */
 function MatcherDetail({ rule }: MatcherDetailProps) {
-	const parameters = Object.entries(rule.parameters ?? {});
-
 	// Colours taken from wherever the run page shows the same thing, so a
 	// parameter looks like a parameter whether you are reading a result or the
 	// rule that matched it: parameters `bg-badge-1` (result table), verdicts
@@ -240,22 +242,10 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 		className?: string;
 	}[] = [
 		{
-			label: 'Parameters',
-			hint: 'The result must carry all of these, matched exactly.',
-			// `key = value` was hand-written here. Everywhere else in the app a
-			// parameter is joined with the configured display delimiter — `key:
-			// value` by default — via the shared formatter, and the run's result
-			// table renders the very same parameters that way.
-			values: parameters.map(([key, value]) =>
-				formatKeyValueForDisplay(
-					`${key}${config.keyValueSubmitDelimiter}${value}`,
-					{
-						displayDelimiter: config.keyValueDisplayDelimiter,
-						submitDelimiter: config.keyValueSubmitDelimiter
-					}
-				)
-			),
-			className: 'bg-badge-1'
+			label: 'Tags',
+			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
+			values: ruleTags(rule),
+			className: 'bg-badge-0'
 		},
 		{
 			label: 'Verdicts',
@@ -264,10 +254,10 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 			variant: BadgeVariants.Transparent
 		},
 		{
-			label: 'Tags',
-			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
-			values: ruleTags(rule),
-			className: 'bg-badge-0'
+			label: 'Parameters',
+			hint: 'The result must carry all of these, matched exactly.',
+			values: ruleParameters(rule),
+			className: 'bg-badge-1'
 		}
 	];
 
@@ -627,9 +617,9 @@ function getColumns({
 		DISPOSITION_COLUMN,
 		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		CATEGORY_COLUMN,
-		PARAMETERS_COLUMN,
-		VERDICTS_COLUMN,
 		TAGS_COLUMN,
+		VERDICTS_COLUMN,
+		PARAMETERS_COLUMN,
 		{
 			// Somewhere for `table-auto` to put the spare width of a `w-full`
 			// table. Without it the slack is shared across the data columns, and
