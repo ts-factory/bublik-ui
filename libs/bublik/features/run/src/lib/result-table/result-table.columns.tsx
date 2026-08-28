@@ -120,7 +120,12 @@ export const getColumns = ({
 					// to live in another column and were unaffected by this guard, so
 					// returning nothing here would quietly lose them.
 					if (!obtainedResult.result || !obtainedResult.verdicts) {
-						return <ResultIssueBadges issues={obtainedResult.issues} />;
+						return (
+							<ResultIssueBadges
+								issues={obtainedResult.issues}
+								hasError={obtainedResult.isNotExpected}
+							/>
+						);
 					}
 
 					function handleVerdictClick(verdict: string) {
@@ -177,7 +182,11 @@ export const getColumns = ({
 								onResultClick={handleResultClick}
 								isResultSelected={isResultSelected}
 							/>
-							<ResultIssueBadges issues={obtainedResult.issues} withSeparator />
+							<ResultIssueBadges
+								issues={obtainedResult.issues}
+								hasError={obtainedResult.isNotExpected}
+								withSeparator
+							/>
 						</div>
 					);
 				},

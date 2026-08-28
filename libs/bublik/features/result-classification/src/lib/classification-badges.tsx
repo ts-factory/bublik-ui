@@ -17,12 +17,14 @@ import {
 	CLASSIFICATION_BADGE_CLASS,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
+	UNTRIAGED_META,
 	categoryMeta,
 	dispositionMeta,
 	formatBugKey,
 	issueRulesState,
 	issueStateMeta,
 	originMeta,
+	resultIssueEffect,
 	ruleActiveMeta,
 	runIssueEffect
 } from './classification-colors';
@@ -216,6 +218,24 @@ export function RunIssueEffectBadge({
 	return <RunEffectBadge effect={runIssueEffect(issue).value} {...rest} />;
 }
 
+/**
+ * A failing result with no stamps at all. The counterpart to the Untriaged
+ * checkbox in the history search form: without it, the rows that filter
+ * selects are the ones that render nothing, so you cannot see what matched.
+ */
+export function UntriagedBadge(props: BadgeExtras) {
+	return (
+		<MetaBadge
+			description={UNTRIAGED_META.description}
+			metaClassName={UNTRIAGED_META.className}
+			dataAttributes={{ 'data-effect': UNTRIAGED_META.value }}
+			{...props}
+		>
+			{UNTRIAGED_META.label}
+		</MetaBadge>
+	);
+}
+
 export interface IssueRulesBadgeProps extends BadgeExtras {
 	state: IssueState;
 	total: number;
@@ -358,43 +378,78 @@ export function BugKeyChip({
 
 export interface ResultIssueBadgesProps {
 	issues?: ResultIssueRef[];
+	/**
+	 * Whether the result itself failed. Required, not defaulted: it decides
+	 * whether any of this means anything, and a new call site that has not
+	 * thought about it should not compile.
+	 */
+	hasError: boolean;
 	className?: string;
 	/**
-	 * Draws a rule above the stamps. Lives here rather than at the call site
+	 * Draws a rule above the badges. Lives here rather than at the call site
 	 * because the separator must not appear when there is nothing to separate,
 	 * and this is where that is already known.
 	 */
 	withSeparator?: boolean;
+	/** Categories currently filtered on, so the matching chips show selected. */
+	selectedCategories?: string[];
+	/** Makes the category chips filter controls. Omit for a read-only surface. */
+	onCategoryClick?: (category: IssueCategory) => void;
 }
 
 /**
- * The per-result stamps, one per line:
+ * The classification of one result: one answer, then the reasons for it.
  *
- *     [E2E-114]  FLAKY  EXPECTED
- *     [E2E-114]  ENV    EXPECTED
- *     [#20]      DEFECT UNEXPECTED
+ *     SUPPRESSED                 UNTRIAGED            [E2E-114]  FLAKY
+ *       [E2E-114]  FLAKY                                ^ passed: no effect
+ *       [#20]      DEFECT
  *
- * A column, not a wrapping run. Inline, a result matched by several rules ran
- * its stamps together and could break mid-stamp, so `E2E-114 FLAKY EXPECTED
- * E2E-114 ENV EXPECTED` read as though two different bugs were involved. Each
- * line is now one complete statement — which issue, why, so what — and the key
- * repeats because a line that omitted it would depend on the line above.
+ * The top chip is the whole point — does this failure still count — and it is
+ * computed across every stamp, because that is how the backend decides. It
+ * used to sit on each stamp instead, which could contradict itself: a result
+ * with one suppressing rule and one that does not is suppressed, yet a line
+ * still read "still counts".
  *
- * A closed issue renders CLOSED and drops the disposition: its `expected` value
- * is moot, since closing un-suppresses every result regardless (§1 of
- * RESULT-CLASSIFICATION.md). The issue title and stamp origin travel in the key
- * chip's tooltip. This component is the only renderer of per-result stamps.
+ * Below it, one line per stamp: which issue, and why. A column rather than a
+ * wrapping run, because inline the stamps of a multiply-matched result ran
+ * together and could break mid-stamp, reading as though two different bugs
+ * were involved. The key repeats so no line depends on the one above it.
+ *
+ * Two cases carry no effect chip. A result that did not fail has nothing to
+ * suppress, so its stamps are informational — worth showing, since a
+ * known-broken test that passed this time is a fact you want, but the chip
+ * would be asserting something untrue. And a failure with no stamps gets
+ * UNTRIAGED instead, which is a different question: not what the rules
+ * decided, but whether anyone has looked.
+ *
+ * The issue title and stamp origin travel in the key chip's tooltip. This
+ * component is the only renderer of per-result classification.
  */
 export function ResultIssueBadges({
 	issues,
+	hasError,
 	className,
-	withSeparator
+	withSeparator,
+	selectedCategories,
+	onCategoryClick
 }: ResultIssueBadgesProps) {
-	if (!issues?.length) return null;
+	const stamps = issues ?? [];
 
-	const stamps = (
+	if (!stamps.length && !hasError) return null;
+
+	const body = (
 		<div className={cn('flex flex-col gap-1', className)}>
-			{issues.map((issue) => (
+			{!stamps.length ? (
+				<div data-testid="result-untriaged">
+					<UntriagedBadge />
+				</div>
+			) : null}
+			{hasError && stamps.length ? (
+				<div data-testid="result-issue-effect">
+					<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+				</div>
+			) : null}
+			{stamps.map((issue) => (
 				<div
 					key={issue.rule_id}
 					className="flex flex-wrap items-center gap-1"
@@ -409,23 +464,26 @@ export function ResultIssueBadges({
 							originMeta(issue.origin).description
 						}`}
 					/>
-					<CategoryBadge category={issue.category} />
-					{issue.issue_state === 'closed' ? (
-						<IssueStateBadge state="closed" />
-					) : (
-						<DispositionBadge expected={issue.expected} />
-					)}
+					<CategoryBadge
+						category={issue.category}
+						isSelected={selectedCategories?.includes(issue.category)}
+						onClick={
+							onCategoryClick
+								? () => onCategoryClick(issue.category)
+								: undefined
+						}
+					/>
 				</div>
 			))}
 		</div>
 	);
 
-	if (!withSeparator) return stamps;
+	if (!withSeparator) return body;
 
 	return (
 		<div className="flex flex-col gap-1.5">
 			<Separator className="bg-border-primary" />
-			{stamps}
+			{body}
 		</div>
 	);
 }

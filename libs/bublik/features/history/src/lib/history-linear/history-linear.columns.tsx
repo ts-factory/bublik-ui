@@ -164,7 +164,10 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 							isResultSelected={isResultSelected}
 						/>
 					</HistoryContextMenuContainer>
-					<IssueBadges issues={cell.row.original.issues} />
+					<IssueBadges
+						issues={cell.row.original.issues}
+						hasError={cell.row.original.has_error}
+					/>
 				</div>
 			);
 		}

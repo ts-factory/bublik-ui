@@ -6,12 +6,13 @@ import { ResultIssueBadges } from '@/bublik/features/result-classification';
 
 export interface IssueBadgesProps {
 	issues?: ResultIssueRef[];
+	/** Drives the effect chip, and whether an unstamped row reads Untriaged. */
+	hasError: boolean;
 }
 
-/** Issue key + category badges for classifications stamped on a result,
- * shown under the obtained result. Rendering itself lives in the
- * result-classification lib — this wrapper only keeps the history column
- * API stable. */
-export function IssueBadges({ issues }: IssueBadgesProps) {
-	return <ResultIssueBadges issues={issues} withSeparator />;
+/** Classification of a result, shown under its obtained result. Rendering
+ * itself lives in the result-classification lib — this wrapper only keeps the
+ * history column API stable. */
+export function IssueBadges(props: IssueBadgesProps) {
+	return <ResultIssueBadges {...props} withSeparator />;
 }
