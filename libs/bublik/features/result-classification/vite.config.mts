@@ -50,6 +50,11 @@ export default defineConfig({
 		reporters: ['default'],
 		globals: true,
 		environment: 'jsdom',
+		// Registers the jest-dom matchers and cleans the DOM between tests, which
+		// component specs in this lib need once they render more than once.
+		// Local rather than the root `setup-globals.ts`: that path does not
+		// resolve under vitest here, and it takes tailwind-ui's suite down too.
+		setupFiles: ['./setup.ts'],
 		include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}']
 	}
 });

@@ -302,6 +302,11 @@ export interface BugKeyChipProps {
 	 * a link back to where you already are is noise.
 	 */
 	issueId?: number;
+	/**
+	 * Strikes the key through, the way SWAMP renders a resolved bug. Opt-in:
+	 * surfaces that already carry a State column say it better in words.
+	 */
+	closed?: boolean;
 }
 
 /**
@@ -315,31 +320,44 @@ export interface BugKeyChipProps {
  * identifier to be matched against a bug tracker character for character, and
  * letter-spacing a value like `FOO-123` makes that harder, not easier.
  */
+const CLOSED_KEY_NOTE =
+	'This issue is closed, so its rules no longer suppress these results.';
+
 export function BugKeyChip({
 	bugKey,
 	bugUrl,
 	fallback,
 	description,
 	className,
-	issueId
+	issueId,
+	closed
 }: BugKeyChipProps) {
 	const label = formatBugKey(bugKey) ?? fallback;
 
 	if (!label) return null;
 
-	const tooltip = description
+	const base = description
 		? bugKey
 			? `${description} (${bugKey})`
 			: description
 		: bugKey ?? 'No tracker key linked to this issue';
+	const tooltip = closed ? `${base} ${CLOSED_KEY_NOTE}` : base;
 
 	const chip = (
 		<Badge
 			className={cn(
 				BUG_KEY_BADGE_CLASS,
 				'bg-badge-0 text-text-menu normal-case tracking-normal',
-				issueId !== undefined && 'hover:text-primary hover:underline'
+				// `underline` and `line-through` are the same CSS property, so the
+				// hover underline would *replace* the strike — the issue would look
+				// alive exactly while you point at it. Keep the colour change only.
+				issueId !== undefined &&
+					(closed
+						? 'hover:text-primary'
+						: 'hover:text-primary hover:underline'),
+				closed && 'line-through opacity-60'
 			)}
+			data-issue-state={closed ? 'closed' : undefined}
 		>
 			{label}
 		</Badge>
@@ -422,6 +440,13 @@ export interface ResultIssueBadgesProps {
  * UNTRIAGED instead, which is a different question: not what the rules
  * decided, but whether anyone has looked.
  *
+ * A stamp whose issue has been closed is struck through. Closing deactivates
+ * the rules but leaves the stamps standing, which is right — they record that
+ * a rule once matched — so the strike is what stops a dead issue reading as a
+ * live explanation. It has to be per stamp: the effect chip only implies
+ * "closed" when the disposition was expected, and on a row carrying several
+ * stamps it cannot say which of them died.
+ *
  * The issue title and stamp origin travel in the key chip's tooltip. This
  * component is the only renderer of per-result classification.
  */
@@ -460,6 +485,7 @@ export function ResultIssueBadges({
 						bugKey={issue.bug_key ?? null}
 						issueId={issue.issue_id}
 						fallback={`#${issue.issue_id}`}
+						closed={issue.issue_state === 'closed'}
 						description={`${issue.issue_title}. ${
 							originMeta(issue.origin).description
 						}`}
