@@ -32,6 +32,8 @@ import {
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { routes } from '@/router';
+import { config } from '@/bublik/config';
+import { formatKeyValueForDisplay } from '@/shared/utils';
 import type { Issue, IssueRule, IssueState } from '@/shared/types';
 
 import {
@@ -212,7 +214,19 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 		{
 			label: 'Parameters',
 			hint: 'The result must carry all of these, matched exactly.',
-			values: parameters.map(([key, value]) => `${key} = ${value}`),
+			// `key = value` was hand-written here. Everywhere else in the app a
+			// parameter is joined with the configured display delimiter — `key:
+			// value` by default — via the shared formatter, and the run's result
+			// table renders the very same parameters that way.
+			values: parameters.map(([key, value]) =>
+				formatKeyValueForDisplay(
+					`${key}${config.keyValueSubmitDelimiter}${value}`,
+					{
+						displayDelimiter: config.keyValueDisplayDelimiter,
+						submitDelimiter: config.keyValueSubmitDelimiter
+					}
+				)
+			),
 			className: 'bg-badge-1'
 		},
 		{
