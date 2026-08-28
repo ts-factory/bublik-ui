@@ -208,7 +208,13 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 		},
 		unexpected: {
 			value: 'unexpected',
-			label: 'Unexpected',
+			label: 'Still counts',
+			/*
+			 * Not "Unexpected": that word already names the verdict axis — the
+			 * Expected/Obtained columns and the toolbar counters — and a chip
+			 * repeating it under a result badge asks the reader to work out
+			 * which of the two questions it is answering.
+			 */
 			description:
 				'Counts as unexpected: the rules explain these results, but still call them a real failure.',
 			className: 'bg-badge-13 text-text-unexpected',
@@ -230,6 +236,34 @@ export const EFFECT_ORDER = orderOf<RunIssueEffect>()([
 	'unexpected',
 	'marked'
 ] as const);
+
+/**
+ * A failing result nobody has classified at all.
+ *
+ * Kept out of `RunIssueEffect` on purpose. That union answers "what did the
+ * rules do to the count?" and its values are frozen into the run page's filter
+ * URL; this is the prior question of whether any rule ran, and a run-issue row
+ * — which exists only because a rule matched — can never be untriaged.
+ *
+ * Violet, like `marked`, because both mean "needs a human". They never appear
+ * together: `marked` is someone deciding nothing, this is nobody looking.
+ * The icon matches the Untriaged checkbox in the history search form and its
+ * filter-legend pill, so the badge and the control that finds it agree.
+ */
+export const UNTRIAGED_META = {
+	value: 'untriaged',
+	label: 'Untriaged',
+	description:
+		'Counts as unexpected: nobody has classified this failure, so no rule explains it.',
+	className: 'bg-badge-2 text-text-triage',
+	iconName: 'TriangleExclamationMark'
+} as const satisfies {
+	value: string;
+	label: string;
+	description: string;
+	className: string;
+	iconName: IconName;
+};
 
 /**
  * The disposition axis: what a rule's tri-state `expected` decides.
@@ -316,16 +350,55 @@ export function aggregateExpected(
 	return null;
 }
 
-export function runIssueEffect(issue: RunIssueRow): RunIssueEffectMeta {
-	const expected = aggregateExpected(issue.categories);
-
+/** One disposition against one issue state. The shared core of the two below. */
+export function effectFor(
+	expected: boolean | null,
+	state: IssueState
+): RunIssueEffectMeta {
 	if (expected === true) {
-		return issue.state === 'open'
+		return state === 'open'
 			? RUN_ISSUE_EFFECT_META.suppressed
 			: RUN_ISSUE_EFFECT_META.stale;
 	}
 
 	if (expected === false) return RUN_ISSUE_EFFECT_META.unexpected;
+
+	return RUN_ISSUE_EFFECT_META.marked;
+}
+
+export function runIssueEffect(issue: RunIssueRow): RunIssueEffectMeta {
+	return effectFor(aggregateExpected(issue.categories), issue.state);
+}
+
+/**
+ * The effect of *all* the stamps on one result.
+ *
+ * Deliberately not `effectFor(aggregateExpected(...), state)`: a result's
+ * stamps can span several issues in different states, and there is no single
+ * state to pass. The backend's `SUPPRESSION_FILTER` pairs `expected` with the
+ * issue's state on the *same* stamp, so the pairing has to survive here too —
+ * ORing the flags first and applying a state afterwards would report an open
+ * `expected=false` stamp plus a closed `expected=true` one as suppressed,
+ * when the backend counts it.
+ */
+export function resultIssueEffect(
+	issues: readonly Pick<ResultIssueRef, 'expected' | 'issue_state'>[]
+): RunIssueEffectMeta {
+	const isExpected = (i: (typeof issues)[number]) => i.expected === true;
+
+	if (issues.some((i) => isExpected(i) && i.issue_state === 'open')) {
+		return RUN_ISSUE_EFFECT_META.suppressed;
+	}
+
+	// Would have suppressed, but the issue was closed. Worth its own word:
+	// closing an issue silently makes its failures count again.
+	if (issues.some((i) => isExpected(i) && i.issue_state === 'closed')) {
+		return RUN_ISSUE_EFFECT_META.stale;
+	}
+
+	if (issues.some((i) => i.expected === false)) {
+		return RUN_ISSUE_EFFECT_META.unexpected;
+	}
 
 	return RUN_ISSUE_EFFECT_META.marked;
 }

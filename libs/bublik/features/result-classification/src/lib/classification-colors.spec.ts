@@ -11,6 +11,7 @@ import {
 	formatBugKey,
 	issueRulesState,
 	issueStateMeta,
+	resultIssueEffect,
 	runIssueEffect
 } from './classification-colors';
 
@@ -100,6 +101,57 @@ describe('runIssueEffect', () => {
 				issue({ categories: [{ category: 'to-investigate', expected: null }] })
 			).value
 		).toBe('marked');
+	});
+});
+
+describe('resultIssueEffect', () => {
+	const open = (expected: boolean | null) =>
+		({ expected, issue_state: 'open' } as const);
+	const closed = (expected: boolean | null) =>
+		({ expected, issue_state: 'closed' } as const);
+
+	it('suppresses when any stamp is expected on an open issue', () => {
+		expect(resultIssueEffect([open(false), open(true)]).value).toBe(
+			'suppressed'
+		);
+	});
+
+	it('stays unexpected when the only expected stamp is on a closed issue', () => {
+		expect(resultIssueEffect([closed(true)]).value).toBe('stale');
+	});
+
+	it('is marked-only when no stamp sets a disposition', () => {
+		expect(resultIssueEffect([open(null), closed(null)]).value).toBe('marked');
+	});
+
+	it('counts when every stamp calls it a real failure', () => {
+		expect(resultIssueEffect([open(false)]).value).toBe('unexpected');
+	});
+
+	/*
+	 * The case that stops this collapsing into
+	 * `effectFor(aggregateExpected(...), state)`: two stamps, two different
+	 * issue states, so there is no single state to hand that helper. Pairing
+	 * per stamp is what the backend does.
+	 */
+	it('does not suppress when the expected flag and the open state sit on different stamps', () => {
+		expect(resultIssueEffect([open(false), closed(true)]).value).not.toBe(
+			'suppressed'
+		);
+	});
+
+	/*
+	 * ...and of those two, "counting again" wins over "still counts", because
+	 * suppression is a bare OR over expected+open with no veto from an
+	 * expected=false stamp — so reopening that closed issue really would
+	 * suppress this result.
+	 */
+	it('prefers counting-again, since reopening the closed issue would suppress it', () => {
+		expect(resultIssueEffect([open(false), closed(true)]).value).toBe('stale');
+	});
+
+	it('is marked-only when there are no stamps at all', () => {
+		expect(resultIssueEffect([]).value).toBe('marked');
 	});
 });
 
