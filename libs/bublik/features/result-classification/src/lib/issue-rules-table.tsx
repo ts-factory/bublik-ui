@@ -6,6 +6,8 @@ import {
 	ColumnDef,
 	getCoreRowModel,
 	getExpandedRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
 
@@ -634,11 +636,21 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		onPaginationChange,
 		rowCount: totalCount,
 		manualPagination: true,
-		manualFiltering: true,
-		manualSorting: true,
+		// Filtering and sorting stay client-side, over the page in hand. The API
+		// accepts the params (they are sent above) but honours almost none of
+		// them yet, so leaving these `true` meant the toolbar did nothing at all
+		// — every facet and the search box were inert.
+		//
+		// Filtering the loaded page is not the same as filtering the list, and at
+		// more than one page it will under-report. It is still strictly better
+		// than not filtering, and it is forward-compatible: once the API narrows
+		// the set itself, the client pass matches everything it is given and
+		// quietly becomes a no-op.
 		getRowId: (row) => String(row.id),
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	});
 
@@ -658,6 +670,10 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 			?.setFilterValue(values?.length ? values : undefined);
 
 	const rows = table.getRowModel().rows;
+	// Filtering happens locally, so the server's count no longer describes what
+	// is on screen once a facet is on.
+	const matchedCount = table.getFilteredRowModel().rows.length;
+	const isNarrowed = hasFilters || Boolean(search);
 
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
@@ -782,7 +798,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 
 			<ClassificationFooter>
 				<span className="text-xs text-text-menu tabular-nums">
-					{totalCount} {totalCount === 1 ? 'rule' : 'rules'}
+					{isNarrowed
+						? `${matchedCount} of ${totalCount} rules`
+						: `${totalCount} ${totalCount === 1 ? 'rule' : 'rules'}`}
 				</span>
 				<Pagination
 					className="ml-auto"
