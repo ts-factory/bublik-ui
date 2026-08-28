@@ -6,7 +6,14 @@ import {
 	useReopenIssueMutation
 } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
+import {
+	ButtonTw,
+	Icon,
+	Separator,
+	Tooltip,
+	cn,
+	toast
+} from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import type { IssueState } from '@/shared/types';
 
@@ -46,9 +53,8 @@ function notifyError(err: unknown) {
  * own header. One component so the two cannot drift: the wording of the
  * consequence matters, and it was previously written out twice.
  *
- * Sized to its label. In a stack it still lines up with its neighbour, because
- * the stack stretches its children to the widest of them rather than each
- * button reserving a fixed width of its own.
+ * Sized to its label — no fixed width, so the column it sits in collapses to
+ * exactly what the text needs.
  */
 export function IssueStateToggle({
 	issueId,
@@ -120,14 +126,11 @@ export function IssueStateActions({
 	projectId
 }: IssueStateActionsProps) {
 	return (
-		// Stacked, not side by side: the column is the narrowest thing in the
-		// table and two buttons in a row set its width for every other cell.
-		//
-		// `items-stretch` with no width on either button is what keeps them equal
-		// *and* minimal — the pair takes the width of the longer label instead of
-		// each reserving a fixed size, and `w-fit` stops the stack itself from
-		// growing to fill the cell.
-		<div className="flex flex-col items-stretch gap-1 w-fit">
+		// A rule with a divider between them, so the two read as one control
+		// group rather than as buttons that happen to be adjacent. `w-fit` keeps
+		// the group off the cell's full width; neither button carries a width of
+		// its own, so the column collapses to what the labels need.
+		<div className="flex items-center gap-1.5 w-fit">
 			<Tooltip content={`Manage the rules behind ${title}`}>
 				<ButtonTw
 					asChild
@@ -144,6 +147,7 @@ export function IssueStateActions({
 					</LinkWithProject>
 				</ButtonTw>
 			</Tooltip>
+			<Separator orientation="vertical" className="h-5" />
 			<IssueStateToggle issueId={issueId} state={state} projectId={projectId} />
 		</div>
 	);
