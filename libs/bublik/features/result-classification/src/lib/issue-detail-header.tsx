@@ -10,6 +10,7 @@ import {
 import {
 	Badge,
 	ButtonTw,
+	Icon,
 	Skeleton,
 	Tooltip,
 	cn,
@@ -126,6 +127,31 @@ export function IssueDetailHeader({
 			data-issue-state={issue.state}
 		>
 			<div className="flex flex-wrap items-center gap-2">
+				{/* Leads the row rather than floating at the far right. It is the
+				    only action on the page, and it was the hardest thing here to
+				    find. */}
+				<Tooltip
+					content={
+						isOpen
+							? 'Closing also deactivates every active rule, and un-suppresses every result they were hiding — those failures start counting again.'
+							: 'Reopening clears the closed state but does not re-activate the rules, so you may need to enable them by hand.'
+					}
+				>
+					<ButtonTw
+						variant={isOpen ? 'destruction-secondary' : 'secondary'}
+						size="xss"
+						state={isBusy ? 'loading' : 'default'}
+						onClick={handleToggleState}
+						data-testid={isOpen ? 'issue-close' : 'issue-reopen'}
+					>
+						<Icon
+							name={isOpen ? 'CrossSimple' : 'Refresh'}
+							size={14}
+							className="mr-1.5"
+						/>
+						{isOpen ? 'Close issue' : 'Reopen issue'}
+					</ButtonTw>
+				</Tooltip>
 				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>
@@ -146,24 +172,6 @@ export function IssueDetailHeader({
 							? `${activeCount} of ${issueRules.length} rules active`
 							: ISSUE_RULES_STATE_META.unruled.label}
 					</Badge>
-				</Tooltip>
-				<Tooltip
-					content={
-						isOpen
-							? 'Closing also deactivates every active rule, and un-suppresses every result they were hiding — those failures start counting again.'
-							: 'Reopening clears the closed state but does not re-activate the rules, so you may need to enable them by hand.'
-					}
-				>
-					<ButtonTw
-						variant={isOpen ? 'destruction-secondary' : 'secondary'}
-						size="xss"
-						state={isBusy ? 'loading' : 'default'}
-						className="ml-auto"
-						onClick={handleToggleState}
-						data-testid={isOpen ? 'issue-close' : 'issue-reopen'}
-					>
-						{isOpen ? 'Close issue' : 'Reopen issue'}
-					</ButtonTw>
 				</Tooltip>
 			</div>
 

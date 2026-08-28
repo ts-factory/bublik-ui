@@ -64,14 +64,14 @@ import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
 	EXPANDER: 'expander',
+	ACTIONS: 'actions',
 	ISSUE: 'issue',
 	ISSUE_STATE: 'issueState',
 	TEST: 'test',
 	CATEGORY: 'category',
 	DISPOSITION: 'disposition',
 	SCOPE: 'scope',
-	ACTIVE: 'active',
-	ACTIONS: 'actions'
+	ACTIVE: 'active'
 } as const;
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
@@ -150,13 +150,21 @@ function RuleToggle({ rule, projectId }: RuleToggleProps) {
 					: 'Applies the rule to future imports. It does not classify runs that already exist — use "Apply rules" on a run for that.'
 			}
 		>
+			{/* Fixed width, because `Disable` and `Enable` are different lengths and
+			    a column of buttons that resize row to row reads as ragged. */}
 			<ButtonTw
 				variant={rule.active ? 'destruction-secondary' : 'secondary'}
 				size="xss"
 				state={isBusy ? 'loading' : 'default'}
 				onClick={toggleActive}
+				className="w-[5.75rem] justify-center"
 				data-testid="issue-rule-toggle"
 			>
+				<Icon
+					name={rule.active ? 'CrossSimple' : 'Refresh'}
+					size={14}
+					className="mr-1"
+				/>
 				{rule.active ? 'Disable' : 'Enable'}
 			</ButtonTw>
 		</Tooltip>
@@ -303,6 +311,17 @@ function getColumns({
 				/>
 			)
 		},
+		{
+			// Straight after the expander, matching the issues list: the controls
+			// sit where the row starts rather than at its far edge.
+			id: COLUMN_ID.ACTIONS,
+			header: 'Actions',
+			meta: { className: 'w-px whitespace-nowrap' },
+			enableSorting: false,
+			cell: ({ row }) => (
+				<RuleToggle rule={row.original} projectId={projectId} />
+			)
+		},
 		...(showIssue ? [ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		{
 			id: COLUMN_ID.TEST,
@@ -379,17 +398,6 @@ function getColumns({
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
-		},
-		{
-			id: COLUMN_ID.ACTIONS,
-			header: () => <span className="sr-only">Actions</span>,
-			meta: { className: 'w-28' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<div className="flex justify-end">
-					<RuleToggle rule={row.original} projectId={projectId} />
-				</div>
-			)
 		}
 	];
 }

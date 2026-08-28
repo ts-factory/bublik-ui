@@ -58,29 +58,24 @@ import {
 import { useClassificationTableState } from './use-classification-table-state';
 
 /**
- * Deliberately the same sequence the run's issue table uses for the columns
- * they share — key, title, results, state, categories — so moving between
- * `/issues` and `/runs/:runId/issues` does not mean re-finding every column.
- * The two used to disagree on exactly one pair, `Categories` and `State`, which
- * was enough to make them read as unrelated tables.
+ * Actions lead, the way they do on the run's result table: the controls sit
+ * where the eye already starts rather than at the far edge of a wide row.
  *
- * `State` earns its place that early on both: closing an issue deactivates
- * every rule under it, so it silently overrides the columns after it.
- *
- * What follows is what only this table has — `Rules` next to `State` because
- * they are one mechanism, then `Created`, reference material rather than
- * something anyone triages on — and the actions are pinned to the right edge,
- * out of the reading path.
+ * Then identity — key, title, when it appeared — and then the columns that
+ * describe it, in the sequence the run's issue table uses for the ones they
+ * share, so moving between `/issues` and `/runs/:runId/issues` does not mean
+ * re-finding every column. `State` earns its place before the rest because
+ * closing an issue deactivates every rule under it, silently overriding the
+ * columns that follow; `Rules` sits next to it because they are one mechanism.
  */
 const COLUMN_ID = {
+	ACTIONS: 'actions',
 	KEY: 'key',
 	ISSUE: 'issue',
-	RESULTS: 'result_count',
+	CREATED: 'created',
 	STATE: 'state',
 	CATEGORIES: 'categories',
-	RULES: 'rules',
-	CREATED: 'created',
-	ACTIONS: 'actions'
+	RULES: 'rules'
 } as const;
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
@@ -193,13 +188,15 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 	}
 
 	return (
-		<div className="flex items-center justify-end gap-2">
-			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.issue({ issueId: issue.id })}>
-					<Icon name="Paper" size={14} className="mr-1.5" />
-					Rules
-				</LinkWithProject>
-			</ButtonTw>
+		<div className="flex items-center gap-1.5">
+			<Tooltip content={`Manage the rules behind ${issue.title}`}>
+				<ButtonTw asChild variant="secondary" size="xss">
+					<LinkWithProject to={routes.issue({ issueId: issue.id })}>
+						<Icon name="Paper" size={14} className="mr-1" />
+						Rules
+					</LinkWithProject>
+				</ButtonTw>
+			</Tooltip>
 			<Tooltip
 				content={
 					isOpen
@@ -207,13 +204,22 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 						: 'Reopening clears the closed state but does not re-activate the rules.'
 				}
 			>
+				{/* Fixed width, because `Close` and `Reopen` are different lengths
+				    and a column of buttons that change size row to row reads as
+				    ragged. Sized to the longer of the two. */}
 				<ButtonTw
 					variant={isOpen ? 'destruction-secondary' : 'secondary'}
 					size="xss"
 					state={isBusy ? 'loading' : 'default'}
 					onClick={handleToggle}
+					className="w-[5.75rem] justify-center"
 					data-testid={isOpen ? 'issue-close' : 'issue-reopen'}
 				>
+					<Icon
+						name={isOpen ? 'CrossSimple' : 'Refresh'}
+						size={14}
+						className="mr-1"
+					/>
 					{isOpen ? 'Close' : 'Reopen'}
 				</ButtonTw>
 			</Tooltip>
@@ -224,7 +230,19 @@ function IssueStateActions({ issue, projectId }: IssueStateActionsProps) {
 function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
-			// Leftmost so the tracker key starts every row in the same place, and
+			// Leftmost and shrunk to its buttons. The run's result table opens the
+			// same way, and putting the controls where the eye already starts beats
+			// making you track to the far edge of a wide row to reach them.
+			id: COLUMN_ID.ACTIONS,
+			header: 'Actions',
+			meta: { className: 'w-px whitespace-nowrap' },
+			enableSorting: false,
+			cell: ({ row }) => (
+				<IssueStateActions issue={row.original} projectId={projectId} />
+			)
+		},
+		{
+			// The tracker key starts the data half of every row, and and
 			// — once the API resolves `bug_url` — the way out to the tracker sits
 			// on that same line, matching the run's issue table. The chip and the
 			// link sit at opposite ends of the cell so the links land in one
@@ -274,30 +292,25 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			)
 		},
 		{
-			// Read-only for now. The run table makes this an expand toggle, and
-			// `IssueResults` already supports the issue-wide query behind it, but
-			// `/issues/{id}/results` 404s — so the control is left off rather than
-			// offered and broken. Renders `-` rather than `0` when the field is
-			// absent, keeping "no results" distinct from "not reported".
-			// TODO(api): `/issues/` does not return `result_count` yet either.
-			id: COLUMN_ID.RESULTS,
-			accessorFn: (row) => row.result_count ?? -1,
-			header: 'Results',
-			meta: { className: 'w-24' },
+			id: COLUMN_ID.CREATED,
+			accessorFn: (row) => row.created_at ?? '',
+			header: 'Created',
+			meta: { className: 'w-28 whitespace-nowrap' },
 			cell: ({ row }) => {
-				const count = row.original.result_count;
-
-				if (count === undefined) {
-					return <span className="text-text-menu">-</span>;
-				}
+				const { created_at, closed_at, state } = row.original;
 
 				return (
-					<span
-						className="font-medium tabular-nums"
-						data-testid="issue-result-count"
+					<Tooltip
+						content={
+							state === 'closed' && closed_at
+								? `Closed ${formatTimestampToFull(closed_at)}`
+								: `Created ${formatTimestampToFull(created_at)}`
+						}
 					>
-						{count}
-					</span>
+						<span className="tabular-nums text-text-primary">
+							{formatTimeToDot(created_at)}
+						</span>
+					</Tooltip>
 				);
 			}
 		},
@@ -337,42 +350,6 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 					total={row.original.ruleCount}
 					active={row.original.activeRuleCount}
 				/>
-			)
-		},
-		{
-			id: COLUMN_ID.CREATED,
-			accessorFn: (row) => row.created_at ?? '',
-			header: 'Created',
-			meta: { className: 'w-28 whitespace-nowrap' },
-			cell: ({ row }) => {
-				const { created_at, closed_at, state } = row.original;
-
-				return (
-					<Tooltip
-						content={
-							state === 'closed' && closed_at
-								? `Closed ${formatTimestampToFull(closed_at)}`
-								: `Created ${formatTimestampToFull(created_at)}`
-						}
-					>
-						<span className="text-text-menu tabular-nums">
-							{formatTimeToDot(created_at)}
-						</span>
-					</Tooltip>
-				);
-			}
-		},
-		{
-			// Pinned to the right edge and shrunk to its buttons: "Rules" (the way
-			// into this issue's rule list) and the lifecycle toggle both live here,
-			// so every control on the page sits in one column instead of being
-			// split between the title link and the row end.
-			id: COLUMN_ID.ACTIONS,
-			header: 'Actions',
-			meta: { className: 'w-px whitespace-nowrap' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<IssueStateActions issue={row.original} projectId={projectId} />
 			)
 		}
 	];
