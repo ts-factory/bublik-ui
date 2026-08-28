@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
 	ColumnDef,
+	type VisibilityState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -17,6 +18,7 @@ import {
 import { useProjectSearch, LinkWithProject } from '@/bublik/features/projects';
 import {
 	ButtonTw,
+	ColumnsVisibility,
 	DataTableFacetedFilter,
 	Icon,
 	Pagination,
@@ -47,7 +49,8 @@ import {
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
-	ClassificationToolbarSeparator
+	ClassificationToolbarSeparator,
+	columnVisibilityItems
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -82,6 +85,8 @@ const COLUMN_ID = {
 	RULES: 'rules',
 	FILLER: 'filler'
 } as const;
+
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
@@ -170,6 +175,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// same way, and putting the controls where the eye already starts beats
 			// making you track to the far edge of a wide row to reach them.
 			id: COLUMN_ID.ACTIONS,
+			enableHiding: false,
 			header: 'Actions',
 			meta: {
 				className: ISSUE_ACTIONS_COLUMN_CLASS,
@@ -304,6 +310,7 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// declared `w-px` to shrink to their contents, which is why Key and
 			// Actions were not staying narrow. This column exists to be empty.
 			id: COLUMN_ID.FILLER,
+			enableHiding: false,
 			header: () => null,
 			enableSorting: false,
 			cell: () => null
@@ -358,6 +365,9 @@ export function IssuesTable() {
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+		DEFAULT_COLUMN_VISIBILITY
+	);
 	const {
 		pagination,
 		onPaginationChange,
@@ -421,7 +431,8 @@ export function IssuesTable() {
 	const table = useReactTable({
 		data: rows,
 		columns,
-		state: { columnFilters, sorting, pagination },
+		state: { columnFilters, sorting, pagination, columnVisibility },
+		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
 		onPaginationChange,
@@ -549,9 +560,14 @@ export function IssuesTable() {
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				<span className="ml-auto text-xs text-text-menu tabular-nums">
-					{totalCount} in {scopeLabel}
-				</span>
+				<div className="ml-auto">
+					<ColumnsVisibility
+						items={columnVisibilityItems(table)}
+						onColumnToggle={(id, checked) =>
+							table.getColumn(id)?.toggleVisibility(checked)
+						}
+					/>
+				</div>
 			</ClassificationToolbar>
 
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">

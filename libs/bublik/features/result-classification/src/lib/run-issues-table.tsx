@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
+	type VisibilityState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -16,6 +17,7 @@ import { useGetRunIssuesQuery } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	ButtonTw,
+	ColumnsVisibility,
 	DataTableFacetedFilter,
 	Icon,
 	Pagination,
@@ -48,7 +50,8 @@ import {
 	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	ExpandButton
+	ExpandButton,
+	columnVisibilityItems
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -68,8 +71,6 @@ interface RunIssuesTableProps {
 	projectId?: number;
 	/** Rendered after the filters — e.g. the run-level Apply Rules action. */
 	toolbarActions?: ReactNode;
-	/** Rendered at the far end of the toolbar — e.g. the run summary. */
-	toolbarSummary?: ReactNode;
 }
 
 /**
@@ -95,6 +96,8 @@ const COLUMN_ID = {
 	FILLER: 'filler'
 } as const;
 
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
 	COLUMN_ID.STATE,
@@ -112,6 +115,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.EXPANDER,
+			enableHiding: false,
 			header: () => null,
 			meta: { className: 'w-9' },
 			enableSorting: false,
@@ -132,6 +136,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// page. Closing here un-suppresses results in this very run, so the
 			// table behind it re-reads on success.
 			id: COLUMN_ID.ACTIONS,
+			enableHiding: false,
 			header: 'Actions',
 			meta: {
 				className: ISSUE_ACTIONS_COLUMN_CLASS,
@@ -274,6 +279,7 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// a gap between the badges and the verdict. This column exists to be
 			// empty, so every column that carries something stays snug.
 			id: COLUMN_ID.FILLER,
+			enableHiding: false,
 			header: () => null,
 			enableSorting: false,
 			cell: () => null
@@ -320,8 +326,7 @@ function useFacetOptions(issues: RunIssueRow[]) {
 export function RunIssuesTable({
 	runId,
 	projectId,
-	toolbarActions,
-	toolbarSummary
+	toolbarActions
 }: RunIssuesTableProps) {
 	// Run-scoped: an unscoped answer is never the one we want, and projectId
 	// arrives a render late (it comes from the run details query).
@@ -330,6 +335,9 @@ export function RunIssuesTable({
 	);
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+		DEFAULT_COLUMN_VISIBILITY
+	);
 	const {
 		pagination,
 		onPaginationChange,
@@ -356,7 +364,8 @@ export function RunIssuesTable({
 	const table = useReactTable({
 		data: issues,
 		columns,
-		state: { columnFilters, sorting, pagination },
+		state: { columnFilters, sorting, pagination, columnVisibility },
+		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
 		onPaginationChange,
@@ -467,9 +476,14 @@ export function RunIssuesTable({
 						{toolbarActions}
 					</>
 				) : null}
-				{toolbarSummary ? (
-					<div className="flex items-center ml-auto">{toolbarSummary}</div>
-				) : null}
+				<div className="ml-auto">
+					<ColumnsVisibility
+						items={columnVisibilityItems(table)}
+						onColumnToggle={(id, checked) =>
+							table.getColumn(id)?.toggleVisibility(checked)
+						}
+					/>
+				</div>
 			</ClassificationToolbar>
 
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">

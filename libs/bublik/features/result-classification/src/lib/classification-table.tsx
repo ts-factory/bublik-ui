@@ -9,7 +9,14 @@ import {
 } from '@tanstack/react-table';
 
 import { useDebounce } from '@/shared/hooks';
-import { Icon, Input, Separator, TableSort, cn } from '@/shared/tailwind-ui';
+import {
+	Icon,
+	Input,
+	Separator,
+	TableSort,
+	cn,
+	type ColumnVisibilityItem
+} from '@/shared/tailwind-ui';
 
 declare module '@tanstack/react-table' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -298,4 +305,30 @@ export function ExpandButton({
  */
 export function ClassificationToolbarSeparator() {
 	return <Separator orientation="vertical" className="h-5" />;
+}
+
+/**
+ * Turns a table's hideable columns into `ColumnsVisibility` items.
+ *
+ * Structural columns — the expander, the actions, the filler that soaks up
+ * spare width — opt out via `enableHiding: false`, so they never appear in a
+ * menu that offers to remove them.
+ */
+export function columnVisibilityItems<T>(
+	table: Table<T>
+): ColumnVisibilityItem[] {
+	return table
+		.getAllLeafColumns()
+		.filter((column) => column.getCanHide())
+		.map((column) => {
+			const header = column.columnDef.header;
+
+			return {
+				id: column.id,
+				// Headers are plain strings on these tables; fall back to the id for
+				// anything that renders itself.
+				label: typeof header === 'string' ? header : column.id,
+				checked: column.getIsVisible()
+			};
+		});
 }

@@ -4,15 +4,11 @@ import { useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 
-import {
-	RunIssuesTable,
-	runIssueEffect
-} from '@/bublik/features/result-classification';
+import { RunIssuesTable } from '@/bublik/features/result-classification';
 import {
 	getErrorMessage,
 	useApplyRulesToRunMutation,
-	useGetRunDetailsQuery,
-	useGetRunIssuesQuery
+	useGetRunDetailsQuery
 } from '@/services/bublik-api';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -101,32 +97,6 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 	);
 }
 
-interface IssuesSummaryProps {
-	runId: string;
-	projectId?: number;
-}
-
-/** Reads the same cache entry as the table, so this costs no extra request. */
-function IssuesSummary({ runId, projectId }: IssuesSummaryProps) {
-	const { data } = useGetRunIssuesQuery(
-		projectId === undefined ? skipToken : { runId, projectId }
-	);
-
-	if (!data?.length) return null;
-
-	const results = data.reduce((sum, issue) => sum + issue.result_count, 0);
-	const suppressed = data
-		.filter((issue) => runIssueEffect(issue).value === 'suppressed')
-		.reduce((sum, issue) => sum + issue.result_count, 0);
-
-	return (
-		<span className="text-xs text-text-menu tabular-nums">
-			{data.length} {data.length === 1 ? 'issue' : 'issues'} · {results}{' '}
-			{results === 1 ? 'result' : 'results'} · {suppressed} suppressed
-		</span>
-	);
-}
-
 function RunIssuesPage() {
 	const { runId } = useParams<RunPageParams>();
 	const { data: details } = useGetRunDetailsQuery(
@@ -156,7 +126,6 @@ function RunIssuesPage() {
 					toolbarActions={
 						<ApplyRulesButton runId={runId} projectId={projectId} />
 					}
-					toolbarSummary={<IssuesSummary runId={runId} projectId={projectId} />}
 				/>
 			</div>
 		</div>

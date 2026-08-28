@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
+	type VisibilityState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -22,6 +23,7 @@ import {
 	Badge,
 	BadgeVariants,
 	ButtonTw,
+	ColumnsVisibility,
 	DataTableFacetedFilter,
 	Icon,
 	Pagination,
@@ -61,7 +63,8 @@ import {
 	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	ExpandButton
+	ExpandButton,
+	columnVisibilityItems
 } from './classification-table';
 import {
 	buildFacetOptions,
@@ -88,8 +91,22 @@ const COLUMN_ID = {
 	DISPOSITION: 'disposition',
 	SCOPE: 'scope',
 	ACTIVE: 'active',
+	PARAMETERS: 'parameters',
+	VERDICTS: 'verdicts',
+	TAGS: 'tags',
 	FILLER: 'filler'
 } as const;
+
+/**
+ * The matcher's three criteria are off by default. They are long, repetitive
+ * and already spelled out in the expanded row; as columns they are for the rare
+ * case where you want to compare them across rules without opening each one.
+ */
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
+	[COLUMN_ID.PARAMETERS]: false,
+	[COLUMN_ID.VERDICTS]: false,
+	[COLUMN_ID.TAGS]: false
+};
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
@@ -393,6 +410,89 @@ const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	cell: ({ row }) => <CategoryBadge category={row.original.category} />
 };
 
+/** The display form of a matcher parameter — see `MatcherDetail`. */
+function formatRuleParameter(key: string, value: string) {
+	return formatKeyValueForDisplay(
+		`${key}${config.keyValueSubmitDelimiter}${value}`,
+		{
+			displayDelimiter: config.keyValueDisplayDelimiter,
+			submitDelimiter: config.keyValueSubmitDelimiter
+		}
+	);
+}
+
+function MatcherValues({
+	values,
+	variant,
+	className
+}: {
+	values: string[];
+	variant?: BadgeVariants;
+	className?: string;
+}) {
+	if (!values.length) return <span className="text-text-menu">-</span>;
+
+	return (
+		<div className="flex flex-wrap gap-1">
+			{values.map((value) => (
+				<Badge key={value} variant={variant} className={className} overflowWrap>
+					{value}
+				</Badge>
+			))}
+		</div>
+	);
+}
+
+/**
+ * The matcher's criteria as columns, so they can be compared down a list rather
+ * than one expanded row at a time. Hidden by default — see
+ * `DEFAULT_COLUMN_VISIBILITY` — and coloured exactly as the expanded row and
+ * the run's result table colour the same things.
+ */
+const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.PARAMETERS,
+	accessorFn: (row) =>
+		Object.entries(row.parameters ?? {})
+			.map(([key, value]) => formatRuleParameter(key, value))
+			.join(' '),
+	header: 'Parameters',
+	meta: { className: 'w-64', badgeCell: true },
+	enableSorting: false,
+	cell: ({ row }) => (
+		<MatcherValues
+			values={Object.entries(row.original.parameters ?? {}).map(
+				([key, value]) => formatRuleParameter(key, value)
+			)}
+			className="bg-badge-1"
+		/>
+	)
+};
+
+const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.VERDICTS,
+	accessorFn: (row) => (row.verdicts ?? []).join(' '),
+	header: 'Verdicts',
+	meta: { className: 'w-64', badgeCell: true },
+	enableSorting: false,
+	cell: ({ row }) => (
+		<MatcherValues
+			values={row.original.verdicts ?? []}
+			variant={BadgeVariants.Transparent}
+		/>
+	)
+};
+
+const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.TAGS,
+	accessorFn: (row) => (row.tags ?? []).join(' '),
+	header: 'Tags',
+	meta: { className: 'w-64', badgeCell: true },
+	enableSorting: false,
+	cell: ({ row }) => (
+		<MatcherValues values={row.original.tags ?? []} className="bg-badge-0" />
+	)
+};
+
 const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ACTIVE,
 	accessorFn: (row) => String(row.active),
@@ -431,6 +531,7 @@ function getColumns({
 	return [
 		{
 			id: COLUMN_ID.EXPANDER,
+			enableHiding: false,
 			header: () => null,
 			meta: { className: 'w-9' },
 			enableSorting: false,
@@ -449,6 +550,7 @@ function getColumns({
 			// Straight after the expander, matching the issues list: the controls
 			// sit where the row starts rather than at its far edge.
 			id: COLUMN_ID.ACTIONS,
+			enableHiding: false,
 			header: 'Actions',
 			meta: {
 				className: ISSUE_ACTIONS_COLUMN_CLASS,
@@ -498,12 +600,16 @@ function getColumns({
 		DISPOSITION_COLUMN,
 		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		CATEGORY_COLUMN,
+		PARAMETERS_COLUMN,
+		VERDICTS_COLUMN,
+		TAGS_COLUMN,
 		{
 			// Somewhere for `table-auto` to put the spare width of a `w-full`
 			// table. Without it the slack is shared across the data columns, and
 			// the ones declared to shrink to their contents quietly stop doing so.
 			// This column exists to be empty.
 			id: COLUMN_ID.FILLER,
+			enableHiding: false,
 			header: () => null,
 			enableSorting: false,
 			cell: () => null
@@ -551,6 +657,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+		DEFAULT_COLUMN_VISIBILITY
+	);
 	const {
 		pagination,
 		onPaginationChange,
@@ -630,7 +739,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const table = useReactTable({
 		data: rules,
 		columns,
-		state: { columnFilters, sorting, pagination },
+		state: { columnFilters, sorting, pagination, columnVisibility },
+		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
 		onPaginationChange,
@@ -772,6 +882,14 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 						Reset
 					</ButtonTw>
 				</Tooltip>
+				<div className="ml-auto">
+					<ColumnsVisibility
+						items={columnVisibilityItems(table)}
+						onColumnToggle={(id, checked) =>
+							table.getColumn(id)?.toggleVisibility(checked)
+						}
+					/>
+				</div>
 			</ClassificationToolbar>
 
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
