@@ -74,7 +74,7 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 	const [isFullMode, setIsFullMode] = useState(false);
 
 	return (
-		<header className="flex flex-col bg-white rounded">
+		<header className="flex flex-col bg-white rounded shrink-0">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
 					<RunModeToggle
@@ -140,9 +140,16 @@ function RunIssuesPage() {
 	const projectId = details?.project_id;
 
 	return (
-		<div className="flex flex-col gap-1 p-2" data-testid="run-issues-page">
+		// `h-full` down the chain is what gives the table a bounded parent to
+		// shrink against. Without it its own `flex-1 min-h-0` has nothing to
+		// resolve against, so the whole page scrolls and the footer — with the
+		// pagination in it — drifts below the fold.
+		<div
+			className="flex flex-col h-full gap-1 p-2"
+			data-testid="run-issues-page"
+		>
 			<RunIssuesHeader runId={runId} />
-			<div className="flex flex-col bg-white rounded">
+			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
 				<RunIssuesTable
 					runId={runId}
 					projectId={projectId}
