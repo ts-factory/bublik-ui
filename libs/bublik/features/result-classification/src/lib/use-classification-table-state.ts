@@ -72,6 +72,26 @@ export interface ClassificationTableState {
 	resetFilters: () => void;
 	/** Pulls an out-of-range `?page=` back into range once rows are known. */
 	clampPage: (pageCount: number) => void;
+	/**
+	 * The same state, shaped for the API. Everything the server needs to
+	 * reproduce this view is already in the URL, so this is a projection rather
+	 * than a second source of truth — the URL contract is unchanged and old
+	 * shared links keep resolving.
+	 *
+	 * Filter values come back keyed by column id, which is also the URL key and
+	 * the query param name; a table maps them onto its own args.
+	 */
+	queryArgs: ClassificationQueryArgs;
+}
+
+export interface ClassificationQueryArgs {
+	/** 1-based, as DRF counts pages. */
+	page: number;
+	pageSize: number;
+	search?: string;
+	/** DRF ordering: the field name, `-` prefixed for descending. */
+	ordering?: string;
+	filters: Record<string, string[]>;
 }
 
 function parseSorting(
@@ -264,6 +284,29 @@ export function useClassificationTableState<F extends string>({
 		});
 	}, [filterKeys, update]);
 
+	const queryArgs = useMemo<ClassificationQueryArgs>(() => {
+		const filters: Record<string, string[]> = {};
+
+		for (const filter of columnFilters) {
+			// The free-text box rides on a column too, but it is `search`, not a
+			// facet, and the API takes it under its own name.
+			if (filter.id === searchColumnId) continue;
+			if (Array.isArray(filter.value) && filter.value.length) {
+				filters[filter.id] = filter.value as string[];
+			}
+		}
+
+		const [sort] = sorting;
+
+		return {
+			page: pagination.pageIndex + 1,
+			pageSize: pagination.pageSize,
+			search: search || undefined,
+			ordering: sort ? `${sort.desc ? '-' : ''}${sort.id}` : undefined,
+			filters
+		};
+	}, [columnFilters, pagination, search, sorting, searchColumnId]);
+
 	return {
 		pagination,
 		onPaginationChange,
@@ -275,6 +318,7 @@ export function useClassificationTableState<F extends string>({
 		setSearch,
 		hasFilters: columnFilters.length > 0,
 		resetFilters,
-		clampPage
+		clampPage,
+		queryArgs
 	};
 }

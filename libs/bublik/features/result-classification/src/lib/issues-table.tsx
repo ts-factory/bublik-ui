@@ -5,9 +5,6 @@ import {
 	ColumnDef,
 	getCoreRowModel,
 	getExpandedRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
 
@@ -129,18 +126,28 @@ function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
 
 	return issues.map((issue) => {
 		const issueRules = byIssue.get(issue.id) ?? [];
-		const activeRuleCount = issueRules.filter((rule) => rule.active).length;
+
+		// Prefer whatever the row already knows. The client-side join is a
+		// stand-in, and a poor one now that rules arrive one page at a time:
+		// beyond the first page of `/issue_rules/` it silently under-reports.
+		const categories =
+			issue.categories ??
+			Array.from(new Set(issueRules.map((rule) => rule.category))).sort(
+				(a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
+			);
+		const ruleCount = issue.rule_count ?? issueRules.length;
+		const activeRuleCount =
+			issue.active_rule_count ??
+			issueRules.filter((rule) => rule.active).length;
 
 		return {
 			...issue,
-			categories: Array.from(
-				new Set(issueRules.map((rule) => rule.category))
-			).sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)),
-			ruleCount: issueRules.length,
+			categories,
+			ruleCount,
 			activeRuleCount,
 			rulesState: issueRulesState({
 				state: issue.state,
-				total: issueRules.length,
+				total: ruleCount,
 				active: activeRuleCount
 			}).value,
 			bugKey: issue.issue_ext?.key ?? null,
@@ -399,6 +406,11 @@ function IssuesTableLoading() {
 	);
 }
 
+/**
+ * TODO(api): counted over the current page only, because that is all the table
+ * holds once the server owns paging. `getIssuesFacets` is the intended source;
+ * until it exists the numbers describe the page, not the project.
+ */
 function useFacetOptions(rows: IssueTableRow[]) {
 	return useMemo(
 		() => ({
@@ -430,11 +442,6 @@ export function IssuesTable() {
 	// unscoped request legitimately lists every project. Say which it is.
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
-	const issuesQuery = useGetIssuesQuery(projectId ? { projectId } : {});
-	// `/issues/` carries neither category nor rule counts; `/issue_rules/` has
-	// both, and this page is the one place worth the second request for them.
-	const rulesQuery = useGetIssueRulesQuery(projectId ? { projectId } : {});
-
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const {
 		pagination,
@@ -447,11 +454,33 @@ export function IssuesTable() {
 		setSearch,
 		hasFilters,
 		resetFilters,
-		clampPage
+		clampPage,
+		queryArgs
 	} = useClassificationTableState({
 		filterKeys: FILTER_KEYS,
 		searchColumnId: COLUMN_ID.ISSUE,
 		defaultSorting: [{ id: COLUMN_ID.CREATED, desc: true }]
+	});
+
+	const issuesQuery = useGetIssuesQuery({
+		projectId,
+		page: queryArgs.page,
+		pageSize: queryArgs.pageSize,
+		search: queryArgs.search,
+		ordering: queryArgs.ordering,
+		state: queryArgs.filters[COLUMN_ID.STATE],
+		category: queryArgs.filters[COLUMN_ID.CATEGORIES],
+		rules: queryArgs.filters[COLUMN_ID.RULES]
+	});
+
+	// TODO(api): only needed until `/issues/` carries `categories` and the rule
+	// counts itself. It is fetched for the same page so the join covers at least
+	// the rows on screen, but it cannot be right in general — two independently
+	// paginated lists do not line up.
+	const rulesQuery = useGetIssueRulesQuery({
+		projectId,
+		page: queryArgs.page,
+		pageSize: queryArgs.pageSize
 	});
 
 	const rows = useMemo(
@@ -462,9 +491,15 @@ export function IssuesTable() {
 			),
 		[issuesQuery.data, rulesQuery.data]
 	);
+	// The count the server reports for the *filtered* set, not the rows in hand.
+	// Reading it off the page is what made a 45-issue list say "25 of 25".
+	const totalCount = issuesQuery.data?.pagination.count ?? 0;
 	const columns = useMemo(() => getColumns(projectId), [projectId]);
 	const { stateOptions, rulesOptions, categoryOptions } = useFacetOptions(rows);
 
+	// The server owns paging, filtering and sorting: the table holds one page, so
+	// filtering or sorting it locally would only ever reorder that page while
+	// claiming to have reordered the list.
 	const table = useReactTable({
 		data: rows,
 		columns,
@@ -472,12 +507,13 @@ export function IssuesTable() {
 		onColumnFiltersChange,
 		onSortingChange,
 		onPaginationChange,
+		rowCount: totalCount,
+		manualPagination: true,
+		manualFiltering: true,
+		manualSorting: true,
 		getRowId: (row) => String(row.id),
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	});
 
@@ -503,22 +539,22 @@ export function IssuesTable() {
 			?.setFilterValue(values?.length ? values : undefined);
 
 	const visibleRows = table.getRowModel().rows;
-	const matchedCount = table.getFilteredRowModel().rows.length;
 
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	if (issuesQuery.isLoading || rulesQuery.isLoading) {
-		return <IssuesTableLoading />;
-	}
+	if (issuesQuery.isLoading) return <IssuesTableLoading />;
 
 	if (issuesQuery.error) {
 		return <BublikErrorState error={issuesQuery.error} className="h-full" />;
 	}
 
-	if (!rows.length) {
+	// Only an unfiltered empty result means "there are no issues". With filters
+	// on, the empty state belongs inside the table, next to the controls that
+	// caused it.
+	if (!totalCount && !hasFilters && !search) {
 		return (
 			<BublikEmptyState
 				title="No issues"
@@ -581,7 +617,7 @@ export function IssuesTable() {
 					</Tooltip>
 				) : null}
 				<span className="ml-auto text-xs text-text-menu tabular-nums">
-					{matchedCount} of {rows.length} in {scopeLabel}
+					{totalCount} in {scopeLabel}
 				</span>
 			</ClassificationToolbar>
 
@@ -611,12 +647,12 @@ export function IssuesTable() {
 
 			<ClassificationFooter>
 				<span className="text-xs text-text-menu tabular-nums">
-					{matchedCount} of {rows.length} issues
+					{totalCount} {totalCount === 1 ? 'issue' : 'issues'}
 				</span>
 				<Pagination
 					className="ml-auto"
 					variant="bordered"
-					totalCount={matchedCount}
+					totalCount={totalCount}
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
 					onPageChange={goToPage}

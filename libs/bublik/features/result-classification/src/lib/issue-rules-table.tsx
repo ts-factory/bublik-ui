@@ -6,9 +6,6 @@ import {
 	ColumnDef,
 	getCoreRowModel,
 	getExpandedRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table';
 
@@ -436,20 +433,6 @@ export interface IssueRulesTableProps {
 export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
-	const {
-		data: rulesData,
-		isLoading: isRulesLoading,
-		error: rulesError
-	} = useGetIssueRulesQuery({ projectId, issue: issueId });
-
-	// Same args `IssuesTable` uses, so the cross-issue view reuses that cache
-	// entry rather than issuing a second identical request.
-	const {
-		data: issuesData,
-		isLoading: isIssuesLoading,
-		error: issuesError
-	} = useGetIssuesQuery(showIssue ? { projectId } : skipToken);
-
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const {
 		pagination,
@@ -462,17 +445,55 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		setSearch,
 		hasFilters,
 		resetFilters,
-		clampPage
+		clampPage,
+		queryArgs
 	} = useClassificationTableState({
 		filterKeys: FILTER_KEYS,
 		searchColumnId: COLUMN_ID.TEST,
 		defaultSorting: [{ id: COLUMN_ID.TEST, desc: false }]
 	});
 
+	const {
+		data: rulesData,
+		isLoading: isRulesLoading,
+		error: rulesError
+	} = useGetIssueRulesQuery({
+		projectId,
+		issue: issueId,
+		page: queryArgs.page,
+		pageSize: queryArgs.pageSize,
+		search: queryArgs.search,
+		ordering: queryArgs.ordering,
+		category: queryArgs.filters[COLUMN_ID.CATEGORY],
+		expected: queryArgs.filters[COLUMN_ID.DISPOSITION],
+		active: queryArgs.filters[COLUMN_ID.ACTIVE]
+	});
+
+	// TODO(api): needed only to name the issue behind each rule, which
+	// `/issue_rules/` could embed. Fetched a page at a time like the rules, so
+	// beyond page one some rows fall back to `#id` until it does.
+	const {
+		data: issuesData,
+		isLoading: isIssuesLoading,
+		error: issuesError
+	} = useGetIssuesQuery(
+		showIssue
+			? {
+					projectId,
+					page: queryArgs.page,
+					pageSize: queryArgs.pageSize,
+					state: queryArgs.filters[COLUMN_ID.ISSUE_STATE]
+			  }
+			: skipToken
+	);
+
 	const rules = useMemo(
 		() => buildRows(rulesData?.results ?? [], issuesData?.results ?? []),
 		[rulesData, issuesData]
 	);
+	// What the server says the filtered set holds, not what this page holds —
+	// the difference between "25 of 45 rules" and the old "25 of 25".
+	const totalCount = rulesData?.pagination.count ?? 0;
 	const columns = useMemo(
 		() => getColumns({ projectId, showIssue }),
 		[projectId, showIssue]
@@ -484,6 +505,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		issueStateOptions
 	} = useFacetOptions(rules);
 
+	// Server-owned paging, filtering and sorting: this table holds one page, and
+	// filtering it locally would narrow that page while claiming to have narrowed
+	// the list.
 	const table = useReactTable({
 		data: rules,
 		columns,
@@ -491,12 +515,13 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 		onColumnFiltersChange,
 		onSortingChange,
 		onPaginationChange,
+		rowCount: totalCount,
+		manualPagination: true,
+		manualFiltering: true,
+		manualSorting: true,
 		getRowId: (row) => String(row.id),
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	});
 
@@ -516,7 +541,6 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 			?.setFilterValue(values?.length ? values : undefined);
 
 	const rows = table.getRowModel().rows;
-	const matchedCount = table.getFilteredRowModel().rows.length;
 
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
@@ -536,7 +560,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const error = rulesError ?? issuesError;
 	if (error) return <BublikErrorState error={error} className="h-[40vh]" />;
 
-	if (!rules.length) {
+	// Only an unfiltered empty result means "there are no rules"; with filters on,
+	// the empty state belongs in the table beside the controls that caused it.
+	if (!totalCount && !hasFilters && !search) {
 		return (
 			<BublikEmptyState
 				title="No rules"
@@ -636,12 +662,12 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 
 			<ClassificationFooter>
 				<span className="text-xs text-text-menu tabular-nums">
-					{matchedCount} of {rules.length} rules
+					{totalCount} {totalCount === 1 ? 'rule' : 'rules'}
 				</span>
 				<Pagination
 					className="ml-auto"
 					variant="bordered"
-					totalCount={matchedCount}
+					totalCount={totalCount}
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
 					onPageChange={goToPage}
