@@ -162,6 +162,8 @@ export const getInitialGlobalSearch = (
 		),
 		results: split(queryResults, HISTORY_CONSTANTS.results),
 		verdictLookup: queryVerdictLookup || HISTORY_CONSTANTS.verdict,
-		verdict: valuesToBadges(queryVerdict, [])
+		verdict: valuesToBadges(queryVerdict, []),
+		categories: split(historyQuery.categories, []),
+		untriaged: historyQuery.untriaged === 'true'
 	};
 };

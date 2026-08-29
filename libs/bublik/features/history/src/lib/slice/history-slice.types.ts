@@ -58,4 +58,7 @@ export type HistoryStateSearch = {
 	revisionExpr: string;
 	testArgExpr: string;
 	labelExpr: string;
+	/* Classification section */
+	categories: string[];
+	untriaged: boolean;
 };

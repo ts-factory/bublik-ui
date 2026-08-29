@@ -71,6 +71,12 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 							Log
 						</LinkWithProject>
 					</ButtonTw>
+					<ButtonTw asChild variant="secondary" size="xss">
+						<LinkWithProject to={`/runs/${runId}/issues`}>
+							<Icon name="TriangleExclamationMark" className="mr-1.5" />
+							Issues
+						</LinkWithProject>
+					</ButtonTw>
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 					<CopyShortUrlButtonContainer />
 				</div>

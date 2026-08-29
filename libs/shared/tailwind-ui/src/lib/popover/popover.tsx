@@ -23,9 +23,12 @@ export const popoverContentStyles = cva({
 
 export const StyledContent = forwardRef<
 	HTMLDivElement,
-	PopoverPrimitive.PopoverContentProps
->(({ children, ...props }, ref) => {
-	return (
+	// portal escapes the trigger's stacking context (e.g. a table row), so the
+	// content can't be painted over by later siblings. Opt-in to avoid changing
+	// the inline behavior other callers rely on.
+	PopoverPrimitive.PopoverContentProps & { portal?: boolean }
+>(({ children, portal, ...props }, ref) => {
+	const content = (
 		<PopoverPrimitive.Content
 			{...props}
 			className={cn(popoverContentStyles, props.className)}
@@ -34,6 +37,14 @@ export const StyledContent = forwardRef<
 		>
 			{children}
 		</PopoverPrimitive.Content>
+	);
+
+	// Portal (to document.body) escapes the trigger's stacking context so the
+	// content layers above the table instead of behind it.
+	return portal ? (
+		<PopoverPrimitive.Portal>{content}</PopoverPrimitive.Portal>
+	) : (
+		content
 	);
 });
 

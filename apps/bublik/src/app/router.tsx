@@ -20,6 +20,8 @@ import { RedirectToDashboard, RedirectToLogPage } from './redirects';
 
 import { AdminAnalyticsPage } from '../pages/admin-analytics';
 import { AuthLayout } from '../pages/auth/auth.layout';
+import { AdminIssuesPage } from '../pages/admin-issues';
+import { IssueRulesPage } from '../pages/issue-rules';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -79,6 +81,12 @@ const NetPacketAnalyzerPage = lazy(() =>
 const RunReportPage = lazy(() =>
 	import('../pages/run-report/run-report.page').then((module) => ({
 		default: module.RunReportPage
+	}))
+);
+
+const RunIssuesPage = lazy(() =>
+	import('../pages/run-issues/run-issues.page').then((module) => ({
+		default: module.RunIssuesPage
 	}))
 );
 
@@ -274,6 +282,14 @@ const router = createBrowserRouter(
 							)
 						},
 						{
+							path: '/runs/:runId/issues',
+							element: (
+								<LazyRoute>
+									<RunIssuesPage />
+								</LazyRoute>
+							)
+						},
+						{
 							path: '/runs/:runId/results/:resultId/measurements',
 							element: (
 								<LazyRoute>
@@ -317,6 +333,14 @@ const router = createBrowserRouter(
 								{
 									path: 'analytics',
 									element: <AdminAnalyticsPage />
+								},
+								{
+									path: 'issues',
+									element: <AdminIssuesPage />
+								},
+								{
+									path: 'issues/:issueId',
+									element: <IssueRulesPage />
 								},
 								{
 									path: 'config',

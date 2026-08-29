@@ -31,7 +31,8 @@ import {
 	reportEndpoints,
 	configsEndpoints,
 	projectEndpoints,
-	analyticsEndpoints
+	analyticsEndpoints,
+	classificationEndpoints
 } from './endpoints';
 
 const baseQuery = fetchBaseQuery(getAPIConfig());
@@ -111,7 +112,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(reportEndpoints)
 	.injectEndpoints(configsEndpoints)
 	.injectEndpoints(projectEndpoints)
-	.injectEndpoints(analyticsEndpoints);
+	.injectEndpoints(analyticsEndpoints)
+	.injectEndpoints(classificationEndpoints);
 
 export const {
 	// Dashboard
@@ -184,5 +186,20 @@ export const {
 	useGetAnalyticsFacetsQuery,
 	useGetAnalyticsChartsQuery,
 	useLazyGetAnalyticsExportQuery,
-	useImportAnalyticsDataMutation
+	useImportAnalyticsDataMutation,
+	// Classification
+	useGetIssuesQuery,
+	useGetIssuePickerQuery,
+	useGetIssueRulesQuery,
+	useClassifyResultMutation,
+	useCloseIssueMutation,
+	useReopenIssueMutation,
+	useDeactivateRuleMutation,
+	useActivateRuleMutation,
+	useGetIssueQuery,
+	useGetIssueRuleResultsQuery,
+	useGetIssueResultsQuery,
+	useApplyRulesToRunMutation,
+	useGetRunIssuesQuery,
+	useGetRunIssueResultsQuery
 } = bublikAPI;

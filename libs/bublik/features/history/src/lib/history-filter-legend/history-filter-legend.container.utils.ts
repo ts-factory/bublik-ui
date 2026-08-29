@@ -131,6 +131,18 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 			iconSize: 24,
 			label: 'Parameters Expression',
 			value: state.testArgExpr
+		},
+		{
+			iconName: 'PaperShort',
+			iconSize: 24,
+			label: 'Categories',
+			value: state.categories
+		},
+		{
+			iconName: 'TriangleExclamationMark',
+			iconSize: 24,
+			label: 'Untriaged Unexpected',
+			value: state.untriaged ? 'Yes' : undefined
 		}
 	];
 

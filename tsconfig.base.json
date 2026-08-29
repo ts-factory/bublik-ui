@@ -67,6 +67,9 @@
 			"@/bublik/features/projects": [
 				"libs/bublik/features/projects/src/index.ts"
 			],
+			"@/bublik/features/result-classification": [
+				"libs/bublik/features/result-classification/src/index.ts"
+			],
 			"@/bublik/features/result-links": [
 				"libs/bublik/features/result-links/src/index.ts"
 			],

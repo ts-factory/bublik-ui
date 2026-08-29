@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 import { NodeEntity } from './tree';
+import { ResultIssueRef } from './classification';
 
 /** Run property state */
 export const enum RUN_PROPERTIES {
@@ -197,6 +198,8 @@ export const RunDataResultsSchema = z.object({
 	result_id: z.number(),
 	iteration_id: z.number(),
 	run_id: z.number(),
+	// classify uses the result's own project, not the global selector
+	project_id: z.number().optional(),
 	has_measurements: z.boolean(),
 	has_error: z.boolean(),
 	expected_results: z.array(RunResultWithKeysSchema),
@@ -205,7 +208,10 @@ export const RunDataResultsSchema = z.object({
 	parameters: z.array(z.string()),
 	start: z.string(),
 	artifacts: z.array(z.string()).optional(),
-	requirements: z.array(z.string()).optional()
+	requirements: z.array(z.string()).optional(),
+	// classification (Plan 2 read-side); optional for backward-compat
+	effective_expected: z.boolean().optional(),
+	issues: z.array(z.custom<ResultIssueRef>()).optional()
 });
 
 export type RunDataResults = z.infer<typeof RunDataResultsSchema>;

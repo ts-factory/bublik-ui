@@ -258,7 +258,8 @@ export const runEndpoints = {
 						}
 					};
 				}
-			}
+			},
+			providesTags: [{ type: BUBLIK_TAG.Run }]
 		}),
 		getCompromisedTags: build.query<
 			CompromisedTagsResponse,
