@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import type { FilterFn, Row } from '@tanstack/react-table';
+import type { FilterFn, Row, Table } from '@tanstack/react-table';
 
 /**
  * The filtering and faceting the three classification tables share.
@@ -112,3 +112,53 @@ export function openFacetOptions(values: string[]): FacetOption[] {
 		labelFor: (value) => value
 	});
 }
+
+/**
+ * The faceted-filter controls of one table, in the shape both its toolbar and
+ * its cells need.
+ *
+ * All three classification tables kept their own `getFilterValue`/
+ * `setFilterValue` pair for the toolbar, character for character identical.
+ * Folding them into one factory is what lets the chips in the rows write the
+ * same filters the dropdowns above them do: a cell reaches the table through
+ * TanStack's cell context (`cell: ({ row, table }) => ...`), so nothing has to
+ * be threaded through `getColumns`.
+ *
+ * Writes go to the column filter, which these tables route into the URL via
+ * `useClassificationTableState` -- so a chip click is shareable, resets the
+ * page, and re-issues the server query, exactly as ticking the facet box does.
+ */
+export function facetControls<T>(table: Table<T>) {
+	const values = (columnId: string) =>
+		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
+
+	/** Empty clears the filter rather than storing `[]`, which the URL writer
+	 *  reads as "no facet" and deletes the key for. */
+	const set = (columnId: string, next: string[] | undefined) =>
+		table.getColumn(columnId)?.setFilterValue(next?.length ? next : undefined);
+
+	const toggle = (columnId: string, value: string) => {
+		const current = values(columnId);
+
+		set(
+			columnId,
+			current.includes(value)
+				? current.filter((entry) => entry !== value)
+				: [...current, value]
+		);
+	};
+
+	/**
+	 * Spread onto any classification chip to make it a filter toggle. The value
+	 * passed must be the one the column's `accessorFn` yields, so the chip and
+	 * `someOfFilter` agree by construction.
+	 */
+	const toggleProps = (columnId: string, value: string) => ({
+		isSelected: values(columnId).includes(value),
+		onClick: () => toggle(columnId, value)
+	});
+
+	return { values, set, toggle, toggleProps };
+}
+
+export type FacetControls = ReturnType<typeof facetControls>;

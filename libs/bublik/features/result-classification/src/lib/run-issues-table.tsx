@@ -56,6 +56,7 @@ import {
 } from './classification-table';
 import {
 	buildFacetOptions,
+	facetControls,
 	makeSearchFilter,
 	someOfFilter
 } from './classification-table.utils';
@@ -250,7 +251,18 @@ function getColumns(
 			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
+			// Every badge below is also the control that filters by it: the value
+			// handed to `toggleProps` is the one this column's `accessorFn` yields,
+			// so the chip and `someOfFilter` cannot disagree.
+			cell: ({ row, table }) => (
+				<IssueStateBadge
+					state={row.original.state}
+					{...facetControls(table).toggleProps(
+						COLUMN_ID.STATE,
+						row.original.state
+					)}
+				/>
+			)
 		},
 		{
 			id: COLUMN_ID.EFFECT,
@@ -263,9 +275,16 @@ function getColumns(
 			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => (
-				<RunEffectBadge effect={runIssueEffect(row.original).value} />
-			)
+			cell: ({ row, table }) => {
+				const effect = runIssueEffect(row.original).value;
+
+				return (
+					<RunEffectBadge
+						effect={effect}
+						{...facetControls(table).toggleProps(COLUMN_ID.EFFECT, effect)}
+					/>
+				);
+			}
 		},
 		{
 			id: COLUMN_ID.CATEGORIES,
@@ -274,11 +293,19 @@ function getColumns(
 			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => (
-				<CategoryBadgeList
-					categories={row.original.categories.map((c) => c.category)}
-				/>
-			)
+			cell: ({ row, table }) => {
+				const facets = facetControls(table);
+
+				return (
+					<CategoryBadgeList
+						categories={row.original.categories.map((c) => c.category)}
+						selectedCategories={facets.values(COLUMN_ID.CATEGORIES)}
+						onCategoryClick={(category) =>
+							facets.toggle(COLUMN_ID.CATEGORIES, category)
+						}
+					/>
+				);
+			}
 		},
 		{
 			// A `w-full` table has to spend its spare width on *some* column, and on
@@ -411,13 +438,9 @@ export function RunIssuesTable({
 	// nothing at all, with no hint why.
 	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
-	const getFilterValue = (columnId: string) =>
-		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
-
-	const setFilterValue = (columnId: string, values: string[] | undefined) =>
-		table
-			.getColumn(columnId)
-			?.setFilterValue(values?.length ? values : undefined);
+	// The same controls the row chips write through, so the dropdowns and the
+	// badges are two views of one filter rather than two filters.
+	const facets = facetControls(table);
 
 	const rows = table.getRowModel().rows;
 	const matchedCount = table.getFilteredRowModel().rows.length;
@@ -461,24 +484,24 @@ export function RunIssuesTable({
 					title="State"
 					size="xss"
 					options={stateOptions}
-					value={getFilterValue(COLUMN_ID.STATE)}
-					onChange={(values) => setFilterValue(COLUMN_ID.STATE, values)}
+					value={facets.values(COLUMN_ID.STATE)}
+					onChange={(values) => facets.set(COLUMN_ID.STATE, values)}
 					disabled={!stateOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Effect On Run"
 					size="xss"
 					options={effectOptions}
-					value={getFilterValue(COLUMN_ID.EFFECT)}
-					onChange={(values) => setFilterValue(COLUMN_ID.EFFECT, values)}
+					value={facets.values(COLUMN_ID.EFFECT)}
+					onChange={(values) => facets.set(COLUMN_ID.EFFECT, values)}
 					disabled={!effectOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
 					options={categoryOptions}
-					value={getFilterValue(COLUMN_ID.CATEGORIES)}
-					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORIES, values)}
+					value={facets.values(COLUMN_ID.CATEGORIES)}
+					onChange={(values) => facets.set(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
 				/>
 				<ClassificationToolbarSeparator />

@@ -21,7 +21,6 @@ import {
 	RUN_ISSUE_EFFECT_META,
 	NO_EFFECT_META,
 	UNTRIAGED_META,
-	VERDICT_SLOT_CLASS,
 	categoryMeta,
 	dispositionMeta,
 	formatBugKey,
@@ -594,18 +593,15 @@ export function ResultIssueBadges({
 	 */
 	const verdict = !stamps.length ? (
 		<div className="contents" data-testid="result-untriaged">
-			<UntriagedBadge className={VERDICT_SLOT_CLASS} />
+			<UntriagedBadge />
 		</div>
 	) : hasError ? (
 		<div className="contents" data-testid="result-issue-effect">
-			<RunEffectBadge
-				effect={resultIssueEffect(stamps).value}
-				className={VERDICT_SLOT_CLASS}
-			/>
+<RunEffectBadge effect={resultIssueEffect(stamps).value} />
 		</div>
 	) : (
 		<div className="contents" data-testid="result-no-effect">
-			<NoEffectBadge className={VERDICT_SLOT_CLASS} />
+			<NoEffectBadge />
 		</div>
 	);
 
@@ -630,10 +626,11 @@ export function ResultIssueBadges({
 	 * the categories in a ragged line and the row read as unrelated pairs
 	 * rather than as one list. The grid gives them a shared edge.
 	 *
-	 * `VERDICT_SLOT_CLASS` sets a floor under the first column, so it is the
-	 * same width in every cell unless a key chip exceeds it — which is what
-	 * keeps the Classify button in one place down the whole table, not just
-	 * within a cell.
+	 * Both columns size to their content. Holding the first at the width of the
+	 * longest verdict label would put the Classify button at the same offset in
+	 * every cell of the table, not just within one — but it also pads every key
+	 * chip out to a width its text does not need, and a gap between two chips
+	 * reads as a fault where a button an inch further along does not.
 	 *
 	 * The verdict and the button are grid items in their own right, so the
 	 * button lands on the categories' edge instead of a hand-set offset from

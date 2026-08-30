@@ -11,14 +11,6 @@ import { PropsWithChildren, ReactElement, ReactNode, forwardRef } from 'react';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { ResultIssueRef } from '@/shared/types';
 
-import {
-	NO_EFFECT_META,
-	RUN_ISSUE_EFFECT_META,
-	UNTRIAGED_META,
-	VERDICT_SLOT_CLASS,
-	VERDICT_SLOT_MAX_LABEL
-} from './classification-colors';
-
 vi.mock('@/bublik/features/projects', () => {
 	interface MockLinkProps {
 		to: string | { pathname?: string };
@@ -188,21 +180,17 @@ describe('ResultIssueBadges — the Classify slot', () => {
 			.toBe(trigger.parentElement);
 	});
 
-	it('follows the verdict, from a slot wide enough that it never moves', () => {
+	it('follows the verdict, on the edge the category chips start from', () => {
 		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
 
 		const trigger = screen.getByTestId('classify-trigger');
 		const grid = trigger.parentElement;
 		const verdictCell = screen.getByTestId('result-issue-effect').parentElement;
 
-		// A grid item of its own, in the second column — the same edge the
-		// category chips start on, rather than an offset from the chip beside it.
+		// A grid item of its own, in the second column, rather than an offset
+		// from the chip beside it.
 		expect(trigger.previousElementSibling).toBe(verdictCell);
 		expect(grid?.firstElementChild).toBe(verdictCell);
-		// The six labels are six widths; the chip carrying its own width is what
-		// stops the button landing at a different offset on every row.
-		expect(screen.getByTestId('result-issue-effect').firstElementChild)
-			.toHaveClass(...VERDICT_SLOT_CLASS.split(' '));
 	});
 
 	it('offers the trigger on a passing result that carries stamps', () => {
@@ -263,24 +251,6 @@ describe('ResultIssueBadges — the verdict slot', () => {
 		}
 	});
 });
-
-describe('the verdict slot budget', () => {
-	it('holds every label that can land in it', () => {
-		// The slot's width is a number in a class name; this is what keeps it
-		// honest. A longer label starts pushing the Classify button around, and
-		// that should fail here rather than turn up in a screenshot.
-		const labels = [
-			UNTRIAGED_META.label,
-			NO_EFFECT_META.label,
-			...Object.values(RUN_ISSUE_EFFECT_META).map((meta) => meta.label)
-		];
-
-		for (const label of labels) {
-			expect(label.length).toBeLessThanOrEqual(VERDICT_SLOT_MAX_LABEL);
-		}
-	});
-});
-
 describe('ResultIssueBadges — the two columns', () => {
 	it('puts each stamp\'s chips in the columns rather than in a row of its own', () => {
 		// `contents` is what does it: the wrapper keeps the e2e hooks and stops

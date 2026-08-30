@@ -57,6 +57,7 @@ import {
 } from './classification-table';
 import {
 	buildFacetOptions,
+	facetControls,
 	makeSearchFilter,
 	someOfFilter
 } from './classification-table.utils';
@@ -301,7 +302,18 @@ function getColumns(
 			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => <IssueStateBadge state={row.original.state} />
+			// Every badge below is also the control that filters by it: the value
+			// handed to `toggleProps` is the one this column's `accessorFn` yields,
+			// so the chip and `someOfFilter` cannot disagree.
+			cell: ({ row, table }) => (
+				<IssueStateBadge
+					state={row.original.state}
+					{...facetControls(table).toggleProps(
+						COLUMN_ID.STATE,
+						row.original.state
+					)}
+				/>
+			)
 		},
 		{
 			// Two badges at most in practice, so it is sized to that. It used to
@@ -313,9 +325,19 @@ function getColumns(
 			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => (
-				<CategoryBadgeList categories={row.original.categories} />
-			)
+			cell: ({ row, table }) => {
+				const facets = facetControls(table);
+
+				return (
+					<CategoryBadgeList
+						categories={row.original.categories}
+						selectedCategories={facets.values(COLUMN_ID.CATEGORIES)}
+						onCategoryClick={(category) =>
+							facets.toggle(COLUMN_ID.CATEGORIES, category)
+						}
+					/>
+				);
+			}
 		},
 		{
 			id: COLUMN_ID.RULES,
@@ -324,11 +346,15 @@ function getColumns(
 			meta: { className: 'w-36 whitespace-nowrap', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
-			cell: ({ row }) => (
+			cell: ({ row, table }) => (
 				<IssueRulesBadge
 					state={row.original.state}
 					total={row.original.ruleCount}
 					active={row.original.activeRuleCount}
+					{...facetControls(table).toggleProps(
+						COLUMN_ID.RULES,
+						row.original.rulesState
+					)}
 				/>
 			)
 		},
@@ -514,13 +540,9 @@ export function IssuesTable() {
 			: projects?.find((project) => project.id === projectId)?.name ??
 			  `project ${projectId}`;
 
-	const getFilterValue = (columnId: string) =>
-		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
-
-	const setFilterValue = (columnId: string, values: string[] | undefined) =>
-		table
-			.getColumn(columnId)
-			?.setFilterValue(values?.length ? values : undefined);
+	// The same controls the row chips write through, so the dropdowns and the
+	// badges are two views of one filter rather than two filters.
+	const facets = facetControls(table);
 
 	const visibleRows = table.getRowModel().rows;
 	// Filtering happens locally, so the server's count no longer describes what
@@ -572,24 +594,24 @@ export function IssuesTable() {
 					title="State"
 					size="xss"
 					options={stateOptions}
-					value={getFilterValue(COLUMN_ID.STATE)}
-					onChange={(values) => setFilterValue(COLUMN_ID.STATE, values)}
+					value={facets.values(COLUMN_ID.STATE)}
+					onChange={(values) => facets.set(COLUMN_ID.STATE, values)}
 					disabled={!stateOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
 					options={categoryOptions}
-					value={getFilterValue(COLUMN_ID.CATEGORIES)}
-					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORIES, values)}
+					value={facets.values(COLUMN_ID.CATEGORIES)}
+					onChange={(values) => facets.set(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Rules"
 					size="xss"
 					options={rulesOptions}
-					value={getFilterValue(COLUMN_ID.RULES)}
-					onChange={(values) => setFilterValue(COLUMN_ID.RULES, values)}
+					value={facets.values(COLUMN_ID.RULES)}
+					onChange={(values) => facets.set(COLUMN_ID.RULES, values)}
 					disabled={!rulesOptions.length}
 				/>
 				<ClassificationToolbarSeparator />

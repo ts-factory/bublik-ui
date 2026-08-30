@@ -42,6 +42,8 @@ import type { Issue, IssueRule, IssueState } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
+	CLASSIFICATION_BADGE_CLICKABLE_CLASS,
+	CLASSIFICATION_BADGE_SELECTED_CLASS,
 	DISPOSITION_ORDER,
 	DISPOSITION_META,
 	categoryMeta,
@@ -72,9 +74,11 @@ import {
 } from './classification-table';
 import {
 	buildFacetOptions,
+	facetControls,
 	makeSearchFilter,
 	openFacetOptions,
-	someOfFilter
+	someOfFilter,
+	type FacetControls
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
 import {
@@ -228,15 +232,64 @@ function RuleToggle({ rule, projectId }: RuleToggleProps) {
 	);
 }
 
+interface MatcherChipProps {
+	value: string;
+	columnId: string;
+	variant?: BadgeVariants;
+	className?: string;
+	/**
+	 * Given, the chip becomes the filter toggle for its own column -- so the
+	 * chips in an expanded row and the chips in the (hidden by default) matcher
+	 * columns do the same thing when clicked. Omitted, it is inert, exactly as
+	 * it was.
+	 */
+	facets?: FacetControls;
+}
+
+/** One matcher value: a tag, a verdict or a parameter. */
+function MatcherChip({
+	value,
+	columnId,
+	variant,
+	className,
+	facets
+}: MatcherChipProps) {
+	const isSelected = facets?.values(columnId).includes(value) ?? false;
+
+	return (
+		<Badge
+			variant={variant}
+			overflowWrap
+			// The toggle classes go last so the outline lands on top of the chip's
+			// own colour rather than being merged away by it.
+			className={cn(
+				className,
+				facets && CLASSIFICATION_BADGE_CLICKABLE_CLASS,
+				isSelected && CLASSIFICATION_BADGE_SELECTED_CLASS
+			)}
+			{...(facets
+				? {
+						type: 'button' as const,
+						onClick: () => facets.toggle(columnId, value)
+				  }
+				: null)}
+		>
+			{value}
+		</Badge>
+	);
+}
+
 interface MatcherDetailProps {
 	rule: IssueRule;
+	/** Makes the panel's chips filter the list behind it. See `MatcherChip`. */
+	facets?: FacetControls;
 }
 
 /**
  * The concrete matcher, which the flag chips only hint at. Every criterion is
  * exact — no operators, no regex — and an empty one is simply ignored.
  */
-function MatcherDetail({ rule }: MatcherDetailProps) {
+function MatcherDetail({ rule, facets }: MatcherDetailProps) {
 	// Colours taken from wherever the run page shows the same thing, so a
 	// parameter looks like a parameter whether you are reading a result or the
 	// rule that matched it: parameters `bg-badge-1` (result table), verdicts
@@ -245,6 +298,8 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 		label: string;
 		hint: string;
 		values: string[];
+		/** The column whose filter this section's chips toggle. */
+		columnId: string;
 		variant?: BadgeVariants;
 		className?: string;
 	}[] = [
@@ -252,18 +307,21 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 			label: 'Tags',
 			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
 			values: ruleTags(rule),
+			columnId: COLUMN_ID.TAGS,
 			className: 'bg-badge-0'
 		},
 		{
 			label: 'Verdicts',
 			hint: 'The result must carry all of these verdicts.',
 			values: rule.verdicts ?? [],
+			columnId: COLUMN_ID.VERDICTS,
 			variant: BadgeVariants.Transparent
 		},
 		{
 			label: 'Parameters',
 			hint: 'The result must carry all of these, matched exactly.',
 			values: ruleParameters(rule),
+			columnId: COLUMN_ID.PARAMETERS,
 			className: 'bg-badge-1'
 		}
 	];
@@ -288,14 +346,14 @@ function MatcherDetail({ rule }: MatcherDetailProps) {
 					{section.values.length ? (
 						<div className="flex flex-wrap gap-1">
 							{section.values.map((value) => (
-								<Badge
+								<MatcherChip
 									key={value}
+									value={value}
+									columnId={section.columnId}
 									variant={section.variant}
 									className={section.className}
-									overflowWrap
-								>
-									{value}
-								</Badge>
+									facets={facets}
+								/>
 							))}
 						</div>
 					) : (
@@ -404,7 +462,18 @@ const DISPOSITION_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => <DispositionBadge expected={row.original.expected} />
+	// Every badge in this table is also the control that filters by it: the
+	// value handed to `toggleProps` is the one the column's `accessorFn` yields,
+	// so the chip and `someOfFilter` cannot disagree.
+	cell: ({ row, table }) => (
+		<DispositionBadge
+			expected={row.original.expected}
+			{...facetControls(table).toggleProps(
+				COLUMN_ID.DISPOSITION,
+				dispositionKey(row.original.expected)
+			)}
+		/>
+	)
 };
 
 const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
@@ -414,7 +483,15 @@ const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { className: 'w-44', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => <CategoryBadge category={row.original.category} />
+	cell: ({ row, table }) => (
+		<CategoryBadge
+			category={row.original.category}
+			{...facetControls(table).toggleProps(
+				COLUMN_ID.CATEGORY,
+				row.original.category
+			)}
+		/>
+	)
 };
 
 /**
@@ -450,21 +527,30 @@ function formatRuleParameter(key: string, value: string) {
 
 function MatcherValues({
 	values,
+	columnId,
 	variant,
-	className
+	className,
+	facets
 }: {
 	values: string[];
+	columnId: string;
 	variant?: BadgeVariants;
 	className?: string;
+	facets?: FacetControls;
 }) {
 	if (!values.length) return <span className="text-text-menu">-</span>;
 
 	return (
 		<div className="flex flex-wrap gap-1">
 			{values.map((value) => (
-				<Badge key={value} variant={variant} className={className} overflowWrap>
-					{value}
-				</Badge>
+				<MatcherChip
+					key={value}
+					value={value}
+					columnId={columnId}
+					variant={variant}
+					className={className}
+					facets={facets}
+				/>
 			))}
 		</div>
 	);
@@ -483,10 +569,12 @@ const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => (
+	cell: ({ row, table }) => (
 		<MatcherValues
 			values={ruleParameters(row.original)}
+			columnId={COLUMN_ID.PARAMETERS}
 			className="bg-badge-1"
+			facets={facetControls(table)}
 		/>
 	)
 };
@@ -498,10 +586,12 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => (
+	cell: ({ row, table }) => (
 		<MatcherValues
 			values={row.original.verdicts ?? []}
+			columnId={COLUMN_ID.VERDICTS}
 			variant={BadgeVariants.Transparent}
+			facets={facetControls(table)}
 		/>
 	)
 };
@@ -513,8 +603,13 @@ const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => (
-		<MatcherValues values={ruleTags(row.original)} className="bg-badge-0" />
+	cell: ({ row, table }) => (
+		<MatcherValues
+			values={ruleTags(row.original)}
+			columnId={COLUMN_ID.TAGS}
+			className="bg-badge-0"
+			facets={facetControls(table)}
+		/>
 	)
 };
 
@@ -525,7 +620,15 @@ const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) => <RuleActiveBadge active={row.original.active} />
+	cell: ({ row, table }) => (
+		<RuleActiveBadge
+			active={row.original.active}
+			{...facetControls(table).toggleProps(
+				COLUMN_ID.ACTIVE,
+				String(row.original.active)
+			)}
+		/>
+	)
 };
 
 const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
@@ -535,9 +638,15 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
-	cell: ({ row }) =>
+	cell: ({ row, table }) =>
 		row.original.issueState ? (
-			<IssueStateBadge state={row.original.issueState} />
+			<IssueStateBadge
+				state={row.original.issueState}
+				{...facetControls(table).toggleProps(
+					COLUMN_ID.ISSUE_STATE,
+					row.original.issueState
+				)}
+			/>
 		) : (
 			<span className="text-text-menu">-</span>
 		)
@@ -884,13 +993,10 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	// nothing at all, with no hint why.
 	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
-	const getFilterValue = (columnId: string) =>
-		(table.getColumn(columnId)?.getFilterValue() as string[] | undefined) ?? [];
-
-	const setFilterValue = (columnId: string, values: string[] | undefined) =>
-		table
-			.getColumn(columnId)
-			?.setFilterValue(values?.length ? values : undefined);
+	// The same controls the row chips and the expanded matcher panel write
+	// through, so the dropdowns and the badges are two views of one filter
+	// rather than two filters.
+	const facets = facetControls(table);
 
 	const rows = table.getRowModel().rows;
 	// Filtering happens locally, so the server's count no longer describes what
@@ -951,8 +1057,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 						title="State"
 						size="xss"
 						options={issueStateOptions}
-						value={getFilterValue(COLUMN_ID.ISSUE_STATE)}
-						onChange={(values) => setFilterValue(COLUMN_ID.ISSUE_STATE, values)}
+						value={facets.values(COLUMN_ID.ISSUE_STATE)}
+						onChange={(values) => facets.set(COLUMN_ID.ISSUE_STATE, values)}
 						disabled={!issueStateOptions.length}
 					/>
 				) : null}
@@ -960,48 +1066,48 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 					title="Category"
 					size="xss"
 					options={categoryOptions}
-					value={getFilterValue(COLUMN_ID.CATEGORY)}
-					onChange={(values) => setFilterValue(COLUMN_ID.CATEGORY, values)}
+					value={facets.values(COLUMN_ID.CATEGORY)}
+					onChange={(values) => facets.set(COLUMN_ID.CATEGORY, values)}
 					disabled={!categoryOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Disposition"
 					size="xss"
 					options={dispositionOptions}
-					value={getFilterValue(COLUMN_ID.DISPOSITION)}
-					onChange={(values) => setFilterValue(COLUMN_ID.DISPOSITION, values)}
+					value={facets.values(COLUMN_ID.DISPOSITION)}
+					onChange={(values) => facets.set(COLUMN_ID.DISPOSITION, values)}
 					disabled={!dispositionOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Rule"
 					size="xss"
 					options={activeOptions}
-					value={getFilterValue(COLUMN_ID.ACTIVE)}
-					onChange={(values) => setFilterValue(COLUMN_ID.ACTIVE, values)}
+					value={facets.values(COLUMN_ID.ACTIVE)}
+					onChange={(values) => facets.set(COLUMN_ID.ACTIVE, values)}
 					disabled={!activeOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Parameters"
 					size="xss"
 					options={parameterOptions}
-					value={getFilterValue(COLUMN_ID.PARAMETERS)}
-					onChange={(values) => setFilterValue(COLUMN_ID.PARAMETERS, values)}
+					value={facets.values(COLUMN_ID.PARAMETERS)}
+					onChange={(values) => facets.set(COLUMN_ID.PARAMETERS, values)}
 					disabled={!parameterOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Verdicts"
 					size="xss"
 					options={verdictOptions}
-					value={getFilterValue(COLUMN_ID.VERDICTS)}
-					onChange={(values) => setFilterValue(COLUMN_ID.VERDICTS, values)}
+					value={facets.values(COLUMN_ID.VERDICTS)}
+					onChange={(values) => facets.set(COLUMN_ID.VERDICTS, values)}
 					disabled={!verdictOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="Tags"
 					size="xss"
 					options={tagOptions}
-					value={getFilterValue(COLUMN_ID.TAGS)}
-					onChange={(values) => setFilterValue(COLUMN_ID.TAGS, values)}
+					value={facets.values(COLUMN_ID.TAGS)}
+					onChange={(values) => facets.set(COLUMN_ID.TAGS, values)}
 					disabled={!tagOptions.length}
 				/>
 				<ClassificationToolbarSeparator />
@@ -1046,7 +1152,9 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 							'data-rule-id': row.original.id,
 							'data-rule-active': row.original.active ? 'true' : 'false'
 						})}
-						renderSubRow={(row) => <MatcherDetail rule={row.original} />}
+						renderSubRow={(row) => (
+							<MatcherDetail rule={row.original} facets={facets} />
+						)}
 					/>
 				)}
 			</div>
