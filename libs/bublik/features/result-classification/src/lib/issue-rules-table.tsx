@@ -48,8 +48,11 @@ import {
 	dispositionKey,
 	formatBugKey,
 	issueStateMeta,
+	issueRulesState,
 	ruleActiveMeta
 } from './classification-colors';
+import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
+import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
 	CategoryBadge,
@@ -83,6 +86,7 @@ import {
 import { chipsForFlags } from './match-scope.utils';
 
 const COLUMN_ID = {
+	STATUS: 'status',
 	EXPANDER: 'expander',
 	ACTIONS: 'actions',
 	TEST: 'test',
@@ -543,13 +547,44 @@ interface GetColumnsArgs {
 	projectId?: number;
 	/** Only the cross-issue view needs to say which issue a rule belongs to. */
 	showIssue: boolean;
+	/** Hands the spare width to a data column when the filler has stood down. */
+	grow: boolean;
 }
 
 function getColumns({
 	projectId,
-	showIssue
+	showIssue,
+	grow
 }: GetColumnsArgs): ColumnDef<IssueRuleRow, unknown>[] {
+	// Where the slack goes once the filler stands down. The issue title is the
+	// natural home for it, but the per-issue view drops that column entirely —
+	// there the test path is the only thing on the row long enough to want it.
+	const growIssue = grow && showIssue;
+	const growTest = grow && !showIssue;
+
 	return [
+		{
+			// Whether this rule is in force, at the row's leading edge. `active`
+			// alone would not say it: closing the issue is what deactivates rules,
+			// and reopening it does not switch them back on, so a rule can be off
+			// for a reason that is nowhere on its own row. Reusing
+			// `issueRulesState` over a set of one keeps that reading identical to
+			// the issues list.
+			id: COLUMN_ID.STATUS,
+			enableHiding: false,
+			enableSorting: false,
+			header: () => null,
+			meta: STATUS_STRIPE_COLUMN_META,
+			cell: ({ row }) => (
+				<StatusStripe
+					meta={issueRulesState({
+						state: row.original.issueState ?? 'open',
+						total: 1,
+						active: row.original.active ? 1 : 0
+					})}
+				/>
+			)
+		},
 		{
 			id: COLUMN_ID.EXPANDER,
 			enableHiding: false,
@@ -602,7 +637,9 @@ function getColumns({
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: {
+				className: growTest ? 'w-full' : 'w-px whitespace-nowrap'
+			},
 			// The toolbar's free-text box lives on this column. On the cross-issue
 			// view the issue is part of the row, so it is part of the haystack.
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
@@ -619,7 +656,19 @@ function getColumns({
 		ACTIVE_COLUMN,
 		SCOPE_COLUMN,
 		DISPOSITION_COLUMN,
-		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
+		...(showIssue
+			? [
+					KEY_COLUMN,
+					{
+						...ISSUE_COLUMN,
+						meta: {
+							...ISSUE_COLUMN.meta,
+							className: growIssue ? 'w-full' : 'w-[22rem]'
+						}
+					},
+					ISSUE_STATE_COLUMN
+			  ]
+			: []),
 		CATEGORY_COLUMN,
 		TAGS_COLUMN,
 		VERDICTS_COLUMN,
@@ -685,6 +734,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [shellRef, isWide] = useFillerVisible(FILLER_MIN_WIDTH.issueRules);
 	// Keyed by mode, not by the component. These are two different pages -- the
 	// project's whole rule list and one issue's rules -- and they do not even
 	// show the same columns, since Issue is meaningless once every row shares
@@ -700,13 +750,21 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	// columns hold long, wrappable content and are the one thing here that
 	// should grow, so when any of them is on the filler stands down and they
 	// share the space instead of being pinned beside an empty column.
-	const effectiveColumnVisibility = useMemo<VisibilityState>(() => {
-		const showsMatcher = MATCHER_COLUMN_IDS.some(
-			(id) => columnVisibility[id] !== false
-		);
-
-		return { ...columnVisibility, [COLUMN_ID.FILLER]: !showsMatcher };
-	}, [columnVisibility]);
+	//
+	// Narrow tables want the same thing for the opposite reason: there is no
+	// slack left to park, so the filler would only be squeezing the columns
+	// that carry something. Both cases stand it down; only the second needs a
+	// data column told to grow, since with a matcher column on there is already
+	// one that will.
+	const showsMatcher = useMemo(
+		() => MATCHER_COLUMN_IDS.some((id) => columnVisibility[id] !== false),
+		[columnVisibility]
+	);
+	const showFiller = isWide && !showsMatcher;
+	const effectiveColumnVisibility = useMemo<VisibilityState>(
+		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
+		[columnVisibility, showFiller]
+	);
 	const {
 		pagination,
 		onPaginationChange,
@@ -770,8 +828,8 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	// the difference between "25 of 45 rules" and the old "25 of 25".
 	const totalCount = rulesData?.pagination.count ?? 0;
 	const columns = useMemo(
-		() => getColumns({ projectId, showIssue }),
-		[projectId, showIssue]
+		() => getColumns({ projectId, showIssue, grow: !isWide && !showsMatcher }),
+		[projectId, showIssue, isWide, showsMatcher]
 	);
 	const {
 		categoryOptions,
@@ -875,7 +933,7 @@ export function IssueRulesTable({ issueId, projectId }: IssueRulesTableProps) {
 	}
 
 	return (
-		<div className="flex flex-col flex-1 min-h-0">
+		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Rules

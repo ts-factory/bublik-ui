@@ -36,6 +36,8 @@ import {
 	issueStateMeta,
 	runIssueEffect
 } from './classification-colors';
+import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
+import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
 	CategoryBadgeList,
@@ -83,6 +85,7 @@ interface RunIssuesTableProps {
  * closed issue whose rules would otherwise suppress.
  */
 const COLUMN_ID = {
+	STATUS: 'status',
 	EXPANDER: 'expander',
 	ACTIONS: 'actions',
 	BUG_KEY: 'bug_key',
@@ -109,8 +112,24 @@ const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
 	`#${issue.issue_id}`
 ]);
 
-function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
+function getColumns(
+	projectId: number | undefined,
+	/** Hands the spare width to the title when the filler has stood down. */
+	growIssue: boolean
+): ColumnDef<RunIssueRow, unknown>[] {
 	return [
+		{
+			// The one question this page exists to answer — does this issue still
+			// count against the run — put where you can read a screenful of rows
+			// by looking down a single edge. The Effect column says the same thing
+			// in words further along the row; this is the same value, same hue.
+			id: COLUMN_ID.STATUS,
+			enableHiding: false,
+			enableSorting: false,
+			header: () => null,
+			meta: STATUS_STRIPE_COLUMN_META,
+			cell: ({ row }) => <StatusStripe meta={runIssueEffect(row.original)} />
+		},
 		{
 			id: COLUMN_ID.EXPANDER,
 			enableHiding: false,
@@ -182,10 +201,15 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 			// Capped, not flexible: a title is a handful of words, and letting the
 			// column soak up every spare pixel pushes the badges off to the edge of
 			// the table. Anything longer truncates — the tooltip carries the rest.
+			//
+			// Narrow enough and the filler stands down (see `useFillerVisible`),
+			// and the slack has to land somewhere. It lands here: a title is the
+			// one thing on the row that can use more room, and the badge columns
+			// are the ones that must not be stretched.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
 			header: 'Issue',
-			meta: { className: 'w-[26rem]' },
+			meta: { className: growIssue ? 'w-full' : 'w-[26rem]' },
 			filterFn: searchFilter,
 			cell: ({ row }) => {
 				const { issue_id, title } = row.original;
@@ -319,6 +343,7 @@ export function RunIssuesTable({
 	);
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [shellRef, showFiller] = useFillerVisible(FILLER_MIN_WIDTH.runIssues);
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		'run-issues',
 		DEFAULT_COLUMN_VISIBILITY
@@ -342,14 +367,30 @@ export function RunIssuesTable({
 	});
 
 	const issues = useMemo(() => data ?? [], [data]);
-	const columns = useMemo(() => getColumns(projectId), [projectId]);
+	const columns = useMemo(
+		() => getColumns(projectId, !showFiller),
+		[projectId, showFiller]
+	);
+
+	// The filler is a layout device, not a column anyone chose, so its
+	// visibility is decided here rather than stored: it is `enableHiding: false`
+	// and never appears in the columns menu.
+	const effectiveColumnVisibility = useMemo<VisibilityState>(
+		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
+		[columnVisibility, showFiller]
+	);
 	const { stateOptions, effectOptions, categoryOptions } =
 		useFacetOptions(issues);
 
 	const table = useReactTable({
 		data: issues,
 		columns,
-		state: { columnFilters, sorting, pagination, columnVisibility },
+		state: {
+			columnFilters,
+			sorting,
+			pagination,
+			columnVisibility: effectiveColumnVisibility
+		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
@@ -403,7 +444,7 @@ export function RunIssuesTable({
 	}
 
 	return (
-		<div className="flex flex-col flex-1 min-h-0">
+		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Issues

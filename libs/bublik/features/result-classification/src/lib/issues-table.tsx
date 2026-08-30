@@ -38,6 +38,8 @@ import {
 	issueStateMeta,
 	type IssueRulesState
 } from './classification-colors';
+import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
+import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
 	CategoryBadgeList,
@@ -77,6 +79,7 @@ import {
  * columns that follow; `Rules` sits next to it because they are one mechanism.
  */
 const COLUMN_ID = {
+	STATUS: 'status',
 	ACTIONS: 'actions',
 	KEY: 'key',
 	ISSUE: 'issue',
@@ -169,8 +172,29 @@ const searchFilter = makeSearchFilter<IssueTableRow>((issue) => [
 	`#${issue.id}`
 ]);
 
-function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
+function getColumns(
+	projectId: number | undefined,
+	/** Hands the spare width to the title when the filler has stood down. */
+	growIssue: boolean
+): ColumnDef<IssueTableRow, unknown>[] {
 	return [
+		{
+			// Whether this issue's rules are actually doing anything, before you
+			// read a word of it. `rulesState` folds the two facts that decide it —
+			// the issue's state and how many of its rules are active — and it is
+			// the pair that traps people: closing an issue deactivates its rules,
+			// and reopening it does not switch them back on.
+			id: COLUMN_ID.STATUS,
+			enableHiding: false,
+			enableSorting: false,
+			header: () => null,
+			meta: STATUS_STRIPE_COLUMN_META,
+			cell: ({ row }) => (
+				<StatusStripe
+					meta={ISSUE_RULES_STATE_META[row.original.rulesState]}
+				/>
+			)
+		},
 		{
 			// Leftmost and shrunk to its buttons. The run's result table opens the
 			// same way, and putting the controls where the eye already starts beats
@@ -219,10 +243,15 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			// Capped, not flexible: a title is a handful of words, and letting the
 			// column soak up every spare pixel pushes the badges off to the edge of
 			// the table. Anything longer truncates — the tooltip carries the rest.
+			//
+			// Narrow enough and the filler stands down (see `useFillerVisible`),
+			// and the slack has to land somewhere. It lands here: a title is the
+			// one thing on the row that can use more room, and the badge columns
+			// are the ones that must not be stretched.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
 			header: 'Issue',
-			meta: { className: 'w-[26rem]' },
+			meta: { className: growIssue ? 'w-full' : 'w-[26rem]' },
 			filterFn: searchFilter,
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-0.5">
@@ -365,6 +394,7 @@ export function IssuesTable() {
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [shellRef, showFiller] = useFillerVisible(FILLER_MIN_WIDTH.issues);
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		'issues',
 		DEFAULT_COLUMN_VISIBILITY
@@ -423,8 +453,19 @@ export function IssuesTable() {
 	// The count the server reports for the *filtered* set, not the rows in hand.
 	// Reading it off the page is what made a 45-issue list say "25 of 25".
 	const totalCount = issuesQuery.data?.pagination.count ?? 0;
-	const columns = useMemo(() => getColumns(projectId), [projectId]);
+	const columns = useMemo(
+		() => getColumns(projectId, !showFiller),
+		[projectId, showFiller]
+	);
 	const { stateOptions, rulesOptions, categoryOptions } = useFacetOptions(rows);
+
+	// The filler is a layout device, not a column anyone chose, so its
+	// visibility is decided here rather than stored: it is `enableHiding: false`
+	// and never appears in the columns menu.
+	const effectiveColumnVisibility = useMemo<VisibilityState>(
+		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
+		[columnVisibility, showFiller]
+	);
 
 	// The server owns paging, filtering and sorting: the table holds one page, so
 	// filtering or sorting it locally would only ever reorder that page while
@@ -432,7 +473,12 @@ export function IssuesTable() {
 	const table = useReactTable({
 		data: rows,
 		columns,
-		state: { columnFilters, sorting, pagination, columnVisibility },
+		state: {
+			columnFilters,
+			sorting,
+			pagination,
+			columnVisibility: effectiveColumnVisibility
+		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
@@ -507,7 +553,7 @@ export function IssuesTable() {
 	}
 
 	return (
-		<div className="flex flex-col flex-1 min-h-0">
+		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<Tooltip content="An issue is the cause identity — what is wrong. Its rules decide which results get stamped with it, and whether those results still count as unexpected.">
 					<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
