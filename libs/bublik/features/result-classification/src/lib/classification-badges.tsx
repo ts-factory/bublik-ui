@@ -23,6 +23,8 @@ import {
 	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
 	RESULT_VERDICT_CHIP_CLASS,
+	type ResultClassification,
+	resultClassification,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
 	NO_EFFECT_META,
@@ -33,7 +35,6 @@ import {
 	issueRulesState,
 	issueStateMeta,
 	originMeta,
-	resultIssueEffect,
 	ruleActiveMeta,
 	runIssueEffect,
 	type RuleResultOrigin
@@ -504,6 +505,16 @@ export interface ClassificationVerdictProps {
 	 */
 	hasError: boolean;
 	/**
+	 * Classifications currently filtered on, so a matching chip shows selected.
+	 */
+	selectedClassifications?: string[];
+	/**
+	 * Makes the verdict chip a filter toggle. Omit for a read-only surface --
+	 * the chip then keeps its colour and loses every affordance, like the
+	 * category chips beneath it.
+	 */
+	onClassificationClick?: (classification: ResultClassification) => void;
+	/**
 	 * The result this verdict describes. Given one, a Classify trigger trails the
 	 * chip. Omit on a surface where classifying makes no sense.
 	 */
@@ -565,30 +576,40 @@ export function ClassificationVerdict({
 	hasError,
 	resultId,
 	projectId,
+	selectedClassifications,
+	onClassificationClick,
 	withLeadingSeparator = true
 }: ClassificationVerdictProps) {
-	const stamps = issues ?? [];
+	const meta = resultClassification({ issues, hasError });
 
 	// A passing, unstamped result has no classification to report and nothing
 	// worth classifying, so the result badge stands alone.
-	if (!stamps.length && !hasError) return null;
+	if (!meta) return null;
 
-	const verdict = !stamps.length ? (
-		<div className="contents" data-testid="result-untriaged">
-			<UntriagedBadge className={RESULT_VERDICT_CHIP_CLASS} />
-		</div>
-	) : hasError ? (
-		<div className="contents" data-testid="result-issue-effect">
-			<RunEffectBadge
-				effect={resultIssueEffect(stamps).value}
-				className={RESULT_VERDICT_CHIP_CLASS}
-			/>
-		</div>
-	) : (
-		<div className="contents" data-testid="result-no-effect">
-			<NoEffectBadge className={RESULT_VERDICT_CHIP_CLASS} />
-		</div>
-	);
+	// Which of the three shapes gets rendered is settled by `meta.value`, so the
+	// chip and the predicate that filters on it read the same branch.
+	const toggle = {
+		isSelected: selectedClassifications?.includes(meta.value),
+		onClick: onClassificationClick
+			? () => onClassificationClick(meta.value)
+			: undefined,
+		className: RESULT_VERDICT_CHIP_CLASS
+	};
+
+	const verdict =
+		meta.value === UNTRIAGED_META.value ? (
+			<div className="contents" data-testid="result-untriaged">
+				<UntriagedBadge {...toggle} />
+			</div>
+		) : meta.value === NO_EFFECT_META.value ? (
+			<div className="contents" data-testid="result-no-effect">
+				<NoEffectBadge {...toggle} />
+			</div>
+		) : (
+			<div className="contents" data-testid="result-issue-effect">
+				<RunEffectBadge effect={meta.value} {...toggle} />
+			</div>
+		);
 
 	/*
 	 * Classify sits with the verdict it changes rather than in the Actions

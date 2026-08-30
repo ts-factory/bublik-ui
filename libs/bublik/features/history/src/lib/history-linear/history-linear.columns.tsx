@@ -10,6 +10,7 @@ import {
 	BadgeListItem,
 	Icon,
 	Tooltip,
+	VERDICT_RESULT_BOXED_CLASS,
 	VerdictList,
 	VerdictListProps,
 	VerdictVariant
@@ -163,6 +164,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 							}
 							isNotExpected={isNotExpected}
 							isResultSelected={isResultSelected}
+							resultClassName={VERDICT_RESULT_BOXED_CLASS}
 							resultSlot={
 								<ClassificationVerdict
 									issues={cell.row.original.issues}

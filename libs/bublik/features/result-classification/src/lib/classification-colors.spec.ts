@@ -11,8 +11,10 @@ import {
 	formatBugKey,
 	issueRulesState,
 	issueStateMeta,
+	resultClassification,
 	resultIssueEffect,
-	runIssueEffect
+	runIssueEffect,
+	RESULT_CLASSIFICATION_ORDER
 } from './classification-colors';
 
 function issue(partial: Partial<RunIssueRow>): RunIssueRow {
@@ -200,5 +202,48 @@ describe('formatBugKey', () => {
 
 	it('passes null through', () => {
 		expect(formatBugKey(null)).toBeNull();
+	});
+});
+
+describe('resultClassification', () => {
+	const open = (expected: boolean | null) =>
+		({ expected, issue_state: 'open' } as const);
+
+	it('is untriaged when a failure carries no stamps', () => {
+		expect(resultClassification({ issues: [], hasError: true })?.value).toBe(
+			'untriaged'
+		);
+		expect(resultClassification({ hasError: true })?.value).toBe('untriaged');
+	});
+
+	it('defers to the stamps when a failure has them', () => {
+		expect(
+			resultClassification({ issues: [open(true)], hasError: true })?.value
+		).toBe('suppressed');
+		expect(
+			resultClassification({ issues: [open(false)], hasError: true })?.value
+		).toBe('unexpected');
+	});
+
+	it('reports no effect when a passing result carries stamps', () => {
+		// Not `suppressed`: running the effect over these stamps would claim to
+		// have hidden a failure that never happened.
+		expect(
+			resultClassification({ issues: [open(true)], hasError: false })?.value
+		).toBe('no-effect');
+	});
+
+	it('has no verdict at all for a passing, unstamped result', () => {
+		// The one case the filter must never match: no chip is shown, so no
+		// chip's selection can claim the row.
+		expect(resultClassification({ issues: [], hasError: false })).toBeNull();
+	});
+
+	it('orders the facet with the unlooked-at first and the inert last', () => {
+		expect(RESULT_CLASSIFICATION_ORDER[0]).toBe('untriaged');
+		expect(RESULT_CLASSIFICATION_ORDER.at(-1)).toBe('no-effect');
+		expect(new Set(RESULT_CLASSIFICATION_ORDER).size).toBe(
+			RESULT_CLASSIFICATION_ORDER.length
+		);
 	});
 });

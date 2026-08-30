@@ -13,17 +13,36 @@ export const enum VerdictVariant {
 
 export type VerdictVariantValue = 'expected' | 'obtained';
 
+/**
+ * Boxes the result badge to one width, so whatever trails it on the line --
+ * the classification verdict and its Classify button -- lands at the same
+ * offset on every row instead of stepping about as PASSED gives way to
+ * INCOMPLETE.
+ *
+ * Sized to the longest of the seven result types with slack for a font that
+ * renders wider than measured: a badge that outgrows the box takes its own row
+ * back out of line, which is the one thing this exists to prevent.
+ */
+export const VERDICT_RESULT_BOXED_CLASS = 'min-w-[6.5rem] justify-center';
+
 export interface VerdictResultProps {
 	variant: VerdictVariant | VerdictVariantValue;
 	resultType: RESULT_TYPE;
 	isNotExpected?: boolean;
 	isSelected?: boolean;
 	onResultClick?: (resultType: RESULT_TYPE) => void;
+	className?: string;
 }
 
 export const VerdictResult = (props: VerdictResultProps) => {
-	const { variant, resultType, onResultClick, isNotExpected, isSelected } =
-		props;
+	const {
+		variant,
+		resultType,
+		onResultClick,
+		isNotExpected,
+		isSelected,
+		className
+	} = props;
 
 	const resultVariant =
 		variant === 'obtained'
@@ -36,6 +55,7 @@ export const VerdictResult = (props: VerdictResultProps) => {
 		<Badge
 			variant={resultVariant}
 			isSelected={isSelected}
+			className={className}
 			onClick={onResultClick ? () => onResultClick?.(resultType) : undefined}
 		>
 			{resultType}
@@ -92,6 +112,13 @@ export interface VerdictListProps {
 	 * verdicts, where it would sit three lines from what it is talking about.
 	 */
 	resultSlot?: ReactNode;
+	/**
+	 * Applied to the result badge. Pass `VERDICT_RESULT_BOXED_CLASS` on a
+	 * surface where something trails the badge and has to line up down the
+	 * table; leave it off where the badge stands alone and would only gain
+	 * padding.
+	 */
+	resultClassName?: string;
 }
 
 export const VerdictList: FC<VerdictListProps> = (props) => {
@@ -104,7 +131,8 @@ export const VerdictList: FC<VerdictListProps> = (props) => {
 		onResultClick,
 		onVerdictClick,
 		isNotExpected,
-		resultSlot
+		resultSlot,
+		resultClassName
 	} = props;
 
 	const resultBadge = (
@@ -114,6 +142,7 @@ export const VerdictList: FC<VerdictListProps> = (props) => {
 			isNotExpected={isNotExpected}
 			isSelected={isResultSelected}
 			onResultClick={onResultClick}
+			className={resultClassName}
 		/>
 	);
 

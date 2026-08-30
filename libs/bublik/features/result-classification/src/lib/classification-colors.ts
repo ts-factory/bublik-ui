@@ -309,6 +309,7 @@ export const EFFECT_ORDER = orderOf<RunIssueEffect>()([
 export const UNTRIAGED_META = {
 	value: 'untriaged',
 	label: 'Untriaged',
+	displayValue: 'Untriaged',
 	description:
 		'Counts as unexpected: nobody has classified this failure, so no rule explains it.',
 	variant: BadgeVariants.Triage,
@@ -317,6 +318,7 @@ export const UNTRIAGED_META = {
 } as const satisfies {
 	value: string;
 	label: string;
+	displayValue: string;
 	description: string;
 	variant: BadgeVariants;
 	stripeClassName: string;
@@ -352,6 +354,7 @@ export const UNTRIAGED_META = {
 export const NO_EFFECT_META = {
 	value: 'no-effect',
 	label: 'No effect',
+	displayValue: 'No effect',
 	description:
 		'The result passed, so its stamps decide nothing. They record that a rule matches this iteration, not that anything went wrong this time.',
 	variant: BadgeVariants.Outline,
@@ -362,11 +365,65 @@ export const NO_EFFECT_META = {
 } as const satisfies {
 	value: string;
 	label: string;
+	displayValue: string;
 	description: string;
 	variant: BadgeVariants;
 	stripeClassName: string;
 	iconName: IconName;
 };
+
+/**
+ * The verdict a single result carries: one closed set spanning the three cases
+ * the result line has to distinguish.
+ *
+ * `RunIssueEffect` alone cannot answer it. That union asks what the rules did
+ * to the unexpected count, which presumes rules ran and a failure for them to
+ * act on -- and the two most common rows on a run page satisfy neither. This
+ * adds them back: `untriaged` for a failure nobody has looked at, `no-effect`
+ * for a pass whose stamps decided nothing.
+ */
+export type ResultClassification = RunIssueEffect | 'untriaged' | 'no-effect';
+
+export type ResultClassificationMeta =
+	| RunIssueEffectMeta
+	| typeof UNTRIAGED_META
+	| typeof NO_EFFECT_META;
+
+/**
+ * Display order for the classification facet.
+ *
+ * `EFFECT_ORDER` in the middle, untouched, with the two outsiders at the ends
+ * where they belong: nobody has looked yet, then the four things the rules
+ * decided, then the rows where there was nothing to decide.
+ */
+export const RESULT_CLASSIFICATION_ORDER = orderOf<ResultClassification>()([
+	'untriaged',
+	'suppressed',
+	'stale',
+	'unexpected',
+	'marked',
+	'no-effect'
+] as const);
+
+/**
+ * The verdict for one result, from the two facts that decide it.
+ *
+ * The single source of truth for the chip, the filter and the facet options:
+ * a chip the reader can click to filter has to agree with the predicate that
+ * filters, and this is the branch they now share. `null` means the result has
+ * no verdict to show -- it passed and carries no stamps -- which is a row the
+ * filter must never match rather than a sixth value.
+ */
+export function resultClassification(input: {
+	issues?: readonly Pick<ResultIssueRef, 'expected' | 'issue_state'>[];
+	hasError: boolean;
+}): ResultClassificationMeta | null {
+	const stamps = input.issues ?? [];
+
+	if (!stamps.length) return input.hasError ? UNTRIAGED_META : null;
+
+	return input.hasError ? resultIssueEffect(stamps) : NO_EFFECT_META;
+}
 
 /**
  * The disposition axis: what a rule's tri-state `expected` decides.

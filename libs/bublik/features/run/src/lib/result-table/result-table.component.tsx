@@ -39,7 +39,9 @@ import {
 import { formatKeyValueForDisplay } from '@/shared/utils';
 import {
 	CATEGORY_ORDER,
-	categoryMeta
+	RESULT_CLASSIFICATION_ORDER,
+	categoryMeta,
+	resultClassification
 } from '@/bublik/features/result-classification';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import {
@@ -137,6 +139,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		results,
 		resultProperties,
 		categories,
+		classifications,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
@@ -144,13 +147,15 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		resultsFilter,
 		resultPropertiesFilter,
 		categoriesFilter,
+		classificationsFilter,
 		artifactsFilter,
 		onClearFilters,
 		onFilterChange,
 		onVerdictsFilterChange,
 		onResultsFilterChange,
 		onResultPropertiesFilterChange,
-		onCategoriesFilterChange
+		onCategoriesFilterChange,
+		onClassificationsFilterChange
 	} = useDataTableFilters(rowId, data);
 	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
 		localRequirements: requirementsFilter
@@ -295,6 +300,17 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									value={categoriesFilter}
 									onChange={onCategoriesFilterChange}
 									disabled={!categories.length}
+								/>
+								{/* After Category, completing the thought: the category
+								    says what a failure was decided to be, this says what
+								    that decision did to the run's unexpected count. */}
+								<DataTableFacetedFilter
+									title="Classification"
+									size="xss"
+									options={classifications}
+									value={classificationsFilter}
+									onChange={onClassificationsFilterChange}
+									disabled={!classifications.length}
 								/>
 								<DataTableFacetedFilter
 									title="Artifacts"
@@ -525,6 +541,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const resultsFilter = obtainedResultFilter.results;
 	const resultPropertiesFilter = obtainedResultFilter.resultProperties;
 	const categoriesFilter = obtainedResultFilter.categories;
+	const classificationsFilter = obtainedResultFilter.classifications;
 
 	const artifactsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
@@ -534,14 +551,27 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const {
 		filteredData,
 		filteredDataWithoutResults,
-		filteredDataWithoutResultProperties
+		filteredDataWithoutResultProperties,
+		filteredDataWithoutCategories,
+		filteredDataWithoutClassifications
 	} = useMemo(() => {
+		/**
+		 * `exclude` names the one axis to ignore while testing a row.
+		 *
+		 * A facet's own selection must not narrow its own option list. It is
+		 * harmless on the AND axes -- once you have picked artifact A, the only
+		 * artifacts worth offering are those that co-occur with it -- but on an
+		 * OR axis it is fatal: pick UNTRIAGED and the only rows left are
+		 * untriaged, so UNTRIAGED becomes the only option and the filter can
+		 * never grow to a second value.
+		 */
 		const matchesRow = (
 			row: RunDataResults,
-			{
-				includeResults,
-				includeResultProperties
-			}: { includeResults: boolean; includeResultProperties: boolean }
+			exclude?:
+				| 'results'
+				| 'resultProperties'
+				| 'categories'
+				| 'classifications'
 		) => {
 			const rowResultProperty = row.has_error
 				? RESULT_PROPERTIES.Unexpected
@@ -558,6 +588,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			// Any, not every: a result carries one stamp per matching rule, so
 			// asking for DEFECT and KNOWN means the results either explains.
 			const hasSomeCategory =
+				exclude === 'categories' ||
 				!categoriesFilter.length ||
 				(row.issues ?? []).some((issue) =>
 					categoriesFilter.includes(issue.category)
@@ -565,12 +596,24 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			const hasEveryRequirement = requirementsFilter.every((requirement) =>
 				row.requirements?.includes(requirement)
 			);
+			// One verdict per result, so membership rather than some/every. A
+			// passing result with no stamps has none, and matches no selection.
+			const rowClassification = resultClassification({
+				issues: row.issues,
+				hasError: row.has_error
+			});
+			const hasClassification =
+				exclude === 'classifications' ||
+				!classificationsFilter.length ||
+				(rowClassification
+					? classificationsFilter.includes(rowClassification.value)
+					: false);
 			const matchesResult =
-				!includeResults ||
+				exclude === 'results' ||
 				!resultsFilter.length ||
 				resultsFilter.includes(row.obtained_result.result_type);
 			const matchesResultProperties =
-				!includeResultProperties ||
+				exclude === 'resultProperties' ||
 				!resultPropertiesFilter.length ||
 				resultPropertiesFilter.includes(rowResultProperty);
 
@@ -580,34 +623,31 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				hasEveryArtifact &&
 				hasEveryRequirement &&
 				hasSomeCategory &&
+				hasClassification &&
 				matchesResult &&
 				matchesResultProperties
 			);
 		};
 
 		return {
-			filteredData: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: true,
-					includeResultProperties: true
-				})
-			),
+			filteredData: data.filter((row) => matchesRow(row)),
 			filteredDataWithoutResults: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: false,
-					includeResultProperties: true
-				})
+				matchesRow(row, 'results')
 			),
 			filteredDataWithoutResultProperties: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: true,
-					includeResultProperties: false
-				})
+				matchesRow(row, 'resultProperties')
+			),
+			filteredDataWithoutCategories: data.filter((row) =>
+				matchesRow(row, 'categories')
+			),
+			filteredDataWithoutClassifications: data.filter((row) =>
+				matchesRow(row, 'classifications')
 			)
 		};
 	}, [
 		artifactsFilter,
 		categoriesFilter,
+		classificationsFilter,
 		data,
 		parametersFilter,
 		requirementsFilter,
@@ -658,7 +698,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	 */
 	const categories = useMemo(() => {
 		const present = new Set(
-			filteredData.flatMap((row) =>
+			filteredDataWithoutCategories.flatMap((row) =>
 				(row.issues ?? []).map((issue) => issue.category)
 			)
 		);
@@ -669,7 +709,30 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				value: category
 			})
 		);
-	}, [filteredData]);
+	}, [filteredDataWithoutCategories]);
+
+	/**
+	 * The verdicts the loaded results actually carry, under the long labels --
+	 * `Counting again` in a dropdown that has the room, where the chip itself is
+	 * cut to `AGAIN` to keep the result line narrow.
+	 */
+	const classifications = useMemo(() => {
+		const present = new Map(
+			filteredDataWithoutClassifications
+				.map((row) =>
+					resultClassification({ issues: row.issues, hasError: row.has_error })
+				)
+				.filter((meta) => meta !== null)
+				.map((meta) => [meta.value, meta] as const)
+		);
+
+		return RESULT_CLASSIFICATION_ORDER.filter((value) =>
+			present.has(value)
+		).map((value) => ({
+			label: present.get(value)?.displayValue ?? value,
+			value
+		}));
+	}, [filteredDataWithoutClassifications]);
 
 	const results = useMemo(() => {
 		const orderedResultTypes = Object.values(RESULT_TYPE);
@@ -804,6 +867,13 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		}));
 	}
 
+	function handleClassificationsFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			classifications: values ?? []
+		}));
+	}
+
 	function handleResultPropertiesFilterChange(values: string[] | undefined) {
 		handleObtainedResultFilterChange((filter) => ({
 			...filter,
@@ -821,6 +891,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		results,
 		resultProperties,
 		categories,
+		classifications,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
@@ -828,13 +899,15 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		resultsFilter,
 		resultPropertiesFilter,
 		categoriesFilter,
+		classificationsFilter,
 		artifactsFilter,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onVerdictsFilterChange: handleVerdictsFilterChange,
 		onResultsFilterChange: handleResultsFilterChange,
 		onResultPropertiesFilterChange: handleResultPropertiesFilterChange,
-		onCategoriesFilterChange: handleCategoriesFilterChange
+		onCategoriesFilterChange: handleCategoriesFilterChange,
+		onClassificationsFilterChange: handleClassificationsFilterChange
 	};
 }
 

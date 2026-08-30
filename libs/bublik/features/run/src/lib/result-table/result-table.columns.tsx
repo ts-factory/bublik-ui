@@ -20,12 +20,15 @@ import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	ClassificationVerdict,
-	ResultIssueBadges
+	type ResultClassification,
+	ResultIssueBadges,
+	resultClassification
 } from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
 	ButtonTw,
+	VERDICT_RESULT_BOXED_CLASS,
 	VerdictList,
 	cn,
 	Tooltip
@@ -144,6 +147,23 @@ export const getColumns = ({
 						);
 					}
 
+					// The verdict chip toggles the same way its category chips do, one
+					// axis over -- UNTRIAGED to sweep up everything nobody has looked
+					// at, COUNTS to see what a run is still being blamed for.
+					function handleClassificationClick(
+						classification: ResultClassification
+					) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								const selected = draft.classifications ?? [];
+
+								draft.classifications = selected.includes(classification)
+									? selected.filter((c) => c !== classification)
+									: [...selected, classification];
+							})
+						);
+					}
+
 					// No result to render, but the classification still explains why —
 					// it used to live in another column and was unaffected by this
 					// guard, so returning nothing here would quietly lose it. There is
@@ -156,6 +176,8 @@ export const getColumns = ({
 									hasError={obtainedResult.isNotExpected}
 									resultId={obtainedResult.resultId}
 									projectId={obtainedResult.projectId}
+									selectedClassifications={filterValue.classifications}
+									onClassificationClick={handleClassificationClick}
 									withLeadingSeparator={false}
 								/>
 								<ResultIssueBadges
@@ -220,12 +242,15 @@ export const getColumns = ({
 								selectedVerdicts={verdicts}
 								onResultClick={handleResultClick}
 								isResultSelected={isResultSelected}
+								resultClassName={VERDICT_RESULT_BOXED_CLASS}
 								resultSlot={
 									<ClassificationVerdict
 										issues={obtainedResult.issues}
 										hasError={obtainedResult.isNotExpected}
 										resultId={obtainedResult.resultId}
 										projectId={obtainedResult.projectId}
+										selectedClassifications={filterValue.classifications}
+										onClassificationClick={handleClassificationClick}
 									/>
 								}
 							/>
@@ -246,6 +271,7 @@ export const getColumns = ({
 						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
 						categories?: string[];
+						classifications?: string[];
 					}
 				) => {
 					const value = row.getValue(column) as {
@@ -265,7 +291,8 @@ export const getColumns = ({
 						!filterValue?.results?.length &&
 						!filterValue?.resultProperties?.length &&
 						!filterValue?.verdicts?.length &&
-						!filterValue?.categories?.length
+						!filterValue?.categories?.length &&
+						!filterValue?.classifications?.length
 					) {
 						return true;
 					}
@@ -289,12 +316,26 @@ export const getColumns = ({
 						(value.issues ?? []).some((issue) =>
 							filterValue.categories?.includes(issue.category)
 						);
+					// A result carries exactly one verdict, so this is a plain
+					// membership test rather than the some/every question the
+					// per-stamp axes ask. `null` is a passing result with no stamps:
+					// it shows no chip, so no chip's filter should claim it.
+					const classification = resultClassification({
+						issues: value.issues,
+						hasError: Boolean(value.isNotExpected)
+					});
+					const matchesClassifications =
+						!filterValue.classifications?.length ||
+						(classification
+							? filterValue.classifications.includes(classification.value)
+							: false);
 
 					return (
 						matchesResult &&
 						matchesResultProperties &&
 						matchesVerdicts &&
-						matchesCategories
+						matchesCategories &&
+						matchesClassifications
 					);
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
