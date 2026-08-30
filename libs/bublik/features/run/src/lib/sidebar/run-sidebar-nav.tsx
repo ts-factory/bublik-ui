@@ -146,7 +146,7 @@ export function RunSidebarNav() {
 						/>
 					) : issueCount > 0 ? (
 						<span
-							className="ml-auto rounded bg-badge-0 px-1.5 text-[0.6875rem] font-medium leading-[1.125rem] tabular-nums text-text-menu"
+							className="ml-auto rounded bg-badge-0 px-1.5 text-[0.6875rem] font-medium leading-[1.125rem] tabular-nums text-text-primary"
 							data-testid="run-sidebar-issue-count"
 						>
 							{issueCount}
