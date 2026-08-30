@@ -174,23 +174,22 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		const trigger = screen.getByTestId('classify-trigger');
 
 		expect(trigger).toHaveAttribute('data-result-id', '42');
-		// Same grid row as the verdict. The chip's cell also holds the rule that
-		// closes the column, so the verdict sits one level further in.
-		expect(screen.getByTestId('result-untriaged').parentElement?.parentElement)
-			.toBe(trigger.parentElement);
+		// Same line as the verdict, which is the whole point of moving it here.
+		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
+			trigger.parentElement
+		);
 	});
 
-	it('follows the verdict, on the edge the category chips start from', () => {
+	it('leads the line, so it is at one offset on every row of the table', () => {
 		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
 
 		const trigger = screen.getByTestId('classify-trigger');
-		const grid = trigger.parentElement;
-		const verdictCell = screen.getByTestId('result-issue-effect').parentElement;
+		const line = trigger.parentElement;
 
-		// A grid item of its own, in the second column, rather than an offset
-		// from the chip beside it.
-		expect(trigger.previousElementSibling).toBe(verdictCell);
-		expect(grid?.firstElementChild).toBe(verdictCell);
+		// First on a line that spans both columns, so nothing above or below can
+		// move it — a button is one width, and it starts at the cell's edge.
+		expect(line?.firstElementChild).toBe(trigger);
+		expect(line).toHaveClass('col-span-2');
 	});
 
 	it('offers the trigger on a passing result that carries stamps', () => {
@@ -199,9 +198,8 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		);
 
 		const trigger = screen.getByTestId('classify-trigger');
-		const verdictCell = screen.getByTestId('result-no-effect').parentElement;
 
-		expect(trigger.previousElementSibling).toBe(verdictCell);
+		expect(trigger.parentElement?.firstElementChild).toBe(trigger);
 		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
 	});
 
@@ -272,15 +270,13 @@ describe('ResultIssueBadges — the two columns', () => {
 		for (const el of stamps) expect(el).toHaveClass('contents');
 	});
 
-	it('keeps the verdict row two cells wide even with no trigger to put in it', () => {
-		// An absent second cell would let the first stamp's key chip fall into
-		// the verdict's row.
+	it('spans the result line across both, so no stamp can share its row', () => {
 		render(<ResultIssueBadges hasError issues={[stamp()]} />);
 
-		const grid =
-			screen.getByTestId('result-issue-effect').parentElement?.parentElement;
+		const line = screen.getByTestId('result-issue-effect').parentElement;
 
-		// verdict cell, the (empty) action cell, then the stamp wrapper
-		expect(grid?.children).toHaveLength(3);
+		expect(line).toHaveClass('col-span-2');
+		// the result's line, then the stamp wrapper
+		expect(line?.parentElement?.children).toHaveLength(2);
 	});
 });

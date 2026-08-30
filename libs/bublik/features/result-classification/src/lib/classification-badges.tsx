@@ -618,27 +618,26 @@ export function ResultIssueBadges({
 		) : null;
 
 	/*
-	 * Two columns: what, then why. The verdict and the stamps' keys share the
-	 * first, the action and the categories share the second.
+	 * One line for the result, then a two-column list of the stamps that
+	 * explain it: which issue, and why.
 	 *
-	 * A stack of flex rows put each stamp's category chip wherever that stamp's
-	 * key chip happened to end, so `E2E-9` and `E2E-1204` in the same cell left
-	 * the categories in a ragged line and the row read as unrelated pairs
-	 * rather than as one list. The grid gives them a shared edge.
+	 * The stamps were a stack of flex rows, so each category chip sat wherever
+	 * that stamp's key chip happened to end — `E2E-9` and `E2E-1204` in one
+	 * cell left the categories in a ragged line, and the block read as
+	 * unrelated pairs rather than as one list. The columns give them a shared
+	 * edge, and they size to their content: padding a key chip out to some
+	 * wider column's width trades a ragged edge for a gap, which is not a
+	 * trade.
 	 *
-	 * Both columns size to their content. Holding the first at the width of the
-	 * longest verdict label would put the Classify button at the same offset in
-	 * every cell of the table, not just within one — but it also pads every key
-	 * chip out to a width its text does not need, and a gap between two chips
-	 * reads as a fault where a button an inch further along does not.
+	 * The result's own line spans both columns rather than sitting in them.
+	 * That is what lets the Classify button lead: it starts at the cell's left
+	 * edge, and since a button is one fixed width, it is at the same place on
+	 * every row of the table without anything being held open for it. The
+	 * verdict follows at the same constant offset.
 	 *
-	 * The verdict and the button are grid items in their own right, so the
-	 * button lands on the categories' edge instead of a hand-set offset from
-	 * the chip beside it.
-	 *
-	 * The wrappers are `contents`: they carry the `data-*` hooks the e2e suite
-	 * reads, and without it each would be a single box and take its two chips
-	 * out of the columns.
+	 * The stamp wrappers are `contents`: they carry the `data-*` hooks the e2e
+	 * suite reads, and without it each would be a single box and take its two
+	 * chips out of the columns.
 	 */
 	const body = (
 		<div
@@ -647,24 +646,18 @@ export function ResultIssueBadges({
 				className
 			)}
 		>
-			{/*
-			 * The rule closes the first column rather than opening the second, so
-			 * the button starts exactly where the category chips do. Drawn only
-			 * between two things: a read-only surface passes no result, and a
-			 * rule with nothing on one side reads as a stray mark.
-			 */}
-			<div className="flex items-center gap-1.5">
-				{verdict}
+			<div className="flex items-center col-span-2 gap-1.5">
+				{classify}
+				{/* Only between two things. A read-only surface passes no result,
+				    and a rule with nothing on one side reads as a stray mark. */}
 				{classify ? (
 					<Separator
 						orientation="vertical"
 						className="h-3.5 bg-border-primary"
 					/>
 				) : null}
+				{verdict}
 			</div>
-			{/* Always emitted, even empty: an absent cell would let the first
-			    stamp's key chip fall into the verdict's row. */}
-			{classify ?? <div aria-hidden />}
 			{stamps.map((issue) => (
 				<div
 					key={issue.rule_id}
