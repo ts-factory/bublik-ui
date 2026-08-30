@@ -532,18 +532,18 @@ export function ResultIssueBadges({
 	 * row carries a chip reads as a failure to render rather than as an answer.
 	 */
 	const verdict = !stamps.length ? (
-		<div data-testid="result-untriaged">
+		<div className="contents" data-testid="result-untriaged">
 			<UntriagedBadge className={VERDICT_SLOT_CLASS} />
 		</div>
 	) : hasError ? (
-		<div data-testid="result-issue-effect">
+		<div className="contents" data-testid="result-issue-effect">
 			<RunEffectBadge
 				effect={resultIssueEffect(stamps).value}
 				className={VERDICT_SLOT_CLASS}
 			/>
 		</div>
 	) : (
-		<div data-testid="result-no-effect">
+		<div className="contents" data-testid="result-no-effect">
 			<NoEffectBadge className={VERDICT_SLOT_CLASS} />
 		</div>
 	);
@@ -560,27 +560,35 @@ export function ResultIssueBadges({
 			<ClassifyButton resultId={resultId} projectId={projectId} />
 		) : null;
 
+	/*
+	 * Two columns: what, then why. The verdict and the stamps' keys share the
+	 * first, the action and the categories share the second.
+	 *
+	 * A stack of flex rows put each stamp's category chip wherever that stamp's
+	 * key chip happened to end, so `E2E-9` and `E2E-1204` in the same cell left
+	 * the categories in a ragged line and the row read as unrelated pairs
+	 * rather than as one list. The grid gives them a shared edge.
+	 *
+	 * `VERDICT_SLOT_CLASS` sets a floor under the first column, so it is the
+	 * same width in every cell unless a key chip exceeds it — which is what
+	 * keeps the Classify button in one place down the whole table, not just
+	 * within a cell.
+	 *
+	 * The wrappers are `contents`: they carry the `data-*` hooks the e2e suite
+	 * reads, and without it each would be a single grid item and take its two
+	 * chips out of the columns.
+	 */
 	const body = (
-		<div className={cn('flex flex-col gap-1', className)}>
-			{/*
-			 * Classify leads, and the verdict follows it.
-			 *
-			 * Reading order says the opposite — state, then what to do about it —
-			 * but the chips are five different widths and one of the cases has no
-			 * chip at all (a result that passed carries stamps but no verdict, so
-			 * there is nothing for one to say). Put the button second and it lands
-			 * at a different offset on every row, which is a worse thing to do to
-			 * a control than to read it slightly out of order: a button you have
-			 * to re-find on each row is not really in the same place at all.
-			 */}
+		<div
+			className={cn(
+				'grid grid-cols-[max-content_max-content] items-center justify-start gap-x-1.5 gap-y-1',
+				className
+			)}
+		>
+			{verdict}
+			{/* Always emitted, even with nothing in it: an absent cell would let
+			    the first stamp's key chip fall into the verdict's row. */}
 			<div className="flex items-center gap-1.5">
-				{/*
-				 * The verdict reads first and the action follows it: what is true
-				 * of this result, then what you can do about it. The chip carries
-				 * its own width (`VERDICT_SLOT_CLASS`), which is what lets that
-				 * order hold without the button moving from row to row.
-				 */}
-				{verdict}
 				{/* Only between two things. A read-only surface passes no result,
 				    and a rule with nothing on one side reads as a stray mark. */}
 				{classify ? (
@@ -594,7 +602,7 @@ export function ResultIssueBadges({
 			{stamps.map((issue) => (
 				<div
 					key={issue.rule_id}
-					className="flex flex-wrap items-center gap-1"
+					className="contents"
 					data-testid="result-issue-stamp"
 					data-issue-id={issue.issue_id}
 				>

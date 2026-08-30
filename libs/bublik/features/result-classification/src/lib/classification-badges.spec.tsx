@@ -182,9 +182,11 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		const trigger = screen.getByTestId('classify-trigger');
 
 		expect(trigger).toHaveAttribute('data-result-id', '42');
-		// Same line as the verdict, which is the whole point of moving it here.
+		// Same grid row as the verdict, which is the whole point of moving it
+		// here: the verdict's wrapper is `contents`, so the two share a parent
+		// one level up.
 		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
-			trigger.parentElement
+			trigger.parentElement?.parentElement
 		);
 	});
 
@@ -274,5 +276,38 @@ describe('the verdict slot budget', () => {
 		for (const label of labels) {
 			expect(label.length).toBeLessThanOrEqual(VERDICT_SLOT_MAX_LABEL);
 		}
+	});
+});
+
+describe('ResultIssueBadges — the two columns', () => {
+	it('puts each stamp\'s chips in the columns rather than in a row of its own', () => {
+		// `contents` is what does it: the wrapper keeps the e2e hooks and stops
+		// being a box, so the key and the category land in the shared columns and
+		// the categories line up however long the keys are.
+		render(
+			<ResultIssueBadges
+				hasError
+				issues={[
+					stamp({ bug_key: 'ref://JIRA/E2E-1' }),
+					stamp({ bug_key: 'ref://JIRA/E2E-12345' })
+				]}
+			/>
+		);
+
+		const stamps = screen.getAllByTestId('result-issue-stamp');
+
+		expect(stamps).toHaveLength(2);
+		for (const el of stamps) expect(el).toHaveClass('contents');
+	});
+
+	it('keeps the verdict row two cells wide even with no trigger to put in it', () => {
+		// An absent second cell would let the first stamp's key chip fall into
+		// the verdict's row.
+		render(<ResultIssueBadges hasError issues={[stamp()]} />);
+
+		const grid = screen.getByTestId('result-issue-effect').parentElement;
+
+		// verdict wrapper, the (empty) action cell, then the stamp wrapper
+		expect(grid?.children).toHaveLength(3);
 	});
 });

@@ -335,15 +335,21 @@ export const VERDICT_SLOT_MAX_LABEL = 14;
  * an empty slot where every other row carries a verdict reads as something
  * failing to render.
  *
- * Grey, the inert-metadata hue: this is the one row state that carries no
- * judgement at all.
+ * Outlined rather than washed, and it is the only chip in the system that is.
+ * The five hue families all assert something about the count, and this one has
+ * nothing to assert — but the sixth, grey, is already spoken for: it is the
+ * identity hue, worn by the key chip directly beneath this one, so a grey
+ * verdict and the key it sits above read as the same kind of thing. An empty
+ * outline says "no verdict" in the one register nothing else uses.
  */
 export const NO_EFFECT_META = {
 	value: 'no-effect',
 	label: 'No effect',
 	description:
 		'The result passed, so its stamps decide nothing. They record that a rule matches this iteration, not that anything went wrong this time.',
-	className: 'bg-badge-0 text-text-menu',
+	className: 'bg-transparent border-border-primary text-text-menu',
+	// The stripe has no key chip beside it to be confused with, and a hollow
+	// 24px gutter would read as a rendering gap, so there it stays grey.
 	stripeClassName: STRIPE_GREY,
 	iconName: 'InformationCircleForbidden'
 } as const satisfies {
