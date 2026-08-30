@@ -152,14 +152,14 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 		},
 		{
 			// The external identity, on the same line as the title rather than
-			// wrapped under it: the chip plus, when the project resolves one, the
-			// link out to the tracker.
+			// wrapped under it: when the project resolves one, the link out to the
+			// tracker, then the key itself.
 			//
 			// `w-px` is under min-content, so the column collapses to exactly the
 			// widest key it holds — `whitespace-nowrap` keeps that from being
 			// measured mid-key, since `E2E-105` would otherwise break at the dash.
-			// Inside the cell the chip and the link sit at opposite ends, so the
-			// links land in one vertical line no matter how short the key is.
+			// Inside the cell the link leads the key it opens, and the cell shrinks
+			// to the pair rather than stretching them to its two edges.
 			id: COLUMN_ID.BUG_KEY,
 			accessorFn: (row) => row.bug_key ?? '',
 			header: 'Key',
@@ -174,7 +174,6 @@ function getColumns(projectId?: number): ColumnDef<RunIssueRow, unknown>[] {
 						bugUrl={bug_url}
 						issueId={issue_id}
 						fallback={`#${issue_id}`}
-						className="flex justify-between w-full gap-2"
 					/>
 				);
 			}

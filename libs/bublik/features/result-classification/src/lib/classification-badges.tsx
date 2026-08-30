@@ -324,6 +324,20 @@ export interface BugKeyChipProps {
  * `uppercase tracking-wide` the meta badges carry: a tracker key is an
  * identifier to be matched against a bug tracker character for character, and
  * letter-spacing a value like `FOO-123` makes that harder, not easier.
+ *
+ * The way out to the tracker trails the key, inside the pill and ruled off from
+ * it -- `[FOO-123 | ↗]`. Parked outside the badge the icon floated in whatever
+ * whitespace the cell happened to have, which in the tables that stretched the
+ * chip left it at the far edge, nowhere near the key it opens. One badge
+ * holding both makes them read as a single object, and the key still comes
+ * first because that is what the chip is for -- the icon is the way out of it.
+ * The rule is what stops the icon reading as part of the key itself, and both
+ * it and the icon are dropped when the project cannot resolve a URL, rather
+ * than leaving an empty slot and a divider with nothing on one side of it.
+ *
+ * The badge is therefore no longer itself a link -- it holds two, pointing at
+ * different places -- so `closed` strikes the key alone. A closed issue's
+ * tracker link still works, and a struck-through icon would say otherwise.
  */
 const CLOSED_KEY_NOTE =
 	'This issue is closed, so its rules no longer suppress these results.';
@@ -348,54 +362,60 @@ export function BugKeyChip({
 		: bugKey ?? 'No tracker key linked to this issue';
 	const tooltip = closed ? `${base} ${CLOSED_KEY_NOTE}` : base;
 
-	const chip = (
+	// Carried by the key rather than by the pill around it: the pill also holds
+	// the tracker link, which a closed issue does not disable.
+	const keyProps = {
+		className: cn(
+			// `underline` and `line-through` are the same CSS property, so the hover
+			// underline would *replace* the strike — the issue would look alive
+			// exactly while you point at it. Keep the colour change only.
+			issueId !== undefined &&
+				(closed ? 'hover:text-primary' : 'hover:text-primary hover:underline'),
+			closed && 'line-through opacity-60'
+		),
+		'data-issue-state': closed ? 'closed' : undefined
+	};
+
+	return (
 		<Badge
 			className={cn(
 				BUG_KEY_BADGE_CLASS,
-				'bg-badge-0 text-text-menu normal-case tracking-normal',
-				// `underline` and `line-through` are the same CSS property, so the
-				// hover underline would *replace* the strike — the issue would look
-				// alive exactly while you point at it. Keep the colour change only.
-				issueId !== undefined &&
-					(closed
-						? 'hover:text-primary'
-						: 'hover:text-primary hover:underline'),
-				closed && 'line-through opacity-60'
+				'gap-1.5 bg-badge-0 text-text-menu normal-case tracking-normal font-mono',
+				className
 			)}
-			data-issue-state={closed ? 'closed' : undefined}
 		>
-			{label}
-		</Badge>
-	);
-
-	return (
-		<span className={cn('inline-flex items-center gap-1', className)}>
 			<Tooltip content={tooltip}>
 				{issueId !== undefined ? (
 					<LinkWithProject
 						to={routes.issue({ issueId })}
 						data-testid="issue-key-link"
+						{...keyProps}
 					>
-						{chip}
+						{label}
 					</LinkWithProject>
 				) : (
-					chip
+					<span {...keyProps}>{label}</span>
 				)}
 			</Tooltip>
 			{bugUrl ? (
-				<Tooltip content="Open in the issue tracker">
-					<a
-						href={bugUrl}
-						target="_blank"
-						rel="noreferrer"
-						className="grid place-items-center text-text-menu hover:text-primary"
-						data-testid="issue-bug-link"
-					>
-						<Icon name="ExternalLink" size={14} />
-					</a>
-				</Tooltip>
+				<>
+					{/* Inset rather than full-bleed: `h-full` would run the rule into
+					    the pill's own padding and read as a broken border. */}
+					<Separator orientation="vertical" className="h-3" />
+					<Tooltip content="Open in the issue tracker">
+						<a
+							href={bugUrl}
+							target="_blank"
+							rel="noreferrer"
+							className="grid place-items-center text-text-menu hover:text-primary"
+							data-testid="issue-bug-link"
+						>
+							<Icon name="ExternalLink" size={14} />
+						</a>
+					</Tooltip>
+				</>
 			) : null}
-		</span>
+		</Badge>
 	);
 }
 

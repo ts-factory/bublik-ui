@@ -100,7 +100,10 @@ export function IssueDetailHeader({
 				<h1 className="text-sm font-semibold text-text-primary">
 					{issue.title}
 				</h1>
-				<BugKeyChip bugKey={issue.issue_ext?.key ?? null} />
+				<BugKeyChip
+					bugKey={issue.issue_ext?.key ?? null}
+					bugUrl={issue.bug_url ?? null}
+				/>
 			</div>
 
 			{issue.description ? (

@@ -193,11 +193,11 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 			)
 		},
 		{
-			// The tracker key starts the data half of every row, and and
-			// — once the API resolves `bug_url` — the way out to the tracker sits
-			// on that same line, matching the run's issue table. The chip and the
-			// link sit at opposite ends of the cell so the links land in one
-			// vertical run however short the key is.
+			// The tracker key starts the data half of every row, and — once the API
+			// resolves `bug_url` — the way out to the tracker leads it, matching the
+			// run's issue table. The cell shrinks to the chip rather than stretching
+			// across the column: the link is what the eye lands on first, so it wants
+			// to sit at the cell's own edge, not at the far side of it.
 			id: COLUMN_ID.KEY,
 			accessorFn: (row) => row.bugKey ?? '',
 			header: 'Key',
@@ -212,7 +212,6 @@ function getColumns(projectId?: number): ColumnDef<IssueTableRow, unknown>[] {
 					bugUrl={row.original.bugUrl}
 					issueId={row.original.id}
 					fallback={`#${row.original.id}`}
-					className="flex justify-between w-full gap-2"
 				/>
 			)
 		},

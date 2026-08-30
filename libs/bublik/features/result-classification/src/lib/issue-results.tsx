@@ -78,7 +78,7 @@ function ResultLinks({ runId, row }: ResultLinksProps) {
 		// `secondary` is what `HistoryLinkContainer` already renders as, so Run and
 		// Log wear it too. Left as bare anchors they read as a stray pair of links
 		// hanging off one filled chip rather than as three peers.
-		<ul className="flex flex-col items-start gap-2 py-1">
+		<ul className="flex flex-col items-start gap-1 py-1">
 			<li>
 				<ButtonTw asChild variant="secondary" size="xss">
 					<LinkWithProject

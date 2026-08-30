@@ -145,6 +145,8 @@ interface IssueRuleRow extends IssueRule {
 	issueTitle: string;
 	issueState: IssueState | null;
 	bugKey: string | null;
+	/** Resolved tracker URL, when the project can resolve one. */
+	bugUrl: string | null;
 }
 
 function buildRows(rules: IssueRule[], issues: Issue[]): IssueRuleRow[] {
@@ -157,7 +159,8 @@ function buildRows(rules: IssueRule[], issues: Issue[]): IssueRuleRow[] {
 			...rule,
 			issueTitle: issue?.title ?? `#${rule.issue}`,
 			issueState: issue?.state ?? null,
-			bugKey: formatBugKey(issue?.issue_ext?.key ?? null)
+			bugKey: formatBugKey(issue?.issue_ext?.key ?? null),
+			bugUrl: issue?.bug_url ?? null
 		};
 	});
 }
@@ -321,6 +324,7 @@ const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	cell: ({ row }) => (
 		<BugKeyChip
 			bugKey={row.original.bugKey}
+			bugUrl={row.original.bugUrl}
 			issueId={row.original.issue}
 			fallback={`#${row.original.issue}`}
 		/>
