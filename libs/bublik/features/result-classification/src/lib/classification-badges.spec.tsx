@@ -11,6 +11,14 @@ import { PropsWithChildren, ReactElement, ReactNode, forwardRef } from 'react';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { ResultIssueRef } from '@/shared/types';
 
+import {
+	NO_EFFECT_META,
+	RUN_ISSUE_EFFECT_META,
+	UNTRIAGED_META,
+	VERDICT_SLOT_CLASS,
+	VERDICT_SLOT_MAX_LABEL
+} from './classification-colors';
+
 vi.mock('@/bublik/features/projects', () => {
 	interface MockLinkProps {
 		to: string | { pathname?: string };
@@ -175,34 +183,33 @@ describe('ResultIssueBadges — the Classify slot', () => {
 
 		expect(trigger).toHaveAttribute('data-result-id', '42');
 		// Same line as the verdict, which is the whole point of moving it here.
+		// One wrapper deeper: the verdict sits in the reserved slot.
 		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
-			trigger.parentElement
+			trigger.parentElement?.firstElementChild
 		);
 	});
 
-	it('leads the line, so the button is at one offset on every row', () => {
-		// The chips are five different widths and one case has none at all, so
-		// anything placed after them moves from row to row.
+	it('follows the verdict, from a slot wide enough that it never moves', () => {
 		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
 
-		const line = screen.getByTestId('classify-trigger').parentElement;
+		const trigger = screen.getByTestId('classify-trigger');
+		const line = trigger.parentElement;
 
-		expect(line?.firstElementChild).toBe(
-			screen.getByTestId('classify-trigger')
-		);
+		expect(line?.lastElementChild).toBe(trigger);
+		// The six labels are six widths; the reserved slot is what stops the
+		// button landing at a different offset on every row.
+		expect(line?.firstElementChild).toHaveClass(VERDICT_SLOT_CLASS);
 	});
 
 	it('offers the trigger on a passing result that carries stamps', () => {
-		// No verdict chip here — nothing failed, so there is nothing to suppress
-		// — and the button still has to sit where it does on every other row.
 		render(
 			<ResultIssueBadges hasError={false} issues={[stamp()]} resultId={42} />
 		);
 
 		const trigger = screen.getByTestId('classify-trigger');
 
-		expect(trigger.parentElement?.firstElementChild).toBe(trigger);
-		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
+		expect(trigger.parentElement?.lastElementChild).toBe(trigger);
+		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
 	});
 
 	it('keeps the trigger on a failure that already carries a stamp', () => {
@@ -218,5 +225,53 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		);
 
 		expect(container).toBeEmptyDOMElement();
+	});
+});
+
+describe('ResultIssueBadges — the verdict slot', () => {
+	it('answers with No effect when the result passed but carries stamps', () => {
+		// `expected: true` on the stamp: run the effect axis over it and it would
+		// report SUPPRESSED, claiming to have hidden a failure that never was.
+		render(<ResultIssueBadges hasError={false} issues={[stamp()]} />);
+
+		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
+		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
+	});
+
+	it('fills the slot on every row it renders, so the column has no holes', () => {
+		const rows = [
+			{ hasError: true, issues: [] },
+			{ hasError: true, issues: [stamp()] },
+			{ hasError: false, issues: [stamp()] }
+		];
+
+		for (const row of rows) {
+			const { container, unmount } = render(<ResultIssueBadges {...row} />);
+
+			expect(
+				container.querySelector(
+					'[data-testid="result-untriaged"], [data-testid="result-issue-effect"], [data-testid="result-no-effect"]'
+				)
+			).not.toBeNull();
+
+			unmount();
+		}
+	});
+});
+
+describe('the verdict slot budget', () => {
+	it('holds every label that can land in it', () => {
+		// The slot's width is a number in a class name; this is what keeps it
+		// honest. A longer label starts pushing the Classify button around, and
+		// that should fail here rather than turn up in a screenshot.
+		const labels = [
+			UNTRIAGED_META.label,
+			NO_EFFECT_META.label,
+			...Object.values(RUN_ISSUE_EFFECT_META).map((meta) => meta.label)
+		];
+
+		for (const label of labels) {
+			expect(label.length).toBeLessThanOrEqual(VERDICT_SLOT_MAX_LABEL);
+		}
 	});
 });

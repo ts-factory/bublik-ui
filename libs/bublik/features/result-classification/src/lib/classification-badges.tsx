@@ -17,7 +17,9 @@ import {
 	CLASSIFICATION_BADGE_CLASS,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
+	NO_EFFECT_META,
 	UNTRIAGED_META,
+	VERDICT_SLOT_CLASS,
 	categoryMeta,
 	dispositionMeta,
 	formatBugKey,
@@ -238,6 +240,24 @@ export function UntriagedBadge(props: BadgeExtras) {
 			{...props}
 		>
 			{UNTRIAGED_META.label}
+		</MetaBadge>
+	);
+}
+
+/**
+ * A result that passed while carrying stamps. The third answer on this line,
+ * beside Untriaged and the four effects, and the only one that is not a
+ * verdict: the rules did nothing here because there was nothing to do.
+ */
+export function NoEffectBadge(props: BadgeExtras) {
+	return (
+		<MetaBadge
+			description={NO_EFFECT_META.description}
+			metaClassName={NO_EFFECT_META.className}
+			dataAttributes={{ 'data-effect': NO_EFFECT_META.value }}
+			{...props}
+		>
+			{NO_EFFECT_META.label}
 		</MetaBadge>
 	);
 }
@@ -503,9 +523,13 @@ export function ResultIssueBadges({
 	if (!stamps.length && !hasError) return null;
 
 	/*
-	 * The verdict for the whole result: UNTRIAGED when nobody has looked, the
-	 * effect of the stamps when someone has. Never both — they answer different
-	 * questions and only one of them applies to any row.
+	 * The verdict for the whole result, and there is always exactly one:
+	 * UNTRIAGED when nobody has looked, the effect of the stamps when someone
+	 * has, and NO EFFECT when the result passed and they therefore did nothing.
+	 *
+	 * That last case used to render nothing, which left a hole in the one column
+	 * position the eye tracks down — and an empty slot where every neighbouring
+	 * row carries a chip reads as a failure to render rather than as an answer.
 	 */
 	const verdict = !stamps.length ? (
 		<div data-testid="result-untriaged">
@@ -515,7 +539,11 @@ export function ResultIssueBadges({
 		<div data-testid="result-issue-effect">
 			<RunEffectBadge effect={resultIssueEffect(stamps).value} />
 		</div>
-	) : null;
+	) : (
+		<div data-testid="result-no-effect">
+			<NoEffectBadge />
+		</div>
+	);
 
 	/*
 	 * Classify sits with the verdict it changes rather than in the Actions
@@ -542,20 +570,28 @@ export function ResultIssueBadges({
 			 * a control than to read it slightly out of order: a button you have
 			 * to re-find on each row is not really in the same place at all.
 			 */}
-			{verdict || classify ? (
-				<div className="flex items-center gap-1.5">
-					{classify}
-					{/* Only between two things. A rule with nothing on one side of
-					    it reads as a stray mark. */}
-					{verdict && classify ? (
-						<Separator
-							orientation="vertical"
-							className="h-3.5 bg-border-primary"
-						/>
-					) : null}
-					{verdict}
-				</div>
-			) : null}
+			<div className="flex items-center gap-1.5">
+				{/*
+				 * The verdict reads first and the action follows it: what is true
+				 * of this result, then what you can do about it.
+				 *
+				 * The slot is held at a fixed width because the six labels that can
+				 * fill it are six different widths, and the button after them would
+				 * otherwise sit at a different offset on every row. Reserving the
+				 * widest label's width is what lets the reading order and a
+				 * stationary button both hold.
+				 */}
+				<div className={VERDICT_SLOT_CLASS}>{verdict}</div>
+				{/* Only between two things. A read-only surface passes no result,
+				    and a rule with nothing on one side reads as a stray mark. */}
+				{classify ? (
+					<Separator
+						orientation="vertical"
+						className="h-3.5 bg-border-primary"
+					/>
+				) : null}
+				{classify}
+			</div>
 			{stamps.map((issue) => (
 				<div
 					key={issue.rule_id}

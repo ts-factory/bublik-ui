@@ -292,6 +292,63 @@ export const UNTRIAGED_META = {
 };
 
 /**
+ * The width of the verdict chip's slot on a result row.
+ *
+ * The chip is followed by the Classify button, and the six labels that can
+ * appear in it are six different widths, so without a floor the button lands
+ * at a different offset on every row — a control you have to re-find per row
+ * is not really in the same place at all. Reserving the widest label's width
+ * costs a little whitespace on the short ones and buys a button that never
+ * moves.
+ *
+ * The number tracks `VERDICT_SLOT_MAX_LABEL` below, which is checked by a
+ * spec: a longer label starts pushing the button around again, and that is a
+ * thing to find out from a failing test rather than from a screenshot.
+ */
+export const VERDICT_SLOT_CLASS = 'min-w-[8rem]';
+
+/**
+ * `Counting again`, the longest of them. Every label that can land in the
+ * verdict slot has to fit the width above, so this is the budget.
+ */
+export const VERDICT_SLOT_MAX_LABEL = 14;
+
+/**
+ * A result that passed but carries stamps anyway.
+ *
+ * Outside `RunIssueEffect` for the same reason as `UNTRIAGED_META`: that union
+ * answers what the rules did to the unexpected count, and here they did
+ * nothing, because there was no failure for them to act on. Running
+ * `resultIssueEffect` over these stamps would answer confidently and wrongly —
+ * a rule marked `expected` would report SUPPRESSED, claiming to have hidden a
+ * failure that never happened.
+ *
+ * It is worth a chip rather than a blank. The stamps below it need explaining
+ * — a known-broken test that passed this time is a fact you want to see — and
+ * an empty slot where every other row carries a verdict reads as something
+ * failing to render.
+ *
+ * Grey, the inert-metadata hue: this is the one row state that carries no
+ * judgement at all.
+ */
+export const NO_EFFECT_META = {
+	value: 'no-effect',
+	label: 'No effect',
+	description:
+		'The result passed, so its stamps decide nothing. They record that a rule matches this iteration, not that anything went wrong this time.',
+	className: 'bg-badge-0 text-text-menu',
+	stripeClassName: STRIPE_GREY,
+	iconName: 'InformationCircleForbidden'
+} as const satisfies {
+	value: string;
+	label: string;
+	description: string;
+	className: string;
+	stripeClassName: string;
+	iconName: IconName;
+};
+
+/**
  * The disposition axis: what a rule's tri-state `expected` decides.
  *
  * `null` is not "unknown pending a value" — it is a deliberate third choice
