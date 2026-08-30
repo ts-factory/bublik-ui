@@ -67,7 +67,7 @@ export const CLASSIFICATION_BADGE_CLASS =
  * so the room a short label like AGAIN gains is shared rather than hanging off
  * one end.
  */
-export const RESULT_VERDICT_CHIP_CLASS = 'min-w-[6.5rem] justify-center';
+export const RESULT_VERDICT_CHIP_CLASS = 'min-w-[86px] justify-center';
 
 export interface CategoryMeta {
 	value: IssueCategory;

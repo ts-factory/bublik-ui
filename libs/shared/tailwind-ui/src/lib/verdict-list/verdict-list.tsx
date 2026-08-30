@@ -23,7 +23,7 @@ export type VerdictVariantValue = 'expected' | 'obtained';
  * renders wider than measured: a badge that outgrows the box takes its own row
  * back out of line, which is the one thing this exists to prevent.
  */
-export const VERDICT_RESULT_BOXED_CLASS = 'min-w-[6.5rem] justify-center';
+export const VERDICT_RESULT_BOXED_CLASS = 'min-w-[86px] justify-center';
 
 export interface VerdictResultProps {
 	variant: VerdictVariant | VerdictVariantValue;
