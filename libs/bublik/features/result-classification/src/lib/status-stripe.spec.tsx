@@ -60,8 +60,15 @@ describe('StatusStripe', () => {
 	it('positions the cell from the td and never the th', () => {
 		// `position` on the shared key reaches the header, where `twMerge` reads
 		// it as replacing `sticky` and unpins it.
-		expect(STATUS_STRIPE_COLUMN_META.className).not.toMatch(/relative|p-0/);
+		expect(STATUS_STRIPE_COLUMN_META.className).not.toMatch(/relative/);
 		expect(STATUS_STRIPE_COLUMN_META.cellClassName).toContain('relative');
+	});
+
+	it('pins the gutter width rather than suggesting it', () => {
+		// `table-auto` treats a bare `width` as advice and squeezes the column
+		// when the row is crowded — precisely when the stripe matters most.
+		expect(STATUS_STRIPE_COLUMN_META.className).toContain('min-w-[24px]');
+		expect(STATUS_STRIPE_COLUMN_META.className).toContain('max-w-[24px]');
 	});
 });
 

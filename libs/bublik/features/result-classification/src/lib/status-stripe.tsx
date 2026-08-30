@@ -56,17 +56,21 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 
 /**
  * `p-0` so the fill reaches the cell's edges rather than sitting in a white
- * frame, and `relative` so the stripe's `inset-0` resolves against this cell
- * rather than the row, which is `relative` too and would stretch the fill
- * across the whole row. Shared so the three tables cannot drift apart on the
- * one detail that makes the effect work.
+ * frame, and all three width bounds because under `table-auto` a `width` is
+ * only advice: the algorithm is free to squeeze a column below it to fit the
+ * rest of the row, which it does exactly when the table is crowded — the case
+ * where a shrinking stripe is least welcome. `min-w` and `max-w` are what
+ * actually pin it, so the gutter is the same 24px on every table at every
+ * width.
  *
- * Those two go on `cellClassName`, not `className`: the shared key also reaches
- * the `th`, and there `twMerge` reads `relative` as overriding the pinned
- * header's `sticky` and drops it, leaving the header to scroll under the
- * stripes. Only the width is common to both, since the two must agree on it.
+ * `relative` is the one class held back for the body cells, because the shared
+ * key also reaches the `th`, and there `twMerge` reads it as overriding the
+ * pinned header's `sticky` and drops it, leaving the header to scroll under
+ * the stripes. Everything else stays common so the header sits exactly over
+ * the column it heads.
  */
 export const STATUS_STRIPE_COLUMN_META = {
-	className: 'w-[24px]',
-	cellClassName: 'p-0 relative'
+	className: 'p-0 w-[24px] min-w-[24px] max-w-[24px]',
+	/** `inset-0` resolves against this cell, not the row, which is `relative` too. */
+	cellClassName: 'relative'
 } as const;
