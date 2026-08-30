@@ -32,6 +32,7 @@ module.exports = {
 				'bg-ok': 'hsl(var(--colors-bg-ok) / <alpha-value>)',
 				'bg-running': 'hsl(var(--colors-bg-running) / <alpha-value>)',
 				'bg-compromised': 'hsl(var(--colors-bg-compromised) / <alpha-value>)',
+				'bg-triage': 'hsl(var(--colors-bg-triage) / <alpha-value>)',
 				'bg-stopped': 'hsl(var(--colors-bg-stopped) / <alpha-value>)',
 				'bg-busy': 'hsl(var(--colors-bg-busy) / <alpha-value>)',
 				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',

@@ -72,6 +72,11 @@ body,
 	--colors-bg-ok: 138 51% 60%;
 	--colors-bg-running: 231 66% 67%;
 	--colors-bg-compromised: 240 7% 70%;
+	/* Solid counterpart to --colors-text-triage, for the status stripe: the
+	   wash tokens only reach 88-98% lightness, which reads as no colour at
+	   all in a 24px full-bleed cell. Same lightness band as --colors-bg-running
+	   (231 66% 67%), hue pushed 27deg so it reads violet rather than blue. */
+	--colors-bg-triage: 258 70% 68%;
 	--colors-bg-stopped: 0 74% 93%;
 	--colors-bg-busy: 47 100% 64%;
 	--colors-bg-interrupted: 354 80% 75%;

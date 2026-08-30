@@ -39,6 +39,20 @@ const orderOf =
  * Badge box and only shrink the label, which is uppercased to read as a status
  * rather than as content. The meaning lives in the tooltip, not in an icon.
  */
+/**
+ * Solid fills for the status stripe — column 0 of every classification table.
+ *
+ * The chip washes (`badge-*`, 88-98% lightness) are tuned to sit behind text at
+ * chip size; in a 24px block of pure colour they read as an off-white smudge.
+ * These are the same five meanings in the saturated tokens, so a row's hue
+ * tells the same story whether you read it in the stripe or in the chips.
+ */
+const STRIPE_GREEN = 'bg-bg-ok text-white';
+const STRIPE_ORANGE = 'bg-bg-warning text-white';
+const STRIPE_RED = 'bg-bg-error text-white';
+const STRIPE_VIOLET = 'bg-bg-triage text-white';
+const STRIPE_GREY = 'bg-bg-compromised text-white';
+
 export const CLASSIFICATION_BADGE_CLASS =
 	'text-[0.6875rem] leading-[1.125rem] uppercase tracking-wide';
 
@@ -185,6 +199,12 @@ export interface RunIssueEffectMeta {
 	label: string;
 	description: string;
 	className: string;
+	/**
+	 * Solid fill for the status stripe, where the pale chip wash reads as no
+	 * colour at all. Carries its own text colour: the stripe holds an icon, not
+	 * a label, and it sits on saturated ground rather than a wash.
+	 */
+	stripeClassName: string;
 	iconName: IconName;
 }
 
@@ -196,6 +216,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			description:
 				'Does not count as unexpected: at least one rule marks these results expected, and the issue is open.',
 			className: 'bg-badge-3 text-text-expected',
+			stripeClassName: STRIPE_GREEN,
 			iconName: 'EyeHide'
 		},
 		stale: {
@@ -204,6 +225,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			description:
 				'Counts as unexpected again: these results were suppressed, but closing the issue un-suppressed them.',
 			className: 'bg-badge-14 text-text-primary',
+			stripeClassName: STRIPE_ORANGE,
 			iconName: 'InformationCircleStop'
 		},
 		unexpected: {
@@ -218,6 +240,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			description:
 				'Counts as unexpected: the rules explain these results, but still call them a real failure.',
 			className: 'bg-badge-13 text-text-unexpected',
+			stripeClassName: STRIPE_RED,
 			iconName: 'InformationCircleCrossMark'
 		},
 		marked: {
@@ -226,6 +249,7 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 			description:
 				'Counts as unexpected: the rules stamp these results but set no disposition, so nothing was decided and nothing is suppressed.',
 			className: 'bg-badge-2 text-text-triage',
+			stripeClassName: STRIPE_VIOLET,
 			iconName: 'TriangleQuestionMark'
 		}
 	};
@@ -256,12 +280,14 @@ export const UNTRIAGED_META = {
 	description:
 		'Counts as unexpected: nobody has classified this failure, so no rule explains it.',
 	className: 'bg-badge-2 text-text-triage',
+	stripeClassName: STRIPE_VIOLET,
 	iconName: 'TriangleExclamationMark'
 } as const satisfies {
 	value: string;
 	label: string;
 	description: string;
 	className: string;
+	stripeClassName: string;
 	iconName: IconName;
 };
 
@@ -421,6 +447,12 @@ export interface IssueRulesStateMeta {
 	label: string;
 	description: string;
 	className: string;
+	/**
+	 * Solid fill for the status stripe, where the pale chip wash reads as no
+	 * colour at all. Carries its own text colour: the stripe holds an icon, not
+	 * a label, and it sits on saturated ground rather than a wash.
+	 */
+	stripeClassName: string;
 	iconName: IconName;
 }
 
@@ -434,6 +466,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		description:
 			'This issue has active rules, so future imports will keep matching results to it.',
 		className: 'bg-badge-3 text-text-expected',
+		stripeClassName: STRIPE_GREEN,
 		iconName: 'InformationCircleCheckmark'
 	},
 	dormant: {
@@ -442,6 +475,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		description:
 			'The issue is open but none of its rules are active. Reopening an issue does not re-activate the rules that closing it deactivated — enable them by hand.',
 		className: 'bg-badge-2 text-text-triage',
+		stripeClassName: STRIPE_VIOLET,
 		iconName: 'TriangleQuestionMark'
 	},
 	deactivated: {
@@ -450,6 +484,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		description:
 			'Closing the issue deactivated its rules, so nothing new will be matched to it.',
 		className: 'bg-badge-14 text-text-primary',
+		stripeClassName: STRIPE_ORANGE,
 		iconName: 'InformationCircleStop'
 	},
 	unruled: {
@@ -458,6 +493,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		description:
 			'This issue has no rules yet. Rules are created by classifying a result, never on their own.',
 		className: 'bg-badge-0 text-text-menu',
+		stripeClassName: STRIPE_GREY,
 		iconName: 'InformationCircleQuestionMark'
 	}
 };
@@ -480,6 +516,7 @@ export function ruleActiveMeta(active: boolean): IssueRulesStateMeta {
 			label: 'Active',
 			description: 'This rule is applied to every future import.',
 			className: 'bg-badge-3 text-text-expected',
+			stripeClassName: STRIPE_GREEN,
 			iconName: 'InformationCircleCheckmark'
 		};
 	}
@@ -490,6 +527,7 @@ export function ruleActiveMeta(active: boolean): IssueRulesStateMeta {
 		description:
 			'This rule matches nothing new. Existing stamps it already laid down are left alone.',
 		className: 'bg-badge-0 text-text-menu',
+		stripeClassName: STRIPE_ORANGE,
 		iconName: 'InformationCircleStop'
 	};
 }

@@ -36,6 +36,14 @@ declare module '@tanstack/react-table' {
 		 * line with content that starts further in than the cell does.
 		 */
 		headerClassName?: string;
+		/**
+		 * Applied to the body cells only. The counterpart to `headerClassName`,
+		 * and the one a full-bleed cell needs: a `position` on the shared
+		 * `className` reaches the `th` as well, where `twMerge` reads it as
+		 * conflicting with the pinned header's `sticky` and drops it — the header
+		 * then scrolls under the rows instead of staying above them.
+		 */
+		cellClassName?: string;
 	}
 }
 
@@ -147,7 +155,8 @@ export function ClassificationTable<T>({
 									className={cn(
 										'px-2 py-1 align-middle bg-white',
 										idx !== arr.length - 1 && 'border-r border-border-primary',
-										cell.column.columnDef.meta?.className
+										cell.column.columnDef.meta?.className,
+										cell.column.columnDef.meta?.cellClassName
 									)}
 								>
 									{flexRender(cell.column.columnDef.cell, cell.getContext())}
