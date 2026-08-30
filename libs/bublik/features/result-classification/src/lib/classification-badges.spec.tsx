@@ -6,10 +6,13 @@ import {
 	render as rtlRender,
 	screen
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PropsWithChildren, ReactElement, ReactNode, forwardRef } from 'react';
 
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { ResultIssueRef } from '@/shared/types';
+
+import { categoryMeta } from './classification-colors';
 
 vi.mock('@/bublik/features/projects', () => {
 	interface MockLinkProps {
@@ -39,7 +42,9 @@ vi.mock('./classify-button', () => ({
 	)
 }));
 
-const { ResultIssueBadges } = await import('./classification-badges');
+const { ClassificationVerdict, ResultIssueBadges } = await import(
+	'./classification-badges'
+);
 
 const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
 	rtlRender(ui, {
@@ -70,30 +75,27 @@ const keys = () => screen.getAllByText(/^(E2E-|#)/);
 
 describe('ResultIssueBadges — closed issues', () => {
 	it('strikes the key of a stamp whose issue is closed', () => {
-		render(
-			<ResultIssueBadges hasError issues={[stamp({ issue_state: 'closed' })]} />
-		);
+		render(<ResultIssueBadges issues={[stamp({ issue_state: 'closed' })]} />);
 
 		expect(keys()[0]).toHaveClass('line-through');
 		expect(keys()[0]).toHaveAttribute('data-issue-state', 'closed');
 	});
 
 	it('leaves an open issue unstruck', () => {
-		render(<ResultIssueBadges hasError issues={[stamp()]} />);
+		render(<ResultIssueBadges issues={[stamp()]} />);
 
 		expect(keys()[0]).not.toHaveClass('line-through');
 		expect(keys()[0]).not.toHaveAttribute('data-issue-state');
 	});
 
 	/*
-	 * The case the aggregate effect chip cannot express: it reports one answer
-	 * for the whole result, so on a row carrying several stamps it cannot say
-	 * which issue died. Per-key striking can.
+	 * The case the aggregate verdict chip cannot express: it reports one answer
+	 * for the whole result, so on a row carrying several issues it cannot say
+	 * which of them died. Per-key striking can.
 	 */
-	it('strikes only the closed stamp when a result carries several', () => {
+	it('strikes only the closed issue when a result carries several', () => {
 		render(
 			<ResultIssueBadges
-				hasError
 				issues={[
 					stamp({ issue_id: 1, bug_key: 'ref://JIRA/E2E-123' }),
 					stamp({
@@ -110,123 +112,45 @@ describe('ResultIssueBadges — closed issues', () => {
 	});
 
 	/*
-	 * A closed issue is a fact about the issue, not about the count, so it shows
-	 * even where there is no count to affect.
-	 */
-	it('still strikes on a passing result, which carries no effect chip', () => {
-		render(
-			<ResultIssueBadges
-				hasError={false}
-				issues={[stamp({ issue_state: 'closed' })]}
-			/>
-		);
-
-		expect(keys()[0]).toHaveClass('line-through');
-		expect(screen.queryByTestId('result-issue-effect')).toBeNull();
-	});
-
-	/*
 	 * `underline` and `line-through` are the same CSS property, so a hover
 	 * underline would replace the strike and the issue would look alive exactly
 	 * while you point at it.
 	 */
 	it('does not pair the strike with a hover underline', () => {
-		render(
-			<ResultIssueBadges hasError issues={[stamp({ issue_state: 'closed' })]} />
-		);
+		render(<ResultIssueBadges issues={[stamp({ issue_state: 'closed' })]} />);
 
 		expect(keys()[0].className).not.toMatch(/hover:underline/);
 	});
 });
 
-describe('ResultIssueBadges — effect chip', () => {
+describe('ClassificationVerdict — the verdict chip', () => {
 	it('reports the effect once for a failing result', () => {
-		render(<ResultIssueBadges hasError issues={[stamp()]} />);
+		render(<ClassificationVerdict hasError issues={[stamp()]} />);
 
 		expect(screen.getByTestId('result-issue-effect')).toBeInTheDocument();
 	});
 
 	it('reads untriaged for a failure nobody has classified', () => {
-		render(<ResultIssueBadges hasError issues={[]} />);
+		render(<ClassificationVerdict hasError issues={[]} />);
 
 		expect(screen.getByTestId('result-untriaged')).toBeInTheDocument();
 	});
 
-	it('renders nothing for a passing result with no stamps', () => {
-		const { container } = render(
-			<ResultIssueBadges hasError={false} issues={[]} />
-		);
-
-		expect(container).toBeEmptyDOMElement();
-	});
-});
-
-describe('ResultIssueBadges — the Classify slot', () => {
-	it('offers no trigger to a surface that passed no result', () => {
-		render(<ResultIssueBadges hasError issues={[]} />);
-
-		expect(screen.queryByTestId('classify-trigger')).not.toBeInTheDocument();
-	});
-
-	it('puts the trigger beside Untriaged on a failure nobody has classified', () => {
-		render(<ResultIssueBadges hasError issues={[]} resultId={42} />);
-
-		const trigger = screen.getByTestId('classify-trigger');
-
-		expect(trigger).toHaveAttribute('data-result-id', '42');
-		// Same line as the verdict, which is the whole point of moving it here.
-		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
-			trigger.parentElement
-		);
-	});
-
-	it('leads the line, so it is at one offset on every row of the table', () => {
-		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
-
-		const trigger = screen.getByTestId('classify-trigger');
-		const line = trigger.parentElement;
-
-		// First on a line that spans both columns, so nothing above or below can
-		// move it — a button is one width, and it starts at the cell's edge.
-		expect(line?.firstElementChild).toBe(trigger);
-		expect(line).toHaveClass('col-span-2');
-	});
-
-	it('offers the trigger on a passing result that carries stamps', () => {
-		render(
-			<ResultIssueBadges hasError={false} issues={[stamp()]} resultId={42} />
-		);
-
-		const trigger = screen.getByTestId('classify-trigger');
-
-		expect(trigger.parentElement?.firstElementChild).toBe(trigger);
-		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
-	});
-
-	it('keeps the trigger on a failure that already carries a stamp', () => {
-		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
-
-		expect(screen.getByTestId('classify-trigger')).toBeInTheDocument();
-		expect(screen.getByTestId('result-issue-effect')).toBeInTheDocument();
-	});
-
-	it('renders nothing at all for a passing, unstamped result', () => {
-		const { container } = render(
-			<ResultIssueBadges hasError={false} issues={[]} resultId={42} />
-		);
-
-		expect(container).toBeEmptyDOMElement();
-	});
-});
-
-describe('ResultIssueBadges — the verdict slot', () => {
 	it('answers with No effect when the result passed but carries stamps', () => {
 		// `expected: true` on the stamp: run the effect axis over it and it would
 		// report SUPPRESSED, claiming to have hidden a failure that never was.
-		render(<ResultIssueBadges hasError={false} issues={[stamp()]} />);
+		render(<ClassificationVerdict hasError={false} issues={[stamp()]} />);
 
 		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
 		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
+	});
+
+	it('renders nothing for a passing result with no stamps', () => {
+		const { container } = render(
+			<ClassificationVerdict hasError={false} issues={[]} />
+		);
+
+		expect(container).toBeEmptyDOMElement();
 	});
 
 	it('fills the slot on every row it renders, so the column has no holes', () => {
@@ -237,7 +161,7 @@ describe('ResultIssueBadges — the verdict slot', () => {
 		];
 
 		for (const row of rows) {
-			const { container, unmount } = render(<ResultIssueBadges {...row} />);
+			const { container, unmount } = render(<ClassificationVerdict {...row} />);
 
 			expect(
 				container.querySelector(
@@ -249,34 +173,134 @@ describe('ResultIssueBadges — the verdict slot', () => {
 		}
 	});
 });
-describe('ResultIssueBadges — the two columns', () => {
-	it('puts each stamp\'s chips in the columns rather than in a row of its own', () => {
+
+describe('ClassificationVerdict — the Classify slot', () => {
+	it('offers no trigger to a surface that passed no result', () => {
+		render(<ClassificationVerdict hasError issues={[]} />);
+
+		expect(screen.queryByTestId('classify-trigger')).not.toBeInTheDocument();
+	});
+
+	it('puts the trigger beside Untriaged on a failure nobody has classified', () => {
+		render(<ClassificationVerdict hasError issues={[]} resultId={42} />);
+
+		const trigger = screen.getByTestId('classify-trigger');
+
+		expect(trigger).toHaveAttribute('data-result-id', '42');
+		// Same line as the verdict, which is the whole point of moving it here.
+		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
+			trigger.parentElement
+		);
+	});
+
+	it('trails the verdict: what happened, then what you can do about it', () => {
+		render(<ClassificationVerdict hasError issues={[stamp()]} resultId={42} />);
+
+		const verdict = screen.getByTestId('result-issue-effect');
+		const trigger = screen.getByTestId('classify-trigger');
+
+		expect(
+			verdict.compareDocumentPosition(trigger) &
+				Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+	});
+
+	it('offers the trigger on a passing result that carries stamps', () => {
+		render(
+			<ClassificationVerdict
+				hasError={false}
+				issues={[stamp()]}
+				resultId={42}
+			/>
+		);
+
+		expect(screen.getByTestId('classify-trigger')).toBeInTheDocument();
+		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
+	});
+
+	it('renders nothing at all for a passing, unstamped result', () => {
+		const { container } = render(
+			<ClassificationVerdict hasError={false} issues={[]} resultId={42} />
+		);
+
+		expect(container).toBeEmptyDOMElement();
+	});
+});
+
+describe('ResultIssueBadges — one line per issue', () => {
+	it("puts each issue's chips in the columns rather than in a row of its own", () => {
 		// `contents` is what does it: the wrapper keeps the e2e hooks and stops
-		// being a box, so the key and the category land in the shared columns and
+		// being a box, so the key and the categories land in the shared columns and
 		// the categories line up however long the keys are.
 		render(
 			<ResultIssueBadges
-				hasError
 				issues={[
-					stamp({ bug_key: 'ref://JIRA/E2E-1' }),
-					stamp({ bug_key: 'ref://JIRA/E2E-12345' })
+					stamp({ issue_id: 1, bug_key: 'ref://JIRA/E2E-1' }),
+					stamp({ issue_id: 2, bug_key: 'ref://JIRA/E2E-12345' })
 				]}
 			/>
 		);
 
-		const stamps = screen.getAllByTestId('result-issue-stamp');
+		const rows = screen.getAllByTestId('result-issue-stamp');
 
-		expect(stamps).toHaveLength(2);
-		for (const el of stamps) expect(el).toHaveClass('contents');
+		expect(rows).toHaveLength(2);
+		for (const el of rows) expect(el).toHaveClass('contents');
 	});
 
-	it('spans the result line across both, so no stamp can share its row', () => {
-		render(<ResultIssueBadges hasError issues={[stamp()]} />);
+	/*
+	 * A result carries one stamp per matching *rule*, so an issue with three
+	 * rules used to print its key three times and read as three bugs.
+	 */
+	it('collapses an issue matched by several rules onto one line', () => {
+		render(
+			<ResultIssueBadges
+				issues={[
+					stamp({ issue_id: 7, category: 'env' }),
+					stamp({ issue_id: 7, category: 'flaky' }),
+					stamp({ issue_id: 7, category: 'to-investigate' })
+				]}
+			/>
+		);
 
-		const line = screen.getByTestId('result-issue-effect').parentElement;
+		const rows = screen.getAllByTestId('result-issue-stamp');
 
-		expect(line).toHaveClass('col-span-2');
-		// the result's line, then the stamp wrapper
-		expect(line?.parentElement?.children).toHaveLength(2);
+		expect(rows).toHaveLength(1);
+		expect(rows[0]).toHaveAttribute('data-issue-id', '7');
+		expect(keys()).toHaveLength(1);
+		// One badge per category, so each stays its own filter control.
+		expect(rows[0].querySelectorAll('[data-category]')).toHaveLength(3);
+	});
+
+	it('keeps every category a filter control of its own', async () => {
+		const onCategoryClick = vi.fn();
+
+		render(
+			<ResultIssueBadges
+				issues={[
+					stamp({ issue_id: 7, category: 'env' }),
+					stamp({ issue_id: 7, category: 'flaky' })
+				]}
+				selectedCategories={['env']}
+				onCategoryClick={onCategoryClick}
+			/>
+		);
+
+		const flaky = screen.getByText(categoryMeta('flaky').label);
+
+		expect(screen.getByText(categoryMeta('env').label)).toHaveClass(
+			'border-primary'
+		);
+
+		await userEvent.click(flaky);
+
+		expect(onCategoryClick).toHaveBeenCalledWith('flaky');
+	});
+
+	it('renders nothing — not even its rule — when there are no stamps', () => {
+		const { container } = render(
+			<ResultIssueBadges issues={[]} withSeparator />
+		);
+
+		expect(container).toBeEmptyDOMElement();
 	});
 });

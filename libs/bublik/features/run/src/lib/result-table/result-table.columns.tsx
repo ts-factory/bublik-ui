@@ -18,7 +18,10 @@ import {
 } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
-import { ResultIssueBadges } from '@/bublik/features/result-classification';
+import {
+	ClassificationVerdict,
+	ResultIssueBadges
+} from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
@@ -141,19 +144,26 @@ export const getColumns = ({
 						);
 					}
 
-					// No result to render, but the stamps still explain why — they used
-					// to live in another column and were unaffected by this guard, so
-					// returning nothing here would quietly lose them.
+					// No result to render, but the classification still explains why —
+					// it used to live in another column and was unaffected by this
+					// guard, so returning nothing here would quietly lose it. There is
+					// no result badge to trail, hence no leading rule.
 					if (!obtainedResult.result || !obtainedResult.verdicts) {
 						return (
-							<ResultIssueBadges
-								issues={obtainedResult.issues}
-								hasError={obtainedResult.isNotExpected}
-								resultId={obtainedResult.resultId}
-								projectId={obtainedResult.projectId}
-								selectedCategories={filterValue.categories}
-								onCategoryClick={handleCategoryClick}
-							/>
+							<div className="flex flex-col gap-1.5">
+								<ClassificationVerdict
+									issues={obtainedResult.issues}
+									hasError={obtainedResult.isNotExpected}
+									resultId={obtainedResult.resultId}
+									projectId={obtainedResult.projectId}
+									withLeadingSeparator={false}
+								/>
+								<ResultIssueBadges
+									issues={obtainedResult.issues}
+									selectedCategories={filterValue.categories}
+									onCategoryClick={handleCategoryClick}
+								/>
+							</div>
 						);
 					}
 
@@ -195,10 +205,10 @@ export const getColumns = ({
 						);
 					}
 
-					// Under the verdicts, exactly as the history table lays it out.
-					// The stamps explain the result, so they belong beside it rather
-					// than in the Actions column, where they sat among the links and
-					// widened a column meant for buttons.
+					// The verdict qualifies the result badge, so it rides on its line;
+					// the stamps that explain it go under the verdicts, exactly as the
+					// history table lays it out. Both used to sit in the Actions
+					// column, among the links, widening a column meant for buttons.
 					return (
 						<div className="flex flex-col gap-1.5">
 							<VerdictList
@@ -210,12 +220,17 @@ export const getColumns = ({
 								selectedVerdicts={verdicts}
 								onResultClick={handleResultClick}
 								isResultSelected={isResultSelected}
+								resultSlot={
+									<ClassificationVerdict
+										issues={obtainedResult.issues}
+										hasError={obtainedResult.isNotExpected}
+										resultId={obtainedResult.resultId}
+										projectId={obtainedResult.projectId}
+									/>
+								}
 							/>
 							<ResultIssueBadges
 								issues={obtainedResult.issues}
-								hasError={obtainedResult.isNotExpected}
-								resultId={obtainedResult.resultId}
-								projectId={obtainedResult.projectId}
 								selectedCategories={filterValue.categories}
 								onCategoryClick={handleCategoryClick}
 								withSeparator

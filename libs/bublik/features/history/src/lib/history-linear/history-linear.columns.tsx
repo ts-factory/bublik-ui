@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { HistoryDataLinear, RunResult } from '@/shared/types';
 import { config } from '@/bublik/config';
+import { ClassificationVerdict } from '@/bublik/features/result-classification';
 import {
 	BadgeList,
 	BadgeListItem,
@@ -162,14 +163,17 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 							}
 							isNotExpected={isNotExpected}
 							isResultSelected={isResultSelected}
+							resultSlot={
+								<ClassificationVerdict
+									issues={cell.row.original.issues}
+									hasError={cell.row.original.has_error}
+									resultId={cell.row.original.result_id}
+									projectId={cell.row.original.project_id}
+								/>
+							}
 						/>
 					</HistoryContextMenuContainer>
-					<IssueBadges
-						issues={cell.row.original.issues}
-						hasError={cell.row.original.has_error}
-						resultId={cell.row.original.result_id}
-						projectId={cell.row.original.project_id}
-					/>
+					<IssueBadges issues={cell.row.original.issues} />
 				</div>
 			);
 		}

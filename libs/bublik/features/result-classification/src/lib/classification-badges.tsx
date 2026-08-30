@@ -29,7 +29,8 @@ import {
 	originMeta,
 	resultIssueEffect,
 	ruleActiveMeta,
-	runIssueEffect
+	runIssueEffect,
+	type RuleResultOrigin
 } from './classification-colors';
 import { ClassifyButton } from './classify-button';
 
@@ -500,7 +501,7 @@ export function BugKeyChip({
 	);
 }
 
-export interface ResultIssueBadgesProps {
+export interface ClassificationVerdictProps {
 	issues?: ResultIssueRef[];
 	/**
 	 * Whether the result itself failed. Required, not defaulted: it decides
@@ -508,21 +509,9 @@ export interface ResultIssueBadgesProps {
 	 * thought about it should not compile.
 	 */
 	hasError: boolean;
-	className?: string;
 	/**
-	 * Draws a rule above the badges. Lives here rather than at the call site
-	 * because the separator must not appear when there is nothing to separate,
-	 * and this is where that is already known.
-	 */
-	withSeparator?: boolean;
-	/** Categories currently filtered on, so the matching chips show selected. */
-	selectedCategories?: string[];
-	/** Makes the category chips filter controls. Omit for a read-only surface. */
-	onCategoryClick?: (category: IssueCategory) => void;
-	/**
-	 * The result these badges describe. Given one, a Classify trigger sits
-	 * beside the top chip. Omit on a surface where classifying makes no sense —
-	 * the chips then render exactly as they did before.
+	 * The result this verdict describes. Given one, a Classify trigger trails the
+	 * chip. Omit on a surface where classifying makes no sense.
 	 */
 	resultId?: number;
 	/**
@@ -531,73 +520,71 @@ export interface ResultIssueBadgesProps {
 	 * a history page can show results from several at once.
 	 */
 	projectId?: number;
+	/**
+	 * Draws a rule before the chip, so it reads as a continuation of the result
+	 * badge it trails — `PASSED | NO EFFECT | Classify`. Off in the one place
+	 * with no result badge in front of it, where a rule with nothing on one side
+	 * reads as a stray mark.
+	 */
+	withLeadingSeparator?: boolean;
+}
+
+/** Only between two things, and never at an edge with nothing beyond it. */
+function VerticalRule() {
+	return (
+		<Separator orientation="vertical" className="h-3.5 bg-border-primary" />
+	);
 }
 
 /**
- * The classification of one result: one answer, then the reasons for it.
+ * What the classification decided about one result, as the tail of its result
+ * line:
  *
- *     SUPPRESSED                 UNTRIAGED            [E2E-114]  FLAKY
- *       [E2E-114]  FLAKY                                ^ passed: no effect
- *       [#20]      DEFECT
+ *     FAILED | UNTRIAGED  | Classify
+ *     FAILED | SUPPRESSED | Classify
+ *     PASSED | NO EFFECT  | Classify
  *
- * The top chip is the whole point — does this failure still count — and it is
- * computed across every stamp, because that is how the backend decides. It
- * used to sit on each stamp instead, which could contradict itself: a result
- * with one suppressing rule and one that does not is suppressed, yet a line
- * still read "still counts".
+ * There is always exactly one chip — UNTRIAGED when nobody has looked, the
+ * effect of the stamps when someone has, and NO EFFECT when the result passed
+ * and they therefore did nothing. It is computed across every stamp, because
+ * that is how the backend decides: a result with one suppressing rule and one
+ * that does not is suppressed, and a per-stamp answer could contradict itself.
  *
- * Below it, one line per stamp: which issue, and why. A column rather than a
- * wrapping run, because inline the stamps of a multiply-matched result ran
- * together and could break mid-stamp, reading as though two different bugs
- * were involved. The key repeats so no line depends on the one above it.
+ * It lives on the result's line rather than above the stamps because it
+ * qualifies the result badge — "failed, but suppressed" is one statement, and
+ * splitting it across two blocks asked the reader to reassemble it.
  *
- * Two cases carry no effect chip. A result that did not fail has nothing to
- * suppress, so its stamps are informational — worth showing, since a
- * known-broken test that passed this time is a fact you want, but the chip
- * would be asserting something untrue. And a failure with no stamps gets
- * UNTRIAGED instead, which is a different question: not what the rules
+ * Two cases carry no effect chip of their own. A result that did not fail has
+ * nothing to suppress, so its stamps are informational and the chip would be
+ * asserting something untrue; it gets NO EFFECT. And a failure with no stamps
+ * gets UNTRIAGED, which answers a different question — not what the rules
  * decided, but whether anyone has looked.
  *
- * A stamp whose issue has been closed is struck through. Closing deactivates
- * the rules but leaves the stamps standing, which is right — they record that
- * a rule once matched — so the strike is what stops a dead issue reading as a
- * live explanation. It has to be per stamp: the effect chip only implies
- * "closed" when the disposition was expected, and on a row carrying several
- * stamps it cannot say which of them died.
- *
- * The issue title and stamp origin travel in the key chip's tooltip. This
- * component is the only renderer of per-result classification.
+ * Classify trails the verdict rather than leading the line, which is the order
+ * the line is read in: what happened, then what you can do about it. The cost
+ * is a ragged button edge down the table — the verdict labels differ in width,
+ * where a button is one width — and that is the accepted trade.
  */
-export function ResultIssueBadges({
+export function ClassificationVerdict({
 	issues,
 	hasError,
-	className,
-	withSeparator,
-	selectedCategories,
-	onCategoryClick,
 	resultId,
-	projectId
-}: ResultIssueBadgesProps) {
+	projectId,
+	withLeadingSeparator = true
+}: ClassificationVerdictProps) {
 	const stamps = issues ?? [];
 
+	// A passing, unstamped result has no classification to report and nothing
+	// worth classifying, so the result badge stands alone.
 	if (!stamps.length && !hasError) return null;
 
-	/*
-	 * The verdict for the whole result, and there is always exactly one:
-	 * UNTRIAGED when nobody has looked, the effect of the stamps when someone
-	 * has, and NO EFFECT when the result passed and they therefore did nothing.
-	 *
-	 * That last case used to render nothing, which left a hole in the one column
-	 * position the eye tracks down — and an empty slot where every neighbouring
-	 * row carries a chip reads as a failure to render rather than as an answer.
-	 */
 	const verdict = !stamps.length ? (
 		<div className="contents" data-testid="result-untriaged">
 			<UntriagedBadge />
 		</div>
 	) : hasError ? (
 		<div className="contents" data-testid="result-issue-effect">
-<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+			<RunEffectBadge effect={resultIssueEffect(stamps).value} />
 		</div>
 	) : (
 		<div className="contents" data-testid="result-no-effect">
@@ -612,32 +599,136 @@ export function ResultIssueBadges({
 	 * already carry stamps: one rule explaining a failure does not stop a second
 	 * one being true.
 	 */
-	const classify =
-		resultId !== undefined ? (
-			<ClassifyButton resultId={resultId} projectId={projectId} />
-		) : null;
+	return (
+		<div className="flex items-center gap-1.5">
+			{withLeadingSeparator ? <VerticalRule /> : null}
+			{verdict}
+			{resultId !== undefined ? (
+				<>
+					<VerticalRule />
+					<ClassifyButton resultId={resultId} projectId={projectId} />
+				</>
+			) : null}
+		</div>
+	);
+}
+
+export interface ResultIssueBadgesProps {
+	issues?: ResultIssueRef[];
+	className?: string;
+	/**
+	 * Draws a rule above the badges. Lives here rather than at the call site
+	 * because the separator must not appear when there is nothing to separate,
+	 * and this is where that is already known.
+	 */
+	withSeparator?: boolean;
+	/** Categories currently filtered on, so the matching chips show selected. */
+	selectedCategories?: string[];
+	/** Makes the category chips filter controls. Omit for a read-only surface. */
+	onCategoryClick?: (category: IssueCategory) => void;
+}
+
+interface IssueStampGroup {
+	issue: ResultIssueRef;
+	categories: IssueCategory[];
+	origins: RuleResultOrigin[];
+}
+
+/**
+ * One entry per issue, not per stamp.
+ *
+ * A result carries one stamp per *rule* that matched it, so an issue with three
+ * rules stamped the same key three times down the cell and one bug read as
+ * three. Everything a stamp says about its issue — key, title, state — is the
+ * same across the group, so only the category differs, and that is what the
+ * grouped row lists.
+ *
+ * First-appearance order, so the cell keeps the order the backend sent.
+ */
+function groupStampsByIssue(stamps: readonly ResultIssueRef[]) {
+	const groups = new Map<number, IssueStampGroup>();
+
+	for (const stamp of stamps) {
+		const group = groups.get(stamp.issue_id);
+
+		if (!group) {
+			groups.set(stamp.issue_id, {
+				issue: stamp,
+				categories: [stamp.category],
+				origins: [stamp.origin]
+			});
+			continue;
+		}
+
+		group.categories.push(stamp.category);
+		if (!group.origins.includes(stamp.origin)) group.origins.push(stamp.origin);
+	}
+
+	return Array.from(groups.values());
+}
+
+/**
+ * Where a group's stamps came from, for the key chip's tooltip. One origin
+ * reads as the sentence it always did; several have to be named, because
+ * "stamped by hand" is not true of an issue half of whose rules fired on
+ * import.
+ */
+function originDescription(origins: readonly RuleResultOrigin[]) {
+	if (origins.length === 1) return originMeta(origins[0]).description;
+
+	return `Stamped by several rules (${origins
+		.map((origin) => originMeta(origin).label)
+		.join(', ')}).`;
+}
+
+/**
+ * The reasons behind a result's classification: which issues explain it, and
+ * why.
+ *
+ *     [E2E-114] | ENV  FLAKY
+ *     [#20]     | DEFECT
+ *
+ * One line per issue — the key once, then every category its rules stamped —
+ * laid out in two columns so the categories share an edge however long the keys
+ * are. A column rather than a wrapping run, because inline the stamps of a
+ * multiply-matched result ran together and could break mid-stamp, reading as
+ * though two different bugs were involved.
+ *
+ * The verdict this explains — SUPPRESSED, UNTRIAGED, NO EFFECT — is not here:
+ * it belongs to the result badge and sits on its line, drawn by
+ * `ClassificationVerdict`.
+ *
+ * The categories stay one chip each rather than becoming a run of words inside
+ * the key chip, because each is a filter control: clicking DEFECT here is the
+ * same write as ticking DEFECT in the toolbar.
+ *
+ * A stamp whose issue has been closed is struck through. Closing deactivates
+ * the rules but leaves the stamps standing, which is right — they record that
+ * a rule once matched — so the strike is what stops a dead issue reading as a
+ * live explanation. It has to be per issue: the verdict chip only implies
+ * "closed" when the disposition was expected, and on a row carrying several
+ * issues it cannot say which of them died.
+ *
+ * The issue title and stamp origin travel in the key chip's tooltip.
+ */
+export function ResultIssueBadges({
+	issues,
+	className,
+	withSeparator,
+	selectedCategories,
+	onCategoryClick
+}: ResultIssueBadgesProps) {
+	const groups = groupStampsByIssue(issues ?? []);
+
+	if (!groups.length) return null;
 
 	/*
-	 * One line for the result, then a two-column list of the stamps that
-	 * explain it: which issue, and why.
+	 * The columns size to their content: padding a key chip out to some wider
+	 * column's width trades a ragged edge for a gap, which is not a trade.
 	 *
-	 * The stamps were a stack of flex rows, so each category chip sat wherever
-	 * that stamp's key chip happened to end — `E2E-9` and `E2E-1204` in one
-	 * cell left the categories in a ragged line, and the block read as
-	 * unrelated pairs rather than as one list. The columns give them a shared
-	 * edge, and they size to their content: padding a key chip out to some
-	 * wider column's width trades a ragged edge for a gap, which is not a
-	 * trade.
-	 *
-	 * The result's own line spans both columns rather than sitting in them.
-	 * That is what lets the Classify button lead: it starts at the cell's left
-	 * edge, and since a button is one fixed width, it is at the same place on
-	 * every row of the table without anything being held open for it. The
-	 * verdict follows at the same constant offset.
-	 *
-	 * The stamp wrappers are `contents`: they carry the `data-*` hooks the e2e
-	 * suite reads, and without it each would be a single box and take its two
-	 * chips out of the columns.
+	 * The group wrappers are `contents`: they carry the `data-*` hooks the e2e
+	 * suite reads, and without it each would be a single box and take its chips
+	 * out of the columns.
 	 */
 	const body = (
 		<div
@@ -646,21 +737,9 @@ export function ResultIssueBadges({
 				className
 			)}
 		>
-			<div className="flex items-center col-span-2 gap-1.5">
-				{classify}
-				{/* Only between two things. A read-only surface passes no result,
-				    and a rule with nothing on one side reads as a stray mark. */}
-				{classify ? (
-					<Separator
-						orientation="vertical"
-						className="h-3.5 bg-border-primary"
-					/>
-				) : null}
-				{verdict}
-			</div>
-			{stamps.map((issue) => (
+			{groups.map(({ issue, categories, origins }) => (
 				<div
-					key={issue.rule_id}
+					key={issue.issue_id}
 					className="contents"
 					data-testid="result-issue-stamp"
 					data-issue-id={issue.issue_id}
@@ -670,19 +749,16 @@ export function ResultIssueBadges({
 						issueId={issue.issue_id}
 						fallback={`#${issue.issue_id}`}
 						closed={issue.issue_state === 'closed'}
-						description={`${issue.issue_title}. ${
-							originMeta(issue.origin).description
-						}`}
+						description={`${issue.issue_title}. ${originDescription(origins)}`}
 					/>
-					<CategoryBadge
-						category={issue.category}
-						isSelected={selectedCategories?.includes(issue.category)}
-						onClick={
-							onCategoryClick
-								? () => onCategoryClick(issue.category)
-								: undefined
-						}
-					/>
+					<div className="flex items-center gap-1.5">
+						<VerticalRule />
+						<CategoryBadgeList
+							categories={categories}
+							selectedCategories={selectedCategories}
+							onCategoryClick={onCategoryClick}
+						/>
+					</div>
 				</div>
 			))}
 		</div>
