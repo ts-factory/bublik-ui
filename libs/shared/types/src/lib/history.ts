@@ -153,6 +153,12 @@ export type HistoryDataLinear = {
 	has_error: boolean;
 	has_measurements: boolean;
 	run_id: number;
+	/**
+	 * Project the run belongs to. History spans projects, so a row cannot be
+	 * assumed to sit in whichever one the `?project=` selector happens to hold.
+	 */
+	project_id?: number;
+	project_name?: string;
 	result_id: number;
 	iteration_id: number;
 	results?: string[];
@@ -199,6 +205,8 @@ export const HistoryDataLinearSchema = z.object({
 	has_error: z.boolean(),
 	has_measurements: z.boolean(),
 	run_id: z.number(),
+	project_id: z.number().optional(),
+	project_name: z.string().optional(),
 	result_id: z.number(),
 	iteration_id: z.number(),
 	results: z.array(z.string()).optional(),

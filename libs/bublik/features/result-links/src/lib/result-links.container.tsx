@@ -10,7 +10,6 @@ import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-import { ClassifyButton } from '@/bublik/features/result-classification';
 
 export interface ResultLinksProps {
 	runId: string;
@@ -38,9 +37,6 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		showLinkToRun = false,
 		path
 	} = props;
-
-	// Same gate the Actions cell used before Classify moved into this stack.
-	const isFailed = result.has_error || (result.issues?.length ?? 0) > 0;
 
 	return (
 		<div className="flex flex-col justify-start gap-3 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
@@ -109,14 +105,6 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						</button>
 					</LogPreviewContainer>
 				</li>
-				{/* `pl-0.5` rather than the `pl-2` the bare links use: the chip brings
-				    its own `px-1.5`, so this puts its icon on the same left edge as
-				    every other item. Same reason the History chip above uses it. */}
-				{isFailed ? (
-					<li className="pl-0.5">
-						<ClassifyButton resultId={resultId} projectId={result.project_id} />
-					</li>
-				) : null}
 			</ul>
 		</div>
 	);

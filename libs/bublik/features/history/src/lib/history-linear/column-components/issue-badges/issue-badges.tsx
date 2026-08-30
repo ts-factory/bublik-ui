@@ -11,6 +11,14 @@ export interface IssueBadgesProps {
 	issues?: ResultIssueRef[];
 	/** Drives the effect chip, and whether an unstamped row reads Untriaged. */
 	hasError: boolean;
+	/** The result the row describes, so it can be classified from here. */
+	resultId: number;
+	/**
+	 * The row's own project. History spans projects, so this cannot be left to
+	 * the `?project=` selector: a rule filed against the wrong project matches
+	 * nothing and looks like a broken classify.
+	 */
+	projectId?: number;
 }
 
 /**
@@ -23,7 +31,12 @@ export interface IssueBadgesProps {
  * and verdict chips use: those write the table's client-side `globalFilter`,
  * while `categories` is a query param the backend filters on.
  */
-export function IssueBadges({ issues, hasError }: IssueBadgesProps) {
+export function IssueBadges({
+	issues,
+	hasError,
+	resultId,
+	projectId
+}: IssueBadgesProps) {
 	const { form, handleGlobalSearchSubmit } = useHistoryFormSearchState();
 	const selectedCategories = form.categories ?? [];
 
@@ -45,6 +58,8 @@ export function IssueBadges({ issues, hasError }: IssueBadgesProps) {
 		<ResultIssueBadges
 			issues={issues}
 			hasError={hasError}
+			resultId={resultId}
+			projectId={projectId}
 			selectedCategories={selectedCategories}
 			onCategoryClick={handleCategoryClick}
 			withSeparator

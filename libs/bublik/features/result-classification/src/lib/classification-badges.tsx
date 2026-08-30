@@ -28,6 +28,7 @@ import {
 	ruleActiveMeta,
 	runIssueEffect
 } from './classification-colors';
+import { ClassifyButton } from './classify-button';
 
 /**
  * One component per classification axis.
@@ -438,6 +439,18 @@ export interface ResultIssueBadgesProps {
 	selectedCategories?: string[];
 	/** Makes the category chips filter controls. Omit for a read-only surface. */
 	onCategoryClick?: (category: IssueCategory) => void;
+	/**
+	 * The result these badges describe. Given one, a Classify trigger sits
+	 * beside the top chip. Omit on a surface where classifying makes no sense —
+	 * the chips then render exactly as they did before.
+	 */
+	resultId?: number;
+	/**
+	 * Project the result belongs to. `useClassify` falls back to the global
+	 * `?project=` selector, but a row that knows its own project should say so:
+	 * a history page can show results from several at once.
+	 */
+	projectId?: number;
 }
 
 /**
@@ -481,22 +494,66 @@ export function ResultIssueBadges({
 	className,
 	withSeparator,
 	selectedCategories,
-	onCategoryClick
+	onCategoryClick,
+	resultId,
+	projectId
 }: ResultIssueBadgesProps) {
 	const stamps = issues ?? [];
 
 	if (!stamps.length && !hasError) return null;
 
+	/*
+	 * The verdict for the whole result: UNTRIAGED when nobody has looked, the
+	 * effect of the stamps when someone has. Never both — they answer different
+	 * questions and only one of them applies to any row.
+	 */
+	const verdict = !stamps.length ? (
+		<div data-testid="result-untriaged">
+			<UntriagedBadge />
+		</div>
+	) : hasError ? (
+		<div data-testid="result-issue-effect">
+			<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+		</div>
+	) : null;
+
+	/*
+	 * Classify sits with the verdict it changes rather than in the Actions
+	 * column, where it used to live among the navigation links — three columns
+	 * from the chip that tells you whether it is needed. It stays on rows that
+	 * already carry stamps: one rule explaining a failure does not stop a second
+	 * one being true.
+	 */
+	const classify =
+		resultId !== undefined ? (
+			<ClassifyButton resultId={resultId} projectId={projectId} />
+		) : null;
+
 	const body = (
 		<div className={cn('flex flex-col gap-1', className)}>
-			{!stamps.length ? (
-				<div data-testid="result-untriaged">
-					<UntriagedBadge />
-				</div>
-			) : null}
-			{hasError && stamps.length ? (
-				<div data-testid="result-issue-effect">
-					<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+			{/*
+			 * Classify leads, and the verdict follows it.
+			 *
+			 * Reading order says the opposite — state, then what to do about it —
+			 * but the chips are five different widths and one of the cases has no
+			 * chip at all (a result that passed carries stamps but no verdict, so
+			 * there is nothing for one to say). Put the button second and it lands
+			 * at a different offset on every row, which is a worse thing to do to
+			 * a control than to read it slightly out of order: a button you have
+			 * to re-find on each row is not really in the same place at all.
+			 */}
+			{verdict || classify ? (
+				<div className="flex items-center gap-1.5">
+					{classify}
+					{/* Only between two things. A rule with nothing on one side of
+					    it reads as a stray mark. */}
+					{verdict && classify ? (
+						<Separator
+							orientation="vertical"
+							className="h-3.5 bg-border-primary"
+						/>
+					) : null}
+					{verdict}
 				</div>
 			) : null}
 			{stamps.map((issue) => (

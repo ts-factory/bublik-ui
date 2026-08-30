@@ -91,7 +91,11 @@ export const getColumns = ({
 				isNotExpected: data.has_error,
 				verdicts: data.obtained_result.verdicts,
 				result: data.obtained_result.result_type,
-				issues: data.issues
+				issues: data.issues,
+				// Classify lives beside the badges rather than in the Actions
+				// column, so the ids it needs have to travel with them.
+				resultId: data.result_id,
+				projectId: data.project_id
 			}),
 			{
 				header: 'Obtained Result',
@@ -124,6 +128,8 @@ export const getColumns = ({
 							<ResultIssueBadges
 								issues={obtainedResult.issues}
 								hasError={obtainedResult.isNotExpected}
+								resultId={obtainedResult.resultId}
+								projectId={obtainedResult.projectId}
 							/>
 						);
 					}
@@ -185,6 +191,8 @@ export const getColumns = ({
 							<ResultIssueBadges
 								issues={obtainedResult.issues}
 								hasError={obtainedResult.isNotExpected}
+								resultId={obtainedResult.resultId}
+								projectId={obtainedResult.projectId}
 								withSeparator
 							/>
 						</div>
