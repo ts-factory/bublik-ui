@@ -2,7 +2,14 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { ReactNode } from 'react';
 
-import { Badge, Icon, Separator, Tooltip, cn } from '@/shared/tailwind-ui';
+import {
+	Badge,
+	BadgeVariants,
+	Icon,
+	Separator,
+	Tooltip,
+	cn
+} from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { routes } from '@/router';
 import type {
@@ -15,8 +22,7 @@ import type {
 import {
 	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
-	CLASSIFICATION_BADGE_CLICKABLE_CLASS,
-	CLASSIFICATION_BADGE_SELECTED_CLASS,
+	RESULT_VERDICT_CHIP_CLASS,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
 	NO_EFFECT_META,
@@ -52,10 +58,10 @@ const BUG_KEY_BADGE_CLASS = 'text-[0.6875rem] leading-[1.125rem]';
 interface BadgeExtras {
 	className?: string;
 	/**
-	 * The chip's value is currently in the filter. Draws the outline described
-	 * by `CLASSIFICATION_BADGE_SELECTED_CLASS` -- deliberately not `Badge`'s own
-	 * `isSelected`, which would replace the chip's meta background and make
-	 * every selected chip look alike.
+	 * The chip's value is currently in the filter. Handed straight to `Badge`,
+	 * which outlines the chip in its own variant's hue -- so a green chip
+	 * selects green and a violet one violet, the way the obtained-result badge
+	 * on the run page already behaves.
 	 */
 	isSelected?: boolean;
 	/** Makes the chip a filter toggle. Omit on a read-only surface. */
@@ -63,19 +69,17 @@ interface BadgeExtras {
 }
 
 /**
- * What a chip picks up once it is a filter control: the affordance, the
- * selected outline, and a tooltip that says what clicking will do.
+ * What a chip picks up once it is a filter control: a tooltip that says what
+ * clicking will do, and the button plumbing.
  *
- * Every chip in this module goes through it, so a category chip in a table and
- * a disposition chip beside it answer to the click in the same way -- and a
- * read-only surface, which passes no `onClick`, is left exactly as it was.
+ * The appearance is no longer here. `Badge` owns the hover preview and the
+ * selected outline and derives both from the chip's variant, so a category chip
+ * in a table and a disposition chip beside it answer to the click in the same
+ * way -- and a read-only surface, which passes no `onClick`, is left exactly as
+ * it was.
  */
 function toggleShell({ isSelected, onClick }: BadgeExtras) {
 	return {
-		className: cn(
-			onClick && CLASSIFICATION_BADGE_CLICKABLE_CLASS,
-			isSelected && CLASSIFICATION_BADGE_SELECTED_CLASS
-		),
 		// A chip that does nothing must not promise that it does.
 		hint: onClick
 			? isSelected
@@ -90,8 +94,8 @@ function toggleShell({ isSelected, onClick }: BadgeExtras) {
 
 interface MetaBadgeProps extends BadgeExtras {
 	description: string;
-	/** Applied on top of the Badge base; comes from a meta map. */
-	metaClassName?: string;
+	/** The chip's whole colour story; comes from a meta map. */
+	variant: BadgeVariants;
 	children: ReactNode;
 	dataAttributes?: Record<string, string>;
 }
@@ -99,7 +103,7 @@ interface MetaBadgeProps extends BadgeExtras {
 /** The shared shell: tooltip carries the meaning, badge carries the colour. */
 function MetaBadge({
 	description,
-	metaClassName,
+	variant,
 	children,
 	dataAttributes,
 	className,
@@ -111,14 +115,14 @@ function MetaBadge({
 	return (
 		<Tooltip content={`${description}${toggle.hint}`}>
 			<Badge
-				// The toggle classes go last so the outline lands on top of the meta
-				// colours rather than being merged away by them.
-				className={cn(
-					CLASSIFICATION_BADGE_CLASS,
-					metaClassName,
-					className,
-					toggle.className
-				)}
+				variant={variant}
+				isSelected={isSelected}
+				// Stated rather than inferred from `onClick`: the tooltip wrapping
+				// every chip is a Radix trigger, and it injects an `onClick` of its
+				// own to dismiss itself. A read-only chip would otherwise offer a
+				// hover preview of a filter it cannot toggle.
+				isInteractive={Boolean(onClick)}
+				className={cn(CLASSIFICATION_BADGE_CLASS, className)}
 				onClick={onClick}
 				{...toggle.buttonProps}
 				{...dataAttributes}
@@ -141,7 +145,7 @@ export function CategoryBadge({ category, long, ...rest }: CategoryBadgeProps) {
 	return (
 		<MetaBadge
 			description={meta.description}
-			metaClassName={meta.className}
+			variant={meta.variant}
 			dataAttributes={{ 'data-category': category }}
 			{...rest}
 		>
@@ -207,7 +211,7 @@ export function IssueStateBadge({ state, ...rest }: IssueStateBadgeProps) {
 	return (
 		<MetaBadge
 			description={meta.description}
-			metaClassName={meta.className}
+			variant={meta.variant}
 			dataAttributes={{ 'data-issue-state': state }}
 			{...rest}
 		>
@@ -230,29 +234,19 @@ export interface DispositionBadgeProps extends BadgeExtras {
 export function DispositionBadge({
 	expected,
 	aggregate,
-	className,
-	isSelected,
-	onClick
+	...rest
 }: DispositionBadgeProps) {
 	const meta = dispositionMeta(expected);
-	const toggle = toggleShell({ isSelected, onClick });
-	const description = aggregate ? meta.aggregateDescription : meta.description;
 
-	// Builds its own `Badge` rather than going through `MetaBadge` -- it is the
-	// one axis coloured by variant instead of by a meta class -- so it has to
-	// take the toggle shell by hand to stay in step with the other five.
 	return (
-		<Tooltip content={`${description}${toggle.hint}`}>
-			<Badge
-				variant={meta.variant}
-				className={cn(CLASSIFICATION_BADGE_CLASS, className, toggle.className)}
-				onClick={onClick}
-				{...toggle.buttonProps}
-				data-disposition={meta.value}
-			>
-				{meta.label}
-			</Badge>
-		</Tooltip>
+		<MetaBadge
+			description={aggregate ? meta.aggregateDescription : meta.description}
+			variant={meta.variant}
+			dataAttributes={{ 'data-disposition': meta.value }}
+			{...rest}
+		>
+			{meta.label}
+		</MetaBadge>
 	);
 }
 
@@ -266,7 +260,7 @@ export function RunEffectBadge({ effect, ...rest }: RunEffectBadgeProps) {
 	return (
 		<MetaBadge
 			description={meta.description}
-			metaClassName={meta.className}
+			variant={meta.variant}
 			dataAttributes={{ 'data-effect': meta.value }}
 			{...rest}
 		>
@@ -296,7 +290,7 @@ export function UntriagedBadge(props: BadgeExtras) {
 	return (
 		<MetaBadge
 			description={UNTRIAGED_META.description}
-			metaClassName={UNTRIAGED_META.className}
+			variant={UNTRIAGED_META.variant}
 			dataAttributes={{ 'data-effect': UNTRIAGED_META.value }}
 			{...props}
 		>
@@ -314,7 +308,7 @@ export function NoEffectBadge(props: BadgeExtras) {
 	return (
 		<MetaBadge
 			description={NO_EFFECT_META.description}
-			metaClassName={NO_EFFECT_META.className}
+			variant={NO_EFFECT_META.variant}
 			dataAttributes={{ 'data-effect': NO_EFFECT_META.value }}
 			{...props}
 		>
@@ -344,7 +338,7 @@ export function IssueRulesBadge({
 	return (
 		<MetaBadge
 			description={meta.description}
-			metaClassName={meta.className}
+			variant={meta.variant}
 			dataAttributes={{ 'data-rules-state': meta.value }}
 			{...rest}
 		>
@@ -363,7 +357,7 @@ export function RuleActiveBadge({ active, ...rest }: RuleActiveBadgeProps) {
 	return (
 		<MetaBadge
 			description={meta.description}
-			metaClassName={meta.className}
+			variant={meta.variant}
 			dataAttributes={{ 'data-rule-active': String(active) }}
 			{...rest}
 		>
@@ -561,9 +555,10 @@ function VerticalRule() {
  * decided, but whether anyone has looked.
  *
  * Classify trails the verdict rather than leading the line, which is the order
- * the line is read in: what happened, then what you can do about it. The cost
- * is a ragged button edge down the table — the verdict labels differ in width,
- * where a button is one width — and that is the accepted trade.
+ * the line is read in: what happened, then what you can do about it. The chip
+ * is boxed to one width (`RESULT_VERDICT_CHIP_CLASS`) so that trailing button
+ * still lands at a single offset down the table rather than stepping about as
+ * the label changes.
  */
 export function ClassificationVerdict({
 	issues,
@@ -580,15 +575,18 @@ export function ClassificationVerdict({
 
 	const verdict = !stamps.length ? (
 		<div className="contents" data-testid="result-untriaged">
-			<UntriagedBadge />
+			<UntriagedBadge className={RESULT_VERDICT_CHIP_CLASS} />
 		</div>
 	) : hasError ? (
 		<div className="contents" data-testid="result-issue-effect">
-			<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+			<RunEffectBadge
+				effect={resultIssueEffect(stamps).value}
+				className={RESULT_VERDICT_CHIP_CLASS}
+			/>
 		</div>
 	) : (
 		<div className="contents" data-testid="result-no-effect">
-			<NoEffectBadge />
+			<NoEffectBadge className={RESULT_VERDICT_CHIP_CLASS} />
 		</div>
 	);
 

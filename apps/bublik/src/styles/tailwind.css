@@ -61,6 +61,11 @@ body,
 	   outside the red/orange (known-bad) and green (accepted) families so a
 	   wall of failures does not swallow the rows that need attention. */
 	--colors-text-triage: 258 55% 45%;
+	/* Stroke-grade counterpart to the badge-7 wash. Env is the one chip hue with
+	   no saturated token of its own, and a chip's selected outline has to be its
+	   own colour. Placed clear of bg-running (231) and text-triage (258) so a
+	   cyan outline never reads as either. */
+	--colors-accent-env: 185 62% 32%;
 
 	/* BACKGROUND */
 	--colors-bg-primary: 0 0% 100%;

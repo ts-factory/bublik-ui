@@ -563,18 +563,22 @@ function Parameters(props: ParametersProps) {
 					? referenceSet.has(value)
 					: commonParameters?.has(value);
 
+				// `Badge`, not a hand-rolled button that re-states its base classes:
+				// the history table renders the same parameters through `BadgeList`
+				// on `bg-badge-1`, and a parameter chip should look the same
+				// wherever you read it -- including the hover the badge now carries.
 				return (
-					<button
+					<Badge
 						key={index}
 						className={cn(
-							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							isSelected ? 'bg-primary-wash border-primary' : 'bg-badge-1',
+							'bg-badge-1',
 							shouldDim && !isSelected && 'opacity-60'
 						)}
+						isSelected={isSelected}
 						onClick={() => onParameterClick(value)}
 					>
 						{displayValue}
-					</button>
+					</Badge>
 				);
 			})}
 		</ul>

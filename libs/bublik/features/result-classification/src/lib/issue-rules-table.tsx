@@ -42,8 +42,7 @@ import type { Issue, IssueRule, IssueState } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
-	CLASSIFICATION_BADGE_CLICKABLE_CLASS,
-	CLASSIFICATION_BADGE_SELECTED_CLASS,
+	CLASSIFICATION_BADGE_CLASS,
 	DISPOSITION_ORDER,
 	DISPOSITION_META,
 	categoryMeta,
@@ -260,13 +259,8 @@ function MatcherChip({
 		<Badge
 			variant={variant}
 			overflowWrap
-			// The toggle classes go last so the outline lands on top of the chip's
-			// own colour rather than being merged away by it.
-			className={cn(
-				className,
-				facets && CLASSIFICATION_BADGE_CLICKABLE_CLASS,
-				isSelected && CLASSIFICATION_BADGE_SELECTED_CLASS
-			)}
+			isSelected={isSelected}
+			className={className}
 			{...(facets
 				? {
 						type: 'button' as const,
@@ -440,15 +434,21 @@ const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 			matchAllTags: row.original.match_all_tags
 		});
 
+		// Neutral, and a `Badge` like every other chip in the row. These say what
+		// the rule matches on; they are not filter controls, and the
+		// `bg-primary-wash border-border-primary` they used to wear is exactly
+		// what a *selected* Primary badge looks like -- so the one thing in the
+		// table that cannot be clicked read as the one thing already chosen.
 		return (
 			<div className="flex flex-wrap gap-1">
 				{chips.map((chip) => (
-					<span
+					<Badge
 						key={chip}
-						className="px-1.5 py-0.5 text-[0.6875rem] rounded bg-primary-wash border border-border-primary"
+						variant={BadgeVariants.Neutral}
+						className={CLASSIFICATION_BADGE_CLASS}
 					>
 						{chip}
-					</span>
+					</Badge>
 				))}
 			</div>
 		);

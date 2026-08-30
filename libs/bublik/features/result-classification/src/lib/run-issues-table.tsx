@@ -344,7 +344,9 @@ function useFacetOptions(issues: RunIssueRow[]) {
 			effectOptions: buildFacetOptions({
 				values: issues.map((issue) => runIssueEffect(issue).value),
 				order: EFFECT_ORDER,
-				labelFor: (effect) => RUN_ISSUE_EFFECT_META[effect].label
+				// The long form: a dropdown has the room, and AGAIN on its own is a
+				// word rather than an answer.
+				labelFor: (effect) => RUN_ISSUE_EFFECT_META[effect].displayValue
 			}),
 			categoryOptions: buildFacetOptions({
 				values: issues.flatMap((issue) =>

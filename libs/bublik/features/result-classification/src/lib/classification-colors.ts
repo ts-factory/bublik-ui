@@ -57,25 +57,17 @@ export const CLASSIFICATION_BADGE_CLASS =
 	'text-[0.6875rem] leading-[1.125rem] uppercase tracking-wide';
 
 /**
- * A chip whose value is currently in the filter.
+ * The verdict chip on a result line is boxed to one width, so the Classify
+ * button trailing it lands at the same offset on every row instead of stepping
+ * left and right as the label changes.
  *
- * Deliberately not `Badge`'s own `isSelected`. That resolves, for the default
- * variant, to `bg-primary-wash border-primary`, and `cn` is `twMerge` with the
- * selected layer appended *after* `className` -- so it replaces the chip's meta
- * background. Every selected category chip would collapse to the same primary
- * wash, and the one thing a filter chip must keep saying is which value it is.
- *
- * An outline instead, over the chip's own hue. The badge base already carries
- * `border border-transparent`, so colouring it costs no layout shift.
+ * Sized to the longest of the six labels, SUPPRESSED, with slack for a font
+ * that renders wider than measured: a label that outgrows the box takes its own
+ * row back out of line, which is the one thing this exists to prevent. Centred,
+ * so the room a short label like AGAIN gains is shared rather than hanging off
+ * one end.
  */
-export const CLASSIFICATION_BADGE_SELECTED_CLASS = 'border-primary';
-
-/**
- * A chip that toggles a filter but is not currently in it. Enough of a hint
- * that it is a control, without a second resting appearance to read past.
- */
-export const CLASSIFICATION_BADGE_CLICKABLE_CLASS =
-	'cursor-pointer hover:border-primary/50';
+export const RESULT_VERDICT_CHIP_CLASS = 'min-w-[6.5rem] justify-center';
 
 export interface CategoryMeta {
 	value: IssueCategory;
@@ -84,7 +76,12 @@ export interface CategoryMeta {
 	/** Long form, for filter lists and tooltips. */
 	displayValue: string;
 	description: string;
-	className: string;
+	/**
+	 * The chip's whole appearance -- wash, ink, hover preview and selected
+	 * outline -- in one token, so a selected chip outlines in its own hue rather
+	 * than a house blue. See `BadgeVariants`.
+	 */
+	variant: BadgeVariants;
 	iconName: IconName;
 }
 
@@ -103,7 +100,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		displayValue: 'Product defect',
 		description:
 			'A real defect in the product under test. Counts as unexpected.',
-		className: 'bg-badge-13 text-text-unexpected',
+		variant: BadgeVariants.Unexpected,
 		iconName: 'InformationCircleCrossMark'
 	},
 	'test-bug': {
@@ -111,7 +108,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Test Bug',
 		displayValue: 'Test/automation bug',
 		description: 'A bug in the test or the automation, not in the product.',
-		className: 'bg-badge-14 text-text-primary',
+		variant: BadgeVariants.Warning,
 		iconName: 'InformationCircleExclamationMark'
 	},
 	env: {
@@ -119,7 +116,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Env',
 		displayValue: 'Environment / infra',
 		description: 'Caused by the environment or the infrastructure.',
-		className: 'bg-badge-7 text-text-primary',
+		variant: BadgeVariants.Env,
 		iconName: 'InformationCircleForbidden'
 	},
 	'known-issue': {
@@ -127,7 +124,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Known',
 		displayValue: 'Known issue',
 		description: 'A known, already-triaged failure.',
-		className: 'bg-badge-1 text-text-primary',
+		variant: BadgeVariants.Info,
 		iconName: 'InformationCircleCheckmark'
 	},
 	flaky: {
@@ -135,7 +132,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Flaky',
 		displayValue: 'Flaky / intermittent',
 		description: 'Passes and fails without a change in the product.',
-		className: 'bg-badge-17 text-text-primary',
+		variant: BadgeVariants.Caution,
 		iconName: 'InformationCircleProgress'
 	},
 	'to-investigate': {
@@ -143,7 +140,7 @@ export const CATEGORY_META: Record<IssueCategory, CategoryMeta> = {
 		label: 'Investigate',
 		displayValue: 'To investigate',
 		description: 'Noted, but nobody has worked out the cause yet.',
-		className: 'bg-badge-2 text-text-triage',
+		variant: BadgeVariants.Triage,
 		iconName: 'TriangleQuestionMark'
 	}
 };
@@ -164,7 +161,7 @@ export function categoryMeta(category: IssueCategory): CategoryMeta {
 			label: category,
 			displayValue: category,
 			description: 'Unknown category',
-			className: 'bg-badge-0 text-text-primary',
+			variant: BadgeVariants.Neutral,
 			iconName: 'InformationCircleQuestionMark'
 		}
 	);
@@ -173,7 +170,7 @@ export function categoryMeta(category: IssueCategory): CategoryMeta {
 export interface IssueStateMeta {
 	label: string;
 	description: string;
-	className: string;
+	variant: BadgeVariants;
 	iconName: IconName;
 }
 
@@ -188,7 +185,7 @@ export function issueStateMeta(state: IssueState): IssueStateMeta {
 			label: 'Closed',
 			description:
 				'Issue is closed — its results are no longer suppressed and count as unexpected again.',
-			className: 'bg-badge-14 text-text-primary',
+			variant: BadgeVariants.Warning,
 			iconName: 'InformationCircleStop'
 		};
 	}
@@ -196,7 +193,7 @@ export function issueStateMeta(state: IssueState): IssueStateMeta {
 	return {
 		label: 'Open',
 		description: 'Issue is open — its rules are in force for this run.',
-		className: 'bg-badge-3 text-text-expected',
+		variant: BadgeVariants.Expected,
 		iconName: 'InformationCircleCheckmark'
 	};
 }
@@ -217,9 +214,17 @@ export type RunIssueEffect = 'suppressed' | 'stale' | 'unexpected' | 'marked';
 
 export interface RunIssueEffectMeta {
 	value: RunIssueEffect;
+	/**
+	 * Short form, for chips inside a table cell. Kept to one word wherever one
+	 * will do: this chip rides beside a result badge on every row of a run, and
+	 * a wide chip is a scanning hazard. What the word means lives in the
+	 * tooltip, as it does for every other chip in the system.
+	 */
 	label: string;
+	/** Long form, for filter lists and tooltips, where there is room. */
+	displayValue: string;
 	description: string;
-	className: string;
+	variant: BadgeVariants;
 	/**
 	 * Solid fill for the status stripe, where the pale chip wash reads as no
 	 * colour at all. Carries its own text colour: the stripe holds an icon, not
@@ -234,42 +239,48 @@ export const RUN_ISSUE_EFFECT_META: Record<RunIssueEffect, RunIssueEffectMeta> =
 		suppressed: {
 			value: 'suppressed',
 			label: 'Suppressed',
+			displayValue: 'Suppressed',
 			description:
 				'Does not count as unexpected: at least one rule marks these results expected, and the issue is open.',
-			className: 'bg-badge-3 text-text-expected',
+			variant: BadgeVariants.Expected,
 			stripeClassName: STRIPE_GREEN,
 			iconName: 'EyeHide'
 		},
 		stale: {
 			value: 'stale',
-			label: 'Counting again',
+			// The whole of "counting again" is in the word that changed: these
+			// results were suppressed, and now they are not.
+			label: 'Again',
+			displayValue: 'Counting again',
 			description:
 				'Counts as unexpected again: these results were suppressed, but closing the issue un-suppressed them.',
-			className: 'bg-badge-14 text-text-primary',
+			variant: BadgeVariants.Warning,
 			stripeClassName: STRIPE_ORANGE,
 			iconName: 'InformationCircleStop'
 		},
 		unexpected: {
 			value: 'unexpected',
-			label: 'Still counts',
 			/*
 			 * Not "Unexpected": that word already names the verdict axis — the
 			 * Expected/Obtained columns and the toolbar counters — and a chip
-			 * repeating it under a result badge asks the reader to work out
+			 * beside a result badge repeating it asks the reader to work out
 			 * which of the two questions it is answering.
 			 */
+			label: 'Counts',
+			displayValue: 'Still counts',
 			description:
 				'Counts as unexpected: the rules explain these results, but still call them a real failure.',
-			className: 'bg-badge-13 text-text-unexpected',
+			variant: BadgeVariants.Unexpected,
 			stripeClassName: STRIPE_RED,
 			iconName: 'InformationCircleCrossMark'
 		},
 		marked: {
 			value: 'marked',
 			label: 'Undecided',
+			displayValue: 'Undecided',
 			description:
 				'Counts as unexpected: the rules stamp these results but set no disposition, so nothing was decided and nothing is suppressed.',
-			className: 'bg-badge-2 text-text-triage',
+			variant: BadgeVariants.Triage,
 			stripeClassName: STRIPE_VIOLET,
 			iconName: 'TriangleQuestionMark'
 		}
@@ -300,14 +311,14 @@ export const UNTRIAGED_META = {
 	label: 'Untriaged',
 	description:
 		'Counts as unexpected: nobody has classified this failure, so no rule explains it.',
-	className: 'bg-badge-2 text-text-triage',
+	variant: BadgeVariants.Triage,
 	stripeClassName: STRIPE_VIOLET,
 	iconName: 'TriangleExclamationMark'
 } as const satisfies {
 	value: string;
 	label: string;
 	description: string;
-	className: string;
+	variant: BadgeVariants;
 	stripeClassName: string;
 	iconName: IconName;
 };
@@ -327,7 +338,7 @@ export const UNTRIAGED_META = {
  * an empty slot where every other row carries a verdict reads as something
  * failing to render.
  *
- * Outlined rather than washed, and it is the only chip in the system that is.
+ * `BadgeVariants.Outline` -- the only hollow chip in the system.
  * The five hue families all assert something about the count, and this one has
  * nothing to assert — but the sixth, grey, is already spoken for: it is the
  * identity hue, worn by the key chip directly beneath this one, so a grey
@@ -343,7 +354,7 @@ export const NO_EFFECT_META = {
 	label: 'No effect',
 	description:
 		'The result passed, so its stamps decide nothing. They record that a rule matches this iteration, not that anything went wrong this time.',
-	className: 'bg-transparent border-border-primary text-text-primary',
+	variant: BadgeVariants.Outline,
 	// The stripe has no key chip beside it to be confused with, and a hollow
 	// 24px gutter would read as a rendering gap, so there it stays grey.
 	stripeClassName: STRIPE_GREY,
@@ -352,7 +363,7 @@ export const NO_EFFECT_META = {
 	value: string;
 	label: string;
 	description: string;
-	className: string;
+	variant: BadgeVariants;
 	stripeClassName: string;
 	iconName: IconName;
 };
@@ -512,7 +523,7 @@ export interface IssueRulesStateMeta {
 	value: IssueRulesState;
 	label: string;
 	description: string;
-	className: string;
+	variant: BadgeVariants;
 	/**
 	 * Solid fill for the status stripe, where the pale chip wash reads as no
 	 * colour at all. Carries its own text colour: the stripe holds an icon, not
@@ -531,7 +542,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		label: 'Active',
 		description:
 			'This issue has active rules, so future imports will keep matching results to it.',
-		className: 'bg-badge-3 text-text-expected',
+		variant: BadgeVariants.Expected,
 		stripeClassName: STRIPE_GREEN,
 		iconName: 'InformationCircleCheckmark'
 	},
@@ -540,7 +551,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		label: 'No active rules',
 		description:
 			'The issue is open but none of its rules are active. Reopening an issue does not re-activate the rules that closing it deactivated — enable them by hand.',
-		className: 'bg-badge-2 text-text-triage',
+		variant: BadgeVariants.Triage,
 		stripeClassName: STRIPE_VIOLET,
 		iconName: 'TriangleQuestionMark'
 	},
@@ -549,7 +560,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		label: 'Deactivated',
 		description:
 			'Closing the issue deactivated its rules, so nothing new will be matched to it.',
-		className: 'bg-badge-14 text-text-primary',
+		variant: BadgeVariants.Warning,
 		stripeClassName: STRIPE_ORANGE,
 		iconName: 'InformationCircleStop'
 	},
@@ -558,7 +569,7 @@ export const ISSUE_RULES_STATE_META: Record<
 		label: 'No rules',
 		description:
 			'This issue has no rules yet. Rules are created by classifying a result, never on their own.',
-		className: 'bg-badge-0 text-text-menu',
+		variant: BadgeVariants.Neutral,
 		stripeClassName: STRIPE_GREY,
 		iconName: 'InformationCircleQuestionMark'
 	}
@@ -581,7 +592,7 @@ export function ruleActiveMeta(active: boolean): IssueRulesStateMeta {
 			value: 'enforced',
 			label: 'Active',
 			description: 'This rule is applied to every future import.',
-			className: 'bg-badge-3 text-text-expected',
+			variant: BadgeVariants.Expected,
 			stripeClassName: STRIPE_GREEN,
 			iconName: 'InformationCircleCheckmark'
 		};
@@ -592,8 +603,11 @@ export function ruleActiveMeta(active: boolean): IssueRulesStateMeta {
 		label: 'Inactive',
 		description:
 			'This rule matches nothing new. Existing stamps it already laid down are left alone.',
-		className: 'bg-badge-0 text-text-menu',
-		stripeClassName: STRIPE_ORANGE,
+		variant: BadgeVariants.Neutral,
+		// Grey, matching the chip. A deactivated rule is a deliberate state, not a
+		// failure, and an orange gutter over a grey chip made the row say two
+		// different things about the same rule.
+		stripeClassName: STRIPE_GREY,
 		iconName: 'InformationCircleStop'
 	};
 }

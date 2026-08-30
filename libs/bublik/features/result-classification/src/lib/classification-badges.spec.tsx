@@ -285,15 +285,62 @@ describe('ResultIssueBadges — one line per issue', () => {
 			/>
 		);
 
+		const env = screen.getByText(categoryMeta('env').label);
 		const flaky = screen.getByText(categoryMeta('flaky').label);
 
-		expect(screen.getByText(categoryMeta('env').label)).toHaveClass(
-			'border-primary'
-		);
+		// Which outline a selected chip draws is `Badge`'s business — it derives
+		// one from the chip's own variant — so this asks only that the selected
+		// chip does not look like the unselected one beside it.
+		expect(env.className).not.toBe(flaky.className);
 
 		await userEvent.click(flaky);
 
 		expect(onCategoryClick).toHaveBeenCalledWith('flaky');
+	});
+
+	it('outlines a selected chip in its own hue, never a house blue', () => {
+		render(
+			<ResultIssueBadges
+				issues={[
+					stamp({ issue_id: 7, category: 'product-defect' }),
+					stamp({ issue_id: 7, category: 'to-investigate' })
+				]}
+				selectedCategories={['product-defect', 'to-investigate']}
+				onCategoryClick={vi.fn()}
+			/>
+		);
+
+		// The whole point of the exercise: a red chip selects red and a violet
+		// one violet, the way the obtained-result badge beside them already
+		// behaves. Both wearing `border-primary` is what this replaced.
+		expect(
+			screen.getByText(categoryMeta('product-defect').label).className
+		).toContain('border-text-unexpected');
+		expect(
+			screen.getByText(categoryMeta('to-investigate').label).className
+		).toContain('border-text-triage');
+	});
+
+	it('hints at the click before it happens, and only on real controls', () => {
+		const { rerender } = render(
+			<ResultIssueBadges
+				issues={[stamp({ issue_id: 7, category: 'env' })]}
+				onCategoryClick={vi.fn()}
+			/>
+		);
+
+		expect(screen.getByText(categoryMeta('env').label).className).toContain(
+			'hover:border-accent-env/40'
+		);
+
+		// A read-only surface passes no handler, and must promise nothing.
+		rerender(
+			<ResultIssueBadges issues={[stamp({ issue_id: 7, category: 'env' })]} />
+		);
+
+		expect(screen.getByText(categoryMeta('env').label).className).not.toMatch(
+			/hover:border-/
+		);
 	});
 
 	it('renders nothing — not even its rule — when there are no stamps', () => {

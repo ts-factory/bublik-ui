@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useGetIssueQuery, useGetIssueRulesQuery } from '@/services/bublik-api';
-import { Badge, Separator, Skeleton, Tooltip, cn } from '@/shared/tailwind-ui';
+import { Badge, Separator, Skeleton, Tooltip } from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
@@ -120,7 +120,8 @@ export function IssueDetailHeader({
 					<div className="flex items-center gap-2">
 						<Tooltip content={stateMeta.description}>
 							<Badge
-								className={cn(CLASSIFICATION_BADGE_CLASS, stateMeta.className)}
+								variant={stateMeta.variant}
+								className={CLASSIFICATION_BADGE_CLASS}
 							>
 								{stateMeta.label}
 							</Badge>
@@ -140,7 +141,8 @@ export function IssueDetailHeader({
 				<Fact label="Rules">
 					<Tooltip content={rulesMeta.description}>
 						<Badge
-							className={cn(CLASSIFICATION_BADGE_CLASS, rulesMeta.className)}
+							variant={rulesMeta.variant}
+							className={CLASSIFICATION_BADGE_CLASS}
 							data-rules-state={rulesMeta.value}
 						>
 							{issueRules.length

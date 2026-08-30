@@ -23,6 +23,7 @@ module.exports = {
 				'text-unexpected': 'hsl(var(--colors-text-unexpected) / <alpha-value>)',
 				'text-menu': 'hsl(var(--colors-text-menu) / <alpha-value>)',
 				'text-triage': 'hsl(var(--colors-text-triage) / <alpha-value>)',
+				'accent-env': 'hsl(var(--colors-accent-env) / <alpha-value>)',
 				'bg-primary': 'hsl(var(--colors-bg-primary) / <alpha-value>)',
 				'bg-body': 'hsl(var(--colors-bg-body) / <alpha-value>)',
 				'bg-fillError': 'hsl(var(--colors-bg-fillError) / <alpha-value>)',

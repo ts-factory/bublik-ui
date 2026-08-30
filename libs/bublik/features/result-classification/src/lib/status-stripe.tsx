@@ -10,6 +10,12 @@ import type { IconProps } from '@/shared/tailwind-ui';
  */
 export interface StatusStripeMeta {
 	label: string;
+	/**
+	 * Long form, where a meta has one. The chip labels are cut to a word so the
+	 * chips line up in a dense cell; the stripe's tooltip has no such pressure,
+	 * and AGAIN reads as an answer only next to the result it qualifies.
+	 */
+	displayValue?: string;
 	description: string;
 	stripeClassName: string;
 	iconName: IconProps['name'];
@@ -28,8 +34,10 @@ export interface StatusStripeMeta {
  * worth learning once.
  */
 export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
+	const label = meta.displayValue ?? meta.label;
+
 	return (
-		<Tooltip content={`${meta.label} — ${meta.description}`}>
+		<Tooltip content={`${label} — ${meta.description}`}>
 			{/*
 			 * `inset-0` against the cell's `relative` so the fill spans the row's
 			 * full height whatever the tallest cell in it turns out to be — a
@@ -46,7 +54,7 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 					meta.stripeClassName
 				)}
 				data-testid="status-stripe"
-				data-status={meta.label}
+				data-status={label}
 			>
 				<Icon name={meta.iconName} size={16} />
 			</div>
