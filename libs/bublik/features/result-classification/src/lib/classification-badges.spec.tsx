@@ -183,9 +183,8 @@ describe('ResultIssueBadges — the Classify slot', () => {
 
 		expect(trigger).toHaveAttribute('data-result-id', '42');
 		// Same line as the verdict, which is the whole point of moving it here.
-		// One wrapper deeper: the verdict sits in the reserved slot.
 		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
-			trigger.parentElement?.firstElementChild
+			trigger.parentElement
 		);
 	});
 
@@ -196,9 +195,11 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		const line = trigger.parentElement;
 
 		expect(line?.lastElementChild).toBe(trigger);
-		// The six labels are six widths; the reserved slot is what stops the
-		// button landing at a different offset on every row.
-		expect(line?.firstElementChild).toHaveClass(VERDICT_SLOT_CLASS);
+		// The six labels are six widths; the chip carrying its own width is what
+		// stops the button landing at a different offset on every row — and it
+		// has to be the chip, not a wrapper, or the space opens up beside it.
+		expect(screen.getByTestId('result-issue-effect').firstElementChild)
+			.toHaveClass(...VERDICT_SLOT_CLASS.split(' '));
 	});
 
 	it('offers the trigger on a passing result that carries stamps', () => {

@@ -533,15 +533,18 @@ export function ResultIssueBadges({
 	 */
 	const verdict = !stamps.length ? (
 		<div data-testid="result-untriaged">
-			<UntriagedBadge />
+			<UntriagedBadge className={VERDICT_SLOT_CLASS} />
 		</div>
 	) : hasError ? (
 		<div data-testid="result-issue-effect">
-			<RunEffectBadge effect={resultIssueEffect(stamps).value} />
+			<RunEffectBadge
+				effect={resultIssueEffect(stamps).value}
+				className={VERDICT_SLOT_CLASS}
+			/>
 		</div>
 	) : (
 		<div data-testid="result-no-effect">
-			<NoEffectBadge />
+			<NoEffectBadge className={VERDICT_SLOT_CLASS} />
 		</div>
 	);
 
@@ -573,15 +576,11 @@ export function ResultIssueBadges({
 			<div className="flex items-center gap-1.5">
 				{/*
 				 * The verdict reads first and the action follows it: what is true
-				 * of this result, then what you can do about it.
-				 *
-				 * The slot is held at a fixed width because the six labels that can
-				 * fill it are six different widths, and the button after them would
-				 * otherwise sit at a different offset on every row. Reserving the
-				 * widest label's width is what lets the reading order and a
-				 * stationary button both hold.
+				 * of this result, then what you can do about it. The chip carries
+				 * its own width (`VERDICT_SLOT_CLASS`), which is what lets that
+				 * order hold without the button moving from row to row.
 				 */}
-				<div className={VERDICT_SLOT_CLASS}>{verdict}</div>
+				{verdict}
 				{/* Only between two things. A read-only surface passes no result,
 				    and a rule with nothing on one side reads as a stray mark. */}
 				{classify ? (

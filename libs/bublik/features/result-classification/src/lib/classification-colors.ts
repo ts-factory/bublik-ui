@@ -292,20 +292,27 @@ export const UNTRIAGED_META = {
 };
 
 /**
- * The width of the verdict chip's slot on a result row.
+ * The verdict chip on a result row, held to one width across all six labels.
  *
- * The chip is followed by the Classify button, and the six labels that can
- * appear in it are six different widths, so without a floor the button lands
- * at a different offset on every row — a control you have to re-find per row
- * is not really in the same place at all. Reserving the widest label's width
- * costs a little whitespace on the short ones and buys a button that never
- * moves.
+ * The chip is followed by the Classify button, and the labels that can appear
+ * in it are six different widths, so left to itself the button lands at a
+ * different offset on every row — a control you have to re-find per row is not
+ * really in the same place at all.
  *
- * The number tracks `VERDICT_SLOT_MAX_LABEL` below, which is checked by a
- * spec: a longer label starts pushing the button around again, and that is a
- * thing to find out from a failing test rather than from a screenshot.
+ * The width goes on the chip rather than on a wrapper around it. A wrapper
+ * pins the button just as well, but it does it by opening a gap between the
+ * chip and the separator, which reads as a layout fault. Widening the chip
+ * puts the same space inside its own border, where a column of equal chips
+ * reads as deliberate — which is what this is: one slot, one status.
+ *
+ * `min-w` rather than `w` so a label that outgrows the number pushes the chip
+ * wider instead of spilling out of it. The number tracks
+ * `VERDICT_SLOT_MAX_LABEL` below, which a spec checks: a longer label starts
+ * moving the button again, and that is better learned from a failing test than
+ * from a screenshot.
  */
-export const VERDICT_SLOT_CLASS = 'min-w-[8rem]';
+export const VERDICT_SLOT_CLASS =
+	'min-w-[7.5rem] justify-center whitespace-nowrap';
 
 /**
  * `Counting again`, the longest of them. Every label that can land in the
