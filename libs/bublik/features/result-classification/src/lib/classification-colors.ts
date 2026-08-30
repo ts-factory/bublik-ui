@@ -56,6 +56,27 @@ const STRIPE_GREY = 'bg-bg-compromised text-white';
 export const CLASSIFICATION_BADGE_CLASS =
 	'text-[0.6875rem] leading-[1.125rem] uppercase tracking-wide';
 
+/**
+ * A chip whose value is currently in the filter.
+ *
+ * Deliberately not `Badge`'s own `isSelected`. That resolves, for the default
+ * variant, to `bg-primary-wash border-primary`, and `cn` is `twMerge` with the
+ * selected layer appended *after* `className` -- so it replaces the chip's meta
+ * background. Every selected category chip would collapse to the same primary
+ * wash, and the one thing a filter chip must keep saying is which value it is.
+ *
+ * An outline instead, over the chip's own hue. The badge base already carries
+ * `border border-transparent`, so colouring it costs no layout shift.
+ */
+export const CLASSIFICATION_BADGE_SELECTED_CLASS = 'border-primary';
+
+/**
+ * A chip that toggles a filter but is not currently in it. Enough of a hint
+ * that it is a control, without a second resting appearance to read past.
+ */
+export const CLASSIFICATION_BADGE_CLICKABLE_CLASS =
+	'cursor-pointer hover:border-primary/50';
+
 export interface CategoryMeta {
 	value: IssueCategory;
 	/** Short form, for chips inside a table cell. */
@@ -341,13 +362,17 @@ export const VERDICT_SLOT_MAX_LABEL = 14;
  * identity hue, worn by the key chip directly beneath this one, so a grey
  * verdict and the key it sits above read as the same kind of thing. An empty
  * outline says "no verdict" in the one register nothing else uses.
+ *
+ * The label keeps the primary text colour. Muting it as well would say the
+ * chip is of secondary importance, when it is the row's verdict like any
+ * other; the outline already carries the whole of what is different here.
  */
 export const NO_EFFECT_META = {
 	value: 'no-effect',
 	label: 'No effect',
 	description:
 		'The result passed, so its stamps decide nothing. They record that a rule matches this iteration, not that anything went wrong this time.',
-	className: 'bg-transparent border-border-primary text-text-menu',
+	className: 'bg-transparent border-border-primary text-text-primary',
 	// The stripe has no key chip beside it to be confused with, and a hollow
 	// 24px gutter would read as a rendering gap, so there it stays grey.
 	stripeClassName: STRIPE_GREY,

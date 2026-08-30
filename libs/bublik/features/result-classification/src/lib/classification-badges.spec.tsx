@@ -182,24 +182,25 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		const trigger = screen.getByTestId('classify-trigger');
 
 		expect(trigger).toHaveAttribute('data-result-id', '42');
-		// Same grid row as the verdict, which is the whole point of moving it
-		// here: the verdict's wrapper is `contents`, so the two share a parent
-		// one level up.
-		expect(screen.getByTestId('result-untriaged').parentElement).toBe(
-			trigger.parentElement?.parentElement
-		);
+		// Same grid row as the verdict. The chip's cell also holds the rule that
+		// closes the column, so the verdict sits one level further in.
+		expect(screen.getByTestId('result-untriaged').parentElement?.parentElement)
+			.toBe(trigger.parentElement);
 	});
 
 	it('follows the verdict, from a slot wide enough that it never moves', () => {
 		render(<ResultIssueBadges hasError issues={[stamp()]} resultId={42} />);
 
 		const trigger = screen.getByTestId('classify-trigger');
-		const line = trigger.parentElement;
+		const grid = trigger.parentElement;
+		const verdictCell = screen.getByTestId('result-issue-effect').parentElement;
 
-		expect(line?.lastElementChild).toBe(trigger);
+		// A grid item of its own, in the second column — the same edge the
+		// category chips start on, rather than an offset from the chip beside it.
+		expect(trigger.previousElementSibling).toBe(verdictCell);
+		expect(grid?.firstElementChild).toBe(verdictCell);
 		// The six labels are six widths; the chip carrying its own width is what
-		// stops the button landing at a different offset on every row — and it
-		// has to be the chip, not a wrapper, or the space opens up beside it.
+		// stops the button landing at a different offset on every row.
 		expect(screen.getByTestId('result-issue-effect').firstElementChild)
 			.toHaveClass(...VERDICT_SLOT_CLASS.split(' '));
 	});
@@ -210,8 +211,9 @@ describe('ResultIssueBadges — the Classify slot', () => {
 		);
 
 		const trigger = screen.getByTestId('classify-trigger');
+		const verdictCell = screen.getByTestId('result-no-effect').parentElement;
 
-		expect(trigger.parentElement?.lastElementChild).toBe(trigger);
+		expect(trigger.previousElementSibling).toBe(verdictCell);
 		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
 	});
 
@@ -305,9 +307,10 @@ describe('ResultIssueBadges — the two columns', () => {
 		// the verdict's row.
 		render(<ResultIssueBadges hasError issues={[stamp()]} />);
 
-		const grid = screen.getByTestId('result-issue-effect').parentElement;
+		const grid =
+			screen.getByTestId('result-issue-effect').parentElement?.parentElement;
 
-		// verdict wrapper, the (empty) action cell, then the stamp wrapper
+		// verdict cell, the (empty) action cell, then the stamp wrapper
 		expect(grid?.children).toHaveLength(3);
 	});
 });

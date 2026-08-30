@@ -15,6 +15,8 @@ import type {
 import {
 	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
+	CLASSIFICATION_BADGE_CLICKABLE_CLASS,
+	CLASSIFICATION_BADGE_SELECTED_CLASS,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
 	NO_EFFECT_META,
@@ -49,9 +51,41 @@ const BUG_KEY_BADGE_CLASS = 'text-[0.6875rem] leading-[1.125rem]';
 
 interface BadgeExtras {
 	className?: string;
-	/** Renders the filter-selected outline; see `badgeSelectedStyles`. */
+	/**
+	 * The chip's value is currently in the filter. Draws the outline described
+	 * by `CLASSIFICATION_BADGE_SELECTED_CLASS` -- deliberately not `Badge`'s own
+	 * `isSelected`, which would replace the chip's meta background and make
+	 * every selected chip look alike.
+	 */
 	isSelected?: boolean;
+	/** Makes the chip a filter toggle. Omit on a read-only surface. */
 	onClick?: () => void;
+}
+
+/**
+ * What a chip picks up once it is a filter control: the affordance, the
+ * selected outline, and a tooltip that says what clicking will do.
+ *
+ * Every chip in this module goes through it, so a category chip in a table and
+ * a disposition chip beside it answer to the click in the same way -- and a
+ * read-only surface, which passes no `onClick`, is left exactly as it was.
+ */
+function toggleShell({ isSelected, onClick }: BadgeExtras) {
+	return {
+		className: cn(
+			onClick && CLASSIFICATION_BADGE_CLICKABLE_CLASS,
+			isSelected && CLASSIFICATION_BADGE_SELECTED_CLASS
+		),
+		// A chip that does nothing must not promise that it does.
+		hint: onClick
+			? isSelected
+				? ' Click to remove it from the filter.'
+				: ' Click to filter by this.'
+			: '',
+		// Only when it is really a button: `Badge` renders a `div` without an
+		// `onClick`, and `type` has no meaning there.
+		buttonProps: onClick ? ({ type: 'button' } as const) : null
+	};
 }
 
 interface MetaBadgeProps extends BadgeExtras {
@@ -72,12 +106,21 @@ function MetaBadge({
 	isSelected,
 	onClick
 }: MetaBadgeProps) {
+	const toggle = toggleShell({ isSelected, onClick });
+
 	return (
-		<Tooltip content={description}>
+		<Tooltip content={`${description}${toggle.hint}`}>
 			<Badge
-				className={cn(CLASSIFICATION_BADGE_CLASS, metaClassName, className)}
-				isSelected={isSelected}
+				// The toggle classes go last so the outline lands on top of the meta
+				// colours rather than being merged away by them.
+				className={cn(
+					CLASSIFICATION_BADGE_CLASS,
+					metaClassName,
+					className,
+					toggle.className
+				)}
 				onClick={onClick}
+				{...toggle.buttonProps}
 				{...dataAttributes}
 			>
 				{children}
@@ -110,6 +153,10 @@ export function CategoryBadge({ category, long, ...rest }: CategoryBadgeProps) {
 export interface CategoryBadgeListProps {
 	categories: readonly IssueCategory[];
 	className?: string;
+	/** Categories currently in the filter, so the matching chips show selected. */
+	selectedCategories?: readonly string[];
+	/** Makes the chips filter toggles. Omit for a read-only surface. */
+	onCategoryClick?: (category: IssueCategory) => void;
 }
 
 /**
@@ -119,7 +166,9 @@ export interface CategoryBadgeListProps {
  */
 export function CategoryBadgeList({
 	categories,
-	className
+	className,
+	selectedCategories,
+	onCategoryClick
 }: CategoryBadgeListProps) {
 	const unique = Array.from(new Set(categories)).sort(
 		(a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
@@ -135,7 +184,14 @@ export function CategoryBadgeList({
 		// row, so the cell takes exactly the width the chips need.
 		<div className={cn('flex items-center gap-1', className)}>
 			{unique.map((category) => (
-				<CategoryBadge key={category} category={category} />
+				<CategoryBadge
+					key={category}
+					category={category}
+					isSelected={selectedCategories?.includes(category)}
+					onClick={
+						onCategoryClick ? () => onCategoryClick(category) : undefined
+					}
+				/>
 			))}
 		</div>
 	);
@@ -179,14 +235,19 @@ export function DispositionBadge({
 	onClick
 }: DispositionBadgeProps) {
 	const meta = dispositionMeta(expected);
+	const toggle = toggleShell({ isSelected, onClick });
+	const description = aggregate ? meta.aggregateDescription : meta.description;
 
+	// Builds its own `Badge` rather than going through `MetaBadge` -- it is the
+	// one axis coloured by variant instead of by a meta class -- so it has to
+	// take the toggle shell by hand to stay in step with the other five.
 	return (
-		<Tooltip content={aggregate ? meta.aggregateDescription : meta.description}>
+		<Tooltip content={`${description}${toggle.hint}`}>
 			<Badge
 				variant={meta.variant}
-				className={cn(CLASSIFICATION_BADGE_CLASS, className)}
-				isSelected={isSelected}
+				className={cn(CLASSIFICATION_BADGE_CLASS, className, toggle.className)}
 				onClick={onClick}
+				{...toggle.buttonProps}
 				data-disposition={meta.value}
 			>
 				{meta.label}
@@ -574,9 +635,13 @@ export function ResultIssueBadges({
 	 * keeps the Classify button in one place down the whole table, not just
 	 * within a cell.
 	 *
+	 * The verdict and the button are grid items in their own right, so the
+	 * button lands on the categories' edge instead of a hand-set offset from
+	 * the chip beside it.
+	 *
 	 * The wrappers are `contents`: they carry the `data-*` hooks the e2e suite
-	 * reads, and without it each would be a single grid item and take its two
-	 * chips out of the columns.
+	 * reads, and without it each would be a single box and take its two chips
+	 * out of the columns.
 	 */
 	const body = (
 		<div
@@ -585,20 +650,24 @@ export function ResultIssueBadges({
 				className
 			)}
 		>
-			{verdict}
-			{/* Always emitted, even with nothing in it: an absent cell would let
-			    the first stamp's key chip fall into the verdict's row. */}
+			{/*
+			 * The rule closes the first column rather than opening the second, so
+			 * the button starts exactly where the category chips do. Drawn only
+			 * between two things: a read-only surface passes no result, and a
+			 * rule with nothing on one side reads as a stray mark.
+			 */}
 			<div className="flex items-center gap-1.5">
-				{/* Only between two things. A read-only surface passes no result,
-				    and a rule with nothing on one side reads as a stray mark. */}
+				{verdict}
 				{classify ? (
 					<Separator
 						orientation="vertical"
 						className="h-3.5 bg-border-primary"
 					/>
 				) : null}
-				{classify}
 			</div>
+			{/* Always emitted, even empty: an absent cell would let the first
+			    stamp's key chip fall into the verdict's row. */}
+			{classify ?? <div aria-hidden />}
 			{stamps.map((issue) => (
 				<div
 					key={issue.rule_id}
