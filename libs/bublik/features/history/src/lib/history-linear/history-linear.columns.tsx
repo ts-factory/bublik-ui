@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, RowData } from '@tanstack/react-table';
 
 import { HistoryDataLinear, RunResult } from '@/shared/types';
 import { config } from '@/bublik/config';
@@ -28,11 +28,24 @@ import { IssueBadges, Links, RunTime, RunTimeProps } from './column-components';
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { HistoryContextMenuContainer } from '../history-context-menu';
 
+declare module '@tanstack/react-table' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface ColumnMeta<TData extends RowData, TValue> {
+		/**
+		 * The column's track in the table's grid. The whole table is one grid, so
+		 * a column's width belongs to the column rather than to a track list
+		 * repeated on every row — see `gridTemplateColumns` in the component.
+		 */
+		width?: string;
+	}
+}
+
 export const columns: ColumnDef<HistoryDataLinear>[] = [
 	{
 		id: HistoryLinearColumns.Links,
 		header: 'Actions',
 		accessorFn: (data) => data,
+		meta: { width: '120px' },
 		cell: (cell) => {
 			const data = cell.getValue<HistoryDataLinear>();
 
@@ -54,6 +67,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 			</div>
 		),
 		accessorFn: getTime,
+		meta: { width: '130px' },
 		cell: (cell) => {
 			const { dateTime, duration } = cell.getValue<RunTimeProps>();
 
@@ -64,6 +78,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.Metadata,
 		header: 'Metadata',
 		accessorFn: (data) => data.metadata.map((meta) => ({ payload: meta })),
+		meta: { width: '0.8fr' },
 		cell: (cell) => {
 			const metadataBadges = cell.getValue<BadgeListItem[]>();
 
@@ -89,6 +104,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.Tags,
 		header: 'Tags',
 		accessorFn: getTags,
+		meta: { width: '1fr' },
 		cell: (cell) => {
 			const tags = cell.getValue<BadgeListItem[]>();
 
@@ -113,6 +129,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.ExpectedResults,
 		header: 'Expected Results',
 		accessorFn: (data) => data.expected_results,
+		meta: { width: '1fr' },
 		cell: (cell) => {
 			const expectedResults = cell.getValue<RunResult[]>();
 
@@ -134,6 +151,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.ObtainedResults,
 		header: 'Obtained Results',
 		accessorFn: getObtainedResult,
+		meta: { width: '1fr' },
 		cell: (cell) => {
 			const { isNotExpected, verdicts, result } =
 				cell.getValue<VerdictListProps>();
@@ -184,6 +202,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 		id: HistoryLinearColumns.Parameters,
 		header: 'Parameters',
 		accessorFn: (data) => data.parameters.map((param) => ({ payload: param })),
+		meta: { width: '1.4fr' },
 		cell: (cell) => {
 			const parameters = cell.getValue<BadgeListItem[]>();
 

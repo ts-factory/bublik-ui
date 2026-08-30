@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useMemo } from 'react';
-import { OnChangeFn, PaginationState, TableState } from '@tanstack/react-table';
+import { FC, Fragment, useMemo, useRef, useState } from 'react';
+import {
+	OnChangeFn,
+	PaginationState,
+	Row,
+	TableState,
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	useReactTable
+} from '@tanstack/react-table';
 
 import { HistoryDataLinear } from '@/shared/types';
-import { Skeleton, TableClassNames, TwTable } from '@/shared/tailwind-ui';
+import { useIsSticky } from '@/shared/hooks';
+import { Pagination, Skeleton, cn } from '@/shared/tailwind-ui';
 
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { globalFilterFn } from './history-linear.utils';
@@ -23,17 +34,15 @@ export const HistoryLinearLoading = (props: { rowCount?: number }) => {
 	);
 };
 
-const gridClassName = 'grid grid-cols-[120px,130px,0.8fr,1fr,1fr,1fr,1.4fr]';
-
-const classNames: TableClassNames<HistoryDataLinear> = {
-	header: 'sticky top-0 z-10',
-	headerRow: `h-10 bg-white ${gridClassName} rounded-b`,
-	headerCell:
-		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center first:pl-4',
-	body: 'space-y-1 [&>:first-of-type]:mt-1',
-	bodyRow: `bg-white py-2 rounded-md ${gridClassName} border border-transparent hover:border-primary transition-colors`,
-	bodyCell: 'px-1'
-};
+/**
+ * The whole table is a single grid, so the column tracks are declared once here
+ * from the column defs rather than repeated on the header row and on every body
+ * row. Cells are emitted flat into it — a row has no wrapper element, which is
+ * what lets a track size against every row at once.
+ */
+const gridTemplateColumns = columns
+	.map((column) => column.meta?.width ?? 'minmax(0, 1fr)')
+	.join(' ');
 
 export interface HistoryLinearTableProps {
 	data: HistoryDataLinear[];
@@ -57,20 +66,121 @@ export const HistoryLinearTable: FC<HistoryLinearTableProps> = ({
 		[globalFilter, pagination]
 	);
 
+	const table = useReactTable<HistoryDataLinear>({
+		data,
+		columns,
+		pageCount,
+		state,
+		globalFilterFn,
+		onGlobalFilterChange,
+		onPaginationChange,
+		getColumnCanGlobalFilter: () => true,
+		manualPagination: true,
+		enableSorting: false,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
+	});
+
+	const { pageIndex, pageSize } = table.getState().pagination;
+
+	const headerRef = useRef<HTMLDivElement | null>(null);
+	const { isSticky } = useIsSticky(headerRef, { offset: -1 });
+
 	return (
-		<TwTable
-			data={data}
-			columns={columns}
-			state={state}
-			globalFilterFn={globalFilterFn}
-			onGlobalFilterChange={onGlobalFilterChange}
-			onPaginationChange={onPaginationChange}
-			getColumnCanGlobalFilter={() => true}
-			classNames={classNames}
-			pageCount={pageCount}
-			stickyOffset={-1}
-			manualPagination
-			enableSorting={false}
-		/>
+		<>
+			<div className="grid" style={{ gridTemplateColumns }}>
+				{table.getHeaderGroups().map((headerGroup) => (
+					<Fragment key={headerGroup.id}>
+						{headerGroup.headers.map((header, idx, headers) => (
+							<div
+								key={header.id}
+								ref={(el) => {
+									if (idx === 0) headerRef.current = el;
+								}}
+								className={cn(
+									'sticky top-0 z-10 h-10 flex items-center justify-start bg-white',
+									'text-[0.6875rem] font-semibold leading-[0.875rem]',
+									idx === 0 && 'rounded-bl pl-4',
+									idx === headers.length - 1 && 'rounded-br'
+								)}
+								style={{
+									// A single shadow spanning the header is not available now
+									// that the header is one element per cell: applied to each
+									// cell it would draw down the seams between them. Offsetting
+									// it sideways makes each cell's shadow fall under its
+									// neighbour instead.
+									boxShadow: isSticky
+										? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+										: 'none'
+								}}
+							>
+								{header.isPlaceholder
+									? null
+									: flexRender(
+											header.column.columnDef.header,
+											header.getContext()
+									  )}
+							</div>
+						))}
+					</Fragment>
+				))}
+				{table.getRowModel().rows.map((row) => (
+					<HistoryLinearRow key={row.id} row={row} />
+				))}
+			</div>
+			{pageCount ? (
+				<div className="flex justify-center mt-1">
+					<Pagination
+						totalCount={table.getPageCount()}
+						currentPage={pageIndex + 1}
+						pageSize={pageSize}
+						onPageChange={(page) => table.setPageIndex(page - 1)}
+						onPageSizeChange={table.setPageSize}
+					/>
+				</div>
+			) : null}
+		</>
 	);
 };
+
+interface HistoryLinearRowProps {
+	row: Row<HistoryDataLinear>;
+}
+
+/**
+ * A row's cells, emitted straight into the table's grid. With no row element to
+ * carry them, the card look and the hover outline are rebuilt per cell: the ends
+ * round and close the border, and hover is state rather than a CSS `hover:`.
+ */
+function HistoryLinearRow({ row }: HistoryLinearRowProps) {
+	const [hovered, setHovered] = useState(false);
+	const cells = row.getVisibleCells();
+
+	return (
+		<Fragment>
+			{cells.map((cell, idx) => {
+				const isFirst = idx === 0;
+				const isLast = idx === cells.length - 1;
+
+				return (
+					<div
+						key={cell.id}
+						onMouseEnter={() => setHovered(true)}
+						onMouseLeave={() => setHovered(false)}
+						className={cn(
+							'mt-1 bg-white px-1 py-2 border-y border-y-transparent transition-colors',
+							isFirst && 'rounded-l-md border-l border-l-transparent',
+							isLast && 'rounded-r-md border-r border-r-transparent',
+							hovered && 'border-y-primary',
+							hovered && isFirst && 'border-l-primary',
+							hovered && isLast && 'border-r-primary'
+						)}
+					>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</div>
+				);
+			})}
+		</Fragment>
+	);
+}
