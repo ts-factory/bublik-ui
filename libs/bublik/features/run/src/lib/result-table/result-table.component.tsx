@@ -37,6 +37,10 @@ import {
 	Tooltip
 } from '@/shared/tailwind-ui';
 import { formatKeyValueForDisplay } from '@/shared/utils';
+import {
+	CATEGORY_ORDER,
+	categoryMeta
+} from '@/bublik/features/result-classification';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import {
 	decodeCompressedOrJsonState,
@@ -48,6 +52,7 @@ import { getColumns } from './result-table.columns';
 import {
 	COLUMN_ID,
 	ObtainedResultFilterSchema,
+	obtainedResultFilterCount,
 	StringArraySchema
 } from './constants';
 import { useTargetIterationId } from '../run-table/run-table.hooks';
@@ -131,18 +136,21 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		verdicts,
 		results,
 		resultProperties,
+		categories,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
 		resultsFilter,
 		resultPropertiesFilter,
+		categoriesFilter,
 		artifactsFilter,
 		onClearFilters,
 		onFilterChange,
 		onVerdictsFilterChange,
 		onResultsFilterChange,
-		onResultPropertiesFilterChange
+		onResultPropertiesFilterChange,
+		onCategoriesFilterChange
 	} = useDataTableFilters(rowId, data);
 	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
 		localRequirements: requirementsFilter
@@ -276,6 +284,17 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									value={verdictsFilter}
 									onChange={onVerdictsFilterChange}
 									disabled={!verdicts.length}
+								/>
+								{/* Beside Verdicts, because it answers the same question one step
+								    further on: the verdict says what went wrong, the category says
+								    what it was decided to be. */}
+								<DataTableFacetedFilter
+									title="Category"
+									size="xss"
+									options={categories}
+									value={categoriesFilter}
+									onChange={onCategoriesFilterChange}
+									disabled={!categories.length}
 								/>
 								<DataTableFacetedFilter
 									title="Artifacts"
@@ -505,6 +524,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const verdictsFilter = obtainedResultFilter.verdicts;
 	const resultsFilter = obtainedResultFilter.results;
 	const resultPropertiesFilter = obtainedResultFilter.resultProperties;
+	const categoriesFilter = obtainedResultFilter.categories;
 
 	const artifactsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
@@ -535,6 +555,13 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			const hasEveryArtifact = artifactsFilter.every((artifact) =>
 				row.artifacts?.includes(artifact)
 			);
+			// Any, not every: a result carries one stamp per matching rule, so
+			// asking for DEFECT and KNOWN means the results either explains.
+			const hasSomeCategory =
+				!categoriesFilter.length ||
+				(row.issues ?? []).some((issue) =>
+					categoriesFilter.includes(issue.category)
+				);
 			const hasEveryRequirement = requirementsFilter.every((requirement) =>
 				row.requirements?.includes(requirement)
 			);
@@ -552,6 +579,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				hasEveryVerdict &&
 				hasEveryArtifact &&
 				hasEveryRequirement &&
+				hasSomeCategory &&
 				matchesResult &&
 				matchesResultProperties
 			);
@@ -579,6 +607,7 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		};
 	}, [
 		artifactsFilter,
+		categoriesFilter,
 		data,
 		parametersFilter,
 		requirementsFilter,
@@ -620,6 +649,26 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				label: verdict,
 				value: verdict
 			}));
+	}, [filteredData]);
+
+	/**
+	 * The categories the loaded results are actually stamped with, in the same
+	 * order and under the same long labels the classification tables use -- so
+	 * `Product defect` reads the same here as it does on `/issues`.
+	 */
+	const categories = useMemo(() => {
+		const present = new Set(
+			filteredData.flatMap((row) =>
+				(row.issues ?? []).map((issue) => issue.category)
+			)
+		);
+
+		return CATEGORY_ORDER.filter((category) => present.has(category)).map(
+			(category) => ({
+				label: categoryMeta(category).displayValue,
+				value: category
+			})
+		);
 	}, [filteredData]);
 
 	const results = useMemo(() => {
@@ -714,12 +763,8 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 						? ObtainedResultFilterSchema.parse(undefined)
 						: ObtainedResultFilterSchema.parse(draft[index].value);
 				const nextFilter = updater(currentFilter);
-				const hasValues =
-					nextFilter.verdicts.length > 0 ||
-					nextFilter.results.length > 0 ||
-					nextFilter.resultProperties.length > 0;
 
-				if (!hasValues) {
+				if (obtainedResultFilterCount(nextFilter) === 0) {
 					if (index !== -1) {
 						draft.splice(index, 1);
 					}
@@ -752,6 +797,13 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		}));
 	}
 
+	function handleCategoriesFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			categories: values ?? []
+		}));
+	}
+
 	function handleResultPropertiesFilterChange(values: string[] | undefined) {
 		handleObtainedResultFilterChange((filter) => ({
 			...filter,
@@ -768,18 +820,21 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		verdicts,
 		results,
 		resultProperties,
+		categories,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
 		resultsFilter,
 		resultPropertiesFilter,
+		categoriesFilter,
 		artifactsFilter,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onVerdictsFilterChange: handleVerdictsFilterChange,
 		onResultsFilterChange: handleResultsFilterChange,
-		onResultPropertiesFilterChange: handleResultPropertiesFilterChange
+		onResultPropertiesFilterChange: handleResultPropertiesFilterChange,
+		onCategoriesFilterChange: handleCategoriesFilterChange
 	};
 }
 
@@ -826,11 +881,7 @@ function getFilterSelectionCount(
 
 	const obtainedResult = ObtainedResultFilterSchema.safeParse(filter.value);
 	if (obtainedResult.success) {
-		return (
-			obtainedResult.data.verdicts.length +
-			obtainedResult.data.results.length +
-			obtainedResult.data.resultProperties.length
-		);
+		return obtainedResultFilterCount(obtainedResult.data);
 	}
 
 	return 0;
@@ -918,11 +969,7 @@ function useColumnFilters(rowId: string) {
 
 			if (!obtainedResult.success) return false;
 
-			return (
-				obtainedResult.data.verdicts.length > 0 ||
-				obtainedResult.data.results.length > 0 ||
-				obtainedResult.data.resultProperties.length > 0
-			);
+			return obtainedResultFilterCount(obtainedResult.data) > 0;
 		}
 
 		return false;

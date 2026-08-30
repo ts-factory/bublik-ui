@@ -9,7 +9,13 @@ import {
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
-import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import {
+	IssueCategory,
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
+	ResultIssueRef,
+	RunDataResults
+} from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import { ResultIssueBadges } from '@/bublik/features/result-classification';
@@ -120,6 +126,21 @@ export const getColumns = ({
 						(!filterValue.resultProperties.length ||
 							filterValue.resultProperties.includes(resultProperty));
 
+					// Toggling a category chip is the same write as ticking the
+					// Category box in the toolbar: both land on this column's filter,
+					// which is where the chips already live.
+					function handleCategoryClick(category: IssueCategory) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								const selected = draft.categories ?? [];
+
+								draft.categories = selected.includes(category)
+									? selected.filter((c) => c !== category)
+									: [...selected, category];
+							})
+						);
+					}
+
 					// No result to render, but the stamps still explain why — they used
 					// to live in another column and were unaffected by this guard, so
 					// returning nothing here would quietly lose them.
@@ -130,6 +151,8 @@ export const getColumns = ({
 								hasError={obtainedResult.isNotExpected}
 								resultId={obtainedResult.resultId}
 								projectId={obtainedResult.projectId}
+								selectedCategories={filterValue.categories}
+								onCategoryClick={handleCategoryClick}
 							/>
 						);
 					}
@@ -193,6 +216,8 @@ export const getColumns = ({
 								hasError={obtainedResult.isNotExpected}
 								resultId={obtainedResult.resultId}
 								projectId={obtainedResult.projectId}
+								selectedCategories={filterValue.categories}
+								onCategoryClick={handleCategoryClick}
 								withSeparator
 							/>
 						</div>
@@ -205,12 +230,14 @@ export const getColumns = ({
 						results?: RESULT_TYPE[];
 						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
+						categories?: string[];
 					}
 				) => {
 					const value = row.getValue(column) as {
 						isNotExpected?: boolean;
 						result?: RESULT_TYPE;
 						verdicts?: string[];
+						issues?: ResultIssueRef[];
 					};
 					const rowResultProperty =
 						typeof value.isNotExpected === 'boolean'
@@ -222,7 +249,8 @@ export const getColumns = ({
 					if (
 						!filterValue?.results?.length &&
 						!filterValue?.resultProperties?.length &&
-						!filterValue?.verdicts?.length
+						!filterValue?.verdicts?.length &&
+						!filterValue?.categories?.length
 					) {
 						return true;
 					}
@@ -238,8 +266,21 @@ export const getColumns = ({
 					const matchesVerdicts =
 						!filterValue.verdicts?.length ||
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
+					// Any, not every: a result carries one stamp per matching rule, and
+					// selecting DEFECT and KNOWN asks for the results either explains,
+					// not the rare ones both do.
+					const matchesCategories =
+						!filterValue.categories?.length ||
+						(value.issues ?? []).some((issue) =>
+							filterValue.categories?.includes(issue.category)
+						);
 
-					return matchesResult && matchesResultProperties && matchesVerdicts;
+					return (
+						matchesResult &&
+						matchesResultProperties &&
+						matchesVerdicts &&
+						matchesCategories
+					);
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
 			}

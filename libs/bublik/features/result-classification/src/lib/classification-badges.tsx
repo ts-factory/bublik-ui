@@ -461,7 +461,7 @@ export function BugKeyChip({
 		<Badge
 			className={cn(
 				BUG_KEY_BADGE_CLASS,
-				'gap-1.5 bg-badge-0 text-text-menu normal-case tracking-normal font-mono',
+				'gap-1.5 bg-badge-0 normal-case tracking-normal font-mono',
 				className
 			)}
 		>
@@ -488,7 +488,7 @@ export function BugKeyChip({
 							href={bugUrl}
 							target="_blank"
 							rel="noreferrer"
-							className="grid place-items-center text-text-menu hover:text-primary"
+							className="grid place-items-center hover:text-primary"
 							data-testid="issue-bug-link"
 						>
 							<Icon name="ExternalLink" size={14} />
