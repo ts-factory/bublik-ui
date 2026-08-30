@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { ComponentPropsWithRef, forwardRef } from 'react';
 
+import { cn } from '../utils';
+
 export interface FormSectionHeaderProps extends ComponentPropsWithRef<'div'> {
 	name: string;
 }
@@ -9,9 +11,9 @@ export interface FormSectionHeaderProps extends ComponentPropsWithRef<'div'> {
 export const FormSectionHeader = forwardRef<
 	HTMLDivElement,
 	FormSectionHeaderProps
->(({ name, children, ...props }, ref) => {
+>(({ name, children, className, ...props }, ref) => {
 	return (
-		<div className="mb-4" {...props}>
+		<div className={cn('mb-4', className)} {...props}>
 			<div className="flex items-center justify-between gap-2 pl-2" ref={ref}>
 				<span className="truncate text-[0.8125rem] font-semibold uppercase leading-5 tracking-[0.06em] text-text-secondary">
 					{name}

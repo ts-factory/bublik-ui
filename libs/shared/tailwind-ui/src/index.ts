@@ -61,6 +61,7 @@ export * from './lib/badge-box';
 export * from './lib/toolbar';
 export * from './lib/drawer';
 export * from './lib/form-alert';
+export * from './lib/form-section';
 export * from './lib/alert-dialog';
 export * from './lib/avatar';
 export * from './lib/sonner-toaster';

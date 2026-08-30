@@ -2,9 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { MouseEventHandler } from 'react';
 
-import { cn } from '@/shared/tailwind-ui';
-
-import { IconButton } from '../icon-button';
+import { cn, IconButton } from '@/shared/tailwind-ui';
 
 export interface FieldResetButtonProps {
 	onClick: MouseEventHandler<HTMLButtonElement>;

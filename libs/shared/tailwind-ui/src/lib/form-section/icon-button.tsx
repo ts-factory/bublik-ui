@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ComponentProps, MouseEventHandler } from 'react';
 
-import { cn, Icon, Tooltip } from '@/shared/tailwind-ui';
+import { cn } from '../utils';
+import { Icon } from '../icon';
+import { Tooltip } from '../tooltip';
 
 export type IconButtonProps = Omit<ComponentProps<typeof Icon>, 'onClick'> & {
 	onClick: MouseEventHandler<HTMLButtonElement>;

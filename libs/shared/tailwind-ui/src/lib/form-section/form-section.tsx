@@ -7,10 +7,11 @@ import {
 	forwardRef
 } from 'react';
 
-import { cn, Icon } from '@/shared/tailwind-ui';
+import { cn } from '../utils';
+import { Icon } from '../icon';
 
-import { FormSectionHeader, FormSectionHeaderProps } from '../section-header';
-import { IconButton } from '../icon-button';
+import { FormSectionHeader, FormSectionHeaderProps } from './section-header';
+import { IconButton } from './icon-button';
 
 interface FormSectionProps extends ComponentProps<'fieldset'> {
 	children: ReactNode;

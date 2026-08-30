@@ -15,7 +15,6 @@ import {
 	buildSubmitHandler,
 	type ClassifyForm
 } from './classify-form';
-import { MatchScope } from './match-scope';
 
 export interface ClassifyDrawerProps {
 	open: boolean;
@@ -91,10 +90,6 @@ export function ClassifyDrawer({
 							projectId={projectId}
 							container={scrollableRef}
 						/>
-
-						<div className="pt-2 border-t border-border-primary">
-							<MatchScope form={form} />
-						</div>
 
 						{/* Negative margins cancel the form's padding so the bar bleeds
 						    the full width of the drawer, and the shadow appears only once

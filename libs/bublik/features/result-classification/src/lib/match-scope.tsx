@@ -50,13 +50,13 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex flex-col gap-2">
-				<span className="text-[0.8125rem] font-semibold">Match scope</span>
-				<p className="text-xs text-text-menu">
-					A classification auto-applies to future results that match the test
-					path plus the dimensions below.
-				</p>
-			</div>
+			{/* The "Match scope" heading lives in the enclosing
+			    `FormSectionSubheader` now; only the explainer is left, because it
+			    says something the heading does not. */}
+			<p className="text-xs text-text-menu">
+				A classification auto-applies to future results that match the test path
+				plus the dimensions below.
+			</p>
 
 			<RadioGroup
 				value={preset === 'Custom' ? '' : preset}

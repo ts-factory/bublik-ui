@@ -4,11 +4,17 @@ import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Input, SelectInput } from '@/shared/tailwind-ui';
+import {
+	FormSection,
+	FormSectionSubheader,
+	Input,
+	SelectInput
+} from '@/shared/tailwind-ui';
 import type { ClassifyScope, IssueCategory } from '@/shared/types';
 
 import { CATEGORY_OPTIONS } from './category';
 import { IssuePicker } from './issue-picker';
+import { MatchScope } from './match-scope';
 import { DEFAULT_MATCH_FLAGS } from './match-scope.utils';
 
 export const ClassifyFormSchema = z.object({
@@ -102,112 +108,147 @@ export function ClassifyFields({
 
 	return (
 		<>
-			<div data-testid="classify-mode">
-				<Controller
-					control={control}
-					name="mode"
-					render={({ field }) => (
-						<SelectInput
-							label="Issue"
-							value={field.value}
-							onValueChange={field.onChange}
-							name={field.name}
-							options={[
-								{ value: 'new', displayValue: 'New issue' },
-								{ value: 'existing', displayValue: 'Existing issue' }
-							]}
+			{/* The three cards mirror the history global search form's sections —
+			    same `FormSection` shell, same coloured bar, same uppercase
+			    headers. The form's own `gap-6` supplies the spacing between them,
+			    which is the gap that form uses too. */}
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-primary" />
+				<FormSection.Header name="Issue" />
+				<div className="flex flex-col gap-4">
+					<div data-testid="classify-mode">
+						<Controller
+							control={control}
+							name="mode"
+							render={({ field }) => (
+								<SelectInput
+									label="Source"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={[
+										{ value: 'new', displayValue: 'New issue' },
+										{ value: 'existing', displayValue: 'Existing issue' }
+									]}
+								/>
+							)}
 						/>
-					)}
-				/>
-			</div>
+					</div>
 
-			{mode === 'new' ? (
-				<>
-					<Input
-						label="Title"
-						placeholder="Short label"
-						data-testid="classify-title"
-						{...register('title')}
-					/>
-					<Input
-						label="Bug Key"
-						placeholder="Optional — ref://JIRA/ISSUE-123"
-						data-testid="classify-bug-key"
-						{...register('bugKey')}
-					/>
-				</>
-			) : (
-				<Controller
-					control={control}
-					name="issueId"
-					render={({ field }) => (
-						<IssuePicker
-							projectId={projectId}
-							value={field.value}
-							onChange={(id) => field.onChange(id)}
-							container={container}
-						/>
+					{mode === 'new' ? (
+						<>
+							<Input
+								label="Title"
+								placeholder="Short label"
+								data-testid="classify-title"
+								{...register('title')}
+							/>
+							<Input
+								label="Bug Key"
+								placeholder="Optional — ref://JIRA/ISSUE-123"
+								data-testid="classify-bug-key"
+								{...register('bugKey')}
+							/>
+						</>
+					) : (
+						<div data-testid="classify-issue">
+							<Controller
+								control={control}
+								name="issueId"
+								render={({ field }) => (
+									<IssuePicker
+										label="Issue"
+										projectId={projectId}
+										value={field.value}
+										onChange={(id) => field.onChange(id)}
+										container={container}
+									/>
+								)}
+							/>
+						</div>
 					)}
-				/>
-			)}
+				</div>
+			</FormSection>
 
-			<div data-testid="classify-category">
-				<Controller
-					control={control}
-					name="category"
-					render={({ field }) => (
-						<SelectInput
-							label="Category"
-							value={field.value}
-							onValueChange={field.onChange}
-							name={field.name}
-							options={CATEGORY_OPTIONS}
+			{/* Orange bar, the same one the history form's Classification section
+			    carries — the two forms name the same concept, so they should not
+			    pick different colours for it. */}
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-bg-warning" />
+				<FormSection.Header name="Classification" />
+				<div className="flex flex-col gap-4">
+					<div data-testid="classify-category">
+						<Controller
+							control={control}
+							name="category"
+							render={({ field }) => (
+								<SelectInput
+									label="Category"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={CATEGORY_OPTIONS}
+								/>
+							)}
 						/>
-					)}
-				/>
-			</div>
+					</div>
 
-			<div data-testid="classify-expected">
-				<Controller
-					control={control}
-					name="expected"
-					render={({ field }) => (
-						<SelectInput
-							label="Expected"
-							value={field.value}
-							onValueChange={field.onChange}
-							name={field.name}
-							options={[
-								{ value: 'none', displayValue: "Don't change" },
-								{ value: 'expected', displayValue: 'Expected' },
-								{ value: 'unexpected', displayValue: 'Unexpected' }
-							]}
+					<div data-testid="classify-expected">
+						<Controller
+							control={control}
+							name="expected"
+							render={({ field }) => (
+								<SelectInput
+									label="Expected"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={[
+										{ value: 'none', displayValue: "Don't change" },
+										{ value: 'expected', displayValue: 'Expected' },
+										{ value: 'unexpected', displayValue: 'Unexpected' }
+									]}
+								/>
+							)}
 						/>
-					)}
-				/>
-			</div>
+					</div>
+				</div>
+			</FormSection>
 
-			<div data-testid="classify-scope">
-				<Controller
-					control={control}
-					name="scope"
-					render={({ field }) => (
-						<SelectInput
-							label="Apply to"
-							value={field.value}
-							onValueChange={field.onChange}
-							name={field.name}
-							options={[
-								{
-									value: 'future',
-									displayValue: 'This + future matching runs'
-								},
-								{ value: 'oneoff', displayValue: 'Just this result' }
-							]}
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-bg-interrupted" />
+				<FormSection.Header name="Scope" />
+				{/* No subheader over the select: its own floating label already
+				    reads "Apply to", and the two would sit a handspan apart saying
+				    the same words. */}
+				<div className="mb-5">
+					<div data-testid="classify-scope">
+						<Controller
+							control={control}
+							name="scope"
+							render={({ field }) => (
+								<SelectInput
+									label="Apply to"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={[
+										{
+											value: 'future',
+											displayValue: 'This + future matching runs'
+										},
+										{ value: 'oneoff', displayValue: 'Just this result' }
+									]}
+								/>
+							)}
 						/>
-					)}
-				/>
-			</div>
+					</div>
+				</div>
+				<div>
+					<FormSectionSubheader name="Match scope" />
+					<MatchScope form={form} />
+				</div>
+			</FormSection>
 		</>
 	);
 }

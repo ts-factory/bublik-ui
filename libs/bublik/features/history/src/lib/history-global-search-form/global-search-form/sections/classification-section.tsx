@@ -50,6 +50,7 @@ const IssueField = () => {
 	return (
 		<div ref={portalRef}>
 			<IssuePicker
+				label="Issue"
 				projectId={projectIds[0]}
 				value={field.value}
 				onChange={(id) => field.onChange(id)}
@@ -65,8 +66,15 @@ export const ClassificationSection = () => {
 	return (
 		<FormSection>
 			<FormSection.Bar className="bg-bg-warning" />
+			{/* The picker leads: naming the issue is the narrowest filter here,
+			    and everything below it is a way of slicing what is left. Its own
+			    floating label says "Issue", so the subheader that used to sit
+			    above it would only have said the same word twice. */}
 			<div className="mb-5">
-				<FormSection.Header className="mb-0" name="Classification" />
+				<FormSection.Header name="Classification" />
+				<IssueField />
+			</div>
+			<div className="mb-5">
 				<FormSectionSubheader name="Triage state" />
 				{/* The two halves of the triage question: what still needs a
 				    decision, and what already has one. */}
@@ -86,10 +94,6 @@ export const ClassificationSection = () => {
 						control={control}
 					/>
 				</div>
-			</div>
-			<div className="mb-5">
-				<FormSectionSubheader name="Issue" />
-				<IssueField />
 			</div>
 			<div>
 				<FormSectionSubheader name="Category" />
