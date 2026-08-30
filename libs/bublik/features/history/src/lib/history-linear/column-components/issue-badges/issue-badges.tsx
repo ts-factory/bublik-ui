@@ -21,8 +21,9 @@ export interface IssueBadgesProps {
  * and verdict chips use: those write the table's client-side `globalFilter`,
  * while `categories` is a query param the backend filters on.
  *
- * The verdict chip and Classify need none of that, so they are rendered
- * straight from the lib on the result's own line — see `ClassificationVerdict`.
+ * The verdict chip needs none of that, so it is rendered straight from the lib
+ * on the result's own line — see `ClassificationVerdict`. History offers no
+ * Classify trigger at all; classifying is done from the run.
  */
 export function IssueBadges({ issues }: IssueBadgesProps) {
 	const { form, handleGlobalSearchSubmit } = useHistoryFormSearchState();

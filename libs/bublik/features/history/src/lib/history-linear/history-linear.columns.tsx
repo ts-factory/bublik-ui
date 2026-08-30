@@ -166,11 +166,11 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 							isResultSelected={isResultSelected}
 							resultClassName={VERDICT_RESULT_BOXED_CLASS}
 							resultSlot={
+								/* No `resultId`, which is what withholds the Classify
+								   trigger: classifying is done from the run. */
 								<ClassificationVerdict
 									issues={cell.row.original.issues}
 									hasError={cell.row.original.has_error}
-									resultId={cell.row.original.result_id}
-									projectId={cell.row.original.project_id}
 								/>
 							}
 						/>
