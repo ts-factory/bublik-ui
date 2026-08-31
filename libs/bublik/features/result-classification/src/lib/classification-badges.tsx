@@ -405,10 +405,17 @@ export function ProjectBadge({
 					'py-0.5 px-2 truncate rounded',
 					'text-[0.75rem] font-medium leading-[1.125rem]',
 					'text-text-primary',
+					// Transparent rather than absent, the way `badgeBaseStyles` does
+					// it: a border that only exists while selected would grow the chip
+					// by a pixel on each side and nudge the column every time you
+					// toggled the filter.
+					'border border-transparent',
 					// Written as an either/or rather than layered, so only one
-					// background class is ever emitted and the result does not depend
-					// on `cn` resolving the conflict.
-					isSelected ? 'bg-primary-wash' : 'bg-badge-0',
+					// background and one border colour are ever emitted and the result
+					// does not depend on `cn` resolving the conflict. The selected
+					// pair is `badgeSelectedStyles`' own for a primary chip, so this
+					// chip and every `Badge` beside it read as selected the same way.
+					isSelected ? 'bg-primary-wash border-primary' : 'bg-badge-0',
 					className
 				)}
 				onClick={onClick}
