@@ -5,7 +5,6 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useIsScrollbarVisible } from '@/shared/hooks';
 import { useGetIssueQuery } from '@/services/bublik-api';
-import { useAuth } from '@/bublik/features/auth';
 import {
 	ButtonTw,
 	ConfirmDialog,
@@ -26,6 +25,7 @@ import {
 } from './use-issue-mutations';
 import { DESTRUCTIVE_FILL_CLASS } from './classification-colors';
 import { useLazyDialog } from './use-lazy-dialog';
+import { useCanManageIssues } from './use-can-manage-issues';
 
 export interface IssueDrawerProps {
 	open: boolean;
@@ -187,10 +187,8 @@ export function NewIssueButton({
 	label = 'New issue'
 }: NewIssueButtonProps) {
 	const [open, setOpen] = useState(false);
-	const { isAdmin } = useAuth();
+	const { canManage, reason } = useCanManageIssues();
 	const form = useIssueForm();
-
-	if (!isAdmin) return null;
 
 	function handleOpenChange(next: boolean) {
 		setOpen(next);
@@ -199,16 +197,23 @@ export function NewIssueButton({
 
 	return (
 		<>
-			<ButtonTw
-				variant="primary"
-				size={size}
-				onClick={() => setOpen(true)}
-				className="justify-center whitespace-nowrap"
-				data-testid="issue-create"
-			>
-				<Icon name="FilePlus" size={size === 'md' ? 20 : 16} className="mr-1" />
-				{label}
-			</ButtonTw>
+			<Tooltip content={reason || 'Record a new issue'}>
+				<ButtonTw
+					variant="primary"
+					size={size}
+					disabled={!canManage}
+					onClick={() => setOpen(true)}
+					className="justify-center whitespace-nowrap"
+					data-testid="issue-create"
+				>
+					<Icon
+						name="FilePlus"
+						size={size === 'md' ? 20 : 16}
+						className="mr-1"
+					/>
+					{label}
+				</ButtonTw>
+			</Tooltip>
 			<IssueDrawer
 				open={open}
 				onOpenChange={handleOpenChange}
@@ -235,16 +240,15 @@ export function EditIssueButton({
 	iconOnly = false
 }: EditIssueButtonProps) {
 	const [open, setOpen] = useLazyDialog();
-	const { isAdmin } = useAuth();
-
-	if (!isAdmin) return null;
+	const { canManage, reason } = useCanManageIssues();
 
 	return (
 		<>
-			<Tooltip content="Edit title, description, bug key and state">
+			<Tooltip content={reason || 'Edit title, description, bug key and state'}>
 				<ButtonTw
 					variant="secondary"
 					size="xss"
+					disabled={!canManage}
 					onClick={() => setOpen(true)}
 					className="justify-center whitespace-nowrap"
 					data-testid="issue-edit"
@@ -330,11 +334,9 @@ export function IssueDeleteButton({
 	iconOnly = false,
 	onDeleted
 }: IssueDeleteButtonProps) {
-	const { isAdmin } = useAuth();
+	const { canManage, reason } = useCanManageIssues();
 	const [isOpen, setIsOpen] = useLazyDialog();
 	const deleteIssue = useDeleteIssue();
-
-	if (!isAdmin) return null;
 
 	async function handleConfirm() {
 		setIsOpen(false);
@@ -350,10 +352,13 @@ export function IssueDeleteButton({
 
 	return (
 		<>
-			<Tooltip content="Delete this issue, its rules and their stamps">
+			<Tooltip
+				content={reason || 'Delete this issue, its rules and their stamps'}
+			>
 				<ButtonTw
 					variant="destruction-secondary"
 					size="xss"
+					disabled={!canManage}
 					onClick={() => setIsOpen(true)}
 					className={cn(
 						'justify-center whitespace-nowrap',

@@ -1,12 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
-	type OnChangeFn,
-	type Row,
-	type SortingState,
 	type VisibilityState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -131,12 +128,9 @@ const MATCHER_COLUMN_IDS = [
 	COLUMN_ID.PARAMETERS
 ] as const;
 
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
-	...Object.fromEntries(MATCHER_COLUMN_IDS.map((id) => [id, false])),
-	// The band header says it once per section; a column would say it once per
-	// row. See `PROJECT_COLUMN`.
-	[COLUMN_ID.PROJECT]: false
-};
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = Object.fromEntries(
+	MATCHER_COLUMN_IDS.map((id) => [id, false])
+);
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
@@ -168,7 +162,7 @@ interface IssueRuleRow extends IssueRule {
 	bugKey: string | null;
 	/** Resolved tracker URL, when the project can resolve one. */
 	bugUrl: string | null;
-	/** The band this row belongs to. `#id` until the project list arrives. */
+	/** Resolved from `project`. `Project #id` until the project list arrives. */
 	projectName: string;
 }
 
@@ -193,19 +187,6 @@ function buildRows(
 	});
 }
 
-/**
- * Prepended to whatever the user is sorting by.
- *
- * `ClassificationTable` opens a band wherever the group key changes, so the
- * rows have to reach it grouped — and the sorted row model is the last thing to
- * touch their order, so this is the only place that can guarantee it. Sorting
- * the array in `buildRows` would simply be overwritten.
- *
- * It is *prepended*, not substituted: within a project the rows still follow
- * the column the user chose.
- */
-const PROJECT_SORT = { id: COLUMN_ID.PROJECT, desc: false } as const;
-
 interface RuleToggleProps {
 	rule: IssueRule;
 }
@@ -217,7 +198,7 @@ function RuleToggle({ rule }: RuleToggleProps) {
 
 	function toggleActive() {
 		const action = rule.active ? deactivate : activate;
-		// The rule's own project, not the table's. Across a grouped list the
+		// The rule's own project, not the table's. With the list unscoped the
 		// table has no single project, and `?project=` is what the write's
 		// permission check reads.
 		const promise = action({
@@ -687,22 +668,20 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 };
 
 /**
- * The band's value as a column, so the toolbar's Project facet has something to
- * filter and the URL key it writes is one of `FILTER_KEYS` like every other.
+ * Which project's classifier this rule belongs to.
  *
- * Hidden by default: the band header above each section already says which
- * project the rows belong to, and repeating it on every row would be the widest
- * redundant column in the table. It stays in the columns menu for anyone who
- * wants to sort or read it inline.
+ * The list is no longer scoped to one project, so without this a row does not
+ * say where it applies — and two rules on the same test in different projects
+ * were indistinguishable. It also gives the toolbar's Project facet a column to
+ * filter, which is what puts its key in the URL alongside every other facet.
  */
 const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PROJECT,
 	accessorFn: (row) => row.projectName,
 	header: 'Project',
 	meta: { className: 'w-px whitespace-nowrap' },
-	// Sortable on purpose, and the only column here that is. `getSortedRowModel`
-	// filters the sorting state through `getCanSort()`, so `enableSorting: false`
-	// would silently drop `PROJECT_SORT` and un-group the table.
+	// Sortable, unlike most columns here: a rule *is* per-project, so grouping
+	// the list by hand is a thing people will want to do.
 	filterFn: someOfFilter,
 	cell: ({ row }) => (
 		<span className="text-text-primary">{row.original.projectName}</span>
@@ -825,6 +804,10 @@ function getColumns({
 				</span>
 			)
 		},
+		// A rule is per-project, and until now the list never said which. It sits
+		// beside the test because the two together are what the rule is *about*:
+		// this test, in this project.
+		PROJECT_COLUMN,
 		ACTIVE_COLUMN,
 		SCOPE_COLUMN,
 		DISPOSITION_COLUMN,
@@ -842,7 +825,6 @@ function getColumns({
 			  ]
 			: []),
 		CATEGORY_COLUMN,
-		PROJECT_COLUMN,
 		TAGS_COLUMN,
 		VERDICTS_COLUMN,
 		PARAMETERS_COLUMN,
@@ -898,49 +880,16 @@ function useFacetOptions(rules: IssueRuleRow[]) {
 	);
 }
 
-/**
- * A project's heading over its rules.
- *
- * Says how many rules the band holds and how many of them are actually in
- * force, because those are different numbers and the gap between them is the
- * thing worth noticing: closing an issue deactivates its rules, and reopening
- * it does not switch them back on.
- *
- * Sized and coloured as `ClassificationToolbar` — the band is a header for the
- * rows under it, and the table already has one bar that looks like this.
- */
-function ProjectBand({
-	name,
-	rows
-}: {
-	name: string;
-	rows: Row<IssueRuleRow>[];
-}) {
-	const active = rows.filter((row) => row.original.active).length;
-
-	return (
-		<div className="flex items-center gap-2 px-3 py-1.5">
-			<Icon name="Folder" size={14} className="text-text-menu" />
-			<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
-				{name}
-			</span>
-			<span className="text-[0.6875rem] leading-[0.875rem] text-text-menu tabular-nums">
-				{rows.length === 1 ? '1 rule' : `${rows.length} rules`}
-				{rows.length ? ` · ${active} active` : ''}
-			</span>
-		</div>
-	);
-}
-
 export interface IssueRulesTableProps {
 	/** Omit for the cross-issue view: every rule the caller is scoped to. */
 	issueId?: number;
 	/**
 	 * Narrows the list to one project. Optional on purpose — omitted, the
-	 * server returns every project's rules and the table bands them. A rule is
-	 * per-project, so the cross-project view is the one that answers "what will
-	 * the classifier do to the next import"; scoping it to whichever project
-	 * happened to be selected hid the rest with no indication they existed.
+	 * server returns every project's rules and the Project column says which is
+	 * which. A rule is per-project, so the cross-project view is the one that
+	 * answers "what will the classifier do to the next import"; scoping it to
+	 * whichever project happened to be selected hid the rest with no indication
+	 * they existed.
 	 */
 	projectId?: number;
 	/** Toolbar slot, as `RunIssuesTable` has. Carries the New rule button. */
@@ -1041,8 +990,8 @@ export function IssueRulesTable({
 			: skipToken
 	);
 
-	// Names for the bands. A rule carries `project` as a bare id, and an id is
-	// not a heading anyone can read.
+	// A rule carries `project` as a bare id, and an id is not something anyone
+	// recognises a project by.
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 	const projectNames = useMemo(
 		() =>
@@ -1077,26 +1026,6 @@ export function IssueRulesTable({
 		projectOptions
 	} = useFacetOptions(rules);
 
-	// Group first, then whatever the user asked for. See `PROJECT_SORT`.
-	const groupedSorting = useMemo(
-		() => [PROJECT_SORT, ...sorting.filter((s) => s.id !== PROJECT_SORT.id)],
-		[sorting]
-	);
-	// The header handlers build their updater from the table's own state, which
-	// is `groupedSorting` — so the synthetic entry has to be stripped again on
-	// the way out, or it would be written to the URL and shared in links.
-	const handleSortingChange = useCallback<OnChangeFn<SortingState>>(
-		(updaterOrValue) => {
-			const next =
-				typeof updaterOrValue === 'function'
-					? updaterOrValue(groupedSorting)
-					: updaterOrValue;
-
-			onSortingChange(next.filter((s) => s.id !== PROJECT_SORT.id));
-		},
-		[groupedSorting, onSortingChange]
-	);
-
 	// Server-owned paging, filtering and sorting: this table holds one page, and
 	// filtering it locally would narrow that page while claiming to have narrowed
 	// the list.
@@ -1105,13 +1034,13 @@ export function IssueRulesTable({
 		columns,
 		state: {
 			columnFilters,
-			sorting: groupedSorting,
+			sorting,
 			pagination,
 			columnVisibility: effectiveColumnVisibility
 		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
-		onSortingChange: handleSortingChange,
+		onSortingChange,
 		onPaginationChange,
 		rowCount: totalCount,
 		manualPagination: true,
@@ -1201,15 +1130,16 @@ export function IssueRulesTable({
 					testId="issue-rules-search"
 					className="min-w-[220px]"
 				/>
-				{/* First of the facets, because it is the one that decides which
-				    bands are on screen at all — the others narrow within them. */}
+				{/* First of the facets, because it is the widest cut: it decides
+				    which project's rules are in play at all, and the others narrow
+				    within that. */}
 				<DataTableFacetedFilter
 					title="Project"
 					size="xss"
 					options={projectOptions}
 					value={facets.values(COLUMN_ID.PROJECT)}
 					onChange={(values) => facets.set(COLUMN_ID.PROJECT, values)}
-					disabled={projectOptions.length < 2}
+					disabled={!projectOptions.length}
 				/>
 				{showIssue ? (
 					<DataTableFacetedFilter
@@ -1313,15 +1243,6 @@ export function IssueRulesTable({
 							'data-project-id': row.original.project,
 							'data-rule-active': row.original.active ? 'true' : 'false'
 						})}
-						// Rules are per-project — that is the one thing about them the
-						// flat list never said. `buildRows` sorts by project name so
-						// each name opens exactly one band.
-						groupBy={{
-							getKey: (row) => row.original.projectName,
-							renderHeader: (name, bandRows) => (
-								<ProjectBand name={String(name)} rows={bandRows} />
-							)
-						}}
 						renderSubRow={(row) => (
 							<MatcherDetail rule={row.original} facets={facets} />
 						)}

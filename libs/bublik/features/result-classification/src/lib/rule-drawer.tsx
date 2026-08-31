@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { useIsScrollbarVisible } from '@/shared/hooks';
-import { useAuth } from '@/bublik/features/auth';
 import {
 	ButtonTw,
 	ConfirmDialog,
@@ -23,6 +22,7 @@ import {
 	type RuleFormSeed
 } from './rule-form';
 import { useLazyDialog } from './use-lazy-dialog';
+import { useCanManageIssues } from './use-can-manage-issues';
 import {
 	buildRuleSubmitHandler,
 	useDeleteRule,
@@ -193,11 +193,9 @@ export function NewRuleButton({
 	label = 'New rule'
 }: NewRuleButtonProps) {
 	const [open, setOpen] = useState(false);
-	const { isAdmin } = useAuth();
+	const { canManage, reason } = useCanManageIssues();
 	const seed = { rule, projectId, issueId, testId };
 	const form = useRuleForm(seed);
-
-	if (!isAdmin) return null;
 
 	function handleOpenChange(next: boolean) {
 		setOpen(next);
@@ -208,16 +206,23 @@ export function NewRuleButton({
 
 	return (
 		<>
-			<ButtonTw
-				variant="primary"
-				size={size}
-				onClick={() => setOpen(true)}
-				className="justify-center whitespace-nowrap"
-				data-testid="rule-create"
-			>
-				<Icon name="FilePlus" size={size === 'md' ? 20 : 16} className="mr-1" />
-				{label}
-			</ButtonTw>
+			<Tooltip content={reason || 'Write a new rule'}>
+				<ButtonTw
+					variant="primary"
+					size={size}
+					disabled={!canManage}
+					onClick={() => setOpen(true)}
+					className="justify-center whitespace-nowrap"
+					data-testid="rule-create"
+				>
+					<Icon
+						name="FilePlus"
+						size={size === 'md' ? 20 : 16}
+						className="mr-1"
+					/>
+					{label}
+				</ButtonTw>
+			</Tooltip>
 			<RuleDrawer
 				open={open}
 				onOpenChange={handleOpenChange}
@@ -239,16 +244,19 @@ export function EditRuleButton({
 	iconOnly = false
 }: EditRuleButtonProps) {
 	const [open, setOpen] = useLazyDialog();
-	const { isAdmin } = useAuth();
-
-	if (!isAdmin) return null;
+	const { canManage, reason } = useCanManageIssues();
 
 	return (
 		<>
-			<Tooltip content="Edit this rule’s category, disposition and active state">
+			<Tooltip
+				content={
+					reason || 'Edit this rule’s category, disposition and active state'
+				}
+			>
 				<ButtonTw
 					variant="secondary"
 					size="xss"
+					disabled={!canManage}
 					onClick={() => setOpen(true)}
 					className="justify-center whitespace-nowrap"
 					data-testid="rule-edit"
@@ -286,16 +294,20 @@ export function DuplicateRuleButton({
 	iconOnly = false
 }: DuplicateRuleButtonProps) {
 	const [open, setOpen] = useLazyDialog();
-	const { isAdmin } = useAuth();
-
-	if (!isAdmin) return null;
+	const { canManage, reason } = useCanManageIssues();
 
 	return (
 		<>
-			<Tooltip content="Start a new rule from this one — same issue and test, a matcher you can change">
+			<Tooltip
+				content={
+					reason ||
+					'Start a new rule from this one — same issue and test, a matcher you can change'
+				}
+			>
 				<ButtonTw
 					variant="secondary"
 					size="xss"
+					disabled={!canManage}
 					onClick={() => setOpen(true)}
 					className="justify-center whitespace-nowrap"
 					data-testid="rule-duplicate"
@@ -371,11 +383,9 @@ export function RuleDeleteButton({
 	rule,
 	iconOnly = false
 }: RuleDeleteButtonProps) {
-	const { isAdmin } = useAuth();
+	const { canManage, reason } = useCanManageIssues();
 	const [isOpen, setIsOpen] = useLazyDialog();
 	const deleteRule = useDeleteRule();
-
-	if (!isAdmin) return null;
 
 	async function handleConfirm() {
 		setIsOpen(false);
@@ -390,10 +400,11 @@ export function RuleDeleteButton({
 
 	return (
 		<>
-			<Tooltip content="Delete this rule and every stamp it laid">
+			<Tooltip content={reason || 'Delete this rule and every stamp it laid'}>
 				<ButtonTw
 					variant="destruction-secondary"
 					size="xss"
+					disabled={!canManage}
 					onClick={() => setIsOpen(true)}
 					className={cn(
 						'justify-center whitespace-nowrap',
