@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
 	FormAlertError,
-	FormSection,
 	Input,
 	SelectInput,
 	TextArea
@@ -93,9 +92,14 @@ export interface IssueFieldsProps {
 }
 
 /**
- * Deliberately the classify drawer's Issue section, field for field. Someone
- * who has created an issue by classifying a result and then opens the issue
- * editor should be looking at the same form, not at a second dialect of it.
+ * A flat stack of inputs — no cards, no dividers. Shared by both modals, so
+ * creating and editing an issue are the same form.
+ *
+ * The classify drawer groups its fields into three coloured-bar sections
+ * because it has three genuinely different subjects — the issue, the verdict,
+ * the scope — spread down a full-height panel. This form has one subject and
+ * four fields, and chrome around four fields makes a short form look long.
+ * `CreateUserForm` is the shape the app already uses here.
  */
 export function IssueFields({
 	form,
@@ -117,93 +121,81 @@ export function IssueFields({
 				<FormAlertError title="Error" description={errors.root.message} />
 			) : null}
 
-			<FormSection className="flex flex-col">
-				<FormSection.Bar className="bg-primary" />
-				<FormSection.Header name="Issue" />
-				<div className="flex flex-col gap-4">
-					<Input
-						label="Title"
-						placeholder="Short label"
-						data-testid="issue-title"
-						error={errors.title?.message}
-						{...register('title')}
-					/>
+			<div className="flex flex-col gap-4">
+				<Input
+					label="Title"
+					placeholder="Short label"
+					data-testid="issue-title"
+					error={errors.title?.message}
+					{...register('title')}
+				/>
 
-					<TextArea
-						label="Description"
-						rows={3}
-						placeholder="Optional — what is actually wrong, for whoever triages this next"
-						data-testid="issue-description"
-						error={errors.description?.message}
-						{...register('description')}
-					/>
+				<TextArea
+					label="Description"
+					rows={3}
+					placeholder="Optional — what is actually wrong, for whoever triages this next"
+					data-testid="issue-description"
+					error={errors.description?.message}
+					{...register('description')}
+				/>
 
-					{/* Tracker and key side by side: they are one identifier, and
-					    stacking them read as two unrelated optional fields. */}
-					<div className="flex gap-4">
-						<div className="w-2/5" data-testid="issue-tracker">
-							<Controller
-								control={control}
-								name="tracker"
-								render={({ field }) => (
-									<TrackerCombobox
-										value={field.value ?? ''}
-										onChange={field.onChange}
-										options={trackerOptions}
-										error={errors.tracker?.message}
-										container={container}
-									/>
-								)}
-							/>
-						</div>
-						<div className="flex-1">
-							<Controller
-								control={control}
-								name="bugKey"
-								render={({ field }) => (
-									<Input
-										label="Bug key"
-										placeholder="Optional — FOO-123"
-										data-testid="issue-bug-key"
-										name={field.name}
-										ref={field.ref}
-										onBlur={field.onBlur}
-										value={field.value ?? ''}
-										error={errors.bugKey?.message}
-										onChange={(event) => {
-											// Pasting a whole `ref://JIRA/FOO-123` — off a badge,
-											// out of a chat — should fill both fields rather than
-											// fail validation.
-											const next = event.target.value;
-											const split = splitBugKey(next, trackerOptions);
+				{/* Tracker and key side by side: they are one identifier, and
+				    stacking them read as two unrelated optional fields. */}
+				<div className="flex gap-4">
+					<div className="w-2/5" data-testid="issue-tracker">
+						<Controller
+							control={control}
+							name="tracker"
+							render={({ field }) => (
+								<TrackerCombobox
+									value={field.value ?? ''}
+									onChange={field.onChange}
+									options={trackerOptions}
+									error={errors.tracker?.message}
+									container={container}
+								/>
+							)}
+						/>
+					</div>
+					<div className="flex-1">
+						<Controller
+							control={control}
+							name="bugKey"
+							render={({ field }) => (
+								<Input
+									label="Bug key"
+									placeholder="Optional — FOO-123"
+									data-testid="issue-bug-key"
+									name={field.name}
+									ref={field.ref}
+									onBlur={field.onBlur}
+									value={field.value ?? ''}
+									error={errors.bugKey?.message}
+									onChange={(event) => {
+										// Pasting a whole `ref://JIRA/FOO-123` — off a badge,
+										// out of a chat — should fill both fields rather than
+										// fail validation.
+										const next = event.target.value;
+										const split = splitBugKey(next, trackerOptions);
 
-											if (!split) {
-												field.onChange(next);
-												return;
-											}
+										if (!split) {
+											field.onChange(next);
+											return;
+										}
 
-											setValue('tracker', split.tracker, {
-												shouldValidate: true
-											});
-											field.onChange(split.key);
-										}}
-									/>
-								)}
-							/>
-						</div>
+										setValue('tracker', split.tracker, {
+											shouldValidate: true
+										});
+										field.onChange(split.key);
+									}}
+								/>
+							)}
+						/>
 					</div>
 				</div>
-			</FormSection>
 
-			{mode === 'edit' ? (
-				// Its own section, and the orange bar, because this is not another
-				// property of the issue — it is the switch that decides whether every
-				// failure under it still counts. `IssueStateToggle` carries the same
-				// warning in a tooltip; here there is room to simply say it.
-				<FormSection className="flex flex-col">
-					<FormSection.Bar className="bg-bg-warning" />
-					<FormSection.Header name="Lifecycle" />
-					<div className="flex flex-col gap-2" data-testid="issue-state">
+				{mode === 'edit' ? (
+					<div className="flex flex-col gap-1" data-testid="issue-state">
 						<Controller
 							control={control}
 							name="state"
@@ -220,14 +212,17 @@ export function IssueFields({
 								/>
 							)}
 						/>
+						{/* One muted line, the shape `Input` gives its own hint text.
+						    It stays because closing is the single most surprising thing
+						    in the feature: it deactivates every rule under the issue and
+						    those failures start counting again. */}
 						<p className="text-xs text-text-menu">
-							Closing also deactivates every active rule, and un-suppresses
-							every result they were hiding — those failures start counting
-							again. Reopening does not switch the rules back on.
+							Closing also deactivates every rule under this issue, and those
+							failures start counting again.
 						</p>
 					</div>
-				</FormSection>
-			) : null}
+				) : null}
+			</div>
 		</>
 	);
 }

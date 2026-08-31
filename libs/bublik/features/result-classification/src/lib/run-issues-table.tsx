@@ -13,7 +13,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 
-import { useGetRunIssuesQuery } from '@/services/bublik-api';
+import { useGetIssuesQuery, useGetRunIssuesQuery } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	ButtonTw,
@@ -26,7 +26,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { routes } from '@/router';
-import type { IssueCategory, RunIssueRow } from '@/shared/types';
+import type { Issue, IssueCategory, RunIssueRow } from '@/shared/types';
 
 import {
 	CATEGORY_ORDER,
@@ -61,6 +61,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { DescriptionCell } from './description-cell';
 import {
 	ISSUE_ACTIONS_COLUMN_CLASS,
 	ISSUE_ACTIONS_HEADER_CLASS,
@@ -91,6 +92,7 @@ const COLUMN_ID = {
 	ACTIONS: 'actions',
 	BUG_KEY: 'bug_key',
 	ISSUE: 'issue',
+	DESCRIPTION: 'description',
 	RESULTS: 'result_count',
 	STATE: 'state',
 	EFFECT: 'effect',
@@ -109,6 +111,7 @@ const FILTER_KEYS = [
 
 const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
 	issue.title,
+	issue.description,
 	issue.bug_key,
 	`#${issue.issue_id}`
 ]);
@@ -116,7 +119,9 @@ const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
 function getColumns(
 	projectId: number | undefined,
 	/** Hands the spare width to the title when the filler has stood down. */
-	growIssue: boolean
+	growIssue: boolean,
+	/** The full issue behind each row, so Edit opens without a second fetch. */
+	issueById: Map<number, Issue>
 ): ColumnDef<RunIssueRow, unknown>[] {
 	return [
 		{
@@ -167,6 +172,11 @@ function getColumns(
 					title={row.original.title}
 					state={row.original.state}
 					projectId={projectId}
+					// The same controls as `/issues`: an issue met here is the same
+					// object, and having to leave the run to fix a title was the kind
+					// of detour that makes people not fix it.
+					issue={issueById.get(row.original.issue_id)}
+					showAuthoring
 				/>
 			)
 		},
@@ -226,6 +236,16 @@ function getColumns(
 					</Tooltip>
 				);
 			}
+		},
+		{
+			// Sits after the title in both issue tables, so moving between
+			// `/issues` and a run's issues does not mean re-finding it.
+			id: COLUMN_ID.DESCRIPTION,
+			accessorFn: (row) => row.description ?? '',
+			header: 'Description',
+			meta: { className: 'w-[22rem]' },
+			enableSorting: false,
+			cell: ({ row }) => <DescriptionCell value={row.original.description} />
 		},
 		{
 			id: COLUMN_ID.RESULTS,
@@ -371,6 +391,21 @@ export function RunIssuesTable({
 		projectId === undefined ? skipToken : { runId, projectId }
 	);
 
+	// TODO(api): only needed for the description and for the row the edit form
+	// starts from, neither of which `run_issues_summary` returns. Unlike the
+	// same-page joins elsewhere in this feature this one is sound rather than
+	// approximate — `/runs/{id}/issues/` is unpaginated and a run holds a
+	// handful of issues, so a single large page covers every id it can name.
+	// Adding `description` to that endpoint makes it dead code.
+	const { data: allIssues } = useGetIssuesQuery(
+		projectId === undefined ? skipToken : { projectId, page: 1, pageSize: 1000 }
+	);
+
+	const issueById = useMemo(
+		() => new Map((allIssues?.results ?? []).map((issue) => [issue.id, issue])),
+		[allIssues]
+	);
+
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [shellRef, showFiller] = useFillerVisible(FILLER_MIN_WIDTH.runIssues);
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
@@ -395,10 +430,17 @@ export function RunIssuesTable({
 		defaultSorting: [{ id: COLUMN_ID.RESULTS, desc: true }]
 	});
 
-	const issues = useMemo(() => data ?? [], [data]);
+	const issues = useMemo(
+		() =>
+			(data ?? []).map((row) => ({
+				...row,
+				description: row.description ?? issueById.get(row.issue_id)?.description
+			})),
+		[data, issueById]
+	);
 	const columns = useMemo(
-		() => getColumns(projectId, !showFiller),
-		[projectId, showFiller]
+		() => getColumns(projectId, !showFiller, issueById),
+		[projectId, showFiller, issueById]
 	);
 
 	// The filler is a layout device, not a column anyone chose, so its

@@ -13,7 +13,7 @@ import {
 } from './classification-colors';
 import { BugKeyChip } from './classification-badges';
 import { IssueStateToggle } from './issue-actions';
-import { EditIssueButton, IssueDeleteButton } from './issue-drawer';
+import { EditIssueButton, IssueDeleteButton } from './issue-modal';
 
 export interface IssueDetailHeaderProps {
 	issueId: number;

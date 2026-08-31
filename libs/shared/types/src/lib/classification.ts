@@ -108,6 +108,12 @@ export type ResultIssueRef = {
 export interface RunIssueRow {
 	issue_id: number;
 	title: string;
+	/**
+	 * TODO(api): `run_issues_summary` does not select it, so the run's issue
+	 * table joins `/issues/` to fill it in. One more field on that `values()`
+	 * call would make the join dead code.
+	 */
+	description?: string | null;
 	state: IssueState;
 	/** External tracker key, e.g. `ref://JIRA/FOO-123`. */
 	bug_key: string | null;

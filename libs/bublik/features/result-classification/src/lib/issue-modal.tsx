@@ -1,17 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useIsScrollbarVisible } from '@/shared/hooks';
 import { useGetIssueQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	ConfirmDialog,
-	DrawerContent,
-	DrawerFormHeader,
-	DrawerRoot,
+	Dialog,
+	DialogClose,
+	DialogPortal,
 	Icon,
+	ModalContent,
 	Tooltip,
 	cn
 } from '@/shared/tailwind-ui';
@@ -27,7 +27,7 @@ import { DESTRUCTIVE_FILL_CLASS } from './classification-colors';
 import { useLazyDialog } from './use-lazy-dialog';
 import { useCanManageIssues } from './use-can-manage-issues';
 
-export interface IssueDrawerProps {
+export interface IssueModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	form: IssueForm;
@@ -37,20 +37,29 @@ export interface IssueDrawerProps {
 }
 
 /**
- * Built to `ClassifyDrawer`'s proportions, and for the same reason it was built
- * to the history search form's: these are the app's form drawers, and they
- * should not feel like different applications. The header is genuinely shared —
- * `DrawerFormHeader` in `@/shared/tailwind-ui`.
+ * A modal, not a drawer.
+ *
+ * The classify drawer earns its full height: it carries three sections, a
+ * matcher and a scope. An issue is four fields — title, description, tracker
+ * key, state — and a full-height panel around four fields is mostly empty
+ * panel. It follows `CreateUserModal` / `UsersModalLayout` instead, which is
+ * what the rest of the app uses for a short form.
+ *
+ * The rule editor stays a drawer: it has the fields to justify one.
  */
-export function IssueDrawer({
+export function IssueModal({
 	open,
 	onOpenChange,
 	form,
 	issue,
 	projectId
-}: IssueDrawerProps) {
+}: IssueModalProps) {
 	const save = useSaveIssue();
-	const [scrollableRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
+	// The tracker combobox portals into this node rather than to
+	// `document.body`: this is a modal dialog, and a click on a body-level popup
+	// reads as a click outside — which closes the modal instead of selecting the
+	// option.
+	const contentRef = useRef<HTMLDivElement>(null);
 	const isSubmitting = form.formState.isSubmitting;
 	const isEdit = Boolean(issue);
 
@@ -70,63 +79,63 @@ export function IssueDrawer({
 	}
 
 	return (
-		<DrawerRoot open={open} onOpenChange={handleOpenChange}>
-			<DrawerContent
-				// `portal` escapes the trigger's stacking context — the trigger sits
-				// in a table row, which would otherwise paint over the panel. z-[55]
-				// clears the z-50 dialog layer but stays under the nested
-				// `SelectInput` dropdown (z-[60]) so its options open in front of the
-				// drawer, not behind it.
-				portal
-				// `portal` is a React portal, and React events bubble through the
-				// component tree rather than the DOM one — so without this, a click
-				// on the drawer reaches the table cell that rendered the trigger and
-				// toggles row state, re-rendering the row out from under the drawer.
-				onClick={(event) => event.stopPropagation()}
-				data-stop-row-click="true"
-				className="z-[55] w-screen max-w-3xl flex flex-col"
-				data-testid="issue-drawer"
-			>
-				<div className="px-6 py-4 border-b border-border-primary shrink-0">
-					<DrawerFormHeader
-						name={isEdit ? 'Edit Issue' : 'New Issue'}
-						description={
-							isEdit
-								? 'An issue is the cause identity. Its rules decide which results carry it.'
-								: 'Record a cause now; attach rules to it from a failing result or from this issue’s page.'
-						}
-						onClose={() => handleOpenChange(false)}
-					/>
-				</div>
-
-				{/* The tracker combobox portals in here rather than to
-				    `document.body`: this is a modal dialog, and a click on a
-				    body-level popup reads as a click outside — which closes the
-				    drawer instead of selecting the option. */}
-				<div
-					ref={scrollableRef}
-					className="flex flex-col flex-1 min-h-0 overflow-y-auto styled-scrollbar"
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			{/* Portalled, unlike `CreateUserModal` — that one opens from a toolbar
+			    button, these open from inside a table row. `dialogContentStyles` is
+			    `position: fixed`, which escapes overflow clipping but not a
+			    stacking context, so without this the row can paint over the modal.
+			    Same reason `ClassifyDrawer` takes its `portal` prop. */}
+			<DialogPortal>
+				<ModalContent
+					ref={contentRef}
+					// React events bubble through the component tree rather than the DOM
+					// one, so without this a click inside the modal reaches the table
+					// cell that rendered the trigger and toggles row state, re-rendering
+					// the row out from under it. The data attribute is that handler's
+					// own DOM-side opt-out.
+					onClick={(event) => event.stopPropagation()}
+					data-stop-row-click="true"
+					className="w-full sm:max-w-lg p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] z-10 relative overflow-auto max-h-[85vh]"
+					data-testid="issue-modal"
 				>
+					<DialogClose
+						disabled={isSubmitting}
+						className="absolute grid p-1 transition-colors rounded-md right-4 top-4 place-items-center text-text-menu hover:bg-primary-wash hover:text-primary"
+						aria-label="Close"
+					>
+						<Icon name="Cross" size={14} />
+					</DialogClose>
+					<h1 className="mb-1 text-2xl font-bold leading-tight tracking-tight text-text-primary">
+						{isEdit ? 'Edit Issue' : 'New Issue'}
+					</h1>
+					<p className="mb-6 text-sm text-text-menu">
+						{isEdit
+							? 'An issue is the cause identity. Its rules decide which results carry it.'
+							: 'Record a cause now; attach rules to it from a failing result or from this issue’s page.'}
+					</p>
+
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
-						className="flex flex-col flex-1 gap-6 px-6 pt-6"
+						className="flex flex-col gap-6"
 					>
 						<IssueFields
 							form={form}
 							projectId={projectId}
 							mode={isEdit ? 'edit' : 'create'}
-							container={scrollableRef}
+							container={contentRef}
 						/>
 
-						{/* Negative margins cancel the form's padding so the bar bleeds
-						    the full width of the drawer, and the shadow appears only once
-						    there is actually something scrolled under it. */}
-						<div
-							className={cn(
-								'sticky bottom-0 z-20 mt-auto -mx-6 bg-white px-6 py-4 backdrop-blur-sm',
-								isScrollable && 'shadow-sticky'
-							)}
-						>
+						<div className="flex justify-end gap-2">
+							<ButtonTw
+								type="button"
+								variant="secondary"
+								size="md"
+								rounded="lg"
+								disabled={isSubmitting}
+								onClick={() => handleOpenChange(false)}
+							>
+								Cancel
+							</ButtonTw>
 							<ButtonTw
 								type="submit"
 								variant="primary"
@@ -135,7 +144,7 @@ export function IssueDrawer({
 								// The request is not idempotent — a second click while the
 								// first is in flight creates a second issue.
 								disabled={isSubmitting}
-								className="justify-center w-full"
+								className="justify-center"
 								data-testid="issue-submit"
 							>
 								{isSubmitting ? (
@@ -159,9 +168,9 @@ export function IssueDrawer({
 							</ButtonTw>
 						</div>
 					</form>
-				</div>
-			</DrawerContent>
-		</DrawerRoot>
+				</ModalContent>
+			</DialogPortal>
+		</Dialog>
 	);
 }
 
@@ -214,7 +223,7 @@ export function NewIssueButton({
 					{label}
 				</ButtonTw>
 			</Tooltip>
-			<IssueDrawer
+			<IssueModal
 				open={open}
 				onOpenChange={handleOpenChange}
 				form={form}
@@ -259,7 +268,7 @@ export function EditIssueButton({
 				</ButtonTw>
 			</Tooltip>
 			{open !== null ? (
-				<LazyIssueDrawer
+				<LazyIssueModal
 					open={open}
 					onOpenChange={setOpen}
 					issueId={issueId}
@@ -272,10 +281,10 @@ export function EditIssueButton({
 }
 
 /**
- * Owns the form and the fetch, so neither happens until the drawer is wanted —
+ * Owns the form and the fetch, so neither happens until the modal is wanted —
  * see `useLazyDialog` for why that matters in a hundred-row table.
  */
-function LazyIssueDrawer({
+function LazyIssueModal({
 	open,
 	onOpenChange,
 	issueId,
@@ -298,7 +307,7 @@ function LazyIssueDrawer({
 	const form = useIssueForm(current);
 
 	return (
-		<IssueDrawer
+		<IssueModal
 			open={open}
 			onOpenChange={(next) => {
 				onOpenChange(next);

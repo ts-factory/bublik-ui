@@ -96,7 +96,14 @@ import {
 
 const COLUMN_ID = {
 	STATUS: 'status',
-	PROJECT: 'project',
+	/**
+	 * **Not** `'project'`. A column id is also its URL key
+	 * (`useClassificationTableState`), and `project` is taken: it is
+	 * `PROJECT_KEY`, the multi-valued param the global project selector owns and
+	 * `useProjectSearch` reads as a list of ids. Writing a project *name* there
+	 * made every request send `project=NaN`.
+	 */
+	PROJECT: 'rule_project',
 	EXPANDER: 'expander',
 	ACTIONS: 'actions',
 	TEST: 'test',

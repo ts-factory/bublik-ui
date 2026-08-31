@@ -62,6 +62,7 @@ import {
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
+import { DescriptionCell } from './description-cell';
 import {
 	ISSUE_ACTIONS_COLUMN_CLASS,
 	ISSUE_ACTIONS_HEADER_CLASS,
@@ -84,6 +85,7 @@ const COLUMN_ID = {
 	ACTIONS: 'actions',
 	KEY: 'key',
 	ISSUE: 'issue',
+	DESCRIPTION: 'description',
 	CREATED: 'created',
 	STATE: 'state',
 	CATEGORIES: 'categories',
@@ -255,22 +257,27 @@ function getColumns(
 			meta: { className: growIssue ? 'w-full' : 'w-[26rem]' },
 			filterFn: searchFilter,
 			cell: ({ row }) => (
-				<div className="flex flex-col gap-0.5">
-					<Tooltip content={`Manage the rules behind ${row.original.title}`}>
-						<LinkWithProject
-							to={routes.issue({ issueId: row.original.id })}
-							className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
-						>
-							{row.original.title}
-						</LinkWithProject>
-					</Tooltip>
-					{row.original.description ? (
-						<span className="block max-w-[25rem] text-xs truncate text-text-menu">
-							{row.original.description}
-						</span>
-					) : null}
-				</div>
+				<Tooltip content={`Manage the rules behind ${row.original.title}`}>
+					<LinkWithProject
+						to={routes.issue({ issueId: row.original.id })}
+						className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
+					>
+						{row.original.title}
+					</LinkWithProject>
+				</Tooltip>
 			)
+		},
+		{
+			// Its own column rather than a second line under the title, which is
+			// where it used to live. Stacked, it was permanently clipped to one
+			// truncated line with no way to read the rest, and it pushed every row
+			// to double height whether or not the issue had one.
+			id: COLUMN_ID.DESCRIPTION,
+			accessorFn: (row) => row.description ?? '',
+			header: 'Description',
+			meta: { className: 'w-[22rem]' },
+			enableSorting: false,
+			cell: ({ row }) => <DescriptionCell value={row.original.description} />
 		},
 		{
 			id: COLUMN_ID.CREATED,

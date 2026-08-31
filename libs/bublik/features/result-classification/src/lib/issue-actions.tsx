@@ -18,7 +18,7 @@ import type { Issue, IssueState } from '@/shared/types';
 
 import { DESTRUCTIVE_FILL_CLASS } from './classification-colors';
 import { notifyError } from './server-errors';
-import { EditIssueButton, IssueDeleteButton } from './issue-drawer';
+import { EditIssueButton, IssueDeleteButton } from './issue-modal';
 
 /** Shared by the issues list, the run's issue table and the rules table. */
 export const ISSUE_ACTIONS_COLUMN_CLASS = 'w-px whitespace-nowrap';

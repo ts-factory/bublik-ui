@@ -15,17 +15,17 @@ export * from './lib/classification-colors';
 export * from './lib/classification-badges';
 export * from './lib/sidebar';
 export {
-	IssueDrawer,
+	IssueModal,
 	NewIssueButton,
 	EditIssueButton,
 	IssueDeleteButton
-} from './lib/issue-drawer';
+} from './lib/issue-modal';
 export type {
-	IssueDrawerProps,
+	IssueModalProps,
 	NewIssueButtonProps,
 	EditIssueButtonProps,
 	IssueDeleteButtonProps
-} from './lib/issue-drawer';
+} from './lib/issue-modal';
 export {
 	RuleDrawer,
 	NewRuleButton,
