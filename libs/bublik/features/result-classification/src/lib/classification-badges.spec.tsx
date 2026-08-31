@@ -42,7 +42,7 @@ vi.mock('./classify-button', () => ({
 	)
 }));
 
-const { ClassificationVerdict, ResultIssueBadges } = await import(
+const { ClassificationVerdict, ProjectBadge, ResultIssueBadges } = await import(
 	'./classification-badges'
 );
 
@@ -365,5 +365,46 @@ describe('ResultIssueBadges — one line per issue', () => {
 		);
 
 		expect(container).toBeEmptyDOMElement();
+	});
+});
+
+describe('ProjectBadge', () => {
+	it('names the project it filters to', () => {
+		render(<ProjectBadge name="tsf/net-drv" />);
+
+		expect(screen.getByText('tsf/net-drv')).toHaveAttribute(
+			'data-project-name',
+			'tsf/net-drv'
+		);
+	});
+
+	it('toggles the filter when clicked', async () => {
+		const onClick = vi.fn();
+		render(<ProjectBadge name="tsf/net-drv" onClick={onClick} />);
+
+		await userEvent.click(screen.getByText('tsf/net-drv'));
+
+		expect(onClick).toHaveBeenCalledOnce();
+	});
+
+	/**
+	 * `toggleShell` adds `type="button"` only when a click is really wired up —
+	 * a chip that does nothing must not promise that it does. Asserted on the
+	 * chip itself rather than by role: every badge here sits inside a tooltip,
+	 * and the tooltip's own trigger is a button either way.
+	 */
+	it('is inert where no filter is wired to it', () => {
+		render(<ProjectBadge name="tsf/net-drv" />);
+
+		expect(screen.getByText('tsf/net-drv')).not.toHaveAttribute(
+			'type',
+			'button'
+		);
+	});
+
+	it('takes the button affordance once one is', () => {
+		render(<ProjectBadge name="tsf/net-drv" onClick={vi.fn()} />);
+
+		expect(screen.getByText('tsf/net-drv')).toHaveAttribute('type', 'button');
 	});
 });

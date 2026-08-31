@@ -367,6 +367,60 @@ export function RuleActiveBadge({ active, ...rest }: RuleActiveBadgeProps) {
 	);
 }
 
+export interface ProjectBadgeProps extends BadgeExtras {
+	/** The project's name, which is also the value the facet filters on. */
+	name: string;
+}
+
+/**
+ * Which project's classifier a rule belongs to.
+ *
+ * Deliberately not a `Badge`. Every `Badge` in these tables asserts something —
+ * this category, this disposition, this effect on the run — and takes a hue
+ * from its meta map to say it. A project asserts nothing; it is identity. So it
+ * wears the app's neutral chip instead: the same `bg-badge-0` shape the
+ * dashboard's cell links and the matcher's tag chips already use, which reads
+ * as a label rather than as a verdict competing with the chips beside it.
+ *
+ * Class string kept in step with `linkStyles` in
+ * `dashboard-v2/.../cell-link.component.tsx`. Not imported from there — that
+ * would be a dependency between two feature libs for six utility classes.
+ */
+export function ProjectBadge({
+	name,
+	className,
+	isSelected,
+	onClick
+}: ProjectBadgeProps) {
+	const toggle = toggleShell({ isSelected, onClick });
+	// A real `button` when it does something, a `span` when it does not. `type`
+	// on a span is inert markup, and a chip you can click but not tab to is only
+	// a control for people using a mouse.
+	const Chip = onClick ? 'button' : 'span';
+
+	return (
+		<Tooltip content={`Rules in ${name}${toggle.hint}`}>
+			<Chip
+				className={cn(
+					'py-0.5 px-2 truncate rounded',
+					'text-[0.75rem] font-medium leading-[1.125rem]',
+					'text-text-primary',
+					// Written as an either/or rather than layered, so only one
+					// background class is ever emitted and the result does not depend
+					// on `cn` resolving the conflict.
+					isSelected ? 'bg-primary-wash' : 'bg-badge-0',
+					className
+				)}
+				onClick={onClick}
+				data-project-name={name}
+				{...toggle.buttonProps}
+			>
+				{name}
+			</Chip>
+		</Tooltip>
+	);
+}
+
 export interface BugKeyChipProps {
 	bugKey: string | null;
 	/** Resolved tracker URL, when the project can resolve one. */

@@ -193,7 +193,7 @@ export interface NewIssueButtonProps {
 export function NewIssueButton({
 	projectId,
 	size = 'xss',
-	label = 'New issue'
+	label = 'New Issue'
 }: NewIssueButtonProps) {
 	const [open, setOpen] = useState(false);
 	const { canManage, reason } = useCanManageIssues();
@@ -208,7 +208,7 @@ export function NewIssueButton({
 		<>
 			<Tooltip content={reason || 'Record a new issue'}>
 				<ButtonTw
-					variant="primary"
+					variant={open ? "primary" : "secondary"}
 					size={size}
 					disabled={!canManage}
 					onClick={() => setOpen(true)}

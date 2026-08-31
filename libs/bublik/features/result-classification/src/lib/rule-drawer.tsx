@@ -190,7 +190,7 @@ export function NewRuleButton({
 	lockIssue = false,
 	testName,
 	size = 'xss',
-	label = 'New rule'
+	label = 'New Rule'
 }: NewRuleButtonProps) {
 	const [open, setOpen] = useState(false);
 	const { canManage, reason } = useCanManageIssues();
@@ -208,7 +208,7 @@ export function NewRuleButton({
 		<>
 			<Tooltip content={reason || 'Write a new rule'}>
 				<ButtonTw
-					variant="primary"
+					variant={open ? "primary" : 'secondary'}
 					size={size}
 					disabled={!canManage}
 					onClick={() => setOpen(true)}

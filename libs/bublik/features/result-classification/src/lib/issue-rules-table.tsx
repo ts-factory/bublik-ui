@@ -59,6 +59,7 @@ import {
 	CategoryBadge,
 	DispositionBadge,
 	IssueStateBadge,
+	ProjectBadge,
 	RuleActiveBadge
 } from './classification-badges';
 import {
@@ -686,12 +687,21 @@ const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PROJECT,
 	accessorFn: (row) => row.projectName,
 	header: 'Project',
-	meta: { className: 'w-px whitespace-nowrap' },
+	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
 	// Sortable, unlike most columns here: a rule *is* per-project, so grouping
 	// the list by hand is a thing people will want to do.
 	filterFn: someOfFilter,
-	cell: ({ row }) => (
-		<span className="text-text-primary">{row.original.projectName}</span>
+	// The chip is also the control that filters by it, like every other badge in
+	// this table: the value handed to `toggleProps` is the one this column's
+	// `accessorFn` yields, so the chip and `someOfFilter` cannot disagree.
+	cell: ({ row, table }) => (
+		<ProjectBadge
+			name={row.original.projectName}
+			{...facetControls(table).toggleProps(
+				COLUMN_ID.PROJECT,
+				row.original.projectName
+			)}
+		/>
 	)
 };
 
