@@ -68,6 +68,24 @@ export interface ClassificationTableProps<T> {
 	renderSubRow?: (row: Row<T>) => ReactNode;
 	/** Extra attributes per row, typically `data-*` hooks for e2e. */
 	getRowAttributes?: (row: Row<T>) => Record<string, string | number>;
+	/**
+	 * Bands the body into sections, emitting a full-width header row wherever
+	 * `getKey` changes from one row to the next.
+	 *
+	 * Deliberately not TanStack's `getGroupedRowModel`. That model replaces the
+	 * leaf rows with group rows and drives them through `getIsExpanded`, which
+	 * this table already spends on the matcher sub-row — and it does not
+	 * cooperate with `manualPagination`, since a page is not a group. Banding is
+	 * a rendering concern here, and this keeps it one.
+	 *
+	 * **Rows must already be ordered by group key.** A key that reappears after
+	 * an interruption starts a second band with the same name, which is a
+	 * truthful rendering of unsorted input and not what anyone wants to see.
+	 */
+	groupBy?: {
+		getKey: (row: Row<T>) => string | number;
+		renderHeader: (key: string | number, rows: Row<T>[]) => ReactNode;
+	};
 	testId?: string;
 }
 
@@ -76,8 +94,25 @@ export function ClassificationTable<T>({
 	stickyHeader = false,
 	renderSubRow,
 	getRowAttributes,
+	groupBy,
 	testId
 }: ClassificationTableProps<T>) {
+	const rows = table.getRowModel().rows;
+	// Precomputed rather than derived per row: the header needs the whole band,
+	// not just its first member, so the counts it shows describe the section
+	// under it.
+	const bandRows = groupBy
+		? rows.reduce<Map<string | number, Row<T>[]>>((acc, row) => {
+				const key = groupBy.getKey(row);
+				const existing = acc.get(key);
+
+				if (existing) existing.push(row);
+				else acc.set(key, [row]);
+
+				return acc;
+		  }, new Map())
+		: null;
+	const columnCount = table.getVisibleFlatColumns().length;
 	return (
 		<table
 			// Width fills, height does not: inside a `flex-1` scroll pane a
@@ -143,38 +178,73 @@ export function ClassificationTable<T>({
 			    left the table trailing off into whitespace above the footer, so a
 			    short list read as if it had failed to finish rendering. */}
 			<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*>*]:border-b [&>*>*]:border-border-primary">
-				{table.getRowModel().rows.map((row) => (
-					<Fragment key={row.id}>
-						<tr
-							className="relative h-full [&>*]:hover:bg-gray-50"
-							{...getRowAttributes?.(row)}
-						>
-							{row.getVisibleCells().map((cell, idx, arr) => (
-								<td
-									key={cell.id}
-									className={cn(
-										'px-2 py-1 align-middle bg-white',
-										idx !== arr.length - 1 && 'border-r border-border-primary',
-										cell.column.columnDef.meta?.className,
-										cell.column.columnDef.meta?.cellClassName
-									)}
+				{rows.map((row, index) => {
+					const groupKey = groupBy?.getKey(row);
+					// A band opens at the first row carrying its key. Comparing with
+					// the previous row rather than tracking state keeps this a pure
+					// function of the row list.
+					const opensBand =
+						groupBy !== undefined &&
+						(index === 0 || groupBy.getKey(rows[index - 1]) !== groupKey);
+
+					return (
+						<Fragment key={row.id}>
+							{opensBand && groupKey !== undefined ? (
+								<tr
+									data-testid="classification-group"
+									data-group-key={groupKey}
 								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</td>
-							))}
-						</tr>
-						{renderSubRow && row.getIsExpanded() ? (
-							<tr>
-								<td
-									colSpan={row.getVisibleCells().length}
-									className="p-0 border-b bg-primary-wash/40 border-border-primary"
-								>
-									{renderSubRow(row)}
-								</td>
+									<td
+										colSpan={columnCount}
+										// Sticky under the header row, not at the top: the two
+										// would otherwise overlap, and a band label is only
+										// useful while its own rows are on screen. The offset is
+										// the header's own height; `8.5` is extended on `height`
+										// only, so it cannot be spelled `top-8.5`.
+										className={cn(
+											'p-0 bg-primary-wash border-b border-border-primary',
+											stickyHeader && 'sticky top-[2.125rem] z-[9]'
+										)}
+									>
+										{groupBy?.renderHeader(
+											groupKey,
+											bandRows?.get(groupKey) ?? []
+										)}
+									</td>
+								</tr>
+							) : null}
+							<tr
+								className="relative h-full [&>*]:hover:bg-gray-50"
+								{...getRowAttributes?.(row)}
+							>
+								{row.getVisibleCells().map((cell, idx, arr) => (
+									<td
+										key={cell.id}
+										className={cn(
+											'px-2 py-1 align-middle bg-white',
+											idx !== arr.length - 1 &&
+												'border-r border-border-primary',
+											cell.column.columnDef.meta?.className,
+											cell.column.columnDef.meta?.cellClassName
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
+								))}
 							</tr>
-						) : null}
-					</Fragment>
-				))}
+							{renderSubRow && row.getIsExpanded() ? (
+								<tr>
+									<td
+										colSpan={row.getVisibleCells().length}
+										className="p-0 border-b bg-primary-wash/40 border-border-primary"
+									>
+										{renderSubRow(row)}
+									</td>
+								</tr>
+							) : null}
+						</Fragment>
+					);
+				})}
 			</tbody>
 		</table>
 	);

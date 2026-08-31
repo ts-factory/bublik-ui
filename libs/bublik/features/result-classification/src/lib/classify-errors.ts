@@ -1,41 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { z } from 'zod';
-
-import { getErrorMessage } from '@/services/bublik-api';
-import { setErrorsOnForm } from '@/shared/utils';
+import {
+	applyServerErrors,
+	flattenMessages,
+	serverErrorText,
+	type ServerFieldError
+} from './server-errors';
 
 import type { ClassifyForm, ClassifyFormValues } from './classify-form';
 
 /**
- * Django's `custom_exception_handler` wraps every serializer error as
- * `{"messages": ...}` and `normalize_error_details` recurses, so a nested
- * serializer produces a nested payload:
- *
- *     {"messages": {"issue": {"bug_key": ["Bug key must be in ref://TRACKER/KEY form."]}}}
- *
- * The shared parsers — `setErrorsOnForm` in `@/shared/utils` and
- * `getErrorMessage` in `@/services/bublik-api` — only model one level of
- * nesting, so this payload falls past both and degrades to "Bad request" /
- * "Unknown error!". Classify is the one endpoint that nests (its `issue` field
- * runs `IssueSerializer` inside `validate_issue`), so the recursion lives here
- * and the shared helpers stay as the fallback for every other shape.
+ * Classify's half of the error mapping. The recursion that reads Django's
+ * nested `{"messages": ...}` envelope lives in `server-errors.ts` — shared with
+ * the issue and rule drawers, which hit the same shape. What is specific here
+ * is the vocabulary: which request-body path belongs to which control, and that
+ * a bare `issue` error means different things under `new` and `existing`.
  */
 
-type ServerMessages = string | string[] | { [key: string]: ServerMessages };
-
-const ServerMessagesSchema: z.ZodType<ServerMessages> = z.lazy(() =>
-	z.union([
-		z.string(),
-		z.array(z.string()),
-		z.record(z.string(), ServerMessagesSchema)
-	])
-);
-
-const ServerErrorSchema = z.object({
-	status: z.union([z.string(), z.number()]),
-	data: z.object({ messages: ServerMessagesSchema })
-});
+/** Re-exported so existing importers and specs keep their entry points. */
+export { flattenMessages, type ServerFieldError };
 
 /**
  * A failure raised on this side of the wire, shaped like the payload the server
@@ -51,36 +34,6 @@ export class ClassifyRequestError extends Error {
 		this.name = 'ClassifyRequestError';
 		this.data = { messages: [message] };
 	}
-}
-
-export interface ServerFieldError {
-	/** Dotted path into the request body, e.g. `issue.bug_key`. */
-	path: string;
-	message: string;
-}
-
-/**
- * Walks the payload into flat `path -> message` pairs. Only the first message
- * of a list survives, which is the same collapse `getError` in
- * `@/shared/utils`'s `form.ts` applies — a field shows one error at a time.
- */
-export function flattenMessages(
-	messages: ServerMessages,
-	prefix = ''
-): ServerFieldError[] {
-	if (typeof messages === 'string') {
-		return [{ path: prefix, message: messages }];
-	}
-
-	if (Array.isArray(messages)) {
-		const first = messages[0];
-
-		return first ? [{ path: prefix, message: first }] : [];
-	}
-
-	return Object.entries(messages).flatMap(([key, value]) =>
-		flattenMessages(value, prefix ? `${prefix}.${key}` : key)
-	);
 }
 
 /** Request-body paths the form has a field for. */
@@ -115,12 +68,6 @@ function fieldForPath(
 	return FIELD_BY_PATH[path] ?? null;
 }
 
-function describe({ path, message }: ServerFieldError): string {
-	if (!path) return message;
-
-	return `${LABEL_BY_PATH[path] ?? path}: ${message}`;
-}
-
 /**
  * Puts each server message on the field that caused it, so the drawer behaves
  * like every other form in the app. Anything without a field — `matcher.*`, an
@@ -128,57 +75,15 @@ function describe({ path, message }: ServerFieldError): string {
  * alert above the first section.
  */
 export function applyClassifyErrors(error: unknown, form: ClassifyForm): void {
-	const parsed = ServerErrorSchema.safeParse(error);
-
-	if (!parsed.success) {
-		setErrorsOnForm<ClassifyFormValues>(error, { handle: form });
-		return;
-	}
-
-	const entries = flattenMessages(parsed.data.data.messages);
-
-	if (!entries.length) {
-		form.setError('root', { type: 'custom', message: 'Unknown error!' });
-		return;
-	}
-
 	const mode = form.getValues('mode');
-	const rootMessages: string[] = [];
 
-	entries.forEach((entry) => {
-		const field = fieldForPath(entry.path, mode);
-
-		if (field) {
-			form.setError(field, { type: 'custom', message: entry.message });
-			return;
-		}
-
-		rootMessages.push(describe(entry));
+	applyServerErrors(error, form, {
+		fieldForPath: (path) => fieldForPath(path, mode),
+		labelByPath: LABEL_BY_PATH
 	});
-
-	if (rootMessages.length) {
-		form.setError('root', {
-			type: 'custom',
-			message: rootMessages.join('\n')
-		});
-	}
 }
 
-/**
- * The same messages as one string, for the toast. Falls back to the shared
- * `getErrorMessage` for the shapes it already handles (transport failures,
- * HTTP codes with no body).
- */
+/** The same messages as one string, for the toast. */
 export function classifyErrorText(error: unknown): string {
-	const parsed = ServerErrorSchema.safeParse(error);
-
-	if (parsed.success) {
-		const entries = flattenMessages(parsed.data.data.messages);
-
-		if (entries.length) return entries.map(describe).join('\n');
-	}
-
-	const message = getErrorMessage(error);
-
-	return `${message.title}\n${message.description}`;
+	return serverErrorText(error, LABEL_BY_PATH);
 }

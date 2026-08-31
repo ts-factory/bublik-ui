@@ -6,6 +6,8 @@ import { config } from '@/bublik/config';
 
 import {
 	ClassifyRequest,
+	CreateIssueRequest,
+	CreateRuleRequest,
 	Issue,
 	IssueFacets,
 	IssuePickerOption,
@@ -13,7 +15,9 @@ import {
 	IssueRule,
 	PaginatedResponse,
 	RunIssueResultRow,
-	RunIssueRow
+	RunIssueRow,
+	UpdateIssueRequest,
+	UpdateRuleRequest
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -201,6 +205,125 @@ export const classificationEndpoints = {
 				BUBLIK_TAG.ResultClassification,
 				BUBLIK_TAG.HistoryData,
 				BUBLIK_TAG.DashboardData
+			]
+		}),
+		/**
+		 * Every write below is admin-only server-side —
+		 * `@check_action_permission('manage_issues')` resolves to
+		 * `auth_required(as_admin=True)`, and the per-project exemption cannot
+		 * name `manage_issues` (the `per_conf` schema restricts the enum). The
+		 * decorator reads the project from the **query string**, which is why
+		 * `project` is a param here and never a body field.
+		 *
+		 * The invalidation set matches `closeIssue`'s: a rule change moves the
+		 * suppression map, which moves run stats, the tree and the dashboard.
+		 * The server invalidates its own `RunCache` on the same events.
+		 */
+		createIssue: build.mutation<Issue, CreateIssueRequest>({
+			query: ({ projectId, ...body }) => ({
+				url: withApiV2('/issues'),
+				method: 'POST',
+				params: { project: projectId },
+				body
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
+			]
+		}),
+		/**
+		 * PATCH, not PUT — `IssueViewSet.http_method_names` omits `put`, so a
+		 * full replace is a 405.
+		 *
+		 * `bug_key` must be **absent** from `body` unless it changed. The
+		 * serializer's guard triggers on the key appearing in the payload, not
+		 * on its value differing, so echoing the current key back on an issue
+		 * that already has classified results is rejected. The caller decides;
+		 * this only promises not to invent the field.
+		 */
+		updateIssue: build.mutation<Issue, UpdateIssueRequest>({
+			query: ({ issueId, projectId, ...body }) => ({
+				url: withApiV2(`/issues/${issueId}`),
+				method: 'PATCH',
+				params: { project: projectId },
+				body
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
+			]
+		}),
+		/**
+		 * Both FKs into an issue are `CASCADE`, so this takes the issue's rules
+		 * and every stamp those rules laid with it. Confirm before calling.
+		 */
+		deleteIssue: build.mutation<void, { issueId: number; projectId?: number }>({
+			query: ({ issueId, projectId }) => ({
+				url: withApiV2(`/issues/${issueId}`),
+				method: 'DELETE',
+				params: { project: projectId }
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
+			]
+		}),
+		/**
+		 * `active` is read-only on the serializer, so a rule created here is
+		 * always active — the model's default. Creating an inactive rule means
+		 * following this with `deactivateRule`; `useSaveRule` does that.
+		 */
+		createRule: build.mutation<IssueRule, CreateRuleRequest>({
+			query: ({ projectId, ...body }) => ({
+				url: withApiV2('/issue_rules'),
+				method: 'POST',
+				params: { project: projectId },
+				body
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
+			]
+		}),
+		/**
+		 * Category and disposition only. `_MATCHER_FIELDS` — project, issue,
+		 * test, parameters, verdicts, tags — are rejected once the rule has
+		 * stamps, with "Create a new rule instead"; the type keeps them off the
+		 * body so the guard cannot fire by accident.
+		 */
+		updateRule: build.mutation<IssueRule, UpdateRuleRequest>({
+			query: ({ ruleId, projectId, ...body }) => ({
+				url: withApiV2(`/issue_rules/${ruleId}`),
+				method: 'PATCH',
+				params: { project: projectId },
+				body
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
+			]
+		}),
+		deleteRule: build.mutation<void, { ruleId: number; projectId?: number }>({
+			query: ({ ruleId, projectId }) => ({
+				url: withApiV2(`/issue_rules/${ruleId}`),
+				method: 'DELETE',
+				params: { project: projectId }
+			}),
+			invalidatesTags: [
+				BUBLIK_TAG.IssueRules,
+				BUBLIK_TAG.Issues,
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.ResultClassification
 			]
 		}),
 		closeIssue: build.mutation<Issue, { issueId: number; projectId?: number }>({

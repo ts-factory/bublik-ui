@@ -65,3 +65,61 @@ export function splitBugKey(
 
 	return { tracker, key };
 }
+
+/**
+ * The four rules every bug-key field pair obeys, in one place.
+ *
+ * Both halves are optional — an issue without a tracker reference is fine — but
+ * half of one is not a bug key, and `composeBugKey` would silently drop it. The
+ * classify drawer and the issue drawer both collect the pair, so they both
+ * refine it through here rather than restating the messages.
+ *
+ * Takes zod's context rather than returning a schema: the shapes around it
+ * differ (classify only validates these under `mode === 'new'`), so the caller
+ * decides when to run it.
+ */
+export function refineBugKeyHalves(
+	values: { tracker?: string; bugKey?: string },
+	ctx: {
+		addIssue: (issue: {
+			code: 'custom';
+			path: (string | number)[];
+			message: string;
+		}) => void;
+	}
+): void {
+	const tracker = values.tracker?.trim() ?? '';
+	const bugKey = values.bugKey?.trim() ?? '';
+
+	if (tracker && !TRACKER_RE.test(tracker)) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['tracker'],
+			message: 'Tracker cannot contain spaces or "/"'
+		});
+	}
+
+	if (bugKey && !BUG_KEY_RE.test(bugKey)) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['bugKey'],
+			message: 'Bug key can only contain letters, digits and - _ / :'
+		});
+	}
+
+	if (bugKey && !tracker) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['tracker'],
+			message: 'Choose a tracker'
+		});
+	}
+
+	if (tracker && !bugKey) {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['bugKey'],
+			message: 'Enter a bug key'
+		});
+	}
+}

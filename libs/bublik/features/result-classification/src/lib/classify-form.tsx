@@ -18,7 +18,7 @@ import { CATEGORY_OPTIONS } from './category';
 import { IssuePicker } from './issue-picker';
 import { MatchScope } from './match-scope';
 import { DEFAULT_MATCH_FLAGS } from './match-scope.utils';
-import { BUG_KEY_RE, TRACKER_RE, composeBugKey, splitBugKey } from './bug-key';
+import { composeBugKey, refineBugKeyHalves, splitBugKey } from './bug-key';
 import { applyClassifyErrors } from './classify-errors';
 import { TrackerCombobox, useTrackerOptions } from './tracker-combobox';
 
@@ -45,8 +45,6 @@ const ClassifyFormShape = z.object({
 export const ClassifyFormSchema = ClassifyFormShape.superRefine(
 	(values, ctx) => {
 		const title = values.title?.trim() ?? '';
-		const tracker = values.tracker?.trim() ?? '';
-		const bugKey = values.bugKey?.trim() ?? '';
 
 		if (values.mode === 'existing') {
 			if (!values.issueId) {
@@ -70,38 +68,8 @@ export const ClassifyFormSchema = ClassifyFormShape.superRefine(
 			});
 		}
 
-		if (tracker && !TRACKER_RE.test(tracker)) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['tracker'],
-				message: 'Tracker cannot contain spaces or "/"'
-			});
-		}
-
-		if (bugKey && !BUG_KEY_RE.test(bugKey)) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['bugKey'],
-				message: 'Bug key can only contain letters, digits and - _ / :'
-			});
-		}
-
-		// A bug key is optional, but half of one is not a bug key.
-		if (bugKey && !tracker) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['tracker'],
-				message: 'Choose a tracker'
-			});
-		}
-
-		if (tracker && !bugKey) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['bugKey'],
-				message: 'Enter a bug key'
-			});
-		}
+		// Shared with the issue drawer, which collects the same pair.
+		refineBugKeyHalves(values, ctx);
 	}
 );
 

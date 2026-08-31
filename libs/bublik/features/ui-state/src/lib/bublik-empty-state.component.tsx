@@ -15,6 +15,12 @@ interface BublikEmptyStateProps {
 	iconName?: ComponentProps<typeof State.Icon>['name'];
 	iconSize?: number;
 	hideIcon?: boolean;
+	/**
+	 * Rendered under the description. An empty state that names the thing you
+	 * could do next should also be where you can do it — the issues and rules
+	 * lists both put their create button here.
+	 */
+	children?: ReactNode;
 }
 
 function BublikEmptyState(props: BublikEmptyStateProps) {
@@ -28,7 +34,8 @@ function BublikEmptyState(props: BublikEmptyStateProps) {
 		iconClassName = 'text-primary',
 		iconName,
 		iconSize = 24,
-		hideIcon = false
+		hideIcon = false,
+		children
 	} = props;
 
 	return (
@@ -47,6 +54,7 @@ function BublikEmptyState(props: BublikEmptyStateProps) {
 						{description}
 					</State.Description>
 				) : null}
+				{children ? <div className="mt-4">{children}</div> : null}
 			</State.Content>
 		</State.Root>
 	);

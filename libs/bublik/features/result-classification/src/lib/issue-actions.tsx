@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import {
-	getErrorMessage,
 	useCloseIssueMutation,
 	useReopenIssueMutation
 } from '@/services/bublik-api';
@@ -15,7 +14,11 @@ import {
 	toast
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
-import type { IssueState } from '@/shared/types';
+import type { Issue, IssueState } from '@/shared/types';
+
+import { DESTRUCTIVE_FILL_CLASS } from './classification-colors';
+import { notifyError } from './server-errors';
+import { EditIssueButton, IssueDeleteButton } from './issue-drawer';
 
 /** Shared by the issues list, the run's issue table and the rules table. */
 export const ISSUE_ACTIONS_COLUMN_CLASS = 'w-px whitespace-nowrap';
@@ -28,15 +31,11 @@ export const ISSUE_ACTIONS_COLUMN_CLASS = 'w-px whitespace-nowrap';
 export const ISSUE_ACTIONS_HEADER_CLASS = 'pl-8';
 
 /**
- * `destruction-secondary` carries its red as a hover state only, which leaves a
- * destructive button looking identical to a neutral one until you are already
- * pointing at it. These sit in dense table rows next to plain `secondary`
- * buttons, so the fill is on by default and hover deepens it instead.
- *
- * Applied here rather than to the variant: it is also used on the configs page
- * and in the run table, which are not part of this change.
+ * Re-exported from `classification-colors`, where it moved so the drawers can
+ * use it without importing this file — which now renders their buttons, and
+ * would otherwise close an import cycle.
  */
-export const DESTRUCTIVE_FILL_CLASS = 'bg-red-100 hover:bg-red-200';
+export { DESTRUCTIVE_FILL_CLASS };
 
 export interface IssueStateToggleProps {
 	issueId: number;
@@ -46,13 +45,16 @@ export interface IssueStateToggleProps {
 }
 
 export interface IssueStateActionsProps extends IssueStateToggleProps {
-	/** Only used to name the issue in the Rules tooltip. */
+	/** Names the issue in the Rules tooltip and in the delete confirmation. */
 	title: string;
-}
-
-function notifyError(err: unknown) {
-	const m = getErrorMessage(err);
-	return `${m.title}\n${m.description}`;
+	/**
+	 * Adds Edit and Delete. Off where the row is not the place to author from —
+	 * the run's issue table lists what a *run* carries, and editing the issue
+	 * behind it belongs on the issue, not in a run-scoped view.
+	 */
+	showAuthoring?: boolean;
+	/** Saves the edit drawer a fetch when the caller already holds the row. */
+	issue?: Issue;
 }
 
 export interface IssueLinkButtonProps {
@@ -165,7 +167,9 @@ export function IssueStateActions({
 	issueId,
 	title,
 	state,
-	projectId
+	projectId,
+	showAuthoring = false,
+	issue
 }: IssueStateActionsProps) {
 	return (
 		// A rule with a divider between them, so the two read as one control
@@ -176,6 +180,26 @@ export function IssueStateActions({
 			<IssueLinkButton issueId={issueId} title={title} />
 			<Separator orientation="vertical" className="h-5" />
 			<IssueStateToggle issueId={issueId} state={state} projectId={projectId} />
+			{/* Behind their own rule, and icon-only: Close is the control you
+			    reach for daily, and a cell already carrying two labelled buttons
+			    should not grow a third and a fourth. Both hide for non-admins. */}
+			{showAuthoring ? (
+				<>
+					<Separator orientation="vertical" className="h-5" />
+					<EditIssueButton
+						issueId={issueId}
+						projectId={projectId}
+						issue={issue}
+						iconOnly
+					/>
+					<IssueDeleteButton
+						issueId={issueId}
+						title={title}
+						projectId={projectId}
+						iconOnly
+					/>
+				</>
+			) : null}
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import {
 	ColumnDef,
 	type VisibilityState,
@@ -191,9 +191,7 @@ function getColumns(
 			header: () => null,
 			meta: STATUS_STRIPE_COLUMN_META,
 			cell: ({ row }) => (
-				<StatusStripe
-					meta={ISSUE_RULES_STATE_META[row.original.rulesState]}
-				/>
+				<StatusStripe meta={ISSUE_RULES_STATE_META[row.original.rulesState]} />
 			)
 		},
 		{
@@ -214,6 +212,8 @@ function getColumns(
 					title={row.original.title}
 					state={row.original.state}
 					projectId={projectId}
+					issue={row.original}
+					showAuthoring
 				/>
 			)
 		},
@@ -411,7 +411,12 @@ function useFacetOptions(rows: IssueTableRow[]) {
 	);
 }
 
-export function IssuesTable() {
+export interface IssuesTableProps {
+	/** Toolbar slot, as `RunIssuesTable` has. Carries the New issue button. */
+	toolbarActions?: ReactNode;
+}
+
+export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	const { projectIds } = useProjectSearch();
 	const projectId = projectIds[0];
 
@@ -568,9 +573,11 @@ export function IssuesTable() {
 		return (
 			<BublikEmptyState
 				title="No issues"
-				description={`No issues found in ${scopeLabel}. Issues are created by classifying a failing result.`}
+				description={`No issues found in ${scopeLabel}. Record one here, or classify a failing result and one is recorded for you.`}
 				className="h-full"
-			/>
+			>
+				{toolbarActions}
+			</BublikEmptyState>
 		);
 	}
 
@@ -629,7 +636,8 @@ export function IssuesTable() {
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				<div className="ml-auto">
+				<div className="flex items-center gap-2 ml-auto">
+					{toolbarActions}
 					<ColumnsVisibility
 						items={columnVisibilityItems(table)}
 						onColumnToggle={(id, checked) =>

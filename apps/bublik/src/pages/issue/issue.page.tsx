@@ -5,11 +5,13 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	IssueDetailHeader,
-	IssueRulesTable
+	IssueRulesTable,
+	NewRuleButton
 } from '@/bublik/features/result-classification';
 import {
 	useProjectSearch,
 	useTabTitleWithPrefix,
+	useNavigateWithProject,
 	LinkWithProject
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -21,6 +23,7 @@ import { BublikEmptyState } from '@/bublik/features/ui-state';
 export const IssuePage = () => {
 	const { issueId } = useParams<{ issueId: string }>();
 	const { projectIds } = useProjectSearch();
+	const navigate = useNavigateWithProject();
 	const projectId = projectIds[0];
 
 	// `/issues/rules` also matches the `/issues/:issueId` pattern in matchPath —
@@ -54,10 +57,25 @@ export const IssuePage = () => {
 						<CopyShortUrlButtonContainer />
 					</div>
 				</CardHeader>
-				<IssueDetailHeader issueId={numericIssueId} projectId={projectId} />
+				<IssueDetailHeader
+					issueId={numericIssueId}
+					projectId={projectId}
+					// The page is about an issue that no longer exists.
+					onDeleted={() => navigate(routes.issues({}))}
+				/>
 			</header>
 			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
-				<IssueRulesTable issueId={numericIssueId} projectId={projectId} />
+				<IssueRulesTable
+					issueId={numericIssueId}
+					projectId={projectId}
+					toolbarActions={
+						<NewRuleButton
+							projectId={projectId}
+							issueId={numericIssueId}
+							lockIssue
+						/>
+					}
+				/>
 			</div>
 		</div>
 	);

@@ -1,7 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { IssuesTable } from '@/bublik/features/result-classification';
-import { useTabTitleWithPrefix } from '@/bublik/features/projects';
+import {
+	IssuesTable,
+	NewIssueButton
+} from '@/bublik/features/result-classification';
+import {
+	useProjectSearch,
+	useTabTitleWithPrefix
+} from '@/bublik/features/projects';
 
 /**
  * One card, one bar. The table's own toolbar is the card header — it already
@@ -11,12 +17,19 @@ import { useTabTitleWithPrefix } from '@/bublik/features/projects';
  * pinned header and footer instead of the whole page scrolling.
  */
 export const IssuesPage = () => {
+	const { projectIds } = useProjectSearch();
+
 	useTabTitleWithPrefix('Issues - Bublik');
 
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issues-page">
 			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
-				<IssuesTable />
+				{/* An issue is global — the project only scopes which rules count
+			    towards it — so the selector is passed through for the write's
+			    permission check rather than to file the issue anywhere. */}
+			<IssuesTable
+				toolbarActions={<NewIssueButton projectId={projectIds[0]} />}
+			/>
 			</div>
 		</div>
 	);

@@ -13,10 +13,13 @@ import {
 } from './classification-colors';
 import { BugKeyChip } from './classification-badges';
 import { IssueStateToggle } from './issue-actions';
+import { EditIssueButton, IssueDeleteButton } from './issue-drawer';
 
 export interface IssueDetailHeaderProps {
 	issueId: number;
 	projectId?: number;
+	/** Where to go once the issue this page is about no longer exists. */
+	onDeleted?: () => void;
 }
 
 interface FactProps {
@@ -53,7 +56,8 @@ function TimeValue({ value }: { value: string }) {
 
 export function IssueDetailHeader({
 	issueId,
-	projectId
+	projectId,
+	onDeleted
 }: IssueDetailHeaderProps) {
 	const {
 		data: issue,
@@ -104,6 +108,22 @@ export function IssueDetailHeader({
 					bugKey={issue.issue_ext?.key ?? null}
 					bugUrl={issue.bug_url ?? null}
 				/>
+				{/* Labelled here, unlike in a table row: this line has the room, and
+				    the page is where you come to change an issue rather than to
+				    scan a list of them. `ml-auto` keeps them off the title. */}
+				<div className="flex items-center gap-1.5 ml-auto">
+					<EditIssueButton
+						issueId={issueId}
+						projectId={projectId}
+						issue={issue}
+					/>
+					<IssueDeleteButton
+						issueId={issueId}
+						title={issue.title}
+						projectId={projectId}
+						onDeleted={onDeleted}
+					/>
+				</div>
 			</div>
 
 			{issue.description ? (

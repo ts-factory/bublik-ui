@@ -78,10 +78,13 @@ export type IssueRule = {
 	active: boolean;
 	test: number;
 	test_name: string;
-	match_parameters: boolean;
-	match_verdicts: boolean;
-	match_important_tags: boolean;
-	match_all_tags: boolean;
+	/**
+	 * The matcher. Every criterion is exact and an empty one is *ignored* —
+	 * which is also what a stored rule's "match scope" is: the set of these
+	 * three that carry anything. There are no `match_*` flags on the wire; those
+	 * belong to the classify request, where they choose what gets captured from
+	 * the result into these fields. See `chipsForRule`.
+	 */
 	parameters: Record<string, string>;
 	verdicts: string[];
 	tags: string[];
@@ -162,3 +165,62 @@ export type ClassifyRequest = {
 	// the backend defaults (path + params + verdicts + important tags).
 	matcher?: ClassifyMatcher;
 };
+
+/**
+ * Authoring payloads for `/issues/` and `/issue_rules/`.
+ *
+ * Snake_case, like `ClassifyRequest` — these go on the wire as written, and
+ * keeping them in the server's spelling is what stops a field quietly missing
+ * its target. `projectId` is the exception: it is a *query* param, not a body
+ * field, because `@check_action_permission('manage_issues')` reads `?project=`.
+ */
+export interface CreateIssueRequest {
+	projectId?: number;
+	title: string;
+	description?: string | null;
+	/** `ref://TRACKER/KEY`, or null for none. */
+	bug_key?: string | null;
+}
+
+export interface UpdateIssueRequest {
+	issueId: number;
+	projectId?: number;
+	title?: string;
+	description?: string | null;
+	/**
+	 * Omit entirely unless the key actually changed. The serializer's guard
+	 * fires on the key being *present*, not on its value differing, so sending
+	 * the current key back on an issue that has classified results is a 400.
+	 */
+	bug_key?: string | null;
+}
+
+export interface CreateRuleRequest {
+	projectId?: number;
+	project: number;
+	issue: number;
+	test: number;
+	category: IssueCategory;
+	expected?: boolean | null;
+	parameters?: Record<string, string>;
+	verdicts?: string[];
+	tags?: string[];
+}
+
+/**
+ * Only the two fields that survive `_MATCHER_FIELDS`. `project`, `issue`,
+ * `test`, `parameters`, `verdicts` and `tags` are rejected once the rule has
+ * stamps, and `active` is read-only — it moves through activate/deactivate.
+ */
+export interface UpdateRuleRequest {
+	ruleId: number;
+	projectId?: number;
+	category?: IssueCategory;
+	expected?: boolean | null;
+}
+
+/** A test the client can name and identify. See `useKnownTests`. */
+export interface TestOption {
+	id: number;
+	name: string;
+}

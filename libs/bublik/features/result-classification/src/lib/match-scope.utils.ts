@@ -118,3 +118,28 @@ export function applyMutualExclusion(
 	}
 	return flags;
 }
+
+/**
+ * What a **stored** rule matches on.
+ *
+ * A rule has no `match_*` flags — those live on the classify *request*, where
+ * they choose what gets captured from the result into `parameters`, `verdicts`
+ * and `tags`. Once the rule exists, the matcher reads the three collections
+ * directly and ignores any that are empty
+ * (`ClassificationService.matching_results`), so the scope is exactly which of
+ * them carry anything. Path is always in, because `test` is mandatory on every
+ * rule and is the only DB-level narrowing.
+ *
+ * `chipsForFlags` stays for the classify form, which genuinely holds flags.
+ */
+export function chipsForRule(rule: {
+	parameters?: Record<string, string> | null;
+	verdicts?: string[] | null;
+	tags?: string[] | null;
+}): string[] {
+	const chips = ['Path'];
+	if (Object.keys(rule.parameters ?? {}).length) chips.push('Params');
+	if ((rule.verdicts ?? []).length) chips.push('Verdicts');
+	if ((rule.tags ?? []).length) chips.push('Tags');
+	return chips;
+}

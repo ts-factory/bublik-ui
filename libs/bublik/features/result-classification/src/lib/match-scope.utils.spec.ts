@@ -5,6 +5,7 @@ import {
 	PRESETS,
 	applyMutualExclusion,
 	chipsForFlags,
+	chipsForRule,
 	presetForFlags
 } from './match-scope.utils';
 
@@ -71,5 +72,47 @@ describe('match-scope.utils', () => {
 		);
 		expect(next.matchImportantTags).toBe(true);
 		expect(next.matchAllTags).toBe(false);
+	});
+});
+
+/**
+ * The stored-rule half of the same question. These are the cases the old
+ * flag-reading `SCOPE_COLUMN` got wrong — it saw `undefined` for every flag and
+ * printed `Path` regardless of what the rule actually matched on.
+ */
+describe('chipsForRule', () => {
+	it('an unconstrained rule matches on path alone', () => {
+		expect(chipsForRule({ parameters: {}, verdicts: [], tags: [] })).toEqual([
+			'Path'
+		]);
+	});
+
+	it('treats missing criteria as empty', () => {
+		expect(chipsForRule({})).toEqual(['Path']);
+		expect(
+			chipsForRule({ parameters: null, verdicts: null, tags: null })
+		).toEqual(['Path']);
+	});
+
+	it('names each non-empty criterion, widest gate last', () => {
+		expect(
+			chipsForRule({ parameters: { env: 'ci' }, verdicts: [], tags: [] })
+		).toEqual(['Path', 'Params']);
+		expect(
+			chipsForRule({ parameters: {}, verdicts: ['timeout'], tags: [] })
+		).toEqual(['Path', 'Verdicts']);
+		expect(
+			chipsForRule({ parameters: {}, verdicts: [], tags: ['x=1'] })
+		).toEqual(['Path', 'Tags']);
+	});
+
+	it('a fully constrained rule names all four', () => {
+		expect(
+			chipsForRule({
+				parameters: { env: 'ci' },
+				verdicts: ['timeout'],
+				tags: ['x=1']
+			})
+		).toEqual(['Path', 'Params', 'Verdicts', 'Tags']);
 	});
 });
