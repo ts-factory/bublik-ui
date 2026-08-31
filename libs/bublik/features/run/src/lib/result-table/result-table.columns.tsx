@@ -164,10 +164,11 @@ export const getColumns = ({
 						);
 					}
 
-					// No result to render, but the classification still explains why —
-					// it used to live in another column and was unaffected by this
-					// guard, so returning nothing here would quietly lose it. There is
-					// no result badge to trail, hence no leading rule.
+					// No result to render, but the classification line still has
+					// something to say — an untriaged chip, a Classify trigger, or
+					// both. It used to live in another column and was unaffected by
+					// this guard, so returning nothing here would quietly lose it.
+					// There is no result badge to trail, hence no leading rule.
 					if (!obtainedResult.result || !obtainedResult.verdicts) {
 						return (
 							<div className="flex flex-col gap-1.5">

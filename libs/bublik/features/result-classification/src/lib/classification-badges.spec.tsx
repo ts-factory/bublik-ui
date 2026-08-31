@@ -124,10 +124,13 @@ describe('ResultIssueBadges — closed issues', () => {
 });
 
 describe('ClassificationVerdict — the verdict chip', () => {
-	it('reports the effect once for a failing result', () => {
+	it('says nothing about a failure the rules have already explained', () => {
+		// The stamps below the line say which issue and which category; a chip
+		// repeating "suppressed" on every such row buys nothing for the width.
 		render(<ClassificationVerdict hasError issues={[stamp()]} />);
 
-		expect(screen.getByTestId('result-issue-effect')).toBeInTheDocument();
+		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('result-untriaged')).not.toBeInTheDocument();
 	});
 
 	it('reads untriaged for a failure nobody has classified', () => {
@@ -136,12 +139,10 @@ describe('ClassificationVerdict — the verdict chip', () => {
 		expect(screen.getByTestId('result-untriaged')).toBeInTheDocument();
 	});
 
-	it('answers with No effect when the result passed but carries stamps', () => {
-		// `expected: true` on the stamp: run the effect axis over it and it would
-		// report SUPPRESSED, claiming to have hidden a failure that never was.
+	it('says nothing about a passing result that carries stamps', () => {
 		render(<ClassificationVerdict hasError={false} issues={[stamp()]} />);
 
-		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
+		expect(screen.queryByTestId('result-no-effect')).not.toBeInTheDocument();
 		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
 	});
 
@@ -153,21 +154,40 @@ describe('ClassificationVerdict — the verdict chip', () => {
 		expect(container).toBeEmptyDOMElement();
 	});
 
-	it('fills the slot on every row it renders, so the column has no holes', () => {
+	it('is the untriaged chip or no chip at all, on every kind of row', () => {
 		const rows = [
-			{ hasError: true, issues: [] },
-			{ hasError: true, issues: [stamp()] },
-			{ hasError: false, issues: [stamp()] }
+			{ row: { hasError: true, issues: [] }, chip: true },
+			{ row: { hasError: true, issues: [stamp()] }, chip: false },
+			{ row: { hasError: false, issues: [stamp()] }, chip: false },
+			{ row: { hasError: false, issues: [] }, chip: false }
 		];
 
-		for (const row of rows) {
+		for (const { row, chip } of rows) {
 			const { container, unmount } = render(<ClassificationVerdict {...row} />);
 
+			// Counted by `data-effect`, which every verdict chip in the module
+			// carries: asking only for the untriaged one would not notice an
+			// effect chip finding its way back in beside it.
+			expect(container.querySelectorAll('[data-effect]')).toHaveLength(
+				chip ? 1 : 0
+			);
 			expect(
-				container.querySelector(
-					'[data-testid="result-untriaged"], [data-testid="result-issue-effect"], [data-testid="result-no-effect"]'
-				)
-			).not.toBeNull();
+				Boolean(container.querySelector('[data-testid="result-untriaged"]'))
+			).toBe(chip);
+
+			unmount();
+		}
+	});
+
+	it('leaves a read-only surface with nothing to draw once the chip is gone', () => {
+		// History passes no `resultId`, so these rows have neither chip nor
+		// trigger -- and must not leave a leading rule standing on its own.
+		for (const hasError of [true, false]) {
+			const { container, unmount } = render(
+				<ClassificationVerdict hasError={hasError} issues={[stamp()]} />
+			);
+
+			expect(container).toBeEmptyDOMElement();
 
 			unmount();
 		}
@@ -193,16 +213,13 @@ describe('ClassificationVerdict — the Classify slot', () => {
 		);
 	});
 
-	it('trails the verdict: what happened, then what you can do about it', () => {
+	it('stands alone on a failure whose chip is gone', () => {
+		// Which rows can be classified did not change when the chips went: any
+		// failure and any stamped pass still offer the trigger.
 		render(<ClassificationVerdict hasError issues={[stamp()]} resultId={42} />);
 
-		const verdict = screen.getByTestId('result-issue-effect');
-		const trigger = screen.getByTestId('classify-trigger');
-
-		expect(
-			verdict.compareDocumentPosition(trigger) &
-				Node.DOCUMENT_POSITION_FOLLOWING
-		).toBeTruthy();
+		expect(screen.getByTestId('classify-trigger')).toBeInTheDocument();
+		expect(screen.queryByTestId('result-issue-effect')).not.toBeInTheDocument();
 	});
 
 	it('offers the trigger on a passing result that carries stamps', () => {
@@ -215,7 +232,6 @@ describe('ClassificationVerdict — the Classify slot', () => {
 		);
 
 		expect(screen.getByTestId('classify-trigger')).toBeInTheDocument();
-		expect(screen.getByTestId('result-no-effect')).toBeInTheDocument();
 	});
 
 	it('renders nothing at all for a passing, unstamped result', () => {
