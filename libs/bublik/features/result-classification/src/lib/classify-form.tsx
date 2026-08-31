@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
+	ErrorMessage,
+	FormAlertError,
 	FormSection,
 	FormSectionSubheader,
 	Input,
@@ -16,11 +18,20 @@ import { CATEGORY_OPTIONS } from './category';
 import { IssuePicker } from './issue-picker';
 import { MatchScope } from './match-scope';
 import { DEFAULT_MATCH_FLAGS } from './match-scope.utils';
+import { BUG_KEY_RE, TRACKER_RE, composeBugKey, splitBugKey } from './bug-key';
+import { applyClassifyErrors } from './classify-errors';
+import { TrackerCombobox, useTrackerOptions } from './tracker-combobox';
 
-export const ClassifyFormSchema = z.object({
+const ClassifyFormShape = z.object({
 	mode: z.enum(['new', 'existing']),
 	issueId: z.coerce.number().optional(),
 	title: z.string().optional(),
+	/**
+	 * The two halves of a bug key. They are stored joined as
+	 * `ref://TRACKER/KEY` — see `composeBugKey` — but nobody types a URI, so the
+	 * form holds them apart.
+	 */
+	tracker: z.string().optional(),
 	bugKey: z.string().optional(),
 	category: z.string().min(1, { message: 'Category is required' }),
 	scope: z.enum(['future', 'oneoff']),
@@ -31,7 +42,70 @@ export const ClassifyFormSchema = z.object({
 	matchAllTags: z.boolean()
 });
 
-export type ClassifyFormValues = z.infer<typeof ClassifyFormSchema>;
+export const ClassifyFormSchema = ClassifyFormShape.superRefine(
+	(values, ctx) => {
+		const title = values.title?.trim() ?? '';
+		const tracker = values.tracker?.trim() ?? '';
+		const bugKey = values.bugKey?.trim() ?? '';
+
+		if (values.mode === 'existing') {
+			if (!values.issueId) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					path: ['issueId'],
+					message: 'Select an issue'
+				});
+			}
+
+			// The rest describes an issue that is about to be created, and under
+			// `existing` there is none.
+			return;
+		}
+
+		if (!title) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['title'],
+				message: 'Title is required'
+			});
+		}
+
+		if (tracker && !TRACKER_RE.test(tracker)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['tracker'],
+				message: 'Tracker cannot contain spaces or "/"'
+			});
+		}
+
+		if (bugKey && !BUG_KEY_RE.test(bugKey)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['bugKey'],
+				message: 'Bug key can only contain letters, digits and - _ / :'
+			});
+		}
+
+		// A bug key is optional, but half of one is not a bug key.
+		if (bugKey && !tracker) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['tracker'],
+				message: 'Choose a tracker'
+			});
+		}
+
+		if (tracker && !bugKey) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['bugKey'],
+				message: 'Enter a bug key'
+			});
+		}
+	}
+);
+
+export type ClassifyFormValues = z.infer<typeof ClassifyFormShape>;
 
 export type ClassifyForm = UseFormReturn<ClassifyFormValues>;
 
@@ -40,6 +114,9 @@ export function useClassifyForm(): ClassifyForm {
 		resolver: zodResolver(ClassifyFormSchema),
 		defaultValues: {
 			mode: 'new',
+			title: '',
+			tracker: '',
+			bugKey: '',
 			category: 'known-issue',
 			scope: 'future',
 			expected: 'none',
@@ -60,7 +137,8 @@ export function buildSubmitHandler(
 			matchImportantTags: boolean;
 			matchAllTags: boolean;
 		};
-	}) => Promise<unknown> | undefined,
+	}) => Promise<unknown>,
+	form: ClassifyForm,
 	onDone: () => void
 ) {
 	return async (values: ClassifyFormValues) => {
@@ -69,26 +147,41 @@ export function buildSubmitHandler(
 			values.mode === 'existing' && values.issueId
 				? values.issueId
 				: {
-						title: values.title || 'Untitled',
-						bug_key: values.bugKey || undefined
+						title: (values.title ?? '').trim(),
+						bug_key: composeBugKey(values.tracker, values.bugKey)
 				  };
-		await submit({
-			issue,
-			category,
-			expected:
-				values.expected === 'expected'
-					? true
-					: values.expected === 'unexpected'
-					? false
-					: null,
-			scope: values.scope as ClassifyScope,
-			matcher: {
-				matchParameters: values.matchParameters,
-				matchVerdicts: values.matchVerdicts,
-				matchImportantTags: values.matchImportantTags,
-				matchAllTags: values.matchAllTags
-			}
-		});
+
+		// Left over from a previous attempt; the field errors are replaced by
+		// `setError` below, but a stale root alert would otherwise survive a
+		// request that failed for an entirely different reason.
+		form.clearErrors('root');
+
+		try {
+			await submit({
+				issue,
+				category,
+				expected:
+					values.expected === 'expected'
+						? true
+						: values.expected === 'unexpected'
+						? false
+						: null,
+				scope: values.scope as ClassifyScope,
+				matcher: {
+					matchParameters: values.matchParameters,
+					matchVerdicts: values.matchVerdicts,
+					matchImportantTags: values.matchImportantTags,
+					matchAllTags: values.matchAllTags
+				}
+			});
+		} catch (error: unknown) {
+			// The drawer closes in `onDone` and nowhere else: a rejected classify
+			// leaves the form standing with the server's message on the field
+			// that caused it.
+			applyClassifyErrors(error, form);
+			return;
+		}
+
 		onDone();
 	};
 }
@@ -103,11 +196,22 @@ export function ClassifyFields({
 	/** Portal target for the issue picker's popup — see `IssuePickerProps`. */
 	container?: RefObject<HTMLElement>;
 }) {
-	const { register, control, watch } = form;
+	const {
+		register,
+		control,
+		watch,
+		setValue,
+		formState: { errors }
+	} = form;
 	const mode = watch('mode');
+	const trackerOptions = useTrackerOptions(projectId);
 
 	return (
 		<>
+			{errors.root?.message ? (
+				<FormAlertError title="Error" description={errors.root.message} />
+			) : null}
+
 			{/* The three cards mirror the history global search form's sections —
 			    same `FormSection` shell, same coloured bar, same uppercase
 			    headers. The form's own `gap-6` supplies the spacing between them,
@@ -141,14 +245,63 @@ export function ClassifyFields({
 								label="Title"
 								placeholder="Short label"
 								data-testid="classify-title"
+								error={errors.title?.message}
 								{...register('title')}
 							/>
-							<Input
-								label="Bug Key"
-								placeholder="Optional — ref://JIRA/ISSUE-123"
-								data-testid="classify-bug-key"
-								{...register('bugKey')}
-							/>
+							{/* Tracker and key side by side: they are one identifier, and
+							    stacking them read as two unrelated optional fields. */}
+							<div className="flex gap-4">
+								<div className="w-2/5" data-testid="classify-tracker">
+									<Controller
+										control={control}
+										name="tracker"
+										render={({ field }) => (
+											<TrackerCombobox
+												value={field.value ?? ''}
+												onChange={field.onChange}
+												options={trackerOptions}
+												error={errors.tracker?.message}
+												container={container}
+											/>
+										)}
+									/>
+								</div>
+								<div className="flex-1">
+									<Controller
+										control={control}
+										name="bugKey"
+										render={({ field }) => (
+											<Input
+												label="Bug key"
+												placeholder="Optional — FOO-123"
+												data-testid="classify-bug-key"
+												name={field.name}
+												ref={field.ref}
+												onBlur={field.onBlur}
+												value={field.value ?? ''}
+												error={errors.bugKey?.message}
+												onChange={(event) => {
+													// Pasting a whole `ref://JIRA/FOO-123` — off a
+													// badge, out of a chat — should fill both
+													// fields rather than fail validation.
+													const next = event.target.value;
+													const split = splitBugKey(next, trackerOptions);
+
+													if (!split) {
+														field.onChange(next);
+														return;
+													}
+
+													setValue('tracker', split.tracker, {
+														shouldValidate: true
+													});
+													field.onChange(split.key);
+												}}
+											/>
+										)}
+									/>
+								</div>
+							</div>
 						</>
 					) : (
 						<div data-testid="classify-issue">
@@ -165,6 +318,9 @@ export function ClassifyFields({
 									/>
 								)}
 							/>
+							{errors.issueId?.message ? (
+								<ErrorMessage>{errors.issueId.message}</ErrorMessage>
+							) : null}
 						</div>
 					)}
 				</div>
@@ -191,6 +347,12 @@ export function ClassifyFields({
 								/>
 							)}
 						/>
+						{/* `SelectInput` has no error slot of its own, and widening a
+						    shared component for three fields that rarely fail is the
+						    wrong trade. */}
+						{errors.category?.message ? (
+							<ErrorMessage>{errors.category.message}</ErrorMessage>
+						) : null}
 					</div>
 
 					<div data-testid="classify-expected">
@@ -211,6 +373,9 @@ export function ClassifyFields({
 								/>
 							)}
 						/>
+						{errors.expected?.message ? (
+							<ErrorMessage>{errors.expected.message}</ErrorMessage>
+						) : null}
 					</div>
 				</div>
 			</FormSection>
@@ -242,6 +407,9 @@ export function ClassifyFields({
 								/>
 							)}
 						/>
+						{errors.scope?.message ? (
+							<ErrorMessage>{errors.scope.message}</ErrorMessage>
+						) : null}
 					</div>
 				</div>
 				<div>

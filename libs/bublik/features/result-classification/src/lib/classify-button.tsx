@@ -46,7 +46,14 @@ export function ClassifyButton({ resultId, projectId }: ClassifyButtonProps) {
 
 			<ClassifyDrawer
 				open={open}
-				onOpenChange={setOpen}
+				onOpenChange={(next) => {
+					setOpen(next);
+
+					// The form outlives the drawer — it is created here, so without
+					// this a failed attempt's values and its server errors are still
+					// sitting there the next time the drawer opens.
+					if (!next) form.reset();
+				}}
 				form={form}
 				projectId={projectId}
 				submit={submit}

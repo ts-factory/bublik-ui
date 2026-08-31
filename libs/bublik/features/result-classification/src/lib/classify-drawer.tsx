@@ -43,15 +43,25 @@ export function ClassifyDrawer({
 	projectId,
 	submit
 }: ClassifyDrawerProps) {
-	const onSubmit = buildSubmitHandler(submit, () => onOpenChange(false));
+	const onSubmit = buildSubmitHandler(submit, form, () => onOpenChange(false));
 	const [scrollableRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
+	const isSubmitting = form.formState.isSubmitting;
+
+	// Escape, the backdrop and the header's cross all route through here. None
+	// of them may take the form away while the request it describes is still in
+	// flight — if it fails, this is where the message has to land.
+	function handleOpenChange(next: boolean) {
+		if (!next && isSubmitting) return;
+
+		onOpenChange(next);
+	}
 
 	// `portal` escapes the trigger's stacking context — the trigger sits in a
 	// table row, which would otherwise paint over the panel. z-[55] clears the
 	// z-50 dialog layer but stays under the nested `SelectInput` dropdown
 	// (z-[60]) so its options open in front of the drawer, not behind it.
 	return (
-		<DrawerRoot open={open} onOpenChange={onOpenChange}>
+		<DrawerRoot open={open} onOpenChange={handleOpenChange}>
 			<DrawerContent
 				portal
 				// `portal` is a React portal, and React events bubble through the
@@ -69,7 +79,7 @@ export function ClassifyDrawer({
 					<DrawerFormHeader
 						name="Classify Failure"
 						description="Record why this result failed, and decide which future results inherit the verdict."
-						onClose={() => onOpenChange(false)}
+						onClose={() => handleOpenChange(false)}
 					/>
 				</div>
 
@@ -105,10 +115,13 @@ export function ClassifyDrawer({
 								variant="primary"
 								size="md"
 								rounded="lg"
+								// The request is not idempotent — a second click while the
+								// first is in flight creates a second issue.
+								disabled={isSubmitting}
 								className="justify-center w-full"
 								data-testid="classify-submit"
 							>
-								{form.formState.isSubmitting ? (
+								{isSubmitting ? (
 									<Icon
 										name="ProgressIndicator"
 										size={20}
@@ -121,7 +134,7 @@ export function ClassifyDrawer({
 										className="mr-1.5"
 									/>
 								)}
-								<span>Classify</span>
+								<span>{isSubmitting ? 'Classifying…' : 'Classify'}</span>
 							</ButtonTw>
 						</div>
 					</form>

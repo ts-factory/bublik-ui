@@ -28,8 +28,10 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 /**
  * Matches `TestPathComboboxField`'s input — the other autocomplete in the same
  * form, and the reason this one exists rather than the bare input it replaces.
+ * Exported so `TrackerCombobox`, which sits two fields away in the classify
+ * drawer, is the same input rather than a fourth copy of these classes.
  */
-const inputStyles = cva({
+export const comboboxInputStyles = cva({
 	base: [
 		'w-full',
 		'px-3.5',
@@ -167,7 +169,10 @@ export function IssuePicker({
 					<Combobox.Input
 						id={id}
 						placeholder={placeholder}
-						className={cn(inputStyles(), selectedKey ? 'pr-20' : 'pr-10')}
+						className={cn(
+							comboboxInputStyles(),
+							selectedKey ? 'pr-20' : 'pr-10'
+						)}
 						data-testid="issue-picker-input"
 					/>
 					<div className="absolute flex items-center gap-1 -translate-y-1/2 right-2 top-1/2">
