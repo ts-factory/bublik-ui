@@ -39,9 +39,30 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 	return (
 		<Tooltip content={`${label} — ${meta.description}`}>
 			{/*
-			 * `inset-0` against the cell's `relative` so the fill spans the row's
+			 * Positioned against the cell's `relative` so the fill spans the row's
 			 * full height whatever the tallest cell in it turns out to be — a
 			 * height this component cannot know and must not try to.
+			 *
+			 * The 1px overhang is what puts the stripe *on* the row's border
+			 * rather than inside it. A classification cell reserves a 1px border
+			 * on every side, transparent until the row is hovered; an absolutely
+			 * positioned child's offsets resolve against the padding box, so
+			 * `-1px` on top, bottom and left is exactly the outer edge of that
+			 * border. `right-0` stays put: the leading cell carries `border-l`
+			 * and `border-y` only, so its padding box and its border box share a
+			 * right edge. `inset-0` left a 1px frame around the stripe — white at
+			 * rest, `primary` on hover — where the card's own edge should be. The
+			 * dashboard's `RunIcon` has always done this; this is the same trick.
+			 *
+			 * No `z-` class, deliberately. A positioned child already paints after
+			 * its parent's border, which is all this needs; a z-index would also
+			 * lift it over the `sticky top-0 z-10` header as the body scrolls
+			 * under it.
+			 *
+			 * `rounded-l-md` is the corner the cell's `overflow-hidden` used to
+			 * clip for us — the cell cannot clip any more, or it would cut the
+			 * overhang off. `ClassificationRow` squares this corner again on an
+			 * expanded row, where the card continues into the panel below it.
 			 *
 			 * `items-start` rather than centred: rows here run to several lines
 			 * once an issue carries a few stamps, and a centred icon on a tall
@@ -50,7 +71,8 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 			 */}
 			<div
 				className={cn(
-					'absolute inset-0 flex items-start justify-center pt-1.5',
+					'absolute -inset-y-px -left-px right-0 rounded-l-md',
+					'flex items-start justify-center pt-1.5',
 					meta.stripeClassName
 				)}
 				data-testid="status-stripe"
@@ -79,6 +101,15 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 export const STATUS_STRIPE_COLUMN_META = {
 	width: '24px',
 	className: 'p-0',
-	/** `inset-0` resolves against this cell, not the row, which is `relative` too. */
-	cellClassName: 'relative'
+	/**
+	 * `relative` because the stripe's offsets resolve against this cell, not
+	 * against the row — which is `relative` too.
+	 *
+	 * `overflow-visible` undoes the `overflow-hidden` the leading cell carries.
+	 * `cellClassName` is the last thing `ClassificationRow` feeds `cn`, so
+	 * `twMerge` drops the clip for this column and leaves every other table's
+	 * first column clipping as before. Without it the cell would cut off the
+	 * 1px the stripe overhangs by, which is the whole point of the overhang.
+	 */
+	cellClassName: 'relative overflow-visible'
 } as const;

@@ -278,9 +278,11 @@ function ClassificationRow<T>({
 									  // belongs beside the first of them.
 									  'px-1 py-2 bg-primary-wash flex items-start whitespace-pre-wrap overflow-wrap-anywhere'
 									: 'px-2 py-1.5 bg-white',
-								// `overflow-hidden` on the leading cell is what gives the
-								// status stripe — which is `absolute inset-0` — the card's
-								// rounded corner without knowing anything about it.
+								// `overflow-hidden` clips whatever the leading cell holds to
+								// the card's rounded corner. The status stripe is the one thing
+								// that opts out of it — it overhangs this cell's border on
+								// purpose, and rounds its own corner instead. See
+								// `STATUS_STRIPE_COLUMN_META`.
 								isFirst &&
 									'rounded-l-md border-l border-l-transparent overflow-hidden',
 								isLast && 'rounded-r-md border-r border-r-transparent',
@@ -290,7 +292,12 @@ function ClassificationRow<T>({
 								// Expanded, the card continues into the panel below it, so it
 								// stops rounding and stops drawing an edge between the two.
 								isExpanded && 'border-b-transparent',
-								isExpanded && isFirst && 'rounded-bl-none',
+								// The child selector reaches the status stripe, which rounds
+								// its own bottom-left corner because the cell can no longer
+								// clip it. Squaring it here rather than passing the row's
+								// expanded state down keeps the card's geometry in the one
+								// place that knows it.
+								isExpanded && isFirst && 'rounded-bl-none [&>*]:rounded-bl-none',
 								isExpanded && isLast && 'rounded-br-none',
 								cell.column.columnDef.meta?.className,
 								cell.column.columnDef.meta?.cellClassName

@@ -50,11 +50,31 @@ describe('StatusStripe', () => {
 
 		const stripe = screen.getByTestId('status-stripe');
 
-		// `inset-0` against the cell's own `relative`: the fill has to span the
+		// Positioned against the cell's own `relative`: the fill has to span the
 		// row's full height, which this component cannot know.
-		expect(stripe).toHaveClass('absolute', 'inset-0');
+		expect(stripe).toHaveClass('absolute');
 		expect(stripe).toHaveClass('bg-bg-ok');
 		expect(stripe).toHaveAttribute('data-status', 'Suppressed');
+	});
+
+	it('paints over the row border rather than being framed by it', () => {
+		render(<StatusStripe meta={RUN_ISSUE_EFFECT_META.suppressed} />);
+
+		const stripe = screen.getByTestId('status-stripe');
+
+		// Every classification cell reserves a 1px border — transparent at rest,
+		// `primary` on hover — and an absolute child's offsets resolve against the
+		// padding box, so a plain `inset-0` sat *inside* that border and wore it as
+		// a frame. The 1px overhang on top, bottom and left lands exactly on the
+		// card's outer edge instead. `right-0` stays put: the leading cell has no
+		// right border, so its padding and border boxes share that edge.
+		expect(stripe).toHaveClass('-inset-y-px', '-left-px', 'right-0');
+		// The corner the cell's `overflow-hidden` used to clip. It cannot any
+		// more — clipping would cut the overhang off — so the stripe rounds itself.
+		expect(stripe).toHaveClass('rounded-l-md');
+		// No z-index: a positioned child already paints over its parent's border,
+		// and a z-index would also lift the stripe over the pinned header.
+		expect(stripe.className).not.toMatch(/(^|\s)z-/);
 	});
 
 	it('positions the cell from the td and never the th', () => {
@@ -62,6 +82,16 @@ describe('StatusStripe', () => {
 		// it as replacing `sticky` and unpins it.
 		expect(STATUS_STRIPE_COLUMN_META.className).not.toMatch(/relative/);
 		expect(STATUS_STRIPE_COLUMN_META.cellClassName).toContain('relative');
+	});
+
+	it('stops the leading cell clipping the stripe overhang', () => {
+		// The leading cell of every classification row is `overflow-hidden`, which
+		// would cut off the 1px the stripe overhangs its border by. `cellClassName`
+		// is the last thing fed to `cn`, so this wins the merge for the stripe
+		// column and leaves every other table's first column clipping.
+		expect(STATUS_STRIPE_COLUMN_META.cellClassName).toContain(
+			'overflow-visible'
+		);
 	});
 
 	it('pins the gutter width rather than suggesting it', () => {
