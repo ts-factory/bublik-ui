@@ -25,14 +25,12 @@ import {
 	someOfFilter
 } from '../classification-table/classification-table.utils';
 import { ISSUE_ACTIONS_COLUMN_META } from '../issue-detail/issue-actions.constants';
-import { IssueStateActions } from '../issue-detail/issue-actions.container';
+import { IssueLinkButton } from '../issue-detail/issue-actions.container';
 import { COLUMN_ID } from './issues-table.constants';
 import type { IssueTableRow } from './issues-table.types';
 import { searchFilter } from './issues-table.utils';
 
-export function getColumns(
-	projectId: number | undefined
-): ColumnDef<IssueTableRow, unknown>[] {
+export function getColumns(): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.STATUS,
@@ -51,13 +49,7 @@ export function getColumns(
 			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<IssueStateActions
-					issueId={row.original.id}
-					title={row.original.title}
-					projectId={projectId}
-					issue={row.original}
-					showAuthoring
-				/>
+				<IssueLinkButton issueId={row.original.id} title={row.original.title} />
 			)
 		},
 		{
@@ -159,7 +151,7 @@ export function getColumns(
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories,
 			header: 'Categories',
-			meta: { width: 'auto', badgeCell: true },
+			meta: { width: 'minmax(6rem, 11rem)', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row, table }) => {
@@ -167,7 +159,7 @@ export function getColumns(
 
 				return (
 					<CategoryBadgeList
-						className="flex-col items-start"
+						className="flex-wrap"
 						categories={row.original.categories}
 						selectedCategories={facets.values(COLUMN_ID.CATEGORIES)}
 						onCategoryClick={(category) =>

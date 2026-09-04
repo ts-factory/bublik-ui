@@ -60,7 +60,7 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE,
 	accessorFn: (row) => row.issueTitle,
 	header: 'Issue',
-	meta: { width: 'minmax(5rem, 1fr)' },
+	meta: { width: 'minmax(10rem, 2fr)' },
 	cell: ({ row }) => (
 		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
 			<LinkWithProject
@@ -76,13 +76,13 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.SCOPE,
 	header: 'Match Scope',
-	meta: { width: 'auto' },
+	meta: { width: 'minmax(6rem, 9rem)' },
 	enableSorting: false,
 	cell: ({ row }) => {
 		const chips = chipsForRule(row.original);
 
 		return (
-			<div className="flex flex-col items-start gap-1">
+			<div className="flex flex-wrap items-start gap-1">
 				{chips.map((chip) => (
 					<Badge
 						key={chip}
@@ -265,18 +265,18 @@ export function getColumns({
 			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex flex-col items-stretch gap-1 w-fit">
+				<div className="flex items-center gap-1 w-fit">
 					{showIssue ? (
 						<>
 							<IssueLinkButton
 								issueId={row.original.issue}
 								title={row.original.issueTitle}
 							/>
-							<Separator className="my-0.5" />
+							<Separator orientation="vertical" className="h-5 mx-0.5" />
 						</>
 					) : null}
-					<EditRuleButton rule={row.original} />
-					<RuleDeleteButton rule={row.original} />
+					<EditRuleButton rule={row.original} iconOnly />
+					<RuleDeleteButton rule={row.original} iconOnly />
 				</div>
 			)
 		},

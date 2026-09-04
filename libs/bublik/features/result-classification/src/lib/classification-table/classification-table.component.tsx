@@ -85,7 +85,7 @@ export function ClassificationTable<T>({
 									key={header.id}
 									role="columnheader"
 									className={cn(
-										'flex items-center h-8 px-2',
+										'flex items-center h-8 px-1.5',
 										variant === 'nested' ? 'bg-primary-wash' : 'bg-white',
 										variant === 'nested' && idx === 0 && 'rounded-l-md',
 										variant === 'nested' &&
@@ -93,7 +93,7 @@ export function ClassificationTable<T>({
 											'rounded-r-md',
 										'text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
 										stickyHeader && 'sticky top-0 z-10',
-										header.column.columnDef.meta?.badgeCell && 'pl-4',
+										header.column.columnDef.meta?.badgeCell && 'pl-3',
 										header.column.columnDef.meta?.className,
 										header.column.columnDef.meta?.headerClassName
 									)}
@@ -184,7 +184,7 @@ function ClassificationRow<T>({
 								variant === 'nested'
 									? // The run's result table, cell for cell: pale rows on the
 									  'px-1 py-2 bg-primary-wash flex items-start whitespace-pre-wrap overflow-wrap-anywhere'
-									: 'px-2 py-1.5 bg-white',
+									: 'px-1.5 py-1 min-h-[34px] flex items-center bg-white',
 								isFirst &&
 									'rounded-l-md border-l border-l-transparent overflow-hidden',
 								isLast && 'rounded-r-md border-r border-r-transparent',

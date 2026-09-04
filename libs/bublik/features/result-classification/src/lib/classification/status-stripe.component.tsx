@@ -19,7 +19,7 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 			<div
 				className={cn(
 					'absolute -inset-y-px -left-px right-0 rounded-l-md',
-					'flex items-start justify-center pt-1.5',
+					'flex items-center justify-center',
 					meta.stripeClassName
 				)}
 				data-testid="status-stripe"

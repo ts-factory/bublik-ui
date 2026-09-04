@@ -1,29 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import type { ReactNode } from 'react';
-
 import {
 	useCloseIssueMutation,
 	useReopenIssueMutation
 } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
-import {
-	ButtonTw,
-	Icon,
-	Separator,
-	Tooltip,
-	cn,
-	toast
-} from '@/shared/tailwind-ui';
+import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
-import type { Issue, IssueState } from '@/shared/types';
+import type { IssueState } from '@/shared/types';
 
 import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.constants';
 import { notifyError } from '../shared/server-errors.utils';
-import {
-	EditIssueButton,
-	IssueDeleteButton
-} from '../issue-form/issue-modal.container';
 
 export { DESTRUCTIVE_FILL_CLASS };
 
@@ -32,15 +19,6 @@ export interface IssueStateToggleProps {
 	state: IssueState;
 	projectId?: number;
 	className?: string;
-}
-
-export interface IssueStateActionsProps {
-	issueId: number;
-	projectId?: number;
-	title: string;
-	showAuthoring?: boolean;
-	issue?: Issue;
-	footer?: ReactNode;
 }
 
 export interface IssueLinkButtonProps {
@@ -121,41 +99,5 @@ export function IssueStateToggle({
 				{isOpen ? 'Close' : 'Open'}
 			</ButtonTw>
 		</Tooltip>
-	);
-}
-
-export function IssueStateActions({
-	issueId,
-	title,
-	projectId,
-	showAuthoring = false,
-	issue,
-	footer
-}: IssueStateActionsProps) {
-	return (
-		<div className="flex flex-col items-stretch gap-1 w-fit">
-			<IssueLinkButton issueId={issueId} title={title} />
-			<Separator className="my-0.5" />
-			{showAuthoring ? (
-				<>
-					<EditIssueButton
-						issueId={issueId}
-						projectId={projectId}
-						issue={issue}
-					/>
-					<IssueDeleteButton
-						issueId={issueId}
-						title={title}
-						projectId={projectId}
-					/>
-				</>
-			) : null}
-			{footer ? (
-				<>
-					<Separator className="my-0.5" />
-					{footer}
-				</>
-			) : null}
-		</div>
 	);
 }

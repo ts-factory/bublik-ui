@@ -192,8 +192,8 @@ export const Badge = forwardRef(
 					overflowWrap
 				})}
 				onClick={onClick}
-				{...props}
 				data-testid="tw-badge"
+				{...props}
 				ref={ref}
 			>
 				{children}

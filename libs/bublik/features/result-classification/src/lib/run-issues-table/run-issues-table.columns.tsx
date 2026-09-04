@@ -3,9 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
-import { Tooltip } from '@/shared/tailwind-ui';
+import { Badge, BadgeVariants, Tooltip } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
-import type { Issue, RunIssueRow } from '@/shared/types';
+import type { RunIssueRow } from '@/shared/types';
 
 import { runIssueEffect } from '../classification/classification.utils';
 import {
@@ -24,15 +24,11 @@ import {
 	someOfFilter
 } from '../classification-table/classification-table.utils';
 import { ISSUE_ACTIONS_COLUMN_META } from '../issue-detail/issue-actions.constants';
-import { IssueStateActions } from '../issue-detail/issue-actions.container';
-import { ResultsToggle } from './components';
+import { IssueLinkButton } from '../issue-detail/issue-actions.container';
 import { COLUMN_ID } from './run-issues-table.constants';
 import { searchFilter } from './run-issues-table.utils';
 
-export function getColumns(
-	projectId: number | undefined,
-	issueById: Map<number, Issue>
-): ColumnDef<RunIssueRow, unknown>[] {
+export function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 	return [
 		{
 			id: COLUMN_ID.STATUS,
@@ -49,13 +45,9 @@ export function getColumns(
 			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<IssueStateActions
+				<IssueLinkButton
 					issueId={row.original.issue_id}
 					title={row.original.title}
-					projectId={projectId}
-					issue={issueById.get(row.original.issue_id)}
-					showAuthoring
-					footer={<ResultsToggle row={row} />}
 				/>
 			)
 		},
@@ -103,18 +95,34 @@ export function getColumns(
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count,
 			header: 'Results',
-			meta: { width: 'auto' },
-			cell: ({ row }) => (
-				<button
-					type="button"
-					onClick={row.getToggleExpandedHandler()}
-					aria-expanded={row.getIsExpanded()}
-					className="font-medium tabular-nums hover:text-primary hover:underline"
-					data-testid="run-issue-result-count"
-				>
-					{row.original.result_count}
-				</button>
-			)
+			meta: { width: 'auto', badgeCell: true },
+			cell: ({ row }) => {
+				const isExpanded = row.getIsExpanded();
+
+				return (
+					<Tooltip
+						content={
+							isExpanded
+								? 'Hide the results this issue is stamped on'
+								: 'Show the results this issue is stamped on in this run'
+						}
+					>
+						<Badge
+							as="button"
+							type="button"
+							variant={BadgeVariants.PrimaryActive}
+							isSelected={isExpanded}
+							isInteractive
+							onClick={row.getToggleExpandedHandler()}
+							aria-expanded={isExpanded}
+							className="tabular-nums"
+							data-testid="run-issue-result-count"
+						>
+							{row.original.result_count}
+						</Badge>
+					</Tooltip>
+				);
+			}
 		},
 		{
 			id: COLUMN_ID.STATE,

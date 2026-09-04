@@ -90,10 +90,7 @@ export function RunIssuesTable({
 			})),
 		[data, issueById]
 	);
-	const columns = useMemo(
-		() => getColumns(projectId, issueById),
-		[projectId, issueById]
-	);
+	const columns = useMemo(() => getColumns(), []);
 	const { stateOptions, effectOptions, categoryOptions } =
 		useFacetOptions(issues);
 

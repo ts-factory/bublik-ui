@@ -106,7 +106,7 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 		[issuesQuery.data, rulesQuery.data, projectNames]
 	);
 	const totalCount = issuesQuery.data?.pagination.count ?? 0;
-	const columns = useMemo(() => getColumns(projectId), [projectId]);
+	const columns = useMemo(() => getColumns(), []);
 	const { stateOptions, rulesOptions, categoryOptions, projectOptions } =
 		useFacetOptions(rows);
 
