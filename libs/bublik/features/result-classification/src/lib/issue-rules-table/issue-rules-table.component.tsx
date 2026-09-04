@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { ReactNode, RefObject } from 'react';
-import type { Table } from '@tanstack/react-table';
+import type { Row, Table } from '@tanstack/react-table';
 
 import {
 	ButtonTw,
@@ -71,7 +71,10 @@ export function IssueRulesTableEmpty({
 export interface IssueRulesTableViewProps {
 	table: Table<IssueRuleRow>;
 	scrollRef: RefObject<HTMLDivElement>;
+	/** Measures the room the table has, which decides how many columns fit. */
+	widthRef: (node: HTMLDivElement | null) => void;
 	isScrollable: boolean;
+	renderSubRow?: (row: Row<IssueRuleRow>) => ReactNode;
 	showIssue: boolean;
 	search: string;
 	onSearchChange: (value: string) => void;
@@ -92,7 +95,9 @@ export interface IssueRulesTableViewProps {
 export function IssueRulesTableView({
 	table,
 	scrollRef,
+	widthRef,
 	isScrollable,
+	renderSubRow,
 	showIssue,
 	search,
 	onSearchChange,
@@ -130,7 +135,7 @@ export function IssueRulesTableView({
 	}
 
 	return (
-		<div className="flex flex-col flex-1 min-h-0">
+		<div ref={widthRef} className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Rules
@@ -251,7 +256,9 @@ export function IssueRulesTableView({
 					<ClassificationTable
 						table={table}
 						stickyHeader
+						endGutter
 						scrollRef={scrollRef}
+						renderSubRow={renderSubRow}
 						testId="issue-rules-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'issue-rule-row',

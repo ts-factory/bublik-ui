@@ -38,6 +38,19 @@ declare module '@tanstack/react-table' {
 }
 
 const DEFAULT_TRACK = 'minmax(0, 1fr)';
+const GUTTER_TRACK = 'minmax(0, 1fr)';
+
+/**
+ * The cell that holds the gutter track open.
+ *
+ * Rows are `display: contents`, so every cell is a direct child of the one grid
+ * and auto-placement fills straight through them. A track without a cell of its
+ * own does not sit empty — it swallows the next row's first cell and every row
+ * after it lands one column to the left.
+ */
+function GutterCell({ header = false }: { header?: boolean }) {
+	return <div role={header ? 'columnheader' : 'cell'} aria-hidden />;
+}
 
 export type ClassificationTableVariant = 'card' | 'nested';
 
@@ -45,6 +58,16 @@ export interface ClassificationTableProps<T> {
 	table: Table<T>;
 	variant?: ClassificationTableVariant;
 	stickyHeader?: boolean;
+	/**
+	 * Append an empty flexible track after the last column.
+	 *
+	 * Only useful for a table whose every column declares a *capped* width. The
+	 * gutter takes the surplus, so a column's width no longer depends on how many
+	 * other flexible tracks happen to be visible and nothing shifts when one is
+	 * toggled. When the columns already overflow the container the gutter
+	 * collapses to zero and the table scrolls exactly as it did before.
+	 */
+	endGutter?: boolean;
 	scrollRef?: RefObject<HTMLElement>;
 	renderSubRow?: (row: Row<T>) => ReactNode;
 	getRowAttributes?: (row: Row<T>) => Record<string, string | number>;
@@ -55,6 +78,7 @@ export function ClassificationTable<T>({
 	table,
 	variant = 'card',
 	stickyHeader = false,
+	endGutter = false,
 	scrollRef,
 	renderSubRow,
 	getRowAttributes,
@@ -62,10 +86,13 @@ export function ClassificationTable<T>({
 }: ClassificationTableProps<T>) {
 	const isScrolled = useIsScrolled(scrollRef);
 
-	const gridTemplateColumns = table
+	const tracks = table
 		.getVisibleLeafColumns()
-		.map((column) => column.columnDef.meta?.width ?? DEFAULT_TRACK)
-		.join(' ');
+		.map((column) => column.columnDef.meta?.width ?? DEFAULT_TRACK);
+
+	const gridTemplateColumns = (
+		endGutter ? [...tracks, GUTTER_TRACK] : tracks
+	).join(' ');
 
 	return (
 		<div
@@ -123,6 +150,7 @@ export function ClassificationTable<T>({
 								</div>
 							);
 						})}
+						{endGutter ? <GutterCell header /> : null}
 					</div>
 					{stickyHeader ? (
 						<div
@@ -140,6 +168,7 @@ export function ClassificationTable<T>({
 					key={row.id}
 					row={row}
 					variant={variant}
+					endGutter={endGutter}
 					renderSubRow={renderSubRow}
 					attributes={getRowAttributes?.(row)}
 				/>
@@ -151,6 +180,7 @@ export function ClassificationTable<T>({
 interface ClassificationRowProps<T> {
 	row: Row<T>;
 	variant: ClassificationTableVariant;
+	endGutter?: boolean;
 	renderSubRow?: (row: Row<T>) => ReactNode;
 	attributes?: Record<string, string | number>;
 }
@@ -158,6 +188,7 @@ interface ClassificationRowProps<T> {
 function ClassificationRow<T>({
 	row,
 	variant,
+	endGutter = false,
 	renderSubRow,
 	attributes
 }: ClassificationRowProps<T>) {
@@ -204,11 +235,15 @@ function ClassificationRow<T>({
 						</div>
 					);
 				})}
+				{endGutter ? <GutterCell /> : null}
 			</div>
 			{isExpanded && renderSubRow ? (
 				<div
+					// Stops short of the gutter so the panel lines up with the card
+					// above it rather than running past its right edge.
+					style={{ gridColumn: endGutter ? '1 / -2' : '1 / -1' }}
 					className={cn(
-						'col-span-full bg-white rounded-b-md border border-t-0 border-transparent transition-colors',
+						'bg-white rounded-b-md border border-t-0 border-transparent transition-colors',
 						hovered && 'border-primary'
 					)}
 					onMouseEnter={() => setHovered(true)}

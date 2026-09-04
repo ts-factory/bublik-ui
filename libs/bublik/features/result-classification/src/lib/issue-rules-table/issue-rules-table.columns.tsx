@@ -3,7 +3,14 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
-import { Badge, Separator, Tooltip, BadgeVariants } from '@/shared/tailwind-ui';
+import {
+	Badge,
+	BadgeVariants,
+	Icon,
+	Separator,
+	Tooltip,
+	cn
+} from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 
 import { CLASSIFICATION_BADGE_CLASS } from '../classification/classification.constants';
@@ -36,7 +43,7 @@ import {
 	RuleDeleteButton
 } from '../rule-form/rule-drawer.container';
 import { MatcherValues } from './components';
-import { COLUMN_ID } from './issue-rules-table.constants';
+import { COLUMN_ID, COLUMN_WIDTH } from './issue-rules-table.constants';
 import type { GetColumnsArgs, IssueRuleRow } from './issue-rules-table.types';
 import { ruleParameters, ruleTags } from './issue-rules-table.utils';
 
@@ -44,7 +51,7 @@ const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.KEY,
 	accessorFn: (row) => row.bugKey ?? '',
 	header: 'Key',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.KEY], badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<BugKeyChip
@@ -60,7 +67,7 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE,
 	accessorFn: (row) => row.issueTitle,
 	header: 'Issue',
-	meta: { width: 'minmax(12rem, 1.5fr)' },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.ISSUE] },
 	cell: ({ row }) => (
 		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
 			<LinkWithProject
@@ -76,7 +83,7 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.SCOPE,
 	header: 'Match Scope',
-	meta: { width: 'minmax(7rem, 9rem)' },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.SCOPE] },
 	enableSorting: false,
 	cell: ({ row }) => {
 		const chips = chipsForRule(row.original);
@@ -101,7 +108,7 @@ const DISPOSITION_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.DISPOSITION,
 	accessorFn: (row) => dispositionKey(row.expected),
 	header: 'Disposition',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.DISPOSITION], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -119,7 +126,7 @@ const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.CATEGORY,
 	accessorFn: (row) => row.category,
 	header: 'Category',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.CATEGORY], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -137,7 +144,7 @@ const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PARAMETERS,
 	accessorFn: (row) => ruleParameters(row),
 	header: 'Parameters',
-	meta: { width: 'minmax(12rem, 2fr)', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.PARAMETERS], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -154,7 +161,7 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.VERDICTS,
 	accessorFn: (row) => row.verdicts ?? [],
 	header: 'Verdicts',
-	meta: { width: 'minmax(12rem, 2fr)', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.VERDICTS], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -171,7 +178,7 @@ const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.TAGS,
 	accessorFn: (row) => ruleTags(row),
 	header: 'Tags',
-	meta: { width: 'minmax(9rem, 1fr)', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.TAGS], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -188,7 +195,7 @@ const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ACTIVE,
 	accessorFn: (row) => String(row.active),
 	header: 'Rule',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.ACTIVE], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -206,7 +213,7 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE_STATE,
 	accessorFn: (row) => row.issueState ?? '',
 	header: 'State',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.ISSUE_STATE], badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) =>
@@ -225,7 +232,7 @@ const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PROJECT,
 	accessorFn: (row) => row.projectName,
 	header: 'Project',
-	meta: { width: 'auto', badgeCell: true },
+	meta: { width: COLUMN_WIDTH[COLUMN_ID.PROJECT], badgeCell: true },
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
 		<ProjectBadge
@@ -238,8 +245,45 @@ const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	)
 };
 
+const EXPANDER_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
+	id: COLUMN_ID.EXPANDER,
+	enableHiding: false,
+	enableSorting: false,
+	header: () => null,
+	meta: { width: 'auto', className: 'px-1' },
+	cell: ({ row }) => {
+		const isExpanded = row.getIsExpanded();
+		const label = isExpanded
+			? 'Hide this rule\u2019s match details'
+			: 'Show this rule\u2019s match scope, tags, verdicts and parameters';
+
+		return (
+			<Tooltip content={label}>
+				<button
+					type="button"
+					aria-label={label}
+					aria-expanded={isExpanded}
+					onClick={row.getToggleExpandedHandler()}
+					className="grid transition-colors rounded size-5 place-items-center text-text-primary hover:bg-primary-wash hover:text-primary"
+					data-testid="issue-rule-expander"
+				>
+					<Icon
+						name="ArrowShortTop"
+						size={16}
+						className={cn(
+							'transition-transform',
+							isExpanded ? 'rotate-180' : 'rotate-90'
+						)}
+					/>
+				</button>
+			</Tooltip>
+		);
+	}
+};
+
 export function getColumns({
-	showIssue
+	showIssue,
+	compact
 }: GetColumnsArgs): ColumnDef<IssueRuleRow, unknown>[] {
 	return [
 		{
@@ -258,6 +302,7 @@ export function getColumns({
 				/>
 			)
 		},
+		...(compact ? [EXPANDER_COLUMN] : []),
 		{
 			id: COLUMN_ID.ACTIONS,
 			enableHiding: false,
@@ -285,7 +330,7 @@ export function getColumns({
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			meta: { width: 'minmax(9rem, 1fr)' },
+			meta: { width: COLUMN_WIDTH[COLUMN_ID.TEST] },
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
 				showIssue
 					? [row.test_name, row.issueTitle, row.bugKey]

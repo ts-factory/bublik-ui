@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	getCoreRowModel,
+	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable
@@ -18,8 +19,10 @@ import {
 
 import {
 	useClassificationTableState,
-	useColumnVisibility
+	useColumnVisibility,
+	useElementWidth
 } from '../classification-table/classification-table.hooks';
+import { RuleDetail } from './components';
 import { getColumns } from './issue-rules-table.columns';
 import {
 	IssueRulesTableEmpty,
@@ -30,6 +33,8 @@ import {
 import {
 	COLUMN_ID,
 	COLUMN_VISIBILITY_KEY,
+	COMPACT_COLUMN_VISIBILITY,
+	COMPACT_WIDTH_PX,
 	DEFAULT_COLUMN_VISIBILITY,
 	DEFAULT_PAGE_SIZE,
 	FILTER_KEYS
@@ -37,6 +42,9 @@ import {
 import { useFacetOptions } from './issue-rules-table.hooks';
 import type { IssueRulesTableProps } from './issue-rules-table.types';
 import { buildRows } from './issue-rules-table.utils';
+
+/** URL param carrying the reader's column choices, so a view stays linkable. */
+const COLUMNS_QUERY_KEY = 'cols';
 
 export function IssueRulesTable({
 	issueId,
@@ -46,11 +54,25 @@ export function IssueRulesTable({
 	const showIssue = issueId === undefined;
 
 	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
+	const [widthRef, width] = useElementWidth<HTMLDivElement>();
+
+	// Undefined until the first measurement, which we read as "there is room":
+	// the wide layout is the better guess for the frame before we know.
+	const compact =
+		width !== undefined &&
+		width <
+			COMPACT_WIDTH_PX[showIssue ? 'ALL_RULES' : 'ONE_ISSUE'];
+
+	const columnDefaults = compact
+		? COMPACT_COLUMN_VISIBILITY
+		: DEFAULT_COLUMN_VISIBILITY;
+
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		showIssue
 			? COLUMN_VISIBILITY_KEY.ALL_RULES
 			: COLUMN_VISIBILITY_KEY.ONE_ISSUE,
-		DEFAULT_COLUMN_VISIBILITY
+		columnDefaults,
+		{ queryKey: COLUMNS_QUERY_KEY }
 	);
 
 	const {
@@ -124,7 +146,10 @@ export function IssueRulesTable({
 		[rulesData, issuesData, projectNames]
 	);
 	const totalCount = rulesData?.pagination.count ?? 0;
-	const columns = useMemo(() => getColumns({ showIssue }), [showIssue]);
+	const columns = useMemo(
+		() => getColumns({ showIssue, compact }),
+		[showIssue, compact]
+	);
 	const {
 		categoryOptions,
 		dispositionOptions,
@@ -147,9 +172,11 @@ export function IssueRulesTable({
 		rowCount: totalCount,
 		manualPagination: true,
 		getRowId: (row) => String(row.id),
+		getRowCanExpand: () => compact,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel()
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
 	});
 
 	const pageCount = table.getPageCount();
@@ -173,7 +200,9 @@ export function IssueRulesTable({
 		<IssueRulesTableView
 			table={table}
 			scrollRef={scrollRef}
+			widthRef={widthRef}
 			isScrollable={isScrollable}
+			renderSubRow={compact ? (row) => <RuleDetail row={row} /> : undefined}
 			showIssue={showIssue}
 			search={search}
 			onSearchChange={setSearch}

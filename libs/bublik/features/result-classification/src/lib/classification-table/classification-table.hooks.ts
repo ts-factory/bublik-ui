@@ -1,8 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { useQueryParams, type QueryParamConfigMap } from 'use-query-params';
+import {
+	useQueryParam,
+	useQueryParams,
+	type QueryParamConfigMap
+} from 'use-query-params';
 import type {
 	ColumnFiltersState,
 	OnChangeFn,
@@ -19,6 +23,7 @@ import {
 	KEY
 } from './classification-table.constants';
 import {
+	ColumnsParam,
 	FacetParam,
 	PageParam,
 	SearchParam,
@@ -206,14 +211,124 @@ export function useClassificationTableState<F extends string>({
 	};
 }
 
+const NO_OVERRIDES: VisibilityState = {};
+
+/**
+ * The param name used when a table has not opted into URL-backed columns. It is
+ * only ever read, never written, so it stays absent from every URL.
+ */
+const UNUSED_QUERY_KEY = 'columns';
+
+/** The columns whose visibility differs from what `defaults` would give them. */
+function diffVisibility(
+	state: VisibilityState,
+	defaults: VisibilityState
+): VisibilityState {
+	const overrides: VisibilityState = {};
+
+	for (const [id, visible] of Object.entries(state)) {
+		// A column missing from a visibility state is visible.
+		if (visible !== (defaults[id] ?? true)) overrides[id] = visible;
+	}
+
+	return overrides;
+}
+
+function hasOverrides(overrides: VisibilityState) {
+	return Object.keys(overrides).length > 0;
+}
+
+/**
+ * Column visibility resolved as URL → localStorage → `defaults`.
+ *
+ * What is stored is the *diff* against `defaults`, not the whole state, which is
+ * what lets `defaults` depend on how much room the table has. Hiding a column
+ * that the current default already hides records nothing, so it comes back when
+ * there is room for it again; showing one explicitly records `+id` and it stays
+ * shown at every width until it is hidden again.
+ *
+ * Pass `queryKey` to put the diff in the URL as well, making a column set
+ * linkable. Without it the hook is localStorage-only, as it was before.
+ */
 export function useColumnVisibility(
 	tableKey: string,
-	defaults: VisibilityState
-) {
-	return useLocalStorage<VisibilityState>(
-		`bublik.columns.${tableKey}`,
-		defaults
+	defaults: VisibilityState,
+	options: { queryKey?: string } = {}
+): [VisibilityState, OnChangeFn<VisibilityState>] {
+	const { queryKey } = options;
+
+	const [storedOverrides, setStoredOverrides] =
+		useLocalStorage<VisibilityState>(
+			`bublik.columns.${tableKey}`,
+			NO_OVERRIDES
+		);
+
+	const [queryOverrides, setQueryOverrides] = useQueryParam<VisibilityState>(
+		queryKey ?? UNUSED_QUERY_KEY,
+		ColumnsParam
 	);
+
+	const overrides =
+		queryKey && hasOverrides(queryOverrides) ? queryOverrides : storedOverrides;
+
+	// Tokens rather than the objects themselves: both sides are rebuilt on most
+	// renders, and only a change in what they *say* should move the table.
+	const defaultsToken = ColumnsParam.encode(defaults) ?? '';
+	const overridesToken = ColumnsParam.encode(overrides) ?? '';
+
+	const columnVisibility = useMemo(
+		() => ({ ...defaults, ...overrides }),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[defaultsToken, overridesToken]
+	);
+
+	const setColumnVisibility = useCallback<OnChangeFn<VisibilityState>>(
+		(updaterOrValue) => {
+			const next =
+				typeof updaterOrValue === 'function'
+					? updaterOrValue(columnVisibility)
+					: updaterOrValue;
+
+			const nextOverrides = diffVisibility(next, defaults);
+
+			setStoredOverrides(nextOverrides);
+			if (queryKey) setQueryOverrides(nextOverrides, 'replaceIn');
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[columnVisibility, defaultsToken, queryKey, setQueryOverrides, setStoredOverrides]
+	);
+
+	return [columnVisibility, setColumnVisibility];
+}
+
+/**
+ * The measured width of an element, via a callback ref.
+ *
+ * A callback ref rather than a `RefObject` because the tables mount their
+ * scroller only after loading resolves: an effect keyed on a ref object runs
+ * once, while the node is still absent, and never measures anything.
+ */
+export function useElementWidth<T extends HTMLElement>() {
+	const [width, setWidth] = useState<number>();
+	const observerRef = useRef<ResizeObserver>();
+
+	const ref = useCallback((node: T | null) => {
+		observerRef.current?.disconnect();
+
+		if (!node) return;
+
+		const observer = new ResizeObserver(([entry]) =>
+			setWidth(entry.contentRect.width)
+		);
+
+		observer.observe(node);
+		observerRef.current = observer;
+		setWidth(node.clientWidth);
+	}, []);
+
+	useEffect(() => () => observerRef.current?.disconnect(), []);
+
+	return [ref, width] as const;
 }
 
 export function useIsScrolled(scrollRef?: RefObject<HTMLElement>) {

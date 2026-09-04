@@ -1,13 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { PropsWithChildren } from 'react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 
-import { useClassificationTableState } from './classification-table.hooks';
+import type { VisibilityState } from '@tanstack/react-table';
+
+import {
+	useClassificationTableState,
+	useColumnVisibility
+} from './classification-table.hooks';
 
 const FILTER_KEYS = ['state', 'category'] as const;
 
@@ -275,6 +280,137 @@ describe('useClassificationTableState', () => {
 			const { result } = setup('/issues?sort=title:asc');
 
 			expect(result.current.state.queryArgs.ordering).toBe('title');
+		});
+	});
+});
+
+const WIDE_DEFAULTS: VisibilityState = { active: false };
+const COMPACT_DEFAULTS: VisibilityState = {
+	active: false,
+	tags: false,
+	verdicts: false
+};
+
+function setupVisibility(
+	defaults: VisibilityState = WIDE_DEFAULTS,
+	initialEntry = '/rules'
+) {
+	return renderHook(
+		({ defaults: current }: { defaults: VisibilityState }) => ({
+			visibility: useColumnVisibility('spec', current, { queryKey: 'cols' }),
+			search: useLocation().search
+		}),
+		{ wrapper: wrapperFor(initialEntry), initialProps: { defaults } }
+	);
+}
+
+/** What the hook currently reports, and the setter that records a change. */
+function readVisibility(result: {
+	current: { visibility: ReturnType<typeof useColumnVisibility> };
+}) {
+	const [state, setState] = result.current.visibility;
+
+	return { state, setState };
+}
+
+describe('useColumnVisibility', () => {
+	beforeEach(() => localStorage.clear());
+
+	describe('URL, then localStorage, then the default', () => {
+		it('reports the defaults when neither layer has anything to say', () => {
+			const { result } = setupVisibility();
+
+			expect(readVisibility(result).state).toEqual({ active: false });
+			expect(result.current.search).toBe('');
+		});
+
+		it('lets the URL override a default', () => {
+			const { result } = setupVisibility(COMPACT_DEFAULTS, '/rules?cols=%2Btags');
+
+			expect(readVisibility(result).state).toEqual({
+				active: false,
+				tags: true,
+				verdicts: false
+			});
+		});
+
+		it('falls back to localStorage when the URL carries no columns', () => {
+			localStorage.setItem('bublik.columns.spec', JSON.stringify({ tags: false }));
+
+			const { result } = setupVisibility();
+
+			expect(readVisibility(result).state).toEqual({
+				active: false,
+				tags: false
+			});
+		});
+
+		it('prefers the URL over localStorage', () => {
+			localStorage.setItem('bublik.columns.spec', JSON.stringify({ tags: false }));
+
+			const { result } = setupVisibility(WIDE_DEFAULTS, '/rules?cols=-verdicts');
+
+			expect(readVisibility(result).state).toEqual({
+				active: false,
+				verdicts: false
+			});
+		});
+	});
+
+	describe('what a change records', () => {
+		it('records nothing when the choice already matches the default', () => {
+			const { result } = setupVisibility(COMPACT_DEFAULTS);
+
+			act(() =>
+				readVisibility(result).setState({ ...COMPACT_DEFAULTS, tags: false })
+			);
+
+			expect(result.current.search).toBe('');
+			expect(localStorage.getItem('bublik.columns.spec')).toBe('{}');
+		});
+
+		it('records only the column that differs, to both layers', () => {
+			const { result } = setupVisibility(COMPACT_DEFAULTS);
+
+			act(() =>
+				readVisibility(result).setState({ ...COMPACT_DEFAULTS, tags: true })
+			);
+
+			expect(result.current.search).toBe('?cols=%2Btags');
+			expect(localStorage.getItem('bublik.columns.spec')).toBe(
+				JSON.stringify({ tags: true })
+			);
+		});
+
+		it('accepts an updater, the way the table hands one over', () => {
+			const { result } = setupVisibility(WIDE_DEFAULTS);
+
+			act(() =>
+				readVisibility(result).setState((old) => ({ ...old, verdicts: false }))
+			);
+
+			expect(result.current.search).toBe('?cols=-verdicts');
+		});
+	});
+
+	describe('a default that moves with the width', () => {
+		it('keeps an explicit choice but lets an untouched column follow', () => {
+			const { result, rerender } = setupVisibility(COMPACT_DEFAULTS);
+
+			// Verdicts is switched on by hand while the table is compact; tags is
+			// left alone, hidden by the compact default rather than by a choice.
+			act(() =>
+				readVisibility(result).setState({ ...COMPACT_DEFAULTS, verdicts: true })
+			);
+
+			expect(readVisibility(result).state.tags).toBe(false);
+			expect(readVisibility(result).state.verdicts).toBe(true);
+
+			// The table grows and the default stops hiding anything.
+			rerender({ defaults: WIDE_DEFAULTS });
+
+			expect(readVisibility(result).state.verdicts).toBe(true);
+			expect(readVisibility(result).state.tags).toBeUndefined();
 		});
 	});
 });

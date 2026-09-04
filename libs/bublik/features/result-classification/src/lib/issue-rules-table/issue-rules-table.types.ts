@@ -14,6 +14,8 @@ export interface IssueRuleRow extends IssueRule {
 
 export interface GetColumnsArgs {
 	showIssue: boolean;
+	/** Too narrow for the wide columns: they move into the row detail panel. */
+	compact: boolean;
 }
 
 export interface IssueRulesTableProps {
