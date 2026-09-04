@@ -60,7 +60,7 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE,
 	accessorFn: (row) => row.issueTitle,
 	header: 'Issue',
-	meta: { width: 'minmax(10rem, 2fr)' },
+	meta: { width: 'minmax(12rem, 1.5fr)' },
 	cell: ({ row }) => (
 		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
 			<LinkWithProject
@@ -76,7 +76,7 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.SCOPE,
 	header: 'Match Scope',
-	meta: { width: 'minmax(6rem, 9rem)' },
+	meta: { width: 'minmax(7rem, 9rem)' },
 	enableSorting: false,
 	cell: ({ row }) => {
 		const chips = chipsForRule(row.original);
@@ -137,7 +137,7 @@ const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PARAMETERS,
 	accessorFn: (row) => ruleParameters(row),
 	header: 'Parameters',
-	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
+	meta: { width: 'minmax(12rem, 2fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -154,7 +154,7 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.VERDICTS,
 	accessorFn: (row) => row.verdicts ?? [],
 	header: 'Verdicts',
-	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
+	meta: { width: 'minmax(12rem, 2fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -171,7 +171,7 @@ const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.TAGS,
 	accessorFn: (row) => ruleTags(row),
 	header: 'Tags',
-	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
+	meta: { width: 'minmax(9rem, 1fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -285,7 +285,7 @@ export function getColumns({
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			meta: { width: 'minmax(5rem, 1fr)' },
+			meta: { width: 'minmax(9rem, 1fr)' },
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
 				showIssue
 					? [row.test_name, row.issueTitle, row.bugKey]

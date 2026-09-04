@@ -184,7 +184,7 @@ export function getColumns(): ColumnDef<RunIssueRow, unknown>[] {
 			id: COLUMN_ID.DESCRIPTION,
 			accessorFn: (row) => row.description ?? '',
 			header: 'Description',
-			meta: { width: 'minmax(0, 1fr)' },
+			meta: { width: 'minmax(10rem, 1fr)' },
 			enableSorting: false,
 			cell: ({ row }) => <DescriptionCell value={row.original.description} />
 		}
