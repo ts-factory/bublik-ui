@@ -670,10 +670,13 @@ function getColumns({
 			)
 		},
 		ACTIVE_COLUMN,
-		SCOPE_COLUMN,
 		DISPOSITION_COLUMN,
 		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		CATEGORY_COLUMN,
+		// After the badges that classify the rule and immediately before the
+		// matcher itself, because that is what it summarises: the three columns
+		// that follow are the criteria, and this says which of them are in play.
+		SCOPE_COLUMN,
 		// The matcher itself, and the only columns here declared `1fr`: their
 		// chips wrap, so they are the ones with something to do with spare width.
 		// This is also what replaced the empty filler column the table used to
