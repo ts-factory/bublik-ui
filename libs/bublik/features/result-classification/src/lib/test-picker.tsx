@@ -120,7 +120,7 @@ export function TestPicker({
 							className={cn(
 								comboboxInputStyles(),
 								'pr-16',
-								disabled && 'bg-primary-wash cursor-not-allowed',
+								disabled && 'bg-bg-body',
 								error &&
 									'border-bg-error hover:border-bg-error focus:border-bg-error'
 							)}

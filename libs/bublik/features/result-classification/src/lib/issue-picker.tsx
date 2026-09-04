@@ -45,6 +45,9 @@ export const comboboxInputStyles = cva({
 		'hover:border-primary',
 		'disabled:text-text-menu',
 		'disabled:cursor-not-allowed',
+		// The page's own grey, the same one `Input` takes when disabled. A wash of
+		// the primary colour read as *selected* rather than as *inert*.
+		'disabled:bg-bg-body',
 		'focus:border-primary',
 		'focus:shadow-text-field',
 		'active:shadow-none',
