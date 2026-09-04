@@ -64,21 +64,21 @@ export function StatusStripe({ meta }: { meta: StatusStripeMeta }) {
 
 /**
  * `p-0` so the fill reaches the cell's edges rather than sitting in a white
- * frame, and all three width bounds because under `table-auto` a `width` is
- * only advice: the algorithm is free to squeeze a column below it to fit the
- * rest of the row, which it does exactly when the table is crowded — the case
- * where a shrinking stripe is least welcome. `min-w` and `max-w` are what
- * actually pin it, so the gutter is the same 24px on every table at every
- * width.
+ * frame, and a fixed `24px` grid track so the gutter is the same width on every
+ * table at every window size. Under the old `table-auto` layout a width was
+ * only advice — the algorithm was free to squeeze the column below it exactly
+ * when the table was crowded — so this used to need `w-`/`min-w-`/`max-w-` all
+ * three. A grid track is not advice.
  *
  * `relative` is the one class held back for the body cells, because the shared
- * key also reaches the `th`, and there `twMerge` reads it as overriding the
+ * key also reaches the header, and there `twMerge` reads it as overriding the
  * pinned header's `sticky` and drops it, leaving the header to scroll under
  * the stripes. Everything else stays common so the header sits exactly over
  * the column it heads.
  */
 export const STATUS_STRIPE_COLUMN_META = {
-	className: 'p-0 w-[24px] min-w-[24px] max-w-[24px]',
+	width: '24px',
+	className: 'p-0',
 	/** `inset-0` resolves against this cell, not the row, which is `relative` too. */
 	cellClassName: 'relative'
 } as const;

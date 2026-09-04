@@ -258,7 +258,10 @@ export function EditRuleButton({
 					size="xss"
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
-					className="justify-center whitespace-nowrap"
+					className={cn(
+						'whitespace-nowrap',
+						iconOnly ? 'justify-center' : 'justify-start'
+					)}
 					data-testid="rule-edit"
 					aria-label="Edit rule"
 				>
@@ -309,7 +312,10 @@ export function DuplicateRuleButton({
 					size="xss"
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
-					className="justify-center whitespace-nowrap"
+					className={cn(
+						'whitespace-nowrap',
+						iconOnly ? 'justify-center' : 'justify-start'
+					)}
 					data-testid="rule-duplicate"
 					aria-label="Duplicate rule"
 				>
@@ -407,7 +413,8 @@ export function RuleDeleteButton({
 					disabled={!canManage}
 					onClick={() => setIsOpen(true)}
 					className={cn(
-						'justify-center whitespace-nowrap',
+						'whitespace-nowrap',
+						iconOnly ? 'justify-center' : 'justify-start',
 						DESTRUCTIVE_FILL_CLASS
 					)}
 					data-testid="rule-delete"

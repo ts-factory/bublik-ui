@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
+
+import { useIsScrollbarVisible } from '@/shared/hooks';
 import {
 	ColumnDef,
 	type VisibilityState,
@@ -38,16 +40,17 @@ import {
 	issueStateMeta,
 	type IssueRulesState
 } from './classification-colors';
-import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
 import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
 	CategoryBadgeList,
 	IssueRulesBadge,
-	IssueStateBadge
+	IssueStateBadge,
+	ProjectBadge
 } from './classification-badges';
 import {
 	ClassificationFooter,
+	ClassificationRange,
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
@@ -59,15 +62,12 @@ import {
 	buildFacetOptions,
 	facetControls,
 	makeSearchFilter,
+	openFacetOptions,
 	someOfFilter
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
 import { DescriptionCell } from './description-cell';
-import {
-	ISSUE_ACTIONS_COLUMN_CLASS,
-	ISSUE_ACTIONS_HEADER_CLASS,
-	IssueStateActions
-} from './issue-actions';
+import { ISSUE_ACTIONS_COLUMN_META, IssueStateActions } from './issue-actions';
 
 /**
  * Actions lead, the way they do on the run's result table: the controls sit
@@ -88,9 +88,16 @@ const COLUMN_ID = {
 	DESCRIPTION: 'description',
 	CREATED: 'created',
 	STATE: 'state',
+	/**
+	 * **Not** `'project'`. A column id is also its URL key
+	 * (`useClassificationTableState`), and `project` belongs to the global
+	 * project selector, which reads it as a list of ids — a project *name*
+	 * written there made every request send `project=NaN`. Same trap, and the
+	 * same workaround, as `rule_project` on the rules table.
+	 */
+	PROJECT: 'issue_project',
 	CATEGORIES: 'categories',
-	RULES: 'rules',
-	FILLER: 'filler'
+	RULES: 'rules'
 } as const;
 
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
@@ -98,6 +105,7 @@ const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
 	COLUMN_ID.STATE,
+	COLUMN_ID.PROJECT,
 	COLUMN_ID.CATEGORIES,
 	COLUMN_ID.RULES
 ] as const;
@@ -121,9 +129,24 @@ interface IssueTableRow extends Issue {
 	rulesState: IssueRulesState;
 	bugKey: string | null;
 	bugUrl: string | null;
+	/**
+	 * Which projects this issue reaches, by name.
+	 *
+	 * An issue is global — `/issues/` carries no project at all — but a *rule* is
+	 * per-project, so where an issue applies is the set of projects its rules
+	 * live in. Derived from the same client-side rules join that already supplies
+	 * `categories` and the rule counts, and inheriting its limitation: the two
+	 * lists paginate independently, so an issue whose rules did not land on the
+	 * fetched page shows nothing here.
+	 */
+	projectNames: string[];
 }
 
-function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
+function buildRows(
+	issues: Issue[],
+	rules: IssueRule[],
+	projectNames: Map<number, string>
+): IssueTableRow[] {
 	const byIssue = new Map<number, IssueRule[]>();
 
 	for (const rule of rules) {
@@ -144,6 +167,13 @@ function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
 				(a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
 			);
 		const ruleCount = issue.rule_count ?? issueRules.length;
+		const issueProjects = Array.from(
+			new Set(
+				issueRules.map(
+					(rule) => projectNames.get(rule.project) ?? `Project #${rule.project}`
+				)
+			)
+		).sort((a, b) => a.localeCompare(b));
 		const activeRuleCount =
 			issue.active_rule_count ??
 			issueRules.filter((rule) => rule.active).length;
@@ -163,7 +193,8 @@ function buildRows(issues: Issue[], rules: IssueRule[]): IssueTableRow[] {
 			// null today and the chip renders without its link. The run-scoped
 			// endpoint already resolves it (`run_issues_summary` -> `resolve_ref`);
 			// the list endpoint needs the same treatment.
-			bugUrl: issue.bug_url ?? null
+			bugUrl: issue.bug_url ?? null,
+			projectNames: issueProjects
 		};
 	});
 }
@@ -176,9 +207,7 @@ const searchFilter = makeSearchFilter<IssueTableRow>((issue) => [
 ]);
 
 function getColumns(
-	projectId: number | undefined,
-	/** Hands the spare width to the title when the filler has stood down. */
-	growIssue: boolean
+	projectId: number | undefined
 ): ColumnDef<IssueTableRow, unknown>[] {
 	return [
 		{
@@ -203,21 +232,48 @@ function getColumns(
 			id: COLUMN_ID.ACTIONS,
 			enableHiding: false,
 			header: 'Actions',
-			meta: {
-				className: ISSUE_ACTIONS_COLUMN_CLASS,
-				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
-			},
+			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
 				<IssueStateActions
 					issueId={row.original.id}
 					title={row.original.title}
-					state={row.original.state}
 					projectId={projectId}
 					issue={row.original}
 					showAuthoring
 				/>
 			)
+		},
+		{
+			// Which projects this issue reaches. The issue itself is global, so
+			// this is the set of projects its rules live in — see `projectNames`.
+			// It earns a column because two issues can be indistinguishable
+			// otherwise, and because a facet needs a column to filter.
+			id: COLUMN_ID.PROJECT,
+			accessorFn: (row) => row.projectNames,
+			header: 'Project',
+			meta: { width: 'auto', badgeCell: true },
+			enableSorting: false,
+			filterFn: someOfFilter,
+			// The chip is also the control that filters by it, like every other
+			// badge in this table: the value handed to `toggleProps` is one of the
+			// values this column's `accessorFn` yields, so the chip and
+			// `someOfFilter` cannot disagree.
+			cell: ({ row, table }) => {
+				const facets = facetControls(table);
+
+				return (
+					<div className="flex flex-wrap items-center gap-1">
+						{row.original.projectNames.map((name) => (
+							<ProjectBadge
+								key={name}
+								name={name}
+								{...facets.toggleProps(COLUMN_ID.PROJECT, name)}
+							/>
+						))}
+					</div>
+				);
+			}
 		},
 		{
 			// The tracker key starts the data half of every row, and — once the API
@@ -228,10 +284,9 @@ function getColumns(
 			id: COLUMN_ID.KEY,
 			accessorFn: (row) => row.bugKey ?? '',
 			header: 'Key',
-			// `w-px` + `whitespace-nowrap` is the shrink-to-fit idiom under
-			// `table-auto`: the declared width is only a floor, so the column
-			// collapses to its widest chip and stops stealing slack.
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			// `max-content` is the grid's shrink-to-fit: the track is exactly as
+			// wide as the widest chip and no wider.
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			cell: ({ row }) => (
 				<BugKeyChip
@@ -243,24 +298,37 @@ function getColumns(
 			)
 		},
 		{
-			// Capped, not flexible: a title is a handful of words, and letting the
-			// column soak up every spare pixel pushes the badges off to the edge of
-			// the table. Anything longer truncates — the tooltip carries the rest.
+			// Ceilinged at 22rem, not flexible. As the table's only `fr` it took
+			// every spare pixel on a wide screen, which left a title of five words
+			// sprawling across a third of the row.
 			//
-			// Narrow enough and the filler stands down (see `useFillerVisible`),
-			// and the slack has to land somewhere. It lands here: a title is the
-			// one thing on the row that can use more room, and the badge columns
-			// are the ones that must not be stretched.
+			// The ceiling works *with* the way CSS Grid sizes tracks rather than
+			// against it: §12.6 Maximize Tracks feeds tracks that can still grow
+			// before §12.7 Expand Flexible Tracks feeds the `fr` ones. So this
+			// column fills to 22rem first and Description, last in the row, takes
+			// whatever is left over. Something has to — with no `fr` anywhere the
+			// tracks stop short of the container and the cards do not reach the
+			// right edge.
+			//
+			// The title wraps on word boundaries rather than clipping to an
+			// ellipsis. It used to be capped and truncated, which read fine on a
+			// wide screen and hid most of the title on a laptop — and a title is
+			// the thing on this row people actually scan.
+			//
+			// Every other column is `auto`: as wide as its badge needs and no
+			// wider, and — the part that matters on a narrow window — willing to
+			// give that width back rather than push the table into horizontal
+			// scroll.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
 			header: 'Issue',
-			meta: { className: growIssue ? 'w-full' : 'w-[26rem]' },
+			meta: { width: 'minmax(8rem, 22rem)' },
 			filterFn: searchFilter,
 			cell: ({ row }) => (
 				<Tooltip content={`Manage the rules behind ${row.original.title}`}>
 					<LinkWithProject
 						to={routes.issue({ issueId: row.original.id })}
-						className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
+						className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 					>
 						{row.original.title}
 					</LinkWithProject>
@@ -268,22 +336,10 @@ function getColumns(
 			)
 		},
 		{
-			// Its own column rather than a second line under the title, which is
-			// where it used to live. Stacked, it was permanently clipped to one
-			// truncated line with no way to read the rest, and it pushed every row
-			// to double height whether or not the issue had one.
-			id: COLUMN_ID.DESCRIPTION,
-			accessorFn: (row) => row.description ?? '',
-			header: 'Description',
-			meta: { className: 'w-[22rem]' },
-			enableSorting: false,
-			cell: ({ row }) => <DescriptionCell value={row.original.description} />
-		},
-		{
 			id: COLUMN_ID.CREATED,
 			accessorFn: (row) => row.created_at ?? '',
 			header: 'Created',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: { width: 'auto' },
 			cell: ({ row }) => {
 				const { created_at, closed_at, state } = row.original;
 
@@ -306,7 +362,7 @@ function getColumns(
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			// Every badge below is also the control that filters by it: the value
@@ -329,7 +385,7 @@ function getColumns(
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories,
 			header: 'Categories',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row, table }) => {
@@ -350,7 +406,7 @@ function getColumns(
 			id: COLUMN_ID.RULES,
 			accessorFn: (row) => row.rulesState,
 			header: 'Rules',
-			meta: { className: 'w-36 whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row, table }) => (
@@ -366,16 +422,26 @@ function getColumns(
 			)
 		},
 		{
-			// A `w-full` table has to spend its spare width on *some* column, and on
-			// a wide screen that is hundreds of pixels. Without somewhere to put it,
-			// `table-auto` shares it out across every column — including the ones
-			// declared `w-px` to shrink to their contents, which is why Key and
-			// Actions were not staying narrow. This column exists to be empty.
-			id: COLUMN_ID.FILLER,
-			enableHiding: false,
-			header: () => null,
+			// Last, and capped rather than growing.
+			//
+			// It is its own column rather than a second line under the title —
+			// stacked, it was permanently clipped with no way to read the rest and
+			// doubled the height of every row. But it is also empty on most issues,
+			// so sitting third in the row as the column that absorbed all the spare
+			// width, it was a wide band of nothing splitting the identity of the
+			// issue from the badges that describe it. At the end, capped, an empty
+			// one costs nothing and a full one is still one click from its tooltip.
+			id: COLUMN_ID.DESCRIPTION,
+			accessorFn: (row) => row.description ?? '',
+			header: 'Description',
+			// The table's one flexible track, and the reason it can be: it is last,
+			// so the spare width of a wide screen pools at the end of the row
+			// instead of pushing the columns that carry badges apart. An empty
+			// description is then just the trailing edge of the card, and a long
+			// one has the whole of that space to wrap into.
+			meta: { width: 'minmax(0, 1fr)' },
 			enableSorting: false,
-			cell: () => null
+			cell: ({ row }) => <DescriptionCell value={row.original.description} />
 		}
 	];
 }
@@ -412,7 +478,12 @@ function useFacetOptions(rows: IssueTableRow[]) {
 				values: rows.flatMap((row) => row.categories),
 				order: CATEGORY_ORDER,
 				labelFor: (category) => categoryMeta(category).displayValue
-			})
+			}),
+			// Open-ended: the projects come from the data, so they are listed
+			// alphabetically rather than in a fixed meaning-carrying order.
+			projectOptions: openFacetOptions(
+				rows.flatMap((row) => row.projectNames)
+			)
 		}),
 		[rows]
 	);
@@ -431,8 +502,9 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	// unscoped request legitimately lists every project. Say which it is.
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
-	const scrollRef = useRef<HTMLDivElement>(null);
-	const [shellRef, showFiller] = useFillerVisible(FILLER_MIN_WIDTH.issues);
+	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
+	// the pinned header, and the shadow over the footer.
+	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		'issues',
 		DEFAULT_COLUMN_VISIBILITY
@@ -480,30 +552,28 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 		pageSize: queryArgs.pageSize
 	});
 
+	// A rule carries `project` as a bare id, and an id is not something anyone
+	// recognises a project by.
+	const projectNames = useMemo(
+		() => new Map((projects ?? []).map((project) => [project.id, project.name])),
+		[projects]
+	);
+
 	const rows = useMemo(
 		() =>
 			buildRows(
 				issuesQuery.data?.results ?? [],
-				rulesQuery.data?.results ?? []
+				rulesQuery.data?.results ?? [],
+				projectNames
 			),
-		[issuesQuery.data, rulesQuery.data]
+		[issuesQuery.data, rulesQuery.data, projectNames]
 	);
 	// The count the server reports for the *filtered* set, not the rows in hand.
 	// Reading it off the page is what made a 45-issue list say "25 of 25".
 	const totalCount = issuesQuery.data?.pagination.count ?? 0;
-	const columns = useMemo(
-		() => getColumns(projectId, !showFiller),
-		[projectId, showFiller]
-	);
-	const { stateOptions, rulesOptions, categoryOptions } = useFacetOptions(rows);
-
-	// The filler is a layout device, not a column anyone chose, so its
-	// visibility is decided here rather than stored: it is `enableHiding: false`
-	// and never appears in the columns menu.
-	const effectiveColumnVisibility = useMemo<VisibilityState>(
-		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
-		[columnVisibility, showFiller]
-	);
+	const columns = useMemo(() => getColumns(projectId), [projectId]);
+	const { stateOptions, rulesOptions, categoryOptions, projectOptions } =
+		useFacetOptions(rows);
 
 	// The server owns paging, filtering and sorting: the table holds one page, so
 	// filtering or sorting it locally would only ever reorder that page while
@@ -511,12 +581,7 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	const table = useReactTable({
 		data: rows,
 		columns,
-		state: {
-			columnFilters,
-			sorting,
-			pagination,
-			columnVisibility: effectiveColumnVisibility
-		},
+		state: { columnFilters, sorting, pagination, columnVisibility },
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
@@ -560,10 +625,20 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	// Filtering happens locally, so the server's count no longer describes what
 	// is on screen once a facet is on.
 	const matchedCount = table.getFilteredRowModel().rows.length;
-	const isNarrowed = hasFilters || Boolean(search);
 
+	// Both of these change which rows are on screen, so both return the reader
+	// to the top of the list.
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
+		scrollToTop();
+	}
+
+	function setPageSize(pageSize: number) {
+		table.setPageSize(pageSize);
+		scrollToTop();
+	}
+
+	function scrollToTop() {
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
@@ -589,7 +664,7 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	}
 
 	return (
-		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
+		<div className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<Tooltip content="An issue is the cause identity — what is wrong. Its rules decide which results get stamped with it, and whether those results still count as unexpected.">
 					<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
@@ -603,6 +678,17 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 					placeholder="Search title, description or key"
 					testId="issues-search"
 					className="min-w-[240px]"
+				/>
+				{/* First of the facets, because it is the widest cut: it decides
+				    which project's classifier is in play at all, and the others
+				    narrow within that. */}
+				<DataTableFacetedFilter
+					title="Project"
+					size="xss"
+					options={projectOptions}
+					value={facets.values(COLUMN_ID.PROJECT)}
+					onChange={(values) => facets.set(COLUMN_ID.PROJECT, values)}
+					disabled={!projectOptions.length}
 				/>
 				<DataTableFacetedFilter
 					title="State"
@@ -643,8 +729,15 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 						Reset
 					</ButtonTw>
 				</Tooltip>
+				{/* The two controls that act on the table rather than on what it is
+				    showing, grouped at the trailing edge behind their own rule. */}
 				<div className="flex items-center gap-2 ml-auto">
-					{toolbarActions}
+					{toolbarActions ? (
+						<>
+							{toolbarActions}
+							<ClassificationToolbarSeparator />
+						</>
+					) : null}
 					<ColumnsVisibility
 						items={columnVisibilityItems(table)}
 						onColumnToggle={(id, checked) =>
@@ -654,7 +747,9 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 				</div>
 			</ClassificationToolbar>
 
-			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+			{/* Grey, because the rows are white cards and a card needs something to
+			    sit on. The toolbar and footer paint their own white. */}
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
 				{visibleRows.length === 0 ? (
 					<BublikEmptyState
 						title="No matching issues"
@@ -665,6 +760,7 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 					<ClassificationTable
 						table={table}
 						stickyHeader
+						scrollRef={scrollRef}
 						testId="issues-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'issue-row',
@@ -675,12 +771,14 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 				)}
 			</div>
 
-			<ClassificationFooter>
-				<span className="text-xs text-text-menu tabular-nums">
-					{isNarrowed
-						? `${matchedCount} of ${totalCount} issues`
-						: `${totalCount} ${totalCount === 1 ? 'issue' : 'issues'}`}
-				</span>
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={matchedCount}
+					totalCount={matchedCount}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="issue"
+				/>
 				<Pagination
 					className="ml-auto"
 					variant="compact"
@@ -688,7 +786,7 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
 					onPageChange={goToPage}
-					onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+					onPageSizeChange={setPageSize}
 				/>
 			</ClassificationFooter>
 		</div>

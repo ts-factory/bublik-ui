@@ -20,7 +20,6 @@ import { IssuePicker } from './issue-picker';
 import { TestPicker } from './test-picker';
 import { useKnownTests } from './use-known-tests';
 import {
-	MATCHER_HINTS,
 	MatcherField,
 	MatcherReadOnly,
 	itemsToList,
@@ -217,13 +216,6 @@ export function RuleFields({
 						{errors.issue?.message ? (
 							<ErrorMessage>{errors.issue.message}</ErrorMessage>
 						) : null}
-						{isEdit || lockIssue ? (
-							<p className="mt-1 text-xs text-text-menu">
-								{isEdit
-									? 'Fixed for the life of the rule — moving a rule between issues would move its stamps with it.'
-									: 'Fixed to the issue you are on.'}
-							</p>
-						) : null}
 					</div>
 
 					<div data-testid="rule-test">
@@ -243,13 +235,6 @@ export function RuleFields({
 								/>
 							)}
 						/>
-						{isEdit ? null : (
-							<p className="mt-1 text-xs text-text-menu">
-								A rule always names a test — it is the only criterion the
-								matcher narrows on in the database. Selectable tests are those
-								that already carry at least one rule.
-							</p>
-						)}
 					</div>
 				</div>
 			</FormSection>
@@ -301,11 +286,6 @@ export function RuleFields({
 								/>
 							)}
 						/>
-						<p className="mt-1 text-xs text-text-menu">
-							Only <strong>Expected</strong> suppresses — and only while the
-							issue is open. The other two mark the failure without taking it
-							out of the unexpected count.
-						</p>
 					</div>
 
 					<div data-testid="rule-active">
@@ -325,68 +305,64 @@ export function RuleFields({
 								/>
 							)}
 						/>
-						<p className="mt-1 text-xs text-text-menu">
-							Active rules apply to future imports. Neither state classifies
-							runs that already exist — use “Apply rules” on a run for that.
-						</p>
 					</div>
 				</div>
 			</FormSection>
 
 			<FormSection className="flex flex-col">
 				<FormSection.Bar className="bg-bg-interrupted" />
-				<FormSection.Header name="Match scope" />
+				{/* `mb-0`, unlike the other two section headers: this one is
+				    followed by either the "Narrow the match" subheader, which
+				    carries its own `mb-3`, or the read-only matcher grid — both of
+				    which supply the gap themselves. The shared `mb-4` on top of
+				    that left the two labels floating apart. */}
+				<FormSection.Header name="Match scope" className="mb-0" />
 				{isEdit ? (
-					<div className="flex flex-col gap-3">
-						<p className="text-xs text-text-menu">
-							Fixed after creation. A rule’s matcher is what its existing stamps
-							mean, so changing it would silently rewrite the past — the API
-							rejects it with “Create a new rule instead”. Duplicate this rule
-							to write a different matcher.
-						</p>
-						{/* Round-tripped through the same converters the submit uses,
-						    so the panel shows what would be sent rather than a second
-						    reading of the chips. */}
-						<MatcherReadOnly
-							parameters={itemsToParameters(watch('parameters'))}
-							verdicts={itemsToList(watch('verdicts'))}
-							tags={itemsToList(watch('tags'))}
-						/>
-					</div>
+					// No prose. The matcher being read-only used to be explained by a
+					// four-line paragraph above it, which cost more vertical space
+					// than the values it was introducing — and the API says the same
+					// thing, in the same words, if you ever manage to submit a change.
+					//
+					// Round-tripped through the same converters the submit uses, so
+					// the panel shows what would be sent rather than a second reading
+					// of the chips.
+					<MatcherReadOnly
+						parameters={itemsToParameters(watch('parameters'))}
+						verdicts={itemsToList(watch('verdicts'))}
+						tags={itemsToList(watch('tags'))}
+					/>
 				) : (
-					<div className="flex flex-col gap-4">
+					// The subheader sits outside the field stack: inside it, it
+					// collected the stack's own `gap-4` on top of its `mb-3`, which
+					// left it floating a long way under "Match scope".
+					<>
 						<FormSectionSubheader name="Narrow the match" />
-						<p className="-mt-2 text-xs text-text-menu">
-							Every criterion is exact, and an empty one is ignored. Leave all
-							three empty and the rule matches every result of this test.
-						</p>
-						<MatcherField
-							control={control}
-							name="parameters"
-							label="Parameters"
-							hint={MATCHER_HINTS.parameters}
-							placeholder="env=ci"
-							keyValue
-							testId="rule-parameters"
-						/>
-						<MatcherField
-							control={control}
-							name="verdicts"
-							label="Verdicts"
-							hint={MATCHER_HINTS.verdicts}
-							placeholder="Press Enter to add a verdict"
-							testId="rule-verdicts"
-						/>
-						<MatcherField
-							control={control}
-							name="tags"
-							label="Tags"
-							hint={MATCHER_HINTS.tags}
-							placeholder="branch=main"
-							keyValue
-							testId="rule-tags"
-						/>
-					</div>
+						<div className="flex flex-col gap-4">
+							<MatcherField
+								control={control}
+								name="parameters"
+								label="Parameters"
+								placeholder="env=ci"
+								keyValue
+								testId="rule-parameters"
+							/>
+							<MatcherField
+								control={control}
+								name="verdicts"
+								label="Verdicts"
+								placeholder="Press Enter to add a verdict"
+								testId="rule-verdicts"
+							/>
+							<MatcherField
+								control={control}
+								name="tags"
+								label="Tags"
+								placeholder="branch=main"
+								keyValue
+								testId="rule-tags"
+							/>
+						</div>
+					</>
 				)}
 			</FormSection>
 		</>

@@ -95,13 +95,31 @@ export const classificationEndpoints = {
 					project: args.projectId,
 					page: args.page,
 					page_size: args.pageSize,
-					state: args.state?.join(config.queryDelimiter),
-					category: args.category?.join(config.queryDelimiter),
-					// TODO(api): `search`, `ordering` and `rules` are sent but not
-					// yet honoured — `IssueViewSet.filter_backends` is empty and
-					// `get_queryset` reads only state/category/project. Until they
-					// land, the search box, the Rules facet and column sorting are
-					// inert on this table.
+					// `state` and `category` are deliberately NOT sent.
+					//
+					// `IssueViewSet.get_queryset` compares them with `=` against the
+					// raw query value, so the `;`-joined list a multi-select produces
+					// (`category=env;flaky`) matches no row at all and the endpoint
+					// returns an empty page — the table then reports "no matching
+					// issues" for a selection that has plenty. Verified against a
+					// live server: `?category=env` → 6, `?category=env;flaky` → 0.
+					//
+					// Sending a single value is no better. `category` filters on
+					// `rules__category` and `project` on `rules__project_id` as two
+					// separate `.filter()` calls, which under Django is two
+					// independent joins over the same multi-valued relation: the
+					// pair matches an issue with *some* rule in that category and
+					// *some* rule in that project, not one rule that is both.
+					//
+					// `IssuesTable` filters the loaded page client-side regardless,
+					// so withholding these costs nothing and removes both faults.
+					// TODO(api): send them again once the endpoint takes a list and
+					// applies the two conditions to the same rule.
+					//
+					// `search`, `ordering` and `rules` are sent but ignored —
+					// `filter_backends` is empty and `get_queryset` reads only
+					// state/category/project — so the search box, the Rules facet
+					// and column sorting all fall back to the client-side pass too.
 					search: args.search || undefined,
 					ordering: args.ordering,
 					rules: args.rules?.join(config.queryDelimiter)

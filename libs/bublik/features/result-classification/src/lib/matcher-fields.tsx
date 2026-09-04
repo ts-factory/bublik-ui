@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { Fragment } from 'react';
 import {
 	Controller,
 	type Control,
@@ -22,9 +23,8 @@ import { formatKeyValueForDisplay } from '@/shared/utils';
  *
  * Every criterion is exact — no operators, no regex — and an **empty one is
  * ignored**, which is what makes a rule's match scope implicit rather than a
- * set of flags. The hints below are the ones `MatcherDetail` already shows on
- * an expanded row; a form that asks for these values should explain them in the
- * same words the table does.
+ * set of flags. `MATCHER_HINTS` says so in the read-only panel's tooltips; the
+ * editable fields carry no prose of their own.
  *
  * Values are held as `BadgeItem[]` because that is what `BadgeInput` speaks.
  * `parametersToRecord` and friends convert at the edges — see `rule-form`.
@@ -89,7 +89,6 @@ interface MatcherFieldProps<T extends FieldValues> {
 	control: Control<T>;
 	name: Path<T>;
 	label: string;
-	hint: string;
 	placeholder: string;
 	/** Chips are `key=value`; renders them with the display delimiter. */
 	keyValue?: boolean;
@@ -100,13 +99,12 @@ export function MatcherField<T extends FieldValues>({
 	control,
 	name,
 	label,
-	hint,
 	placeholder,
 	keyValue = false,
 	testId
 }: MatcherFieldProps<T>) {
 	return (
-		<div className="flex flex-col gap-1" data-testid={testId}>
+		<div data-testid={testId}>
 			<Controller
 				control={control}
 				name={name}
@@ -126,7 +124,6 @@ export function MatcherField<T extends FieldValues>({
 					/>
 				)}
 			/>
-			<p className="text-xs text-text-menu">{hint}</p>
 		</div>
 	);
 }
@@ -179,35 +176,43 @@ export function MatcherReadOnly({
 	];
 
 	return (
-		<div className="flex flex-col gap-3" data-testid="rule-matcher-readonly">
+		// A two-column grid rather than three stacked label-over-values blocks.
+		// Stacked, each criterion cost two lines even when it had nothing in it,
+		// and the labels sat at a different left edge from the chips beside them.
+		// `items-baseline` puts a label on the same line as the first row of its
+		// chips instead of floating above them.
+		<dl
+			className="grid grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1.5"
+			data-testid="rule-matcher-readonly"
+		>
 			{sections.map((section) => (
-				<div key={section.label} className="flex flex-col gap-1">
+				<Fragment key={section.label}>
 					<Tooltip content={section.hint}>
-						<span className="w-fit text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
+						<dt className="w-fit text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
 							{section.label}
-						</span>
+						</dt>
 					</Tooltip>
-					{section.values.length ? (
-						<div className="flex flex-wrap gap-1">
-							{section.values.map((value) => (
-								<Badge
-									key={value}
-									variant={section.variant}
-									overflowWrap
-									className={section.className}
-								>
-									{value}
-								</Badge>
-							))}
-						</div>
-					) : (
-						<span className="text-xs text-text-menu">
-							Not constrained — this criterion is ignored
-						</span>
-					)}
-				</div>
+					<dd className="min-w-0">
+						{section.values.length ? (
+							<div className="flex flex-wrap gap-1">
+								{section.values.map((value) => (
+									<Badge
+										key={value}
+										variant={section.variant}
+										overflowWrap
+										className={section.className}
+									>
+										{value}
+									</Badge>
+								))}
+							</div>
+						) : (
+							<span className="text-xs text-text-menu">Not constrained</span>
+						)}
+					</dd>
+				</Fragment>
 			))}
-		</div>
+		</dl>
 	);
 }
 

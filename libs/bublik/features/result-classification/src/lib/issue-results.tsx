@@ -117,16 +117,14 @@ function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 		{
 			id: 'links',
 			header: 'Actions',
-			meta: { className: 'w-[168px]' },
+			meta: { width: 'max-content' },
 			enableSorting: false,
 			cell: ({ row }) => {
 				const rowRunId = issueResultRunId(runId, row.original);
 
 				// Every link in the stack is run-scoped, so without a run there is
 				// nothing to point at.
-				if (rowRunId === undefined) {
-					return <span className="text-text-menu">-</span>;
-				}
+				if (rowRunId === undefined) return null;
 
 				return <ResultLinks runId={rowRunId} row={row.original} />;
 			}
@@ -139,14 +137,15 @@ function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 			id: 'test_path',
 			accessorFn: (row) => issueResultTestPath(row),
 			header: 'Test Path',
-			meta: { className: 'w-96' },
+			meta: { width: 'minmax(0, 24rem)' },
 			cell: ({ row }) => {
 				const path = issueResultTestPath(row.original);
 
+				if (!path) return null;
+
 				return (
-					<span className="flex items-center gap-1 font-medium text-text-primary">
-						<Icon name="Folder" size={14} className="shrink-0 text-text-menu" />
-						<span className="truncate">{path || '-'}</span>
+					<span className="block min-w-0 truncate font-medium text-text-primary">
+						{path}
 					</span>
 				);
 			}
@@ -155,11 +154,15 @@ function getColumns(runId?: number | string): ColumnDef<ResultRow, unknown>[] {
 			id: 'obtained',
 			accessorFn: (row) => row.obtained_result ?? '',
 			header: 'Obtained Result',
+			// The grower: a verdict list is the one thing here with no natural
+			// width. Omitting `width` would say the same, but saying it keeps the
+			// three columns readable as a set.
+			meta: { width: 'minmax(0, 1fr)' },
 			enableSorting: false,
 			cell: ({ row }) => {
 				const { obtained_result, verdicts } = row.original;
 
-				if (!obtained_result) return <span className="text-text-menu">-</span>;
+				if (!obtained_result) return null;
 
 				return (
 					<VerdictList
@@ -217,7 +220,7 @@ export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
 	// Keep the skeleton up rather than flashing an empty list.
 	if (isLoading || (isRunScoped && projectId === undefined)) {
 		return (
-			<div className="flex flex-col gap-1 p-2">
+			<div className="flex flex-col gap-1 px-4 py-2 border-t border-border-primary">
 				{Array.from({ length: 3 }, () => 0).map((_, idx) => (
 					<Skeleton key={idx} className="h-10 rounded-md" />
 				))}
@@ -232,9 +235,17 @@ export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
 	}
 
 	return (
-		<div className="pl-8" data-testid="issue-results">
+		// The run's own result table's padding, so an expanded issue and an
+		// expanded test read as the same kind of panel. The rule at the top is
+		// what separates the panel from the row that opened it — both are white,
+		// so without it the two run together into one tall card.
+		<div
+			className="px-4 py-2 border-t border-border-primary"
+			data-testid="issue-results"
+		>
 			<ClassificationTable
 				table={table}
+				variant="nested"
 				getRowAttributes={(row) => ({
 					'data-testid': 'issue-result-row',
 					'data-result-id': row.original.result_id

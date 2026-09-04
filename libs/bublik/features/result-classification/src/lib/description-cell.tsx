@@ -9,24 +9,33 @@ export interface DescriptionCellProps {
 /**
  * An issue's description, in a table row.
  *
- * Truncated to one line and capped by its column, with the whole text in the
- * tooltip — a description is free-form internal notes and can be a paragraph,
- * so letting it wrap would set the height of every row in the table to the
- * length of the worst one.
+ * Wrapped, with its line breaks intact — these are free-form internal notes and
+ * the newlines in them are usually the structure. It used to be clipped to one
+ * line with the rest in a tooltip, which made the one column carrying prose the
+ * one column you could not read.
  *
- * The em dash is deliberate rather than an empty cell: blank reads as "failed
- * to load" in a row where every other cell has something in it.
+ * Clamped to three lines, because unclamped it set the height of the row to the
+ * length of the worst description in the table. Three is enough to read the
+ * gist; the tooltip has the rest, and it only appears when there *is* a rest.
+ *
+ * Nothing bounds the width here: the column's track does that, and the column
+ * sits last precisely so the text has somewhere to run.
+ *
+ * Empty renders nothing. A placeholder dash was there to stop a blank cell
+ * reading as "failed to load", but most issues carry no description, so what it
+ * actually produced was a column of dashes — noise in every row, drawing the
+ * eye to the one thing that has nothing to say.
  */
 export function DescriptionCell({ value }: DescriptionCellProps) {
 	const text = value?.trim();
 
-	if (!text) {
-		return <span className="text-text-menu">—</span>;
-	}
+	if (!text) return null;
 
 	return (
 		<Tooltip content={text}>
-			<span className="block min-w-0 truncate text-text-primary">{text}</span>
+			<span className="block min-w-0 whitespace-pre-wrap break-words line-clamp-3 text-text-primary">
+				{text}
+			</span>
 		</Tooltip>
 	);
 }

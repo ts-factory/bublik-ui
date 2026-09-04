@@ -1,9 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
+
+import { useIsScrollbarVisible } from '@/shared/hooks';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
+	type Row,
 	type VisibilityState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -22,7 +25,8 @@ import {
 	Icon,
 	Pagination,
 	Skeleton,
-	Tooltip
+	Tooltip,
+	cn
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { routes } from '@/router';
@@ -36,7 +40,6 @@ import {
 	issueStateMeta,
 	runIssueEffect
 } from './classification-colors';
-import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
 import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
@@ -46,11 +49,11 @@ import {
 } from './classification-badges';
 import {
 	ClassificationFooter,
+	ClassificationRange,
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	ExpandButton,
 	columnVisibilityItems,
 	useColumnVisibility
 } from './classification-table';
@@ -62,11 +65,7 @@ import {
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
 import { DescriptionCell } from './description-cell';
-import {
-	ISSUE_ACTIONS_COLUMN_CLASS,
-	ISSUE_ACTIONS_HEADER_CLASS,
-	IssueStateActions
-} from './issue-actions';
+import { ISSUE_ACTIONS_COLUMN_META, IssueStateActions } from './issue-actions';
 import { RunIssueResults } from './issue-results';
 
 interface RunIssuesTableProps {
@@ -88,7 +87,6 @@ interface RunIssuesTableProps {
  */
 const COLUMN_ID = {
 	STATUS: 'status',
-	EXPANDER: 'expander',
 	ACTIONS: 'actions',
 	BUG_KEY: 'bug_key',
 	ISSUE: 'issue',
@@ -96,8 +94,7 @@ const COLUMN_ID = {
 	RESULTS: 'result_count',
 	STATE: 'state',
 	EFFECT: 'effect',
-	CATEGORIES: 'categories',
-	FILLER: 'filler'
+	CATEGORIES: 'categories'
 } as const;
 
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
@@ -116,10 +113,58 @@ const searchFilter = makeSearchFilter<RunIssueRow>((issue) => [
 	`#${issue.issue_id}`
 ]);
 
+interface ResultsToggleProps {
+	row: Row<RunIssueRow>;
+}
+
+/**
+ * Opens the results this issue is stamped on within the run.
+ *
+ * The result count further along the row toggles the same thing — that one is
+ * for when you are reading the number and want to see what is behind it, this
+ * one is for when you are working down the Actions column.
+ *
+ * Labelled `Results` rather than `Show Results`/`Hide Results`. The buttons in
+ * this stack share one edge, so the longest label sets the width of the whole
+ * column — and a label that changes on click was resizing the column under the
+ * cursor. The chevron carries the open/closed state, `aria-expanded` carries it
+ * for screen readers, and the tooltip says which way it will go.
+ */
+function ResultsToggle({ row }: ResultsToggleProps) {
+	const isExpanded = row.getIsExpanded();
+
+	return (
+		<Tooltip
+			content={
+				isExpanded
+					? 'Hide the results this issue is stamped on'
+					: 'Show the results this issue is stamped on in this run'
+			}
+		>
+			<ButtonTw
+				variant="secondary"
+				size="xss"
+				onClick={row.getToggleExpandedHandler()}
+				aria-expanded={isExpanded}
+				className="justify-start whitespace-nowrap"
+				data-testid="run-issue-expander"
+			>
+				<Icon
+					name="ArrowShortSmall"
+					size={14}
+					className={cn(
+						'mr-1 transition-transform',
+						isExpanded ? 'rotate-0' : '-rotate-90'
+					)}
+				/>
+				Results
+			</ButtonTw>
+		</Tooltip>
+	);
+}
+
 function getColumns(
 	projectId: number | undefined,
-	/** Hands the spare width to the title when the filler has stood down. */
-	growIssue: boolean,
 	/** The full issue behind each row, so Edit opens without a second fetch. */
 	issueById: Map<number, Issue>
 ): ColumnDef<RunIssueRow, unknown>[] {
@@ -137,46 +182,31 @@ function getColumns(
 			cell: ({ row }) => <StatusStripe meta={runIssueEffect(row.original)} />
 		},
 		{
-			id: COLUMN_ID.EXPANDER,
-			enableHiding: false,
-			header: () => null,
-			meta: { className: 'w-9' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<ExpandButton
-					isExpanded={row.getIsExpanded()}
-					onClick={row.getToggleExpandedHandler()}
-					label={
-						row.getIsExpanded() ? 'Hide results' : 'Show classified results'
-					}
-					testId="run-issue-expander"
-				/>
-			)
-		},
-		{
-			// Straight after the expander, matching the issues list: an issue can be
-			// closed from wherever you found it, without a detour through its own
-			// page. Closing here un-suppresses results in this very run, so the
-			// table behind it re-reads on success.
+			// Leading the row, matching the issues list: an issue can be closed from
+			// wherever you found it, without a detour through its own page. Closing
+			// here un-suppresses results in this very run, so the table behind it
+			// re-reads on success.
 			id: COLUMN_ID.ACTIONS,
 			enableHiding: false,
 			header: 'Actions',
-			meta: {
-				className: ISSUE_ACTIONS_COLUMN_CLASS,
-				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
-			},
+			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
 				<IssueStateActions
 					issueId={row.original.issue_id}
 					title={row.original.title}
-					state={row.original.state}
 					projectId={projectId}
 					// The same controls as `/issues`: an issue met here is the same
 					// object, and having to leave the run to fix a title was the kind
 					// of detour that makes people not fix it.
 					issue={issueById.get(row.original.issue_id)}
 					showAuthoring
+					// The disclosure, which used to be a bare chevron in a column of
+					// its own at the row's leading edge. A 24px icon column bought a
+					// track for a control nobody could name; in the stack it is a
+					// labelled button that says what it opens, and the row gets the
+					// width back.
+					footer={<ResultsToggle row={row} />}
 				/>
 			)
 		},
@@ -185,15 +215,13 @@ function getColumns(
 			// wrapped under it: when the project resolves one, the link out to the
 			// tracker, then the key itself.
 			//
-			// `w-px` is under min-content, so the column collapses to exactly the
-			// widest key it holds — `whitespace-nowrap` keeps that from being
-			// measured mid-key, since `E2E-105` would otherwise break at the dash.
+			// `max-content` collapses the track to exactly the widest key it holds.
 			// Inside the cell the link leads the key it opens, and the cell shrinks
 			// to the pair rather than stretching them to its two edges.
 			id: COLUMN_ID.BUG_KEY,
 			accessorFn: (row) => row.bug_key ?? '',
 			header: 'Key',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			cell: ({ row }) => {
 				const { issue_id, bug_key, bug_url } = row.original;
@@ -209,18 +237,31 @@ function getColumns(
 			}
 		},
 		{
-			// Capped, not flexible: a title is a handful of words, and letting the
-			// column soak up every spare pixel pushes the badges off to the edge of
-			// the table. Anything longer truncates — the tooltip carries the rest.
+			// Ceilinged at 22rem, not flexible. As the table's only `fr` it took
+			// every spare pixel on a wide screen, which left a title of five words
+			// sprawling across a third of the row.
 			//
-			// Narrow enough and the filler stands down (see `useFillerVisible`),
-			// and the slack has to land somewhere. It lands here: a title is the
-			// one thing on the row that can use more room, and the badge columns
-			// are the ones that must not be stretched.
+			// The ceiling works *with* the way CSS Grid sizes tracks rather than
+			// against it: §12.6 Maximize Tracks feeds tracks that can still grow
+			// before §12.7 Expand Flexible Tracks feeds the `fr` ones. So this
+			// column fills to 22rem first and Description, last in the row, takes
+			// whatever is left over. Something has to — with no `fr` anywhere the
+			// tracks stop short of the container and the cards do not reach the
+			// right edge.
+			//
+			// The title wraps on word boundaries rather than clipping to an
+			// ellipsis. It used to be capped and truncated, which read fine on a
+			// wide screen and hid most of the title on a laptop — and a title is
+			// the thing on this row people actually scan.
+			//
+			// Every other column is `auto`: as wide as its badge needs and no
+			// wider, and — the part that matters on a narrow window — willing to
+			// give that width back rather than push the table into horizontal
+			// scroll.
 			id: COLUMN_ID.ISSUE,
 			accessorFn: (row) => row.title,
 			header: 'Issue',
-			meta: { className: growIssue ? 'w-full' : 'w-[26rem]' },
+			meta: { width: 'minmax(8rem, 22rem)' },
 			filterFn: searchFilter,
 			cell: ({ row }) => {
 				const { issue_id, title } = row.original;
@@ -229,7 +270,7 @@ function getColumns(
 					<Tooltip content={`Manage the rules behind ${title}`}>
 						<LinkWithProject
 							to={routes.issue({ issueId: issue_id })}
-							className="block max-w-[25rem] font-medium truncate text-text-primary hover:text-primary hover:underline"
+							className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 						>
 							{title}
 						</LinkWithProject>
@@ -238,20 +279,10 @@ function getColumns(
 			}
 		},
 		{
-			// Sits after the title in both issue tables, so moving between
-			// `/issues` and a run's issues does not mean re-finding it.
-			id: COLUMN_ID.DESCRIPTION,
-			accessorFn: (row) => row.description ?? '',
-			header: 'Description',
-			meta: { className: 'w-[22rem]' },
-			enableSorting: false,
-			cell: ({ row }) => <DescriptionCell value={row.original.description} />
-		},
-		{
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count,
 			header: 'Results',
-			meta: { className: 'w-px whitespace-nowrap' },
+			meta: { width: 'auto' },
 			cell: ({ row }) => (
 				<button
 					type="button"
@@ -268,7 +299,7 @@ function getColumns(
 			id: COLUMN_ID.STATE,
 			accessorFn: (row) => row.state,
 			header: 'State',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			// Every badge below is also the control that filters by it: the value
@@ -292,7 +323,7 @@ function getColumns(
 			// "Counts as unexpected" read as a yes-or-no question that three of
 			// those four answers do not answer. The badges carry the specifics.
 			header: 'Effect On Run',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row, table }) => {
@@ -310,7 +341,7 @@ function getColumns(
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories.map((c) => c.category),
 			header: 'Categories',
-			meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true },
 			enableSorting: false,
 			filterFn: someOfFilter,
 			cell: ({ row, table }) => {
@@ -328,16 +359,20 @@ function getColumns(
 			}
 		},
 		{
-			// A `w-full` table has to spend its spare width on *some* column, and on
-			// a wide screen that is hundreds of pixels. Spent on a data column it
-			// reads as a broken layout — a lone chip stranded in an empty cell, or
-			// a gap between the badges and the verdict. This column exists to be
-			// empty, so every column that carries something stays snug.
-			id: COLUMN_ID.FILLER,
-			enableHiding: false,
-			header: () => null,
+			// Last and capped, matching `/issues`: it is empty on most issues, so
+			// as the column that absorbed the spare width it was a wide band of
+			// nothing sitting between the issue and the badges describing it.
+			id: COLUMN_ID.DESCRIPTION,
+			accessorFn: (row) => row.description ?? '',
+			header: 'Description',
+			// The table's one flexible track, and the reason it can be: it is last,
+			// so the spare width of a wide screen pools at the end of the row
+			// instead of pushing the columns that carry badges apart. An empty
+			// description is then just the trailing edge of the card, and a long
+			// one has the whole of that space to wrap into.
+			meta: { width: 'minmax(0, 1fr)' },
 			enableSorting: false,
-			cell: () => null
+			cell: ({ row }) => <DescriptionCell value={row.original.description} />
 		}
 	];
 }
@@ -406,8 +441,9 @@ export function RunIssuesTable({
 		[allIssues]
 	);
 
-	const scrollRef = useRef<HTMLDivElement>(null);
-	const [shellRef, showFiller] = useFillerVisible(FILLER_MIN_WIDTH.runIssues);
+	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
+	// the pinned header, and the shadow over the footer.
+	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		'run-issues',
 		DEFAULT_COLUMN_VISIBILITY
@@ -439,16 +475,8 @@ export function RunIssuesTable({
 		[data, issueById]
 	);
 	const columns = useMemo(
-		() => getColumns(projectId, !showFiller, issueById),
-		[projectId, showFiller, issueById]
-	);
-
-	// The filler is a layout device, not a column anyone chose, so its
-	// visibility is decided here rather than stored: it is `enableHiding: false`
-	// and never appears in the columns menu.
-	const effectiveColumnVisibility = useMemo<VisibilityState>(
-		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
-		[columnVisibility, showFiller]
+		() => getColumns(projectId, issueById),
+		[projectId, issueById]
 	);
 	const { stateOptions, effectOptions, categoryOptions } =
 		useFacetOptions(issues);
@@ -460,7 +488,7 @@ export function RunIssuesTable({
 			columnFilters,
 			sorting,
 			pagination,
-			columnVisibility: effectiveColumnVisibility
+			columnVisibility
 		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
@@ -489,8 +517,19 @@ export function RunIssuesTable({
 	const rows = table.getRowModel().rows;
 	const matchedCount = table.getFilteredRowModel().rows.length;
 
+	// Both of these change which rows are on screen, so both return the reader
+	// to the top of the list.
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
+		scrollToTop();
+	}
+
+	function setPageSize(pageSize: number) {
+		table.setPageSize(pageSize);
+		scrollToTop();
+	}
+
+	function scrollToTop() {
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
@@ -511,7 +550,7 @@ export function RunIssuesTable({
 	}
 
 	return (
-		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
+		<div className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Issues
@@ -563,13 +602,15 @@ export function RunIssuesTable({
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				{toolbarActions ? (
-					<>
-						<ClassificationToolbarSeparator />
-						{toolbarActions}
-					</>
-				) : null}
-				<div className="ml-auto">
+				{/* The two controls that act on the table rather than on what it is
+				    showing, grouped at the trailing edge behind their own rule. */}
+				<div className="flex items-center gap-2 ml-auto">
+					{toolbarActions ? (
+						<>
+							{toolbarActions}
+							<ClassificationToolbarSeparator />
+						</>
+					) : null}
 					<ColumnsVisibility
 						items={columnVisibilityItems(table)}
 						onColumnToggle={(id, checked) =>
@@ -579,7 +620,9 @@ export function RunIssuesTable({
 				</div>
 			</ClassificationToolbar>
 
-			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+			{/* Grey, because the rows are white cards and a card needs something to
+			    sit on. The toolbar and footer paint their own white. */}
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
 				{rows.length === 0 ? (
 					<BublikEmptyState
 						title="No matching issues"
@@ -590,6 +633,7 @@ export function RunIssuesTable({
 					<ClassificationTable
 						table={table}
 						stickyHeader
+						scrollRef={scrollRef}
 						testId="run-issues-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'run-issue-row',
@@ -607,10 +651,14 @@ export function RunIssuesTable({
 				)}
 			</div>
 
-			<ClassificationFooter>
-				<span className="text-xs text-text-menu tabular-nums">
-					{matchedCount} of {issues.length} issues
-				</span>
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={matchedCount}
+					totalCount={issues.length}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="issue"
+				/>
 				<Pagination
 					className="ml-auto"
 					variant="compact"
@@ -618,7 +666,7 @@ export function RunIssuesTable({
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
 					onPageChange={goToPage}
-					onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+					onPageSizeChange={setPageSize}
 				/>
 			</ClassificationFooter>
 		</div>

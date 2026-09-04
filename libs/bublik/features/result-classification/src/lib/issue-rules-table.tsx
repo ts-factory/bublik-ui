@@ -1,12 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
+
+import { useIsScrollbarVisible } from '@/shared/hooks';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
 	ColumnDef,
 	type VisibilityState,
 	getCoreRowModel,
-	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable
@@ -14,8 +15,6 @@ import {
 
 import {
 	bublikAPI,
-	useActivateRuleMutation,
-	useDeactivateRuleMutation,
 	useGetIssueRulesQuery,
 	useGetIssuesQuery
 } from '@/services/bublik-api';
@@ -29,9 +28,7 @@ import {
 	Pagination,
 	Separator,
 	Skeleton,
-	Tooltip,
-	cn,
-	toast
+	Tooltip
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -52,7 +49,6 @@ import {
 	issueRulesState,
 	ruleActiveMeta
 } from './classification-colors';
-import { FILLER_MIN_WIDTH, useFillerVisible } from './classification-layout';
 import { STATUS_STRIPE_COLUMN_META, StatusStripe } from './status-stripe';
 import {
 	BugKeyChip,
@@ -64,11 +60,11 @@ import {
 } from './classification-badges';
 import {
 	ClassificationFooter,
+	ClassificationRange,
 	ClassificationSearch,
 	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	ExpandButton,
 	columnVisibilityItems,
 	useColumnVisibility
 } from './classification-table';
@@ -81,19 +77,9 @@ import {
 	type FacetControls
 } from './classification-table.utils';
 import { useClassificationTableState } from './use-classification-table-state';
-import {
-	DESTRUCTIVE_FILL_CLASS,
-	ISSUE_ACTIONS_COLUMN_CLASS,
-	ISSUE_ACTIONS_HEADER_CLASS,
-	IssueLinkButton
-} from './issue-actions';
+import { ISSUE_ACTIONS_COLUMN_META, IssueLinkButton } from './issue-actions';
 import { chipsForRule } from './match-scope.utils';
-import { notifyError } from './server-errors';
-import {
-	DuplicateRuleButton,
-	EditRuleButton,
-	RuleDeleteButton
-} from './rule-drawer';
+import { EditRuleButton, RuleDeleteButton } from './rule-drawer';
 
 const COLUMN_ID = {
 	STATUS: 'status',
@@ -105,7 +91,6 @@ const COLUMN_ID = {
 	 * made every request send `project=NaN`.
 	 */
 	PROJECT: 'rule_project',
-	EXPANDER: 'expander',
 	ACTIONS: 'actions',
 	TEST: 'test',
 	KEY: 'key',
@@ -117,28 +102,24 @@ const COLUMN_ID = {
 	ACTIVE: 'active',
 	TAGS: 'tags',
 	VERDICTS: 'verdicts',
-	PARAMETERS: 'parameters',
-	FILLER: 'filler'
+	PARAMETERS: 'parameters'
 } as const;
 
 /**
- * The matcher's three criteria are off by default. They are long, repetitive
- * and already spelled out in the expanded row; as columns they are for the rare
- * case where you want to compare them across rules without opening each one.
+ * Every column on.
+ *
+ * The matcher's three criteria — tags, verdicts, parameters — used to be hidden
+ * and reachable only by expanding one row at a time. But a rule *is* its
+ * matcher: hiding it left the list saying which test a rule was about and
+ * nothing about what it actually matches. They are columns now, ordered widest
+ * gate first: tags decide whether the run is considered at all, verdicts narrow
+ * to a failure mode, parameters to one iteration.
+ *
+ * Fitting them is the track list's problem, not this one's — see
+ * `ISSUE_COLUMN` for how the width is shared out. The columns menu is there
+ * for anyone who wants a narrower list than the default.
  */
-/**
- * Widest gate first: tags decide whether the run is even considered, verdicts
- * narrow to a failure mode, parameters to one iteration.
- */
-const MATCHER_COLUMN_IDS = [
-	COLUMN_ID.TAGS,
-	COLUMN_ID.VERDICTS,
-	COLUMN_ID.PARAMETERS
-] as const;
-
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = Object.fromEntries(
-	MATCHER_COLUMN_IDS.map((id) => [id, false])
-);
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
@@ -195,75 +176,15 @@ function buildRows(
 	});
 }
 
-interface RuleToggleProps {
-	rule: IssueRule;
-}
-
-function RuleToggle({ rule }: RuleToggleProps) {
-	const [activate, activateState] = useActivateRuleMutation();
-	const [deactivate, deactivateState] = useDeactivateRuleMutation();
-	const isBusy = activateState.isLoading || deactivateState.isLoading;
-
-	function toggleActive() {
-		const action = rule.active ? deactivate : activate;
-		// The rule's own project, not the table's. With the list unscoped the
-		// table has no single project, and `?project=` is what the write's
-		// permission check reads.
-		const promise = action({
-			ruleId: rule.id,
-			projectId: rule.project
-		}).unwrap();
-
-		toast.promise(promise, {
-			loading: rule.active ? 'Disabling rule...' : 'Enabling rule...',
-			success: rule.active ? 'Rule disabled' : 'Rule enabled',
-			error: notifyError,
-			position: 'top-center'
-		});
-	}
-
-	return (
-		<Tooltip
-			content={
-				rule.active
-					? 'Stops the rule matching future imports. Stamps it already laid down are kept.'
-					: 'Applies the rule to future imports. It does not classify runs that already exist — use "Apply rules" on a run for that.'
-			}
-		>
-			{/* Fixed width, because `Disable` and `Enable` are different lengths and
-			    a column of buttons that resize row to row reads as ragged. */}
-			<ButtonTw
-				variant={rule.active ? 'destruction-secondary' : 'secondary'}
-				size="xss"
-				state={isBusy ? 'loading' : 'default'}
-				onClick={toggleActive}
-				className={cn(
-					'justify-center whitespace-nowrap',
-					rule.active && DESTRUCTIVE_FILL_CLASS
-				)}
-				data-testid="issue-rule-toggle"
-			>
-				<Icon
-					name={rule.active ? 'CrossSimple' : 'Refresh'}
-					size={14}
-					className="mr-1"
-				/>
-				{rule.active ? 'Disable' : 'Enable'}
-			</ButtonTw>
-		</Tooltip>
-	);
-}
-
 interface MatcherChipProps {
 	value: string;
 	columnId: string;
 	variant?: BadgeVariants;
 	className?: string;
 	/**
-	 * Given, the chip becomes the filter toggle for its own column -- so the
-	 * chips in an expanded row and the chips in the (hidden by default) matcher
-	 * columns do the same thing when clicked. Omitted, it is inert, exactly as
-	 * it was.
+	 * Given, the chip becomes the filter toggle for its own column, so clicking
+	 * a tag in a row does what ticking that tag in the toolbar's facet does.
+	 * Omitted, it is inert.
 	 */
 	facets?: FacetControls;
 }
@@ -296,109 +217,22 @@ function MatcherChip({
 	);
 }
 
-interface MatcherDetailProps {
-	rule: IssueRule;
-	/** Makes the panel's chips filter the list behind it. See `MatcherChip`. */
-	facets?: FacetControls;
-}
-
-/**
- * The concrete matcher, which the flag chips only hint at. Every criterion is
- * exact — no operators, no regex — and an empty one is simply ignored.
- */
-function MatcherDetail({ rule, facets }: MatcherDetailProps) {
-	// Colours taken from wherever the run page shows the same thing, so a
-	// parameter looks like a parameter whether you are reading a result or the
-	// rule that matched it: parameters `bg-badge-1` (result table), verdicts
-	// transparent-on-border (`VerdictList`), tags `bg-badge-0` (run details).
-	const sections: {
-		label: string;
-		hint: string;
-		values: string[];
-		/** The column whose filter this section's chips toggle. */
-		columnId: string;
-		variant?: BadgeVariants;
-		className?: string;
-	}[] = [
-		{
-			label: 'Tags',
-			hint: 'Run-level gate — a run missing any of these is skipped entirely.',
-			values: ruleTags(rule),
-			columnId: COLUMN_ID.TAGS,
-			className: 'bg-badge-0'
-		},
-		{
-			label: 'Verdicts',
-			hint: 'The result must carry all of these verdicts.',
-			values: rule.verdicts ?? [],
-			columnId: COLUMN_ID.VERDICTS,
-			variant: BadgeVariants.Transparent
-		},
-		{
-			label: 'Parameters',
-			hint: 'The result must carry all of these, matched exactly.',
-			values: ruleParameters(rule),
-			columnId: COLUMN_ID.PARAMETERS,
-			className: 'bg-badge-1'
-		}
-	];
-
-	return (
-		<div className="flex flex-col gap-3 px-4 py-3" data-testid="rule-matcher">
-			<div className="flex flex-col gap-1">
-				<span className="text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
-					Test
-				</span>
-				<span className="text-sm font-medium text-text-primary">
-					{rule.test_name}
-				</span>
-			</div>
-			{sections.map((section) => (
-				<div key={section.label} className="flex flex-col gap-1">
-					<Tooltip content={section.hint}>
-						<span className="w-fit text-[0.6875rem] font-bold tracking-wider uppercase text-text-menu">
-							{section.label}
-						</span>
-					</Tooltip>
-					{section.values.length ? (
-						<div className="flex flex-wrap gap-1">
-							{section.values.map((value) => (
-								<MatcherChip
-									key={value}
-									value={value}
-									columnId={section.columnId}
-									variant={section.variant}
-									className={section.className}
-									facets={facets}
-								/>
-							))}
-						</div>
-					) : (
-						<span className="text-xs text-text-menu">
-							Not constrained — this criterion is ignored
-						</span>
-					)}
-				</div>
-			))}
-		</div>
-	);
-}
-
 /**
  * The tracker key, in its own column so it starts every row in the same place
  * — the shape the issues list and the run's issue table already use. Sharing a
  * cell with the title meant the titles started at a different offset on every
  * row, according to how long the key beside them happened to be.
  *
- * `w-px` + `whitespace-nowrap` is the shrink-to-fit idiom: the width is only a
- * floor, so the column collapses to its widest key, and the key is never
- * measured mid-break (`E2E-105` would otherwise split at the dash).
+ * `max-content` is the grid's shrink-to-fit: the track is exactly as wide as
+ * the widest key in the column and no wider. Under the old `table-auto` layout
+ * this took `w-px whitespace-nowrap` *and* an empty filler column downstream to
+ * absorb the width it gave up; a grid track needs neither.
  */
 const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.KEY,
 	accessorFn: (row) => row.bugKey ?? '',
 	header: 'Key',
-	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	enableSorting: false,
 	cell: ({ row }) => (
 		<BugKeyChip
@@ -414,12 +248,30 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE,
 	accessorFn: (row) => row.issueTitle,
 	header: 'Issue',
-	meta: { className: 'w-[22rem]' },
+	// How this table shares its width, in one place:
+	//
+	//  - The three matcher columns are `2fr`, Test and Issue are `1fr`. So of
+	//    the width nobody else has claimed, the matcher takes three quarters —
+	//    it is what the table is for — and the two text columns split the rest.
+	//  - Everything else is `auto`: as wide as its badge needs, and no wider.
+	//    `auto` is the part that makes a narrow window work, because an `auto`
+	//    track will shrink back toward its min-content width under pressure,
+	//    where a pinned one simply pushes the table into horizontal scroll.
+	//  - Every flexible column carries a `5rem` floor, so shrinking stops
+	//    somewhere legible rather than squeezing a column out of existence.
+	//
+	// One trap worth recording: CSS Grid hands free space to tracks that can
+	// still grow *before* it feeds the `fr` tracks (§12.6 Maximize Tracks runs
+	// before §12.7 Expand Flexible Tracks). A column declared `minmax(x, 20rem)`
+	// therefore takes its full 20rem out of the matcher's share whether or not
+	// it has anything to put there. That is why nothing here is capped with a
+	// fixed ceiling — it is `auto`, or it is `fr`.
+	meta: { width: 'minmax(5rem, 1fr)' },
 	cell: ({ row }) => (
 		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
 			<LinkWithProject
 				to={routes.issue({ issueId: row.original.issue })}
-				className="block min-w-0 font-medium truncate text-text-primary hover:text-primary hover:underline"
+				className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 			>
 				{row.original.issueTitle}
 			</LinkWithProject>
@@ -446,8 +298,12 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
  */
 const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.SCOPE,
-	header: 'Match scope',
-	meta: { className: 'w-64' },
+	header: 'Match Scope',
+	// `max-content` against a stacked list is the width of the longest single
+	// chip — about five characters — rather than the width of all four in a row.
+	// This column is a summary of the three matcher columns further along, so it
+	// should cost the least width of anything on the row.
+	meta: { width: 'auto' },
 	enableSorting: false,
 	cell: ({ row }) => {
 		// Derived from the matcher itself, not from flags: `match_parameters` and
@@ -462,8 +318,12 @@ const SCOPE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 		// `bg-primary-wash border-border-primary` they used to wear is exactly
 		// what a *selected* Primary badge looks like -- so the one thing in the
 		// table that cannot be clicked read as the one thing already chosen.
+		// Stacked, not wrapped. Four chips laid out in a row set this column's
+		// min-content width to the widest pair of them and wrapped raggedly at
+		// anything narrower; one per line is both narrower and easier to read
+		// down a list, which is the only way anyone reads this column.
 		return (
-			<div className="flex flex-wrap gap-1">
+			<div className="flex flex-col items-start gap-1">
 				{chips.map((chip) => (
 					<Badge
 						key={chip}
@@ -482,7 +342,7 @@ const DISPOSITION_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.DISPOSITION,
 	accessorFn: (row) => dispositionKey(row.expected),
 	header: 'Disposition',
-	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	// Every badge in this table is also the control that filters by it: the
@@ -503,7 +363,7 @@ const CATEGORY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.CATEGORY,
 	accessorFn: (row) => row.category,
 	header: 'Category',
-	meta: { className: 'w-44', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -537,7 +397,7 @@ function ruleParameters(rule: Pick<IssueRule, 'parameters'>): string[] {
 	);
 }
 
-/** The display form of a matcher parameter — see `MatcherDetail`. */
+/** The display form of a matcher parameter. */
 function formatRuleParameter(key: string, value: string) {
 	return formatKeyValueForDisplay(
 		`${key}${config.keyValueSubmitDelimiter}${value}`,
@@ -561,7 +421,10 @@ function MatcherValues({
 	className?: string;
 	facets?: FacetControls;
 }) {
-	if (!values.length) return <span className="text-text-menu">-</span>;
+	// Nothing renders for an unconstrained criterion. It is the common case —
+	// most rules pin one axis and leave the other two open — so a placeholder
+	// would put a dash in most cells of three columns.
+	if (!values.length) return null;
 
 	return (
 		<div className="flex flex-wrap gap-1">
@@ -580,16 +443,19 @@ function MatcherValues({
 }
 
 /**
- * The matcher's criteria as columns, so they can be compared down a list rather
- * than one expanded row at a time. Hidden by default — see
- * `DEFAULT_COLUMN_VISIBILITY` — and coloured exactly as the expanded row and
- * the run's result table colour the same things.
+ * The matcher's criteria as columns, so they can be read down a list rather than
+ * one expanded row at a time.
+ *
+ * Coloured the way the run page colours the same things, so a parameter looks
+ * like a parameter whether you are reading a result or the rule that matched
+ * it: parameters `bg-badge-1` (result table), verdicts transparent-on-border
+ * (`VerdictList`), tags `bg-badge-0` (run details).
  */
 const PARAMETERS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PARAMETERS,
 	accessorFn: (row) => ruleParameters(row),
 	header: 'Parameters',
-	meta: { badgeCell: true },
+	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -606,7 +472,7 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.VERDICTS,
 	accessorFn: (row) => row.verdicts ?? [],
 	header: 'Verdicts',
-	meta: { badgeCell: true },
+	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -623,7 +489,7 @@ const TAGS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.TAGS,
 	accessorFn: (row) => ruleTags(row),
 	header: 'Tags',
-	meta: { badgeCell: true },
+	meta: { width: 'minmax(5rem, 2fr)', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -640,7 +506,7 @@ const ACTIVE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ACTIVE,
 	accessorFn: (row) => String(row.active),
 	header: 'Rule',
-	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) => (
@@ -658,7 +524,7 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.ISSUE_STATE,
 	accessorFn: (row) => row.issueState ?? '',
 	header: 'State',
-	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	enableSorting: false,
 	filterFn: someOfFilter,
 	cell: ({ row, table }) =>
@@ -670,9 +536,7 @@ const ISSUE_STATE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 					row.original.issueState
 				)}
 			/>
-		) : (
-			<span className="text-text-menu">-</span>
-		)
+		) : null
 };
 
 /**
@@ -687,7 +551,7 @@ const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	id: COLUMN_ID.PROJECT,
 	accessorFn: (row) => row.projectName,
 	header: 'Project',
-	meta: { className: 'w-px whitespace-nowrap', badgeCell: true },
+	meta: { width: 'auto', badgeCell: true },
 	// Sortable, unlike most columns here: a rule *is* per-project, so grouping
 	// the list by hand is a thing people will want to do.
 	filterFn: someOfFilter,
@@ -708,20 +572,11 @@ const PROJECT_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 interface GetColumnsArgs {
 	/** Only the cross-issue view needs to say which issue a rule belongs to. */
 	showIssue: boolean;
-	/** Hands the spare width to a data column when the filler has stood down. */
-	grow: boolean;
 }
 
 function getColumns({
-	showIssue,
-	grow
+	showIssue
 }: GetColumnsArgs): ColumnDef<IssueRuleRow, unknown>[] {
-	// Where the slack goes once the filler stands down. The issue title is the
-	// natural home for it, but the per-issue view drops that column entirely —
-	// there the test path is the only thing on the row long enough to want it.
-	const growIssue = grow && showIssue;
-	const growTest = grow && !showIssue;
-
 	return [
 		{
 			// Whether this rule is in force, at the row's leading edge. `active`
@@ -746,35 +601,25 @@ function getColumns({
 			)
 		},
 		{
-			id: COLUMN_ID.EXPANDER,
-			enableHiding: false,
-			header: () => null,
-			meta: { className: 'w-9' },
-			enableSorting: false,
-			cell: ({ row }) => (
-				<ExpandButton
-					isExpanded={row.getIsExpanded()}
-					onClick={row.getToggleExpandedHandler()}
-					label={
-						row.getIsExpanded() ? 'Hide matcher' : 'Show what this rule matches'
-					}
-					testId="issue-rule-expander"
-				/>
-			)
-		},
-		{
-			// Straight after the expander, matching the issues list: the controls
-			// sit where the row starts rather than at its far edge.
+			// Leading the row, matching the issues list: the controls sit where the
+			// row starts rather than at its far edge.
 			id: COLUMN_ID.ACTIONS,
 			enableHiding: false,
 			header: 'Actions',
-			meta: {
-				className: ISSUE_ACTIONS_COLUMN_CLASS,
-				headerClassName: ISSUE_ACTIONS_HEADER_CLASS
-			},
+			meta: ISSUE_ACTIONS_COLUMN_META,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex items-center gap-1.5 w-fit">
+				// Stacked rather than strung out along the row: a vertical run of
+				// labelled buttons is legible where icons behind vertical rules were
+				// not. `w-fit` keeps the group off the cell's full width so the
+				// column collapses to the longest label.
+				//
+				// Enable/Disable is deliberately absent. Flipping a rule's active
+				// flag decides whether it classifies future imports at all, and a
+				// one-click toggle repeated down every row made that the easiest
+				// thing on the page to do by accident. It is the Rule field on the
+				// edit form now.
+				<div className="flex flex-col items-stretch gap-1 w-fit">
 					{/* Cross-issue view only — on an issue's own page you are already
 					    where this would take you. */}
 					{showIssue ? (
@@ -783,31 +628,34 @@ function getColumns({
 								issueId={row.original.issue}
 								title={row.original.issueTitle}
 							/>
-							<Separator orientation="vertical" className="h-5" />
+							{/* Above the rule is where you go; below it is what you do to
+							    the rule itself. */}
+							<Separator className="my-0.5" />
 						</>
 					) : null}
-					<RuleToggle rule={row.original} />
-					{/* Authoring sits behind the lifecycle toggle and its own rule:
-					    Disable is the one you reach for daily, and these three are
-					    icon-only so a column that already carries two labelled
-					    buttons does not grow again. All four hide for non-admins. */}
-					<Separator orientation="vertical" className="h-5" />
-					<EditRuleButton rule={row.original} iconOnly />
-					<DuplicateRuleButton rule={row.original} iconOnly />
-					<RuleDeleteButton rule={row.original} iconOnly />
+					{/* Both hide for non-admins. */}
+					<EditRuleButton rule={row.original} />
+					<RuleDeleteButton rule={row.original} />
 				</div>
 			)
 		},
+		// A rule is per-project, and the list has to say which before it says
+		// anything else about it — a rule that applies somewhere you are not
+		// looking is a different fact from the same rule in your own project.
+		PROJECT_COLUMN,
 		{
-			// Shrink-to-fit rather than capped: a test path is one unbroken token,
-			// so wrapping it helps nobody, and the filler column takes the slack
-			// this would otherwise absorb.
+			// A test path is one long unbroken token. `overflow-wrap-anywhere` is
+			// what lets the track shrink under pressure — without it the column's
+			// min-content width is the whole path, and a single deep test would
+			// push the table into horizontal scroll for every row in it.
 			id: COLUMN_ID.TEST,
 			accessorFn: (row) => row.test_name,
 			header: 'Test',
-			meta: {
-				className: growTest ? 'w-full' : 'w-px whitespace-nowrap'
-			},
+			// Flexible rather than `max-content`, so a single deep test path
+			// cannot set the width of the column for every other row.
+			// `overflow-wrap-anywhere` is what lets it shrink: without it the
+			// column's min-content width is the whole unbroken path.
+			meta: { width: 'minmax(5rem, 1fr)' },
 			// The toolbar's free-text box lives on this column. On the cross-issue
 			// view the issue is part of the row, so it is part of the haystack.
 			filterFn: makeSearchFilter<IssueRuleRow>((row) =>
@@ -816,46 +664,24 @@ function getColumns({
 					: [row.test_name]
 			),
 			cell: ({ row }) => (
-				<span className="font-medium text-text-primary">
+				<span className="font-medium text-text-primary overflow-wrap-anywhere">
 					{row.original.test_name}
 				</span>
 			)
 		},
-		// A rule is per-project, and until now the list never said which. It sits
-		// beside the test because the two together are what the rule is *about*:
-		// this test, in this project.
-		PROJECT_COLUMN,
 		ACTIVE_COLUMN,
 		SCOPE_COLUMN,
 		DISPOSITION_COLUMN,
-		...(showIssue
-			? [
-					KEY_COLUMN,
-					{
-						...ISSUE_COLUMN,
-						meta: {
-							...ISSUE_COLUMN.meta,
-							className: growIssue ? 'w-full' : 'w-[22rem]'
-						}
-					},
-					ISSUE_STATE_COLUMN
-			  ]
-			: []),
+		...(showIssue ? [KEY_COLUMN, ISSUE_COLUMN, ISSUE_STATE_COLUMN] : []),
 		CATEGORY_COLUMN,
+		// The matcher itself, and the only columns here declared `1fr`: their
+		// chips wrap, so they are the ones with something to do with spare width.
+		// This is also what replaced the empty filler column the table used to
+		// carry — under `table-auto` the slack had to be parked somewhere it could
+		// do no harm, and under a grid it simply goes to the tracks that asked.
 		TAGS_COLUMN,
 		VERDICTS_COLUMN,
-		PARAMETERS_COLUMN,
-		{
-			// Somewhere for `table-auto` to put the spare width of a `w-full`
-			// table. Without it the slack is shared across the data columns, and
-			// the ones declared to shrink to their contents quietly stop doing so.
-			// This column exists to be empty.
-			id: COLUMN_ID.FILLER,
-			enableHiding: false,
-			header: () => null,
-			enableSorting: false,
-			cell: () => null
-		}
+		PARAMETERS_COLUMN
 	];
 }
 
@@ -920,38 +746,22 @@ export function IssueRulesTable({
 }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
-	const scrollRef = useRef<HTMLDivElement>(null);
-	const [shellRef, isWide] = useFillerVisible(FILLER_MIN_WIDTH.issueRules);
+	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
+	// the pinned header, and the shadow over the footer.
+	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	// Keyed by mode, not by the component. These are two different pages -- the
 	// project's whole rule list and one issue's rules -- and they do not even
 	// show the same columns, since Issue is meaningless once every row shares
 	// one. Sharing a key meant hiding a column on one hid it on the other.
-	// The per-issue view keeps the original key so its stored preference
-	// survives; the cross-issue list starts from the defaults.
+	//
+	// `-v2` because the stored value outlives the default: everyone who has used
+	// this page before has `{tags, verdicts, parameters} = false` in local
+	// storage, and would go on seeing the old three-column-short list forever.
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
-		showIssue ? 'issue-rules-all' : 'issue-rules',
+		showIssue ? 'issue-rules-all-v2' : 'issue-rules-v2',
 		DEFAULT_COLUMN_VISIBILITY
 	);
 
-	// The filler exists only to absorb width no data column wants. The matcher
-	// columns hold long, wrappable content and are the one thing here that
-	// should grow, so when any of them is on the filler stands down and they
-	// share the space instead of being pinned beside an empty column.
-	//
-	// Narrow tables want the same thing for the opposite reason: there is no
-	// slack left to park, so the filler would only be squeezing the columns
-	// that carry something. Both cases stand it down; only the second needs a
-	// data column told to grow, since with a matcher column on there is already
-	// one that will.
-	const showsMatcher = useMemo(
-		() => MATCHER_COLUMN_IDS.some((id) => columnVisibility[id] !== false),
-		[columnVisibility]
-	);
-	const showFiller = isWide && !showsMatcher;
-	const effectiveColumnVisibility = useMemo<VisibilityState>(
-		() => ({ ...columnVisibility, [COLUMN_ID.FILLER]: showFiller }),
-		[columnVisibility, showFiller]
-	);
 	const {
 		pagination,
 		onPaginationChange,
@@ -1028,10 +838,7 @@ export function IssueRulesTable({
 	// What the server says the filtered set holds, not what this page holds —
 	// the difference between "25 of 45 rules" and the old "25 of 25".
 	const totalCount = rulesData?.pagination.count ?? 0;
-	const columns = useMemo(
-		() => getColumns({ showIssue, grow: !isWide && !showsMatcher }),
-		[showIssue, isWide, showsMatcher]
-	);
+	const columns = useMemo(() => getColumns({ showIssue }), [showIssue]);
 	const {
 		categoryOptions,
 		dispositionOptions,
@@ -1049,12 +856,7 @@ export function IssueRulesTable({
 	const table = useReactTable({
 		data: rules,
 		columns,
-		state: {
-			columnFilters,
-			sorting,
-			pagination,
-			columnVisibility: effectiveColumnVisibility
-		},
+		state: { columnFilters, sorting, pagination, columnVisibility },
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnFiltersChange,
 		onSortingChange,
@@ -1072,11 +874,9 @@ export function IssueRulesTable({
 		// the set itself, the client pass matches everything it is given and
 		// quietly becomes a no-op.
 		getRowId: (row) => String(row.id),
-		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getSortedRowModel: getSortedRowModel()
 	});
 
 	const pageCount = table.getPageCount();
@@ -1095,10 +895,21 @@ export function IssueRulesTable({
 	// Filtering happens locally, so the server's count no longer describes what
 	// is on screen once a facet is on.
 	const matchedCount = table.getFilteredRowModel().rows.length;
-	const isNarrowed = hasFilters || Boolean(search);
 
+	// Both of these change which rows are on screen, so both return the reader
+	// to the top of the list rather than to wherever the last page happened to
+	// leave the scroll position.
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
+		scrollToTop();
+	}
+
+	function setPageSize(pageSize: number) {
+		table.setPageSize(pageSize);
+		scrollToTop();
+	}
+
+	function scrollToTop() {
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
@@ -1134,7 +945,7 @@ export function IssueRulesTable({
 	}
 
 	return (
-		<div ref={shellRef} className="flex flex-col flex-1 min-h-0">
+		<div className="flex flex-col flex-1 min-h-0">
 			<ClassificationToolbar>
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Rules
@@ -1231,8 +1042,15 @@ export function IssueRulesTable({
 						Reset
 					</ButtonTw>
 				</Tooltip>
+				{/* The two controls that act on the table rather than on what it is
+				    showing, grouped at the trailing edge behind their own rule. */}
 				<div className="flex items-center gap-2 ml-auto">
-					{toolbarActions}
+					{toolbarActions ? (
+						<>
+							{toolbarActions}
+							<ClassificationToolbarSeparator />
+						</>
+					) : null}
 					<ColumnsVisibility
 						items={columnVisibilityItems(table)}
 						onColumnToggle={(id, checked) =>
@@ -1242,7 +1060,9 @@ export function IssueRulesTable({
 				</div>
 			</ClassificationToolbar>
 
-			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+			{/* Grey, because the rows are white cards and a card needs something to
+			    sit on. The toolbar and footer paint their own white. */}
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
 				{rows.length === 0 ? (
 					<BublikEmptyState
 						title="No matching rules"
@@ -1253,6 +1073,7 @@ export function IssueRulesTable({
 					<ClassificationTable
 						table={table}
 						stickyHeader
+						scrollRef={scrollRef}
 						testId="issue-rules-table"
 						getRowAttributes={(row) => ({
 							'data-testid': 'issue-rule-row',
@@ -1260,19 +1081,18 @@ export function IssueRulesTable({
 							'data-project-id': row.original.project,
 							'data-rule-active': row.original.active ? 'true' : 'false'
 						})}
-						renderSubRow={(row) => (
-							<MatcherDetail rule={row.original} facets={facets} />
-						)}
 					/>
 				)}
 			</div>
 
-			<ClassificationFooter>
-				<span className="text-xs text-text-menu tabular-nums">
-					{isNarrowed
-						? `${matchedCount} of ${totalCount} rules`
-						: `${totalCount} ${totalCount === 1 ? 'rule' : 'rules'}`}
-				</span>
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={matchedCount}
+					totalCount={matchedCount}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="rule"
+				/>
 				<Pagination
 					className="ml-auto"
 					variant="compact"
@@ -1280,7 +1100,7 @@ export function IssueRulesTable({
 					pageSize={pagination.pageSize}
 					currentPage={pagination.pageIndex + 1}
 					onPageChange={goToPage}
-					onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+					onPageSizeChange={setPageSize}
 				/>
 			</ClassificationFooter>
 		</div>

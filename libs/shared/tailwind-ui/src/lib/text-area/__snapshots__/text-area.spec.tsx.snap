@@ -3,15 +3,16 @@
 exports[`TextArea > should render default variant 1`] = `
 <DocumentFragment>
   <div
-    class="flex flex-col gap-2"
+    class="relative"
   >
     <label
-      class="block mb-1 text-sm font-medium text-text-primary"
+      class="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 z-10 bg-white"
+      data-testid="input-label"
     >
       Text area
     </label>
     <textarea
-      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+      class="block w-full px-3.5 py-[7px] rounded border outline-none transition-all text-text-secondary font-medium text-[0.875rem] placeholder:text-text-menu placeholder:font-normal resize-none focus:ring-transparent active:shadow-none disabled:text-text-menu disabled:cursor-not-allowed border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
     />
   </div>
 </DocumentFragment>
@@ -20,15 +21,16 @@ exports[`TextArea > should render default variant 1`] = `
 exports[`TextArea > should render primary variant 1`] = `
 <DocumentFragment>
   <div
-    class="flex flex-col gap-2"
+    class="relative"
   >
     <label
-      class="block mb-1 text-sm font-medium text-text-primary"
+      class="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 z-10 bg-white"
+      data-testid="input-label"
     >
       Text area
     </label>
     <textarea
-      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+      class="block w-full px-3.5 py-[7px] rounded border outline-none transition-all text-text-secondary font-medium text-[0.875rem] placeholder:text-text-menu placeholder:font-normal resize-none focus:ring-transparent active:shadow-none disabled:text-text-menu disabled:cursor-not-allowed border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
     />
   </div>
 </DocumentFragment>
@@ -37,21 +39,23 @@ exports[`TextArea > should render primary variant 1`] = `
 exports[`TextArea > should render with error 1`] = `
 <DocumentFragment>
   <div
-    class="flex flex-col gap-2"
+    class="relative"
   >
     <label
-      class="block mb-1 text-sm font-medium text-text-primary"
+      class="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 z-10 bg-white"
+      data-testid="input-label"
     >
       Text area
     </label>
     <textarea
-      class="block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none border-bg-error focus:shadow-text-field-error focus:border-bg-error hover:border-bg-error"
+      class="block w-full px-3.5 py-[7px] rounded border outline-none transition-all text-text-secondary font-medium text-[0.875rem] placeholder:text-text-menu placeholder:font-normal resize-none focus:ring-transparent active:shadow-none disabled:text-text-menu disabled:cursor-not-allowed border-bg-error focus:shadow-text-field-error focus:border-bg-error hover:border-bg-error caret-bg-error shadow-text-field-error"
     />
-    <p
+    <span
       class="text-[0.75rem] font-normal text-bg-error"
+      data-testid="input-error-message"
     >
       Error message
-    </p>
+    </span>
   </div>
 </DocumentFragment>
 `;

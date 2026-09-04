@@ -20,7 +20,6 @@ import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	ClassificationVerdict,
-	type ResultClassification,
 	ResultIssueBadges,
 	resultClassification
 } from '@/bublik/features/result-classification';
@@ -147,27 +146,9 @@ export const getColumns = ({
 						);
 					}
 
-					// The verdict chip toggles the same way its category chips do, one
-					// axis over -- UNTRIAGED to sweep up everything nobody has looked
-					// at, COUNTS to see what a run is still being blamed for.
-					function handleClassificationClick(
-						classification: ResultClassification
-					) {
-						cell.column.setFilterValue(
-							createNextState(filterValue ?? {}, (draft) => {
-								const selected = draft.classifications ?? [];
-
-								draft.classifications = selected.includes(classification)
-									? selected.filter((c) => c !== classification)
-									: [...selected, classification];
-							})
-						);
-					}
-
-					// No result to render, but the classification line still has
-					// something to say — an untriaged chip, a Classify trigger, or
-					// both. It used to live in another column and was unaffected by
-					// this guard, so returning nothing here would quietly lose it.
+					// No result to render, but the line still carries the Classify
+					// trigger. It used to live in another column and was unaffected
+					// by this guard, so returning nothing here would quietly lose it.
 					// There is no result badge to trail, hence no leading rule.
 					if (!obtainedResult.result || !obtainedResult.verdicts) {
 						return (
@@ -177,8 +158,6 @@ export const getColumns = ({
 									hasError={obtainedResult.isNotExpected}
 									resultId={obtainedResult.resultId}
 									projectId={obtainedResult.projectId}
-									selectedClassifications={filterValue.classifications}
-									onClassificationClick={handleClassificationClick}
 									withLeadingSeparator={false}
 								/>
 								<ResultIssueBadges
@@ -250,8 +229,6 @@ export const getColumns = ({
 										hasError={obtainedResult.isNotExpected}
 										resultId={obtainedResult.resultId}
 										projectId={obtainedResult.projectId}
-										selectedClassifications={filterValue.classifications}
-										onClassificationClick={handleClassificationClick}
 									/>
 								}
 							/>

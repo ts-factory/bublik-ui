@@ -5,19 +5,19 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
 	IssueDetailHeader,
+	IssueHeaderBar,
 	IssueRulesTable,
 	NewRuleButton
 } from '@/bublik/features/result-classification';
 import {
 	useProjectSearch,
 	useTabTitleWithPrefix,
-	useNavigateWithProject,
-	LinkWithProject
+	useNavigateWithProject
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
-import { CardHeader, Icon } from '@/shared/tailwind-ui';
+
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 export const IssuePage = () => {
@@ -52,16 +52,20 @@ export const IssuePage = () => {
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issue-page">
 			<header className="flex flex-col bg-white rounded shrink-0">
-				<CardHeader label="Info">
-					<div className="flex items-center gap-2">
-						<CopyShortUrlButtonContainer />
-					</div>
-				</CardHeader>
-				<IssueDetailHeader
+				{/* The bar names the issue, says whether it is open, and carries
+				    every control that acts on it. It used to say `Info`, which named
+				    the card rather than the thing the page is about. */}
+				<IssueHeaderBar
 					issueId={numericIssueId}
 					projectId={projectId}
 					// The page is about an issue that no longer exists.
 					onDeleted={() => navigate(routes.issues({}))}
+				>
+					<CopyShortUrlButtonContainer />
+				</IssueHeaderBar>
+				<IssueDetailHeader
+					issueId={numericIssueId}
+					projectId={projectId}
 				/>
 			</header>
 			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">

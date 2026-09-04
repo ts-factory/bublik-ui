@@ -41,9 +41,12 @@ describe('components/Pagination', () => {
 	});
 
 	// The table footers pair this bar with a row count, so an empty footer reads
-	// as broken. `compact` stays put and simply disables both directions.
-	it('should stay visible at a single page when compact', () => {
-		const { getByTestId, getByRole } = render(
+	// as broken — `compact` stays mounted where every other variant bails. What
+	// it must not do is offer navigation: a disabled Previous, a `Page 1 of 1`
+	// and a disabled Next are three controls that can never do anything. The
+	// page-size select is the one thing still worth having, so it is what stays.
+	it('should keep the page size but drop navigation at a single page when compact', () => {
+		const { getByTestId, queryByRole } = render(
 			<Pagination
 				variant="compact"
 				totalCount={4}
@@ -53,7 +56,7 @@ describe('components/Pagination', () => {
 		);
 
 		expect(getByTestId('tw-pagination')).toBeVisible();
-		expect(getByRole('button', { name: 'Previous' })).toBeDisabled();
-		expect(getByRole('button', { name: 'Next' })).toBeDisabled();
+		expect(queryByRole('button', { name: '‹' })).not.toBeInTheDocument();
+		expect(queryByRole('button', { name: '›' })).not.toBeInTheDocument();
 	});
 });

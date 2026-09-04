@@ -259,7 +259,12 @@ export function EditIssueButton({
 					size="xss"
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
-					className="justify-center whitespace-nowrap"
+					// Labelled, this button sits in a vertical stack in a table row,
+					// where every label has to start at the same left edge.
+					className={cn(
+						'whitespace-nowrap',
+						iconOnly ? 'justify-center' : 'justify-start'
+					)}
 					data-testid="issue-edit"
 					aria-label="Edit issue"
 				>
@@ -370,7 +375,8 @@ export function IssueDeleteButton({
 					disabled={!canManage}
 					onClick={() => setIsOpen(true)}
 					className={cn(
-						'justify-center whitespace-nowrap',
+						'whitespace-nowrap',
+						iconOnly ? 'justify-center' : 'justify-start',
 						DESTRUCTIVE_FILL_CLASS
 					)}
 					data-testid="issue-delete"

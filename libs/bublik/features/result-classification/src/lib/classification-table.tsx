@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+	Fragment,
+	useEffect,
+	useRef,
+	useState,
+	type ReactNode,
+	type RefObject
+} from 'react';
 import {
 	flexRender,
 	type Row,
@@ -11,7 +18,6 @@ import {
 
 import { useDebounce, useLocalStorage } from '@/shared/hooks';
 import {
-	Icon,
 	Input,
 	Separator,
 	TableSort,
@@ -23,6 +29,18 @@ declare module '@tanstack/react-table' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface ColumnMeta<TData extends RowData, TValue> {
 		/**
+		 * This column's track in the table's grid, as a raw CSS grid track size —
+		 * `'max-content'`, `'11rem'`, `'minmax(0, 1fr)'`. The whole table is one
+		 * grid, so a width belongs to the column rather than to a class repeated on
+		 * every cell. Omitted, the column takes `minmax(0, 1fr)` and shares the
+		 * slack with the other growers.
+		 *
+		 * This replaced the `w-px whitespace-nowrap` idiom and the empty filler
+		 * column that idiom needed: `max-content` shrinks to the contents without a
+		 * neighbour to park the leftover width in.
+		 */
+		width?: string;
+		/**
 		 * A column whose cells hold badges rather than bare text. A badge carries
 		 * its own `px-2` on top of the cell's, so its text starts 8px further in
 		 * than a plain cell's — enough that the header above it reads as
@@ -30,41 +48,66 @@ declare module '@tanstack/react-table' {
 		 * hand-tuning a class on each one.
 		 */
 		badgeCell?: boolean;
-		/**
-		 * Applied to the header cell only. `className` lands on both the `th` and
-		 * every `td`, which is right for width but not for padding a label into
-		 * line with content that starts further in than the cell does.
-		 */
+		/** Applied to header and body cells alike. */
+		className?: string;
+		/** Applied to the header cell only. */
 		headerClassName?: string;
-		/**
-		 * Applied to the body cells only. The counterpart to `headerClassName`,
-		 * and the one a full-bleed cell needs: a `position` on the shared
-		 * `className` reaches the `th` as well, where `twMerge` reads it as
-		 * conflicting with the pinned header's `sticky` and drops it — the header
-		 * then scrolls under the rows instead of staying above them.
-		 */
+		/** Applied to the body cells only. */
 		cellClassName?: string;
 	}
 }
 
 /**
- * The run table's markup, factored out so every classification table looks the
- * same: ruled rows, a ruled header, and cells that share one border grid
- * rather than floating as separate rounded pills.
+ * The shared markup of every classification table.
  *
- * Mirrors `run-table/components/{header,row}` — keep the class strings in step
- * with those if they change.
+ * There is no `<table>` and no row element: the whole table is a single CSS
+ * grid, and header cells and body cells are emitted flat into it. That is what
+ * lets a row read as a *card* — each cell paints its own white background, the
+ * end cells round the corners and close the border, and `mt-1` puts a gap
+ * between one row and the next.
+ *
+ * Mirrors `ImportEventTable` and `HistoryLinearTable`, which is where this shape
+ * comes from — keep the class strings in step with those if they change.
+ *
+ * Two consequences of having no row element, both load-bearing:
+ *
+ *  - Row hover is React state, not `group-hover:`. There is nothing to hang a
+ *    group on, and every cell has to light up together.
+ *  - `getRowAttributes` lands on a `display: contents` wrapper. It generates no
+ *    box, so the cells stay direct grid items, but the `data-*` hooks still
+ *    exist in the DOM.
  */
+
+/** The track a column takes when it does not name one. */
+const DEFAULT_TRACK = 'minmax(0, 1fr)';
+
+/**
+ * How a table is dressed.
+ *
+ * `card` is the standalone look: white rows on the grey page, one card per row.
+ * `nested` is for a table rendered *inside* an expanded row, where the card it
+ * sits in is already white — so the rows take the pale wash instead, exactly as
+ * the run's own result table does. Same shape, inverted ground.
+ */
+export type ClassificationTableVariant = 'card' | 'nested';
 
 export interface ClassificationTableProps<T> {
 	table: Table<T>;
+	/** Defaults to `card`. See `ClassificationTableVariant`. */
+	variant?: ClassificationTableVariant;
 	/**
 	 * Pins the header row while the body scrolls. Off by default because the
 	 * same component renders expanded sub-tables, which scroll with their parent
 	 * and would otherwise pin a second header mid-page.
 	 */
 	stickyHeader?: boolean;
-	/** Rendered in a full-width row under an expanded row. */
+	/**
+	 * The pane this table scrolls inside. Only used to fade in the shadow under
+	 * the pinned header once there is something above the fold — without it the
+	 * header floats over the first card with nothing to say it is pinned.
+	 */
+	scrollRef?: RefObject<HTMLElement>;
+	/** Rendered in a full-width block under an expanded row. */
 	renderSubRow?: (row: Row<T>) => ReactNode;
 	/** Extra attributes per row, typically `data-*` hooks for e2e. */
 	getRowAttributes?: (row: Row<T>) => Record<string, string | number>;
@@ -73,36 +116,60 @@ export interface ClassificationTableProps<T> {
 
 export function ClassificationTable<T>({
 	table,
+	variant = 'card',
 	stickyHeader = false,
+	scrollRef,
 	renderSubRow,
 	getRowAttributes,
 	testId
 }: ClassificationTableProps<T>) {
+	const isScrolled = useIsScrolled(scrollRef);
+
+	// Off the live table rather than off the column defs: these tables have
+	// hideable columns, so the track list has to follow what is actually on.
+	const gridTemplateColumns = table
+		.getVisibleLeafColumns()
+		.map((column) => column.columnDef.meta?.width ?? DEFAULT_TRACK)
+		.join(' ');
+
 	return (
-		<table
-			// Width fills, height does not: inside a `flex-1` scroll pane a
-			// `h-full` table stretches to the pane and the leftover height is
-			// dumped into the first row, which then towers over the rest.
-			className="w-full p-0 m-0 border-separate border-spacing-0"
+		<div
+			className="grid w-full"
+			style={{ gridTemplateColumns }}
+			role="table"
 			data-testid={testId}
 		>
-			<thead className="text-left text-[0.6875rem] font-semibold leading-[0.875rem]">
-				{table.getHeaderGroups().map((headerGroup) => (
-					<tr key={headerGroup.id} className="h-8.5">
-						{headerGroup.headers.map((header, idx, arr) => {
+			{table.getHeaderGroups().map((headerGroup) => (
+				<Fragment key={headerGroup.id}>
+					<div className="contents" role="row">
+						{headerGroup.headers.map((header, idx, headers) => {
 							const canSort = header.column.getCanSort();
 
 							return (
-								<th
+								<div
 									key={header.id}
-									colSpan={header.colSpan}
+									role="columnheader"
 									className={cn(
-										'px-2 bg-primary-wash border-b border-border-primary',
-										// The border lives on the `th`, not the `tr`, so it travels
-										// with the sticky cell — under `border-separate` a row-level
-										// border would be left behind by the scrolling body.
+										// 32px overall: 28px of label over 4px of white. The gap
+										// under the header is padding rather than margin on
+										// purpose — a margin is transparent, so with the header
+										// pinned the rows would slide visibly through the slit
+										// beneath it.
+										'flex items-center h-8 px-2 pb-1',
+										variant === 'nested'
+											? 'bg-primary-wash'
+											: 'bg-white',
+										// Only the nested variant rounds. Its header is a band
+										// floating inside a panel, so it wants ends; the card
+										// variant's header is page chrome running the full width
+										// of the table, and rounding it would leave two notches
+										// of grey against nothing.
+										variant === 'nested' && idx === 0 && 'rounded-l-md',
+										variant === 'nested' &&
+											idx === headers.length - 1 &&
+											'rounded-r-md',
+										'text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
 										stickyHeader && 'sticky top-0 z-10',
-										idx !== arr.length - 1 && 'border-r',
 										// A sortable header already gains 4px from its own
 										// wrapper, so it needs 4px less here to land on 16px.
 										header.column.columnDef.meta?.badgeCell &&
@@ -115,8 +182,8 @@ export function ClassificationTable<T>({
 										<div
 											onClick={header.column.getToggleSortingHandler()}
 											className={cn(
-												'flex items-center gap-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-white/60',
-												header.column.getIsSorted() && 'bg-white/60'
+												'flex items-center gap-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-primary-wash',
+												header.column.getIsSorted() && 'bg-primary-wash'
 											)}
 										>
 											{flexRender(
@@ -133,51 +200,147 @@ export function ClassificationTable<T>({
 											header.getContext()
 										)
 									)}
-								</th>
+								</div>
 							);
 						})}
-					</tr>
-				))}
-			</thead>
-			{/* Every row gets a bottom rule, the last one included. Excluding it
-			    left the table trailing off into whitespace above the footer, so a
-			    short list read as if it had failed to finish rendering. */}
-			<tbody className="text-[0.75rem] leading-[1.125rem] font-medium [&>*>*]:border-b [&>*>*]:border-border-primary">
-				{table.getRowModel().rows.map((row) => (
-					<Fragment key={row.id}>
-						<tr
-							className="relative h-full [&>*]:hover:bg-gray-50"
-							{...getRowAttributes?.(row)}
-						>
-							{row.getVisibleCells().map((cell, idx, arr) => (
-								<td
-									key={cell.id}
-									className={cn(
-										'px-2 py-1 align-middle bg-white',
-										idx !== arr.length - 1 && 'border-r border-border-primary',
-										cell.column.columnDef.meta?.className,
-										cell.column.columnDef.meta?.cellClassName
-									)}
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</td>
-							))}
-						</tr>
-						{renderSubRow && row.getIsExpanded() ? (
-							<tr>
-								<td
-									colSpan={row.getVisibleCells().length}
-									className="p-0 border-b bg-primary-wash/40 border-border-primary"
-								>
-									{renderSubRow(row)}
-								</td>
-							</tr>
-						) : null}
-					</Fragment>
-				))}
-			</tbody>
-		</table>
+					</div>
+					{/* Pinned a header's height down and spanning every track, so one
+					    shadow falls across the whole header instead of one per cell
+					    drawing down the seams between them. */}
+					{stickyHeader ? (
+						<div
+							aria-hidden
+							className={cn(
+								'sticky top-8 z-10 col-span-full h-2 -mb-2 pointer-events-none bg-gradient-to-b from-black/10 to-transparent transition-opacity',
+								isScrolled ? 'opacity-100' : 'opacity-0'
+							)}
+						/>
+					) : null}
+				</Fragment>
+			))}
+			{table.getRowModel().rows.map((row) => (
+				<ClassificationRow
+					key={row.id}
+					row={row}
+					variant={variant}
+					renderSubRow={renderSubRow}
+					attributes={getRowAttributes?.(row)}
+				/>
+			))}
+		</div>
 	);
+}
+
+interface ClassificationRowProps<T> {
+	row: Row<T>;
+	variant: ClassificationTableVariant;
+	renderSubRow?: (row: Row<T>) => ReactNode;
+	attributes?: Record<string, string | number>;
+}
+
+/**
+ * One row's cells, emitted straight into the table's grid.
+ *
+ * The card look is rebuilt per cell: every cell reserves a transparent 1px
+ * border on all four sides — so hovering only swaps a colour and nothing shifts
+ * — and the two end cells round their outer corners and close the border there.
+ */
+function ClassificationRow<T>({
+	row,
+	variant,
+	renderSubRow,
+	attributes
+}: ClassificationRowProps<T>) {
+	const [hovered, setHovered] = useState(false);
+	const cells = row.getVisibleCells();
+	const isExpanded = Boolean(renderSubRow) && row.getIsExpanded();
+
+	return (
+		<Fragment>
+			<div className="contents" role="row" {...attributes}>
+				{cells.map((cell, idx) => {
+					const isFirst = idx === 0;
+					const isLast = idx === cells.length - 1;
+
+					return (
+						<div
+							key={cell.id}
+							role="cell"
+							onMouseEnter={() => setHovered(true)}
+							onMouseLeave={() => setHovered(false)}
+							className={cn(
+								'mt-1 border-y border-y-transparent transition-colors',
+								'text-[0.75rem] leading-[1.125rem] font-medium',
+								variant === 'nested'
+									? // The run's result table, cell for cell: pale rows on the
+									  // white card they are nested in, top-aligned because a
+									  // verdict list is several lines and its result badge
+									  // belongs beside the first of them.
+									  'px-1 py-2 bg-primary-wash flex items-start whitespace-pre-wrap overflow-wrap-anywhere'
+									: 'px-2 py-1.5 bg-white',
+								// `overflow-hidden` on the leading cell is what gives the
+								// status stripe — which is `absolute inset-0` — the card's
+								// rounded corner without knowing anything about it.
+								isFirst &&
+									'rounded-l-md border-l border-l-transparent overflow-hidden',
+								isLast && 'rounded-r-md border-r border-r-transparent',
+								hovered && 'border-y-primary',
+								hovered && isFirst && 'border-l-primary',
+								hovered && isLast && 'border-r-primary',
+								// Expanded, the card continues into the panel below it, so it
+								// stops rounding and stops drawing an edge between the two.
+								isExpanded && 'border-b-transparent',
+								isExpanded && isFirst && 'rounded-bl-none',
+								isExpanded && isLast && 'rounded-br-none',
+								cell.column.columnDef.meta?.className,
+								cell.column.columnDef.meta?.cellClassName
+							)}
+						>
+							{flexRender(cell.column.columnDef.cell, cell.getContext())}
+						</div>
+					);
+				})}
+			</div>
+			{isExpanded && renderSubRow ? (
+				<div
+					className={cn(
+						'col-span-full bg-white rounded-b-md border border-t-0 border-transparent transition-colors',
+						hovered && 'border-primary'
+					)}
+					onMouseEnter={() => setHovered(true)}
+					onMouseLeave={() => setHovered(false)}
+				>
+					{renderSubRow(row)}
+				</div>
+			) : null}
+		</Fragment>
+	);
+}
+
+/**
+ * Whether the given pane has anything scrolled above the fold.
+ *
+ * Only drives the header's shadow, so it is deliberately cheap: a scroll
+ * listener that flips one boolean rather than tracking the offset.
+ */
+function useIsScrolled(scrollRef?: RefObject<HTMLElement>) {
+	const [isScrolled, setIsScrolled] = useState(false);
+
+	useEffect(() => {
+		const container = scrollRef?.current;
+		if (!container) return;
+
+		function handleScroll() {
+			setIsScrolled((container as HTMLElement).scrollTop > 0);
+		}
+
+		handleScroll();
+		container.addEventListener('scroll', handleScroll);
+
+		return () => container.removeEventListener('scroll', handleScroll);
+	}, [scrollRef]);
+
+	return isScrolled;
 }
 
 export interface ClassificationToolbarProps {
@@ -197,19 +360,90 @@ export function ClassificationToolbar({
 
 export interface ClassificationFooterProps {
 	children: ReactNode;
+	/**
+	 * Whether the body above is actually scrolling. Draws the shadow that says
+	 * there is more table under this bar.
+	 */
+	isScrollable?: boolean;
 }
 
 /**
  * The toolbar's mirror, pinned under the scrolling body.
  *
- * It always renders, because the shared `Pagination` hides itself below two
- * pages and an empty bar would look broken — the row count keeps it occupied.
+ * It always renders, because the shared `Pagination` drops its navigation at a
+ * single page and an empty bar would look broken — the row count keeps it
+ * occupied.
+ *
+ * A shadow rather than a rule, and only while the body scrolls. A permanent
+ * `border-t` drew the same line whether or not anything was hidden behind it,
+ * which said "end of table" on a list that had ten more rows below the fold.
+ * Same treatment the drawers give their sticky submit and the table gives its
+ * pinned header.
  */
-export function ClassificationFooter({ children }: ClassificationFooterProps) {
+export function ClassificationFooter({
+	children,
+	isScrollable = false
+}: ClassificationFooterProps) {
 	return (
-		<div className="flex items-center gap-2 px-4 py-2 bg-white border-t border-border-primary shrink-0">
+		<div
+			className={cn(
+				'flex items-center gap-2 px-4 py-2 bg-white shrink-0 z-10 transition-shadow',
+				isScrollable && 'shadow-sticky'
+			)}
+		>
 			{children}
 		</div>
+	);
+}
+
+export interface ClassificationRangeProps {
+	/** Rows the table can actually render right now, after every filter. */
+	matchedCount: number;
+	/** What the server says the unfiltered set holds. */
+	totalCount: number;
+	pageIndex: number;
+	pageSize: number;
+	/** Singular noun — `rule`, `issue`. Pluralised here. */
+	noun: string;
+}
+
+/**
+ * Which rows you are looking at, in one phrase.
+ *
+ * `1–25 of 45 rules` rather than a bare `45 rules`, because a count alone does
+ * not say where in the list you are — and the page position on the other side
+ * of the bar was answering a different question with the same word ("25 of 45
+ * rules" beside "1 / 1" put two meanings of *of* in one footer).
+ *
+ * The range counts what the table can render, not what the server holds. The
+ * two differ whenever a facet is on, since filtering is still a client-side
+ * pass over the page in hand — so the server's total is reported separately
+ * rather than folded in, where it would claim pages that do not exist.
+ */
+export function ClassificationRange({
+	matchedCount,
+	totalCount,
+	pageIndex,
+	pageSize,
+	noun
+}: ClassificationRangeProps) {
+	const plural = matchedCount === 1 ? noun : `${noun}s`;
+
+	if (!matchedCount) {
+		return (
+			<span className="text-xs text-text-primary tabular-nums">No {noun}s</span>
+		);
+	}
+
+	const first = pageIndex * pageSize + 1;
+	const last = pageIndex * pageSize + matchedCount;
+	const isNarrowed = matchedCount < totalCount;
+
+	return (
+		<span className="text-xs text-text-primary tabular-nums">
+			{first}–{last} of {matchedCount} {isNarrowed ? 'matching' : plural}
+			{isNarrowed ? ` · ${totalCount} total` : null}
+		</span>
 	);
 }
 
@@ -268,50 +502,10 @@ export function ClassificationSearch({
 	);
 }
 
-export interface ExpandButtonProps {
-	isExpanded: boolean;
-	onClick: () => void;
-	/** What expanding reveals — every table shows something different. */
-	label: string;
-	testId: string;
-}
-
 /**
- * The disclosure control for a `renderSubRow` table. Lives here rather than in
- * each table because all three drew the identical chevron and only disagreed on
- * the label, which is exactly the part that should differ.
- */
-export function ExpandButton({
-	isExpanded,
-	onClick,
-	label,
-	testId
-}: ExpandButtonProps) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			aria-expanded={isExpanded}
-			aria-label={label}
-			className="grid p-1 rounded place-items-center text-text-menu hover:bg-primary-wash hover:text-primary"
-			data-testid={testId}
-		>
-			<Icon
-				name="ArrowShortSmall"
-				size={18}
-				className={cn(
-					'transition-transform',
-					isExpanded ? 'rotate-0' : '-rotate-90'
-				)}
-			/>
-		</button>
-	);
-}
-
-/**
- * Divides the toolbar into its three jobs — what this table is, what is
- * narrowing it, what you can do to it — so a row of otherwise identically
- * styled controls reads as groups rather than as one undifferentiated strip.
+ * Divides the toolbar into its jobs — what this table is, what you can do to
+ * it, what is narrowing it — so a row of otherwise identically styled controls
+ * reads as groups rather than as one undifferentiated strip.
  */
 export function ClassificationToolbarSeparator() {
 	return <Separator orientation="vertical" className="h-5" />;
@@ -320,9 +514,9 @@ export function ClassificationToolbarSeparator() {
 /**
  * Turns a table's hideable columns into `ColumnsVisibility` items.
  *
- * Structural columns — the expander, the actions, the filler that soaks up
- * spare width — opt out via `enableHiding: false`, so they never appear in a
- * menu that offers to remove them.
+ * Structural columns — the expander, the actions, the status stripe — opt out
+ * via `enableHiding: false`, so they never appear in a menu that offers to
+ * remove them.
  */
 export function columnVisibilityItems<T>(
 	table: Table<T>

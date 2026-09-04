@@ -65,10 +65,14 @@ describe('StatusStripe', () => {
 	});
 
 	it('pins the gutter width rather than suggesting it', () => {
-		// `table-auto` treats a bare `width` as advice and squeezes the column
-		// when the row is crowded — precisely when the stripe matters most.
-		expect(STATUS_STRIPE_COLUMN_META.className).toContain('min-w-[24px]');
-		expect(STATUS_STRIPE_COLUMN_META.className).toContain('max-w-[24px]');
+		// A fixed grid track, not a Tailwind width: the table is one CSS grid, so
+		// the column's size belongs to the track list rather than to a class on
+		// every cell. This used to need `w-`/`min-w-`/`max-w-` all three, because
+		// `table-auto` treated a bare width as advice and squeezed the column
+		// exactly when the row was crowded — precisely when the stripe matters
+		// most. A grid track is not advice.
+		expect(STATUS_STRIPE_COLUMN_META.width).toBe('24px');
+		expect(STATUS_STRIPE_COLUMN_META.className).not.toMatch(/w-/);
 	});
 });
 

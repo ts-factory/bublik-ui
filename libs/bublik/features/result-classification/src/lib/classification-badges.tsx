@@ -22,8 +22,6 @@ import type {
 import {
 	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
-	RESULT_VERDICT_CHIP_CLASS,
-	type ResultClassification,
 	resultClassification,
 	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
@@ -179,7 +177,7 @@ export function CategoryBadgeList({
 		(a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
 	);
 
-	if (!unique.length) return <span className="text-text-menu">-</span>;
+	if (!unique.length) return null;
 
 	return (
 		// Never wraps. Badge columns size themselves with `w-px`, so the cell is
@@ -402,7 +400,12 @@ export function ProjectBadge({
 		<Tooltip content={`Rules in ${name}${toggle.hint}`}>
 			<Chip
 				className={cn(
-					'py-0.5 px-2 truncate rounded',
+					// `truncate` implies `white-space: nowrap`, which would otherwise
+					// make this chip's full name the min-content width of the column
+					// it sits in — one long project name and the whole table stops
+					// being able to shrink. The cap is what keeps that bounded; the
+					// tooltip already carries the name in full.
+					'py-0.5 px-2 max-w-[8rem] truncate rounded',
 					'text-[0.75rem] font-medium leading-[1.125rem]',
 					'text-text-primary',
 					// Transparent rather than absent, the way `badgeBaseStyles` does
@@ -566,19 +569,8 @@ export interface ClassificationVerdictProps {
 	 */
 	hasError: boolean;
 	/**
-	 * Classifications currently filtered on, so a matching chip shows selected.
-	 */
-	selectedClassifications?: string[];
-	/**
-	 * Makes the verdict chip a filter toggle. Omit for a read-only surface --
-	 * the chip then keeps its colour and loses every affordance, like the
-	 * category chips beneath it.
-	 */
-	onClassificationClick?: (classification: ResultClassification) => void;
-	/**
-	 * The result this verdict describes. Given one, a Classify trigger trails the
-	 * chip -- or stands alone on the rows that no longer carry one. Omit on a
-	 * surface where classifying makes no sense.
+	 * The result to classify. Without one there is nothing to draw — a surface
+	 * that only reads results, like history, classifies from the run instead.
 	 */
 	resultId?: number;
 	/**
@@ -604,43 +596,32 @@ function VerticalRule() {
 }
 
 /**
- * What the classification decided about one result, as the tail of its result
- * line:
+ * The Classify trigger, as the tail of a result line:
  *
- *     FAILED | UNTRIAGED | Classify
  *     FAILED | Classify
  *     PASSED | Classify
  *
- * One chip, and only ever the untriaged one. The classification has five other
- * answers -- the four effects and NO EFFECT -- and each was once a chip here,
- * but they restate on every row what the stamps directly beneath already say,
- * and they say it in the width of the result line. UNTRIAGED is the one that
- * does not: there are no stamps under it to read instead, and it is the only
- * verdict that asks the reader for something. The others are still there to
- * filter on, in the run toolbar's Classification facet, and still visible per
- * issue in the stamps below.
+ * No chip. This used to lead with UNTRIAGED on results that had no stamps yet,
+ * which meant Classify started at one of two offsets depending on the row —
+ * and it is the only thing here anyone clicks, so it should be in the same
+ * place every time. The result badge before it is fixed-width
+ * (`VERDICT_RESULT_BOXED_CLASS`), so with the chip gone Classify lands at one
+ * offset down the whole table.
  *
- * The chip that remains is computed across every stamp, because that is how the
- * backend decides: a result with one suppressing rule and one that does not is
- * suppressed, and a per-stamp answer could contradict itself.
+ * Nothing is lost that cannot be read elsewhere: a result with no stamps has an
+ * empty `ResultIssueBadges` under it, and the run toolbar's Classification facet
+ * still filters on untriaged along with the other five answers.
  *
  * `resultClassification` returning nothing -- a result that passed carrying no
- * stamps -- still empties the whole line, Classify included: there is nothing to
- * report and nothing worth classifying. So Classify appears on exactly the rows
- * it always did, any failure and any stamped pass, whether or not a chip travels
- * with it.
- *
- * `RESULT_VERDICT_CHIP_CLASS` stays on the chip, though it no longer buys what
- * it was for. Rows differ now, so the Classify trigger cannot land at one offset
- * down the table; boxing keeps the untriaged chips themselves a single width.
+ * stamps -- still empties the line: there is nothing worth classifying. So
+ * Classify appears on exactly the rows it always did, any failure and any
+ * stamped pass.
  */
 export function ClassificationVerdict({
 	issues,
 	hasError,
 	resultId,
 	projectId,
-	selectedClassifications,
-	onClassificationClick,
 	withLeadingSeparator = true
 }: ClassificationVerdictProps) {
 	const meta = resultClassification({ issues, hasError });
@@ -649,13 +630,10 @@ export function ClassificationVerdict({
 	// worth classifying, so the result badge stands alone.
 	if (!meta) return null;
 
-	const showVerdict = meta.value === UNTRIAGED_META.value;
-	const showClassify = resultId !== undefined;
-
 	// A read-only surface -- history, which classifies from the run -- has
-	// nothing left to draw once the chip is gone. Returning an empty flex box
-	// would leave its leading rule standing with nothing beside it.
-	if (!showVerdict && !showClassify) return null;
+	// nothing to draw at all. Returning an empty flex box would leave its
+	// leading rule standing with nothing beside it.
+	if (resultId === undefined) return null;
 
 	/*
 	 * Classify sits with the verdict it changes rather than in the Actions
@@ -667,25 +645,7 @@ export function ClassificationVerdict({
 	return (
 		<div className="flex items-center gap-1.5">
 			{withLeadingSeparator ? <VerticalRule /> : null}
-			{showVerdict ? (
-				<div className="contents" data-testid="result-untriaged">
-					<UntriagedBadge
-						isSelected={selectedClassifications?.includes(meta.value)}
-						onClick={
-							onClassificationClick
-								? () => onClassificationClick(meta.value)
-								: undefined
-						}
-						className={RESULT_VERDICT_CHIP_CLASS}
-					/>
-				</div>
-			) : null}
-			{/* Between two things, never at an edge: a chipless row reads
-			    `FAILED | Classify`, not `FAILED | | Classify`. */}
-			{showVerdict && showClassify ? <VerticalRule /> : null}
-			{showClassify ? (
-				<ClassifyButton resultId={resultId} projectId={projectId} />
-			) : null}
+			<ClassifyButton resultId={resultId} projectId={projectId} />
 		</div>
 	);
 }

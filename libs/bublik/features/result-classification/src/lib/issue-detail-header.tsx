@@ -1,7 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import type { ReactNode } from 'react';
+
 import { useGetIssueQuery, useGetIssueRulesQuery } from '@/services/bublik-api';
-import { Badge, Separator, Skeleton, Tooltip } from '@/shared/tailwind-ui';
+import {
+	Badge,
+	CardHeader,
+	Separator,
+	Skeleton,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
@@ -15,11 +23,114 @@ import { BugKeyChip } from './classification-badges';
 import { IssueStateToggle } from './issue-actions';
 import { EditIssueButton, IssueDeleteButton } from './issue-modal';
 
-export interface IssueDetailHeaderProps {
+export interface IssueHeaderBarProps {
 	issueId: number;
 	projectId?: number;
 	/** Where to go once the issue this page is about no longer exists. */
 	onDeleted?: () => void;
+	/** Page-level actions that are not about the issue — Copy Short URL. */
+	children?: ReactNode;
+}
+
+/**
+ * The issue page's card header: what this issue is, and everything you can do
+ * to it.
+ *
+ * It carries the title because a page whose header says `Info` does not say
+ * which issue you are looking at — the name was a heading inside the card,
+ * below the bar naming the card.
+ *
+ * Reads `Title │ Closed │ Open`. The state badge follows the name because open
+ * or closed is the first thing that qualifies it, and the toggle follows the
+ * badge because it is the control that changes it — across the bar with Edit
+ * and Delete, reading the state and acting on it were two separate journeys.
+ * Authoring and the page-level actions keep the trailing edge.
+ */
+export function IssueHeaderBar({
+	issueId,
+	projectId,
+	onDeleted,
+	children
+}: IssueHeaderBarProps) {
+	const { data: issue } = useGetIssueQuery({ issueId, projectId });
+
+	// The bar keeps its height and its trailing actions while the title loads,
+	// so the card does not change shape underneath the cursor.
+	const stateMeta = issue ? issueStateMeta(issue.state) : null;
+
+	return (
+		<CardHeader
+			label={
+				<div className="flex items-center min-w-0 gap-2">
+					{issue ? (
+						<h1
+							className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary truncate"
+							title={issue.title}
+						>
+							{issue.title}
+						</h1>
+					) : (
+						<Skeleton className="w-48 h-4 rounded" />
+					)}
+					{stateMeta && issue ? (
+						<>
+							{/* A rule between the name and the state, so a long title
+							    running up against a badge reads as two things rather
+							    than as one run-on phrase. */}
+							<Separator orientation="vertical" className="h-4" />
+							<Tooltip content={stateMeta.description}>
+								<Badge
+									variant={stateMeta.variant}
+									className={CLASSIFICATION_BADGE_CLASS}
+								>
+									{stateMeta.label}
+								</Badge>
+							</Tooltip>
+							{/* The control sits against the state it changes rather than
+							    across the bar with the authoring buttons: reading
+							    `Closed` and reaching for `Open` should not mean crossing
+							    the header to find it. */}
+							<Separator orientation="vertical" className="h-4" />
+							<IssueStateToggle
+								issueId={issueId}
+								state={issue.state}
+								projectId={projectId}
+							/>
+						</>
+					) : null}
+				</div>
+			}
+		>
+			<div className="flex items-center gap-2 shrink-0">
+				{issue ? (
+					<>
+						<EditIssueButton
+							issueId={issueId}
+							projectId={projectId}
+							issue={issue}
+						/>
+						<IssueDeleteButton
+							issueId={issueId}
+							title={issue.title}
+							projectId={projectId}
+							onDeleted={onDeleted}
+						/>
+					</>
+				) : null}
+				{children ? (
+					<>
+						<Separator orientation="vertical" className="h-5" />
+						{children}
+					</>
+				) : null}
+			</div>
+		</CardHeader>
+	);
+}
+
+export interface IssueDetailHeaderProps {
+	issueId: number;
+	projectId?: number;
 }
 
 interface FactProps {
@@ -54,10 +165,14 @@ function TimeValue({ value }: { value: string }) {
 	);
 }
 
+/**
+ * The issue's facts, under the bar that names it. Identity, state and the
+ * controls live in `IssueHeaderBar`; what is left here is everything you read
+ * rather than act on.
+ */
 export function IssueDetailHeader({
 	issueId,
-	projectId,
-	onDeleted
+	projectId
 }: IssueDetailHeaderProps) {
 	const {
 		data: issue,
@@ -81,7 +196,6 @@ export function IssueDetailHeader({
 	if (error) return <BublikErrorState error={error} className="h-40" />;
 	if (!issue) return null;
 
-	const stateMeta = issueStateMeta(issue.state);
 	const issueRules = rules?.results ?? [];
 	const activeCount = issueRules.filter((rule) => rule.active).length;
 	const rulesMeta = issueRulesState({
@@ -96,36 +210,6 @@ export function IssueDetailHeader({
 			data-testid="issue-detail-header"
 			data-issue-state={issue.state}
 		>
-			{/* Identity only. The badges used to trail the title on this line,
-			    which put four differently shaped things in a row and left none of
-			    them labelled — you had to already know that `2 of 9 rules active`
-			    was about rules. */}
-			<div className="flex flex-wrap items-center gap-2">
-				<h1 className="text-sm font-semibold text-text-primary">
-					{issue.title}
-				</h1>
-				<BugKeyChip
-					bugKey={issue.issue_ext?.key ?? null}
-					bugUrl={issue.bug_url ?? null}
-				/>
-				{/* Labelled here, unlike in a table row: this line has the room, and
-				    the page is where you come to change an issue rather than to
-				    scan a list of them. `ml-auto` keeps them off the title. */}
-				<div className="flex items-center gap-1.5 ml-auto">
-					<EditIssueButton
-						issueId={issueId}
-						projectId={projectId}
-						issue={issue}
-					/>
-					<IssueDeleteButton
-						issueId={issueId}
-						title={issue.title}
-						projectId={projectId}
-						onDeleted={onDeleted}
-					/>
-				</div>
-			</div>
-
 			{issue.description ? (
 				<p className="text-xs leading-[1.125rem] whitespace-pre-wrap text-text-menu">
 					{issue.description}
@@ -135,28 +219,16 @@ export function IssueDetailHeader({
 			{/* Each badge now sits against its own label, in the same two-column
 			    list as the dates — one vertical run of `label: value` rather than
 			    a header row of unlabelled chips and a list underneath. */}
-			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4 pt-3 border-t border-border-primary">
-				<Fact label="State">
-					<div className="flex items-center gap-2">
-						<Tooltip content={stateMeta.description}>
-							<Badge
-								variant={stateMeta.variant}
-								className={CLASSIFICATION_BADGE_CLASS}
-							>
-								{stateMeta.label}
-							</Badge>
-						</Tooltip>
-						<Separator orientation="vertical" className="h-4" />
-						{/* The same control the tables render, so the button that
-						    closes an issue looks and reads the same wherever you meet
-						    it — and here it sits directly against the state it
-						    changes. */}
-						<IssueStateToggle
-							issueId={issueId}
-							state={issue.state}
-							projectId={projectId}
-						/>
-					</div>
+			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
+				{/* State and its toggle moved to the card header — see
+				    `IssueHeaderBar`. The key stayed behind and took a labelled row
+				    instead of trailing the title, which is where the rest of the
+				    issue's facts already are. */}
+				<Fact label="Key">
+					<BugKeyChip
+						bugKey={issue.issue_ext?.key ?? null}
+						bugUrl={issue.bug_url ?? null}
+					/>
 				</Fact>
 				<Fact label="Rules">
 					<Tooltip content={rulesMeta.description}>

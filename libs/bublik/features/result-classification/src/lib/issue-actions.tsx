@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import type { ReactNode } from 'react';
+
 import {
 	useCloseIssueMutation,
 	useReopenIssueMutation
@@ -20,15 +22,23 @@ import { DESTRUCTIVE_FILL_CLASS } from './classification-colors';
 import { notifyError } from './server-errors';
 import { EditIssueButton, IssueDeleteButton } from './issue-modal';
 
-/** Shared by the issues list, the run's issue table and the rules table. */
-export const ISSUE_ACTIONS_COLUMN_CLASS = 'w-px whitespace-nowrap';
-
 /**
- * The buttons in this column start well inside the cell — each carries its own
- * horizontal padding — so a header sitting at the cell's own padding reads as
- * detached from the controls beneath it.
+ * Shared by the issues list, the run's issue table and the rules table.
+ *
+ * `auto` is the grid's shrink-to-fit: the column is as wide as the widest
+ * button in it and no wider, and it gives that width back under pressure rather
+ * than pushing the table into horizontal scroll. It replaced `w-px
+ * whitespace-nowrap`, which only shrank while an empty filler column existed to
+ * absorb the slack it gave up.
+ *
+ * The header sits at `pl-2`, level with the stack beneath it. It used to carry
+ * `pl-8` to clear a row of buttons that each began with their own padding; the
+ * stack is left-aligned, so that offset now just detaches the label.
  */
-export const ISSUE_ACTIONS_HEADER_CLASS = 'pl-8';
+export const ISSUE_ACTIONS_COLUMN_META = {
+	width: 'auto',
+	headerClassName: 'pl-2'
+} as const;
 
 /**
  * Re-exported from `classification-colors`, where it moved so the drawers can
@@ -44,7 +54,9 @@ export interface IssueStateToggleProps {
 	className?: string;
 }
 
-export interface IssueStateActionsProps extends IssueStateToggleProps {
+export interface IssueStateActionsProps {
+	issueId: number;
+	projectId?: number;
 	/** Names the issue in the Rules tooltip and in the delete confirmation. */
 	title: string;
 	/**
@@ -55,6 +67,12 @@ export interface IssueStateActionsProps extends IssueStateToggleProps {
 	showAuthoring?: boolean;
 	/** Saves the edit drawer a fetch when the caller already holds the row. */
 	issue?: Issue;
+	/**
+	 * Appended below the stack, behind a rule of its own — for a control that
+	 * acts on the *row* rather than on the issue. The run's issue table puts its
+	 * results disclosure here.
+	 */
+	footer?: ReactNode;
 }
 
 export interface IssueLinkButtonProps {
@@ -78,7 +96,7 @@ export function IssueLinkButton({ issueId, title }: IssueLinkButtonProps) {
 				asChild
 				variant="secondary"
 				size="xss"
-				className="justify-center whitespace-nowrap"
+				className="justify-start whitespace-nowrap"
 			>
 				<LinkWithProject
 					to={routes.issue({ issueId })}
@@ -138,7 +156,7 @@ export function IssueStateToggle({
 				state={isBusy ? 'loading' : 'default'}
 				onClick={handleToggle}
 				className={cn(
-					'justify-center whitespace-nowrap',
+					'justify-start whitespace-nowrap',
 					isOpen && DESTRUCTIVE_FILL_CLASS,
 					className
 				)}
@@ -156,8 +174,15 @@ export function IssueStateToggle({
 }
 
 /**
- * The two things you can do to an issue from a table row: open its rules, or
- * flip its lifecycle.
+ * What you can do to an issue from a table row: open its rules, edit it, or
+ * delete it.
+ *
+ * Closing and reopening is deliberately *not* here. It is a consequential
+ * change — closing deactivates every rule under the issue and un-suppresses
+ * everything they were hiding — and a one-click button for it, repeated down
+ * every row, made it the easiest thing on the page to do by accident. It lives
+ * on the edit form as a State field, and on the issue's own page header where
+ * there is room to say what it does.
  *
  * The column shrinks to these buttons via `ISSUE_ACTIONS_COLUMN_CLASS`, which
  * only holds if the table gives its slack to a filler column — otherwise
@@ -166,38 +191,43 @@ export function IssueStateToggle({
 export function IssueStateActions({
 	issueId,
 	title,
-	state,
 	projectId,
 	showAuthoring = false,
-	issue
+	issue,
+	footer
 }: IssueStateActionsProps) {
 	return (
-		// A rule with a divider between them, so the two read as one control
-		// group rather than as buttons that happen to be adjacent. `w-fit` keeps
-		// the group off the cell's full width; neither button carries a width of
-		// its own, so the column collapses to what the labels need.
-		<div className="flex items-center gap-1.5 w-fit">
+		// Stacked, not strung along the row: the column is narrow, and a vertical
+		// run of labelled buttons is legible where four icons behind separators
+		// were not. Same shape as `ActionsCell` on the import table.
+		//
+		// `items-stretch` so the buttons share one edge and read as a group;
+		// `w-fit` keeps that group off the cell's full width, so the column
+		// collapses to what the longest label needs.
+		<div className="flex flex-col items-stretch gap-1 w-fit">
 			<IssueLinkButton issueId={issueId} title={title} />
-			<Separator orientation="vertical" className="h-5" />
-			<IssueStateToggle issueId={issueId} state={state} projectId={projectId} />
-			{/* Behind their own rule, and icon-only: Close is the control you
-			    reach for daily, and a cell already carrying two labelled buttons
-			    should not grow a third and a fourth. Both hide for non-admins. */}
+			{/* Horizontal now. Above the rule is where you go; below it is what
+			    you do to the issue itself. */}
+			<Separator className="my-0.5" />
+			{/* Both hide for non-admins. */}
 			{showAuthoring ? (
 				<>
-					<Separator orientation="vertical" className="h-5" />
 					<EditIssueButton
 						issueId={issueId}
 						projectId={projectId}
 						issue={issue}
-						iconOnly
 					/>
 					<IssueDeleteButton
 						issueId={issueId}
 						title={title}
 						projectId={projectId}
-						iconOnly
 					/>
+				</>
+			) : null}
+			{footer ? (
+				<>
+					<Separator className="my-0.5" />
+					{footer}
 				</>
 			) : null}
 		</div>
