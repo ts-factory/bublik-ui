@@ -180,11 +180,15 @@ export function CategoryBadgeList({
 	if (!unique.length) return null;
 
 	return (
-		// Never wraps. Badge columns size themselves with `w-px`, so the cell is
-		// as wide as its min-content -- and a wrapping flex row's min-content is
-		// one badge, which stacked the chips into a column and made the column
-		// taller instead of wider. Without the wrap, min-content is the whole
-		// row, so the cell takes exactly the width the chips need.
+		// A row, and one that never wraps: the cell is sized by its min-content,
+		// and a wrapping row's min-content is a single badge, so the chips would
+		// break into a ragged stack at whatever width the table happened to give
+		// the column. Without the wrap, min-content is the whole row and the cell
+		// takes exactly the width the chips need.
+		//
+		// A caller that wants them stacked says so — `flex-col items-start`
+		// through `className`, as the issues table's Categories column does — so
+		// the layout is a decision of the column rather than of the window.
 		<div className={cn('flex items-center gap-1', className)}>
 			{unique.map((category) => (
 				<CategoryBadge

@@ -391,9 +391,13 @@ function getColumns(
 			)
 		},
 		{
-			// Two badges at most in practice, so it is sized to that. It used to
-			// carry `min-w-` with no ceiling, which under `table-auto` made it the
-			// one column free to absorb every spare pixel in the table.
+			// Stacked, one chip per line, the way the rules table lays out Match
+			// Scope. Laid out in a row, an issue carrying two or three categories
+			// set this column's width for every row in the table — including the
+			// many that carry one — and it is a column people read *down*, looking
+			// for the rows in a category, rather than across. Stacked, the track is
+			// as wide as the longest single label and the chips line up under each
+			// other; the rows that already run to several lines pay nothing for it.
 			id: COLUMN_ID.CATEGORIES,
 			accessorFn: (row) => row.categories,
 			header: 'Categories',
@@ -405,6 +409,9 @@ function getColumns(
 
 				return (
 					<CategoryBadgeList
+						// `items-start` so a chip is as wide as its own label rather
+						// than stretched to the widest one in the stack.
+						className="flex-col items-start"
 						categories={row.original.categories}
 						selectedCategories={facets.values(COLUMN_ID.CATEGORIES)}
 						onCategoryClick={(category) =>
