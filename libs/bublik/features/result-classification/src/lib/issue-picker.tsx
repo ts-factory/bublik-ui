@@ -30,6 +30,11 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
  * form, and the reason this one exists rather than the bare input it replaces.
  * Exported so `TrackerCombobox`, which sits two fields away in the classify
  * drawer, is the same input rather than a fourth copy of these classes.
+ *
+ * `Input`'s base, minus its `hover:border-primary`. A combobox is a box with
+ * its own controls in it — a trigger, a clear button, a key chip — and each of
+ * those lights up on hover; the whole field outlining itself as well was one
+ * response too many, and it fired over the disabled field too.
  */
 export const comboboxInputStyles = cva({
 	base: [
@@ -42,7 +47,6 @@ export const comboboxInputStyles = cva({
 		'rounded',
 		'text-text-secondary',
 		'transition-all',
-		'hover:border-primary',
 		'disabled:text-text-menu',
 		'disabled:cursor-not-allowed',
 		// The page's own grey, the same one `Input` takes when disabled. A wash of
