@@ -15,20 +15,14 @@ import {
 } from '@/shared/tailwind-ui';
 import type { IssueRule } from '@/shared/types';
 
-import {
-	RuleFields,
-	useRuleForm,
-	type RuleForm,
-	type RuleFormSeed
-} from './rule-form.component';
+import { RuleFields } from './rule-form.component';
+import { useRuleForm } from './rule-form.hooks';
+import { type RuleForm, type RuleFormSeed } from './rule-form.types';
 import { useLazyDialog } from '../shared/lazy-dialog.hooks';
 import { useCanManageIssues } from '../shared/permissions.hooks';
-import {
-	buildRuleSubmitHandler,
-	useDeleteRule,
-	useSaveRule
-} from './rule-mutations.hooks';
-import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.utils';
+import { buildRuleSubmitHandler } from './rule-mutations.utils';
+import { useDeleteRule, useSaveRule } from './rule-mutations.hooks';
+import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.constants';
 
 export interface RuleDrawerProps {
 	open: boolean;

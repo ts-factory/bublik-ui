@@ -4,12 +4,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { IssueRule } from '@/shared/types';
 
-import type { RuleFormValues } from './rule-form.component';
+import type { RuleFormValues } from './rule-form.types';
 import {
 	buildRuleCreateBody,
 	buildRuleUpdateBody,
 	ruleActiveTransition
-} from './rule-mutations.hooks';
+} from './rule-mutations.utils';
 
 function rule(overrides: Partial<IssueRule> = {}): IssueRule {
 	return {

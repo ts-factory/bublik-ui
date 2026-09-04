@@ -8,10 +8,11 @@ import {
 	useGetIssuePickerQuery,
 	useGetIssueQuery
 } from '@/services/bublik-api';
-import { Icon, InputLabel, cn, cva } from '@/shared/tailwind-ui';
+import { Icon, InputLabel, cn } from '@/shared/tailwind-ui';
 import type { IssuePickerOption } from '@/shared/types';
 
 import { formatBugKey } from '../classification/classification.utils';
+import { comboboxInputStyles } from './pickers.styles';
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
 	const [debounced, setDebounced] = useState(value);
@@ -24,29 +25,6 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 
 	return debounced;
 }
-
-export const comboboxInputStyles = cva({
-	base: [
-		'w-full',
-		'px-3.5',
-		'py-[7px]',
-		'outline-none',
-		'border',
-		'border-border-primary',
-		'rounded',
-		'text-text-secondary',
-		'transition-all',
-		'disabled:text-text-menu',
-		'disabled:cursor-not-allowed',
-		'disabled:bg-bg-body',
-		'focus:border-primary',
-		'focus:shadow-text-field',
-		'active:shadow-none',
-		'focus:ring-transparent',
-		'placeholder:text-text-menu placeholder:font-normal',
-		'leading-[1.5rem] font-medium text-[0.875rem]'
-	]
-});
 
 function issueKeyLabel(option: Pick<IssuePickerOption, 'id' | 'key'>): string {
 	return formatBugKey(option.key) ?? `#${option.id}`;

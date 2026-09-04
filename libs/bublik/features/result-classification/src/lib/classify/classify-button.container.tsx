@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
-import { useClassifyForm } from './classify-form.component';
+import { useClassifyForm } from './classify-form.hooks';
 import { ClassifyDrawer } from './classify-drawer.component';
 import { useClassify } from './classify.hooks';
 

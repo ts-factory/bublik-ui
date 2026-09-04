@@ -7,7 +7,7 @@ import { Tooltip } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import { formatTimeToDot, formatTimestampToFull } from '@/shared/utils';
 
-import { ISSUE_RULES_STATE_META } from '../classification/classification.utils';
+import { ISSUE_RULES_STATE_META } from '../classification/classification.constants';
 import {
 	STATUS_STRIPE_COLUMN_META,
 	StatusStripe
@@ -24,10 +24,8 @@ import {
 	facetControls,
 	someOfFilter
 } from '../classification-table/classification-table.utils';
-import {
-	ISSUE_ACTIONS_COLUMN_META,
-	IssueStateActions
-} from '../issue-detail/issue-actions.container';
+import { ISSUE_ACTIONS_COLUMN_META } from '../issue-detail/issue-actions.constants';
+import { IssueStateActions } from '../issue-detail/issue-actions.container';
 import { COLUMN_ID } from './issues-table.constants';
 import type { IssueTableRow } from './issues-table.types';
 import { searchFilter } from './issues-table.utils';

@@ -1,9 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, type RefObject } from 'react';
-import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { type RefObject } from 'react';
+import { Controller } from 'react-hook-form';
 
 import {
 	FormAlertError,
@@ -11,59 +9,13 @@ import {
 	SelectInput,
 	TextArea
 } from '@/shared/tailwind-ui';
-import type { Issue } from '@/shared/types';
 
-import { refineBugKeyHalves, splitBugKey } from '../shared/bug-key.utils';
+import { splitBugKey } from '../shared/bug-key.utils';
 import {
 	TrackerCombobox,
 	useTrackerOptions
 } from '../pickers/tracker-combobox.container';
-
-const IssueFormShape = z.object({
-	title: z.string().min(1, { message: 'Title is required' }),
-	description: z.string().optional(),
-	tracker: z.string().optional(),
-	bugKey: z.string().optional(),
-	state: z.enum(['open', 'closed'])
-});
-
-export const IssueFormSchema = IssueFormShape.superRefine((values, ctx) => {
-	refineBugKeyHalves(values, ctx);
-});
-
-export type IssueFormValues = z.infer<typeof IssueFormShape>;
-
-export type IssueForm = UseFormReturn<IssueFormValues>;
-
-export function issueToFormValues(issue?: Issue | null): IssueFormValues {
-	const split = issue?.issue_ext?.key ? splitBugKey(issue.issue_ext.key) : null;
-
-	return {
-		title: issue?.title ?? '',
-		description: issue?.description ?? '',
-		tracker: split?.tracker ?? '',
-		bugKey: split?.key ?? '',
-		state: issue?.state ?? 'open'
-	};
-}
-
-export function useIssueForm(issue?: Issue | null): IssueForm {
-	const form = useForm<IssueFormValues>({
-		resolver: zodResolver(IssueFormSchema),
-		defaultValues: issueToFormValues(issue)
-	});
-
-	const isDirty = form.formState.isDirty;
-
-	useEffect(() => {
-		if (!issue || isDirty) return;
-
-		form.reset(issueToFormValues(issue));
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [issue, isDirty]);
-
-	return form;
-}
+import { IssueForm } from './issue-form.types';
 
 export interface IssueFieldsProps {
 	form: IssueForm;

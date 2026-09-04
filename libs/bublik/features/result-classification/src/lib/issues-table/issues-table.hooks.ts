@@ -5,7 +5,9 @@ import { useMemo } from 'react';
 import {
 	CATEGORY_ORDER,
 	ISSUE_RULES_STATE_META,
-	RULES_STATE_ORDER,
+	RULES_STATE_ORDER
+} from '../classification/classification.constants';
+import {
 	categoryMeta,
 	issueStateMeta
 } from '../classification/classification.utils';

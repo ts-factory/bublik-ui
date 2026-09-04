@@ -7,7 +7,9 @@ import type { IssueCategory, RunIssueRow } from '@/shared/types';
 import {
 	CATEGORY_ORDER,
 	EFFECT_ORDER,
-	RUN_ISSUE_EFFECT_META,
+	RUN_ISSUE_EFFECT_META
+} from '../classification/classification.constants';
+import {
 	categoryMeta,
 	issueStateMeta,
 	runIssueEffect

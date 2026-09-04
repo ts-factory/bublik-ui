@@ -19,14 +19,16 @@ import type {
 	RunIssueRow
 } from '@/shared/types';
 
+import type { RunIssueEffect, RuleResultOrigin } from './classification.types';
 import {
 	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
-	resultClassification,
-	type RunIssueEffect,
 	RUN_ISSUE_EFFECT_META,
 	NO_EFFECT_META,
-	UNTRIAGED_META,
+	UNTRIAGED_META
+} from './classification.constants';
+import {
+	resultClassification,
 	categoryMeta,
 	dispositionMeta,
 	formatBugKey,
@@ -34,8 +36,7 @@ import {
 	issueStateMeta,
 	originMeta,
 	ruleActiveMeta,
-	runIssueEffect,
-	type RuleResultOrigin
+	runIssueEffect
 } from './classification.utils';
 import { ClassifyButton } from '../classify/classify-button.container';
 

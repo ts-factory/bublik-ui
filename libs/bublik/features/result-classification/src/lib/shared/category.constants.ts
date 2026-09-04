@@ -4,7 +4,7 @@ import type { IssueCategory } from '@/shared/types';
 import {
 	CATEGORY_META,
 	CATEGORY_ORDER
-} from '../classification/classification.utils';
+} from '../classification/classification.constants';
 
 export const CATEGORY_OPTIONS: {
 	value: IssueCategory;

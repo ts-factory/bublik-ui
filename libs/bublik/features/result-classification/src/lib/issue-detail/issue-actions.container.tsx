@@ -18,17 +18,12 @@ import {
 import { routes } from '@/router';
 import type { Issue, IssueState } from '@/shared/types';
 
-import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.utils';
+import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.constants';
 import { notifyError } from '../shared/server-errors.utils';
 import {
 	EditIssueButton,
 	IssueDeleteButton
 } from '../issue-form/issue-modal.container';
-
-export const ISSUE_ACTIONS_COLUMN_META = {
-	width: 'auto',
-	headerClassName: 'pl-8'
-} as const;
 
 export { DESTRUCTIVE_FILL_CLASS };
 

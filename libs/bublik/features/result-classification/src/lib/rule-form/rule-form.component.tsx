@@ -1,9 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect, type RefObject } from 'react';
-import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller } from 'react-hook-form';
 
 import { bublikAPI } from '@/services/bublik-api';
 import {
@@ -13,7 +11,7 @@ import {
 	FormSectionSubheader,
 	SelectInput
 } from '@/shared/tailwind-ui';
-import type { IssueCategory, IssueRule } from '@/shared/types';
+import type { IssueCategory } from '@/shared/types';
 
 import {
 	CATEGORY_OPTIONS,
@@ -22,81 +20,9 @@ import {
 import { IssuePicker } from '../pickers/issue-picker.container';
 import { TestPicker } from '../pickers/test-picker.component';
 import { useKnownTests } from './known-tests.hooks';
-import {
-	MatcherField,
-	MatcherReadOnly,
-	itemsToList,
-	itemsToParameters,
-	listToItems,
-	parametersToItems
-} from './matcher-fields.component';
-
-const RuleFormShape = z.object({
-	project: z.coerce.number().int().positive({ message: 'Select a project' }),
-	issue: z.coerce.number().int().positive({ message: 'Select an issue' }),
-	test: z.coerce.number().int().positive({ message: 'Select a test' }),
-	category: z.string().min(1, { message: 'Category is required' }),
-	expected: z.enum(['expected', 'unexpected', 'none']),
-	active: z.enum(['active', 'inactive']),
-	parameters: z.array(z.object({ id: z.string(), value: z.string() })),
-	verdicts: z.array(z.object({ id: z.string(), value: z.string() })),
-	tags: z.array(z.object({ id: z.string(), value: z.string() }))
-});
-
-export const RuleFormSchema = RuleFormShape;
-
-export type RuleFormValues = z.infer<typeof RuleFormShape>;
-
-export type RuleForm = UseFormReturn<RuleFormValues>;
-
-export function expectedToKey(
-	expected: boolean | null | undefined
-): RuleFormValues['expected'] {
-	if (expected === true) return 'expected';
-	if (expected === false) return 'unexpected';
-
-	return 'none';
-}
-
-export function keyToExpected(key: RuleFormValues['expected']): boolean | null {
-	if (key === 'expected') return true;
-	if (key === 'unexpected') return false;
-
-	return null;
-}
-
-export interface RuleFormSeed {
-	rule?: IssueRule | null;
-	projectId?: number;
-	issueId?: number;
-	testId?: number;
-}
-
-export function ruleToFormValues({
-	rule,
-	projectId,
-	issueId,
-	testId
-}: RuleFormSeed): RuleFormValues {
-	return {
-		project: rule?.project ?? projectId ?? 0,
-		issue: rule?.issue ?? issueId ?? 0,
-		test: rule?.test ?? testId ?? 0,
-		category: rule?.category ?? 'known-issue',
-		expected: expectedToKey(rule?.expected),
-		active: rule?.active === false ? 'inactive' : 'active',
-		parameters: parametersToItems(rule?.parameters),
-		verdicts: listToItems(rule?.verdicts),
-		tags: listToItems(rule?.tags)
-	};
-}
-
-export function useRuleForm(seed: RuleFormSeed): RuleForm {
-	return useForm<RuleFormValues>({
-		resolver: zodResolver(RuleFormSchema),
-		defaultValues: ruleToFormValues(seed)
-	});
-}
+import { MatcherField, MatcherReadOnly } from './matcher-fields.component';
+import { itemsToList, itemsToParameters } from './matcher-fields.utils';
+import { RuleForm } from './rule-form.types';
 
 export interface RuleFieldsProps {
 	form: RuleForm;

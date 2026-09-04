@@ -6,7 +6,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { ErrorMessage, Icon, InputLabel, cn } from '@/shared/tailwind-ui';
 import type { TestOption } from '@/shared/types';
 
-import { comboboxInputStyles } from './issue-picker.container';
+import { comboboxInputStyles } from './pickers.styles';
 
 export interface TestPickerProps {
 	options: TestOption[];

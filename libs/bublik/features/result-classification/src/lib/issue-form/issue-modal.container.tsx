@@ -17,17 +17,12 @@ import {
 } from '@/shared/tailwind-ui';
 import type { Issue } from '@/shared/types';
 
-import {
-	IssueFields,
-	useIssueForm,
-	type IssueForm
-} from './issue-form.component';
-import {
-	buildIssueSubmitHandler,
-	useDeleteIssue,
-	useSaveIssue
-} from './issue-mutations.hooks';
-import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.utils';
+import { IssueFields } from './issue-form.component';
+import { useIssueForm } from './issue-form.hooks';
+import { type IssueForm } from './issue-form.types';
+import { buildIssueSubmitHandler } from './issue-mutations.utils';
+import { useDeleteIssue, useSaveIssue } from './issue-mutations.hooks';
+import { DESTRUCTIVE_FILL_CLASS } from '../classification/classification.constants';
 import { useLazyDialog } from '../shared/lazy-dialog.hooks';
 import { useCanManageIssues } from '../shared/permissions.hooks';
 

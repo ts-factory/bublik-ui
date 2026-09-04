@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import type { Issue, IssueCategory } from '@/shared/types';
 
-import type { IssueRulesState } from '../classification/classification.utils';
+import type { IssueRulesState } from '../classification/classification.types';
 
 export interface IssueTableRow extends Issue {
 	categories: IssueCategory[];

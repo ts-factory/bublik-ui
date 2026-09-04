@@ -2,10 +2,8 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { Issue, IssueRule } from '@/shared/types';
 
-import {
-	CATEGORY_ORDER,
-	issueRulesState
-} from '../classification/classification.utils';
+import { CATEGORY_ORDER } from '../classification/classification.constants';
+import { issueRulesState } from '../classification/classification.utils';
 import { makeSearchFilter } from '../classification-table/classification-table.utils';
 import type { IssueTableRow } from './issues-table.types';
 

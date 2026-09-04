@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { ClassifyFormSchema } from './classify-form.component';
+import { ClassifyFormSchema } from './classify-form.types';
 
 const BASE = {
 	mode: 'new' as const,

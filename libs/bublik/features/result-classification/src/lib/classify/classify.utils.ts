@@ -7,10 +7,7 @@ import {
 	type ServerFieldError
 } from '../shared/server-errors.utils';
 
-import type {
-	ClassifyForm,
-	ClassifyFormValues
-} from './classify-form.component';
+import type { ClassifyForm, ClassifyFormValues } from './classify-form.types';
 
 export { flattenMessages, type ServerFieldError };
 

@@ -17,10 +17,9 @@ import {
 import {
 	ISSUE_RULES_STATE_META,
 	RUN_ISSUE_EFFECT_META,
-	UNTRIAGED_META,
-	issueRulesState,
-	resultIssueEffect
-} from './classification.utils';
+	UNTRIAGED_META
+} from './classification.constants';
+import { issueRulesState, resultIssueEffect } from './classification.utils';
 
 vi.mock('@/icons', () => {
 	const names = [

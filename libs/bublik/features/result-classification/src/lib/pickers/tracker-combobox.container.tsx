@@ -6,7 +6,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { useGetIssuePickerQuery } from '@/services/bublik-api';
 import { cn, cva, ErrorMessage, Icon, InputLabel } from '@/shared/tailwind-ui';
 
-import { comboboxInputStyles } from './issue-picker.container';
+import { comboboxInputStyles } from './pickers.styles';
 import { splitBugKey } from '../shared/bug-key.utils';
 
 const errorStyles = cva({

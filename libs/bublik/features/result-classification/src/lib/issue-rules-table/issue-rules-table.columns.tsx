@@ -6,8 +6,8 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import { Badge, Separator, Tooltip, BadgeVariants } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 
+import { CLASSIFICATION_BADGE_CLASS } from '../classification/classification.constants';
 import {
-	CLASSIFICATION_BADGE_CLASS,
 	dispositionKey,
 	issueRulesState
 } from '../classification/classification.utils';
@@ -28,10 +28,8 @@ import {
 	makeSearchFilter,
 	someOfFilter
 } from '../classification-table/classification-table.utils';
-import {
-	ISSUE_ACTIONS_COLUMN_META,
-	IssueLinkButton
-} from '../issue-detail/issue-actions.container';
+import { ISSUE_ACTIONS_COLUMN_META } from '../issue-detail/issue-actions.constants';
+import { IssueLinkButton } from '../issue-detail/issue-actions.container';
 import { chipsForRule } from '../rule-form/match-scope.utils';
 import {
 	EditRuleButton,

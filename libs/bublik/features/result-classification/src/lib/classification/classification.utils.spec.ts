@@ -6,6 +6,9 @@ import type { RunIssueRow } from '@/shared/types';
 import {
 	CATEGORY_META,
 	CATEGORY_ORDER,
+	RESULT_CLASSIFICATION_ORDER
+} from './classification.constants';
+import {
 	aggregateExpected,
 	categoryMeta,
 	formatBugKey,
@@ -13,8 +16,7 @@ import {
 	issueStateMeta,
 	resultClassification,
 	resultIssueEffect,
-	runIssueEffect,
-	RESULT_CLASSIFICATION_ORDER
+	runIssueEffect
 } from './classification.utils';
 
 function issue(partial: Partial<RunIssueRow>): RunIssueRow {

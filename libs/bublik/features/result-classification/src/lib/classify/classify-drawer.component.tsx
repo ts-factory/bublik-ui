@@ -10,11 +10,9 @@ import {
 	cn
 } from '@/shared/tailwind-ui';
 
-import {
-	ClassifyFields,
-	buildSubmitHandler,
-	type ClassifyForm
-} from './classify-form.component';
+import { ClassifyFields } from './classify-form.component';
+import { buildSubmitHandler } from './classify-form.hooks';
+import { type ClassifyForm } from './classify-form.types';
 
 export interface ClassifyDrawerProps {
 	open: boolean;

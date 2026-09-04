@@ -15,7 +15,9 @@ import { formatTimestampToFull, parseDetailDate } from '@/shared/utils';
 
 import {
 	CLASSIFICATION_BADGE_CLASS,
-	ISSUE_RULES_STATE_META,
+	ISSUE_RULES_STATE_META
+} from '../classification/classification.constants';
+import {
 	issueRulesState,
 	issueStateMeta
 } from '../classification/classification.utils';

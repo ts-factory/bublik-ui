@@ -4,11 +4,11 @@ import { describe, expect, it } from 'vitest';
 
 import type { Issue } from '@/shared/types';
 
-import type { IssueFormValues } from './issue-form.component';
+import type { IssueFormValues } from './issue-form.types';
 import {
 	buildIssueUpdateBody,
 	issueStateTransition
-} from './issue-mutations.hooks';
+} from './issue-mutations.utils';
 
 function issue(overrides: Partial<Issue> = {}): Issue {
 	return {

@@ -10,84 +10,19 @@ import {
 	useUpdateRuleMutation
 } from '@/services/bublik-api';
 import { toast } from '@/shared/tailwind-ui';
-import type { IssueCategory, IssueRule } from '@/shared/types';
+import type { IssueRule } from '@/shared/types';
 
+import { serverErrorText } from '../shared/server-errors.utils';
+import { type RuleFormValues } from './rule-form.types';
 import {
-	applyServerErrors,
-	serverErrorText
-} from '../shared/server-errors.utils';
-import { itemsToList, itemsToParameters } from './matcher-fields.component';
-import {
-	keyToExpected,
-	type RuleForm,
-	type RuleFormValues
-} from './rule-form.component';
-
-const FIELD_BY_PATH: Record<string, keyof RuleFormValues> = {
-	project: 'project',
-	issue: 'issue',
-	test: 'test',
-	category: 'category',
-	expected: 'expected',
-	parameters: 'parameters',
-	verdicts: 'verdicts',
-	tags: 'tags'
-};
-
-const LABEL_BY_PATH: Record<string, string> = {
-	project: 'Project',
-	issue: 'Issue',
-	test: 'Test',
-	category: 'Category',
-	expected: 'Expected',
-	parameters: 'Parameters',
-	verdicts: 'Verdicts',
-	tags: 'Tags',
-	active: 'Rule'
-};
-
-function applyRuleErrors(error: unknown, form: RuleForm) {
-	applyServerErrors(error, form, {
-		fieldForPath: (path) => FIELD_BY_PATH[path] ?? null,
-		labelByPath: LABEL_BY_PATH
-	});
-}
+	buildRuleCreateBody,
+	buildRuleUpdateBody,
+	ruleActiveTransition
+} from './rule-mutations.utils';
 
 export interface SaveRuleArgs {
 	values: RuleFormValues;
 	rule?: IssueRule | null;
-}
-
-export function buildRuleCreateBody(values: RuleFormValues) {
-	return {
-		project: values.project,
-		issue: values.issue,
-		test: values.test,
-		category: values.category as IssueCategory,
-		expected: keyToExpected(values.expected),
-		parameters: itemsToParameters(values.parameters),
-		verdicts: itemsToList(values.verdicts),
-		tags: itemsToList(values.tags)
-	};
-}
-
-export function buildRuleUpdateBody(values: RuleFormValues) {
-	return {
-		category: values.category as IssueCategory,
-		expected: keyToExpected(values.expected)
-	};
-}
-
-export function ruleActiveTransition(
-	values: RuleFormValues,
-	rule?: IssueRule | null
-): 'activate' | 'deactivate' | null {
-	const wantsActive = values.active === 'active';
-
-	if (!rule) return wantsActive ? null : 'deactivate';
-	if (wantsActive === rule.active) return null;
-
-	return wantsActive ? 'activate' : 'deactivate';
 }
 
 export function useSaveRule() {
@@ -144,25 +79,6 @@ export function useSaveRule() {
 		},
 		[createRule, updateRule, activateRule, deactivateRule]
 	);
-}
-
-export function buildRuleSubmitHandler(
-	save: (values: RuleFormValues) => Promise<unknown>,
-	form: RuleForm,
-	onDone: () => void
-) {
-	return async (values: RuleFormValues) => {
-		form.clearErrors('root');
-
-		try {
-			await save(values);
-		} catch (error: unknown) {
-			applyRuleErrors(error, form);
-			return;
-		}
-
-		onDone();
-	};
 }
 
 export interface DeleteRuleArgs {

@@ -7,7 +7,7 @@ import {
 	RadioGroupItemWithLabel
 } from '@/shared/tailwind-ui';
 
-import type { ClassifyForm } from '../classify/classify-form.component';
+import type { ClassifyForm } from '../classify/classify-form.types';
 import {
 	PRESETS,
 	applyMutualExclusion,

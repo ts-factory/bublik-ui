@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 import type { Issue } from '@/shared/types';
 
-import { IssueFormSchema, issueToFormValues } from './issue-form.component';
+import { IssueFormSchema } from './issue-form.types';
+import { issueToFormValues } from './issue-form.utils';
 
 const BASE = {
 	title: 'ethtool reset regression',

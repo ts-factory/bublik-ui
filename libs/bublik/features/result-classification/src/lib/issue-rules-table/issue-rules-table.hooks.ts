@@ -7,7 +7,9 @@ import type { IssueState } from '@/shared/types';
 import {
 	CATEGORY_ORDER,
 	DISPOSITION_META,
-	DISPOSITION_ORDER,
+	DISPOSITION_ORDER
+} from '../classification/classification.constants';
+import {
 	categoryMeta,
 	dispositionKey,
 	issueStateMeta,

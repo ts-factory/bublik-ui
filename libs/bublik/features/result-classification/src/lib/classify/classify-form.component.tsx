@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 import type { RefObject } from 'react';
-import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller } from 'react-hook-form';
 
 import {
 	ErrorMessage,
@@ -12,140 +10,16 @@ import {
 	Input,
 	SelectInput
 } from '@/shared/tailwind-ui';
-import type { ClassifyScope, IssueCategory } from '@/shared/types';
 
 import { CATEGORY_OPTIONS } from '../shared/category.constants';
 import { IssuePicker } from '../pickers/issue-picker.container';
 import { MatchScope } from '../rule-form/match-scope.component';
-import { DEFAULT_MATCH_FLAGS } from '../rule-form/match-scope.utils';
-import {
-	composeBugKey,
-	refineBugKeyHalves,
-	splitBugKey
-} from '../shared/bug-key.utils';
-import { applyClassifyErrors } from './classify.utils';
+import { splitBugKey } from '../shared/bug-key.utils';
 import {
 	TrackerCombobox,
 	useTrackerOptions
 } from '../pickers/tracker-combobox.container';
-
-const ClassifyFormShape = z.object({
-	mode: z.enum(['new', 'existing']),
-	issueId: z.coerce.number().optional(),
-	title: z.string().optional(),
-	tracker: z.string().optional(),
-	bugKey: z.string().optional(),
-	category: z.string().min(1, { message: 'Category is required' }),
-	scope: z.enum(['future', 'oneoff']),
-	expected: z.enum(['expected', 'unexpected', 'none']),
-	matchParameters: z.boolean(),
-	matchVerdicts: z.boolean(),
-	matchImportantTags: z.boolean(),
-	matchAllTags: z.boolean()
-});
-
-export const ClassifyFormSchema = ClassifyFormShape.superRefine(
-	(values, ctx) => {
-		const title = values.title?.trim() ?? '';
-
-		if (values.mode === 'existing') {
-			if (!values.issueId) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					path: ['issueId'],
-					message: 'Select an issue'
-				});
-			}
-
-			return;
-		}
-
-		if (!title) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['title'],
-				message: 'Title is required'
-			});
-		}
-
-		refineBugKeyHalves(values, ctx);
-	}
-);
-
-export type ClassifyFormValues = z.infer<typeof ClassifyFormShape>;
-
-export type ClassifyForm = UseFormReturn<ClassifyFormValues>;
-
-export function useClassifyForm(): ClassifyForm {
-	return useForm<ClassifyFormValues>({
-		resolver: zodResolver(ClassifyFormSchema),
-		defaultValues: {
-			mode: 'new',
-			title: '',
-			tracker: '',
-			bugKey: '',
-			category: 'known-issue',
-			scope: 'future',
-			expected: 'none',
-			...DEFAULT_MATCH_FLAGS
-		}
-	});
-}
-
-export function buildSubmitHandler(
-	submit: (input: {
-		issue: number | { title: string; bug_key?: string };
-		category: IssueCategory;
-		expected: boolean | null;
-		scope: ClassifyScope;
-		matcher: {
-			matchParameters: boolean;
-			matchVerdicts: boolean;
-			matchImportantTags: boolean;
-			matchAllTags: boolean;
-		};
-	}) => Promise<unknown>,
-	form: ClassifyForm,
-	onDone: () => void
-) {
-	return async (values: ClassifyFormValues) => {
-		const category = values.category as IssueCategory;
-		const issue =
-			values.mode === 'existing' && values.issueId
-				? values.issueId
-				: {
-						title: (values.title ?? '').trim(),
-						bug_key: composeBugKey(values.tracker, values.bugKey)
-				  };
-
-		form.clearErrors('root');
-
-		try {
-			await submit({
-				issue,
-				category,
-				expected:
-					values.expected === 'expected'
-						? true
-						: values.expected === 'unexpected'
-						? false
-						: null,
-				scope: values.scope as ClassifyScope,
-				matcher: {
-					matchParameters: values.matchParameters,
-					matchVerdicts: values.matchVerdicts,
-					matchImportantTags: values.matchImportantTags,
-					matchAllTags: values.matchAllTags
-				}
-			});
-		} catch (error: unknown) {
-			applyClassifyErrors(error, form);
-			return;
-		}
-
-		onDone();
-	};
-}
+import { ClassifyForm } from './classify-form.types';
 
 export function ClassifyFields({
 	form,

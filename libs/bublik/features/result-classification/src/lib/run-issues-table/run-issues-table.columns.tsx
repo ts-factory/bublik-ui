@@ -23,10 +23,8 @@ import {
 	facetControls,
 	someOfFilter
 } from '../classification-table/classification-table.utils';
-import {
-	ISSUE_ACTIONS_COLUMN_META,
-	IssueStateActions
-} from '../issue-detail/issue-actions.container';
+import { ISSUE_ACTIONS_COLUMN_META } from '../issue-detail/issue-actions.constants';
+import { IssueStateActions } from '../issue-detail/issue-actions.container';
 import { ResultsToggle } from './components';
 import { COLUMN_ID } from './run-issues-table.constants';
 import { searchFilter } from './run-issues-table.utils';

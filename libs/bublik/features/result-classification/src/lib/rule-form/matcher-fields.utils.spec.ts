@@ -7,7 +7,7 @@ import {
 	itemsToParameters,
 	listToItems,
 	parametersToItems
-} from './matcher-fields.component';
+} from './matcher-fields.utils';
 
 const items = (...values: string[]) =>
 	values.map((value) => ({ id: value, value }));
