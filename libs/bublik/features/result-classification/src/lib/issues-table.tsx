@@ -100,7 +100,19 @@ const COLUMN_ID = {
 	RULES: 'rules'
 } as const;
 
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+/**
+ * `Created` off by default.
+ *
+ * It is the one column here nobody triages by — a stamp on the issue rather
+ * than something that says what to do about it — and on a row already carrying
+ * nine other columns it is a track spent on metadata. The sort it feeds is
+ * unaffected: the default ordering lives in the URL state, not in the header,
+ * so the list is still newest-first with the column off. The columns menu
+ * brings it back for anyone who wants the date in the row.
+ */
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
+	[COLUMN_ID.CREATED]: false
+};
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
