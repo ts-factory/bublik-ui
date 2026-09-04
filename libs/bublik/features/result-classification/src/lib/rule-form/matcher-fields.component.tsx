@@ -207,7 +207,7 @@ export function MatcherReadOnly({
 								))}
 							</div>
 						) : (
-							<span className="text-xs text-text-menu">Not constrained</span>
+							<span className="text-xs text-text-menu pl-2">Not constrained</span>
 						)}
 					</dd>
 				</Fragment>

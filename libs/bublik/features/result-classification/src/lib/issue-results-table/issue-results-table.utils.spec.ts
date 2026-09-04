@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { issueResultRunId, issueResultTestPath } from './issue-results-table.container';
+import { issueResultRunId, issueResultTestPath } from './issue-results-table.utils';
 
 const row = (
 	over: Partial<Parameters<typeof issueResultTestPath>[0]> = {}
