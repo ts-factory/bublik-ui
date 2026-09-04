@@ -31,13 +31,14 @@ import { EditIssueButton, IssueDeleteButton } from './issue-modal';
  * whitespace-nowrap`, which only shrank while an empty filler column existed to
  * absorb the slack it gave up.
  *
- * The header sits at `pl-2`, level with the stack beneath it. It used to carry
- * `pl-8` to clear a row of buttons that each began with their own padding; the
- * stack is left-aligned, so that offset now just detaches the label.
+ * The header sits at `pl-8`, which is where the button labels beneath it start:
+ * 8px of cell padding, 6px of the button's own `px-1.5`, then a 16px icon and
+ * its 4px margin. Aligning to the buttons' left edge instead put the word
+ * `Actions` a full glyph to the left of everything it labels.
  */
 export const ISSUE_ACTIONS_COLUMN_META = {
 	width: 'auto',
-	headerClassName: 'pl-2'
+	headerClassName: 'pl-8'
 } as const;
 
 /**
