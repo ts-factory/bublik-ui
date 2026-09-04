@@ -58,7 +58,6 @@ export function useIssuesSidebarState(): UseIssuesSidebarStateReturn {
 	const rulesUrl = lastRulesUrl || '/issues/rules';
 
 	const mainLinkUrl = useMemo(() => {
-		// `lastMode` is omitted from `_s` when it equals the shared default.
 		switch (lastMode ?? ISSUES_MODE_DEFAULT) {
 			case 'rules':
 				return rulesUrl;

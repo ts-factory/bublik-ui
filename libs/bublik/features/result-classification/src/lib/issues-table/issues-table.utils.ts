@@ -25,9 +25,6 @@ export function buildRows(
 	return issues.map((issue) => {
 		const issueRules = byIssue.get(issue.id) ?? [];
 
-		// Prefer whatever the row already knows. The client-side join is a
-		// stand-in, and a poor one now that rules arrive one page at a time:
-		// beyond the first page of `/issue_rules/` it silently under-reports.
 		const categories =
 			issue.categories ??
 			Array.from(new Set(issueRules.map((rule) => rule.category))).sort(

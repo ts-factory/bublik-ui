@@ -55,8 +55,6 @@ describe('IssueFormSchema', () => {
 		);
 	});
 
-	// Half a bug key is not a bug key: `composeBugKey` would drop it silently,
-	// so the form has to be the one that notices.
 	it('rejects a key without a tracker', () => {
 		expect(errorsFor({ ...BASE, bugKey: 'FOO-123' })).toEqual({
 			tracker: 'Choose a tracker'
@@ -106,8 +104,6 @@ describe('issueToFormValues', () => {
 		});
 	});
 
-	// `description` is nullable on the wire and a controlled input here; `null`
-	// would make the textarea uncontrolled and warn on the first keystroke.
 	it('normalises a null description to an empty string', () => {
 		expect(issueToFormValues(issue({ description: null })).description).toBe(
 			''

@@ -11,11 +11,6 @@ import { useClassificationTableState } from './classification-table.hooks';
 
 const FILTER_KEYS = ['state', 'category'] as const;
 
-/**
- * The provider is configured exactly as the app configures it
- * (`apps/bublik/src/app/router.tsx`), so what these tests observe is what the
- * address bar gets.
- */
 function wrapperFor(initialEntry: string) {
 	return function Wrapper({ children }: PropsWithChildren) {
 		return (
@@ -46,7 +41,6 @@ function setup(initialEntry = '/issues') {
 	);
 }
 
-/** The query string as a sorted list of `key=value` pairs, repeats included. */
 function pairs(search: string) {
 	return [...new URLSearchParams(search).entries()]
 		.map(([key, value]) => `${key}=${value}`)

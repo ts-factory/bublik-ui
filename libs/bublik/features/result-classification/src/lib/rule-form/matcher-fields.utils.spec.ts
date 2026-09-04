@@ -21,9 +21,6 @@ describe('parameters <-> chips', () => {
 		);
 	});
 
-	// A chip with no delimiter names a key and no value. Sending it as
-	// `{foo: ''}` would be a criterion the user did not write, and one almost
-	// nothing satisfies — the matcher compares dict subsets exactly.
 	it('drops a chip that carries no value', () => {
 		expect(itemsToParameters(items('env'))).toEqual({});
 	});

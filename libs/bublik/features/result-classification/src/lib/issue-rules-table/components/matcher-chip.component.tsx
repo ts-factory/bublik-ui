@@ -9,15 +9,9 @@ export interface MatcherChipProps {
 	columnId: string;
 	variant?: BadgeVariants;
 	className?: string;
-	/**
-	 * Given, the chip becomes the filter toggle for its own column, so clicking
-	 * a tag in a row does what ticking that tag in the toolbar's facet does.
-	 * Omitted, it is inert.
-	 */
 	facets?: FacetControls;
 }
 
-/** One matcher value: a tag, a verdict or a parameter. */
 export function MatcherChip({
 	value,
 	columnId,

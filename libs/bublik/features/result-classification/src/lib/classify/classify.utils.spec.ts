@@ -9,7 +9,10 @@ import {
 	classifyErrorText,
 	flattenMessages
 } from './classify.utils';
-import type { ClassifyForm, ClassifyFormValues } from './classify-form.component';
+import type {
+	ClassifyForm,
+	ClassifyFormValues
+} from './classify-form.component';
 
 function createForm(mode: ClassifyFormValues['mode'] = 'new') {
 	const setError = vi.fn();
@@ -21,7 +24,6 @@ function createForm(mode: ClassifyFormValues['mode'] = 'new') {
 	return { form, setError };
 }
 
-/** The payload the classify endpoint actually returns for a malformed key. */
 const BUG_KEY_ERROR = {
 	status: 400,
 	data: {

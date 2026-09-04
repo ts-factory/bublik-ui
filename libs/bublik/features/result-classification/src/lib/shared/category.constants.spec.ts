@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
 import { CATEGORY_OPTIONS, defaultExpectedFor } from './category.constants';
@@ -9,9 +11,6 @@ describe('category', () => {
 });
 
 describe('defaultExpectedFor', () => {
-	// The backend's policy table, restated. If these two ever disagree, a rule
-	// created with the form's default silently gets a different disposition from
-	// the one the form showed.
 	it('suppresses for the four causes that are not the product', () => {
 		expect(defaultExpectedFor('known-issue')).toBe(true);
 		expect(defaultExpectedFor('env')).toBe(true);

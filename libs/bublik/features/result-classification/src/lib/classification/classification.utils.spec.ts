@@ -130,24 +130,12 @@ describe('resultIssueEffect', () => {
 		expect(resultIssueEffect([open(false)]).value).toBe('unexpected');
 	});
 
-	/*
-	 * The case that stops this collapsing into
-	 * `effectFor(aggregateExpected(...), state)`: two stamps, two different
-	 * issue states, so there is no single state to hand that helper. Pairing
-	 * per stamp is what the backend does.
-	 */
 	it('does not suppress when the expected flag and the open state sit on different stamps', () => {
 		expect(resultIssueEffect([open(false), closed(true)]).value).not.toBe(
 			'suppressed'
 		);
 	});
 
-	/*
-	 * ...and of those two, "counting again" wins over "still counts", because
-	 * suppression is a bare OR over expected+open with no veto from an
-	 * expected=false stamp — so reopening that closed issue really would
-	 * suppress this result.
-	 */
 	it('prefers counting-again, since reopening the closed issue would suppress it', () => {
 		expect(resultIssueEffect([open(false), closed(true)]).value).toBe('stale');
 	});
@@ -226,16 +214,12 @@ describe('resultClassification', () => {
 	});
 
 	it('reports no effect when a passing result carries stamps', () => {
-		// Not `suppressed`: running the effect over these stamps would claim to
-		// have hidden a failure that never happened.
 		expect(
 			resultClassification({ issues: [open(true)], hasError: false })?.value
 		).toBe('no-effect');
 	});
 
 	it('has no verdict at all for a passing, unstamped result', () => {
-		// The one case the filter must never match: no chip is shown, so no
-		// chip's selection can claim the row.
 		expect(resultClassification({ issues: [], hasError: false })).toBeNull();
 	});
 

@@ -18,18 +18,6 @@ import {
 import { config } from '@/bublik/config';
 import { formatKeyValueForDisplay } from '@/shared/utils';
 
-/**
- * The rule matcher, as three chip fields.
- *
- * Every criterion is exact — no operators, no regex — and an **empty one is
- * ignored**, which is what makes a rule's match scope implicit rather than a
- * set of flags. `MATCHER_HINTS` says so in the read-only panel's tooltips; the
- * editable fields carry no prose of their own.
- *
- * Values are held as `BadgeItem[]` because that is what `BadgeInput` speaks.
- * `parametersToRecord` and friends convert at the edges — see `rule-form`.
- */
-
 export const MATCHER_HINTS = {
 	parameters: 'The result must carry all of these, matched exactly.',
 	verdicts: 'The result must carry all of these verdicts.',
@@ -40,7 +28,6 @@ function badgeItems(values: string[]): BadgeItem[] {
 	return values.map((value) => ({ id: value, value }));
 }
 
-/** `{env: 'ci'}` -> `['env=ci']`, in the delimiter the rest of the app submits. */
 export function parametersToItems(
 	parameters: Record<string, string> | null | undefined
 ): BadgeItem[] {
@@ -55,11 +42,6 @@ export function listToItems(values: string[] | null | undefined): BadgeItem[] {
 	return badgeItems(values ?? []);
 }
 
-/**
- * The inverse. A chip without a delimiter has no value to match on, so it is
- * dropped rather than sent as `{'foo': ''}` — which would be a criterion the
- * user did not write and that almost nothing satisfies.
- */
 export function itemsToParameters(
 	items: BadgeItem[] | undefined
 ): Record<string, string> {
@@ -90,7 +72,6 @@ interface MatcherFieldProps<T extends FieldValues> {
 	name: Path<T>;
 	label: string;
 	placeholder: string;
-	/** Chips are `key=value`; renders them with the display delimiter. */
 	keyValue?: boolean;
 	testId: string;
 }
@@ -134,13 +115,6 @@ export interface MatcherReadOnlyProps {
 	tags: string[] | null | undefined;
 }
 
-/**
- * The same three criteria, for a rule that can no longer change them.
- *
- * Deliberately the colours `MatcherDetail` uses on an expanded row, which are
- * in turn the run page's: a parameter looks like a parameter whether you are
- * reading a result, the rule that matched it, or the form that cannot edit it.
- */
 export function MatcherReadOnly({
 	parameters,
 	verdicts,
@@ -176,11 +150,6 @@ export function MatcherReadOnly({
 	];
 
 	return (
-		// A two-column grid rather than three stacked label-over-values blocks.
-		// Stacked, each criterion cost two lines even when it had nothing in it,
-		// and the labels sat at a different left edge from the chips beside them.
-		// `items-baseline` puts a label on the same line as the first row of its
-		// chips instead of floating above them.
 		<dl
 			className="grid grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1.5"
 			data-testid="rule-matcher-readonly"
@@ -207,7 +176,9 @@ export function MatcherReadOnly({
 								))}
 							</div>
 						) : (
-							<span className="text-xs text-text-menu pl-2">Not constrained</span>
+							<span className="text-xs text-text-menu pl-2">
+								Not constrained
+							</span>
 						)}
 					</dd>
 				</Fragment>

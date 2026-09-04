@@ -57,8 +57,6 @@ describe('buildRuleCreateBody', () => {
 		});
 	});
 
-	// `active` is read-only on `IssueRuleSerializer` and would be ignored;
-	// leaving it off keeps the body honest about what it can actually set.
 	it('never carries active', () => {
 		expect(
 			buildRuleCreateBody(values({ active: 'inactive' }))
@@ -76,12 +74,6 @@ describe('buildRuleCreateBody', () => {
 });
 
 describe('buildRuleUpdateBody', () => {
-	/**
-	 * The guard this exists to stay clear of: `_MATCHER_FIELDS` — project,
-	 * issue, test, parameters, verdicts, tags — are rejected on a rule that has
-	 * stamps, and the check is on the key being present, not on the value
-	 * differing. Sending only these two makes it unreachable.
-	 */
 	it('sends category and disposition and nothing else', () => {
 		expect(buildRuleUpdateBody(values())).toEqual({
 			category: 'known-issue',
@@ -98,8 +90,6 @@ describe('buildRuleUpdateBody', () => {
 });
 
 describe('ruleActiveTransition', () => {
-	// A created rule is always active — the model default, and `active` is
-	// read-only — so "create as inactive" is POST then deactivate.
 	it('follows a create-as-inactive with a deactivate', () => {
 		expect(ruleActiveTransition(values({ active: 'inactive' }))).toBe(
 			'deactivate'

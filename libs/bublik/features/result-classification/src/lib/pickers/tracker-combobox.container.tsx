@@ -21,16 +21,6 @@ const errorStyles = cva({
 	]
 });
 
-/**
- * The trackers this project already uses, read off the keys the issue picker
- * has fetched anyway. There is no endpoint for the tracker list — it lives in
- * the `REFERENCES.ISSUES` global config, which the API does not expose — so the
- * issues themselves are the only source, and the field stays free text for the
- * project's first issue on a new tracker.
- *
- * The query args match `IssuePicker`'s idle call exactly, so this is the same
- * cache entry rather than a second request.
- */
 export function useTrackerOptions(projectId?: number): string[] {
 	const { data } = useGetIssuePickerQuery({ projectId, search: undefined });
 
@@ -54,19 +44,9 @@ export interface TrackerComboboxProps {
 	label?: string;
 	placeholder?: string;
 	error?: string;
-	/** Portal target — see `IssuePickerProps.container` for why this matters. */
 	container?: RefObject<HTMLElement>;
 }
 
-/**
- * Which issue tracker a bug key belongs to. Half of what used to be a single
- * field asking for `ref://TRACKER/KEY`: the scheme is how the key is stored,
- * not something anyone should have to type, so the drawer collects the tracker
- * and the key separately and `composeBugKey` joins them at submit time.
- *
- * Free text with suggestions rather than a select — the known trackers cover
- * the common case, but a project's first issue on a new one must still work.
- */
 export function TrackerCombobox({
 	value,
 	onChange,

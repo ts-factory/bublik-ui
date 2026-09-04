@@ -25,17 +25,6 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 	return debounced;
 }
 
-/**
- * Matches `TestPathComboboxField`'s input — the other autocomplete in the same
- * form, and the reason this one exists rather than the bare input it replaces.
- * Exported so `TrackerCombobox`, which sits two fields away in the classify
- * drawer, is the same input rather than a fourth copy of these classes.
- *
- * `Input`'s base, minus its `hover:border-primary`. A combobox is a box with
- * its own controls in it — a trigger, a clear button, a key chip — and each of
- * those lights up on hover; the whole field outlining itself as well was one
- * response too many, and it fired over the disabled field too.
- */
 export const comboboxInputStyles = cva({
 	base: [
 		'w-full',
@@ -49,8 +38,6 @@ export const comboboxInputStyles = cva({
 		'transition-all',
 		'disabled:text-text-menu',
 		'disabled:cursor-not-allowed',
-		// The page's own grey, the same one `Input` takes when disabled. A wash of
-		// the primary colour read as *selected* rather than as *inert*.
 		'disabled:bg-bg-body',
 		'focus:border-primary',
 		'focus:shadow-text-field',
@@ -61,11 +48,6 @@ export const comboboxInputStyles = cva({
 	]
 });
 
-/**
- * The short, human half of an issue's identity. `ref://E2E_BUGS/E2E-123` is a
- * URI, not a label — `formatBugKey` strips the scheme and tracker so the chip
- * reads `E2E-123`, which is what anyone actually recognises it by.
- */
 function issueKeyLabel(option: Pick<IssuePickerOption, 'id' | 'key'>): string {
 	return formatBugKey(option.key) ?? `#${option.id}`;
 }
@@ -76,23 +58,9 @@ export interface IssuePickerProps {
 	onChange: (id: number | null) => void;
 	label?: string;
 	placeholder?: string;
-	/**
-	 * Node to portal the popup into. Inside a modal drawer this must be an
-	 * element within the dialog: a popup at `document.body` reads as a click
-	 * outside, and selecting an option dismisses the drawer instead.
-	 */
 	container?: RefObject<HTMLElement>;
 }
 
-/**
- * Issue autocomplete, built on the same `Combobox` as the test path field so
- * the two behave and look alike where they sit side by side in the history
- * search form.
- *
- * The key and the title are separate elements in the list rather than one run
- * of text: concatenated, `ref://E2E_BUGS/E2E-123 ethtool reset regression`
- * gives the eye nothing to latch onto.
- */
 export function IssuePicker({
 	projectId,
 	value,
@@ -111,8 +79,6 @@ export function IssuePicker({
 		search: search || undefined
 	});
 
-	// The selection can arrive from a deep link, where it is an id and nothing
-	// more. Resolving it is what turns `?issue=42` into something readable.
 	const { data: selectedIssue } = useGetIssueQuery(
 		value != null ? { issueId: value, projectId } : skipToken
 	);
@@ -158,8 +124,6 @@ export function IssuePicker({
 			onValueChange={(option) =>
 				handleSelect(option as IssuePickerOption | null)
 			}
-			// Filtering is the server's job here — the endpoint searches title and
-			// key together, over every issue rather than the page in hand.
 			filter={null}
 			itemToStringLabel={(item: IssuePickerOption) => item.title}
 		>
@@ -242,11 +206,6 @@ export function IssuePicker({
 									data-issue-id={item.id}
 									data-selected={value === item.id ? 'true' : 'false'}
 								>
-									{/* A common minimum width, so `#20` and `E2E-114` occupy
-									    the same space and every title starts on the same
-									    vertical line. Left-aligned within it — the keys read
-									    as a column of their own, and centring made short ones
-									    drift away from that edge. */}
 									<span className="px-1.5 shrink-0 min-w-[4.5rem] text-left rounded bg-badge-0 text-[0.6875rem] leading-[1.125rem] text-text-menu">
 										{issueKeyLabel(item)}
 									</span>

@@ -83,8 +83,6 @@ export function RunIssuesTableView({
 	totalCount,
 	renderSubRow
 }: RunIssuesTableViewProps) {
-	// The same controls the row chips write through, so the dropdowns and the
-	// badges are two views of one filter rather than two filters.
 	const facets = facetControls(table);
 
 	const { pagination } = table.getState();
@@ -95,8 +93,6 @@ export function RunIssuesTableView({
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	// Both of these change which rows are on screen, so both return the reader
-	// to the top of the list.
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
 		scrollToTop();
@@ -160,8 +156,6 @@ export function RunIssuesTableView({
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				{/* The two controls that act on the table rather than on what it is
-				    showing, grouped at the trailing edge behind their own rule. */}
 				<div className="flex items-center gap-2 ml-auto">
 					{toolbarActions ? (
 						<>
@@ -178,8 +172,6 @@ export function RunIssuesTableView({
 				</div>
 			</ClassificationToolbar>
 
-			{/* Grey, because the rows are white cards and a card needs something to
-			    sit on. The toolbar and footer paint their own white. */}
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
 				{rows.length === 0 ? (
 					<BublikEmptyState

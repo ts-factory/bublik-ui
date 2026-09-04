@@ -10,20 +10,9 @@ import { useClassify } from './classify.hooks';
 
 export interface ClassifyButtonProps {
 	resultId: number;
-	/**
-	 * Project the result belongs to. On a run page this comes from the result
-	 * itself, so classify works regardless of the global project selector.
-	 */
 	projectId?: number;
 }
 
-/**
- * Opens the classify drawer. There used to be a popover in front of it holding
- * a cut-down version of the same form, with a link across to the drawer for
- * anyone who needed the match rules — two surfaces, one form, and a decision to
- * make before you could start typing. The drawer is the whole form, so it is
- * the only surface now.
- */
 export function ClassifyButton({ resultId, projectId }: ClassifyButtonProps) {
 	const [open, setOpen] = useState(false);
 	const { submit, canClassify } = useClassify(resultId, projectId);
@@ -49,9 +38,6 @@ export function ClassifyButton({ resultId, projectId }: ClassifyButtonProps) {
 				onOpenChange={(next) => {
 					setOpen(next);
 
-					// The form outlives the drawer — it is created here, so without
-					// this a failed attempt's values and its server errors are still
-					// sitting there the next time the drawer opens.
 					if (!next) form.reset();
 				}}
 				form={form}

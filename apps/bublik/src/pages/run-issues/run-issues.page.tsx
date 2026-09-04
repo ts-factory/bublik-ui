@@ -110,10 +110,6 @@ function RunIssuesPage() {
 	const projectId = details?.project_id;
 
 	return (
-		// `h-full` down the chain is what gives the table a bounded parent to
-		// shrink against. Without it its own `flex-1 min-h-0` has nothing to
-		// resolve against, so the whole page scrolls and the footer — with the
-		// pagination in it — drifts below the fold.
 		<div
 			className="flex flex-col h-full gap-1 p-2"
 			data-testid="run-issues-page"

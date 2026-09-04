@@ -42,12 +42,8 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 	const { projectIds } = useProjectSearch();
 	const projectId = projectIds[0];
 
-	// Issues are global; `project` is an optional filter on the backend, so an
-	// unscoped request legitimately lists every project. Say which it is.
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 
-	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
-	// the pinned header, and the shadow over the footer.
 	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		COLUMN_VISIBILITY_KEY,
@@ -94,10 +90,9 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 		pageSize: queryArgs.pageSize
 	});
 
-	// A rule carries `project` as a bare id, and an id is not something anyone
-	// recognises a project by.
 	const projectNames = useMemo(
-		() => new Map((projects ?? []).map((project) => [project.id, project.name])),
+		() =>
+			new Map((projects ?? []).map((project) => [project.id, project.name])),
 		[projects]
 	);
 
@@ -110,16 +105,11 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 			),
 		[issuesQuery.data, rulesQuery.data, projectNames]
 	);
-	// The count the server reports for the *filtered* set, not the rows in hand.
-	// Reading it off the page is what made a 45-issue list say "25 of 25".
 	const totalCount = issuesQuery.data?.pagination.count ?? 0;
 	const columns = useMemo(() => getColumns(projectId), [projectId]);
 	const { stateOptions, rulesOptions, categoryOptions, projectOptions } =
 		useFacetOptions(rows);
 
-	// The server owns paging, filtering and sorting: the table holds one page, so
-	// filtering or sorting it locally would only ever reorder that page while
-	// claiming to have reordered the list.
 	const table = useReactTable({
 		data: rows,
 		columns,
@@ -130,16 +120,6 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 		onPaginationChange,
 		rowCount: totalCount,
 		manualPagination: true,
-		// Filtering and sorting stay client-side, over the page in hand. The API
-		// accepts the params (they are sent above) but honours almost none of
-		// them yet, so leaving these `true` meant the toolbar did nothing at all
-		// — every facet and the search box were inert.
-		//
-		// Filtering the loaded page is not the same as filtering the list, and at
-		// more than one page it will under-report. It is still strictly better
-		// than not filtering, and it is forward-compatible: once the API narrows
-		// the set itself, the client pass matches everything it is given and
-		// quietly becomes a no-op.
 		getRowId: (row) => String(row.id),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
@@ -148,9 +128,6 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 
 	const pageCount = table.getPageCount();
 
-	// A shared link can outlive the rows it pointed at. Client-side pagination
-	// does not clamp on its own, so `?page=9` on a four-page table would render
-	// nothing at all, with no hint why.
 	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
 	const scopeLabel =
@@ -163,9 +140,6 @@ export function IssuesTable({ toolbarActions }: IssuesTableProps = {}) {
 
 	if (issuesQuery.error) return <IssuesTableError error={issuesQuery.error} />;
 
-	// Only an unfiltered empty result means "there are no issues". With filters
-	// on, the empty state belongs inside the table, next to the controls that
-	// caused it.
 	if (!totalCount && !hasFilters && !search) {
 		return (
 			<IssuesTableEmpty scopeLabel={scopeLabel}>

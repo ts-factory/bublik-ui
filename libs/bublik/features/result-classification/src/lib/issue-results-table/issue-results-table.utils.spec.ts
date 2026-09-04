@@ -2,7 +2,10 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { issueResultRunId, issueResultTestPath } from './issue-results-table.utils';
+import {
+	issueResultRunId,
+	issueResultTestPath
+} from './issue-results-table.utils';
 
 const row = (
 	over: Partial<Parameters<typeof issueResultTestPath>[0]> = {}
@@ -16,8 +19,6 @@ const row = (
 });
 
 describe('issueResultTestPath', () => {
-	// The whole point: `getHistorySearch` passes this straight through as the
-	// `testName` query param, and history rejects a package path.
 	it('appends the test name to the package chain', () => {
 		expect(issueResultTestPath(row())).toBe('pkg/subpkg/test_name');
 	});

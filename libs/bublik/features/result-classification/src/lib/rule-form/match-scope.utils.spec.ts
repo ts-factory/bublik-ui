@@ -75,11 +75,6 @@ describe('match-scope.utils', () => {
 	});
 });
 
-/**
- * The stored-rule half of the same question. These are the cases the old
- * flag-reading `SCOPE_COLUMN` got wrong — it saw `undefined` for every flag and
- * printed `Path` regardless of what the rule actually matched on.
- */
 describe('chipsForRule', () => {
 	it('an unconstrained rule matches on path alone', () => {
 		expect(chipsForRule({ parameters: {}, verdicts: [], tags: [] })).toEqual([

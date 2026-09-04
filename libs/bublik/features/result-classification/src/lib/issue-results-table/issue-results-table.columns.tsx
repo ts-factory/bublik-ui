@@ -19,26 +19,8 @@ interface ResultLinksProps {
 	row: ResultRow;
 }
 
-/**
- * The same vertical link stack the run's result table uses, so a result found
- * through an issue offers the same next steps as one found through the tree.
- *
- * History goes through `HistoryLinkContainer`, which resolves the result's own
- * parameters and the run's anchor date. A link built from the issue alone lands
- * on an empty history page, because an issue is not a query.
- *
- * `path` must be the *full* test path. `getHistorySearch` uses it verbatim as
- * the `testName` query param, and history answers "Test with the specified name
- * was not found" for anything that is not a real test — a package path being
- * exactly that. The run tree gets this right for free (it builds
- * `path = [...parents, test_name]`); this endpoint reports the package chain
- * and the test name separately, so they have to be rejoined here.
- */
 function ResultLinks({ runId, row }: ResultLinksProps) {
 	return (
-		// `secondary` is what `HistoryLinkContainer` already renders as, so Run and
-		// Log wear it too. Left as bare anchors they read as a stray pair of links
-		// hanging off one filled chip rather than as three peers.
 		<ul className="flex flex-col items-start gap-1 py-1">
 			<li>
 				<ButtonTw asChild variant="secondary" size="xss">
@@ -85,18 +67,12 @@ export function getColumns(
 			cell: ({ row }) => {
 				const rowRunId = issueResultRunId(runId, row.original);
 
-				// Every link in the stack is run-scoped, so without a run there is
-				// nothing to point at.
 				if (rowRunId === undefined) return null;
 
 				return <ResultLinks runId={rowRunId} row={row.original} />;
 			}
 		},
 		{
-			// One column, not two. The API hands back the package chain and the
-			// test name separately, but nobody reads a test's identity in halves —
-			// and splitting them left the name in a `w-64` column while its own
-			// path sat three columns away.
 			id: 'test_path',
 			accessorFn: (row) => issueResultTestPath(row),
 			header: 'Test Path',
@@ -117,9 +93,6 @@ export function getColumns(
 			id: 'obtained',
 			accessorFn: (row) => row.obtained_result ?? '',
 			header: 'Obtained Result',
-			// The grower: a verdict list is the one thing here with no natural
-			// width. Omitting `width` would say the same, but saying it keeps the
-			// three columns readable as a set.
 			meta: { width: 'minmax(0, 1fr)' },
 			enableSorting: false,
 			cell: ({ row }) => {

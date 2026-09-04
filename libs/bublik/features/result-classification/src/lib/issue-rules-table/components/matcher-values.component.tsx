@@ -18,9 +18,6 @@ export function MatcherValues({
 	className?: string;
 	facets?: FacetControls;
 }) {
-	// Nothing renders for an unconstrained criterion. It is the common case —
-	// most rules pin one axis and leave the other two open — so a placeholder
-	// would put a dash in most cells of three columns.
 	if (!values.length) return null;
 
 	return (

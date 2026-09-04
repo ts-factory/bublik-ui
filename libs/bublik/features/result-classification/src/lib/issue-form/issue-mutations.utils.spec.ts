@@ -42,11 +42,6 @@ function values(overrides: Partial<IssueFormValues> = {}): IssueFormValues {
 }
 
 describe('buildIssueUpdateBody', () => {
-	/**
-	 * The one that matters. `validate_bug_key` rejects the field's *presence* on
-	 * an issue with classified results, so sending the unchanged key back would
-	 * turn a title edit into "Cannot change the bug key…".
-	 */
 	it('omits bug_key entirely when neither half moved', () => {
 		expect(buildIssueUpdateBody(values(), issue())).not.toHaveProperty(
 			'bug_key'

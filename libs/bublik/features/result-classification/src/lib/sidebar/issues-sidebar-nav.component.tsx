@@ -14,15 +14,6 @@ import {
 
 import { useIssuesSidebarState } from './issues-sidebar.hooks';
 
-/**
- * Both list paths, spelled out rather than `/issues/*`.
- *
- * `matchPath` defaults to `end: true`, so `/issues` alone would not match
- * `/issues/rules`. A splat would match `/issues/:issueId` too and overlap the
- * Issue section — and `useSidebarStateWriter` writes a whole search string
- * rather than applying a functional update, so two nav writers firing in the
- * same commit would clobber each other.
- */
 const ISSUES_SIDEBAR_PATTERNS = [
 	{ path: '/issues' },
 	{ path: '/issues/rules' }

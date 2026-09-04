@@ -40,8 +40,6 @@ export function RunIssuesTable({
 	projectId,
 	toolbarActions
 }: RunIssuesTableProps) {
-	// Run-scoped: an unscoped answer is never the one we want, and projectId
-	// arrives a render late (it comes from the run details query).
 	const { data, isLoading, error } = useGetRunIssuesQuery(
 		projectId === undefined ? skipToken : { runId, projectId }
 	);
@@ -61,8 +59,6 @@ export function RunIssuesTable({
 		[allIssues]
 	);
 
-	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
-	// the pinned header, and the shadow over the footer.
 	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		COLUMN_VISIBILITY_KEY,
@@ -125,13 +121,8 @@ export function RunIssuesTable({
 
 	const pageCount = table.getPageCount();
 
-	// A shared link can outlive the rows it pointed at. Client-side pagination
-	// does not clamp on its own, so `?page=9` on a four-page table would render
-	// nothing at all, with no hint why.
 	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
-	// projectId undefined => query skipped, so isLoading is false. Keep the
-	// skeleton up rather than flashing the empty state.
 	if (isLoading || projectId === undefined) return <RunIssuesTableLoading />;
 
 	if (error) return <RunIssuesTableError error={error} />;

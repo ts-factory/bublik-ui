@@ -34,19 +34,11 @@ export interface RuleDrawerProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	form: RuleForm;
-	/** Absent for a create. */
 	rule?: IssueRule | null;
-	/** Fixed by the page — the issue page pins its issue. */
 	lockIssue?: boolean;
-	/** Names a test the option list may not carry. See `TestPicker`. */
 	testName?: string | null;
 }
 
-/**
- * The rule editor, in `ClassifyDrawer`'s shell. Same width, same header, same
- * sticky footer — a rule written here and a rule written by classifying a
- * result are the same object, and the two forms should say so.
- */
 export function RuleDrawer({
 	open,
 	onOpenChange,
@@ -66,9 +58,6 @@ export function RuleDrawer({
 		() => onOpenChange(false)
 	);
 
-	// Escape, the backdrop and the header's cross all route through here. None
-	// of them may take the form away while the request it describes is still in
-	// flight — if it fails, this is where the message has to land.
 	function handleOpenChange(next: boolean) {
 		if (!next && isSubmitting) return;
 
@@ -78,10 +67,6 @@ export function RuleDrawer({
 	return (
 		<DrawerRoot open={open} onOpenChange={handleOpenChange}>
 			<DrawerContent
-				// See `ClassifyDrawer` for why all three of these are here: the
-				// portal escapes the row's stacking context, the stopPropagation
-				// keeps React's portal events out of the row handler, and z-[55]
-				// sits between the dialog layer and the select dropdowns.
 				portal
 				onClick={(event) => event.stopPropagation()}
 				data-stop-row-click="true"
@@ -100,10 +85,6 @@ export function RuleDrawer({
 					/>
 				</div>
 
-				{/* The issue and test popups portal in here rather than to
-				    `document.body`: this is a modal dialog, and a click on a
-				    body-level popup reads as a click outside — which closes the
-				    drawer instead of selecting the option. */}
 				<div
 					ref={scrollableRef}
 					className="flex flex-col flex-1 min-h-0 overflow-y-auto styled-scrollbar"
@@ -131,9 +112,6 @@ export function RuleDrawer({
 								variant="primary"
 								size="md"
 								rounded="lg"
-								// Rules carry no uniqueness constraint, so a second click
-								// while the first is in flight creates a second identical
-								// rule rather than failing.
 								disabled={isSubmitting}
 								className="justify-center w-full"
 								data-testid="rule-submit"
@@ -166,22 +144,12 @@ export function RuleDrawer({
 }
 
 export interface NewRuleButtonProps extends RuleFormSeed {
-	/** Fixed by the page — the issue page pins its issue. */
 	lockIssue?: boolean;
-	/** Names a seeded test the option list may not carry. */
 	testName?: string | null;
 	size?: 'xss' | 'md';
 	label?: string;
 }
 
-/**
- * Opens an empty rule drawer, seeded with whatever the caller already knows.
- *
- * Owns the form, so closing and reopening starts clean rather than resuming an
- * abandoned draft. Hidden for non-admins: every write is admin-only server-side
- * and cannot be relaxed per project, so a button that always 403s is worse than
- * no button.
- */
 export function NewRuleButton({
 	rule,
 	projectId,
@@ -199,8 +167,6 @@ export function NewRuleButton({
 
 	function handleOpenChange(next: boolean) {
 		setOpen(next);
-		// Back to the seed rather than to blank: reopening from the same row
-		// should offer the same starting point it did the first time.
 		if (!next) form.reset();
 	}
 
@@ -208,7 +174,7 @@ export function NewRuleButton({
 		<>
 			<Tooltip content={reason || 'Write a new rule'}>
 				<ButtonTw
-					variant={open ? "primary" : 'secondary'}
+					variant={open ? 'primary' : 'secondary'}
 					size={size}
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
@@ -287,11 +253,6 @@ export interface DuplicateRuleButtonProps {
 	iconOnly?: boolean;
 }
 
-/**
- * A new rule prefilled from an existing one — the workflow the serializer's
- * "Create a new rule instead" points at, and the only way to write a different
- * matcher for a test that already has one.
- */
 export function DuplicateRuleButton({
 	rule,
 	iconOnly = false
@@ -328,12 +289,6 @@ export function DuplicateRuleButton({
 				</ButtonTw>
 			</Tooltip>
 			{open !== null ? (
-				// Every value copied — including the matcher, which is the thing you
-				// came here to change — but no `rule` handed to the drawer, so it
-				// opens in *create* mode: nothing is locked, and submit POSTs.
-				// That split is why `RuleFormSeed.rule` and `RuleDrawer.rule` are
-				// separate: one seeds the values, the other says which rule is
-				// being edited.
 				<LazyRuleDrawer
 					open={open}
 					onOpenChange={setOpen}
@@ -345,10 +300,6 @@ export function DuplicateRuleButton({
 	);
 }
 
-/**
- * Owns the form, so that `useRuleForm` runs only once the drawer is wanted —
- * see `useLazyDialog` for why that matters in a hundred-row table.
- */
 function LazyRuleDrawer({
 	open,
 	onOpenChange,
@@ -369,8 +320,6 @@ function LazyRuleDrawer({
 			open={open}
 			onOpenChange={(next) => {
 				onOpenChange(next);
-				// Back to the seed rather than to blank: reopening from the same row
-				// should offer the same starting point it did the first time.
 				if (!next) form.reset();
 			}}
 			form={form}
@@ -399,8 +348,7 @@ export function RuleDeleteButton({
 		try {
 			await deleteRule({ ruleId: rule.id, projectId: rule.project });
 		} catch {
-			// The toast already carries the message; there is nothing to correct
-			// here the way there is in a form.
+			return;
 		}
 	}
 

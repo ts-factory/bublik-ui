@@ -18,19 +18,21 @@ import { CATEGORY_OPTIONS } from '../shared/category.constants';
 import { IssuePicker } from '../pickers/issue-picker.container';
 import { MatchScope } from '../rule-form/match-scope.component';
 import { DEFAULT_MATCH_FLAGS } from '../rule-form/match-scope.utils';
-import { composeBugKey, refineBugKeyHalves, splitBugKey } from '../shared/bug-key.utils';
+import {
+	composeBugKey,
+	refineBugKeyHalves,
+	splitBugKey
+} from '../shared/bug-key.utils';
 import { applyClassifyErrors } from './classify.utils';
-import { TrackerCombobox, useTrackerOptions } from '../pickers/tracker-combobox.container';
+import {
+	TrackerCombobox,
+	useTrackerOptions
+} from '../pickers/tracker-combobox.container';
 
 const ClassifyFormShape = z.object({
 	mode: z.enum(['new', 'existing']),
 	issueId: z.coerce.number().optional(),
 	title: z.string().optional(),
-	/**
-	 * The two halves of a bug key. They are stored joined as
-	 * `ref://TRACKER/KEY` — see `composeBugKey` — but nobody types a URI, so the
-	 * form holds them apart.
-	 */
 	tracker: z.string().optional(),
 	bugKey: z.string().optional(),
 	category: z.string().min(1, { message: 'Category is required' }),
@@ -55,8 +57,6 @@ export const ClassifyFormSchema = ClassifyFormShape.superRefine(
 				});
 			}
 
-			// The rest describes an issue that is about to be created, and under
-			// `existing` there is none.
 			return;
 		}
 
@@ -68,7 +68,6 @@ export const ClassifyFormSchema = ClassifyFormShape.superRefine(
 			});
 		}
 
-		// Shared with the issue drawer, which collects the same pair.
 		refineBugKeyHalves(values, ctx);
 	}
 );
@@ -119,9 +118,6 @@ export function buildSubmitHandler(
 						bug_key: composeBugKey(values.tracker, values.bugKey)
 				  };
 
-		// Left over from a previous attempt; the field errors are replaced by
-		// `setError` below, but a stale root alert would otherwise survive a
-		// request that failed for an entirely different reason.
 		form.clearErrors('root');
 
 		try {
@@ -143,9 +139,6 @@ export function buildSubmitHandler(
 				}
 			});
 		} catch (error: unknown) {
-			// The drawer closes in `onDone` and nowhere else: a rejected classify
-			// leaves the form standing with the server's message on the field
-			// that caused it.
 			applyClassifyErrors(error, form);
 			return;
 		}
@@ -161,7 +154,6 @@ export function ClassifyFields({
 }: {
 	form: ClassifyForm;
 	projectId?: number;
-	/** Portal target for the issue picker's popup — see `IssuePickerProps`. */
 	container?: RefObject<HTMLElement>;
 }) {
 	const {
@@ -180,10 +172,6 @@ export function ClassifyFields({
 				<FormAlertError title="Error" description={errors.root.message} />
 			) : null}
 
-			{/* The three cards mirror the history global search form's sections —
-			    same `FormSection` shell, same coloured bar, same uppercase
-			    headers. The form's own `gap-6` supplies the spacing between them,
-			    which is the gap that form uses too. */}
 			<FormSection className="flex flex-col">
 				<FormSection.Bar className="bg-primary" />
 				<FormSection.Header name="Issue" />
@@ -216,8 +204,6 @@ export function ClassifyFields({
 								error={errors.title?.message}
 								{...register('title')}
 							/>
-							{/* Tracker and key side by side: they are one identifier, and
-							    stacking them read as two unrelated optional fields. */}
 							<div className="flex gap-4">
 								<div className="w-2/5" data-testid="classify-tracker">
 									<Controller
@@ -249,9 +235,6 @@ export function ClassifyFields({
 												value={field.value ?? ''}
 												error={errors.bugKey?.message}
 												onChange={(event) => {
-													// Pasting a whole `ref://JIRA/FOO-123` — off a
-													// badge, out of a chat — should fill both
-													// fields rather than fail validation.
 													const next = event.target.value;
 													const split = splitBugKey(next, trackerOptions);
 
@@ -294,9 +277,6 @@ export function ClassifyFields({
 				</div>
 			</FormSection>
 
-			{/* Orange bar, the same one the history form's Classification section
-			    carries — the two forms name the same concept, so they should not
-			    pick different colours for it. */}
 			<FormSection className="flex flex-col">
 				<FormSection.Bar className="bg-bg-warning" />
 				<FormSection.Header name="Classification" />
@@ -315,9 +295,6 @@ export function ClassifyFields({
 								/>
 							)}
 						/>
-						{/* `SelectInput` has no error slot of its own, and widening a
-						    shared component for three fields that rarely fail is the
-						    wrong trade. */}
 						{errors.category?.message ? (
 							<ErrorMessage>{errors.category.message}</ErrorMessage>
 						) : null}
@@ -351,9 +328,6 @@ export function ClassifyFields({
 			<FormSection className="flex flex-col">
 				<FormSection.Bar className="bg-bg-interrupted" />
 				<FormSection.Header name="Scope" />
-				{/* No subheader over the select: its own floating label already
-				    reads "Apply to", and the two would sit a handspan apart saying
-				    the same words. */}
 				<div className="mb-5">
 					<div data-testid="classify-scope">
 						<Controller

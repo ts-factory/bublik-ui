@@ -11,11 +11,6 @@ describe('manageIssuesPermission', () => {
 		);
 	});
 
-	/**
-	 * The controls are disabled, never hidden. Hiding them makes the feature
-	 * look absent — there is no way to tell "you may not do this" from "this
-	 * does not exist" — so a non-admin must still get a control and a reason.
-	 */
 	it('gives a non-admin a reason rather than an empty toolbar', () => {
 		const { canManage, reason } = manageIssuesPermission({
 			isAdmin: false,
@@ -26,8 +21,6 @@ describe('manageIssuesPermission', () => {
 		expect(reason).toMatch(/admin/i);
 	});
 
-	// Every control on the page would otherwise flicker from enabled to
-	// disabled and back as `useMeQuery` settles.
 	it('does not disable anything while the user is still loading', () => {
 		expect(manageIssuesPermission({ isAdmin: false, isLoading: true })).toEqual(
 			{ canManage: true, reason: '' }

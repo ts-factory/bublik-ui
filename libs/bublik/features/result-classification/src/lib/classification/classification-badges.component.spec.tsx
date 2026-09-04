@@ -32,8 +32,6 @@ vi.mock('@/bublik/features/projects', () => {
 	};
 });
 
-// The real trigger opens a drawer wired to RTK Query; what matters here is
-// only whether it is offered, and where it sits relative to the verdict chip.
 vi.mock('../classify/classify-button.container', () => ({
 	ClassifyButton: ({ resultId }: { resultId: number }) => (
 		<button data-testid="classify-trigger" data-result-id={resultId}>
@@ -70,7 +68,6 @@ function stamp(partial: Partial<ResultIssueRef> = {}): ResultIssueRef {
 	};
 }
 
-/** The key chip, which is where the closed strike lives. */
 const keys = () => screen.getAllByText(/^(E2E-|#)/);
 
 describe('ResultIssueBadges — closed issues', () => {
@@ -88,11 +85,6 @@ describe('ResultIssueBadges — closed issues', () => {
 		expect(keys()[0]).not.toHaveAttribute('data-issue-state');
 	});
 
-	/*
-	 * The case the aggregate verdict chip cannot express: it reports one answer
-	 * for the whole result, so on a row carrying several issues it cannot say
-	 * which of them died. Per-key striking can.
-	 */
 	it('strikes only the closed issue when a result carries several', () => {
 		render(
 			<ResultIssueBadges
@@ -111,11 +103,6 @@ describe('ResultIssueBadges — closed issues', () => {
 		expect(screen.getByText('E2E-140')).toHaveClass('line-through');
 	});
 
-	/*
-	 * `underline` and `line-through` are the same CSS property, so a hover
-	 * underline would replace the strike and the issue would look alive exactly
-	 * while you point at it.
-	 */
 	it('does not pair the strike with a hover underline', () => {
 		render(<ResultIssueBadges issues={[stamp({ issue_state: 'closed' })]} />);
 
@@ -125,10 +112,6 @@ describe('ResultIssueBadges — closed issues', () => {
 
 describe('ClassificationVerdict — no chip, only the trigger', () => {
 	it('draws no verdict chip on any kind of row', () => {
-		// The line used to lead with UNTRIAGED on unclassified failures, which
-		// put Classify at one of two offsets depending on the row. Counted by
-		// `data-effect`, which every verdict chip in the module carries: asking
-		// only for the untriaged one would not notice another finding its way in.
 		const rows = [
 			{ hasError: true, issues: [] },
 			{ hasError: true, issues: [stamp()] },
@@ -150,8 +133,6 @@ describe('ClassificationVerdict — no chip, only the trigger', () => {
 	});
 
 	it('leaves a read-only surface with nothing to draw', () => {
-		// History passes no `resultId`, so there is no trigger and no chip -- and
-		// it must not leave a leading rule standing on its own.
 		for (const hasError of [true, false]) {
 			const { container, unmount } = render(
 				<ClassificationVerdict hasError={hasError} issues={[stamp()]} />
@@ -181,8 +162,6 @@ describe('ClassificationVerdict — the Classify slot', () => {
 	});
 
 	it('offers the trigger on a failure the rules already explain', () => {
-		// Which rows can be classified did not change when the chip went: one
-		// rule explaining a failure does not stop a second one being true.
 		render(<ClassificationVerdict hasError issues={[stamp()]} resultId={42} />);
 
 		expect(screen.getByTestId('classify-trigger')).toBeInTheDocument();
@@ -211,9 +190,6 @@ describe('ClassificationVerdict — the Classify slot', () => {
 
 describe('ResultIssueBadges — one line per issue', () => {
 	it("puts each issue's chips in the columns rather than in a row of its own", () => {
-		// `contents` is what does it: the wrapper keeps the e2e hooks and stops
-		// being a box, so the key and the categories land in the shared columns and
-		// the categories line up however long the keys are.
 		render(
 			<ResultIssueBadges
 				issues={[
@@ -229,10 +205,6 @@ describe('ResultIssueBadges — one line per issue', () => {
 		for (const el of rows) expect(el).toHaveClass('contents');
 	});
 
-	/*
-	 * A result carries one stamp per matching *rule*, so an issue with three
-	 * rules used to print its key three times and read as three bugs.
-	 */
 	it('collapses an issue matched by several rules onto one line', () => {
 		render(
 			<ResultIssueBadges
@@ -249,7 +221,6 @@ describe('ResultIssueBadges — one line per issue', () => {
 		expect(rows).toHaveLength(1);
 		expect(rows[0]).toHaveAttribute('data-issue-id', '7');
 		expect(keys()).toHaveLength(1);
-		// One badge per category, so each stays its own filter control.
 		expect(rows[0].querySelectorAll('[data-category]')).toHaveLength(3);
 	});
 
@@ -270,9 +241,6 @@ describe('ResultIssueBadges — one line per issue', () => {
 		const env = screen.getByText(categoryMeta('env').label);
 		const flaky = screen.getByText(categoryMeta('flaky').label);
 
-		// Which outline a selected chip draws is `Badge`'s business — it derives
-		// one from the chip's own variant — so this asks only that the selected
-		// chip does not look like the unselected one beside it.
 		expect(env.className).not.toBe(flaky.className);
 
 		await userEvent.click(flaky);
@@ -292,9 +260,6 @@ describe('ResultIssueBadges — one line per issue', () => {
 			/>
 		);
 
-		// The whole point of the exercise: a red chip selects red and a violet
-		// one violet, the way the obtained-result badge beside them already
-		// behaves. Both wearing `border-primary` is what this replaced.
 		expect(
 			screen.getByText(categoryMeta('product-defect').label).className
 		).toContain('border-text-unexpected');
@@ -315,7 +280,6 @@ describe('ResultIssueBadges — one line per issue', () => {
 			'hover:border-accent-env/40'
 		);
 
-		// A read-only surface passes no handler, and must promise nothing.
 		rerender(
 			<ResultIssueBadges issues={[stamp({ issue_id: 7, category: 'env' })]} />
 		);
@@ -353,12 +317,6 @@ describe('ProjectBadge', () => {
 		expect(onClick).toHaveBeenCalledOnce();
 	});
 
-	/**
-	 * `toggleShell` adds `type="button"` only when a click is really wired up —
-	 * a chip that does nothing must not promise that it does. Asserted on the
-	 * chip itself rather than by role: every badge here sits inside a tooltip,
-	 * and the tooltip's own trigger is a button either way.
-	 */
 	it('is inert where no filter is wired to it', () => {
 		render(<ProjectBadge name="tsf/net-drv" />);
 

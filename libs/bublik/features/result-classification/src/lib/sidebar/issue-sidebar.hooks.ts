@@ -14,9 +14,7 @@ import {
 
 export interface UseIssueSidebarStateReturn {
 	lastIssueUrl: string | null;
-	/** Falls back to the issues list so the link is never a dead end. */
 	mainLinkUrl: string;
-	/** No issue has been opened yet, so there is nothing to go back to. */
 	isAvailable: boolean;
 	setLastVisited: (url: string) => void;
 }

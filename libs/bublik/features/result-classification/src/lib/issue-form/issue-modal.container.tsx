@@ -17,7 +17,11 @@ import {
 } from '@/shared/tailwind-ui';
 import type { Issue } from '@/shared/types';
 
-import { IssueFields, useIssueForm, type IssueForm } from './issue-form.component';
+import {
+	IssueFields,
+	useIssueForm,
+	type IssueForm
+} from './issue-form.component';
 import {
 	buildIssueSubmitHandler,
 	useDeleteIssue,
@@ -31,22 +35,10 @@ export interface IssueModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	form: IssueForm;
-	/** Absent for a create. */
 	issue?: Issue | null;
 	projectId?: number;
 }
 
-/**
- * A modal, not a drawer.
- *
- * The classify drawer earns its full height: it carries three sections, a
- * matcher and a scope. An issue is four fields — title, description, tracker
- * key, state — and a full-height panel around four fields is mostly empty
- * panel. It follows `CreateUserModal` / `UsersModalLayout` instead, which is
- * what the rest of the app uses for a short form.
- *
- * The rule editor stays a drawer: it has the fields to justify one.
- */
 export function IssueModal({
 	open,
 	onOpenChange,
@@ -55,10 +47,6 @@ export function IssueModal({
 	projectId
 }: IssueModalProps) {
 	const save = useSaveIssue();
-	// The tracker combobox portals into this node rather than to
-	// `document.body`: this is a modal dialog, and a click on a body-level popup
-	// reads as a click outside — which closes the modal instead of selecting the
-	// option.
 	const contentRef = useRef<HTMLDivElement>(null);
 	const isSubmitting = form.formState.isSubmitting;
 	const isEdit = Boolean(issue);
@@ -69,9 +57,6 @@ export function IssueModal({
 		() => onOpenChange(false)
 	);
 
-	// Escape, the backdrop and the header's cross all route through here. None
-	// of them may take the form away while the request it describes is still in
-	// flight — if it fails, this is where the message has to land.
 	function handleOpenChange(next: boolean) {
 		if (!next && isSubmitting) return;
 
@@ -80,19 +65,9 @@ export function IssueModal({
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			{/* Portalled, unlike `CreateUserModal` — that one opens from a toolbar
-			    button, these open from inside a table row. `dialogContentStyles` is
-			    `position: fixed`, which escapes overflow clipping but not a
-			    stacking context, so without this the row can paint over the modal.
-			    Same reason `ClassifyDrawer` takes its `portal` prop. */}
 			<DialogPortal>
 				<ModalContent
 					ref={contentRef}
-					// React events bubble through the component tree rather than the DOM
-					// one, so without this a click inside the modal reaches the table
-					// cell that rendered the trigger and toggles row state, re-rendering
-					// the row out from under it. The data attribute is that handler's
-					// own DOM-side opt-out.
 					onClick={(event) => event.stopPropagation()}
 					data-stop-row-click="true"
 					className="w-full sm:max-w-lg p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] z-10 relative overflow-auto max-h-[85vh]"
@@ -141,8 +116,6 @@ export function IssueModal({
 								variant="primary"
 								size="md"
 								rounded="lg"
-								// The request is not idempotent — a second click while the
-								// first is in flight creates a second issue.
 								disabled={isSubmitting}
 								className="justify-center"
 								data-testid="issue-submit"
@@ -176,20 +149,10 @@ export function IssueModal({
 
 export interface NewIssueButtonProps {
 	projectId?: number;
-	/** `xss` in a toolbar, `md` in an empty state. */
 	size?: 'xss' | 'md';
 	label?: string;
 }
 
-/**
- * Opens an empty issue drawer. Owns the form so that closing and reopening
- * starts clean rather than resuming an abandoned draft — the same split
- * `ClassifyButton` uses.
- *
- * Hidden for non-admins: every write is `@check_action_permission
- * ('manage_issues')`, which resolves to admin-only and cannot be relaxed
- * per-project. A button that always 403s is worse than no button.
- */
 export function NewIssueButton({
 	projectId,
 	size = 'xss',
@@ -208,7 +171,7 @@ export function NewIssueButton({
 		<>
 			<Tooltip content={reason || 'Record a new issue'}>
 				<ButtonTw
-					variant={open ? "primary" : "secondary"}
+					variant={open ? 'primary' : 'secondary'}
 					size={size}
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
@@ -236,9 +199,7 @@ export function NewIssueButton({
 export interface EditIssueButtonProps {
 	issueId: number;
 	projectId?: number;
-	/** Skips the fetch when the caller already holds the row. */
 	issue?: Issue;
-	/** Table rows want the icon alone; the issue header has room for the word. */
 	iconOnly?: boolean;
 }
 
@@ -259,8 +220,6 @@ export function EditIssueButton({
 					size="xss"
 					disabled={!canManage}
 					onClick={() => setOpen(true)}
-					// Labelled, this button sits in a vertical stack in a table row,
-					// where every label has to start at the same left edge.
 					className={cn(
 						'whitespace-nowrap',
 						iconOnly ? 'justify-center' : 'justify-start'
@@ -285,10 +244,6 @@ export function EditIssueButton({
 	);
 }
 
-/**
- * Owns the form and the fetch, so neither happens until the modal is wanted —
- * see `useLazyDialog` for why that matters in a hundred-row table.
- */
 function LazyIssueModal({
 	open,
 	onOpenChange,
@@ -302,9 +257,6 @@ function LazyIssueModal({
 	issue?: Issue;
 	projectId?: number;
 }) {
-	// A table row carries every field the form needs, so the fetch is skipped
-	// there. It is not skipped on the issue page, where the header's own query
-	// is the one that already has it — same cache entry, no second request.
 	const { data: fetched } = useGetIssueQuery(
 		issue ? skipToken : { issueId, projectId }
 	);
@@ -333,14 +285,6 @@ export interface IssueDeleteButtonProps {
 	onDeleted?: () => void;
 }
 
-/**
- * Delete, behind a confirmation that says what it actually does.
- *
- * "Close" is the reversible half of this pair and already sits beside it; the
- * difference between them is worth spelling out, because deleting is not
- * archiving — the cascade takes the rules and their stamps, so results that
- * read as explained go back to reading as unexplained.
- */
 export function IssueDeleteButton({
 	issueId,
 	title,
@@ -359,8 +303,7 @@ export function IssueDeleteButton({
 			await deleteIssue({ issueId, projectId });
 			onDeleted?.();
 		} catch {
-			// The toast already carries the message; there is nothing to correct
-			// here the way there is in a form.
+			return;
 		}
 	}
 

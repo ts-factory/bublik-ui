@@ -19,7 +19,6 @@ export interface Preset {
 	flags: MatchFlags;
 }
 
-// Narrow -> wide. Test path is always implied (every rule matches on path).
 export const PRESETS: Preset[] = [
 	{
 		label: 'Path only',
@@ -86,13 +85,11 @@ function flagsEqual(a: MatchFlags, b: MatchFlags): boolean {
 	);
 }
 
-/** Preset label for a flag combo, or 'Custom' if it matches no preset. */
 export function presetForFlags(flags: MatchFlags): string {
 	const hit = PRESETS.find((p) => flagsEqual(p.flags, flags));
 	return hit ? hit.label : 'Custom';
 }
 
-/** 'Path' plus a chip per active dimension, in a stable order. */
 export function chipsForFlags(flags: MatchFlags): string[] {
 	const chips = ['Path'];
 	if (flags.matchParameters) chips.push('Params');
@@ -102,10 +99,6 @@ export function chipsForFlags(flags: MatchFlags): string[] {
 	return chips;
 }
 
-/**
- * Enforce the important/all-tags mutual exclusion after `changed` was toggled
- * on. Returns a new MatchFlags; non-tag changes pass through unchanged.
- */
 export function applyMutualExclusion(
 	flags: MatchFlags,
 	changed: keyof MatchFlags
@@ -119,19 +112,6 @@ export function applyMutualExclusion(
 	return flags;
 }
 
-/**
- * What a **stored** rule matches on.
- *
- * A rule has no `match_*` flags — those live on the classify *request*, where
- * they choose what gets captured from the result into `parameters`, `verdicts`
- * and `tags`. Once the rule exists, the matcher reads the three collections
- * directly and ignores any that are empty
- * (`ClassificationService.matching_results`), so the scope is exactly which of
- * them carry anything. Path is always in, because `test` is mandatory on every
- * rule and is the only DB-level narrowing.
- *
- * `chipsForFlags` stays for the classify form, which genuinely holds flags.
- */
 export function chipsForRule(rule: {
 	parameters?: Record<string, string> | null;
 	verdicts?: string[] | null;

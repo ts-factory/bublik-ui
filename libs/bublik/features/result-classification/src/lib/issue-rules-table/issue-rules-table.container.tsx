@@ -45,8 +45,6 @@ export function IssueRulesTable({
 }: IssueRulesTableProps) {
 	const showIssue = issueId === undefined;
 
-	// The same ref serves three jobs: scroll-to-top on paging, the shadow under
-	// the pinned header, and the shadow over the footer.
 	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const [columnVisibility, setColumnVisibility] = useColumnVisibility(
 		showIssue
@@ -109,8 +107,6 @@ export function IssueRulesTable({
 			: skipToken
 	);
 
-	// A rule carries `project` as a bare id, and an id is not something anyone
-	// recognises a project by.
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 	const projectNames = useMemo(
 		() =>
@@ -127,8 +123,6 @@ export function IssueRulesTable({
 			),
 		[rulesData, issuesData, projectNames]
 	);
-	// What the server says the filtered set holds, not what this page holds —
-	// the difference between "25 of 45 rules" and the old "25 of 25".
 	const totalCount = rulesData?.pagination.count ?? 0;
 	const columns = useMemo(() => getColumns({ showIssue }), [showIssue]);
 	const {
@@ -142,9 +136,6 @@ export function IssueRulesTable({
 		projectOptions
 	} = useFacetOptions(rules);
 
-	// Server-owned paging, filtering and sorting: this table holds one page, and
-	// filtering it locally would narrow that page while claiming to have narrowed
-	// the list.
 	const table = useReactTable({
 		data: rules,
 		columns,
@@ -155,16 +146,6 @@ export function IssueRulesTable({
 		onPaginationChange,
 		rowCount: totalCount,
 		manualPagination: true,
-		// Filtering and sorting stay client-side, over the page in hand. The API
-		// accepts the params (they are sent above) but honours almost none of
-		// them yet, so leaving these `true` meant the toolbar did nothing at all
-		// — every facet and the search box were inert.
-		//
-		// Filtering the loaded page is not the same as filtering the list, and at
-		// more than one page it will under-report. It is still strictly better
-		// than not filtering, and it is forward-compatible: once the API narrows
-		// the set itself, the client pass matches everything it is given and
-		// quietly becomes a no-op.
 		getRowId: (row) => String(row.id),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
@@ -173,9 +154,6 @@ export function IssueRulesTable({
 
 	const pageCount = table.getPageCount();
 
-	// A shared link can outlive the rows it pointed at. Client-side pagination
-	// does not clamp on its own, so `?page=9` on a four-page table would render
-	// nothing at all, with no hint why.
 	useEffect(() => clampPage(pageCount), [pageCount, clampPage]);
 
 	if (isRulesLoading || isIssuesLoading) return <IssueRulesTableLoading />;
@@ -183,8 +161,6 @@ export function IssueRulesTable({
 	const error = rulesError ?? issuesError;
 	if (error) return <IssueRulesTableError error={error} />;
 
-	// Only an unfiltered empty result means "there are no rules"; with filters on,
-	// the empty state belongs in the table beside the controls that caused it.
 	if (!totalCount && !hasFilters && !search) {
 		return (
 			<IssueRulesTableEmpty showIssue={showIssue}>

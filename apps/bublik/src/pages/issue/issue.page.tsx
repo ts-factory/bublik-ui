@@ -26,9 +26,6 @@ export const IssuePage = () => {
 	const navigate = useNavigateWithProject();
 	const projectId = projectIds[0];
 
-	// `/issues/rules` also matches the `/issues/:issueId` pattern in matchPath —
-	// route ranking keeps it off this component, but a hand-typed or stale
-	// non-numeric id would otherwise reach the API as `NaN`.
 	const isValidId = !!issueId && /^\d+$/.test(issueId);
 	const numericIssueId = isValidId ? Number(issueId) : undefined;
 
@@ -52,21 +49,14 @@ export const IssuePage = () => {
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issue-page">
 			<header className="flex flex-col bg-white rounded shrink-0">
-				{/* The bar names the issue, says whether it is open, and carries
-				    every control that acts on it. It used to say `Info`, which named
-				    the card rather than the thing the page is about. */}
 				<IssueHeaderBar
 					issueId={numericIssueId}
 					projectId={projectId}
-					// The page is about an issue that no longer exists.
 					onDeleted={() => navigate(routes.issues({}))}
 				>
 					<CopyShortUrlButtonContainer />
 				</IssueHeaderBar>
-				<IssueDetailHeader
-					issueId={numericIssueId}
-					projectId={projectId}
-				/>
+				<IssueDetailHeader issueId={numericIssueId} projectId={projectId} />
 			</header>
 			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
 				<IssueRulesTable

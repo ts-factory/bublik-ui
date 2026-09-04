@@ -13,10 +13,12 @@ import { toast } from '@/shared/tailwind-ui';
 import type { Issue } from '@/shared/types';
 
 import { composeBugKey } from '../shared/bug-key.utils';
-import { applyServerErrors, serverErrorText } from '../shared/server-errors.utils';
+import {
+	applyServerErrors,
+	serverErrorText
+} from '../shared/server-errors.utils';
 import type { IssueForm, IssueFormValues } from './issue-form.component';
 
-/** Wire paths the issue form has a control for. */
 const FIELD_BY_PATH: Record<string, keyof IssueFormValues> = {
 	title: 'title',
 	description: 'description',
@@ -40,21 +42,10 @@ function applyIssueErrors(error: unknown, form: IssueForm) {
 
 export interface SaveIssueArgs {
 	values: IssueFormValues;
-	/** Absent for a create. */
 	issue?: Issue | null;
 	projectId?: number;
 }
 
-/**
- * The PATCH body for an edit.
- *
- * `bug_key` appears **only when it changed**. The serializer's guard —
- * *"Cannot change the bug key on an issue that already has classified
- * results"* — fires on the key being present in the payload, not on its value
- * differing, so echoing the current key back would reject an edit that never
- * touched it. Pure, and kept apart from the request so that rule can be
- * asserted without standing up a store.
- */
 export function buildIssueUpdateBody(
 	values: IssueFormValues,
 	issue: Issue
@@ -69,10 +60,6 @@ export function buildIssueUpdateBody(
 	};
 }
 
-/**
- * Which lifecycle call the edit needs, if any. `state` is read-only on the
- * serializer, so this is the second half of what the form asked in one field.
- */
 export function issueStateTransition(
 	values: IssueFormValues,
 	issue: Issue
@@ -82,15 +69,6 @@ export function issueStateTransition(
 	return values.state === 'closed' ? 'close' : 'reopen';
 }
 
-/**
- * Create or update an issue, and move its lifecycle to match the form.
- *
- * This is two requests rather than one because the API splits the work:
- * `IssueSerializer` marks `state` read-only, so open/closed moves only through
- * `POST /issues/{id}/close` and `/reopen`. The form asks the question once; the
- * hook decides how many calls that takes and reports the whole sequence under a
- * single toast.
- */
 export function useSaveIssue() {
 	const [createIssue] = useCreateIssueMutation();
 	const [updateIssue] = useUpdateIssueMutation();
@@ -143,20 +121,12 @@ export function useSaveIssue() {
 	);
 }
 
-/**
- * The submit handler shape both drawers use: on rejection the messages land on
- * the fields that caused them and the drawer stays open, so the request can be
- * corrected rather than retyped. `onDone` runs on success only.
- */
 export function buildIssueSubmitHandler(
 	save: (values: IssueFormValues) => Promise<unknown>,
 	form: IssueForm,
 	onDone: () => void
 ) {
 	return async (values: IssueFormValues) => {
-		// Left over from a previous attempt; the field errors are replaced by
-		// `setError` below, but a stale root alert would otherwise survive a
-		// request that failed for an entirely different reason.
 		form.clearErrors('root');
 
 		try {
@@ -175,12 +145,6 @@ export interface DeleteIssueArgs {
 	projectId?: number;
 }
 
-/**
- * Deleting an issue is not archiving it. Both FKs into it are `CASCADE`, so the
- * rules under it and every stamp those rules laid go with it — which means runs
- * that were reading as explained start reading as unexplained again. The
- * confirmation wording says so; see `IssueDeleteButton`.
- */
 export function useDeleteIssue() {
 	const [deleteIssue] = useDeleteIssueMutation();
 

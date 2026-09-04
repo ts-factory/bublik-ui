@@ -50,9 +50,6 @@ export function MatchScope({ form }: { form: ClassifyForm }) {
 
 	return (
 		<div className="flex flex-col gap-4">
-			{/* The "Match scope" heading lives in the enclosing
-			    `FormSectionSubheader` now; only the explainer is left, because it
-			    says something the heading does not. */}
 			<p className="text-xs text-text-menu">
 				A classification auto-applies to future results that match the test path
 				plus the dimensions below.

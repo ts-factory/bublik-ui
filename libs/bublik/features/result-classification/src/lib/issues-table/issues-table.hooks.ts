@@ -38,11 +38,7 @@ export function useFacetOptions(rows: IssueTableRow[]) {
 				order: CATEGORY_ORDER,
 				labelFor: (category) => categoryMeta(category).displayValue
 			}),
-			// Open-ended: the projects come from the data, so they are listed
-			// alphabetically rather than in a fixed meaning-carrying order.
-			projectOptions: openFacetOptions(
-				rows.flatMap((row) => row.projectNames)
-			)
+			projectOptions: openFacetOptions(rows.flatMap((row) => row.projectNames))
 		}),
 		[rows]
 	);

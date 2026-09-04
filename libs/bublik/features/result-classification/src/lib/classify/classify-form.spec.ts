@@ -34,9 +34,9 @@ describe('ClassifyFormSchema', () => {
 	});
 
 	it('accepts a tracker and key together', () => {
-		expect(
-			errorsFor({ ...BASE, tracker: 'JIRA', bugKey: 'FOO-123' })
-		).toEqual({});
+		expect(errorsFor({ ...BASE, tracker: 'JIRA', bugKey: 'FOO-123' })).toEqual(
+			{}
+		);
 	});
 
 	it('rejects half a bug key', () => {

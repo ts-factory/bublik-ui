@@ -21,21 +21,11 @@ import {
 	IssueResultsTableError,
 	IssueResultsTableLoading
 } from './issue-results-table.component';
-import type {
-	IssueResultsProps,
-	ResultRow
-} from './issue-results-table.types';
+import type { IssueResultsProps, ResultRow } from './issue-results-table.types';
 
-/**
- * The results an issue is stamped on, either within one run or across all of
- * them. One component for both because the row is the same shape and the reader
- * wants the same next steps; only the scope of the question differs.
- */
 export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
 	const isRunScoped = runId !== undefined;
 
-	// Run-scoped: an unscoped answer is never the one we want, and projectId
-	// arrives a render late (it comes from the run details query).
 	const runQuery = useGetRunIssueResultsQuery(
 		isRunScoped && projectId !== undefined
 			? { runId, issueId, projectId }
@@ -65,8 +55,6 @@ export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
 		getSortedRowModel: getSortedRowModel()
 	});
 
-	// A run-scoped query with no projectId yet is skipped, so isLoading is false.
-	// Keep the skeleton up rather than flashing an empty list.
 	if (isLoading || (isRunScoped && projectId === undefined)) {
 		return <IssueResultsTableLoading />;
 	}
@@ -78,10 +66,6 @@ export function IssueResults({ runId, issueId, projectId }: IssueResultsProps) {
 	return <IssueResultsTable table={table} />;
 }
 
-/**
- * Run-scoped wrapper. A plain alias would make `runId` optional at every run
- * call site, where it never is — the run *is* the scope.
- */
 export function RunIssueResults(
 	props: IssueResultsProps & { runId: number | string }
 ) {

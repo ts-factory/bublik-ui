@@ -32,10 +32,6 @@ export function IssueResultsTableEmpty() {
 
 export function IssueResultsTable({ table }: IssueResultsTableProps) {
 	return (
-		// The run's own result table's padding, so an expanded issue and an
-		// expanded test read as the same kind of panel. The rule at the top is
-		// what separates the panel from the row that opened it — both are white,
-		// so without it the two run together into one tall card.
 		<div
 			className="px-4 py-2 border-t border-border-primary"
 			data-testid="issue-results"

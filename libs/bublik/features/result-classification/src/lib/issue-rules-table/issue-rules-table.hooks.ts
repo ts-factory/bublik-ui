@@ -17,10 +17,7 @@ import {
 	buildFacetOptions,
 	openFacetOptions
 } from '../classification-table/classification-table.utils';
-import {
-	ACTIVE_ORDER,
-	type ActiveKey
-} from './issue-rules-table.constants';
+import { ACTIVE_ORDER, type ActiveKey } from './issue-rules-table.constants';
 import type { IssueRuleRow } from './issue-rules-table.types';
 import { ruleParameters, ruleTags } from './issue-rules-table.utils';
 
@@ -42,8 +39,6 @@ export function useFacetOptions(rules: IssueRuleRow[]) {
 				order: ACTIVE_ORDER,
 				labelFor: (value) => ruleActiveMeta(value === 'true').label
 			}),
-			// Open-ended axes: the values come from the data, so the display order
-			// is alphabetical rather than a fixed meaning-carrying sequence.
 			parameterOptions: openFacetOptions(rules.flatMap(ruleParameters)),
 			verdictOptions: openFacetOptions(
 				rules.flatMap((rule) => rule.verdicts ?? [])

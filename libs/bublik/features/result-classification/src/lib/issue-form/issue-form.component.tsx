@@ -14,24 +14,14 @@ import {
 import type { Issue } from '@/shared/types';
 
 import { refineBugKeyHalves, splitBugKey } from '../shared/bug-key.utils';
-import { TrackerCombobox, useTrackerOptions } from '../pickers/tracker-combobox.container';
+import {
+	TrackerCombobox,
+	useTrackerOptions
+} from '../pickers/tracker-combobox.container';
 
-/**
- * The issue as the form holds it.
- *
- * `state` is here even though `IssueSerializer` marks it read-only — the
- * lifecycle moves through `close` / `reopen`, not through a PATCH. Keeping it
- * on the form is the point: someone editing an issue expects "open or closed"
- * to be one of the things they can change, and `useSaveIssue` is what turns the
- * field into the extra request the API requires.
- */
 const IssueFormShape = z.object({
 	title: z.string().min(1, { message: 'Title is required' }),
 	description: z.string().optional(),
-	/**
-	 * The two halves of a bug key, held apart because nobody types a URI. They
-	 * are joined into `ref://TRACKER/KEY` on submit — see `composeBugKey`.
-	 */
 	tracker: z.string().optional(),
 	bugKey: z.string().optional(),
 	state: z.enum(['open', 'closed'])
@@ -45,7 +35,6 @@ export type IssueFormValues = z.infer<typeof IssueFormShape>;
 
 export type IssueForm = UseFormReturn<IssueFormValues>;
 
-/** What the form started from, so `useSaveIssue` can tell what actually moved. */
 export function issueToFormValues(issue?: Issue | null): IssueFormValues {
 	const split = issue?.issue_ext?.key ? splitBugKey(issue.issue_ext.key) : null;
 
@@ -64,18 +53,12 @@ export function useIssueForm(issue?: Issue | null): IssueForm {
 		defaultValues: issueToFormValues(issue)
 	});
 
-	// The drawer mounts before `getIssue` resolves when it is opened from a deep
-	// link, so the defaults above can be a blank issue. Reset once the real one
-	// lands — but only while the form is untouched, or this would throw away
-	// what the user has typed underneath them.
 	const isDirty = form.formState.isDirty;
 
 	useEffect(() => {
 		if (!issue || isDirty) return;
 
 		form.reset(issueToFormValues(issue));
-		// `form` is stable across renders; listing it re-runs this on every
-		// keystroke, which is exactly the reset we are trying to avoid.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [issue, isDirty]);
 
@@ -85,22 +68,10 @@ export function useIssueForm(issue?: Issue | null): IssueForm {
 export interface IssueFieldsProps {
 	form: IssueForm;
 	projectId?: number;
-	/** Edit mode gains the lifecycle select; a new issue is always born open. */
 	mode: 'create' | 'edit';
-	/** Portal target for the tracker popup — see `IssuePickerProps.container`. */
 	container?: RefObject<HTMLElement>;
 }
 
-/**
- * A flat stack of inputs — no cards, no dividers. Shared by both modals, so
- * creating and editing an issue are the same form.
- *
- * The classify drawer groups its fields into three coloured-bar sections
- * because it has three genuinely different subjects — the issue, the verdict,
- * the scope — spread down a full-height panel. This form has one subject and
- * four fields, and chrome around four fields makes a short form look long.
- * `CreateUserForm` is the shape the app already uses here.
- */
 export function IssueFields({
 	form,
 	projectId,
@@ -139,8 +110,6 @@ export function IssueFields({
 					{...register('description')}
 				/>
 
-				{/* Tracker and key side by side: they are one identifier, and
-				    stacking them read as two unrelated optional fields. */}
 				<div className="flex gap-4">
 					<div className="w-2/5" data-testid="issue-tracker">
 						<Controller
@@ -172,9 +141,6 @@ export function IssueFields({
 									value={field.value ?? ''}
 									error={errors.bugKey?.message}
 									onChange={(event) => {
-										// Pasting a whole `ref://JIRA/FOO-123` — off a badge,
-										// out of a chat — should fill both fields rather than
-										// fail validation.
 										const next = event.target.value;
 										const split = splitBugKey(next, trackerOptions);
 
@@ -212,10 +178,6 @@ export function IssueFields({
 								/>
 							)}
 						/>
-						{/* One muted line, the shape `Input` gives its own hint text.
-						    It stays because closing is the single most surprising thing
-						    in the feature: it deactivates every rule under the issue and
-						    those failures start counting again. */}
 						<p className="text-xs text-text-menu">
 							Closing also deactivates every rule under this issue, and those
 							failures start counting again.

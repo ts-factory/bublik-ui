@@ -72,7 +72,6 @@ export interface IssueRulesTableViewProps {
 	table: Table<IssueRuleRow>;
 	scrollRef: RefObject<HTMLDivElement>;
 	isScrollable: boolean;
-	/** Cross-issue view: adds the issue-state facet and widens the search hint. */
 	showIssue: boolean;
 	search: string;
 	onSearchChange: (value: string) => void;
@@ -110,24 +109,16 @@ export function IssueRulesTableView({
 	toolbarActions,
 	totalCount
 }: IssueRulesTableViewProps) {
-	// The same controls the row chips and the expanded matcher panel write
-	// through, so the dropdowns and the badges are two views of one filter
-	// rather than two filters.
 	const facets = facetControls(table);
 
 	const { pagination } = table.getState();
 	const rows = table.getRowModel().rows;
-	// Filtering happens locally, so the server's count no longer describes what
-	// is on screen once a facet is on.
 	const matchedCount = table.getFilteredRowModel().rows.length;
 
 	function scrollToTop() {
 		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	// Both of these change which rows are on screen, so both return the reader
-	// to the top of the list rather than to wherever the last page happened to
-	// leave the scroll position.
 	function goToPage(page: number) {
 		table.setPageIndex(page - 1);
 		scrollToTop();
@@ -152,9 +143,6 @@ export function IssueRulesTableView({
 					testId="issue-rules-search"
 					className="min-w-[220px]"
 				/>
-				{/* First of the facets, because it is the widest cut: it decides
-				    which project's rules are in play at all, and the others narrow
-				    within that. */}
 				<DataTableFacetedFilter
 					title="Project"
 					size="xss"
@@ -236,8 +224,6 @@ export function IssueRulesTableView({
 						Reset
 					</ButtonTw>
 				</Tooltip>
-				{/* The two controls that act on the table rather than on what it is
-				    showing, grouped at the trailing edge behind their own rule. */}
 				<div className="flex items-center gap-2 ml-auto">
 					{toolbarActions ? (
 						<>
@@ -254,8 +240,6 @@ export function IssueRulesTableView({
 				</div>
 			</ClassificationToolbar>
 
-			{/* Grey, because the rows are white cards and a card needs something to
-			    sit on. The toolbar and footer paint their own white. */}
 			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
 				{rows.length === 0 ? (
 					<BublikEmptyState

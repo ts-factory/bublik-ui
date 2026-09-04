@@ -12,30 +12,15 @@ export interface TestPickerProps {
 	options: TestOption[];
 	value?: number | null;
 	onChange: (id: number | null) => void;
-	/** The name for a `value` the options do not contain — see `TestPicker`. */
 	valueName?: string | null;
 	label?: string;
 	placeholder?: string;
 	disabled?: boolean;
 	isLoading?: boolean;
 	error?: string;
-	/** Portal target — see `IssuePickerProps.container` for why this matters. */
 	container?: RefObject<HTMLElement>;
 }
 
-/**
- * Test autocomplete, the same `Combobox` as `IssuePicker` so the two fields
- * sitting one above the other in the rule drawer behave alike.
- *
- * Unlike `IssuePicker` it does **not** own its query: there is no test-picker
- * endpoint, so the options are assembled by `useKnownTests` from the rules that
- * already exist. Filtering is therefore local — the whole set is in hand.
- *
- * `valueName` covers the case the option list cannot: editing a rule whose test
- * is not in the list (a project narrowing, a very long tail). The field still
- * shows what the rule points at rather than going blank and implying the value
- * was lost.
- */
 export function TestPicker({
 	options,
 	value,
@@ -58,8 +43,6 @@ export function TestPicker({
 	);
 	const selectedName = selected?.name ?? valueName ?? null;
 
-	// Track the selection rather than mirror it on every render: typing has to
-	// be able to diverge from the chosen value, or the field cannot be searched.
 	useEffect(() => {
 		if (value == null) return;
 		if (!selectedName) return;
@@ -77,7 +60,6 @@ export function TestPicker({
 		: options.length
 		? 'No matches'
 		: // Worth naming the reason: an empty list here is not "no tests exist",
-		  // it is "nothing has told this page a test id yet". See `useKnownTests`.
 		  'No tests available — a test becomes selectable once it has at least one rule';
 
 	return (
@@ -178,9 +160,6 @@ export function TestPicker({
 										data-testid="test-picker-option"
 										data-test-id-value={item.id}
 									>
-										{/* A test path is one unbroken token, so it truncates
-										    rather than wraps — the title attribute carries the
-										    rest, the way the rules table's Test column does. */}
 										<span
 											className="flex-1 min-w-0 text-xs truncate"
 											title={item.name}

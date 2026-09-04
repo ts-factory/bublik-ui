@@ -28,10 +28,6 @@ export function buildRows(
 	});
 }
 
-/**
- * Tags are `key=value` too, so they take the same display delimiter as
- * parameters — the run details panel formats them the same way.
- */
 export function ruleTags(rule: Pick<IssueRule, 'tags'>): string[] {
 	return (rule.tags ?? []).map((tag) =>
 		formatKeyValueForDisplay(tag, {
@@ -41,14 +37,12 @@ export function ruleTags(rule: Pick<IssueRule, 'tags'>): string[] {
 	);
 }
 
-/** Matcher parameters in display form, which is also what the facet offers. */
 export function ruleParameters(rule: Pick<IssueRule, 'parameters'>): string[] {
 	return Object.entries(rule.parameters ?? {}).map(([key, value]) =>
 		formatRuleParameter(key, value)
 	);
 }
 
-/** The display form of a matcher parameter. */
 export function formatRuleParameter(key: string, value: string) {
 	return formatKeyValueForDisplay(
 		`${key}${config.keyValueSubmitDelimiter}${value}`,

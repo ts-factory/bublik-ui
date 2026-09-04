@@ -6,24 +6,6 @@ import { z } from 'zod';
 import { getErrorMessage } from '@/services/bublik-api';
 import { setErrorsOnForm } from '@/shared/utils';
 
-/**
- * Django's `custom_exception_handler` wraps every serializer error as
- * `{"messages": ...}` and `normalize_error_details` recurses, so a nested
- * serializer produces a nested payload:
- *
- *     {"messages": {"issue": {"bug_key": ["Bug key must be in ref://TRACKER/KEY form."]}}}
- *
- * The shared parsers — `setErrorsOnForm` in `@/shared/utils` and
- * `getErrorMessage` in `@/services/bublik-api` — only model one level of
- * nesting, so a payload like that falls past both and degrades to "Bad request"
- * / "Unknown error!".
- *
- * This module owns the recursion. Every classification form routes through it:
- * `classify-errors.ts` supplies the classify endpoint's maps, the issue and
- * rule drawers supply theirs. The shared helpers stay as the fallback for
- * shapes this does not recognise — transport failures, HTTP codes with no body.
- */
-
 type ServerMessages = string | string[] | { [key: string]: ServerMessages };
 
 const ServerMessagesSchema: z.ZodType<ServerMessages> = z.lazy(() =>
@@ -40,16 +22,10 @@ const ServerErrorSchema = z.object({
 });
 
 export interface ServerFieldError {
-	/** Dotted path into the request body, e.g. `issue.bug_key`. */
 	path: string;
 	message: string;
 }
 
-/**
- * Walks the payload into flat `path -> message` pairs. Only the first message
- * of a list survives, which is the same collapse `getError` in
- * `@/shared/utils`'s `form.ts` applies — a field shows one error at a time.
- */
 export function flattenMessages(
 	messages: ServerMessages,
 	prefix = ''
@@ -70,13 +46,7 @@ export function flattenMessages(
 }
 
 export interface ServerErrorMaps<T extends FieldValues> {
-	/**
-	 * Request-body path -> the form field that owns it. Returning `null` sends
-	 * the message to `root` instead, which is right for anything the form has no
-	 * single control for.
-	 */
 	fieldForPath: (path: string) => Path<T> | null;
-	/** Readable stand-ins for the wire names, for messages that land on `root`. */
 	labelByPath?: Record<string, string>;
 }
 
@@ -89,12 +59,6 @@ function describe(
 	return `${labelByPath[path] ?? path}: ${message}`;
 }
 
-/**
- * Puts each server message on the field that caused it, so a drawer behaves
- * like every other form in the app. Anything without a field — an unknown key,
- * a bare list — goes to `root`, which the forms render as an alert above the
- * first section.
- */
 export function applyServerErrors<T extends FieldValues>(
 	error: unknown,
 	form: UseFormReturn<T>,
@@ -135,10 +99,6 @@ export function applyServerErrors<T extends FieldValues>(
 	}
 }
 
-/**
- * The same messages as one string, for a toast. Falls back to the shared
- * `getErrorMessage` for the shapes it already handles.
- */
 export function serverErrorText(
 	error: unknown,
 	labelByPath?: Record<string, string>
@@ -156,13 +116,6 @@ export function serverErrorText(
 	return notifyError(error);
 }
 
-/**
- * The one-string form of a rejection, for `toast.promise`'s `error` slot.
- *
- * Was written out three times — `issue-actions.tsx`, `issue-rules-table.tsx`
- * and inline in the run table — which is two too many for four lines that must
- * agree on how a failure reads.
- */
 export function notifyError(error: unknown): string {
 	const message = getErrorMessage(error);
 

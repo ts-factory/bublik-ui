@@ -34,29 +34,12 @@ import type {
 
 const EMPTY_SORTING: SortingState = [];
 
-/**
- * Table view state, held in the URL through `use-query-params` — the same
- * mechanism the run table, the import events table and the report pages use,
- * against the `QueryParamProvider` mounted at the router root.
- *
- * The URL contract is the flat, readable one the tables have always written
- * (`?page=2&pageSize=50&sort=created:desc&state=open;closed&q=…`); the codecs
- * that produce it live in `classification-table.params.ts`, along with the two
- * rules — defaults are absent, writes merge — that make it work.
- *
- * Writes are `replaceIn`, unlike `useHistoryPagination`, which pushes. These
- * are view controls, not navigation: pushing an entry per keystroke and per
- * facet click makes the back button unusable for leaving the page.
- */
 export function useClassificationTableState<F extends string>({
 	filterKeys,
 	searchColumnId,
 	defaultPageSize = DEFAULT_PAGE_SIZE,
 	defaultSorting = EMPTY_SORTING
 }: ClassificationTableStateConfig<F>): ClassificationTableState {
-	// `filterKeys` and `defaultSorting` are literals at every call site, so
-	// identity churn would rebuild the config every render. Their serialized
-	// forms are what actually matter.
 	const filterKeysToken = filterKeys.join(DELIMITER);
 	const defaultSortingToken = serializeSorting(defaultSorting);
 
@@ -76,19 +59,14 @@ export function useClassificationTableState<F extends string>({
 
 	const [params, setParams] = useQueryParams(paramConfig);
 
-	/**
-	 * Every write funnels through here. `replaceIn` merges into the query string
-	 * already in the address bar rather than rebuilding it, so keys this hook
-	 * knows nothing about — the multi-valued `project` the global selector owns,
-	 * above all — survive untouched.
-	 */
 	const update = useCallback(
 		(changes: Record<string, unknown>) => setParams(changes, 'replaceIn'),
 		[setParams]
 	);
 
 	const search = (params[KEY.SEARCH] as string | undefined) ?? '';
-	const sorting = (params[KEY.SORT] as SortingState | undefined) ?? EMPTY_SORTING;
+	const sorting =
+		(params[KEY.SORT] as SortingState | undefined) ?? EMPTY_SORTING;
 
 	const columnFilters = useMemo<ColumnFiltersState>(() => {
 		const filters: ColumnFiltersState = [];
@@ -129,7 +107,6 @@ export function useClassificationTableState<F extends string>({
 
 			const query = next.find((filter) => filter.id === searchColumnId);
 			changes[KEY.SEARCH] = String(query?.value ?? '');
-			// Narrowing the data invalidates the current offset.
 			changes[KEY.PAGE] = 1;
 
 			update(changes);
@@ -165,8 +142,6 @@ export function useClassificationTableState<F extends string>({
 
 			update({
 				[KEY.PAGE_SIZE]: next.pageSize,
-				// A bigger page makes the old offset point somewhere else entirely,
-				// so resizing always returns to the top of the list.
 				[KEY.PAGE]: sizeChanged ? 1 : next.pageIndex + 1
 			});
 		},
@@ -198,8 +173,6 @@ export function useClassificationTableState<F extends string>({
 		const filters: Record<string, string[]> = {};
 
 		for (const filter of columnFilters) {
-			// The free-text box rides on a column too, but it is `search`, not a
-			// facet, and the API takes it under its own name.
 			if (filter.id === searchColumnId) continue;
 			if (Array.isArray(filter.value) && filter.value.length) {
 				filters[filter.id] = filter.value as string[];
@@ -233,18 +206,6 @@ export function useClassificationTableState<F extends string>({
 	};
 }
 
-/**
- * Column visibility, remembered per table.
- *
- * These tables carry ten columns or so and which ones matter is a standing
- * preference, not a per-visit one — re-hiding the same four columns on every
- * navigation is exactly the chore the control was added to remove. Scoped by
- * `tableKey` so the issues list, the rules list and a run's issues each keep
- * their own answer.
- *
- * `defaults` must be module-level: it feeds the stored snapshot's dependencies,
- * and a fresh object each render would re-read storage on every pass.
- */
 export function useColumnVisibility(
 	tableKey: string,
 	defaults: VisibilityState
@@ -255,12 +216,6 @@ export function useColumnVisibility(
 	);
 }
 
-/**
- * Whether the given pane has anything scrolled above the fold.
- *
- * Only drives the header's shadow, so it is deliberately cheap: a scroll
- * listener that flips one boolean rather than tracking the offset.
- */
 export function useIsScrolled(scrollRef?: RefObject<HTMLElement>) {
 	const [isScrolled, setIsScrolled] = useState(false);
 
