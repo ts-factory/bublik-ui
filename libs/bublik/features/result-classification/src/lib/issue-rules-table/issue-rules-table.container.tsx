@@ -106,7 +106,7 @@ const COLUMN_ID = {
 } as const;
 
 /**
- * Every column on.
+ * Every column on but one.
  *
  * The matcher's three criteria — tags, verdicts, parameters — used to be hidden
  * and reachable only by expanding one row at a time. But a rule *is* its
@@ -118,8 +118,18 @@ const COLUMN_ID = {
  * Fitting them is the track list's problem, not this one's — see
  * `ISSUE_COLUMN` for how the width is shared out. The columns menu is there
  * for anyone who wants a narrower list than the default.
+ *
+ * `Rule` is the exception, and off by default. The status stripe at the row's
+ * leading edge already answers the question the badge answers — it stripes on
+ * `issueRulesState` over a set of one, so a rule the issue deactivated reads
+ * differently from one in force — and the badge repeated it a column later.
+ * The toolbar's Rule facet is untouched: filtering is URL state, not column
+ * visibility, so an `active` filter still narrows the list with the column off,
+ * and the columns menu brings the badge back.
  */
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
+	[COLUMN_ID.ACTIVE]: false
+};
 
 /** Module-level so the URL-state hook's memos do not churn every render. */
 const FILTER_KEYS = [
