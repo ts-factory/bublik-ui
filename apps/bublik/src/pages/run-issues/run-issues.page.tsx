@@ -4,12 +4,11 @@ import { useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 
-import { RunIssuesTable } from '@/bublik/features/result-classification';
 import {
-	getErrorMessage,
-	useApplyRulesToRunMutation,
-	useGetRunDetailsQuery
-} from '@/services/bublik-api';
+	ApplyRulesButton,
+	RunIssuesTable
+} from '@/bublik/features/result-classification';
+import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -20,51 +19,9 @@ import {
 	CardHeader,
 	Icon,
 	RunModeToggle,
-	Tooltip,
-	toast
+	Separator
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
-
-interface ApplyRulesButtonProps {
-	runId: string;
-	projectId?: number;
-}
-
-function ApplyRulesButton({ runId, projectId }: ApplyRulesButtonProps) {
-	const [applyRules, { isLoading }] = useApplyRulesToRunMutation();
-
-	function handleApply() {
-		const promise = applyRules({ runId, projectId }).unwrap();
-
-		toast.promise(promise, {
-			loading: 'Applying rules...',
-			success: ({ stamps_created: stamps }) =>
-				stamps === 0
-					? 'Applied — no new stamps'
-					: `Applied — ${stamps} stamp${stamps === 1 ? '' : 's'} created`,
-			error: (err) => {
-				const message = getErrorMessage(err);
-				return `${message.title}\n${message.description}`;
-			},
-			position: 'top-center'
-		});
-	}
-
-	return (
-		<Tooltip content="Applies every active rule to this run only. Creating or activating a rule does not classify existing runs.">
-			<ButtonTw
-				variant="secondary"
-				size="xss"
-				state={isLoading ? 'loading' : 'default'}
-				onClick={handleApply}
-				data-testid="apply-rules-button"
-			>
-				<Icon name="Refresh" size={16} className="mr-1.5" />
-				Apply Rules
-			</ButtonTw>
-		</Tooltip>
-	);
-}
 
 function RunIssuesHeader({ runId }: { runId: string }) {
 	const [isFullMode, setIsFullMode] = useState(false);
@@ -77,6 +34,7 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 						isFullMode={isFullMode}
 						onToggleClick={() => setIsFullMode((prev) => !prev)}
 					/>
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<ButtonTw asChild variant="secondary" size="xss">
 						<LinkWithProject to={routes.run({ runId })}>
 							<Icon name="PieChart" size={16} className="mr-1.5" />
@@ -89,6 +47,7 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 							Log
 						</LinkWithProject>
 					</ButtonTw>
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>

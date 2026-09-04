@@ -25,6 +25,9 @@ export type {
 	ClassifyResultContainerProps
 } from './lib/classify';
 
+export { ApplyRulesButton } from './lib/apply-rules';
+export type { ApplyRulesButtonProps } from './lib/apply-rules';
+
 export {
 	IssueModal,
 	NewIssueButton,

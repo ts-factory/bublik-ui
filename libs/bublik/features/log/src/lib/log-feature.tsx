@@ -12,7 +12,8 @@ import {
 	cn,
 	Resizable,
 	resizableStyles,
-	ScrollToTop
+	ScrollToTop,
+	Separator
 } from '@/shared/tailwind-ui';
 import {
 	useGetRunDetailsQuery,
@@ -22,7 +23,10 @@ import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
-import { ClassifyResultContainer } from '@/bublik/features/result-classification';
+import {
+	ApplyRulesButton,
+	ClassifyResultContainer
+} from '@/bublik/features/result-classification';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 import {
@@ -137,6 +141,7 @@ function LogFeature(props: LogFeatureProps) {
 							>
 								Legacy Log
 							</ButtonTw>
+							<Separator orientation="vertical" className="h-5 self-center" />
 							<LogAttachmentsContainer
 								runId={Number(runId)}
 								focusId={focusId}
@@ -151,6 +156,7 @@ function LogFeature(props: LogFeatureProps) {
 							<LinkToMeasurementsContainer focusId={focusId} />
 							<RunReportConfigsContainer runId={runId} />
 							<LinkToSourceContainer runId={runId} />
+							<Separator orientation="vertical" className="h-5 self-center" />
 							<NewBugContainer
 								key={`${runId}_${focusId}`}
 								resultId={focusId ?? Number(runId)}
@@ -160,6 +166,7 @@ function LogFeature(props: LogFeatureProps) {
 								resultId={validResultId}
 								runId={Number(runId)}
 							/>
+							<ApplyRulesButton runId={Number(runId)} />
 						</div>
 					</CardHeader>
 					<div

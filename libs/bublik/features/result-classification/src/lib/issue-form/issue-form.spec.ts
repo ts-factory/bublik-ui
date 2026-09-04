@@ -62,10 +62,8 @@ describe('IssueFormSchema', () => {
 		});
 	});
 
-	it('rejects a tracker without a key', () => {
-		expect(errorsFor({ ...BASE, tracker: 'JIRA' })).toEqual({
-			bugKey: 'Enter a bug key'
-		});
+	it('accepts a tracker without a key — the field pre-fills from the project config', () => {
+		expect(errorsFor({ ...BASE, tracker: 'JIRA' })).toEqual({});
 	});
 
 	it('rejects a tracker containing a slash — `REF_CORE` forbids it', () => {

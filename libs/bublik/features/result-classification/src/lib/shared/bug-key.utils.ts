@@ -77,12 +77,4 @@ export function refineBugKeyHalves(
 			message: 'Choose a tracker'
 		});
 	}
-
-	if (tracker && !bugKey) {
-		ctx.addIssue({
-			code: 'custom',
-			path: ['bugKey'],
-			message: 'Enter a bug key'
-		});
-	}
 }

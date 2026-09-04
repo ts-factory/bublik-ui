@@ -11,6 +11,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import { splitBugKey } from '../shared/bug-key.utils';
+import { useDefaultTracker } from '../shared/tracker-default.hooks';
 import {
 	TrackerCombobox,
 	useTrackerOptions
@@ -36,7 +37,10 @@ export function IssueFields({
 		setValue,
 		formState: { errors }
 	} = form;
-	const trackerOptions = useTrackerOptions(projectId);
+	const { options: trackerOptions, defaultTracker } =
+		useTrackerOptions(projectId);
+
+	useDefaultTracker(form, defaultTracker);
 
 	return (
 		<>

@@ -12,11 +12,14 @@ import {
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import { InfoBlock } from '@/shared/charts';
-import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
+import { CardHeader, Separator, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-import { ClassifyResultContainer } from '@/bublik/features/result-classification';
+import {
+	ApplyRulesButton,
+	ClassifyResultContainer
+} from '@/bublik/features/result-classification';
 import { LinkToRun } from './link-to-run';
 import { LinkToLog } from './link-to-log';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -134,6 +137,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 						path={node?.path ?? undefined}
 					/>
 					<LinkToLog runId={runId} resultId={resultId} />
+					<Separator orientation="vertical" className="h-5 self-center" />
 					{/* Same triage-where-you-are reasoning as the log page and the
 					    preview drawer: the container renders nothing unless the
 					    result actually failed. */}
@@ -141,6 +145,8 @@ export const MeasurementStatisticsContainer: FC = () => {
 						resultId={Number(resultId)}
 						runId={Number(runId)}
 					/>
+					<ApplyRulesButton runId={Number(runId)} />
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>

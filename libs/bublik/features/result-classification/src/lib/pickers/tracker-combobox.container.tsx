@@ -3,11 +3,14 @@
 import { useId, useMemo, useState, type RefObject } from 'react';
 import { Combobox } from '@base-ui/react/combobox';
 
-import { useGetIssuePickerQuery } from '@/services/bublik-api';
+import {
+	useGetIssuePickerQuery,
+	useGetIssueTrackersQuery
+} from '@/services/bublik-api';
 import { cn, cva, ErrorMessage, Icon, InputLabel } from '@/shared/tailwind-ui';
 
 import { comboboxInputStyles } from './pickers.styles';
-import { splitBugKey } from '../shared/bug-key.utils';
+import { mergeTrackerOptions } from '../shared/tracker-options.utils';
 
 const errorStyles = cva({
 	base: [
@@ -21,20 +24,44 @@ const errorStyles = cva({
 	]
 });
 
-export function useTrackerOptions(projectId?: number): string[] {
-	const { data } = useGetIssuePickerQuery({ projectId, search: undefined });
+export interface TrackerOptions {
+	/** Configured trackers in config order, then any used but unconfigured one. */
+	options: string[];
+	/** First configured tracker, or `''` when the project configures none. */
+	defaultTracker: string;
+	isLoading: boolean;
+}
 
-	return useMemo(() => {
-		const trackers = new Set<string>();
+/**
+ * The project's issue trackers, as configured under `REFERENCES.ISSUES`.
+ *
+ * Configuration comes first and decides the default. Trackers that only appear
+ * on existing issues are appended rather than dropped, so editing an issue
+ * whose bug key predates the config — or was written against another project —
+ * still offers the tracker it actually uses.
+ */
+export function useTrackerOptions(projectId?: number): TrackerOptions {
+	const { data: trackers, isLoading } = useGetIssueTrackersQuery({ projectId });
+	const { data: issues } = useGetIssuePickerQuery({
+		projectId,
+		search: undefined
+	});
 
-		data?.forEach((option) => {
-			const split = option.key ? splitBugKey(option.key) : null;
+	const configured = useMemo(
+		() => Object.keys(trackers?.issues ?? {}),
+		[trackers]
+	);
 
-			if (split) trackers.add(split.tracker);
-		});
+	const options = useMemo(
+		() =>
+			mergeTrackerOptions(
+				configured,
+				(issues ?? []).map((i) => i.key)
+			),
+		[configured, issues]
+	);
 
-		return [...trackers].sort((a, b) => a.localeCompare(b));
-	}, [data]);
+	return { options, defaultTracker: configured[0] ?? '', isLoading };
 }
 
 export interface TrackerComboboxProps {
@@ -118,7 +145,7 @@ export function TrackerCombobox({
 							<div className="py-3 px-3.5 text-xs text-text-menu">
 								{options.length
 									? 'No matches — type a tracker name'
-									: 'No trackers yet — type one, e.g. JIRA'}
+									: 'No trackers configured for this project — add them under ISSUES in its references config, or type one'}
 							</div>
 						</Combobox.Empty>
 						<Combobox.List className="overflow-y-auto overflow-x-hidden overscroll-contain py-1 max-h-[min(var(--available-height),15rem)]">

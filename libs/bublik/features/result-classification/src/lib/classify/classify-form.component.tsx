@@ -15,6 +15,7 @@ import { CATEGORY_OPTIONS } from '../shared/category.constants';
 import { IssuePicker } from '../pickers/issue-picker.container';
 import { MatchScope } from '../rule-form/match-scope.component';
 import { splitBugKey } from '../shared/bug-key.utils';
+import { useDefaultTracker } from '../shared/tracker-default.hooks';
 import {
 	TrackerCombobox,
 	useTrackerOptions
@@ -38,7 +39,10 @@ export function ClassifyFields({
 		formState: { errors }
 	} = form;
 	const mode = watch('mode');
-	const trackerOptions = useTrackerOptions(projectId);
+	const { options: trackerOptions, defaultTracker } =
+		useTrackerOptions(projectId);
+
+	useDefaultTracker(form, defaultTracker, mode === 'new');
 
 	return (
 		<>

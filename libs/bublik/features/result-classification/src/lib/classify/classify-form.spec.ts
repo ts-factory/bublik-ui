@@ -39,13 +39,14 @@ describe('ClassifyFormSchema', () => {
 		);
 	});
 
-	it('rejects half a bug key', () => {
+	it('rejects a key with no tracker to resolve it against', () => {
 		expect(errorsFor({ ...BASE, bugKey: 'FOO-123' })).toEqual({
 			tracker: 'Choose a tracker'
 		});
-		expect(errorsFor({ ...BASE, tracker: 'JIRA' })).toEqual({
-			bugKey: 'Enter a bug key'
-		});
+	});
+
+	it('accepts a tracker with no key — the field pre-fills from the project config', () => {
+		expect(errorsFor({ ...BASE, tracker: 'JIRA' })).toEqual({});
 	});
 
 	it('rejects halves the backend regex would reject', () => {

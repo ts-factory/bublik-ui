@@ -130,7 +130,7 @@ export const {
 	useGetResultsTableQuery,
 	useGetRunSourceQuery,
 	useGetRunRequirementsQuery,
-	useGetCompromisedTagsQuery,
+	useGetIssueTrackersQuery,
 	useDeleteCompromisedStatusMutation,
 	useMarkAsCompromisedMutation,
 	// History

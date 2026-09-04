@@ -282,15 +282,19 @@ export interface CompromisedPostResponse {
 }
 
 /** Individual info about bugs storage */
-export type CompromisedTagValue = {
+export type IssueTrackerRef = {
 	name: string;
 	uri: string;
 };
 
-/** Information about bugs storages */
-export type CompromisedTagsResponse = {
-	/** Keys are bugs storage id and values are meta about storage */
-	issues: Record<string, CompromisedTagValue>;
+/**
+ * The project's configured issue trackers — the `REFERENCES.ISSUES` block of
+ * its references config, keyed by tracker id (the `TRACKER` half of a
+ * `ref://TRACKER/KEY` bug key).
+ */
+export type IssueTrackersResponse = {
+	/** Keys are tracker ids and values are meta about the tracker */
+	issues: Record<string, IssueTrackerRef>;
 };
 
 /**
