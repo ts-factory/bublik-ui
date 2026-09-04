@@ -47,7 +47,7 @@ export const SelectInput = forwardRef<HTMLButtonElement, SelectProps>(
 					>
 						<SelectValue placeholder={placeholder} />
 						<SelectIcon>
-							<Icon name="ChevronDown" size={16} />
+							<Icon name="ArrowShortTop" className="size-[18px] rotate-180" />
 						</SelectIcon>
 					</SelectTrigger>
 
