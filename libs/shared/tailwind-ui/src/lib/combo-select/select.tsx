@@ -5,6 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 import { Icon } from '../icon';
+import { cn } from '../utils';
 
 export type SelectItemFieldProps = SelectPrimitive.SelectItemProps;
 
@@ -42,7 +43,18 @@ export const SelectInput = forwardRef<HTMLButtonElement, SelectProps>(
 				</label>
 				<Select {...props}>
 					<SelectTrigger
-						className="inline-flex items-center justify-between w-full rounded border border-border-primary px-3.5 outline-none text-[0.875rem] leading-[1.125rem] h-10 font-medium gap-1 bg-white hover:text-primary focus:border-primary focus:shadow-text-field"
+						className={cn(
+							'inline-flex items-center justify-between w-full rounded border border-border-primary px-3.5 outline-none text-[0.875rem] leading-[1.125rem] h-10 font-medium gap-1 bg-white',
+							'focus:border-primary focus:shadow-text-field',
+							// `enabled:` rather than a bare `hover:`, so a disabled
+							// trigger stays put instead of answering the pointer it is
+							// refusing.
+							'enabled:hover:text-primary',
+							// Muted text over the page's own grey, so the field reads
+							// as inert rather than as empty. The arrow is
+							// `currentColor`, so it goes with the value.
+							'disabled:bg-bg-body disabled:text-text-menu disabled:cursor-not-allowed'
+						)}
 						ref={ref}
 					>
 						<SelectValue placeholder={placeholder} />
