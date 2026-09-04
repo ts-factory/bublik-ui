@@ -16,8 +16,10 @@ import {
 	useGetIssuesQuery
 } from '@/services/bublik-api';
 
-import { useColumnVisibility } from '../classification-table/classification-table.component';
-import { useClassificationTableState } from '../classification-table/classification-table.hooks';
+import {
+	useClassificationTableState,
+	useColumnVisibility
+} from '../classification-table/classification-table.hooks';
 import { getColumns } from './issue-rules-table.columns';
 import {
 	IssueRulesTableEmpty,

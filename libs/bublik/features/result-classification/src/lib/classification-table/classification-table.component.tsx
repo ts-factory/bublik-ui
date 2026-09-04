@@ -12,11 +12,10 @@ import {
 	flexRender,
 	type Row,
 	type RowData,
-	type Table,
-	type VisibilityState
+	type Table
 } from '@tanstack/react-table';
 
-import { useDebounce, useLocalStorage } from '@/shared/hooks';
+import { useDebounce } from '@/shared/hooks';
 import {
 	Input,
 	Separator,
@@ -24,6 +23,8 @@ import {
 	cn,
 	type ColumnVisibilityItem
 } from '@/shared/tailwind-ui';
+
+import { useIsScrolled } from './classification-table.hooks';
 
 declare module '@tanstack/react-table' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -324,31 +325,6 @@ function ClassificationRow<T>({
 	);
 }
 
-/**
- * Whether the given pane has anything scrolled above the fold.
- *
- * Only drives the header's shadow, so it is deliberately cheap: a scroll
- * listener that flips one boolean rather than tracking the offset.
- */
-function useIsScrolled(scrollRef?: RefObject<HTMLElement>) {
-	const [isScrolled, setIsScrolled] = useState(false);
-
-	useEffect(() => {
-		const container = scrollRef?.current;
-		if (!container) return;
-
-		function handleScroll() {
-			setIsScrolled((container as HTMLElement).scrollTop > 0);
-		}
-
-		handleScroll();
-		container.addEventListener('scroll', handleScroll);
-
-		return () => container.removeEventListener('scroll', handleScroll);
-	}, [scrollRef]);
-
-	return isScrolled;
-}
 
 export interface ClassificationToolbarProps {
 	children: ReactNode;
@@ -544,24 +520,3 @@ export function columnVisibilityItems<T>(
 		});
 }
 
-/**
- * Column visibility, remembered per table.
- *
- * These tables carry ten columns or so and which ones matter is a standing
- * preference, not a per-visit one — re-hiding the same four columns on every
- * navigation is exactly the chore the control was added to remove. Scoped by
- * `tableKey` so the issues list, the rules list and a run's issues each keep
- * their own answer.
- *
- * `defaults` must be module-level: it feeds the stored snapshot's dependencies,
- * and a fresh object each render would re-read storage on every pass.
- */
-export function useColumnVisibility(
-	tableKey: string,
-	defaults: VisibilityState
-) {
-	return useLocalStorage<VisibilityState>(
-		`bublik.columns.${tableKey}`,
-		defaults
-	);
-}

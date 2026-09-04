@@ -16,8 +16,10 @@ import {
 } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
 
-import { useColumnVisibility } from '../classification-table/classification-table.component';
-import { useClassificationTableState } from '../classification-table/classification-table.hooks';
+import {
+	useClassificationTableState,
+	useColumnVisibility
+} from '../classification-table/classification-table.hooks';
 import { getColumns } from './issues-table.columns';
 import {
 	IssuesTableEmpty,

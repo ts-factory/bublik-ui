@@ -7,11 +7,7 @@ import { Tooltip } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import { formatTimeToDot, formatTimestampToFull } from '@/shared/utils';
 
-import {
-	ISSUE_RULES_STATE_META,
-	issueRulesState,
-	issueStateMeta
-} from '../classification/classification.utils';
+import { ISSUE_RULES_STATE_META } from '../classification/classification.utils';
 import {
 	STATUS_STRIPE_COLUMN_META,
 	StatusStripe

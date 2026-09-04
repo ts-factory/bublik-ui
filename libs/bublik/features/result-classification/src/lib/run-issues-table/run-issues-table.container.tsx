@@ -14,8 +14,10 @@ import {
 import { useIsScrollbarVisible } from '@/shared/hooks';
 import { useGetIssuesQuery, useGetRunIssuesQuery } from '@/services/bublik-api';
 
-import { useColumnVisibility } from '../classification-table/classification-table.component';
-import { useClassificationTableState } from '../classification-table/classification-table.hooks';
+import {
+	useClassificationTableState,
+	useColumnVisibility
+} from '../classification-table/classification-table.hooks';
 import { RunIssueResults } from '../issue-results-table/issue-results-table.container';
 import { getColumns } from './run-issues-table.columns';
 import {

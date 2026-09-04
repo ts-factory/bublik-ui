@@ -12,12 +12,9 @@ import {
 import { routes } from '@/router';
 
 import {
-	CATEGORY_ORDER,
 	CLASSIFICATION_BADGE_CLASS,
-	DISPOSITION_META,
 	dispositionKey,
-	issueRulesState,
-	ruleActiveMeta
+	issueRulesState
 } from '../classification/classification.utils';
 import {
 	STATUS_STRIPE_COLUMN_META,
