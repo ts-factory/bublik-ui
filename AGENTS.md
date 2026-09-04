@@ -125,5 +125,9 @@ Use shared utilities from `@/shared/utils`:
 
 ### Router Integration
 - Use `react-router-dom` v6
-- `useSearchParams` for query parameters
+- `use-query-params` for view state in the URL (sorting, pagination, filters,
+  toggles), against the `QueryParamProvider` at the router root. Define a custom
+  `QueryParamConfig` when the value is not a plain string or number — see
+  `classification-table.params.ts` and `run-table.hooks.ts`
+- `useSearchParams` only for reading params another feature owns
 - `useParams` with typed route params from `@/shared/types`
