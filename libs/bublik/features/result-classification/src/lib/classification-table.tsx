@@ -150,12 +150,11 @@ export function ClassificationTable<T>({
 									key={header.id}
 									role="columnheader"
 									className={cn(
-										// 32px overall: 28px of label over 4px of white. The gap
-										// under the header is padding rather than margin on
-										// purpose — a margin is transparent, so with the header
-										// pinned the rows would slide visibly through the slit
-										// beneath it.
-										'flex items-center h-8 px-2 pb-1',
+										// 32px, with the label centred in the whole of it. The
+										// gap between the header and the first row is the row's
+										// own `mt-1`; the header does not reserve one of its
+										// own, which would push every label off centre.
+										'flex items-center h-8 px-2',
 										variant === 'nested'
 											? 'bg-primary-wash'
 											: 'bg-white',
@@ -170,10 +169,7 @@ export function ClassificationTable<T>({
 											'rounded-r-md',
 										'text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
 										stickyHeader && 'sticky top-0 z-10',
-										// A sortable header already gains 4px from its own
-										// wrapper, so it needs 4px less here to land on 16px.
-										header.column.columnDef.meta?.badgeCell &&
-											(canSort ? 'pl-3' : 'pl-4'),
+										header.column.columnDef.meta?.badgeCell && 'pl-4',
 										header.column.columnDef.meta?.className,
 										header.column.columnDef.meta?.headerClassName
 									)}
@@ -182,7 +178,11 @@ export function ClassificationTable<T>({
 										<div
 											onClick={header.column.getToggleSortingHandler()}
 											className={cn(
-												'flex items-center gap-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-primary-wash',
+												// `-ml-1` pulls the chip back into the cell's own
+												// `px-2`, so the label starts where a plain
+												// header's does — the padding here is the hover
+												// target's, and must not shift the text.
+												'flex items-center gap-1 -ml-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-primary-wash',
 												header.column.getIsSorted() && 'bg-primary-wash'
 											)}
 										>
