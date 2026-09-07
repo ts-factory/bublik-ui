@@ -41,6 +41,7 @@ requests.http
 **/test-results
 **/playwright-report
 **/playwright/.cache
+/e2e/.auth/
 
 .nx/cache
 .nx/workspace-data

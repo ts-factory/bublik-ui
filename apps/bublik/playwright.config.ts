@@ -1,36 +1,69 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { defineConfig, devices } from '@playwright/test';
+import type { ReporterDescription } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { workspaceRoot } from '@nx/devkit';
-// For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://localhost:3000';
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+
+import { SHARED_STORAGE_STATE } from './e2e/support/session';
+
+const baseURL = process.env['BASE_URL'] || 'http://localhost:4400/v2/';
+
+const preset = nxE2EPreset(__filename, { testDir: './e2e' });
+
+const BROWSER_DEVICES = {
+	chromium: devices['Desktop Chrome'],
+	firefox: devices['Desktop Firefox'],
+	webkit: devices['Desktop Safari']
+} as const;
+
+type BrowserName = keyof typeof BROWSER_DEVICES;
+
+const requested = (process.env['E2E_BROWSERS'] ?? 'chromium,firefox,webkit')
+	.split(',')
+	.map((name) => name.trim())
+	.filter(Boolean);
+
+const known = Object.keys(BROWSER_DEVICES);
+const unknown = requested.filter((name) => !known.includes(name));
+if (!requested.length || unknown.length) {
+	throw new Error(
+		`E2E_BROWSERS must be a comma-separated subset of ${known.join(', ')}, ` +
+			`got '${process.env['E2E_BROWSERS']}'`
+	);
+}
+
+const browsers = requested as BrowserName[];
+const setupDevice = BROWSER_DEVICES[browsers[0]];
+
 export default defineConfig({
-	...nxE2EPreset(__filename, { testDir: './e2e' }),
-	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+	...preset,
+	reporter: [
+		...((preset.reporter ?? []) as ReporterDescription[]),
+		['json', { outputFile: '../../dist/.playwright/apps/bublik/results.json' }]
+	],
+	timeout: 60_000,
+	expect: { timeout: 15_000 },
+	fullyParallel: false,
 	use: {
 		baseURL,
-		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: 'on-first-retry'
+		actionTimeout: 15_000,
+		navigationTimeout: 30_000,
+		screenshot: 'only-on-failure',
+		trace: 'retain-on-failure',
+		video: 'retain-on-failure'
 	},
-	/* Run your local dev server before starting the tests */ // webServer: {
-	//   command: 'npm run start',
-	//   url: 'http://127.0.0.1:3000',
-	//   reuseExistingServer: !process.env.CI,
-	//   cwd: workspaceRoot,
-	// },
 	projects: [
-		{ name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-		{ name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-		{ name: 'webkit', use: { ...devices['Desktop Safari'] } }
+		{ name: 'auth', testMatch: 'auth.setup.ts', use: { ...setupDevice } },
+		{
+			name: 'import',
+			testMatch: 'import.setup.ts',
+			use: { ...setupDevice, storageState: SHARED_STORAGE_STATE },
+			dependencies: ['auth']
+		},
+		...browsers.map((name) => ({
+			name,
+			use: { ...BROWSER_DEVICES[name], storageState: SHARED_STORAGE_STATE },
+			dependencies: ['auth', 'import']
+		}))
 	]
 });
