@@ -1,0 +1,756 @@
+{
+  "$defs": {
+    "Bundle": {
+      "additionalProperties": false,
+      "description": "One generated+published fixture run and everything derived from it.",
+      "properties": {
+        "conclusionSpec": {
+          "enum": [
+            "ok",
+            "nok-warning",
+            "nok-error",
+            "warning",
+            "error",
+            "running",
+            "busy",
+            "stopped",
+            "interrupted",
+            "compromised"
+          ],
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "e2eRunId": {
+          "type": "string"
+        },
+        "expectedRuns": {
+          "items": {
+            "$ref": "#/$defs/ExpectedRun"
+          },
+          "type": "array"
+        },
+        "finishTimestamp": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fixture": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "importUrl": {
+          "type": "string"
+        },
+        "importVia": {
+          "default": "api",
+          "enum": [
+            "api",
+            "ui"
+          ],
+          "type": "string"
+        },
+        "logUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "logUrlTemplate": {
+          "type": "string"
+        },
+        "mix": {
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        },
+        "revisions": {
+          "items": {
+            "$ref": "#/$defs/Revision"
+          },
+          "type": "array"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runStatus": {
+          "anyOf": [
+            {
+              "enum": [
+                "DONE",
+                "WARNING",
+                "ERROR",
+                "RUNNING",
+                "BUSY",
+                "STOPPED",
+                "INTERRUPTED"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runUrlTemplate": {
+          "type": "string"
+        },
+        "startTimestamp": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tags": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "fixture",
+        "conclusionSpec",
+        "mix",
+        "date",
+        "importUrl",
+        "project",
+        "e2eRunId",
+        "runStatus",
+        "startTimestamp",
+        "finishTimestamp",
+        "tags",
+        "revisions",
+        "runUrlTemplate",
+        "logUrlTemplate",
+        "expectedRuns"
+      ],
+      "type": "object"
+    },
+    "ExpectedMatrix": {
+      "additionalProperties": false,
+      "description": "Expected result counts per (expectation, result-type) cell.\n\nKeys mirror ``core.constants.MATRIX_KEYS``; the generator always emits every\ncell, so all fields are required.",
+      "properties": {
+        "abnormal": {
+          "type": "integer"
+        },
+        "expectedCored": {
+          "type": "integer"
+        },
+        "expectedFailed": {
+          "type": "integer"
+        },
+        "expectedFaked": {
+          "type": "integer"
+        },
+        "expectedIncomplete": {
+          "type": "integer"
+        },
+        "expectedKilled": {
+          "type": "integer"
+        },
+        "expectedPassed": {
+          "type": "integer"
+        },
+        "expectedSkipped": {
+          "type": "integer"
+        },
+        "unexpectedCored": {
+          "type": "integer"
+        },
+        "unexpectedFailed": {
+          "type": "integer"
+        },
+        "unexpectedFaked": {
+          "type": "integer"
+        },
+        "unexpectedIncomplete": {
+          "type": "integer"
+        },
+        "unexpectedKilled": {
+          "type": "integer"
+        },
+        "unexpectedPassed": {
+          "type": "integer"
+        },
+        "unexpectedSkipped": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "expectedPassed",
+        "unexpectedPassed",
+        "expectedFailed",
+        "unexpectedFailed",
+        "expectedSkipped",
+        "unexpectedSkipped",
+        "expectedKilled",
+        "unexpectedKilled",
+        "expectedCored",
+        "unexpectedCored",
+        "expectedFaked",
+        "unexpectedFaked",
+        "expectedIncomplete",
+        "unexpectedIncomplete",
+        "abnormal"
+      ],
+      "type": "object"
+    },
+    "ExpectedRun": {
+      "additionalProperties": false,
+      "description": "The expectations + samples the UI asserts against for one imported run.",
+      "properties": {
+        "dashboardDate": {
+          "type": "string"
+        },
+        "expectedConclusion": {
+          "enum": [
+            "run-ok",
+            "run-warning",
+            "run-error",
+            "run-running",
+            "run-busy",
+            "run-stopped",
+            "run-interrupted",
+            "run-compromised"
+          ],
+          "type": "string"
+        },
+        "expectedConclusionReason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expectedMatrix": {
+          "$ref": "#/$defs/ExpectedMatrix"
+        },
+        "expectedStatus": {
+          "enum": [
+            "DONE",
+            "WARNING",
+            "ERROR",
+            "RUNNING",
+            "BUSY",
+            "STOPPED",
+            "INTERRUPTED"
+          ],
+          "type": "string"
+        },
+        "expectedStatusByNok": {
+          "enum": [
+            "success",
+            "warning",
+            "error"
+          ],
+          "type": "string"
+        },
+        "iterationCount": {
+          "type": "integer"
+        },
+        "logPages": {
+          "items": {
+            "$ref": "#/$defs/LogPagesEntry"
+          },
+          "type": "array"
+        },
+        "logUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "measurements": {
+          "items": {
+            "$ref": "#/$defs/MeasurementSummary"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "packages": {
+          "items": {
+            "$ref": "#/$defs/PackageSummary"
+          },
+          "type": "array"
+        },
+        "requirements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "runUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sampleTests": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/IterationEntry"
+            },
+            "type": "array"
+          },
+          "type": "object"
+        },
+        "tags": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "verdicts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "dashboardDate",
+        "iterationCount",
+        "expectedStatus",
+        "expectedStatusByNok",
+        "expectedConclusion",
+        "expectedConclusionReason",
+        "expectedMatrix",
+        "tags",
+        "requirements",
+        "verdicts",
+        "measurements",
+        "packages",
+        "logPages",
+        "sampleTests"
+      ],
+      "type": "object"
+    },
+    "IterationEntry": {
+      "additionalProperties": false,
+      "description": "A sampled leaf iteration shown in the UI (see ``sampleTests``).\n\n``params``/``verdicts``/``artifacts``/``measurements`` carry the raw,\nprovider-shaped payloads and are intentionally left loose.",
+      "properties": {
+        "artifacts": {
+          "items": {},
+          "type": "array"
+        },
+        "expectedStatus": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
+          "type": "string"
+        },
+        "measurements": {
+          "items": {},
+          "type": "array"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "params": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "path": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pathStr": {
+          "type": "string"
+        },
+        "reqs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
+          "type": "string"
+        },
+        "tin": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unexpected": {
+          "type": "boolean"
+        },
+        "verdicts": {
+          "items": {},
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "tin",
+        "path",
+        "pathStr",
+        "params",
+        "reqs",
+        "status",
+        "expectedStatus",
+        "unexpected",
+        "verdicts",
+        "artifacts",
+        "measurements"
+      ],
+      "type": "object"
+    },
+    "LogPagesEntry": {
+      "additionalProperties": false,
+      "description": "A leaf whose published log is worth navigating.\n\nEither the log is split across several JSON page files, or it is a single\nfile long enough that a line near its end is off screen on load. Shorter\nleaves are omitted: every fixture leaf has a log, and listing them all would\nbury the two or three a test can actually use.\n\nHow many pages a log has is a property of how it was *published*, not of its\nrow count -- rgt cuts pages on raw-log byte size per node -- so it can only\nbe read off the emitted files, which is what the generator does.\n\n``tin`` is informational. ``/api/v2/tree/`` returns no path, so the e2e suite\nresolves these entries to tree nodes by ``name``; the fixture therefore gives\nevery iteration of a test the same page count, so whichever iteration the\nlookup lands on matches this entry.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "pagesCount": {
+          "type": "integer"
+        },
+        "path": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pathStr": {
+          "type": "string"
+        },
+        "rowCount": {
+          "type": "integer"
+        },
+        "tin": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "path",
+        "pathStr",
+        "tin",
+        "pagesCount",
+        "rowCount"
+      ],
+      "type": "object"
+    },
+    "MeasurementSummary": {
+      "additionalProperties": false,
+      "description": "One flattened measurement entry across all leaf iterations.\n\nThe generator always emits every key (values may be null), so all fields are\nrequired; that keeps the schema honest and the generated TS types free of\nspurious optionality.",
+      "properties": {
+        "metric": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "testPath": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "units": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "testPath",
+        "tool",
+        "metric",
+        "value",
+        "units"
+      ],
+      "type": "object"
+    },
+    "PackageSummary": {
+      "additionalProperties": false,
+      "description": "Per top-level package status rollup.",
+      "properties": {
+        "byStatus": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "total",
+        "byStatus"
+      ],
+      "type": "object"
+    },
+    "ReportConfig": {
+      "additionalProperties": false,
+      "description": "A UI report config bundled into the manifest. ``content`` is free-form.",
+      "properties": {
+        "content": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        },
+        "type": {
+          "const": "report",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project",
+        "type",
+        "name",
+        "description",
+        "content"
+      ],
+      "type": "object"
+    },
+    "Revision": {
+      "additionalProperties": false,
+      "description": "A single source revision parsed from run metas (``*_GIT_URL`` etc.).",
+      "properties": {
+        "branch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        },
+        "rev": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Top-level e2e manifest written to ``.e2e/e2e-manifest.json``.",
+  "properties": {
+    "baseUrl": {
+      "type": "string"
+    },
+    "bundles": {
+      "items": {
+        "$ref": "#/$defs/Bundle"
+      },
+      "type": "array"
+    },
+    "configs": {
+      "items": {
+        "$ref": "#/$defs/ReportConfig"
+      },
+      "type": "array"
+    },
+    "dashboardUrl": {
+      "type": "string"
+    },
+    "emptyDates": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "historyUrl": {
+      "type": "string"
+    },
+    "importUrl": {
+      "type": "string"
+    },
+    "uiBaseUrl": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "version",
+    "generatedAt",
+    "baseUrl",
+    "uiBaseUrl",
+    "dashboardUrl",
+    "historyUrl",
+    "importUrl",
+    "emptyDates",
+    "configs",
+    "bundles"
+  ],
+  "type": "object"
+}
