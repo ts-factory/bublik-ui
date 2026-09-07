@@ -3,9 +3,15 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
 
   pull_request:
     branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
@@ -17,6 +23,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -29,7 +37,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Code Linting
         run: pnpm run lint
@@ -39,6 +47,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -51,7 +61,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Code Testing
         run: pnpm run test
@@ -61,6 +71,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -73,7 +85,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Check code formatting
         run: pnpm run format:check
@@ -83,6 +95,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -95,7 +109,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Check Bublik UI
         run: pnpm run build
@@ -105,6 +119,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
@@ -117,7 +133,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Check JSON App
         run: pnpm run bublik-json:build
