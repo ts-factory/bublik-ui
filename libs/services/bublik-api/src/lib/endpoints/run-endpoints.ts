@@ -30,6 +30,7 @@ import {
 import { config } from '@/bublik/config';
 
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { getMinutes, prepareForSend } from '../utils';
 import { transformRunTable } from '../transform';
 import { API_REDUCER_PATH } from '../constants';
@@ -171,17 +172,21 @@ export type RunsStatsByRunIdResponse = {
 
 export const runEndpoints = {
 	endpoints: (
-		build: EndpointBuilder<
-			BublikBaseQueryFn,
-			BUBLIK_TAG | string,
-			API_REDUCER_PATH
-		>
+		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getRunSource: build.query<RunSourceAPIRResponse, string>({
-			query: (runId) => ({ url: withApiV2(`/runs/${runId}/source`) }),
+			// `cache: 'no-cache'` here and on the queries below: the server
+			// stamps `Cache-Control: max-age=600` on API GETs, so without it a
+			// refetch triggered by a config change is answered from the browser
+			// cache with the pre-change body.
+			query: (runId) => ({
+				url: withApiV2(`/runs/${runId}/source`),
+				cache: 'no-cache'
+			}),
 			argSchema: z.string(),
 			responseSchema: RunSourceAPIRResponseSchema,
-			keepUnusedDataFor: getMinutes(15)
+			keepUnusedDataFor: getMinutes(15),
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunTableByRunId: build.query<RunTableAPIResponse, RunStatsParams>({
 			query: ({ runId, requirements }) => {
@@ -197,7 +202,7 @@ export const runEndpoints = {
 			argSchema: RunStatsParamsSchema,
 			rawResponseSchema: RunAPIResponseSchema,
 			transformResponse: transformRunTable,
-			providesTags: [{ type: BUBLIK_TAG.Run }]
+			providesTags: configDependent({ type: BUBLIK_TAG.Run })
 		}),
 		getResultsTable: build.query<
 			RunDataResults[],
@@ -222,7 +227,8 @@ export const runEndpoints = {
 
 							return fetchWithBQ({
 								url: withApiV2('/results'),
-								params
+								params,
+								cache: 'no-cache'
 							});
 						})
 					);
@@ -258,7 +264,8 @@ export const runEndpoints = {
 						}
 					};
 				}
-			}
+			},
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getCompromisedTags: build.query<
 			CompromisedTagsResponse,
@@ -268,12 +275,18 @@ export const runEndpoints = {
 				url: withApiV2('/outside_domains/issues'),
 				cache: 'no-cache',
 				params: { project: query.projects?.[0] }
-			})
+			}),
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunRequirements: build.query<string[], string[] | number[]>({
 			queryFn: async (runId, _api, _extraOptions, fetchWithBQ) => {
 				const results = (await Promise.all(
-					runId.map((id) => fetchWithBQ(withApiV2(`/runs/${id}/requirements`)))
+					runId.map((id) =>
+						fetchWithBQ({
+							url: withApiV2(`/runs/${id}/requirements`),
+							cache: 'no-cache'
+						})
+					)
 				)) as QueryReturnValue<{ requirements: string[] }, unknown>[];
 
 				return {
@@ -283,7 +296,8 @@ export const runEndpoints = {
 						)
 					)
 				};
-			}
+			},
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunDetails: build.query<RunDetailsAPIResponse, string | number>({
 			query: (runId) => ({
@@ -291,9 +305,8 @@ export const runEndpoints = {
 				cache: 'reload'
 			}),
 			argSchema: z.string().or(z.number()),
-			providesTags: (_result, _error, runId) => [
-				{ type: BUBLIK_TAG.RunDetails, id: runId }
-			]
+			providesTags: (_result, _error, runId) =>
+				configDependent({ type: BUBLIK_TAG.RunDetails, id: runId })
 		}),
 		deleteCompromisedStatus: build.mutation<
 			CompromisedDeleteResponse,
@@ -424,7 +437,7 @@ export const runEndpoints = {
 				}
 			},
 			argSchema: z.array(RunStatsParamsSchema),
-			providesTags: [BUBLIK_TAG.Run]
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunsStatsByRunIds: build.query<
 			RunsStatsByRunIdResponse,
@@ -483,20 +496,23 @@ export const runEndpoints = {
 				}
 			},
 			argSchema: z.array(RunStatsParamsSchema),
-			providesTags: [BUBLIK_TAG.Run]
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getResultsAndVerdictsForIteration: build.query<
 			ResultsAndVerdictsForIteration,
 			string | number
 		>({
-			query: (iterationId) =>
-				withApiV2(`/results/${iterationId}/artifacts_and_verdicts`)
+			query: (iterationId) => ({
+				url: withApiV2(`/results/${iterationId}/artifacts_and_verdicts`),
+				cache: 'no-cache'
+			}),
+			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunComment: build.query({
 			query: ({ runId }) => withApiV2(`/runs/${runId}/comment`),
 			argSchema: z.object({ runId: z.number() }),
 			responseSchema: z.object({ comment: z.string().nullable() }),
-			providesTags: ['run-comment']
+			providesTags: [BUBLIK_TAG.RunComment]
 		}),
 		deleteRunComment: build.mutation({
 			query: ({ runId }) => ({
@@ -504,7 +520,7 @@ export const runEndpoints = {
 				method: 'DELETE'
 			}),
 			argSchema: z.object({ runId: z.number() }),
-			invalidatesTags: ['run-comment']
+			invalidatesTags: [BUBLIK_TAG.RunComment]
 		}),
 		createRunComment: build.mutation({
 			query: ({ runId, comment }) => ({
@@ -520,7 +536,7 @@ export const runEndpoints = {
 				id: z.number(),
 				comment: z.string()
 			}),
-			invalidatesTags: ['run-comment']
+			invalidatesTags: [BUBLIK_TAG.RunComment]
 		}),
 		updateRunComment: build.mutation({
 			query: ({ runId, comment }) => ({
@@ -536,7 +552,7 @@ export const runEndpoints = {
 				id: z.number(),
 				comment: z.string()
 			}),
-			invalidatesTags: ['run-comment']
+			invalidatesTags: [BUBLIK_TAG.RunComment]
 		})
 	})
 };

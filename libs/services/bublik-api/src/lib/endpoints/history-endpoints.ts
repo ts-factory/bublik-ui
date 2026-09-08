@@ -11,6 +11,7 @@ import {
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { prepareForSend } from '../utils';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
@@ -35,7 +36,7 @@ export const historyEndpoints = {
 			},
 			argSchema: HistoryAPIBackendQuerySchema,
 			responseSchema: HistoryLinearAPIResponseSchema,
-			providesTags: () => [BUBLIK_TAG.HistoryData]
+			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
 		}),
 		getTestSearchOptions: build.query<string[], { project?: number }>({
 			query: (query) => {
@@ -47,7 +48,7 @@ export const historyEndpoints = {
 					cache: 'no-cache'
 				};
 			},
-			providesTags: () => [BUBLIK_TAG.HistoryData]
+			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
 		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
@@ -63,7 +64,7 @@ export const historyEndpoints = {
 					cache: 'no-cache'
 				};
 			},
-			providesTags: () => [BUBLIK_TAG.HistoryData]
+			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
 		})
 	})
 };

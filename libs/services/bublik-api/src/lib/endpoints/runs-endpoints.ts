@@ -13,6 +13,7 @@ import {
 
 import { prepareForSend } from '../utils';
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 
@@ -56,7 +57,7 @@ export const runsEndpoints = {
 					cache: 'no-cache'
 				};
 			},
-			providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
+			providesTags: configDependent(BUBLIK_TAG.Run, BUBLIK_TAG.SessionList)
 		}),
 		getRunsProgress: build.infiniteQuery<RunsAPIResponse, RunsAPIQuery, number>(
 			{
@@ -74,7 +75,7 @@ export const runsEndpoints = {
 					}),
 					cache: 'no-cache'
 				}),
-				providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
+				providesTags: configDependent(BUBLIK_TAG.Run, BUBLIK_TAG.SessionList)
 			}
 		),
 		getRunsCharts: build.query<RunsChartsAPIResponse, RunsChartsAPIQuery>({
@@ -87,7 +88,7 @@ export const runsEndpoints = {
 			},
 			argSchema: RunsChartsAPIQuerySchema,
 			responseSchema: RunsChartsAPIResponseSchema,
-			providesTags: [BUBLIK_TAG.Run, BUBLIK_TAG.SessionList]
+			providesTags: configDependent(BUBLIK_TAG.Run, BUBLIK_TAG.SessionList)
 		})
 	})
 };

@@ -7,6 +7,7 @@ import { PerformanceResponseSchema } from '@/shared/types';
 import { config } from '@/bublik/config';
 
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 
@@ -47,6 +48,7 @@ export const deployEndpoints = {
 	) => ({
 		getServerVersion: build.query({
 			query: () => ({ url: withApiV2('/server/version') }),
+			providesTags: [BUBLIK_TAG.DeployInfo],
 			rawResponseSchema: ServerVersionInfoAPISchema,
 			responseSchema: VersionSummary,
 			transformResponse: (version) => ({
@@ -64,10 +66,15 @@ export const deployEndpoints = {
 					? { projects: query?.projects[0] }
 					: undefined;
 
-				return { url: '/performance_check/', params };
+				// `cache: 'no-cache'` here and below: the server stamps
+				// `Cache-Control: max-age=600` on API GETs, so without it a
+				// refetch triggered by a config change is answered from the
+				// browser cache with the pre-change body.
+				return { url: '/performance_check/', params, cache: 'no-cache' };
 			},
 			argSchema: z.object({ projects: z.array(z.number()) }).optional(),
-			responseSchema: PerformanceResponseSchema
+			responseSchema: PerformanceResponseSchema,
+			providesTags: configDependent()
 		}),
 		getTabTitlePrefix: build.query({
 			query: (query) => {
@@ -77,19 +84,26 @@ export const deployEndpoints = {
 						: undefined
 				};
 
-				return { url: withApiV2('/server/tab_title_prefix'), params };
+				return {
+					url: withApiV2('/server/tab_title_prefix'),
+					params,
+					cache: 'no-cache'
+				};
 			},
 			rawResponseSchema: TabTitlePrefixResponseSchema,
 			responseSchema: z.string().nullable(),
 			transformResponse: (resp) => resp.tab_title_prefix,
-			argSchema: z.object({ projects: z.array(z.number()) }).optional()
+			argSchema: z.object({ projects: z.array(z.number()) }).optional(),
+			providesTags: configDependent()
 		}),
 		getServerFeatures: build.query({
 			query: () => ({
-				url: withApiV2('/server/features')
+				url: withApiV2('/server/features'),
+				cache: 'no-cache'
 			}),
 			argSchema: z.void(),
-			responseSchema: ServerFeaturesSchema
+			responseSchema: ServerFeaturesSchema,
+			providesTags: configDependent()
 		})
 	})
 };

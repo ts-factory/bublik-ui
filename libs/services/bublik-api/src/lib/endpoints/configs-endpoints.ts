@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { API_REDUCER_PATH } from '../constants';
 
 const ConfigParamsSchema = z.object({
@@ -212,7 +213,8 @@ export const configsEndpoints = {
 			invalidatesTags: [BUBLIK_TAG.Config]
 		}),
 		getConfigTypes: build.query<ConfigTypesResponse, void>({
-			query: () => ({ url: withApiV2('/config/available_types_names') })
+			query: () => ({ url: withApiV2('/config/available_types_names') }),
+			providesTags: configDependent()
 		})
 	})
 };
