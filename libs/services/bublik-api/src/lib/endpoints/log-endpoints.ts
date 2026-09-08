@@ -17,6 +17,7 @@ import {
 import { transformLogTree } from '@/shared/utils';
 
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 import {
@@ -246,11 +247,22 @@ export const logEndpoints = {
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getTreeByRunId: build.query<TreeDataAPIResponse | null, string>({
-			query: (runId) => withApiV2(`/tree/${runId}`),
-			transformResponse: transformLogTree
+			query: (runId) => ({
+				url: withApiV2(`/tree/${runId}`),
+				cache: 'no-cache'
+			}),
+			transformResponse: transformLogTree,
+			providesTags: configDependent(BUBLIK_TAG.LogData)
 		}),
 		getLogUrlByResultId: build.query<ResultLogAPIResponse, number>({
-			query: (resultId) => withApiV2(`/logs/${resultId}/html`)
+			// The log base URL comes from `per_conf`, so this has to refetch on
+			// a config change. `cache: 'no-cache'` because the server stamps
+			// `Cache-Control: max-age=600` on API GETs.
+			query: (resultId) => ({
+				url: withApiV2(`/logs/${resultId}/html`),
+				cache: 'no-cache'
+			}),
+			providesTags: configDependent(BUBLIK_TAG.LogData)
 		}),
 		getLogAttachments: build.query<AttachmentsJsonResponse, number>({
 			queryFn: async (id, _api, _extraOptions, baseQuery) => {
@@ -308,7 +320,8 @@ export const logEndpoints = {
 
 					return { error: defaultError };
 				}
-			}
+			},
+			providesTags: configDependent(BUBLIK_TAG.LogData)
 		}),
 		getLogJson: build.query<RootBlock, GetLogJsonInputs>({
 			serializeQueryArgs: ({ queryArgs }) => normalizeLogJsonInput(queryArgs),
@@ -366,7 +379,12 @@ export const logEndpoints = {
 
 					return { error: defaultError };
 				}
-			}
+			},
+			// Deliberately not `configDependent`: this is the largest payload in
+			// the app and its body is raw TE log content, which no config can
+			// reshape. Dropping it on every config save would re-download the
+			// whole log for nothing.
+			providesTags: [BUBLIK_TAG.LogData]
 		})
 	})
 };

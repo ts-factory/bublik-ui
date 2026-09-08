@@ -11,6 +11,7 @@ export const enum BUBLIK_TAG {
 	RunDetails = 'RunDetails',
 	User = 'user',
 	Run = 'run',
+	RunComment = 'run-comment',
 	AdminUsersTable = 'admin-users-table',
 	Config = 'config',
 	importEvents = 'import-events',
