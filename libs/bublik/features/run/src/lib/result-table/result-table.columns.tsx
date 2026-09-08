@@ -16,11 +16,12 @@ import {
 	Badge,
 	Icon,
 	ButtonTw,
+	ParameterValue,
 	VerdictList,
 	cn,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { formatKeyValueForDisplay } from '@/shared/utils';
+import { parseParameter } from '@/shared/utils';
 
 import { KeyList } from './key-list';
 import { getCommonParameters } from './matcher';
@@ -464,32 +465,55 @@ function Parameters(props: ParametersProps) {
 	// Pre-compute Set for O(1) lookups when reference row is selected
 	const referenceSet = useMemo(() => new Set(reference), [reference]);
 
-	return (
-		<ul className="flex gap-1 flex-wrap">
-			{parameters.map((value, index) => {
-				const displayValue = formatKeyValueForDisplay(value, {
-					displayDelimiter: config.keyValueDisplayDelimiter,
-					submitDelimiter: config.keyValueSubmitDelimiter
-				});
-				const isSelected = filterValue.includes(value);
-				const shouldDim = hasReferenceRow
-					? referenceSet.has(value)
-					: commonParameters?.has(value);
+	const { plain, preformatted } = useMemo(() => {
+		const parsed = parameters.map((value) => ({
+			value,
+			parsed: parseParameter(value, config.keyValueSubmitDelimiter)
+		}));
 
-				return (
-					<button
-						key={index}
-						className={cn(
-							'inline-flex items-center w-fit py-0.5 px-2 rounded border border-transparent text-[0.75rem] font-medium transition-colors bg-badge-0',
-							isSelected ? 'bg-primary-wash border-primary' : 'bg-badge-1',
-							shouldDim && !isSelected && 'opacity-60'
-						)}
-						onClick={() => onParameterClick(value)}
-					>
-						{displayValue}
-					</button>
-				);
-			})}
-		</ul>
+		return {
+			plain: parsed.filter((item) => !item.parsed.isPreformatted),
+			preformatted: parsed.filter((item) => item.parsed.isPreformatted)
+		};
+	}, [parameters]);
+
+	function renderParameter(
+		{ value, parsed }: (typeof plain)[number],
+		mode: 'badge' | 'pre'
+	) {
+		const isSelected = filterValue.includes(value);
+		const shouldDim = hasReferenceRow
+			? referenceSet.has(value)
+			: commonParameters?.has(value);
+
+		return (
+			<ParameterValue
+				key={value}
+				name={parsed.name}
+				value={parsed.value}
+				mode={mode}
+				isSelected={isSelected}
+				onClick={() => onParameterClick(value)}
+				className={cn(
+					'bg-badge-1 cursor-pointer',
+					shouldDim && !isSelected && 'opacity-60'
+				)}
+				displayDelimiter={config.keyValueDisplayDelimiter}
+				submitDelimiter={config.keyValueSubmitDelimiter}
+			/>
+		);
+	}
+
+	return (
+		<div className="flex flex-col gap-1">
+			<ul className="flex gap-1 flex-wrap">
+				{plain.map((item) => renderParameter(item, 'badge'))}
+			</ul>
+			{preformatted.length ? (
+				<ul className="flex flex-col gap-1">
+					{preformatted.map((item) => renderParameter(item, 'pre'))}
+				</ul>
+			) : null}
+		</div>
 	);
 }

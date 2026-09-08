@@ -11,8 +11,10 @@ import {
 	CardHeader,
 	Icon,
 	cn,
+	ParameterValue,
 	RunModeToggle
 } from '@/shared/tailwind-ui';
+import { isPreformattedParameterValue } from '@/shared/utils';
 import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -105,6 +107,19 @@ function List(props: ListProps) {
 			</span>
 			<ul className="col-start-3 flex items-center gap-2 flex-wrap">
 				{props.items.map((item) => {
+					if (isPreformattedParameterValue(item.value)) {
+						return (
+							<li key={`${item.name}_${item.value}`}>
+								<ParameterValue
+									name={item.name}
+									value={item.value}
+									mode="badge"
+									className={item.className}
+								/>
+							</li>
+						);
+					}
+
 					if (item.url) {
 						return (
 							<a

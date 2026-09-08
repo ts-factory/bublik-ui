@@ -1,20 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { toast } from '../utils';
 
 import { useCopyToClipboard } from '@/shared/hooks';
 
+import { toast } from '../utils';
 import { ButtonTw } from '../button';
 
-export interface EnvCardProps {
+export interface ParameterCardProps {
 	rawValue: string;
 	value: string;
 	isSelected?: boolean;
 	onClick?: () => void;
 }
 
-export const EnvCard: FC<EnvCardProps> = ({
+export const ParameterCard: FC<ParameterCardProps> = ({
 	value,
 	rawValue,
 	isSelected,
@@ -24,7 +24,7 @@ export const EnvCard: FC<EnvCardProps> = ({
 
 	return (
 		<div className="p-4 bg-white rounded-xl shadow-popover">
-			<pre className="mb-2 text-xs whitespace-pre-wrap">
+			<pre className="mb-2 text-xs whitespace-pre-wrap max-h-96 overflow-auto">
 				<code>{value}</code>
 			</pre>
 			<div className="flex justify-end gap-2">
