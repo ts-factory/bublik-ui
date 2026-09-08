@@ -29,3 +29,7 @@ Caveats:
 - Add flag --network host to run image command if django is served from host
 - If you add new dependencies to package.json you need to rebuild image
 
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the commit conventions, signing
+requirements, and CI checks your pull request needs to satisfy.
