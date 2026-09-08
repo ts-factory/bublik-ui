@@ -29,10 +29,3 @@ export const SETTINGS_TABS: SettingsTabConfig[] = [
 		description: 'Enable experimental features'
 	}
 ];
-
-export const VERSION_TAB: SettingsTabConfig = {
-	id: 'version',
-	label: 'Version',
-	icon: <Icon name="InformationCircleQuestionMark" size={18} />,
-	description: 'Application version information'
-};

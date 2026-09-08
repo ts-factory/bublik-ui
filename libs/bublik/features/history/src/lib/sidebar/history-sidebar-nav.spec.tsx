@@ -83,7 +83,8 @@ vi.mock('@/bublik/features/sidebar-nav', () => {
 });
 
 vi.mock('@/shared/tailwind-ui', () => ({
-	Icon: () => null
+	Icon: () => null,
+	cva: () => () => ''
 }));
 
 vi.mock('./history-dialogs', () => ({

@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode } from 'react';
-
 import { CardHeader } from '@/shared/tailwind-ui';
 
 import { Question, QuestionAnswer } from './questions-section';
@@ -32,11 +30,7 @@ const QUESTIONS: QuestionAnswer[] = [
 	}
 ];
 
-export interface FaqFeatureProps {
-	deployInfo: ReactNode;
-}
-
-export const FaqFeature = ({ deployInfo }: FaqFeatureProps) => {
+export const FaqFeature = () => {
 	return (
 		<div className="flex flex-col h-screen gap-1 p-2">
 			<div className="flex flex-grow gap-1">
@@ -56,7 +50,6 @@ export const FaqFeature = ({ deployInfo }: FaqFeatureProps) => {
 								/>
 							))}
 						</ul>
-						<div className="mt-auto">{deployInfo}</div>
 					</div>
 				</div>
 			</div>

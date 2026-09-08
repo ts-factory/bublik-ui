@@ -13,7 +13,7 @@ import {
 	DialogClose
 } from '@/shared/tailwind-ui';
 import { useAuth } from '@/bublik/features/auth';
-import { SETTINGS_TABS, VERSION_TAB } from './constants';
+import { SETTINGS_TABS } from './constants';
 import type { SettingsTab } from './types';
 import { SettingsContent } from './settings-content';
 import { SettingsNavItem } from './components/settings-nav-item';
@@ -94,14 +94,8 @@ export function SettingsModal() {
 								))}
 							</nav>
 
-							<div className="p-2 border-t border-slate-3">
-								<SettingsNavItem
-									tab={VERSION_TAB}
-									isActive={activeTab === 'version'}
-									onClick={() => setActiveTab('version')}
-								/>
-
-								{user && (
+							{user && (
+								<div className="p-2 border-t border-slate-3">
 									<button
 										onClick={handleLogout}
 										className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium text-text-unexpected rounded-md hover:bg-red-50 transition-colors"
@@ -109,8 +103,8 @@ export function SettingsModal() {
 										<Icon name="BoxArrowRight" size={18} />
 										<span>Sign out</span>
 									</button>
-								)}
-							</div>
+								</div>
+							)}
 						</div>
 
 						{/* Content */}
