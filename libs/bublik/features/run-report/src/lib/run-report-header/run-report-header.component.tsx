@@ -30,38 +30,43 @@ function RunReportHeader(props: RunReportHeaderProps) {
 	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
 
 	return (
-		<div className="flex flex-col bg-white rounded">
-			<CardHeader
-				label={
-					<div className="flex items-center gap-2">
-						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
-							{label}
-						</span>
-					</div>
-				}
-			>
-				<div className="flex items-center gap-2">
-					<RunModeToggle
-						isFullMode={isModeFull}
-						onToggleClick={() => setIsModeFull(!isModeFull)}
-					/>
-					<LinkToSourceContainer runId={runId.toString()} />
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.run({ runId })}>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Run
-						</LinkWithProject>
-					</ButtonTw>
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.log({ runId })}>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Log
-						</LinkWithProject>
-					</ButtonTw>
-					<CopyShortUrlButtonContainer />
+		<>
+			{/* -mb-1 cancels the column gap so the bar stays flush on the details card */}
+			<div className="sticky top-0 z-20 -mb-1">
+				<div className="bg-white rounded-t">
+					<CardHeader
+						label={
+							<div className="flex items-center gap-2">
+								<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
+									{label}
+								</span>
+							</div>
+						}
+					>
+						<div className="flex items-center gap-2">
+							<RunModeToggle
+								isFullMode={isModeFull}
+								onToggleClick={() => setIsModeFull(!isModeFull)}
+							/>
+							<LinkToSourceContainer runId={runId.toString()} />
+							<ButtonTw asChild variant="secondary" size="xss">
+								<LinkWithProject to={routes.run({ runId })}>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Run
+								</LinkWithProject>
+							</ButtonTw>
+							<ButtonTw asChild variant="secondary" size="xss">
+								<LinkWithProject to={routes.log({ runId })}>
+									<Icon name="BoxArrowRight" className="mr-1.5" />
+									Log
+								</LinkWithProject>
+							</ButtonTw>
+							<CopyShortUrlButtonContainer />
+						</div>
+					</CardHeader>
 				</div>
-			</CardHeader>
-			<div className="flex flex-col gap-2">
+			</div>
+			<div className="flex flex-col gap-2 bg-white rounded-b">
 				<RunDetails
 					isFullMode={isModeFull}
 					runId={runId}
@@ -81,7 +86,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 					statusByNok={details.status_by_nok}
 				/>
 			</div>
-		</div>
+		</>
 	);
 }
 

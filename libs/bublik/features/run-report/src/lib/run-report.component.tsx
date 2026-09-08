@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
@@ -32,7 +32,7 @@ import {
 } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
-import { usePhysicalHotkeys } from '@/shared/hooks';
+import { useIsSticky, usePhysicalHotkeys } from '@/shared/hooks';
 
 import { RunReportHeader } from './run-report-header';
 import { RunReportTestBlock } from './run-report-test';
@@ -46,6 +46,7 @@ import {
 	scrollToReportItem
 } from './run-report-navigation.utils';
 import type { ArgValNavigationItem } from './run-report-navigation.utils';
+import { RUN_REPORT_STICKY_HEADER_HEIGHT } from './run-report.constants';
 
 interface UseArgValBlockKeyboardNavigationConfig {
 	items: ArgValNavigationItem[];
@@ -167,6 +168,7 @@ function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 		<div
 			id={RUN_REPORT_TABLE_OF_CONTENTS_ID}
 			className="bg-white flex flex-col rounded"
+			data-offset={RUN_REPORT_STICKY_HEADER_HEIGHT}
 		>
 			<CardHeader label="Table Of Contents" />
 			<ul className="flex flex-col py-2">
@@ -645,19 +647,28 @@ function RunReportContentItem({
 
 	const [params] = useSearchParams();
 	const [offsetTop, setOffsetTop] = useState(0);
+	const headerRef = useRef<HTMLDivElement | null>(null);
+	// Rounded top corners only make sense while the header sits on its own card,
+	// not while it is pinned under the report toolbar
+	const { isSticky } = useIsSticky(headerRef, {
+		offset: -(RUN_REPORT_STICKY_HEADER_HEIGHT + 1)
+	});
 
 	const handleRef = useCallback((node: HTMLDivElement | null) => {
-		setOffsetTop(node?.clientHeight ?? 0);
+		headerRef.current = node;
+		setOffsetTop(RUN_REPORT_STICKY_HEADER_HEIGHT + (node?.clientHeight ?? 0));
 	}, []);
 
 	return (
 		<div
 			id={encodeURIComponent(block.id)}
 			className="flex flex-col bg-white rounded pl-1"
+			data-offset={RUN_REPORT_STICKY_HEADER_HEIGHT}
 		>
 			{/* LEVEL 1 */}
 			<CardHeader
-				className="sticky top-0 bg-white z-[10] rounded-t"
+				className={cn('sticky bg-white z-[10]', !isSticky && 'rounded-t')}
+				style={{ top: RUN_REPORT_STICKY_HEADER_HEIGHT }}
 				label={
 					<LinkWithProject
 						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
