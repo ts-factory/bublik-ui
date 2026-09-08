@@ -21,7 +21,7 @@ const wrapper = cva({
 	}
 });
 
-const text = cva({ base: 'text-sm leading-6 text-text-secondary' });
+const text = cva({ base: 'text-xs leading-5 text-text-secondary' });
 
 const formatVersion = (name: string, summary: VersionSummary) => {
 	const branch = summary.branch ? `${summary.branch}: ` : '';
