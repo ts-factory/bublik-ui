@@ -135,6 +135,22 @@ export const ResultSection = (props: ResultSectionProps) => {
 						label="INCOMPLETE"
 						control={control}
 					/>
+					<CheckboxField
+						iconName="BoxExclamationMark"
+						iconSize={16}
+						name="results"
+						value={RESULT_TYPE.Empty}
+						label="EMPTY"
+						control={control}
+					/>
+					<CheckboxField
+						iconName="BoxQuestionMark"
+						iconSize={16}
+						name="results"
+						value={RESULT_TYPE.Unspec}
+						label="UNSPEC"
+						control={control}
+					/>
 				</div>
 			</div>
 		</FormSection>

@@ -38,7 +38,9 @@ export const getUnexpectedResultForColumnId = (
 					RESULT_TYPE.Cored,
 					RESULT_TYPE.Skipped,
 					RESULT_TYPE.Incomplete,
-					RESULT_TYPE.Faked
+					RESULT_TYPE.Faked,
+					RESULT_TYPE.Empty,
+					RESULT_TYPE.Unspec
 				],
 				resultProperties: [RESULT_PROPERTIES.Unexpected]
 			};

@@ -49,7 +49,9 @@ export const DEFAULT_RESULT_TYPES: RESULT_TYPE[] = [
 	RESULT_TYPE.Cored,
 	RESULT_TYPE.Skipped,
 	RESULT_TYPE.Faked,
-	RESULT_TYPE.Incomplete
+	RESULT_TYPE.Incomplete,
+	RESULT_TYPE.Empty,
+	RESULT_TYPE.Unspec
 ];
 
 export const DEFAULT_RUN_PROPERTIES: RUN_PROPERTIES[] = [

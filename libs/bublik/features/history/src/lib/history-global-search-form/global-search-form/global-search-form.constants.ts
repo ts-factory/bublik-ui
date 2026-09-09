@@ -27,7 +27,9 @@ const createHistoryConfig = (): HistoryConfig => {
 		RESULT_TYPE.Cored,
 		RESULT_TYPE.Skipped,
 		RESULT_TYPE.Faked,
-		RESULT_TYPE.Incomplete
+		RESULT_TYPE.Incomplete,
+		RESULT_TYPE.Empty,
+		RESULT_TYPE.Unspec
 	];
 	const defaultRunProperties = [RUN_PROPERTIES.NotCompromised];
 

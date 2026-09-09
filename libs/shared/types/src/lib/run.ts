@@ -25,7 +25,9 @@ export enum RESULT_TYPE {
 	Cored = 'CORED',
 	Skipped = 'SKIPPED',
 	Faked = 'FAKED',
-	Incomplete = 'INCOMPLETE'
+	Incomplete = 'INCOMPLETE',
+	Empty = 'EMPTY',
+	Unspec = 'UNSPEC'
 }
 
 export const ResultTypeSchema = z.nativeEnum(RESULT_TYPE);

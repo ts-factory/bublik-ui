@@ -41,7 +41,9 @@ const columnConfigs: RunTableColumnConfig[] = [
 			RESULT_TYPE.Cored,
 			RESULT_TYPE.Incomplete,
 			RESULT_TYPE.Skipped,
-			RESULT_TYPE.Faked
+			RESULT_TYPE.Faked,
+			RESULT_TYPE.Empty,
+			RESULT_TYPE.Unspec
 		]
 	},
 	{
@@ -89,7 +91,9 @@ const columnConfigs: RunTableColumnConfig[] = [
 			RESULT_TYPE.Cored,
 			RESULT_TYPE.Skipped,
 			RESULT_TYPE.Incomplete,
-			RESULT_TYPE.Faked
+			RESULT_TYPE.Faked,
+			RESULT_TYPE.Empty,
+			RESULT_TYPE.Unspec
 		],
 		icon: (
 			<Icon
