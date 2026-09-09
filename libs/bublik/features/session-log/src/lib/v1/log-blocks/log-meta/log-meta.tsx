@@ -1,11 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode, Fragment } from 'react';
+import { ReactNode, Fragment, useState } from 'react';
 
 import {
 	Badge,
 	BadgeVariants,
 	cn,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
 	CopyTooltip,
 	DropdownMenu,
 	DropdownMenuContent,
@@ -14,6 +17,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 	Icon,
+	Markdown,
 	Separator,
 	toast,
 	Tooltip
@@ -24,7 +28,7 @@ import {
 	TriangleExclamationMark,
 	TwoUsers
 } from '@/icons';
-import { Flag, Play, HashIcon } from 'lucide-react';
+import { Flag, Play, HashIcon, ChevronRight } from 'lucide-react';
 import {
 	EnvelopeClosedIcon,
 	ExternalLinkIcon,
@@ -40,7 +44,8 @@ import {
 import { useLogMetaContext } from '../../log-meta-context';
 
 export const BlockLogMeta = (props: LogHeaderBlock) => {
-	const { parameters, artifacts, verdicts, requirements } = props.meta;
+	const { parameters, artifacts, verdicts, requirements, scenario } =
+		props.meta;
 
 	return (
 		<div data-block-type={props.type} className="flex flex-col gap-4">
@@ -57,10 +62,63 @@ export const BlockLogMeta = (props: LogHeaderBlock) => {
 					<ArtifactsTable artifacts={artifacts} />
 					<RequirementsTable requirements={requirements} />
 				</div>
+				<ScenarioOutline scenario={scenario} />
 			</div>
 		</div>
 	);
 };
+
+interface ScenarioOutlineProps {
+	scenario: LogHeaderBlock['meta']['scenario'];
+}
+
+// The declared scenario step tree. Useful for faked runs, which carry the
+// outline in meta but produce no per-step log rows in the table.
+//
+// `depth` is the source of truth for structure: markers are derived here (a
+// running ordinal at depth 1, a dash below), not read from the text. The text
+// is treated as clean prose and rendered as markdown only for inline code.
+function ScenarioOutline(props: ScenarioOutlineProps) {
+	const { scenario } = props;
+	const [isOpen, setIsOpen] = useState(false);
+
+	if (!scenario || !scenario.length) return null;
+
+	let ordinal = 0;
+
+	return (
+		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+			<CollapsibleTrigger className="flex items-center gap-1 text-sm font-semibold hover:text-primary transition-colors">
+				<ChevronRight
+					size={16}
+					className={cn('transition-transform', isOpen && 'rotate-90')}
+				/>
+				Scenario
+				<span className="text-text-menu font-normal">({scenario.length})</span>
+			</CollapsibleTrigger>
+			<CollapsibleContent>
+				<ol className="mt-2 rounded-md border py-1 text-sm w-fit min-w-[300px]">
+					{scenario.map((step, index) => {
+						const marker = step.depth === 1 ? `${++ordinal}.` : '-';
+
+						return (
+							<li
+								key={index}
+								className="px-3 py-0.5"
+								style={{
+									paddingLeft: `${0.75 + (step.depth - 1) * 1.25}rem`
+								}}
+							>
+								<span className="mr-1.5 text-text-menu">{marker}</span>
+								<Markdown inline>{step.text}</Markdown>
+							</li>
+						);
+					})}
+				</ol>
+			</CollapsibleContent>
+		</Collapsible>
+	);
+}
 
 interface RequirementsTableProps {
 	requirements: LogHeaderBlock['meta']['requirements'];
@@ -213,6 +271,9 @@ function ParametersTable(props: ParametersTableProps) {
 
 	if (!parameters) return null;
 
+	// Descriptions are optional; only surface the column when some param has one.
+	const hasDescriptions = parameters.some((parameter) => parameter.description);
+
 	return (
 		<div>
 			<h3 className="text-sm font-semibold mb-2">Parameters</h3>
@@ -226,6 +287,11 @@ function ParametersTable(props: ParametersTableProps) {
 							<th className="h-12 px-4 text-left align-middle font-semibold text-xs">
 								Value
 							</th>
+							{hasDescriptions ? (
+								<th className="h-12 px-4 text-left align-middle font-semibold text-xs">
+									Description
+								</th>
+							) : null}
 						</tr>
 					</thead>
 					<tbody className="[&_tr:last-child]:border-0 text-sm font-mono">
@@ -289,6 +355,11 @@ function ParametersTable(props: ParametersTableProps) {
 											)}
 										</div>
 									</td>
+									{hasDescriptions ? (
+										<td className="p-4 align-middle py-1 font-sans text-text-secondary">
+											<Markdown>{parameter.description ?? ''}</Markdown>
+										</td>
+									) : null}
 								</tr>
 							);
 						})}

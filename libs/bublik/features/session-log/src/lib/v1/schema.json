@@ -94,7 +94,8 @@
 																"type": "object",
 																"properties": {
 																	"name": { "type": "string" },
-																	"value": { "type": "string" }
+																	"value": { "type": "string" },
+																	"description": { "type": "string" }
 																},
 																"required": ["name", "value"],
 																"additionalProperties": false
@@ -178,6 +179,19 @@
 															"required": ["url", "text"],
 															"additionalProperties": false,
 															"description": "Optional description with external url"
+														},
+														"scenario": {
+															"type": "array",
+															"items": {
+																"type": "object",
+																"properties": {
+																	"depth": { "type": "number" },
+																	"text": { "type": "string" }
+																},
+																"required": ["depth", "text"],
+																"additionalProperties": false
+															},
+															"description": "Optional declared scenario step outline"
 														}
 													},
 													"required": ["start", "end", "duration"],

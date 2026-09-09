@@ -32,7 +32,13 @@ export const LogHeaderBlockSchema = z
 				end: z.string().describe('date string'),
 				duration: z.string().describe('duration of the test'),
 				parameters: z
-					.array(z.object({ name: z.string(), value: z.string() }))
+					.array(
+						z.object({
+							name: z.string(),
+							value: z.string(),
+							description: z.string().optional()
+						})
+					)
 					.optional()
 					.describe('Optional list of parameters'),
 				verdicts: z
@@ -55,7 +61,14 @@ export const LogHeaderBlockSchema = z
 				description: z
 					.object({ url: z.string().url(), text: z.string() })
 					.optional()
-					.describe('Optional description with external url')
+					.describe('Optional description with external url'),
+				scenario: z
+					.array(z.object({ depth: z.number(), text: z.string() }))
+					.optional()
+					.describe(
+						'Optional declared scenario step outline (depth/text tree). ' +
+							'Present even for faked runs that have no step log rows.'
+					)
 			})
 			.describe('Meta information')
 	})
