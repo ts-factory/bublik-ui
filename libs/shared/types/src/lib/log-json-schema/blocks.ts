@@ -32,7 +32,13 @@ export const LogHeaderBlockSchema = z
 				end: z.string().describe('date string'),
 				duration: z.string().describe('duration of the test'),
 				parameters: z
-					.array(z.object({ name: z.string(), value: z.string() }))
+					.array(
+						z.object({
+							name: z.string(),
+							value: z.string(),
+							description: z.string().optional()
+						})
+					)
 					.optional()
 					.describe('Optional list of parameters'),
 				verdicts: z

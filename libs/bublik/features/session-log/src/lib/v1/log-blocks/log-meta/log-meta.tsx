@@ -213,6 +213,9 @@ function ParametersTable(props: ParametersTableProps) {
 
 	if (!parameters) return null;
 
+	// Descriptions are optional; only surface the column when some param has one.
+	const hasDescriptions = parameters.some((parameter) => parameter.description);
+
 	return (
 		<div>
 			<h3 className="text-sm font-semibold mb-2">Parameters</h3>
@@ -226,6 +229,11 @@ function ParametersTable(props: ParametersTableProps) {
 							<th className="h-12 px-4 text-left align-middle font-semibold text-xs">
 								Value
 							</th>
+							{hasDescriptions ? (
+								<th className="h-12 px-4 text-left align-middle font-semibold text-xs">
+									Description
+								</th>
+							) : null}
 						</tr>
 					</thead>
 					<tbody className="[&_tr:last-child]:border-0 text-sm font-mono">
@@ -289,6 +297,11 @@ function ParametersTable(props: ParametersTableProps) {
 											)}
 										</div>
 									</td>
+									{hasDescriptions ? (
+										<td className="p-4 align-middle py-1 whitespace-pre-wrap font-sans text-text-secondary">
+											{parameter.description ?? ''}
+										</td>
+									) : null}
 								</tr>
 							);
 						})}
