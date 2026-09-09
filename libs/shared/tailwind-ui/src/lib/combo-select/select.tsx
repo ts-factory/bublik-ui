@@ -5,6 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 import { Icon } from '../icon';
+import { InputLabel } from '../input-label';
 
 export type SelectItemFieldProps = SelectPrimitive.SelectItemProps;
 
@@ -37,9 +38,9 @@ export const SelectInput = forwardRef<HTMLButtonElement, SelectProps>(
 	({ label, options, defaultValue, placeholder, ...props }, ref) => {
 		return (
 			<div className="relative flex w-full min-w-[240px]">
-				<label className="absolute top-[-11px] left-2 font-normal text-[0.875rem] text-text-secondary bg-white">
+				<InputLabel className="absolute top-[-11px] left-2 bg-white">
 					{label}
-				</label>
+				</InputLabel>
 				<Select {...props}>
 					<SelectTrigger
 						className="inline-flex items-center justify-between w-full rounded border border-border-primary px-3.5 outline-none text-[0.875rem] leading-[1.125rem] h-10 font-medium gap-1 bg-white hover:text-primary focus:border-primary focus:shadow-text-field"

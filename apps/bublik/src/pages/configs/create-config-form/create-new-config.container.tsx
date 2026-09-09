@@ -12,6 +12,7 @@ import { useConfirm } from '@/shared/hooks';
 import { bublikAPI, ConfigExistsError } from '@/services/bublik-api';
 import {
 	Input,
+	InputLabel,
 	TextArea,
 	cn,
 	Dialog,
@@ -274,9 +275,9 @@ function CreateNewConfigScreen() {
 							control={form.control}
 							render={({ field }) => (
 								<div className="relative">
-									<label className="font-normal text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white">
+									<InputLabel className="absolute top-[-11px] left-2 bg-white">
 										Project
-									</label>
+									</InputLabel>
 									<select
 										{...field}
 										value={field.value?.toString() ?? 'default'}
