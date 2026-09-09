@@ -22,6 +22,7 @@ import { AdminAnalyticsPage } from '../pages/admin-analytics';
 import { AuthLayout } from '../pages/auth/auth.layout';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
+import { ChatPage } from '../pages/chat-page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
 import {
 	DevelopersLayout,
@@ -247,6 +248,8 @@ const router = createBrowserRouter(
 					children: [
 						{ path: '/', element: <RedirectToDashboard /> },
 						{ path: '/dashboard', element: <DashboardPageV2 /> },
+						{ path: '/chat', element: <ChatPage /> },
+						{ path: '/chat/:threadId', element: <ChatPage /> },
 						{
 							path: '/tools/packet-viewer',
 							element: (

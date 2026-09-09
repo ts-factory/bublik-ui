@@ -31,7 +31,8 @@ import {
 	reportEndpoints,
 	configsEndpoints,
 	projectEndpoints,
-	analyticsEndpoints
+	analyticsEndpoints,
+	chatEndpoints
 } from './endpoints';
 
 const baseQuery = fetchBaseQuery(getAPIConfig());
@@ -111,7 +112,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(reportEndpoints)
 	.injectEndpoints(configsEndpoints)
 	.injectEndpoints(projectEndpoints)
-	.injectEndpoints(analyticsEndpoints);
+	.injectEndpoints(analyticsEndpoints)
+	.injectEndpoints(chatEndpoints);
 
 export const {
 	// Dashboard
@@ -184,5 +186,12 @@ export const {
 	useGetAnalyticsFacetsQuery,
 	useGetAnalyticsChartsQuery,
 	useLazyGetAnalyticsExportQuery,
-	useImportAnalyticsDataMutation
+	useImportAnalyticsDataMutation,
+	useGetChatModelsQuery,
+	useGetChatThreadQuery,
+	useGetChatThreadsQuery,
+	useRenameChatThreadMutation,
+	useSetChatThreadArchivedMutation,
+	useDeleteChatThreadMutation,
+	useCancelChatRunMutation
 } = bublikAPI;
