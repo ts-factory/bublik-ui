@@ -79,6 +79,7 @@ const RunDetailsMainInfo = (props: RunDetailsMainInfoProps) => {
 			<dl className="grid items-center grid-cols-[max-content,max-content] gap-y-2 gap-x-4">
 				<DetailItem label={RUN_ID_LABEL} value={runId} isCopyable />
 				<DetailItem label="Start" value={runStartDate} />
+				<DetailItem label="Duration" value={runDuration} />
 				<DetailItem
 					label="Conclusion"
 					value={<ConclusionBadge status={runStatus} />}
