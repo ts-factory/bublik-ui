@@ -16,6 +16,7 @@ import { formatTimeToAPI } from '@/shared/utils';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
 import { BUBLIK_TAG } from '../types';
+import { configDependent } from '../tags';
 import { getMinutes } from '../utils';
 
 function getDashboardMode(days: number, columns: number) {
@@ -50,10 +51,14 @@ export const dashboardEndpoints = {
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getDashboardMode: build.query<DashboardMode, void>({
-			query: () => withApiV2('/dashboard/default_mode'),
+			query: () => ({
+				url: withApiV2('/dashboard/default_mode'),
+				cache: 'no-cache'
+			}),
 			transformResponse: (result: DashboardModeResponse) =>
 				getDashboardMode(result.mode.days, result.mode.columns),
-			keepUnusedDataFor: getMinutes(1440)
+			keepUnusedDataFor: getMinutes(1440),
+			providesTags: configDependent(BUBLIK_TAG.DashboardData)
 		}),
 		getDashboardByDate: build.query<
 			DashboardAPIResponse,
@@ -79,16 +84,19 @@ export const dashboardEndpoints = {
 			transformResponse: (response: DashboardAPIResponse | null, _meta, arg) =>
 				response ?? createEmptyDashboardResponse(arg?.date),
 			responseSchema: DashboardAPIResponseSchema,
-			providesTags: (_result, _error, arg) => [
-				{ type: BUBLIK_TAG.DashboardData },
-				{ type: BUBLIK_TAG.DashboardData, id: arg?.date }
-			]
+			providesTags: (_result, _error, arg) =>
+				configDependent(
+					{ type: BUBLIK_TAG.DashboardData },
+					{ type: BUBLIK_TAG.DashboardData, id: arg?.date }
+				)
 		}),
 		getRunFallingFreq: build.query<boolean[], number>({
-			query: (runId) => withApiV2(`/runs/${runId}/nok_distribution`),
-			providesTags: (_result, _error, arg) => [
-				{ type: BUBLIK_TAG.DashboardData, id: arg }
-			]
+			query: (runId) => ({
+				url: withApiV2(`/runs/${runId}/nok_distribution`),
+				cache: 'no-cache'
+			}),
+			providesTags: (_result, _error, arg) =>
+				configDependent({ type: BUBLIK_TAG.DashboardData, id: arg })
 		})
 	})
 };
