@@ -54,6 +54,7 @@ export * from './lib/kbd';
 export * from './lib/skeleton';
 export * from './lib/dropdown';
 export * from './lib/collapsible';
+export * from './lib/markdown';
 export * from './lib/icon';
 export * from './lib/command';
 export * from './lib/separator';
