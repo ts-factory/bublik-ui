@@ -1,11 +1,30 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import React, { ComponentPropsWithRef, forwardRef } from 'react';
+import { ComponentPropsWithRef, forwardRef } from 'react';
 
 import { cn, cva, VariantProps } from '../utils';
+import { ErrorMessage } from '../error-message';
+import { InputLabel } from '../input-label';
 
 export const textAreaStyles = cva({
-	base: 'block w-full rounded-md sm:text-sm focus:ring-transparent transition-all resize-none active:shadow-none',
+	base: [
+		'block',
+		'w-full',
+		'px-3.5',
+		'py-[7px]',
+		'outline-none',
+		'border',
+		'rounded',
+		'text-text-secondary',
+		'transition-all',
+		'resize-none',
+		'disabled:text-text-menu',
+		'disabled:cursor-not-allowed',
+		'active:shadow-none',
+		'focus:ring-transparent',
+		'placeholder:text-text-menu placeholder:font-normal',
+		'font-medium text-[0.875rem] leading-[1.5rem]'
+	],
 	variants: {
 		variant: {
 			primary:
@@ -18,33 +37,41 @@ export const textAreaStyles = cva({
 
 export type TextAreaProps = ComponentPropsWithRef<'textarea'> &
 	VariantProps<typeof textAreaStyles> & {
-		label: string;
+		label?: string;
 		error?: string;
 	};
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
-	({ error, name, label, variant = 'primary', className, ...props }, ref) => {
+	(
+		{ error, name, label, variant = 'primary', className, disabled, ...props },
+		ref
+	) => {
 		return (
-			<div className="flex flex-col gap-2">
-				<label
-					htmlFor={name}
-					className="block mb-1 text-sm font-medium text-text-primary"
-				>
-					{label}
-				</label>
+			<div className="relative">
+				{label && (
+					<InputLabel
+						className={cn(
+							'absolute top-[-11px] left-2',
+							disabled ? 'bg-bg-body text-border-primary' : 'bg-white'
+						)}
+						htmlFor={name}
+					>
+						{label}
+					</InputLabel>
+				)}
 				<textarea
 					{...props}
 					name={name}
 					id={name}
+					disabled={disabled}
 					className={cn(
 						textAreaStyles({ variant: error ? 'error' : variant }),
 						className
 					)}
 					ref={ref}
+					data-testid="textarea"
 				/>
-				{error && (
-					<p className="text-[0.75rem] font-normal text-bg-error">{error}</p>
-				)}
+				{error && <ErrorMessage>{error}</ErrorMessage>}
 			</div>
 		);
 	}
