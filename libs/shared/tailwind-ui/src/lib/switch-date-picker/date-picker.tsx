@@ -91,7 +91,7 @@ export const DatePicker = forwardRef<
 
 				<label
 					{...labelProps}
-					className="absolute top-[-11px] left-2 font-normal text-[0.875rem] text-text-secondary bg-white"
+					className="absolute top-[-11px] left-2 font-medium text-[0.875rem] text-text-secondary bg-white"
 				>
 					{props.label}
 				</label>
