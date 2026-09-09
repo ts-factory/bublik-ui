@@ -8,6 +8,7 @@ import { Spinner } from '@/shared/tailwind-ui';
 import { useUnmount } from '@/shared/hooks';
 
 import { useHistoryActions, useSyncHistoryQueryToState } from '../slice';
+import { resolveHistoryMode } from './history-mode';
 import { HistoryLinearContainer } from '../history-linear';
 import { HistoryAggregationContainer } from '../history-aggregation';
 
@@ -32,7 +33,7 @@ const HistoryMeasurementsCombinedContainer = lazy(() =>
 export const HistoryPageModePickerContainer = () => {
 	const actions = useHistoryActions();
 	const [searchParams] = useSearchParams();
-	const mode = searchParams.get('mode') ?? 'linear';
+	const mode = resolveHistoryMode(searchParams.get('mode'));
 	const previousModeRef = useRef(mode);
 
 	useUnmount(() => actions.resetGlobalFilter());

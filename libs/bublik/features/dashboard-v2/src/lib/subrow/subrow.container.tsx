@@ -24,7 +24,11 @@ export const Subrow = ({ row, children }: PropsWithChildren<SubrowProps>) => {
 					bg
 				)}
 			/>
-			<div className="flex flex-col gap-4 py-2 pl-8 pr-2 bg-white rounded-b-md">
+			<div
+				data-testid="dashboard-row-subrow"
+				data-run-id={row.original.context.run_id}
+				className="flex flex-col gap-4 py-2 pl-8 pr-2 bg-white rounded-b-md"
+			>
 				{children}
 			</div>
 		</>

@@ -114,7 +114,10 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 	}
 
 	return (
-		<div className="flex flex-col flex-grow bg-white rounded-md">
+		<div
+			className="flex flex-col flex-grow bg-white rounded-md"
+			data-testid="log-tree"
+		>
 			<TreeHeader
 				hasErrors={treeWithOnlyErrors !== null}
 				isNokMode={showOnlyErrors}

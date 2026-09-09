@@ -85,6 +85,21 @@ Centralized error handling via `getErrorMessage` from `@/services/bublik-api`:
 - **React Testing Library** for component testing
 - **Test files**: `*.spec.tsx` or `*.test.tsx` alongside source files
 
+### E2E Testing (Playwright)
+- Specs live in `apps/bublik/e2e/`, page objects in `e2e/pages/`, fixture-data
+  helpers in `e2e/support/`
+- Every route has a Gherkin `.feature` file in `e2e/features/` whose `Scenario`
+  names are used verbatim as `test()` titles — read
+  **`apps/bublik/e2e/features/README.md`** before adding or renaming a test
+- `pnpm run e2e:features:check` fails when a scenario has no test; it also runs
+  as part of `nx run bublik:e2e` and `task e2e:types:check`
+- Test data comes from the fixture manifest (`requireManifest()`), never from
+  hardcoded run ids; missing fixture data must fail via `requireCapability`
+  rather than skip
+- The stack is dockerized: `task e2e:up && task e2e:seed && task e2e:test` from
+  `bublik-docker`. App source changes only reach the suite after a rebuild
+  (`task e2e:up` does one), since the served UI is baked into the image
+
 ### UI Styling
 - **Tailwind CSS** with `@/shared/tailwind-ui` components
 - **Radix UI** primitives for accessible components

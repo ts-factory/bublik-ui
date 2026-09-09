@@ -284,6 +284,8 @@ const TableBody = (props: TableLayoutProps) => {
 							className={bodyRowWrapperStyles({
 								isExpanded: row.getIsExpanded()
 							})}
+							data-testid="dashboard-row"
+							data-run-id={row.original.context.run_id}
 						>
 							<div
 								className={cn(
@@ -318,6 +320,8 @@ const TableBody = (props: TableLayoutProps) => {
 							className={bodyRowWrapperStyles({
 								isExpanded: left.getIsExpanded()
 							})}
+							data-testid="dashboard-row"
+							data-run-id={left.original.context.run_id}
 						>
 							<div
 								className={cn(
@@ -342,6 +346,8 @@ const TableBody = (props: TableLayoutProps) => {
 							className={bodyRowWrapperStyles({
 								isExpanded: right.getIsExpanded()
 							})}
+							data-testid="dashboard-row"
+							data-run-id={right.original.context.run_id}
 						>
 							<div
 								className={cn(

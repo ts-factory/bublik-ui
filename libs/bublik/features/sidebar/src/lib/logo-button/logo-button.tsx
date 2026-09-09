@@ -41,7 +41,10 @@ export const SidebarLogoButton = () => {
 				<span className="text-[1.375rem] leading-[0.75rem]">Bublik</span>
 			</LinkWithProject>
 			<HoverCard content={<DeployInfoContainer />} side="right" sideOffset={8}>
-				<span className="ml-1 inline-flex translate-y-px items-center text-xs font-medium leading-none text-text-menu">
+				<span
+					data-testid="sidebar-version"
+					className="ml-1 inline-flex translate-y-px items-center text-xs font-medium leading-none text-text-menu"
+				>
 					{frontendAppVersion}
 				</span>
 			</HoverCard>

@@ -35,6 +35,8 @@ export const TreeHeader: FC<TreeHeaderProps> = (props) => {
 							isNokMode &&
 								'bg-bg-error text-white hover:text-white hover:bg-bg-error'
 						)}
+						aria-label="Only NOK"
+						data-testid="log-tree-only-nok"
 						disabled={!hasErrors}
 						onClick={onNokClick}
 					>
@@ -47,10 +49,16 @@ export const TreeHeader: FC<TreeHeaderProps> = (props) => {
 					size="xss"
 					state={isShowingRunLog && 'active'}
 					onClick={onRunButtonClick}
+					data-testid="log-tree-run-log"
 				>
 					Run log
 				</ButtonTw>
-				<ButtonTw variant="secondary" size="xss" onClick={onScrollToFocusClick}>
+				<ButtonTw
+					variant="secondary"
+					size="xss"
+					onClick={onScrollToFocusClick}
+					data-testid="log-tree-scroll-to-focus"
+				>
 					<Icon name="Scan" size={20} className="mr-1.5" />
 					Scroll to focus
 				</ButtonTw>

@@ -228,6 +228,8 @@ function SingleSeriesTable(props: SingleSeriesTableProps) {
 									}
 									tabIndex={isCellWithMeta ? 0 : undefined}
 									role={isCellWithMeta ? 'button' : undefined}
+									data-testid={isCellWithMeta ? 'run-report-cell' : undefined}
+									data-result-id={resultId}
 								>
 									{formatValue(point?.y_value, seriesName, table.formatters)}
 								</td>
@@ -377,6 +379,8 @@ function MultipleSeriesTable(props: MultipleSeriesTableProps) {
 									}
 									tabIndex={isCellWithMeta ? 0 : undefined}
 									role={isCellWithMeta ? 'button' : undefined}
+									data-testid={isCellWithMeta ? 'run-report-cell' : undefined}
+									data-result-id={resultId}
 								>
 									{formatValue(point?.y_value, seriesName, table.formatters)}
 								</td>

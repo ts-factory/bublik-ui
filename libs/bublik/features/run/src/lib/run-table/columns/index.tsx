@@ -75,6 +75,8 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 		>
 			<DropdownMenuTrigger asChild>
 				<button
+					data-testid="tree-history-trigger"
+					aria-label="History links"
 					className={cn(
 						'inline-flex items-center justify-center transition-all appearance-none select-none text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff]',
 						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',

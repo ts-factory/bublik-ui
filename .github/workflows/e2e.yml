@@ -1,0 +1,455 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+  workflow_dispatch:
+    inputs:
+      frontend_repository:
+        description: 'Frontend repo (owner/bublik-ui); empty = this repository'
+        required: false
+        default: ''
+        type: string
+      frontend_ref:
+        description: 'Frontend branch, tag, or SHA; empty = triggering revision'
+        required: false
+        default: ''
+        type: string
+      backend_repository:
+        description: 'Backend repo (owner/bublik), including public forks'
+        required: false
+        default: ''
+        type: string
+      backend_ref:
+        description: 'Backend branch, tag, or SHA'
+        required: false
+        default: 'main'
+        type: string
+      docker_repository:
+        description: 'Docker repo (owner/bublik-docker), including public forks'
+        required: false
+        default: ''
+        type: string
+      docker_ref:
+        description: 'Docker branch, tag, or SHA'
+        required: false
+        default: 'main'
+        type: string
+      bublik_e2e_repository:
+        description: 'bublik-e2e CLI repo (owner/bublik-e2e), including public forks'
+        required: false
+        default: ''
+        type: string
+      bublik_e2e_ref:
+        description: 'bublik-e2e CLI branch, tag, or SHA'
+        required: false
+        default: 'main'
+        type: string
+
+  workflow_call:
+    inputs:
+      frontend_repository:
+        required: false
+        default: ''
+        type: string
+      frontend_ref:
+        required: false
+        default: ''
+        type: string
+      backend_repository:
+        required: false
+        default: ''
+        type: string
+      backend_ref:
+        required: false
+        default: ''
+        type: string
+      docker_repository:
+        required: false
+        default: ''
+        type: string
+      docker_ref:
+        required: false
+        default: ''
+        type: string
+      bublik_e2e_repository:
+        required: false
+        default: ''
+        type: string
+      bublik_e2e_ref:
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  BUBLIK_E2E_EMAIL: admin@bublik.com
+  BUBLIK_E2E_PASSWORD: admin
+  # One browser in CI: the suite runs serially (fullyParallel: false), so each
+  # extra browser is another full pass for cross-browser signal only -- no test
+  # is browser-gated. Read by playwright.config.ts, which then defines only
+  # these projects; local runs still default to all three. Comma-separated.
+  E2E_BROWSERS: webkit
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve frontend/backend/docker/bublik-e2e revisions
+        id: revisions
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          EVENT_SHA: ${{ github.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          WORKFLOW_REPOSITORY: ${{ github.repository }}
+          WORKFLOW_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          INPUT_FRONTEND_REPOSITORY: ${{ inputs.frontend_repository }}
+          INPUT_FRONTEND_REF: ${{ inputs.frontend_ref }}
+          INPUT_BACKEND_REPOSITORY: ${{ inputs.backend_repository }}
+          INPUT_BACKEND_REF: ${{ inputs.backend_ref }}
+          INPUT_DOCKER_REPOSITORY: ${{ inputs.docker_repository }}
+          INPUT_DOCKER_REF: ${{ inputs.docker_ref }}
+          INPUT_BUBLIK_E2E_REPOSITORY: ${{ inputs.bublik_e2e_repository }}
+          INPUT_BUBLIK_E2E_REF: ${{ inputs.bublik_e2e_ref }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+
+          allowed_keys = {
+              "backend_repository",
+              "backend_ref",
+              "docker_repository",
+              "docker_ref",
+              "bublik_e2e_repository",
+              "bublik_e2e_ref",
+          }
+          body = os.environ.get("PR_BODY", "")
+          # A fenced block with a `bublik-e2e` info string, not an HTML comment:
+          # GitHub renders an unknown info string as a plain code block, so the
+          # pins a run used are visible to anyone reading the PR.
+          block_pattern = re.compile(
+              r"^[ \t]*```[ \t]*bublik-e2e[ \t]*\r?$\r?\n(.*?)^[ \t]*```[ \t]*\r?$",
+              re.DOTALL | re.MULTILINE,
+          )
+          markers = re.findall(r"^[ \t]*```[ \t]*bublik-e2e\b", body, re.MULTILINE)
+          blocks = block_pattern.findall(body)
+
+          if len(markers) != len(blocks):
+              raise SystemExit("Malformed bublik-e2e metadata block in PR body")
+          if len(markers) > 1:
+              raise SystemExit("PR body must contain at most one bublik-e2e block")
+
+          metadata = {}
+          if blocks:
+              for raw_line in blocks[0].splitlines():
+                  line = raw_line.strip()
+                  if not line:
+                      continue
+                  key, separator, value = line.partition(":")
+                  key = key.strip()
+                  value = value.strip()
+                  if not separator or not key or not value:
+                      raise SystemExit(f"Invalid bublik-e2e metadata line: {raw_line!r}")
+                  if key not in allowed_keys:
+                      raise SystemExit(f"Unknown bublik-e2e metadata key: {key}")
+                  if key in metadata:
+                      raise SystemExit(f"Duplicate bublik-e2e metadata key: {key}")
+                  metadata[key] = value
+
+          def select(input_name, metadata_name, default):
+              return os.environ.get(input_name, "").strip() or metadata.get(
+                  metadata_name, default
+              )
+
+          repository = os.environ["WORKFLOW_REPOSITORY"]
+          owner = os.environ["WORKFLOW_REPOSITORY_OWNER"]
+          event_name = os.environ["EVENT_NAME"]
+
+          frontend_repository = (
+              os.environ.get("INPUT_FRONTEND_REPOSITORY", "").strip() or repository
+          )
+          frontend_ref = os.environ.get("INPUT_FRONTEND_REF", "").strip()
+          if not frontend_ref:
+              frontend_ref = (
+                  os.environ["EVENT_REF"]
+                  if event_name == "pull_request"
+                  else os.environ["EVENT_SHA"]
+              )
+
+          revisions = {
+              "frontend_repository": frontend_repository,
+              "frontend_ref": frontend_ref,
+              "backend_repository": select(
+                  "INPUT_BACKEND_REPOSITORY",
+                  "backend_repository",
+                  f"{owner}/bublik",
+              ),
+              "backend_ref": select("INPUT_BACKEND_REF", "backend_ref", "main"),
+              "docker_repository": select(
+                  "INPUT_DOCKER_REPOSITORY",
+                  "docker_repository",
+                  f"{owner}/bublik-docker",
+              ),
+              "docker_ref": select("INPUT_DOCKER_REF", "docker_ref", "main"),
+              "bublik_e2e_repository": select(
+                  "INPUT_BUBLIK_E2E_REPOSITORY",
+                  "bublik_e2e_repository",
+                  f"{owner}/bublik-e2e",
+              ),
+              "bublik_e2e_ref": select(
+                  "INPUT_BUBLIK_E2E_REF", "bublik_e2e_ref", "main"
+              ),
+          }
+
+          repository_pattern = re.compile(
+              r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?/"
+              r"[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$"
+          )
+          for key in (
+              "frontend_repository",
+              "backend_repository",
+              "docker_repository",
+              "bublik_e2e_repository",
+          ):
+              if not repository_pattern.fullmatch(revisions[key]):
+                  raise SystemExit(f"Invalid GitHub repository for {key}: {revisions[key]!r}")
+
+          for key in (
+              "frontend_ref",
+              "backend_ref",
+              "docker_ref",
+              "bublik_e2e_ref",
+          ):
+              result = subprocess.run(
+                  ["git", "check-ref-format", "--branch", revisions[key]],
+                  capture_output=True,
+                  text=True,
+                  check=False,
+              )
+              if result.returncode != 0:
+                  raise SystemExit(f"Invalid Git ref for {key}: {revisions[key]!r}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              for key, value in revisions.items():
+                  output.write(f"{key}={value}\n")
+
+          has_inputs = any(
+              os.environ.get(name, "").strip()
+              for name in (
+                  "INPUT_FRONTEND_REPOSITORY",
+                  "INPUT_FRONTEND_REF",
+                  "INPUT_BACKEND_REPOSITORY",
+                  "INPUT_BACKEND_REF",
+                  "INPUT_DOCKER_REPOSITORY",
+                  "INPUT_DOCKER_REF",
+                  "INPUT_BUBLIK_E2E_REPOSITORY",
+                  "INPUT_BUBLIK_E2E_REF",
+              )
+          )
+          source = (
+              "workflow inputs"
+              if has_inputs
+              else "PR body"
+              if metadata
+              else "defaults"
+          )
+          print(f"Dependency source: {source}")
+          for key, value in revisions.items():
+              print(f"{key}: {value}")
+          PY
+
+      - name: Checkout bublik-docker revision
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ steps.revisions.outputs.docker_repository }}
+          ref: ${{ steps.revisions.outputs.docker_ref }}
+          path: bublik-docker
+          submodules: false
+          persist-credentials: false
+
+      - name: Init pinned submodules (test-environment, docs)
+        working-directory: bublik-docker
+        run: git submodule update --init --depth 1 test-environment bublik-release
+
+      - name: Checkout frontend revision
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ steps.revisions.outputs.frontend_repository }}
+          ref: ${{ steps.revisions.outputs.frontend_ref }}
+          path: bublik-docker/bublik-ui
+          persist-credentials: false
+
+      - name: Checkout backend revision
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ steps.revisions.outputs.backend_repository }}
+          ref: ${{ steps.revisions.outputs.backend_ref }}
+          path: bublik-docker/bublik
+          persist-credentials: false
+
+      - name: Record checked-out revisions
+        env:
+          FRONTEND_REPOSITORY: ${{ steps.revisions.outputs.frontend_repository }}
+          FRONTEND_REF: ${{ steps.revisions.outputs.frontend_ref }}
+          BACKEND_REPOSITORY: ${{ steps.revisions.outputs.backend_repository }}
+          BACKEND_REF: ${{ steps.revisions.outputs.backend_ref }}
+          DOCKER_REPOSITORY: ${{ steps.revisions.outputs.docker_repository }}
+          DOCKER_REF: ${{ steps.revisions.outputs.docker_ref }}
+          BUBLIK_E2E_REPOSITORY: ${{ steps.revisions.outputs.bublik_e2e_repository }}
+          BUBLIK_E2E_REF: ${{ steps.revisions.outputs.bublik_e2e_ref }}
+        run: |
+          {
+            echo '### E2E revisions'
+            echo '| Component | Repository | Requested ref | Commit |'
+            echo '| --- | --- | --- | --- |'
+            echo "| Frontend | $FRONTEND_REPOSITORY | \`$FRONTEND_REF\` | \`$(git -C bublik-docker/bublik-ui rev-parse HEAD)\` |"
+            echo "| Backend | $BACKEND_REPOSITORY | \`$BACKEND_REF\` | \`$(git -C bublik-docker/bublik rev-parse HEAD)\` |"
+            echo "| Docker | $DOCKER_REPOSITORY | \`$DOCKER_REF\` | \`$(git -C bublik-docker rev-parse HEAD)\` |"
+            echo "| bublik-e2e CLI | $BUBLIK_E2E_REPOSITORY | \`$BUBLIK_E2E_REF\` | resolved by uv |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install bublik-e2e CLI
+        env:
+          BUBLIK_E2E_REPOSITORY: ${{ steps.revisions.outputs.bublik_e2e_repository }}
+          BUBLIK_E2E_REF: ${{ steps.revisions.outputs.bublik_e2e_ref }}
+        run: |
+          uv tool install "git+https://github.com/${BUBLIK_E2E_REPOSITORY}.git@${BUBLIK_E2E_REF}"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: bublik-docker/bublik-ui/pnpm-lock.yaml
+
+      # The app itself is built inside Docker; these node_modules are what the
+      # Playwright suite runs from, on the host.
+      - name: Install frontend node_modules
+        working-directory: bublik-docker/bublik-ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve Playwright version
+        id: playwright
+        working-directory: bublik-docker/bublik-ui
+        run: |
+          VERSION="$(node -e "console.log(require('@playwright/test/package.json').version)")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Playwright version: $VERSION"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.E2E_BROWSERS }}-${{ steps.playwright.outputs.version }}
+
+      # Browsers matching the pnpm-pinned @playwright/test, rather than the
+      # official container image (whose tag has to exist for every version we
+      # bump to). Only the ones E2E_BROWSERS asks for, so a single-browser run
+      # does not download the other two. --with-deps runs even on a cache hit:
+      # the binaries are cached but their apt libraries are not.
+      - name: Install Playwright browsers
+        working-directory: bublik-docker/bublik-ui
+        run: echo "$E2E_BROWSERS" | tr ',' ' ' | xargs pnpm exec playwright install --with-deps
+
+      # The Playwright suite's manifest types are generated from the CLI's
+      # Pydantic schema; fail fast (before the docker build) when they drifted.
+      - name: Check manifest schema/types are in sync
+        working-directory: bublik-docker
+        run: task e2e:types:check
+
+      # The containers chown their log dirs to www-data:www-data (mode 2775) and then
+      # drop to HOST_UID:HOST_GID. HOST_GID must be the www-data gid (33) or the
+      # services can't write their logs (PermissionError -> django/celery crash).
+      - name: Setup .env
+        working-directory: bublik-docker
+        run: |
+          cp .env.example .env
+          {
+            echo "BUBLIK_DOCKER_DATA_DIR=./data"
+            echo "HOST_UID=$(id -u)"
+            echo "HOST_GID=$(getent group www-data | cut -d: -f3)"
+            echo "UMASK=022"
+            echo "DJANGO_SUPERUSER_EMAIL=$BUBLIK_E2E_EMAIL"
+            echo "DJANGO_SUPERUSER_PASSWORD=$BUBLIK_E2E_PASSWORD"
+          } >> .env
+          mkdir -p data/logs/logs
+
+      # Builds the images and waits until the API, UI, logs and Celery answer.
+      # Seeding is a separate task on purpose — the chmod below has to land
+      # between the two.
+      - name: Start services
+        working-directory: bublik-docker
+        run: task e2e:up
+
+      # The containers chown data/logs to www-data; the host bublik-e2e tool runs
+      # as the runner user (not in that group) and must write the fixture bundles
+      # there. Grant access without changing ownership so the containers (gid 33)
+      # keep writing their logs.
+      - name: Allow host tools to write into the data dir
+        working-directory: bublik-docker
+        run: sudo chmod -R a+rwX data
+
+      # Generate fixtures and import the API-marked bundles through the CLI
+      # (idempotent, per-bundle). Bundles planned with +ui are left for the
+      # Playwright import setup, which imports them through the UI import form.
+      - name: Seed fixtures (bublik-e2e CLI)
+        working-directory: bublik-docker
+        run: task e2e:seed
+
+      # BASE_URL and BUBLIK_E2E_RUN_OVERVIEW come from the task's environment,
+      # so they are defined in exactly one place for CI and local runs alike.
+      - name: Run e2e tests (Playwright)
+        working-directory: bublik-docker
+        run: task e2e:test
+
+      - name: Dump service logs on failure
+        if: ${{ failure() }}
+        working-directory: bublik-docker
+        run: task e2e:logs -- --tail=200
+
+      - name: Upload Playwright artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            bublik-docker/bublik-ui/dist/.playwright/apps/bublik
+            bublik-docker/bublik-ui/playwright-report
+            bublik-docker/bublik-ui/test-results
+            bublik-docker/.e2e/e2e-manifest.json
+          if-no-files-found: ignore
+
+      - name: Tear down the e2e stack
+        if: ${{ always() }}
+        working-directory: bublik-docker
+        run: task e2e:down

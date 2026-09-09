@@ -24,7 +24,12 @@ export const SummaryBadge = (props: SummaryBadgeProps) => {
 	const percentageStr = percentage ? `${percentage}%` : '0%';
 
 	return (
-		<LinkWithProject className={linkStyles({ className })} {...rest}>
+		<LinkWithProject
+			data-testid="run-summary-badge"
+			data-summary={label.toLowerCase()}
+			className={linkStyles({ className })}
+			{...rest}
+		>
 			<span>{label}:</span>
 			<span className="text-right border-l border-gray-500/30">{count}</span>
 			<span className="text-right border-l border-gray-500/30">

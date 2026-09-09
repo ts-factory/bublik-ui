@@ -29,9 +29,12 @@ export const MeasurementContainer = () => {
 	usePrefetchLogPage({ runId, resultId });
 
 	return (
-		<>
+		<div
+			data-testid="measurements-page"
+			data-measurements-mode={search?.mode ?? 'default'}
+		>
 			<ModePicker mode={search?.mode} />
 			<ScrollToTopPage />
-		</>
+		</div>
 	);
 };

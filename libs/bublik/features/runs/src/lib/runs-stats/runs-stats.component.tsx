@@ -8,7 +8,10 @@ import { RunsChartBucket } from './runs-stats.types';
 
 export const RunsStatsLoading = () => {
 	return (
-		<main className="flex flex-col bg-white rounded-md">
+		<main
+			className="flex flex-col bg-white rounded-md"
+			data-testid="runs-stats-loading"
+		>
 			<CardHeader label="Runs Stats" />
 			<Skeleton className="h-screen" />
 		</main>
@@ -42,7 +45,7 @@ export interface RunsStatsProps {
 
 export const RunsStats = ({ dayStats, weekStats }: RunsStatsProps) => {
 	return (
-		<main className="flex flex-col gap-1">
+		<main className="flex flex-col gap-1" data-testid="runs-stats">
 			<div className="bg-white rounded-md">
 				<CardHeader label="Conclusion Stats" />
 				<ConclusionSection stats={weekStats} />

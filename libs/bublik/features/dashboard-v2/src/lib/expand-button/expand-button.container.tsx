@@ -33,6 +33,10 @@ export const ExpandButtonContainer = ({
 	return (
 		<div className="w-full h-full grid place-items-center">
 			<button
+				aria-label={isExpanded ? 'Collapse run' : 'Expand run'}
+				aria-expanded={isExpanded}
+				data-testid="dashboard-row-expand"
+				data-run-id={runId}
 				className={cn(
 					'text-primary hover:bg-primary-wash rounded',
 					isExpanded &&

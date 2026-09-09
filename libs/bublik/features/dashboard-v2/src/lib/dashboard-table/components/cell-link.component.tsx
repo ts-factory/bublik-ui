@@ -28,6 +28,13 @@ function getUnexpectedNavigationState(openUnexpectedResults = false) {
 	return { openUnexpected: true, openUnexpectedIntentId };
 }
 
+function cellAttributes(cellKey: string) {
+	return {
+		'data-testid': 'dashboard-cell-link',
+		'data-cell-key': cellKey
+	} as const;
+}
+
 export const linkStyles = cva({
 	base: [
 		'py-0.5 px-2 truncate rounded hover:underline',
@@ -52,7 +59,11 @@ export function CellLink({
 	const destination = getDestinationHint(hint);
 
 	if (!data.payload?.url) {
-		return <span className={cn(linkStyles(), bgColor)}>{cellString}</span>;
+		return (
+			<span {...cellAttributes(cellKey)} className={cn(linkStyles(), bgColor)}>
+				{cellString}
+			</span>
+		);
 	}
 
 	const isAbsoluteUrl = z.string().url().safeParse(data.payload.url).success;
@@ -91,6 +102,7 @@ export function CellLink({
 	return (
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
+				{...cellAttributes(cellKey)}
 				to={getUrl(data.payload.url, data.payload?.params)}
 				onClick={() => {
 					trackDashboardTableLinkClick({
@@ -121,6 +133,7 @@ function LinkToRun(props: LinkToRunProps) {
 	return (
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
+				{...cellAttributes(cellKey)}
 				to={to}
 				state={getUnexpectedNavigationState()}
 				onClick={(e) => {
@@ -179,6 +192,7 @@ function AbsoluteLink(props: AbsoluteLinkProps) {
 	return (
 		<LinkHintCard destination={destination}>
 			<a
+				{...cellAttributes(cellKey)}
 				rel="noopener noreferrer"
 				href={url}
 				target="_blank"

@@ -63,7 +63,7 @@ function RunMultiplePage() {
 	}
 
 	return (
-		<div className="p-2 flex flex-col gap-1">
+		<div className="p-2 flex flex-col gap-1" data-testid="run-multiple-page">
 			<div className="flex gap-2 flex-col bg-white rounded-md">
 				<CardHeader label={<RunDetailsHeaderLabel />}>
 					<RunHeaderDetails runId={selectedRunId} />

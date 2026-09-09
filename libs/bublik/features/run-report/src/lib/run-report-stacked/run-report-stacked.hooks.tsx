@@ -209,6 +209,8 @@ function StackedAdd(props: StackedAddProps) {
 	return (
 		<Tooltip content="Add for stacked mode">
 			<ToolbarButton
+				data-testid="run-report-stacked-add"
+				data-record-id={props.id}
 				onClick={() => toggleId(props.id)}
 				state={selectedIdSet.has(props.id) ? 'active' : 'default'}
 			>
