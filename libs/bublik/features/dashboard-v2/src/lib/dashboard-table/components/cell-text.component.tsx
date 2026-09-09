@@ -9,6 +9,11 @@ export interface CellTextProps {
 
 export const CellText = ({ value, className }: CellTextProps) => {
 	return (
-		<span className={cn('block min-w-0 truncate', className)}>{value}</span>
+		<span
+			title={String(value)}
+			className={cn('block min-w-0 truncate', className)}
+		>
+			{value}
+		</span>
 	);
 };
