@@ -12,6 +12,7 @@ import { useConfirm } from '@/shared/hooks';
 import { bublikAPI, ConfigExistsError } from '@/services/bublik-api';
 import {
 	Input,
+	TextArea,
 	cn,
 	Dialog,
 	DialogContent,
@@ -314,27 +315,14 @@ function CreateNewConfigScreen() {
 						<Controller
 							name="description"
 							control={form.control}
-							render={({ field }) => (
-								<div>
-									<label
-										htmlFor="description"
-										className="font-normal text-text-secondary text-[0.875rem]"
-									>
-										Description
-									</label>
-									<textarea
-										{...field}
-										id="description"
-										rows={4}
-										className="mt-1 block w-full rounded-md border-border-primary shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 placeholder:text-text-menu"
-										placeholder="Enter description for the new config"
-									/>
-									{form.formState.errors.description && (
-										<p className="mt-1 text-[0.75rem] font-normal text-bg-error">
-											{form.formState.errors.description.message}
-										</p>
-									)}
-								</div>
+							render={({ field, fieldState }) => (
+								<TextArea
+									{...field}
+									label="Description"
+									rows={4}
+									placeholder="Enter description for the new config"
+									error={fieldState.error?.message}
+								/>
 							)}
 						/>
 						<Controller
