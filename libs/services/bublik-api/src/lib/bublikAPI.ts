@@ -1,14 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	BaseQueryFn,
-	createApi,
-	FetchArgs,
-	fetchBaseQuery,
-	FetchBaseQueryError,
-	FetchBaseQueryMeta,
-	QueryReturnValue
-} from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import { config } from '@/bublik/config';
 
@@ -16,10 +8,10 @@ import { tagTypes } from './tags';
 import { BUBLIK_API_REDUCER_PATH } from './constants';
 import { getAPIConfig } from './config';
 import { getMinutes } from './utils';
+import { createBaseQueryWithAuth } from './base-query-with-auth';
 import {
 	adminUsersEndpoints,
 	authEndpoints,
-	authUrls,
 	dashboardEndpoints,
 	deployEndpoints,
 	historyEndpoints,
@@ -35,58 +27,34 @@ import {
 	chatEndpoints
 } from './endpoints';
 
-const baseQuery = fetchBaseQuery(getAPIConfig());
+/**
+ * Whether the store already holds a logged-in user. Anonymous visitors on
+ * public pages also get a 403 from the `me` query and must not be sent to the
+ * login page.
+ */
+function hasCachedUser(state: unknown): boolean {
+	type MeState = Parameters<
+		ReturnType<typeof bublikAPI.endpoints.me.select>
+	>[0];
 
-const baseQueryWithAuth: BaseQueryFn<
-	string | FetchArgs,
-	unknown,
-	FetchBaseQueryError
-> = async (args, api, extraOptions) => {
-	const isAuthErrorRequest = (
-		result: QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>
-	) => {
-		const AUTH_ERROR_CODE = 403; // 500
+	return Boolean(bublikAPI.endpoints.me.select()(state as MeState).data);
+}
 
-		return result.error && result.error.status === AUTH_ERROR_CODE;
-	};
+const baseQueryWithAuth = createBaseQueryWithAuth({
+	baseQuery: fetchBaseQuery(getAPIConfig()),
+	onRefreshFailed: (api) => {
+		if (!hasCachedUser(api.getState())) return;
 
-	const isIgnoreAuthUrl = (args: string | FetchArgs) => {
-		const authUrlsValues = Object.values(authUrls).map((v) => v.url);
-
-		return typeof args === 'string'
-			? authUrlsValues.some((endpointUrl) => args.includes(endpointUrl))
-			: authUrlsValues.some((endpointUrl) => args.url.includes(endpointUrl));
-	};
-
-	let result = await baseQuery(args, api, extraOptions);
-
-	if (isIgnoreAuthUrl(args)) return result;
-
-	if (isAuthErrorRequest(result)) {
-		// 1. Try to get a new token
-		const refreshResult = await baseQuery(
-			{ url: '/auth/refresh/', method: 'POST' },
-			api,
-			extraOptions
+		// Session is gone for real: go to the login page and come back here after re-auth.
+		const loginUrl = new URL(
+			`${window.location.origin}${config.baseUrl}/auth/login`
 		);
 
-		// 2. If failed to refresh redirect to login page with redirect_url query param to return back on re-auth
-		if (!refreshResult.data) {
-			const loginUrl = new URL(
-				`${window.location.origin}${config.baseUrl}/auth/login`
-			);
+		loginUrl.searchParams.set('redirect_url', window.location.href);
 
-			loginUrl.searchParams.set('redirect_url', window.location.href);
-
-			window.location.replace(loginUrl);
-		}
-
-		// 3. Retry the initial query
-		result = await baseQuery(args, api, extraOptions);
+		window.location.replace(loginUrl);
 	}
-
-	return result;
-};
+});
 
 export const bublikAPI = createApi({
 	reducerPath: BUBLIK_API_REDUCER_PATH,
