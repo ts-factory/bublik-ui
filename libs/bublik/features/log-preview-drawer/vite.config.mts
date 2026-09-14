@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 export default defineConfig({
@@ -7,7 +8,7 @@ export default defineConfig({
 	cacheDir:
 		'../../../../node_modules/.vite/libs/bublik/features/log-preview-drawer',
 
-	plugins: [react(), nxViteTsPaths()],
+	plugins: [react(), nxViteTsPaths(), svgr({})],
 
 	// Uncomment this if you are using workers.
 	// worker: {
