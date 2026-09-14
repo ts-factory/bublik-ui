@@ -14,23 +14,48 @@ const TabTitlePrefixResponseSchema = z.object({
 	tab_title_prefix: z.string().nullable()
 });
 
+/**
+ * The backend's placeholder for unpopulated deploy info is the literal string
+ * 'null' (REPO_REVISIONS in settings.py), so treat it as absent rather than data.
+ *
+ * Deploy info only feeds a cosmetic version card, so every field is optional and
+ * normalised after parsing. Validating it strictly meant one bad field failed the
+ * entire getServerVersion query: a 'null' commit_date was rejected by
+ * z.coerce.date() and the card rendered Zod's own message -- "API: Invalid date"
+ * -- with branch, revision and tag blank too.
+ */
+const UNSET_PLACEHOLDER = 'null';
+
+const cleanString = (value?: string | null) =>
+	value && value !== UNSET_PLACEHOLDER ? value : undefined;
+
+const cleanDate = (value?: string | null) => {
+	const raw = cleanString(value);
+
+	if (!raw) return undefined;
+
+	const date = new Date(raw);
+
+	return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
 const DeployCommitInfoAPISchema = z.object({
-	commit_date: z.coerce.date(),
-	commit_rev: z.string(),
-	commit_summary: z.string().optional()
+	commit_date: z.string().nullish(),
+	commit_rev: z.string().nullish(),
+	commit_summary: z.string().nullish()
 });
 
 const ServerVersionInfoAPISchema = z.object({
-	repo_url: z.string().optional(),
-	repo_branch: z.string().optional(),
-	latest_commit: DeployCommitInfoAPISchema,
-	repo_tag: z.string().optional()
+	repo_url: z.string().nullish(),
+	repo_branch: z.string().nullish(),
+	latest_commit: DeployCommitInfoAPISchema.nullish(),
+	repo_tag: z.string().nullish()
 });
 
 const VersionSummary = z.object({
 	branch: z.string().optional(),
-	date: z.date(),
-	revision: z.string(),
+	date: z.date().optional(),
+	revision: z.string().optional(),
 	summary: z.string().optional(),
 	tag: z.string().optional()
 });
@@ -51,11 +76,11 @@ export const deployEndpoints = {
 			rawResponseSchema: ServerVersionInfoAPISchema,
 			responseSchema: VersionSummary,
 			transformResponse: (version) => ({
-				date: version.latest_commit.commit_date,
-				revision: version.latest_commit.commit_rev,
-				branch: version.repo_branch,
-				tag: version.repo_tag,
-				summary: version.latest_commit.commit_summary
+				date: cleanDate(version.latest_commit?.commit_date),
+				revision: cleanString(version.latest_commit?.commit_rev),
+				branch: cleanString(version.repo_branch),
+				tag: cleanString(version.repo_tag),
+				summary: cleanString(version.latest_commit?.commit_summary)
 			}),
 			argSchema: z.void()
 		}),
