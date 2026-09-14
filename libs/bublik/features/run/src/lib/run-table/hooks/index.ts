@@ -115,6 +115,8 @@ export const useExpandUnexpected = (config: UseExpandUnexpectedConfig) => {
 		expandUnexpected,
 		showUnexpected,
 		reset,
-		expandToIteration
+		expandToIteration,
+		/** The global filter both `showUnexpected` and `expandUnexpected` apply. */
+		unexpectedGlobalFilter: globalFilter
 	} as const;
 };
