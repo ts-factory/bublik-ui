@@ -34,6 +34,32 @@ export const getNodeId = <T extends RunData & { id: string }>(data: T) => {
 	return `${data.id}`;
 };
 
+/**
+ * Mark every ancestor of a changed node as changed.
+ *
+ * A package can have identical aggregated stats on both sides while a node deep
+ * in its subtree was added, removed or changed - e.g. one test added and another
+ * removed with the same result. Comparing stats alone leaves such a package as
+ * DEFAULT, so the row is not highlighted and the change stays hidden while the
+ * package is collapsed.
+ *
+ * Returns the node's resulting diff type so parents can fold their children in.
+ */
+export const propagateDiffToParents = (
+	node: MergedRunDataWithDiff
+): DiffType => {
+	const childDiffTypes = (node.children ?? []).map(propagateDiffToParents);
+
+	if (
+		node.diffType === DiffType.DEFAULT &&
+		childDiffTypes.some((diffType) => diffType !== DiffType.DEFAULT)
+	) {
+		node.diffType = DiffType.CHANGED;
+	}
+
+	return node.diffType;
+};
+
 export interface ComputeDiffConfig {
 	leftRoot: RunData;
 	rightRoot: RunData;
@@ -103,7 +129,7 @@ export const computeDiff = (config: ComputeDiffConfig) => {
 		if (node.left && !node.right) node.diffType = DiffType.REMOVED;
 		if (!node.left && node.right) node.diffType = DiffType.ADDED;
 
-		// 2. TODO: Handle change detection when counts not changed but one of children changed #384
+		// 2. Changed - the node's own aggregated stats differ
 		if (node.left && node.right) {
 			node.diffType = DiffType.DEFAULT;
 
@@ -122,6 +148,9 @@ export const computeDiff = (config: ComputeDiffConfig) => {
 			}
 		}
 	});
+
+	// 3.1 Propagate changes from children up to their parents
+	mergedTree.forEach(propagateDiffToParents);
 
 	// 4. Cleanup not needed props
 	traverseTree<any>(mergedTree[0], 0, (node) => {
