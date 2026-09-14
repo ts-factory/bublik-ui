@@ -62,6 +62,8 @@ export interface ColumnsVisibilityProps {
 	triggerIconName?: IconProps['name'] | null;
 	align?: 'start' | 'center' | 'end';
 	contentClassName?: string;
+	/** Extra classes for the trigger button, e.g. to join it with a neighbour. */
+	triggerClassName?: string;
 	/** Extra section rendered at the top of the dropdown, before the column list. */
 	children?: ReactNode;
 }
@@ -78,6 +80,7 @@ export function ColumnsVisibility({
 	triggerIconName = 'DashboardModeColumns',
 	align = 'start',
 	contentClassName,
+	triggerClassName,
 	children
 }: ColumnsVisibilityProps) {
 	const [internalOpen, setInternalOpen] = useState(false);
@@ -142,7 +145,12 @@ export function ColumnsVisibility({
 	return (
 		<DropdownMenu open={open} onOpenChange={handleOpenChange}>
 			<DropdownMenuTrigger asChild>
-				<ButtonTw variant="secondary" size="xss" state={open && 'active'}>
+				<ButtonTw
+					variant="secondary"
+					size="xss"
+					state={open && 'active'}
+					className={triggerClassName}
+				>
 					{triggerIconName ? (
 						<Icon name={triggerIconName} size={20} className="mr-1.5" />
 					) : null}

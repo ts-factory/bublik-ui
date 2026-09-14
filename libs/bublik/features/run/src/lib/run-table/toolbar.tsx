@@ -12,6 +12,7 @@ import {
 	ColumnsVisibility,
 	ColumnVisibilityItem,
 	Icon,
+	Separator,
 	Tooltip
 } from '@/shared/tailwind-ui';
 
@@ -106,13 +107,21 @@ export const Toolbar = ({
 		}
 	};
 
+	const handleResetColumns = () => {
+		trackEvent(analyticsEventNames.runTableToolbarReset, {
+			source: 'toolbar',
+			target: 'columns'
+		});
+
+		table.setColumnVisibility(defaultColumnVisibility);
+		onColumnOrderChange(defaultColumnOrder);
+	};
+
 	const handleResetState = () => {
 		trackEvent(analyticsEventNames.runTableToolbarReset, {
 			source: 'toolbar'
 		});
 
-		table.setColumnVisibility(defaultColumnVisibility);
-		onColumnOrderChange(defaultColumnOrder);
 		reset();
 		resetGlobalRequirements();
 
@@ -131,13 +140,32 @@ export const Toolbar = ({
 
 	return (
 		<div className="flex gap-3">
-			<ColumnsVisibility
-				items={items}
-				onColumnToggle={handleColumnToggle}
-				sortable
-				onReorder={handleReorder}
-				onOpenChange={handleColumnsOpenChange}
-			/>
+			<div className="flex items-stretch">
+				<ColumnsVisibility
+					items={items}
+					onColumnToggle={handleColumnToggle}
+					sortable
+					onReorder={handleReorder}
+					onOpenChange={handleColumnsOpenChange}
+					triggerClassName="rounded-r-none"
+				/>
+				<Separator orientation="vertical" className="h-auto" />
+				<Tooltip content="Reset columns to default">
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						className="rounded-l-none"
+						aria-label="Reset columns"
+						onClick={handleResetColumns}
+					>
+						<Icon
+							name="Refresh"
+							size={20}
+							style={{ transform: 'scaleX(-1)' }}
+						/>
+					</ButtonTw>
+				</Tooltip>
+			</div>
 			<Tooltip content="Preview rows containing not expected results">
 				<ButtonTw
 					variant="secondary"
