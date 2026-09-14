@@ -24,16 +24,20 @@ const wrapper = cva({
 const text = cva({ base: 'text-xs leading-5 text-text-secondary' });
 
 const formatVersion = (name: string, summary: VersionSummary) => {
-	const branch = summary.branch ? `${summary.branch}: ` : '';
-	const revision = summary.revision ? summary.revision : '';
 	const date =
-		summary.date &&
-		summary.date instanceof Date &&
-		!isNaN(summary.date.getTime())
-			? `${formatTimeToDot(summary.date.toISOString())}`
+		summary.date instanceof Date && !isNaN(summary.date.getTime())
+			? formatTimeToDot(summary.date.toISOString())
 			: '';
-	const latestTag = summary.tag ? `— ${summary.tag}` : '';
-	return `${name}: (${branch}${revision}), ${date} ${latestTag}`;
+
+	// Every field is optional, so compose the line from whatever is known rather
+	// than emitting empty scaffolding like "API: (main: ), — v1".
+	const identity = [summary.branch, summary.revision]
+		.filter(Boolean)
+		.join(': ');
+	const details = [date, summary.tag].filter(Boolean).join(' — ');
+	const parts = [identity ? `(${identity})` : '', details].filter(Boolean);
+
+	return parts.length ? `${name}: ${parts.join(', ')}` : `${name}: unknown`;
 };
 
 export interface FormattedVersionInfoProps {
