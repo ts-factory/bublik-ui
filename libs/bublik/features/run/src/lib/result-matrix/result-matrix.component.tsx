@@ -114,8 +114,15 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 	}
 
 	return (
-		<div className="flex flex-col">
-			<div className="min-w-0 max-w-full overflow-x-auto">{matrix}</div>
+		<div className="flex min-h-0 flex-1 flex-col">
+			<div
+				className={cn(
+					'min-w-0 max-w-full overflow-x-auto',
+					fill && !isTrellis && 'flex min-h-0 flex-1 flex-col'
+				)}
+			>
+				{matrix}
+			</div>
 			<div
 				className={cn(
 					'px-4 py-2',

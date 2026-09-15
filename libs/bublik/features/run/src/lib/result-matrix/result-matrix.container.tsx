@@ -16,6 +16,7 @@ import { JoinedToggleGroup } from '../joined-toggle-group';
 import { ResultTableFilters } from '../result-table/result-table-filters.component';
 import {
 	HEADER_HEIGHT,
+	TOOLBAR_HEIGHT,
 	useDataTableFilters
 } from '../result-table/result-table.component';
 import {
@@ -195,7 +196,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 	}, [state.rows, state.cols, state.facets, classification.values, iterations]);
 
 	const stickyTop = height + HEADER_HEIGHT;
-	const railTop = stickyTop + 36;
+	const railTop = stickyTop + TOOLBAR_HEIGHT;
 
 	const marginsId = `matrix-margins-${rowId}`;
 
@@ -208,15 +209,19 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 				<ResultTableFilters filters={filters} leading={viewToggle} />
 			</div>
 			<div className="flex">
-				<MatrixRail
-					classification={classification}
-					suggestions={suggestions}
-					state={state}
-					onRoleChange={handleRoleChange}
-					top={railTop}
-					onApplySuggestion={handleApplySuggestion}
-					onReset={handleReset}
-				/>
+				{/* The wrapper carries the border so it spans the full row height
+				    while the rail itself stays sticky. */}
+				<div className="shrink-0 border-r border-border-primary">
+					<MatrixRail
+						classification={classification}
+						suggestions={suggestions}
+						state={state}
+						onRoleChange={handleRoleChange}
+						top={railTop}
+						onApplySuggestion={handleApplySuggestion}
+						onReset={handleReset}
+					/>
+				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
 					<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border-primary px-4 py-1">
 						<div className="flex flex-wrap items-center gap-2">

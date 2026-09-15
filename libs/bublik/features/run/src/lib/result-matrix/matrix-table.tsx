@@ -35,7 +35,7 @@ export interface MatrixTableProps {
 	onCellClick?: (cell: MatrixCellRef) => void;
 	/** Stretch to the container width instead of sizing to content. */
 	fill?: boolean;
-	/** With `fill`, also stretch to the available viewport height. */
+	/** With `fill`, also stretch to the height of the flex parent. */
 	fillHeight?: boolean;
 }
 
@@ -306,9 +306,9 @@ export function MatrixTable(props: MatrixTableProps) {
 				// they never paint over the run table's own sticky header.
 				'styled-scrollbar relative isolate z-0 max-w-full overflow-auto bg-white',
 				fill ? 'block w-full' : 'inline-block max-w-full',
-				fill && fillHeight
-					? 'h-[calc(100vh-13.5rem)]'
-					: 'max-h-[calc(100vh-13.5rem)]'
+				// Stretch to the available row height, otherwise cap so the sticky
+				// headers have something to stick to.
+				fill && fillHeight ? 'min-h-0 flex-1' : 'max-h-[calc(100vh-13.5rem)]'
 			)}
 			onMouseLeave={() => setHover(null)}
 		>

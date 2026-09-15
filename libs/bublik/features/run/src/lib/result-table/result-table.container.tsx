@@ -150,31 +150,29 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 					path={path}
 				/>
 			) : (
-				// The list keeps the tree indent; the matrix is flush with the row.
-				<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
-					<ResultTable
-						showLinkToRun={Array.isArray(runId)}
-						data={data}
-						rowId={rowId}
-						height={height}
-						toolbarLeading={viewToggle}
-						// One run's results have one history to open; merged runs have none.
-						toolbarTrailing={
-							Array.isArray(runId) ? null : (
-								<RunHistoryLink
-									runIds={[Number(runId)]}
-									path={row.original.path}
-								/>
-							)
-						}
-						toolbarClassName="border-x border-border-primary"
-						targetIterationId={targetIterationId}
-						rowState={rowState}
-						onRowClick={onRowClick}
-						path={path}
-						isFetching={isFetching}
-					/>
-				</div>
+				<ResultTable
+					showLinkToRun={Array.isArray(runId)}
+					data={data}
+					rowId={rowId}
+					height={height}
+					toolbarLeading={viewToggle}
+					indent={row.depth * 0.8}
+					// One run's results have one history to open; merged runs have none.
+					toolbarTrailing={
+						Array.isArray(runId) ? null : (
+							<RunHistoryLink
+								runIds={[Number(runId)]}
+								path={row.original.path}
+							/>
+						)
+					}
+					toolbarClassName="border-x border-border-primary"
+					targetIterationId={targetIterationId}
+					rowState={rowState}
+					onRowClick={onRowClick}
+					path={path}
+					isFetching={isFetching}
+				/>
 			)}
 		</div>
 	);

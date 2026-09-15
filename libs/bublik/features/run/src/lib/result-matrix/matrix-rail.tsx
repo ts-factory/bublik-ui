@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 import { ButtonTw, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
 
-import { JoinedToggleGroup } from '../joined-toggle-group';
+import { JoinedToggleGroup, JoinedToggleItem } from '../joined-toggle-group';
 import { MatrixSuggestion, ParamClassification } from './matrix-analysis';
 import {
 	MatrixRole,
@@ -23,6 +23,15 @@ export interface MatrixRailProps {
 	onApplySuggestion: (suggestion: MatrixSuggestion) => void;
 	onReset: () => void;
 }
+
+// Square, easy-to-hit items (26px like the button height).
+const ROLE_CLASS = 'w-[26px] px-0';
+const ROLE_ITEMS: JoinedToggleItem<MatrixRole>[] = [
+	{ value: 'rows', label: 'R', tooltip: 'Rows', className: ROLE_CLASS },
+	{ value: 'cols', label: 'C', tooltip: 'Columns', className: ROLE_CLASS },
+	{ value: 'facets', label: 'F', tooltip: 'Facet', className: ROLE_CLASS },
+	{ value: 'unused', label: '—', tooltip: 'Not used', className: ROLE_CLASS }
+];
 
 function SectionTitle(props: { children: string; action?: ReactNode }) {
 	return (
@@ -50,7 +59,7 @@ export function MatrixRail(props: MatrixRailProps) {
 
 	return (
 		<aside
-			className="styled-scrollbar sticky flex w-[260px] shrink-0 flex-col gap-4 self-start overflow-auto border-r border-border-primary p-4"
+			className="styled-scrollbar sticky flex w-[260px] flex-col gap-4 overflow-auto p-4"
 			style={{ top, maxHeight: `calc(100vh - ${top}px)` }}
 		>
 			<section>
@@ -136,12 +145,7 @@ export function MatrixRail(props: MatrixRailProps) {
 								aria-label={`Role of ${param}`}
 								value={roleOf(state, param)}
 								onChange={(role) => onRoleChange(param, role)}
-								items={[
-									{ value: 'rows', label: 'R', tooltip: 'Rows' },
-									{ value: 'cols', label: 'C', tooltip: 'Columns' },
-									{ value: 'facets', label: 'F', tooltip: 'Facet' },
-									{ value: 'unused', label: '—', tooltip: 'Not used' }
-								]}
+								items={ROLE_ITEMS}
 							/>
 						</li>
 					))}

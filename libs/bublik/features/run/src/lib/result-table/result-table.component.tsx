@@ -200,6 +200,8 @@ export interface ResultTableProps {
 	toolbar?: 'inline' | 'external';
 	/** Drawn at the start of the inline bar: the List / Matrix switcher. */
 	toolbarLeading?: ReactNode;
+	/** Tree indent of the rows, in rem (the filter bar stays flush). */
+	indent?: number;
 	/**
 	 * Drawn at the end of the inline bar, after a separator: the run page's
 	 * History link.
@@ -249,6 +251,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		scrollRef,
 		toolbar = 'inline',
 		toolbarLeading,
+		indent = 0,
 		toolbarTrailing,
 		toolbarClassName,
 		pagination,
@@ -362,7 +365,10 @@ export const ResultTable = memo((props: ResultTableProps) => {
 					) : null}
 				</div>
 			) : null}
-			<div className="px-4 pb-2">
+			<div
+				className="px-4 pb-2"
+				style={{ paddingLeft: `calc(1rem + ${indent}rem)` }}
+			>
 				<div className="grid relative z-[5]" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
