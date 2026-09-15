@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ButtonTw, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
+import { Tooltip, cn } from '@/shared/tailwind-ui';
 
 import { JoinedToggleGroup, JoinedToggleItem } from '../joined-toggle-group';
 import { MatrixSuggestion, ParamClassification } from './matrix-analysis';
@@ -19,7 +19,6 @@ export interface MatrixRailProps {
 	/** Sticky offset from the top of the viewport. */
 	top: number;
 	onApplySuggestion: (suggestion: MatrixSuggestion) => void;
-	onReset: () => void;
 }
 
 // Square, easy-to-hit items (26px like the button height).
@@ -53,8 +52,7 @@ export function MatrixRail(props: MatrixRailProps) {
 		state,
 		onRoleChange,
 		top,
-		onApplySuggestion,
-		onReset
+		onApplySuggestion
 	} = props;
 	const { varying, fixed, values } = classification;
 
@@ -66,21 +64,10 @@ export function MatrixRail(props: MatrixRailProps) {
 			{/* Same height and border as the content header next to it, so the
 			    two read as one bar across the rail's right border. */}
 			<div
-				className="flex shrink-0 items-center justify-between gap-2 border-b border-border-primary px-4"
+				className="flex shrink-0 items-center border-b border-border-primary px-4"
 				style={{ height: RAIL_HEADER_HEIGHT }}
 			>
 				<h4 className={TITLE}>Suggested</h4>
-				<Tooltip content="Reset the matrix layout to the default">
-					<ButtonTw variant="secondary" size="xss" onClick={onReset}>
-						<Icon
-							name="Refresh"
-							size={18}
-							className="mr-1.5"
-							style={{ transform: 'scaleX(-1)' }}
-						/>
-						Reset Layout
-					</ButtonTw>
-				</Tooltip>
 			</div>
 			<div className="styled-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
 				<section>

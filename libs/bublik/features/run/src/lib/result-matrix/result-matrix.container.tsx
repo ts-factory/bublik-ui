@@ -217,7 +217,6 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 						onRoleChange={handleRoleChange}
 						top={railTop}
 						onApplySuggestion={handleApplySuggestion}
-						onReset={handleReset}
 					/>
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
@@ -294,6 +293,18 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 									/>
 								</>
 							) : null}
+							<Separator orientation="vertical" className="mx-1 h-5" />
+							<Tooltip content="Reset the matrix layout to the default">
+								<ButtonTw variant="secondary" size="xss" onClick={handleReset}>
+									<Icon
+										name="Refresh"
+										size={18}
+										className="mr-1.5"
+										style={{ transform: 'scaleX(-1)' }}
+									/>
+									Reset Layout
+								</ButtonTw>
+							</Tooltip>
 						</div>
 						<div className="flex shrink-0 items-center gap-2">
 							<Checkbox
