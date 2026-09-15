@@ -222,6 +222,14 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 				<div className="flex min-w-0 flex-1 flex-col">
 					<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border-primary px-4 py-1">
 						<div className="flex flex-wrap items-center gap-2">
+							{summary ? (
+								<>
+									<span className="text-[0.75rem] leading-[1.125rem] text-text-menu">
+										{summary}
+									</span>
+									<Separator orientation="vertical" className="mx-1 h-5" />
+								</>
+							) : null}
 							<span className={LABEL}>Cell</span>
 							<JoinedToggleGroup<MatrixCellMode>
 								aria-label="Cell mode"
@@ -318,14 +326,6 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 									Fill
 								</ButtonTw>
 							</Tooltip>
-							{summary ? (
-								<>
-									<Separator orientation="vertical" className="mx-1 h-5" />
-									<span className="text-[0.75rem] leading-[1.125rem] text-text-menu">
-										{summary}
-									</span>
-								</>
-							) : null}
 						</div>
 					</div>
 					<ResultMatrixBody
