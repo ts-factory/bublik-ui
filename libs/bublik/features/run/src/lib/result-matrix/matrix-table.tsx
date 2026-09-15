@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 
 import { cn } from '@/shared/tailwind-ui';
 
@@ -67,6 +67,16 @@ const HEADER_CELL =
 const BODY_CELL =
 	'h-9 min-w-[52px] px-2 border-b border-r border-border-primary text-center align-middle text-[0.6875rem] font-semibold leading-[0.875rem]';
 const MARGIN_CELL = 'bg-badge-0 text-text-primary';
+/** Crosshair: the header cells of the hovered row / column. */
+const CROSSHAIR_HEADER = 'bg-primary text-white';
+/** Crosshair: the other cells of the hovered row / column (drawn over the fill). */
+const CROSSHAIR_CELL =
+	'shadow-[inset_0_0_0_999px_hsl(var(--colors-primary)/0.12)]';
+
+interface Hover {
+	row: number;
+	col: number;
+}
 
 function product(
 	values: ParamClassification['values'],
@@ -83,24 +93,29 @@ interface CellProps {
 	present: boolean;
 	mode: MatrixCellMode;
 	selected: boolean;
+	crosshair: boolean;
 	onClick?: () => void;
+	onHover: () => void;
 }
 
 function Cell(props: CellProps) {
-	const { iters, present, mode, selected, onClick } = props;
+	const { iters, present, mode, selected, crosshair, onClick, onHover } = props;
+	const cross = crosshair && CROSSHAIR_CELL;
 
 	if (!iters.length) {
 		return present ? (
 			<td
 				title="Filtered out — this combination exists in other iterations"
-				className={cn(BODY_CELL, 'text-text-menu')}
+				onMouseEnter={onHover}
+				className={cn(BODY_CELL, 'text-text-menu', cross)}
 			>
 				<span className="inline-block size-3 rounded-sm border border-dashed border-border-primary align-middle" />
 			</td>
 		) : (
 			<td
 				title="Not observed in any iteration"
-				className={cn(BODY_CELL, 'bg-badge-0')}
+				onMouseEnter={onHover}
+				className={cn(BODY_CELL, 'bg-badge-0', cross)}
 				style={NOT_OBSERVED_STYLE}
 			/>
 		);
@@ -120,10 +135,12 @@ function Cell(props: CellProps) {
 		<td
 			title={summary.title}
 			onClick={onClick}
+			onMouseEnter={onHover}
 			aria-selected={selected || undefined}
 			className={cn(
 				BODY_CELL,
 				tone,
+				cross,
 				onClick &&
 					'cursor-pointer hover:ring-1 hover:ring-inset hover:ring-primary',
 				selected && 'ring-2 ring-inset ring-primary'
@@ -150,6 +167,7 @@ export function MatrixTable(props: MatrixTableProps) {
 	const rTuples = combos(rowKeys, values);
 	const cTuples = combos(colKeys, values);
 	const present = presenceSet(iterations, [...rowKeys, ...colKeys]);
+	const [hover, setHover] = useState<Hover | null>(null);
 
 	// column header rows (one per col key, nested)
 	const headRows: ReactNode[] = [];
@@ -176,11 +194,17 @@ export function MatrixTable(props: MatrixTableProps) {
 			const prefix = t.slice(0, ci + 1).join(TUPLE_SEPARATOR);
 			if (prefix !== last) {
 				last = prefix;
+				const covers =
+					hover !== null && hover.col >= ti && hover.col < ti + per;
 				cells.push(
 					<th
 						key={`c-${ci}-${ti}`}
 						colSpan={per}
-						className={cn(HEADER_CELL, 'text-center')}
+						className={cn(
+							HEADER_CELL,
+							'text-center',
+							covers && CROSSHAIR_HEADER
+						)}
 					>
 						{t[ci]}
 					</th>
@@ -209,11 +233,17 @@ export function MatrixTable(props: MatrixTableProps) {
 		rowKeys.forEach((_rk, i) => {
 			const per = rTuples.length / product(values, rowKeys, i);
 			if (ri % per === 0) {
+				const covers =
+					hover !== null && hover.row >= ri && hover.row < ri + per;
 				headers.push(
 					<th
 						key={`rh-${i}`}
 						rowSpan={per}
-						className={cn(HEADER_CELL, 'text-right whitespace-nowrap')}
+						className={cn(
+							HEADER_CELL,
+							'text-right whitespace-nowrap',
+							covers && CROSSHAIR_HEADER
+						)}
 					>
 						{rt[i]}
 					</th>
@@ -235,6 +265,8 @@ export function MatrixTable(props: MatrixTableProps) {
 					present={present.has(key)}
 					mode={mode}
 					selected={selectedKey === key}
+					crosshair={hover !== null && (hover.row === ri || hover.col === ci)}
+					onHover={() => setHover({ row: ri, col: ci })}
 					onClick={
 						iters.length && onCellClick
 							? () =>
@@ -264,6 +296,7 @@ export function MatrixTable(props: MatrixTableProps) {
 					? 'block w-full'
 					: 'inline-block rounded-md border border-border-primary'
 			)}
+			onMouseLeave={() => setHover(null)}
 		>
 			<table
 				className={cn(
