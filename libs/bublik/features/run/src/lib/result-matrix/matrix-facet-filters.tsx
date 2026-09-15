@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { config } from '@/bublik/config';
 import {
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem
 } from '@/shared/tailwind-ui';
+import { joinKeyValue } from '@/shared/utils';
 
 import { ParamClassification } from './matrix-analysis';
 import { ChipMenu } from './matrix-chip-menu';
@@ -16,7 +18,7 @@ export interface MatrixFacetFiltersProps {
 	onChange: (param: string, value: string) => void;
 }
 
-/** One value chip per facet parameter ("filter" facet mode). */
+/** One "param=value" badge per facet parameter ("filter" facet mode). */
 export function MatrixFacetFilters(props: MatrixFacetFiltersProps) {
 	const { facets, facetSel, values, onChange } = props;
 
@@ -31,8 +33,11 @@ export function MatrixFacetFilters(props: MatrixFacetFiltersProps) {
 				return (
 					<ChipMenu
 						key={param}
-						prefix={param}
-						label={isAll ? 'ALL' : selected}
+						label={joinKeyValue(
+							param,
+							isAll ? 'ALL' : selected,
+							config.keyValueDisplayDelimiter
+						)}
 						dashed={isAll}
 					>
 						<DropdownMenuRadioGroup

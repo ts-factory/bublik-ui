@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 import {
-	ButtonTw,
+	Badge,
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuTrigger,
@@ -12,9 +12,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 export interface ChipMenuProps {
-	/** Text before the chip, e.g. "Rows". */
-	prefix?: ReactNode;
-	/** Chip content. */
+	/** Chip content, e.g. "param=value". */
 	label: ReactNode;
 	/** Render the chip dashed, for "nothing chosen". */
 	dashed?: boolean;
@@ -23,32 +21,35 @@ export interface ChipMenuProps {
 	children: ReactNode;
 }
 
-/** A labelled chip that opens a dropdown menu; used by the matrix toolbar. */
+/**
+ * A parameter badge that opens a dropdown menu; used by the matrix toolbar.
+ * Styled like the parameter badges in the run table so the facet filters
+ * read as parameters.
+ */
 export function ChipMenu(props: ChipMenuProps) {
-	const { prefix, label, dashed, disabled, className, children } = props;
+	const { label, dashed, disabled, className, children } = props;
 
 	return (
-		<div className={cn('flex items-center gap-1.5', className)}>
-			{prefix ? (
-				<span className="text-[0.6875rem] font-semibold leading-[0.875rem] uppercase tracking-wide text-text-menu">
-					{prefix}
-				</span>
-			) : null}
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild disabled={disabled}>
-					<ButtonTw
-						variant="outline-secondary"
-						size="xss"
-						className={cn(dashed && 'border-dashed text-text-menu')}
-					>
-						{label}
-						<Icon name="ChevronDown" size={16} className="ml-1" />
-					</ButtonTw>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start" className="min-w-[10rem]">
-					{children}
-				</DropdownMenuContent>
-			</DropdownMenu>
-		</div>
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild disabled={disabled}>
+				<Badge
+					as="button"
+					type="button"
+					className={cn(
+						'gap-1 pr-1 transition-colors hover:border-primary disabled:opacity-60',
+						dashed
+							? 'border-dashed border-border-primary bg-transparent text-text-menu'
+							: 'bg-badge-1',
+						className
+					)}
+				>
+					{label}
+					<Icon name="ChevronDown" size={16} />
+				</Badge>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="min-w-[10rem]">
+				{children}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
