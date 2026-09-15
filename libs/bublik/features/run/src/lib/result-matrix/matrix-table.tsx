@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/shared/tailwind-ui';
 
@@ -108,6 +108,33 @@ interface Hover {
 	col: number;
 }
 
+/**
+ * Ctrl + wheel scrolls the box sideways, the same gesture as the runs
+ * progress strip. A native, non-passive listener is needed: React's
+ * onWheel is passive, so it could not stop the browser's Ctrl + wheel zoom.
+ */
+function useCtrlWheelHorizontalScroll() {
+	const ref = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+
+		function onWheel(e: WheelEvent) {
+			if (!e.ctrlKey) return;
+			const delta = e.deltaY || e.deltaX;
+			if (!delta) return;
+			el?.scrollBy({ left: delta });
+			e.preventDefault();
+		}
+
+		el.addEventListener('wheel', onWheel, { passive: false });
+		return () => el.removeEventListener('wheel', onWheel);
+	}, []);
+
+	return ref;
+}
+
 function product(
 	values: ParamClassification['values'],
 	keys: string[],
@@ -198,6 +225,7 @@ export function MatrixTable(props: MatrixTableProps) {
 	const cTuples = combos(colKeys, values);
 	const present = presenceSet(iterations, [...rowKeys, ...colKeys]);
 	const [hover, setHover] = useState<Hover | null>(null);
+	const scrollRef = useCtrlWheelHorizontalScroll();
 
 	// column header rows (one per col key, nested)
 	const headRows: ReactNode[] = [];
@@ -334,6 +362,7 @@ export function MatrixTable(props: MatrixTableProps) {
 			// Never taller than the viewport below the sticky stack: the column
 			// headers stick inside this box, so it must be the thing that scrolls.
 			style={{ maxHeight: `calc(100vh - ${top + VIEWPORT_BOTTOM_RESERVE}px)` }}
+			ref={scrollRef}
 			onMouseLeave={() => setHover(null)}
 		>
 			<table
