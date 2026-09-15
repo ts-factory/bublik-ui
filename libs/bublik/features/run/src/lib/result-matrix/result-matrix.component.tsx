@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 import { config } from '@/bublik/config';
-import { cn } from '@/shared/tailwind-ui';
+import { Separator, cn } from '@/shared/tailwind-ui';
 import { joinKeyValue } from '@/shared/utils';
 
 import {
@@ -140,18 +140,24 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 			>
 				{matrix}
 			</div>
+			{/* Footer: coverage first, then the legend. A single table may be
+			    shorter than the rail, so the footer is pushed to the bottom of the
+			    content column to stay in one place. */}
 			<div
 				className={cn(
-					'flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2',
-					(fill || isTrellis) && 'border-t border-border-primary'
+					'flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border-primary px-4 py-2',
+					!isTrellis && 'mt-auto'
 				)}
 			>
-				<MatrixLegend mode={state.mode} />
 				{caption ? (
-					<span className="whitespace-nowrap text-[0.6875rem] font-semibold uppercase tracking-wide leading-[0.875rem] text-text-menu">
-						{caption}
-					</span>
+					<>
+						<span className="whitespace-nowrap text-[0.6875rem] font-semibold uppercase tracking-wide leading-[0.875rem] text-text-primary">
+							{caption}
+						</span>
+						<Separator orientation="vertical" className="h-4" />
+					</>
 				) : null}
+				<MatrixLegend mode={state.mode} />
 			</div>
 		</div>
 	);

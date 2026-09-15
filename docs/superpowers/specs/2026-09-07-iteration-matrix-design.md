@@ -28,7 +28,7 @@ Obtained Result · Result Type · Verdicts · Artifacts · Parameters ‖ Reset 
 │ PARAMETERS       ├──────────────────────────────────────────────────────────────┤
 │ FACETS           │ facet value chips (filter mode)                              │
 │                  │ matrix (full width) or small multiples                       │
-│                  │ legend                               N cells · X% filled     │
+│                  │ N cells · X% filled ‖ legend            (footer, bottom-pinned)│
 └──────────────────┴──────────────────────────────────────────────────────────────┘
 ```
 
