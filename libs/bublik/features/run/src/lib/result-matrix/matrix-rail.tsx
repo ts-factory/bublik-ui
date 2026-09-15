@@ -91,30 +91,31 @@ export function MatrixRail(props: MatrixRailProps) {
 
 								return (
 									<li key={s.id}>
-										<button
-											type="button"
-											onClick={() => onApplySuggestion(s)}
-											title={s.rationale}
-											className={cn(
-												'flex w-full items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-left transition-colors',
-												applied
-													? 'border-primary bg-primary-wash'
-													: 'border-border-primary bg-white hover:bg-gray-50'
-											)}
-										>
-											<span className="truncate text-[0.75rem] font-semibold leading-[1.125rem] text-text-primary">
-												{s.label}
-											</span>
-											<span
+										<Tooltip content={s.rationale} side="right">
+											<button
+												type="button"
+												onClick={() => onApplySuggestion(s)}
 												className={cn(
-													'shrink-0 text-[0.6875rem] leading-[0.875rem]',
-													applied ? 'text-primary' : 'text-text-menu'
+													'flex w-full items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-left transition-colors',
+													applied
+														? 'border-primary bg-primary-wash'
+														: 'border-border-primary bg-white hover:bg-gray-50'
 												)}
 											>
-												{s.score}
-												{applied ? ' · applied' : ''}
-											</span>
-										</button>
+												<span className="truncate text-[0.75rem] font-semibold leading-[1.125rem] text-text-primary">
+													{s.label}
+												</span>
+												<span
+													className={cn(
+														'shrink-0 text-[0.6875rem] leading-[0.875rem]',
+														applied ? 'text-primary' : 'text-text-menu'
+													)}
+												>
+													{s.score}
+													{applied ? ' · applied' : ''}
+												</span>
+											</button>
+										</Tooltip>
 									</li>
 								);
 							})}
