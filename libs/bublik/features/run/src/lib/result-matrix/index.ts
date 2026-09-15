@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+export * from './result-matrix.container';
 export * from './result-matrix.component';
 export * from './matrix-analysis';
 export * from './result-view.hooks';

@@ -211,3 +211,36 @@ export function useResultView(rowId: string) {
 		resetMatrix
 	};
 }
+
+export type MatrixRole = 'rows' | 'cols' | 'facets' | 'unused';
+
+export function roleOf(
+	state: Pick<MatrixState, 'rows' | 'cols' | 'facets'>,
+	param: string
+): MatrixRole {
+	if (state.rows.includes(param)) return 'rows';
+	if (state.cols.includes(param)) return 'cols';
+	if (state.facets.includes(param)) return 'facets';
+	return 'unused';
+}
+
+/** Move `param` to `role`, removing it from every other role. */
+export function assignRole(
+	state: Pick<MatrixState, 'rows' | 'cols' | 'facets'>,
+	param: string,
+	role: MatrixRole
+): Pick<MatrixState, 'rows' | 'cols' | 'facets'> {
+	const next = {
+		rows: state.rows.filter((p) => p !== param),
+		cols: state.cols.filter((p) => p !== param),
+		facets: state.facets.filter((p) => p !== param)
+	};
+	if (role !== 'unused') next[role] = [...next[role], param];
+	return next;
+}
+
+export function swapAxes(
+	state: Pick<MatrixState, 'rows' | 'cols'>
+): Pick<MatrixState, 'rows' | 'cols'> {
+	return { rows: [...state.cols], cols: [...state.rows] };
+}

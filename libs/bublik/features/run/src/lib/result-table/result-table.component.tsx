@@ -1306,6 +1306,8 @@ export function useDataTableFilters(
 		categoriesFilter,
 		classificationsFilter,
 		artifactsFilter,
+		/** The rows every filter lets through, for views that draw them otherwise. */
+		filteredData,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onRequirementsFilterChange: handleRequirementsFilterChange,

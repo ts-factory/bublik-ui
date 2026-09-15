@@ -6,6 +6,7 @@ import { Row } from '@tanstack/react-table';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
+import { cn } from '@/shared/tailwind-ui';
 
 import { useRunTableRowState } from '../hooks';
 import { ColumnId } from '../run-table/types';
@@ -18,7 +19,7 @@ import {
 import { getRowValues } from '../run-table';
 import { RunHistoryLink } from './run-history-link';
 import {
-	ResultMatrix,
+	ResultMatrixContainer,
 	ResultViewMode,
 	classifyParams,
 	toIterations,
@@ -125,39 +126,52 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	if (!data) return <ResultTableEmpty />;
 
 	const path = row.original.path.join('/');
+	const viewToggle = (
+		<ResultViewToggle
+			value={view}
+			onChange={handleViewChange}
+			matrixDisabled={!canShowMatrix}
+		/>
+	);
 
 	return (
-		<div className="flex flex-col">
-			<ResultViewBar
-				left={
-					<ResultViewToggle
-						value={view}
-						onChange={handleViewChange}
-						matrixDisabled={!canShowMatrix}
-					/>
-				}
-			/>
+		// `w-0 min-w-full` keeps a wide matrix from stretching the run table:
+		// the matrix scrolls inside the expanded row instead.
+		<div className={cn('flex flex-col', view === 'matrix' && 'w-0 min-w-full')}>
 			{view === 'matrix' ? (
-				<ResultMatrix results={data} />
-			) : (
-				<ResultTable
-					showLinkToRun={Array.isArray(runId)}
-					data={data}
+				<ResultMatrixContainer
 					rowId={rowId}
-					height={height}
-					// One run's results have one history to open; merged runs have none.
-					toolbarTrailing={
-						Array.isArray(runId) ? null : (
-							<RunHistoryLink runIds={[Number(runId)]} path={row.original.path} />
-						)
-					}
-					toolbarClassName="border-x border-border-primary"
-					targetIterationId={targetIterationId}
-					rowState={rowState}
-					onRowClick={onRowClick}
-					path={path}
-					isFetching={isFetching}
+					testName={row.original.test_name}
+					data={data}
+					iterations={iterations}
+					classification={classification}
+					viewToggle={viewToggle}
 				/>
+			) : (
+				<>
+					<ResultViewBar left={viewToggle} />
+					<ResultTable
+						showLinkToRun={Array.isArray(runId)}
+						data={data}
+						rowId={rowId}
+						height={height}
+						// One run's results have one history to open; merged runs have none.
+						toolbarTrailing={
+							Array.isArray(runId) ? null : (
+								<RunHistoryLink
+									runIds={[Number(runId)]}
+									path={row.original.path}
+								/>
+							)
+						}
+						toolbarClassName="border-x border-border-primary"
+						targetIterationId={targetIterationId}
+						rowState={rowState}
+						onRowClick={onRowClick}
+						path={path}
+						isFetching={isFetching}
+					/>
+				</>
 			)}
 		</div>
 	);
