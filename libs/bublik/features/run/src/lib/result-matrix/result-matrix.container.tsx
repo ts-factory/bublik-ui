@@ -202,7 +202,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 	return (
 		<div className="flex flex-col">
 			<div
-				className="sticky z-10 flex h-9 items-center border-b border-border-primary bg-white px-4 shadow-sticky"
+				className="sticky z-10 flex h-9 items-center border-b border-border-primary bg-white px-4"
 				style={{ top: stickyTop }}
 			>
 				<ResultTableFilters filters={filters} />
