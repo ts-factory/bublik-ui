@@ -230,8 +230,13 @@ export function summarizeCell(iters: MatrixIteration[]): CellSummary {
 	const expected = count - unexpected;
 
 	const single = count === 1 ? iters[0] : undefined;
+	const mixed = unexpected > 0 && expected > 0;
+	// A mixed cell says how many failed out of how many, so a red cell is
+	// never mistaken for "all failed".
 	const label = single
 		? single.resultType.charAt(0).toUpperCase() || '1'
+		: mixed
+		? `${unexpected}/${count}`
 		: String(count);
 
 	const title = single

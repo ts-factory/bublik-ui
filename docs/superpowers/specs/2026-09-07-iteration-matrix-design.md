@@ -35,7 +35,7 @@ Obtained Result · Result Type · Verdicts · Artifacts · Parameters ‖ Reset 
 ## Cell states and colours
 Vocabulary follows the filter controls ("Obtained Result", "Result Type" = Expected / Unexpected):
 - **coverage** — four-step primary-blue ramp by iteration count (blue is what the app uses for neutral counts).
-- **result** — expected cells use the green wash (`bg-badge-3 text-text-expected`), unexpected cells the red wash (`bg-bg-fillError text-text-unexpected`), the same tokens as the result badges. A single iteration shows its result initial; a mixed cell shows the count and the split on hover.
+- **result** — uniform cells use the badge washes: green (`bg-badge-3 text-text-expected`) when every iteration is expected, red (`bg-bg-fillError text-text-unexpected`) when every one is unexpected, so a single failed iteration looks like its badge and never shouts. Mixed cells show `unexpected/total` (e.g. `5/8`) and step through a three-step red on `text-unexpected` by share (≤⅓, ≤⅔, above), so the worst mixes stand out. A single iteration shows its result initial; a uniform cell shows the count; the full split is on hover.
 - **filtered out** (dashed box) — combo exists in other iterations but is excluded by the current filters / facets.
 - **n/a** (hatched) — combo never occurs in any iteration (structural). Copy: "not observed" to stay honest (data-only inference).
 - Hovering a cell highlights its row and column headers (crosshair) and tints the row and column.

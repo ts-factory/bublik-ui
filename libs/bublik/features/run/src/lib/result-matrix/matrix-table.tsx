@@ -63,6 +63,25 @@ export const RESULT_CLASSES = {
 	unexpected: 'bg-bg-fillError text-text-unexpected'
 } as const;
 
+/** Mixed cells: red graded by the share of unexpected iterations. */
+export const MIXED_CLASSES = [
+	'bg-text-unexpected/15 text-text-unexpected',
+	'bg-text-unexpected/35 text-text-unexpected',
+	'bg-text-unexpected/60 text-white'
+];
+
+/**
+ * Tone of a Result-mode cell. Uniform cells use the badge washes (so a
+ * single failed iteration is not shouting); mixed cells step through
+ * `MIXED_CLASSES` at ≤⅓, ≤⅔ and above.
+ */
+export function resultClass(unexpected: number, count: number): string {
+	if (!unexpected) return RESULT_CLASSES.expected;
+	if (unexpected >= count) return RESULT_CLASSES.unexpected;
+	const share = unexpected / count;
+	return MIXED_CLASSES[share <= 1 / 3 ? 0 : share <= 2 / 3 ? 1 : 2];
+}
+
 /** Hatched background for combinations never observed in any iteration. */
 export const NOT_OBSERVED_STYLE = {
 	backgroundImage:
@@ -138,9 +157,7 @@ function Cell(props: CellProps) {
 			? COVERAGE_CLASSES[
 					Math.min(COVERAGE_CLASSES.length - 1, iters.length - 1)
 			  ]
-			: summary.unexpected
-			? RESULT_CLASSES.unexpected
-			: RESULT_CLASSES.expected;
+			: resultClass(summary.unexpected, summary.count);
 
 	return (
 		<td

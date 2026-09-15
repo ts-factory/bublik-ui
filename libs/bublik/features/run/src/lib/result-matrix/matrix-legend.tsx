@@ -6,6 +6,7 @@ import { cn } from '@/shared/tailwind-ui';
 
 import {
 	COVERAGE_CLASSES,
+	MIXED_CLASSES,
 	NOT_OBSERVED_STYLE,
 	RESULT_CLASSES
 } from './matrix-table';
@@ -34,6 +35,12 @@ export function MatrixLegend({ mode }: { mode: MatrixCellMode }) {
 					<span className="flex items-center gap-1.5">
 						<Swatch className={RESULT_CLASSES.unexpected} /> unexpected
 					</span>
+					<span className="flex items-center gap-1">
+						{MIXED_CLASSES.map((cls) => (
+							<Swatch key={cls} className={cls} />
+						))}
+						<span className="ml-1">mixed, unexpected share →</span>
+					</span>
 				</>
 			) : (
 				<span className="flex items-center gap-1">
@@ -52,7 +59,7 @@ export function MatrixLegend({ mode }: { mode: MatrixCellMode }) {
 			</span>
 			<span className="normal-case font-medium">
 				{mode === 'result'
-					? 'Mixed cells show the count, hover for the split. Click a cell to inspect its iterations.'
+					? 'Mixed cells show unexpected / total. Click a cell to inspect its iterations.'
 					: 'Click a cell to inspect its iterations.'}
 			</span>
 		</div>

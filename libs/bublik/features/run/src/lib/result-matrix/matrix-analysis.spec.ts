@@ -59,16 +59,26 @@ describe('summarizeCell', () => {
 		expect(summary.title).toBe('FAILED · unexpected');
 	});
 
-	it('shows the count and the split for several iterations', () => {
+	it('shows unexpected / total for a mixed cell', () => {
 		const summary = summarizeCell([
 			iteration({}, 'PASSED'),
 			iteration({}, 'FAILED', true),
 			iteration({}, 'SKIPPED')
 		]);
 
-		expect(summary.label).toBe('3');
+		expect(summary.label).toBe('1/3');
 		expect(summary.expected).toBe(2);
 		expect(summary.unexpected).toBe(1);
 		expect(summary.title).toBe('3 iterations · 2 expected · 1 unexpected');
+	});
+
+	it('shows only the count for a uniform cell', () => {
+		const summary = summarizeCell([
+			iteration({}, 'FAILED', true),
+			iteration({}, 'FAILED', true)
+		]);
+
+		expect(summary.label).toBe('2');
+		expect(summary.unexpected).toBe(2);
 	});
 });
