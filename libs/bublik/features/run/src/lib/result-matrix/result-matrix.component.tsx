@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { ReactNode } from 'react';
 
+import { config } from '@/bublik/config';
 import { cn } from '@/shared/tailwind-ui';
+import { joinKeyValue } from '@/shared/utils';
 
 import {
 	MatrixIteration,
@@ -68,7 +70,11 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 							)}
 						>
 							<div className="flex h-9 shrink-0 items-center border-b border-border-primary px-4 text-[0.6875rem] font-semibold leading-[0.875rem] text-text-primary">
-								{state.facets.map((k, i) => `${k} = ${ft[i]}`).join(' · ')}
+								{state.facets
+									.map((k, i) =>
+										joinKeyValue(k, ft[i], config.keyValueDisplayDelimiter)
+									)
+									.join(' · ')}
 							</div>
 							<MatrixTable
 								iterations={iterations}

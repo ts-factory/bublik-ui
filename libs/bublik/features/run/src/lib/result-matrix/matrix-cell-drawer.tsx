@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMemo } from 'react';
 
+import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
@@ -12,6 +13,7 @@ import {
 	Icon,
 	VerdictList
 } from '@/shared/tailwind-ui';
+import { joinKeyValue } from '@/shared/utils';
 
 import { MatrixIteration } from './matrix-analysis';
 
@@ -60,9 +62,10 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 			.map(([k]) => k);
 	}, [iterations, rowKeys, colKeys]);
 
+	const delimiter = config.keyValueDisplayDelimiter;
 	const title = [
-		...rowKeys.map((k, i) => `${k} = ${rowTuple[i]}`),
-		...colKeys.map((k, i) => `${k} = ${colTuple[i]}`)
+		...rowKeys.map((k, i) => joinKeyValue(k, rowTuple[i], delimiter)),
+		...colKeys.map((k, i) => joinKeyValue(k, colTuple[i], delimiter))
 	].join(' × ');
 
 	return (

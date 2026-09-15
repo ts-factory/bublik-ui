@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
+import { config } from '@/bublik/config';
+import { joinKeyValue } from '@/shared/utils';
 import { RunDataResults } from '@/shared/types';
 import {
 	ButtonTw,
@@ -361,7 +363,13 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 					facetLabel={
 						selection.facetKey !== undefined
 							? state.facets
-									.map((k, i) => `${k} = ${selection.facetKey?.split('¦')[i]}`)
+									.map((k, i) =>
+										joinKeyValue(
+											k,
+											selection.facetKey?.split('¦')[i] ?? '',
+											config.keyValueDisplayDelimiter
+										)
+									)
 									.join(' · ')
 							: undefined
 					}
