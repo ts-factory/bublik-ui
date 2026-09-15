@@ -9,29 +9,62 @@ import {
 	ParamClassification,
 	combos,
 	matchTuple,
-	presenceSet
+	presenceSet,
+	summarizeCell
 } from './matrix-analysis';
+import { MatrixCellMode } from './result-view.hooks';
 
-export type CellMode = 'coverage' | 'result';
+export interface MatrixCellRef {
+	rowTuple: string[];
+	colTuple: string[];
+	iterations: MatrixIteration[];
+}
 
 export interface MatrixTableProps {
+	/** Every iteration of the test (defines which combos exist at all). */
 	iterations: MatrixIteration[];
-	/** Iterations after facet filtering (what the cells count). */
+	/** Iterations after filters and facets (what the cells count). */
 	visible: MatrixIteration[];
 	rowKeys: string[];
 	colKeys: string[];
 	values: ParamClassification['values'];
-	mode: CellMode;
+	mode: MatrixCellMode;
 	margins: boolean;
-	onCellClick?: (iters: MatrixIteration[]) => void;
+	/** `cellKey(rowTuple, colTuple)` of the highlighted cell, if any. */
+	selectedKey?: string;
+	onCellClick?: (cell: MatrixCellRef) => void;
 }
 
-const COVERAGE = [
-	'bg-[#dfe7df]',
-	'bg-[#a9c7ba]',
-	'bg-[#5f9c8a] text-white',
-	'bg-[#2f7361] text-white'
+export const TUPLE_SEPARATOR = '¦';
+
+export function cellKey(rowTuple: string[], colTuple: string[]): string {
+	return [...rowTuple, ...colTuple].join(TUPLE_SEPARATOR);
+}
+
+/** Blue ramp: the app uses primary for neutral counts (totals, "run"). */
+export const COVERAGE_CLASSES = [
+	'bg-primary/10',
+	'bg-primary/20',
+	'bg-primary/35',
+	'bg-primary/55 text-white'
 ];
+
+export const RESULT_CLASSES = {
+	expected: 'bg-badge-3 text-text-expected',
+	unexpected: 'bg-bg-fillError text-text-unexpected'
+} as const;
+
+/** Hatched background for combinations never observed in any iteration. */
+export const NOT_OBSERVED_STYLE = {
+	backgroundImage:
+		'repeating-linear-gradient(45deg, transparent 0 4px, hsl(var(--colors-border-primary)) 4px 5px)'
+} as const;
+
+const HEADER_CELL =
+	'bg-primary-wash px-2 py-1 h-9 border-b border-r border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem]';
+const BODY_CELL =
+	'h-9 min-w-[52px] px-2 border-b border-r border-border-primary text-center align-middle text-[0.6875rem] font-semibold leading-[0.875rem]';
+const MARGIN_CELL = 'bg-badge-0 text-text-primary';
 
 function product(
 	values: ParamClassification['values'],
@@ -43,60 +76,74 @@ function product(
 	return p;
 }
 
-function Cell(props: {
+interface CellProps {
 	iters: MatrixIteration[];
 	present: boolean;
-	mode: CellMode;
+	mode: MatrixCellMode;
+	selected: boolean;
 	onClick?: () => void;
-}) {
-	const { iters, present, mode, onClick } = props;
+}
+
+function Cell(props: CellProps) {
+	const { iters, present, mode, selected, onClick } = props;
+
 	if (!iters.length) {
 		return present ? (
-			<td className="border border-border-primary text-border-primary text-center align-middle">
-				·
+			<td
+				title="Filtered out — this combination exists in other iterations"
+				className={cn(BODY_CELL, 'text-text-menu')}
+			>
+				<span className="inline-block size-3 rounded-sm border border-dashed border-border-primary align-middle" />
 			</td>
 		) : (
 			<td
-				title="not observed in any iteration (structural / N/A)"
-				className="border border-border-primary text-center align-middle text-[9px] text-[#b3a98f]"
-				style={{
-					backgroundImage:
-						'repeating-linear-gradient(45deg,#e9e2d2,#e9e2d2 5px,#efe9db 5px,#efe9db 10px)'
-				}}
+				title="Not observed in any iteration"
+				className={cn(BODY_CELL, 'bg-badge-0')}
+				style={NOT_OBSERVED_STYLE}
 			/>
 		);
 	}
-	let cls = '';
-	let title = `${iters.length} iteration(s)`;
-	if (mode === 'coverage') {
-		cls = COVERAGE[Math.min(COVERAGE.length - 1, iters.length - 1)];
-	} else {
-		const nok = iters.filter((i) => i.hasError).length;
-		const skip = iters.filter((i) => i.resultType === 'SKIPPED').length;
-		cls = nok
-			? 'bg-[#b8501f]/90 text-white'
-			: skip
-			? 'bg-[#d9d3c4]'
-			: 'bg-[#3f7d54]/90 text-white';
-		title = `${iters.length} iters · ${nok} NOK`;
-	}
+
+	const summary = summarizeCell(iters);
+	const tone =
+		mode === 'coverage'
+			? COVERAGE_CLASSES[
+					Math.min(COVERAGE_CLASSES.length - 1, iters.length - 1)
+			  ]
+			: summary.unexpected
+			? RESULT_CLASSES.unexpected
+			: RESULT_CLASSES.expected;
+
 	return (
 		<td
-			title={title}
+			title={summary.title}
 			onClick={onClick}
+			aria-selected={selected || undefined}
 			className={cn(
-				'border border-border-primary text-center align-middle font-medium cursor-pointer',
-				cls
+				BODY_CELL,
+				tone,
+				onClick &&
+					'cursor-pointer hover:ring-1 hover:ring-inset hover:ring-primary',
+				selected && 'ring-2 ring-inset ring-primary'
 			)}
 		>
-			{iters.length}
+			{mode === 'coverage' ? iters.length : summary.label}
 		</td>
 	);
 }
 
 export function MatrixTable(props: MatrixTableProps) {
-	const { iterations, visible, rowKeys, colKeys, values, mode, margins } =
-		props;
+	const {
+		iterations,
+		visible,
+		rowKeys,
+		colKeys,
+		values,
+		mode,
+		margins,
+		selectedKey,
+		onCellClick
+	} = props;
 	const rTuples = combos(rowKeys, values);
 	const cTuples = combos(colKeys, values);
 	const present = presenceSet(iterations, [...rowKeys, ...colKeys]);
@@ -111,7 +158,10 @@ export function MatrixTable(props: MatrixTableProps) {
 					key="corner"
 					rowSpan={colKeys.length}
 					colSpan={rowKeys.length}
-					className="border border-border-primary bg-gray-50 px-2 py-1 text-[9px] uppercase tracking-wide text-text-menu text-right"
+					className={cn(
+						HEADER_CELL,
+						'text-[0.625rem] uppercase tracking-wide text-text-menu text-right whitespace-nowrap'
+					)}
 				>
 					{rowKeys.join(' ▸ ')} \ {colKeys.join(' ▸ ')}
 				</th>
@@ -120,14 +170,14 @@ export function MatrixTable(props: MatrixTableProps) {
 		const per = cTuples.length / product(values, colKeys, ci);
 		let last: string | null = null;
 		cTuples.forEach((t, ti) => {
-			const prefix = t.slice(0, ci + 1).join('¦');
+			const prefix = t.slice(0, ci + 1).join(TUPLE_SEPARATOR);
 			if (prefix !== last) {
 				last = prefix;
 				cells.push(
 					<th
 						key={`c-${ci}-${ti}`}
 						colSpan={per}
-						className="border border-border-primary bg-gray-50 px-2 py-1 text-xs font-medium"
+						className={cn(HEADER_CELL, 'text-center')}
 					>
 						{t[ci]}
 					</th>
@@ -139,7 +189,7 @@ export function MatrixTable(props: MatrixTableProps) {
 				<th
 					key="mtop"
 					rowSpan={colKeys.length}
-					className="border border-border-primary bg-[#efeadd] px-2 py-1 font-bold"
+					className={cn(HEADER_CELL, MARGIN_CELL, 'text-center')}
 				>
 					Σ
 				</th>
@@ -160,7 +210,7 @@ export function MatrixTable(props: MatrixTableProps) {
 					<th
 						key={`rh-${i}`}
 						rowSpan={per}
-						className="border border-border-primary bg-gray-50 px-2 py-1 text-xs font-medium whitespace-nowrap text-right"
+						className={cn(HEADER_CELL, 'text-right whitespace-nowrap')}
 					>
 						{rt[i]}
 					</th>
@@ -174,16 +224,18 @@ export function MatrixTable(props: MatrixTableProps) {
 			);
 			rowTotal += iters.length;
 			colTotals[ci] += iters.length;
-			const isPresent = present.has([...rt, ...ct].join('¦'));
+			const key = cellKey(rt, ct);
 			return (
 				<Cell
 					key={`cell-${ci}`}
 					iters={iters}
-					present={isPresent}
+					present={present.has(key)}
 					mode={mode}
+					selected={selectedKey === key}
 					onClick={
-						iters.length && props.onCellClick
-							? () => props.onCellClick?.(iters)
+						iters.length && onCellClick
+							? () =>
+									onCellClick({ rowTuple: rt, colTuple: ct, iterations: iters })
 							: undefined
 					}
 				/>
@@ -195,17 +247,20 @@ export function MatrixTable(props: MatrixTableProps) {
 				{headers}
 				{cells}
 				{margins ? (
-					<td className="border border-border-primary bg-[#efeadd] text-center font-bold">
-						{rowTotal}
-					</td>
+					<td className={cn(BODY_CELL, MARGIN_CELL)}>{rowTotal}</td>
 				) : null}
 			</tr>
 		);
 	});
 
 	return (
-		<div className="overflow-auto">
-			<table className="border-collapse text-xs [&_td]:h-10 [&_td]:w-[52px]">
+		<div className="inline-block max-w-full overflow-auto rounded-md border border-border-primary bg-white">
+			<table
+				className={cn(
+					'border-separate border-spacing-0',
+					'[&_tr:last-child>*]:border-b-0 [&_tr>*:last-child]:border-r-0'
+				)}
+			>
 				<thead>{headRows}</thead>
 				<tbody>
 					{bodyRows}
@@ -213,21 +268,16 @@ export function MatrixTable(props: MatrixTableProps) {
 						<tr>
 							<th
 								colSpan={rowKeys.length}
-								className="border border-border-primary bg-[#efeadd] px-2 py-1 font-bold text-right"
+								className={cn(HEADER_CELL, MARGIN_CELL, 'text-right')}
 							>
 								Σ
 							</th>
 							{colTotals.map((t, i) => (
-								<td
-									key={`ct-${i}`}
-									className="border border-border-primary bg-[#efeadd] text-center font-bold"
-								>
+								<td key={`ct-${i}`} className={cn(BODY_CELL, MARGIN_CELL)}>
 									{t}
 								</td>
 							))}
-							<td className="border border-border-primary bg-[#efeadd] text-center font-bold">
-								{grand}
-							</td>
+							<td className={cn(BODY_CELL, MARGIN_CELL)}>{grand}</td>
 						</tr>
 					) : null}
 				</tbody>

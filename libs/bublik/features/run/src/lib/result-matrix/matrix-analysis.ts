@@ -209,3 +209,33 @@ export function suggestLayouts(
 	}
 	return out;
 }
+
+export interface CellSummary {
+	count: number;
+	expected: number;
+	unexpected: number;
+	/** Text shown in a "result" cell: the result initial for one iteration, the count otherwise. */
+	label: string;
+	/** Hover text describing the split. */
+	title: string;
+}
+
+/** Aggregate the iterations of one matrix cell for the "result" cell mode. */
+export function summarizeCell(iters: MatrixIteration[]): CellSummary {
+	const count = iters.length;
+	const unexpected = iters.filter((it) => it.hasError).length;
+	const expected = count - unexpected;
+
+	const single = count === 1 ? iters[0] : undefined;
+	const label = single
+		? single.resultType.charAt(0).toUpperCase() || '1'
+		: String(count);
+
+	const title = single
+		? `${single.resultType || 'unknown'} · ${
+				single.hasError ? 'unexpected' : 'expected'
+		  }`
+		: `${count} iterations · ${expected} expected · ${unexpected} unexpected`;
+
+	return { count, expected, unexpected, label, title };
+}

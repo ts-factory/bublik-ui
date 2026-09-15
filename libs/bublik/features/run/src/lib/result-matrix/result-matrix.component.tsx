@@ -13,7 +13,9 @@ import {
 	suggestLayouts,
 	toIterations
 } from './matrix-analysis';
-import { CellMode, MatrixTable } from './matrix-table';
+import { MatrixTable } from './matrix-table';
+import { MatrixLegend } from './matrix-legend';
+import { MatrixCellMode as CellMode } from './result-view.hooks';
 
 type Role = 'rows' | 'cols' | 'facets' | 'unused';
 
@@ -298,30 +300,6 @@ export function ResultMatrix({ results }: ResultMatrixProps) {
 			)}
 
 			<MatrixLegend mode={state.mode} />
-		</div>
-	);
-}
-
-function MatrixLegend({ mode }: { mode: CellMode }) {
-	if (mode === 'result') {
-		return (
-			<div className="flex flex-wrap items-center gap-2 text-[11px] text-text-menu">
-				<i className="inline-block w-4 h-3 bg-[#3f7d54]/90" /> pass
-				<i className="inline-block w-4 h-3 bg-[#d9d3c4]" /> skip
-				<i className="inline-block w-4 h-3 bg-[#b8501f]/90" /> NOK
-				<i className="inline-block w-4 h-3 bg-[#e9e2d2]" /> n/a
-			</div>
-		);
-	}
-	return (
-		<div className="flex flex-wrap items-center gap-2 text-[11px] text-text-menu">
-			<i className="inline-block w-4 h-3 bg-[#dfe7df]" />
-			<i className="inline-block w-4 h-3 bg-[#a9c7ba]" />
-			<i className="inline-block w-4 h-3 bg-[#5f9c8a]" />
-			<i className="inline-block w-4 h-3 bg-[#2f7361]" /> iterations →
-			<span className="ml-2">· untested (exists elsewhere)</span>
-			<i className="inline-block w-4 h-3 bg-[#e9e2d2] ml-2" /> n/a (not
-			observed)
 		</div>
 	);
 }
