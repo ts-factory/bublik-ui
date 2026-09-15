@@ -251,15 +251,6 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 									}
 								]}
 							/>
-							<Checkbox
-								id={marginsId}
-								label="Margins"
-								checked={state.margins}
-								onCheckedChange={(checked) =>
-									change('margins', { margins: checked === true || undefined })
-								}
-								className="ml-1"
-							/>
 							{state.facets.length ? (
 								<>
 									<Separator orientation="vertical" className="mx-1 h-5" />
@@ -305,6 +296,14 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 							) : null}
 						</div>
 						<div className="flex shrink-0 items-center gap-2">
+							<Checkbox
+								id={marginsId}
+								label="Margins"
+								checked={state.margins}
+								onCheckedChange={(checked) =>
+									change('margins', { margins: checked === true || undefined })
+								}
+							/>
 							<Tooltip
 								content={
 									state.fill
