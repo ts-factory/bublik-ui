@@ -65,8 +65,9 @@ interface CellSelection {
 	facetKey?: string;
 }
 
+/** Uppercase control labels; the same size as the rail's section titles. */
 const LABEL =
-	'text-[0.6875rem] font-semibold leading-[0.875rem] uppercase tracking-wide text-text-menu';
+	'text-[0.625rem] font-semibold leading-[0.875rem] uppercase tracking-wide text-text-menu';
 
 export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 	const {
