@@ -7,7 +7,6 @@ import { CompressedJsonParam } from '../run-table/run-table.hooks';
 import { MatrixSuggestion, ParamClassification } from './matrix-analysis';
 
 export type ResultViewMode = 'list' | 'matrix';
-export type MatrixConfigLayout = 'rail' | 'toolbar';
 export type MatrixCellMode = 'coverage' | 'result';
 export type MatrixFacetMode = 'filter' | 'trellis';
 
@@ -21,7 +20,6 @@ export const FACET_ALL = '__all__';
  */
 export interface ResultViewState {
 	view?: ResultViewMode;
-	layout?: MatrixConfigLayout;
 	rows?: string[];
 	cols?: string[];
 	facets?: string[];
@@ -35,7 +33,6 @@ export type ResultViewParam = Record<string, ResultViewState>;
 
 /** Fully resolved matrix configuration used for rendering. */
 export interface MatrixState {
-	layout: MatrixConfigLayout;
 	rows: string[];
 	cols: string[];
 	facets: string[];
@@ -46,7 +43,6 @@ export interface MatrixState {
 }
 
 export const DEFAULT_VIEW: ResultViewMode = 'list';
-export const DEFAULT_LAYOUT: MatrixConfigLayout = 'rail';
 
 const MATRIX_KEYS: (keyof ResultViewState)[] = [
 	'rows',
@@ -135,7 +131,6 @@ export function resolveMatrixState(
 	}
 
 	return {
-		layout: state?.layout ?? DEFAULT_LAYOUT,
 		rows,
 		cols,
 		facets,
@@ -237,10 +232,4 @@ export function assignRole(
 	};
 	if (role !== 'unused') next[role] = [...next[role], param];
 	return next;
-}
-
-export function swapAxes(
-	state: Pick<MatrixState, 'rows' | 'cols'>
-): Pick<MatrixState, 'rows' | 'cols'> {
-	return { rows: [...state.cols], cols: [...state.rows] };
 }

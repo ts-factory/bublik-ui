@@ -20,11 +20,9 @@ export interface ResultMatrixBodyProps {
 	facetFilter: (it: MatrixIteration) => boolean;
 	selectedKey?: string;
 	onCellClick?: (cell: MatrixCellRef, facetKey?: string) => void;
-	/** Rendered to the right of the matrix (e.g. the selected-cell panel). */
-	aside?: ReactNode;
 }
 
-/** The matrix itself (single or small multiples), the legend and an optional aside. */
+/** The matrix itself: one full-width table, or one table per facet value. */
 export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 	const {
 		iterations,
@@ -33,8 +31,7 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 		state,
 		facetFilter,
 		selectedKey,
-		onCellClick,
-		aside
+		onCellClick
 	} = props;
 	const { values } = classification;
 	const canRender = state.rows.length > 0 && state.cols.length > 0;
@@ -43,13 +40,13 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 	let matrix: ReactNode;
 	if (!canRender) {
 		matrix = (
-			<div className="rounded-md border border-dashed border-border-primary px-4 py-6 text-[0.75rem] leading-[1.125rem] text-text-menu">
+			<div className="m-4 rounded-md border border-dashed border-border-primary px-4 py-6 text-[0.75rem] leading-[1.125rem] text-text-menu">
 				Assign at least one parameter to Rows and one to Columns.
 			</div>
 		);
 	} else if (isTrellis) {
 		matrix = (
-			<div className="flex flex-wrap gap-4">
+			<div className="flex flex-wrap gap-4 p-4">
 				{combos(state.facets, values).map((ft) => {
 					const facetKey = ft.join('¦');
 					const visible = filtered.filter((it) =>
@@ -97,17 +94,17 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 				margins={state.margins}
 				selectedKey={selectedKey}
 				onCellClick={onCellClick}
+				fill
 			/>
 		);
 	}
 
 	return (
-		<div className="flex flex-col gap-3">
-			<div className="flex flex-wrap items-start gap-4">
-				<div className="min-w-0 max-w-full overflow-x-auto">{matrix}</div>
-				{aside}
+		<div className="flex flex-col">
+			<div className="min-w-0 max-w-full overflow-x-auto">{matrix}</div>
+			<div className="border-t border-border-primary px-4 py-2">
+				<MatrixLegend mode={state.mode} />
 			</div>
-			<MatrixLegend mode={state.mode} />
 		</div>
 	);
 }

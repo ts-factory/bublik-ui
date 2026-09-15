@@ -32,7 +32,6 @@ describe('resolveMatrixState', () => {
 		expect(state.rows).toEqual(['a']);
 		expect(state.cols).toEqual(['b']);
 		expect(state.facets).toEqual(['c']);
-		expect(state.layout).toBe('rail');
 		expect(state.mode).toBe('coverage');
 		expect(state.margins).toBe(false);
 		expect(state.facetSel).toEqual({
@@ -94,7 +93,6 @@ describe('resolveMatrixState', () => {
 	it('keeps stored display options', () => {
 		const state = resolveMatrixState(
 			{
-				layout: 'toolbar',
 				mode: 'result',
 				margins: true,
 				facetMode: 'trellis'
@@ -103,7 +101,6 @@ describe('resolveMatrixState', () => {
 			[balanced]
 		);
 
-		expect(state.layout).toBe('toolbar');
 		expect(state.mode).toBe('result');
 		expect(state.margins).toBe(true);
 		expect(state.facetMode).toBe('trellis');

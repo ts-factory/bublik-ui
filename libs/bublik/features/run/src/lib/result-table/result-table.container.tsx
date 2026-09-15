@@ -25,7 +25,7 @@ import {
 	toIterations,
 	useResultView
 } from '../result-matrix';
-import { ResultViewBar, ResultViewToggle } from './result-view-toggle';
+import { ResultViewToggle } from './result-view-toggle';
 
 function getResultSelectors(row: Row<RunData | MergedRun>) {
 	return 'parent_ids' in row.original
@@ -145,18 +145,20 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 					data={data}
 					iterations={iterations}
 					classification={classification}
+					height={height}
 					viewToggle={viewToggle}
 					showLinkToRun={Array.isArray(runId)}
 					path={path}
 				/>
 			) : (
-				<>
-					<ResultViewBar left={viewToggle} />
+				// The list keeps the tree indent; the matrix is flush with the row.
+				<div style={{ paddingLeft: `${row.depth * 0.8}rem` }}>
 					<ResultTable
 						showLinkToRun={Array.isArray(runId)}
 						data={data}
 						rowId={rowId}
 						height={height}
+						toolbarLeading={viewToggle}
 						// One run's results have one history to open; merged runs have none.
 						toolbarTrailing={
 							Array.isArray(runId) ? null : (
@@ -173,7 +175,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 						path={path}
 						isFetching={isFetching}
 					/>
-				</>
+				</div>
 			)}
 		</div>
 	);

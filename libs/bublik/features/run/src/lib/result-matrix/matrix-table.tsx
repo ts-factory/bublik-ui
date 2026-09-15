@@ -33,6 +33,8 @@ export interface MatrixTableProps {
 	/** `cellKey(rowTuple, colTuple)` of the highlighted cell, if any. */
 	selectedKey?: string;
 	onCellClick?: (cell: MatrixCellRef) => void;
+	/** Stretch to the container width instead of sizing to content. */
+	fill?: boolean;
 }
 
 export const TUPLE_SEPARATOR = '¦';
@@ -142,7 +144,8 @@ export function MatrixTable(props: MatrixTableProps) {
 		mode,
 		margins,
 		selectedKey,
-		onCellClick
+		onCellClick,
+		fill = false
 	} = props;
 	const rTuples = combos(rowKeys, values);
 	const cTuples = combos(colKeys, values);
@@ -254,11 +257,19 @@ export function MatrixTable(props: MatrixTableProps) {
 	});
 
 	return (
-		<div className="inline-block max-w-full overflow-auto rounded-md border border-border-primary bg-white">
+		<div
+			className={cn(
+				'max-w-full overflow-auto bg-white',
+				fill
+					? 'block w-full'
+					: 'inline-block rounded-md border border-border-primary'
+			)}
+		>
 			<table
 				className={cn(
 					'border-separate border-spacing-0',
-					'[&_tr:last-child>*]:border-b-0 [&_tr>*:last-child]:border-r-0'
+					'[&_tr>*:last-child]:border-r-0',
+					fill ? 'w-full' : '[&_tr:last-child>*]:border-b-0'
 				)}
 			>
 				<thead>{headRows}</thead>

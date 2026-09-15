@@ -25,7 +25,7 @@ function Swatch(props: { className?: string; style?: CSSProperties }) {
 
 export function MatrixLegend({ mode }: { mode: MatrixCellMode }) {
 	return (
-		<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
+		<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.625rem] font-semibold uppercase tracking-wide leading-[0.875rem] text-text-menu">
 			{mode === 'result' ? (
 				<>
 					<span className="flex items-center gap-1.5">
@@ -50,9 +50,11 @@ export function MatrixLegend({ mode }: { mode: MatrixCellMode }) {
 				<Swatch className="bg-badge-0" style={NOT_OBSERVED_STYLE} /> n/a (not
 				observed)
 			</span>
-			{mode === 'result' ? (
-				<span>· Mixed cells show the count; hover for the split</span>
-			) : null}
+			<span className="normal-case font-medium">
+				{mode === 'result'
+					? 'Mixed cells show the count, hover for the split. Click a cell to inspect its iterations.'
+					: 'Click a cell to inspect its iterations.'}
+			</span>
 		</div>
 	);
 }

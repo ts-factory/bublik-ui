@@ -87,7 +87,7 @@ import { useTargetIterationId } from '../run-table/run-table.hooks';
 import { RowState, useGlobalRequirements } from '../hooks';
 
 /** The run table's own sticky header, which this table's header pins under. */
-const HEADER_HEIGHT = 102;
+export const HEADER_HEIGHT = 102;
 /** Height of the filter row the table's header pins under. */
 export const TOOLBAR_HEIGHT = 36;
 const RESULT_PROPERTIES_LABEL: Record<RESULT_PROPERTIES, string> = {
@@ -198,6 +198,8 @@ export interface ResultTableProps {
 	 * `ResultTableToolbar` itself, beside its own heading.
 	 */
 	toolbar?: 'inline' | 'external';
+	/** Drawn at the start of the inline bar: the List / Matrix switcher. */
+	toolbarLeading?: ReactNode;
 	/**
 	 * Drawn at the end of the inline bar, after a separator: the run page's
 	 * History link.
@@ -246,6 +248,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		stickyTop = height + HEADER_HEIGHT,
 		scrollRef,
 		toolbar = 'inline',
+		toolbarLeading,
 		toolbarTrailing,
 		toolbarClassName,
 		pagination,
@@ -346,6 +349,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 					<ResultTableFilters
 						filters={filters}
 						selectable={selectable}
+						leading={toolbarLeading}
 						className="min-w-0 flex-1"
 					/>
 					{toolbarTrailing ? (

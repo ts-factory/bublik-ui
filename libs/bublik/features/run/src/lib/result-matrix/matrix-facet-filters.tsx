@@ -32,7 +32,7 @@ export function MatrixFacetFilters(props: MatrixFacetFiltersProps) {
 					<ChipMenu
 						key={param}
 						prefix={param}
-						label={isAll ? 'all' : selected}
+						label={isAll ? 'ALL' : selected}
 						dashed={isAll}
 					>
 						<DropdownMenuRadioGroup
@@ -40,7 +40,7 @@ export function MatrixFacetFilters(props: MatrixFacetFiltersProps) {
 							onValueChange={(value) => onChange(param, value)}
 						>
 							<DropdownMenuRadioItem value={FACET_ALL}>
-								all
+								ALL
 							</DropdownMenuRadioItem>
 							{values[param].map((value) => (
 								<DropdownMenuRadioItem key={value} value={value}>

@@ -35,7 +35,6 @@ const analyticsEventNames = {
 	resultTableFiltersReset: 'result_table_filters_reset',
 	resultTableLinkClick: 'result_table_link_click',
 	resultViewToggle: 'result_view_toggle',
-	resultMatrixLayoutChange: 'result_matrix_layout_change',
 	resultMatrixConfigChange: 'result_matrix_config_change',
 	resultMatrixCellSelect: 'result_matrix_cell_select',
 	logModeToggle: 'log_mode_toggle',

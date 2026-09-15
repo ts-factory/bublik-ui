@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode } from 'react';
-
-import { Icon, cn } from '@/shared/tailwind-ui';
+import { Icon } from '@/shared/tailwind-ui';
 
 import { JoinedToggleGroup } from '../joined-toggle-group';
 import { ResultViewMode } from '../result-matrix/result-view.hooks';
@@ -48,30 +46,5 @@ export function ResultViewToggle(props: ResultViewToggleProps) {
 				}
 			]}
 		/>
-	);
-}
-
-export interface ResultViewBarProps {
-	left?: ReactNode;
-	right?: ReactNode;
-	className?: string;
-}
-
-/** Header line shared by the List and Matrix views of a test's iterations. */
-export function ResultViewBar(props: ResultViewBarProps) {
-	const { left, right, className } = props;
-
-	return (
-		<div
-			className={cn(
-				'flex items-center justify-between gap-3 px-4 py-1 min-h-9 bg-white border-b border-border-primary',
-				className
-			)}
-		>
-			<div className="flex items-center gap-3 min-w-0 flex-wrap">{left}</div>
-			<div className="flex items-center gap-2 flex-wrap justify-end">
-				{right}
-			</div>
-		</div>
 	);
 }
