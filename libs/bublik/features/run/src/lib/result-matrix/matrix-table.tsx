@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { cn } from '@/shared/tailwind-ui';
 
@@ -94,7 +94,8 @@ const BODY_CELL =
 	'h-9 min-w-[52px] px-2 border-b border-r border-border-primary text-right align-middle text-[0.6875rem] font-semibold leading-[0.875rem]';
 /** Column headers stick to the top of the scroll container. */
 const STICKY_TOP = 'sticky top-0 z-20';
-/** The first row-header column sticks to the left of the scroll container. */
+/** Row-header columns stick to the left of the scroll container; every
+ * level after the first gets its `left` from `useRowHeaderOffsets`. */
 const STICKY_LEFT = 'sticky left-0 z-10';
 const MARGIN_CELL = 'bg-badge-0 text-text-primary';
 /** Crosshair: the other cells of the hovered row / column (drawn over the fill). */
@@ -138,6 +139,48 @@ function useCtrlWheelHorizontalScroll() {
 	}, []);
 
 	return ref;
+}
+
+/**
+ * Left offsets for the nested row-header columns, so each level can stick
+ * next to the previous one. The widths depend on content, so the cells of
+ * the first body row are measured and re-measured when they resize (e.g.
+ * when Stretch is toggled).
+ */
+function useRowHeaderOffsets(rowKeys: string[]) {
+	const count = rowKeys.length;
+	const cells = useRef<(HTMLTableCellElement | null)[]>([]);
+	const [lefts, setLefts] = useState<number[]>([]);
+
+	useLayoutEffect(() => {
+		const els = cells.current.slice(0, count);
+
+		function measure() {
+			const next: number[] = [];
+			let left = 0;
+			for (const el of els) {
+				next.push(left);
+				left += el?.getBoundingClientRect().width ?? 0;
+			}
+			setLefts((prev) =>
+				prev.length === next.length && prev.every((v, i) => v === next[i])
+					? prev
+					: next
+			);
+		}
+
+		measure();
+		if (typeof ResizeObserver === 'undefined') return;
+		const observer = new ResizeObserver(measure);
+		for (const el of els) if (el) observer.observe(el);
+		return () => observer.disconnect();
+	}, [count, rowKeys]);
+
+	const setCell = (level: number) => (el: HTMLTableCellElement | null) => {
+		cells.current[level] = el;
+	};
+
+	return { lefts, setCell };
 }
 
 function product(
@@ -231,6 +274,7 @@ export function MatrixTable(props: MatrixTableProps) {
 	const present = presenceSet(iterations, [...rowKeys, ...colKeys]);
 	const [hover, setHover] = useState<Hover | null>(null);
 	const scrollRef = useCtrlWheelHorizontalScroll();
+	const rowHeader = useRowHeaderOffsets(rowKeys);
 
 	// column header rows (one per col key, nested)
 	const headRows: ReactNode[] = [];
@@ -304,13 +348,15 @@ export function MatrixTable(props: MatrixTableProps) {
 				headers.push(
 					<th
 						key={`rh-${i}`}
+						ref={ri === 0 ? rowHeader.setCell(i) : undefined}
 						rowSpan={per}
 						className={cn(
 							HEADER_CELL,
-							i === 0 && STICKY_LEFT,
+							STICKY_LEFT,
 							'text-right whitespace-nowrap',
 							covers && CROSSHAIR_HEADER
 						)}
+						style={i > 0 ? { left: rowHeader.lefts[i] ?? 0 } : undefined}
 					>
 						{rt[i]}
 					</th>
