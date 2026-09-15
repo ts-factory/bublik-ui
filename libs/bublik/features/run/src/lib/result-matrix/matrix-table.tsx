@@ -302,7 +302,9 @@ export function MatrixTable(props: MatrixTableProps) {
 	return (
 		<div
 			className={cn(
-				'styled-scrollbar max-w-full overflow-auto bg-white',
+				// `isolate z-0` keeps the sticky header z-indexes inside the table so
+				// they never paint over the run table's own sticky header.
+				'styled-scrollbar relative isolate z-0 max-w-full overflow-auto bg-white',
 				fill ? 'block w-full' : 'inline-block max-w-full',
 				fill && fillHeight
 					? 'h-[calc(100vh-13.5rem)]'
