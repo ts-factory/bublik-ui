@@ -37,7 +37,12 @@ export interface MatrixTableProps {
 	fill?: boolean;
 	/** With `fill`, also stretch to the height of the flex parent. */
 	fillHeight?: boolean;
+	/** Viewport offset of the sticky stack above the table, in px. */
+	top: number;
 }
+
+/** Room kept under the table for the legend row and the page padding. */
+const VIEWPORT_BOTTOM_RESERVE = 40;
 
 export const TUPLE_SEPARATOR = '¦';
 
@@ -169,7 +174,8 @@ export function MatrixTable(props: MatrixTableProps) {
 		selectedKey,
 		onCellClick,
 		fill = false,
-		fillHeight = false
+		fillHeight = false,
+		top
 	} = props;
 	const rTuples = combos(rowKeys, values);
 	const cTuples = combos(colKeys, values);
@@ -306,10 +312,11 @@ export function MatrixTable(props: MatrixTableProps) {
 				// they never paint over the run table's own sticky header.
 				'styled-scrollbar relative isolate z-0 max-w-full overflow-auto bg-white',
 				fill ? 'block w-full' : 'inline-block max-w-full',
-				// Stretch to the available row height, otherwise cap so the sticky
-				// headers have something to stick to.
-				fill && fillHeight ? 'min-h-0 flex-1' : 'max-h-[calc(100vh-13.5rem)]'
+				fill && fillHeight && 'min-h-0 flex-1'
 			)}
+			// Never taller than the viewport below the sticky stack: the column
+			// headers stick inside this box, so it must be the thing that scrolls.
+			style={{ maxHeight: `calc(100vh - ${top + VIEWPORT_BOTTOM_RESERVE}px)` }}
 			onMouseLeave={() => setHover(null)}
 		>
 			<table

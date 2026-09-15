@@ -26,7 +26,12 @@ export interface ResultMatrixBodyProps {
 	onCellClick?: (cell: MatrixCellRef, facetKey?: string) => void;
 	/** Stretch the table(s) to the available width. */
 	fill: boolean;
+	/** Viewport offset of the content header's bottom edge when stuck. */
+	top: number;
 }
+
+/** Height of a small-multiple title row. */
+const PANEL_TITLE_HEIGHT = 36;
 
 /** The matrix itself: one full-width table, or one table per facet value. */
 export function ResultMatrixBody(props: ResultMatrixBodyProps) {
@@ -38,7 +43,8 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 		facetFilter,
 		selectedKey,
 		onCellClick,
-		fill
+		fill,
+		top
 	} = props;
 	const { values } = classification;
 	const canRender = state.rows.length > 0 && state.cols.length > 0;
@@ -95,6 +101,7 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 										: undefined
 								}
 								fill={fill}
+								top={top + PANEL_TITLE_HEIGHT}
 							/>
 						</div>
 					);
@@ -115,6 +122,7 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 				onCellClick={onCellClick}
 				fill={fill}
 				fillHeight
+				top={top}
 			/>
 		);
 	}

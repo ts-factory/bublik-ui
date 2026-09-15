@@ -347,6 +347,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 						selectedKey={selectedKey}
 						onCellClick={handleCellClick}
 						fill={state.fill}
+						top={railTop + RAIL_HEADER_HEIGHT}
 					/>
 				</div>
 			</div>
