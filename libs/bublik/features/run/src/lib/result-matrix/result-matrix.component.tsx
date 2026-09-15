@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 import { config } from '@/bublik/config';
-import { Separator, cn } from '@/shared/tailwind-ui';
+import { Badge, Separator, cn } from '@/shared/tailwind-ui';
 import { joinKeyValue } from '@/shared/utils';
 
 import {
@@ -78,12 +78,14 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 								fill && 'min-w-max flex-1'
 							)}
 						>
-							<div className="flex h-9 shrink-0 items-center border-b border-border-primary px-4 text-[0.6875rem] font-semibold leading-[0.875rem] text-text-primary">
-								{state.facets
-									.map((k, i) =>
-										joinKeyValue(k, ft[i], config.keyValueDisplayDelimiter)
-									)
-									.join(' · ')}
+							{/* The panel's facet values as parameter badges, matching the
+							    cell drawer header. */}
+							<div className="flex h-9 shrink-0 items-center gap-1.5 overflow-hidden border-b border-border-primary px-4">
+								{state.facets.map((k, i) => (
+									<Badge key={k} className="shrink-0 bg-badge-1">
+										{joinKeyValue(k, ft[i], config.keyValueDisplayDelimiter)}
+									</Badge>
+								))}
 							</div>
 							<MatrixTable
 								iterations={iterations}
