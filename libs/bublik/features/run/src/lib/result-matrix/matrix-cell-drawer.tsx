@@ -81,13 +81,13 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 				<div className="flex shrink-0 items-start justify-between gap-2 border-b border-border-primary px-4 py-2">
 					<div className="flex min-h-[1.375rem] min-w-0 flex-wrap items-center gap-1.5">
 						{rowKeys.map((k, i) => (
-							<Badge key={`r-${k}`}>
+							<Badge key={`r-${k}`} className="bg-badge-1">
 								{joinKeyValue(k, rowTuple[i], delimiter)}
 							</Badge>
 						))}
 						<span className={MUTED}>×</span>
 						{colKeys.map((k, i) => (
-							<Badge key={`c-${k}`}>
+							<Badge key={`c-${k}`} className="bg-badge-1">
 								{joinKeyValue(k, colTuple[i], delimiter)}
 							</Badge>
 						))}
