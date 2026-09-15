@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { ReactNode } from 'react';
 
+import { cn } from '@/shared/tailwind-ui';
+
 import {
 	MatrixIteration,
 	ParamClassification,
@@ -20,6 +22,8 @@ export interface ResultMatrixBodyProps {
 	facetFilter: (it: MatrixIteration) => boolean;
 	selectedKey?: string;
 	onCellClick?: (cell: MatrixCellRef, facetKey?: string) => void;
+	/** Stretch the table(s) to the available width. */
+	fill: boolean;
 }
 
 /** The matrix itself: one full-width table, or one table per facet value. */
@@ -31,7 +35,8 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 		state,
 		facetFilter,
 		selectedKey,
-		onCellClick
+		onCellClick,
+		fill
 	} = props;
 	const { values } = classification;
 	const canRender = state.rows.length > 0 && state.cols.length > 0;
@@ -46,7 +51,7 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 		);
 	} else if (isTrellis) {
 		matrix = (
-			<div className="flex flex-wrap gap-4 p-4">
+			<div className="flex flex-wrap">
 				{combos(state.facets, values).map((ft) => {
 					const facetKey = ft.join('¦');
 					const visible = filtered.filter((it) =>
@@ -54,8 +59,15 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 					);
 
 					return (
-						<div key={facetKey} className="flex flex-col gap-1.5">
-							<div className="text-[0.6875rem] font-semibold leading-[0.875rem] text-text-menu">
+						<div
+							key={facetKey}
+							className={cn(
+								'flex min-w-0 flex-col border-b border-r border-border-primary',
+								// Wrap at the natural width, then share the leftover space.
+								fill && 'min-w-max flex-1'
+							)}
+						>
+							<div className="flex h-9 shrink-0 items-center border-b border-border-primary px-4 text-[0.6875rem] font-semibold leading-[0.875rem] text-text-primary">
 								{state.facets.map((k, i) => `${k} = ${ft[i]}`).join(' · ')}
 							</div>
 							<MatrixTable
@@ -76,6 +88,7 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 										? (cell) => onCellClick(cell, facetKey)
 										: undefined
 								}
+								fill={fill}
 							/>
 						</div>
 					);
@@ -94,7 +107,8 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 				margins={state.margins}
 				selectedKey={selectedKey}
 				onCellClick={onCellClick}
-				fill
+				fill={fill}
+				fillHeight
 			/>
 		);
 	}
@@ -102,7 +116,12 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 	return (
 		<div className="flex flex-col">
 			<div className="min-w-0 max-w-full overflow-x-auto">{matrix}</div>
-			<div className="border-t border-border-primary px-4 py-2">
+			<div
+				className={cn(
+					'px-4 py-2',
+					(fill || isTrellis) && 'border-t border-border-primary'
+				)}
+			>
 				<MatrixLegend mode={state.mode} />
 			</div>
 		</div>

@@ -4,7 +4,13 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { RunDataResults } from '@/shared/types';
-import { Checkbox } from '@/shared/tailwind-ui';
+import {
+	ButtonTw,
+	Checkbox,
+	Icon,
+	Separator,
+	Tooltip
+} from '@/shared/tailwind-ui';
 
 import { JoinedToggleGroup } from '../joined-toggle-group';
 import { ResultTableFilters } from '../result-table/result-table-filters.component';
@@ -40,7 +46,6 @@ import {
 
 export interface ResultMatrixContainerProps {
 	rowId: string;
-	testName: string;
 	data: RunDataResults[];
 	iterations: MatrixIteration[];
 	classification: ParamClassification;
@@ -65,7 +70,6 @@ const LABEL =
 export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 	const {
 		rowId,
-		testName,
 		data,
 		iterations,
 		classification,
@@ -178,16 +182,20 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 	}, [resetMatrix]);
 
 	const summary = useMemo(() => {
-		const axes = [...state.rows, ...state.cols];
-		if (!axes.length) return null;
+		const axes = [...state.rows, ...state.cols, ...state.facets];
+		if (!state.rows.length || !state.cols.length) return null;
 		const cells = combos(axes, classification.values).length;
 		const present = presenceSet(iterations, axes).size;
-		const fill = cells ? Math.round((present / cells) * 100) : 0;
+		const filled = cells ? Math.round((present / cells) * 100) : 0;
+		const layout = `${state.rows.join(' ▸ ')} × ${state.cols.join(' ▸ ')}${
+			state.facets.length ? ` ▸ ${state.facets.join(' ▸ ')}` : ''
+		}`;
 
-		return `${state.rows.join(' ▸ ')} × ${state.cols.join(
-			' ▸ '
-		)} · ${cells} cells · ${fill}% filled`;
-	}, [state.rows, state.cols, classification.values, iterations]);
+		return `${layout} · ${cells} cells · ${filled}% filled`;
+	}, [state.rows, state.cols, state.facets, classification.values, iterations]);
+
+	const stickyTop = height + HEADER_HEIGHT;
+	const railTop = stickyTop + 36;
 
 	const marginsId = `matrix-margins-${rowId}`;
 
@@ -195,7 +203,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 		<div className="flex flex-col">
 			<div
 				className="sticky z-10 flex h-9 items-center border-b border-border-primary bg-white px-4 shadow-sticky"
-				style={{ top: height + HEADER_HEIGHT }}
+				style={{ top: stickyTop }}
 			>
 				<ResultTableFilters filters={filters} leading={viewToggle} />
 			</div>
@@ -205,27 +213,13 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 					suggestions={suggestions}
 					state={state}
 					onRoleChange={handleRoleChange}
-					onFacetModeChange={(facetMode: MatrixFacetMode) =>
-						change('facetMode', {
-							facetMode: facetMode === 'filter' ? undefined : facetMode
-						})
-					}
+					top={railTop}
 					onApplySuggestion={handleApplySuggestion}
 					onReset={handleReset}
 				/>
 				<div className="flex min-w-0 flex-1 flex-col">
-					<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border-primary px-4 py-2">
-						<div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-							<span className="truncate text-[0.75rem] font-semibold leading-[1.125rem] text-text-primary">
-								{testName}
-							</span>
-							{summary ? (
-								<span className="text-[0.75rem] leading-[1.125rem] text-text-menu">
-									{summary}
-								</span>
-							) : null}
-						</div>
-						<div className="flex items-center gap-2">
+					<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border-primary px-4 py-1">
+						<div className="flex flex-wrap items-center gap-2">
 							<span className={LABEL}>Cell</span>
 							<JoinedToggleGroup<MatrixCellMode>
 								aria-label="Cell mode"
@@ -257,22 +251,81 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 								}
 								className="ml-1"
 							/>
+							{state.facets.length ? (
+								<>
+									<Separator orientation="vertical" className="mx-1 h-5" />
+									<span className={LABEL}>Facets</span>
+									<JoinedToggleGroup<MatrixFacetMode>
+										aria-label="Facet mode"
+										value={state.facetMode}
+										onChange={(facetMode) =>
+											change('facetMode', {
+												facetMode:
+													facetMode === 'filter' ? undefined : facetMode
+											})
+										}
+										items={[
+											{
+												value: 'filter',
+												label: 'Filter',
+												tooltip: 'Pick one value'
+											},
+											{
+												value: 'trellis',
+												label: 'Small multiples',
+												tooltip: 'One matrix per facet value'
+											}
+										]}
+									/>
+								</>
+							) : null}
+							{state.facetMode === 'filter' && state.facets.length ? (
+								<>
+									<Separator orientation="vertical" className="mx-1 h-5" />
+									<MatrixFacetFilters
+										facets={state.facets}
+										facetSel={state.facetSel}
+										values={classification.values}
+										onChange={(param, value) =>
+											change('facet', {
+												facetSel: { ...state.facetSel, [param]: value }
+											})
+										}
+									/>
+								</>
+							) : null}
+						</div>
+						<div className="flex items-center gap-2">
+							<Tooltip
+								content={
+									state.fill
+										? 'Size the table to its content'
+										: 'Stretch the table to the available width'
+								}
+							>
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									state={state.fill ? 'active' : 'default'}
+									aria-pressed={state.fill}
+									onClick={() =>
+										change('fill', { fill: state.fill ? undefined : true })
+									}
+								>
+									<Icon name="SwapArrows" size={18} className="mr-1.5" />
+									Fill
+								</ButtonTw>
+							</Tooltip>
+							{summary ? (
+								<>
+									<Separator orientation="vertical" className="mx-1 h-5" />
+									<span className="text-[0.75rem] leading-[1.125rem] text-text-menu">
+										{summary}
+									</span>
+								</>
+							) : null}
 						</div>
 					</div>
-					{state.facetMode === 'filter' && state.facets.length ? (
-						<div className="border-b border-border-primary px-4 py-2">
-							<MatrixFacetFilters
-								facets={state.facets}
-								facetSel={state.facetSel}
-								values={classification.values}
-								onChange={(param, value) =>
-									change('facet', {
-										facetSel: { ...state.facetSel, [param]: value }
-									})
-								}
-							/>
-						</div>
-					) : null}
 					<ResultMatrixBody
 						iterations={iterations}
 						filtered={filtered}
@@ -281,6 +334,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 						facetFilter={facetFilter}
 						selectedKey={selectedKey}
 						onCellClick={handleCellClick}
+						fill={state.fill}
 					/>
 				</div>
 			</div>

@@ -27,6 +27,8 @@ export interface ResultViewState {
 	facetMode?: MatrixFacetMode;
 	mode?: MatrixCellMode;
 	margins?: boolean;
+	/** Stretch the table(s) to the available width. */
+	fill?: boolean;
 }
 
 export type ResultViewParam = Record<string, ResultViewState>;
@@ -40,6 +42,7 @@ export interface MatrixState {
 	facetMode: MatrixFacetMode;
 	mode: MatrixCellMode;
 	margins: boolean;
+	fill: boolean;
 }
 
 export const DEFAULT_VIEW: ResultViewMode = 'list';
@@ -51,7 +54,8 @@ const MATRIX_KEYS: (keyof ResultViewState)[] = [
 	'facetSel',
 	'facetMode',
 	'mode',
-	'margins'
+	'margins',
+	'fill'
 ];
 
 const ResultViewQueryParam = withDefault(
@@ -137,7 +141,8 @@ export function resolveMatrixState(
 		facetSel,
 		facetMode: state?.facetMode ?? 'filter',
 		mode: state?.mode ?? 'coverage',
-		margins: state?.margins ?? false
+		margins: state?.margins ?? false,
+		fill: state?.fill ?? false
 	};
 }
 

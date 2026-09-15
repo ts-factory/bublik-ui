@@ -7,7 +7,6 @@ import { ButtonTw, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
 import { JoinedToggleGroup } from '../joined-toggle-group';
 import { MatrixSuggestion, ParamClassification } from './matrix-analysis';
 import {
-	MatrixFacetMode,
 	MatrixRole,
 	MatrixState,
 	isLayoutApplied,
@@ -19,7 +18,8 @@ export interface MatrixRailProps {
 	suggestions: MatrixSuggestion[];
 	state: MatrixState;
 	onRoleChange: (param: string, role: MatrixRole) => void;
-	onFacetModeChange: (facetMode: MatrixFacetMode) => void;
+	/** Sticky offset from the top of the viewport. */
+	top: number;
 	onApplySuggestion: (suggestion: MatrixSuggestion) => void;
 	onReset: () => void;
 }
@@ -42,14 +42,17 @@ export function MatrixRail(props: MatrixRailProps) {
 		suggestions,
 		state,
 		onRoleChange,
-		onFacetModeChange,
+		top,
 		onApplySuggestion,
 		onReset
 	} = props;
 	const { varying, fixed, values } = classification;
 
 	return (
-		<aside className="flex w-[260px] shrink-0 flex-col gap-4 border-r border-border-primary p-4">
+		<aside
+			className="styled-scrollbar sticky flex w-[260px] shrink-0 flex-col gap-4 self-start overflow-auto border-r border-border-primary p-4"
+			style={{ top, maxHeight: `calc(100vh - ${top}px)` }}
+		>
 			<section>
 				<SectionTitle
 					action={
@@ -171,25 +174,6 @@ export function MatrixRail(props: MatrixRailProps) {
 					R rows · C cols · F facet · — not used
 				</p>
 			</section>
-
-			{state.facets.length ? (
-				<section>
-					<SectionTitle>Facets</SectionTitle>
-					<JoinedToggleGroup<MatrixFacetMode>
-						aria-label="Facet mode"
-						value={state.facetMode}
-						onChange={onFacetModeChange}
-						items={[
-							{ value: 'filter', label: 'Filter', tooltip: 'Pick one value' },
-							{
-								value: 'trellis',
-								label: 'Small multiples',
-								tooltip: 'One matrix per facet value'
-							}
-						]}
-					/>
-				</section>
-			) : null}
 		</aside>
 	);
 }

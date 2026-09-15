@@ -35,6 +35,8 @@ export interface MatrixTableProps {
 	onCellClick?: (cell: MatrixCellRef) => void;
 	/** Stretch to the container width instead of sizing to content. */
 	fill?: boolean;
+	/** With `fill`, also stretch to the available viewport height. */
+	fillHeight?: boolean;
 }
 
 export const TUPLE_SEPARATOR = '¦';
@@ -63,9 +65,13 @@ export const NOT_OBSERVED_STYLE = {
 } as const;
 
 const HEADER_CELL =
-	'bg-primary-wash px-2 py-1 h-9 border-b border-r border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem]';
+	'bg-primary-wash px-2 py-1 h-9 border-b border-r border-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] whitespace-nowrap';
 const BODY_CELL =
-	'h-9 min-w-[52px] px-2 border-b border-r border-border-primary text-center align-middle text-[0.6875rem] font-semibold leading-[0.875rem]';
+	'h-9 min-w-[52px] px-2 border-b border-r border-border-primary text-right align-middle text-[0.6875rem] font-semibold leading-[0.875rem]';
+/** Column headers stick to the top of the scroll container. */
+const STICKY_TOP = 'sticky top-0 z-20';
+/** The first row-header column sticks to the left of the scroll container. */
+const STICKY_LEFT = 'sticky left-0 z-10';
 const MARGIN_CELL = 'bg-badge-0 text-text-primary';
 /** Crosshair: the header cells of the hovered row / column. */
 const CROSSHAIR_HEADER = 'bg-primary text-white';
@@ -162,7 +168,8 @@ export function MatrixTable(props: MatrixTableProps) {
 		margins,
 		selectedKey,
 		onCellClick,
-		fill = false
+		fill = false,
+		fillHeight = false
 	} = props;
 	const rTuples = combos(rowKeys, values);
 	const cTuples = combos(colKeys, values);
@@ -181,7 +188,9 @@ export function MatrixTable(props: MatrixTableProps) {
 					colSpan={rowKeys.length}
 					className={cn(
 						HEADER_CELL,
-						'text-[0.625rem] uppercase tracking-wide text-text-menu text-right whitespace-nowrap'
+						STICKY_TOP,
+						STICKY_LEFT,
+						'z-30 text-[0.625rem] uppercase tracking-wide text-text-menu text-right whitespace-nowrap'
 					)}
 				>
 					{rowKeys.join(' ▸ ')} \ {colKeys.join(' ▸ ')}
@@ -202,7 +211,8 @@ export function MatrixTable(props: MatrixTableProps) {
 						colSpan={per}
 						className={cn(
 							HEADER_CELL,
-							'text-center',
+							STICKY_TOP,
+							'text-right',
 							covers && CROSSHAIR_HEADER
 						)}
 					>
@@ -216,7 +226,7 @@ export function MatrixTable(props: MatrixTableProps) {
 				<th
 					key="mtop"
 					rowSpan={colKeys.length}
-					className={cn(HEADER_CELL, MARGIN_CELL, 'text-center')}
+					className={cn(HEADER_CELL, STICKY_TOP, MARGIN_CELL, 'text-right')}
 				>
 					Σ
 				</th>
@@ -241,6 +251,7 @@ export function MatrixTable(props: MatrixTableProps) {
 						rowSpan={per}
 						className={cn(
 							HEADER_CELL,
+							i === 0 && STICKY_LEFT,
 							'text-right whitespace-nowrap',
 							covers && CROSSHAIR_HEADER
 						)}
@@ -291,18 +302,20 @@ export function MatrixTable(props: MatrixTableProps) {
 	return (
 		<div
 			className={cn(
-				'max-w-full overflow-auto bg-white',
-				fill
-					? 'block w-full'
-					: 'inline-block rounded-md border border-border-primary'
+				'styled-scrollbar max-w-full overflow-auto bg-white',
+				fill ? 'block w-full' : 'inline-block max-w-full',
+				fill && fillHeight
+					? 'h-[calc(100vh-13.5rem)]'
+					: 'max-h-[calc(100vh-13.5rem)]'
 			)}
 			onMouseLeave={() => setHover(null)}
 		>
 			<table
 				className={cn(
 					'border-separate border-spacing-0',
-					'[&_tr>*:last-child]:border-r-0',
-					fill ? 'w-full' : '[&_tr:last-child>*]:border-b-0'
+					'[&_tr:last-child>*]:border-b-0',
+					fill ? 'w-full [&_tr>*:last-child]:border-r-0' : 'w-max',
+					fill && fillHeight && 'h-full'
 				)}
 			>
 				<thead>{headRows}</thead>
@@ -312,7 +325,12 @@ export function MatrixTable(props: MatrixTableProps) {
 						<tr>
 							<th
 								colSpan={rowKeys.length}
-								className={cn(HEADER_CELL, MARGIN_CELL, 'text-right')}
+								className={cn(
+									HEADER_CELL,
+									STICKY_LEFT,
+									MARGIN_CELL,
+									'text-right'
+								)}
 							>
 								Σ
 							</th>

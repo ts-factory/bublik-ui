@@ -34,6 +34,7 @@ describe('resolveMatrixState', () => {
 		expect(state.facets).toEqual(['c']);
 		expect(state.mode).toBe('coverage');
 		expect(state.margins).toBe(false);
+		expect(state.fill).toBe(false);
 		expect(state.facetSel).toEqual({
 			a: FACET_ALL,
 			b: FACET_ALL,
@@ -95,6 +96,7 @@ describe('resolveMatrixState', () => {
 			{
 				mode: 'result',
 				margins: true,
+				fill: true,
 				facetMode: 'trellis'
 			},
 			cls,
@@ -103,6 +105,7 @@ describe('resolveMatrixState', () => {
 
 		expect(state.mode).toBe('result');
 		expect(state.margins).toBe(true);
+		expect(state.fill).toBe(true);
 		expect(state.facetMode).toBe('trellis');
 	});
 });
