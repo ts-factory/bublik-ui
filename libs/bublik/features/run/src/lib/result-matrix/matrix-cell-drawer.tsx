@@ -6,16 +6,19 @@ import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
-	CardHeader,
 	DialogClose,
 	DrawerContent,
 	DrawerRoot,
 	Icon,
+	Separator,
 	VerdictList
 } from '@/shared/tailwind-ui';
 import { joinKeyValue } from '@/shared/utils';
 
 import { MatrixIteration } from './matrix-analysis';
+
+const MUTED =
+	'text-[0.6875rem] font-semibold leading-[0.875rem] text-text-menu whitespace-nowrap';
 
 export interface MatrixCellDrawerProps {
 	open: boolean;
@@ -63,10 +66,6 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 	}, [iterations, rowKeys, colKeys]);
 
 	const delimiter = config.keyValueDisplayDelimiter;
-	const title = [
-		...rowKeys.map((k, i) => joinKeyValue(k, rowTuple[i], delimiter)),
-		...colKeys.map((k, i) => joinKeyValue(k, colTuple[i], delimiter))
-	].join(' × ');
 
 	return (
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
@@ -75,28 +74,39 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 			<DrawerContent
 				portal
 				className="flex h-full w-screen max-w-[40rem] flex-col"
-				aria-label="Selected cell"
+				aria-label="Selected Cell"
 			>
-				<CardHeader label="Selected cell">
+				{/* The cell's axis values as badges ("rows × cols"), then the
+				    iteration count; wraps when there are many axes. */}
+				<div className="flex shrink-0 items-start justify-between gap-2 border-b border-border-primary px-4 py-2">
+					<div className="flex min-h-[1.375rem] min-w-0 flex-wrap items-center gap-1.5">
+						{rowKeys.map((k, i) => (
+							<Badge key={`r-${k}`}>
+								{joinKeyValue(k, rowTuple[i], delimiter)}
+							</Badge>
+						))}
+						<span className={MUTED}>×</span>
+						{colKeys.map((k, i) => (
+							<Badge key={`c-${k}`}>
+								{joinKeyValue(k, colTuple[i], delimiter)}
+							</Badge>
+						))}
+						<Separator orientation="vertical" className="mx-1 h-4" />
+						<span className={MUTED}>
+							{iterations.length}{' '}
+							{iterations.length === 1 ? 'iteration' : 'iterations'}
+							{facetLabel ? ` · ${facetLabel}` : ''}
+						</span>
+					</div>
 					<DialogClose asChild>
 						<button
 							type="button"
 							aria-label="Close"
-							className="rounded p-2 text-text-menu hover:bg-primary-wash hover:text-primary"
+							className="shrink-0 rounded p-1 text-text-menu hover:bg-primary-wash hover:text-primary"
 						>
-							<Icon name="Cross" className="size-4" />
+							<Icon name="Cross" className="size-3.5" />
 						</button>
 					</DialogClose>
-				</CardHeader>
-				<div className="border-b border-border-primary px-4 py-3">
-					<div className="text-[0.75rem] font-semibold leading-[1.125rem] text-text-primary">
-						{title}
-					</div>
-					<div className="text-[0.6875rem] leading-[0.875rem] text-text-menu">
-						{iterations.length}{' '}
-						{iterations.length === 1 ? 'iteration' : 'iterations'}
-						{facetLabel ? ` · ${facetLabel}` : ''}
-					</div>
 				</div>
 				<ul className="styled-scrollbar flex flex-1 flex-col gap-2 overflow-auto p-4">
 					{iterations.map((it) => (
@@ -104,12 +114,27 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 							key={it.resultId}
 							className="flex flex-col gap-2 rounded-md bg-primary-wash p-3"
 						>
-							<VerdictList
-								variant="obtained"
-								verdicts={it.source.obtained_result.verdicts ?? []}
-								result={it.source.obtained_result.result_type}
-								isNotExpected={it.hasError}
-							/>
+							{/* Links sit in the top-right corner, next to the verdicts. */}
+							<div className="flex items-start justify-between gap-3">
+								<div className="min-w-0 flex-1">
+									<VerdictList
+										variant="obtained"
+										verdicts={it.source.obtained_result.verdicts ?? []}
+										result={it.source.obtained_result.result_type}
+										isNotExpected={it.hasError}
+									/>
+								</div>
+								<div className="shrink-0">
+									<ResultLinksContainer
+										runId={String(it.source.run_id)}
+										resultId={it.resultId}
+										result={it.source}
+										showLinkToRun={showLinkToRun}
+										path={path}
+										direction="row"
+									/>
+								</div>
+							</div>
 							{differing.length ? (
 								<ul className="flex flex-wrap gap-1">
 									{differing.map((k) => (
@@ -119,14 +144,6 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 									))}
 								</ul>
 							) : null}
-							<ResultLinksContainer
-								runId={String(it.source.run_id)}
-								resultId={it.resultId}
-								result={it.source}
-								showLinkToRun={showLinkToRun}
-								path={path}
-								direction="row"
-							/>
 						</li>
 					))}
 				</ul>
