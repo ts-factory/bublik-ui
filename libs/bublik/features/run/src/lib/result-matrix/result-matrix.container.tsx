@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode, useCallback, useMemo } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { RunDataResults } from '@/shared/types';
@@ -14,13 +14,16 @@ import {
 	MatrixSuggestion,
 	ParamClassification,
 	combos,
+	matchTuple,
 	presenceSet,
 	suggestLayouts,
 	toIterations
 } from './matrix-analysis';
+import { MatrixCellPanel } from './matrix-cell-panel';
 import { MatrixFacetFilters } from './matrix-facet-filters';
 import { MatrixHeaderControls } from './matrix-header-controls';
 import { MatrixRail } from './matrix-rail';
+import { MatrixCellRef, cellKey } from './matrix-table';
 import { MatrixToolbar } from './matrix-toolbar';
 import { ResultMatrixBody } from './result-matrix.component';
 import {
@@ -43,11 +46,28 @@ export interface ResultMatrixContainerProps {
 	classification: ParamClassification;
 	/** The List / Matrix switcher, rendered on the left of the view bar. */
 	viewToggle: ReactNode;
+	showLinkToRun?: boolean;
+	path?: string;
+}
+
+interface CellSelection {
+	rowTuple: string[];
+	colTuple: string[];
+	/** Joined facet values when the cell belongs to a small multiple. */
+	facetKey?: string;
 }
 
 export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
-	const { rowId, testName, data, iterations, classification, viewToggle } =
-		props;
+	const {
+		rowId,
+		testName,
+		data,
+		iterations,
+		classification,
+		viewToggle,
+		showLinkToRun,
+		path
+	} = props;
 
 	const { state: viewState, patch, resetMatrix } = useResultView(rowId);
 	const suggestions = useMemo(
@@ -74,6 +94,57 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 			),
 		[state.facets, state.facetSel]
 	);
+
+	// Selection is transient: it is not part of the URL and is cleared when
+	// the axes or the facet mode change.
+	const [selection, setSelection] = useState<CellSelection | null>(null);
+	const axesKey = `${state.rows.join('¦')}|${state.cols.join('¦')}|${
+		state.facetMode
+	}`;
+	useEffect(() => setSelection(null), [axesKey]);
+
+	const handleCellClick = useCallback(
+		(cell: MatrixCellRef, facetKey?: string) => {
+			trackEvent(analyticsEventNames.resultMatrixCellSelect, {
+				iterations: cell.iterations.length
+			});
+			setSelection((prev) => {
+				const same =
+					prev &&
+					prev.facetKey === facetKey &&
+					cellKey(prev.rowTuple, prev.colTuple) ===
+						cellKey(cell.rowTuple, cell.colTuple);
+
+				return same
+					? null
+					: { rowTuple: cell.rowTuple, colTuple: cell.colTuple, facetKey };
+			});
+		},
+		[]
+	);
+
+	const selectedKey = selection
+		? `${
+				selection.facetKey !== undefined ? `${selection.facetKey}|` : ''
+		  }${cellKey(selection.rowTuple, selection.colTuple)}`
+		: undefined;
+
+	// Re-derived on every render so the panel follows filter changes.
+	const selectedIterations = useMemo(() => {
+		if (!selection) return [];
+		const facetValues = selection.facetKey?.split('¦');
+		const inFacet = (it: MatrixIteration) =>
+			facetValues
+				? state.facets.every((k, i) => it.params[k] === facetValues[i])
+				: facetFilter(it);
+
+		return filtered.filter(
+			(it) =>
+				inFacet(it) &&
+				matchTuple(it, state.rows, selection.rowTuple) &&
+				matchTuple(it, state.cols, selection.colTuple)
+		);
+	}, [selection, filtered, state.facets, state.rows, state.cols, facetFilter]);
 
 	const change = useCallback(
 		(field: string, changes: ResultViewState) => {
@@ -202,6 +273,36 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 						classification={classification}
 						state={state}
 						facetFilter={facetFilter}
+						selectedKey={selectedKey}
+						onCellClick={handleCellClick}
+						aside={
+							selection && selectedIterations.length ? (
+								<MatrixCellPanel
+									rowKeys={state.rows}
+									colKeys={state.cols}
+									rowTuple={selection.rowTuple}
+									colTuple={selection.colTuple}
+									facetLabel={
+										selection.facetKey !== undefined
+											? state.facets
+													.map(
+														(k, i) =>
+															`${k} = ${selection.facetKey?.split('¦')[i]}`
+													)
+													.join(' · ')
+											: undefined
+									}
+									iterations={selectedIterations}
+									showLinkToRun={showLinkToRun}
+									path={path}
+									onClose={() => setSelection(null)}
+								/>
+							) : (
+								<div className="rounded-md border border-dashed border-border-primary px-3 py-2 text-[0.6875rem] leading-[0.875rem] text-text-menu">
+									Click a cell to inspect its iterations.
+								</div>
+							)
+						}
 					/>
 				</div>
 			</div>

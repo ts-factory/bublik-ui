@@ -146,6 +146,8 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 					iterations={iterations}
 					classification={classification}
 					viewToggle={viewToggle}
+					showLinkToRun={Array.isArray(runId)}
+					path={path}
 				/>
 			) : (
 				<>

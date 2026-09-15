@@ -9,6 +9,8 @@ export interface MatrixIteration {
 	resultType: string;
 	hasError: boolean;
 	hasMeasurements: boolean;
+	/** The row the iteration came from, for links and details. */
+	source: RunDataResults;
 }
 
 /** Parse `["name=value", ...]` into a `{ name: value }` map. */
@@ -28,7 +30,8 @@ export function toIterations(results: RunDataResults[]): MatrixIteration[] {
 		params: parseParams(r.parameters ?? []),
 		resultType: r.obtained_result?.result_type ?? '',
 		hasError: Boolean(r.has_error),
-		hasMeasurements: Boolean(r.has_measurements)
+		hasMeasurements: Boolean(r.has_measurements),
+		source: r
 	}));
 }
 

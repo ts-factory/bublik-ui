@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { HistoryMode, RunDataResults } from '@/shared/types';
 import { usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
-import { ButtonTw, Icon } from '@/shared/tailwind-ui';
+import { ButtonTw, Icon, cn } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
@@ -29,6 +29,8 @@ export interface ResultLinksProps {
 	showLinkToRun?: boolean;
 	path?: string;
 	historyIssues?: HistoryLinkIssue[];
+	/** Stack the links (default) or lay them out in one wrapping line. */
+	direction?: 'column' | 'row';
 }
 
 export const ResultLinks = (props: ResultLinksProps) => {
@@ -43,7 +45,8 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		onLinkClick,
 		showLinkToRun = false,
 		path,
-		historyIssues
+		historyIssues,
+		direction = 'column'
 	} = props;
 
 	// Every link is the button the History link is, so they all answer a
@@ -52,7 +55,14 @@ export const ResultLinks = (props: ResultLinksProps) => {
 	// level with the test name and the badge across the row.
 	return (
 		<div className="flex flex-col justify-start gap-3 text-primary text-[0.6875rem] font-semibold leading-[0.875rem]">
-			<ul className="flex flex-col items-start gap-2 pl-0.5">
+			<ul
+				className={cn(
+					'flex gap-2 pl-0.5',
+					direction === 'row'
+						? 'flex-row flex-wrap items-center'
+						: 'flex-col items-start'
+				)}
+			>
 				{showLinkToRun ? (
 					<li>
 						<ButtonTw variant="secondary" size="xss" asChild>
@@ -142,10 +152,18 @@ export interface ActionLinksProps {
 	showLinkToRun?: boolean;
 	path?: string;
 	historyIssues?: HistoryLinkIssue[];
+	direction?: ResultLinksProps['direction'];
 }
 
 export const ResultLinksContainer = (props: ActionLinksProps) => {
-	const { runId, resultId, result, showLinkToRun = false, path } = props;
+	const {
+		runId,
+		resultId,
+		result,
+		showLinkToRun = false,
+		path,
+		direction
+	} = props;
 	const { has_measurements: hasMeasurements } = result;
 	const { userPreferences } = useUserPreferences();
 
@@ -183,6 +201,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}
 			showLinkToRun={showLinkToRun}
 			path={path}
+			direction={direction}
 			onLinkClick={handleLinkClick}
 			historyIssues={historyIssues}
 		/>

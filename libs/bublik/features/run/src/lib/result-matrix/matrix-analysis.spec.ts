@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
+import { RunDataResults } from '@/shared/types';
+
 import {
 	MatrixIteration,
 	classifyParams,
@@ -14,7 +16,14 @@ function iteration(
 	resultType = 'PASSED',
 	hasError = false
 ): MatrixIteration {
-	return { resultId: 1, params, resultType, hasError, hasMeasurements: false };
+	return {
+		resultId: 1,
+		params,
+		resultType,
+		hasError,
+		hasMeasurements: false,
+		source: {} as RunDataResults
+	};
 }
 
 describe('parseParams', () => {
