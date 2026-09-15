@@ -222,11 +222,12 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 					/>
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
-					{/* Fixed height: it lines up with the rail header on the left.
-					    Controls never wrap; the summary gives way first. */}
+					{/* Sticky under the filter row, like the rail. Fixed height so it
+					    lines up with the rail header; controls never wrap, the summary
+					    gives way first. */}
 					<div
-						className="flex shrink-0 items-center justify-between gap-x-3 border-b border-border-primary px-4"
-						style={{ height: RAIL_HEADER_HEIGHT }}
+						className="sticky z-10 flex shrink-0 items-center justify-between gap-x-3 border-b border-border-primary bg-white px-4"
+						style={{ top: railTop, height: RAIL_HEADER_HEIGHT }}
 					>
 						<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap [&>*]:shrink-0">
 							{summary ? (
