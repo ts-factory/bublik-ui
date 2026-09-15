@@ -37,6 +37,7 @@ import { MatrixRail, RAIL_HEADER_HEIGHT } from './matrix-rail';
 import { MatrixCellRef, cellKey } from './matrix-table';
 import { ResultMatrixBody } from './result-matrix.component';
 import {
+	DEFAULT_CELL_MODE,
 	FACET_ALL,
 	MatrixCellMode,
 	MatrixFacetMode,
@@ -235,19 +236,19 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 								value={state.mode}
 								onChange={(mode) =>
 									change('mode', {
-										mode: mode === 'coverage' ? undefined : mode
+										mode: mode === DEFAULT_CELL_MODE ? undefined : mode
 									})
 								}
 								items={[
 									{
-										value: 'coverage',
-										label: 'Coverage',
-										tooltip: 'Colour cells by how many iterations they hold'
-									},
-									{
 										value: 'result',
 										label: 'Result',
 										tooltip: 'Colour cells by expected / unexpected result'
+									},
+									{
+										value: 'coverage',
+										label: 'Coverage',
+										tooltip: 'Colour cells by how many iterations they hold'
 									}
 								]}
 							/>

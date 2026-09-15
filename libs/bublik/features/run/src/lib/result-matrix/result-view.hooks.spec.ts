@@ -32,7 +32,7 @@ describe('resolveMatrixState', () => {
 		expect(state.rows).toEqual(['a']);
 		expect(state.cols).toEqual(['b']);
 		expect(state.facets).toEqual(['c']);
-		expect(state.mode).toBe('coverage');
+		expect(state.mode).toBe('result');
 		expect(state.margins).toBe(false);
 		expect(state.fill).toBe(false);
 		expect(state.facetSel).toEqual({

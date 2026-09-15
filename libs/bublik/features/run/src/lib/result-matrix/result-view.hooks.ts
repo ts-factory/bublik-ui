@@ -8,6 +8,9 @@ import { MatrixSuggestion, ParamClassification } from './matrix-analysis';
 
 export type ResultViewMode = 'list' | 'matrix';
 export type MatrixCellMode = 'coverage' | 'result';
+/** Result mode by default: the run page is about spotting failures. Only
+ * a non-default mode is written to the URL. */
+export const DEFAULT_CELL_MODE: MatrixCellMode = 'result';
 export type MatrixFacetMode = 'filter' | 'trellis';
 
 /** Value meaning "no facet filter" for a facet parameter. */
@@ -141,7 +144,7 @@ export function resolveMatrixState(
 		facets,
 		facetSel,
 		facetMode: state?.facetMode ?? 'filter',
-		mode: state?.mode ?? 'coverage',
+		mode: state?.mode ?? DEFAULT_CELL_MODE,
 		margins: state?.margins ?? false,
 		fill: state?.fill ?? false
 	};
