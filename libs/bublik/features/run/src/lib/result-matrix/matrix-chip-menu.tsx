@@ -8,6 +8,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 	Icon,
+	Separator,
 	cn
 } from '@/shared/tailwind-ui';
 
@@ -36,7 +37,7 @@ export function ChipMenu(props: ChipMenuProps) {
 					as="button"
 					type="button"
 					className={cn(
-						'gap-1 pr-1 transition-colors hover:border-primary disabled:opacity-60',
+						'pr-1 transition-colors hover:border-primary disabled:opacity-60',
 						dashed
 							? 'border-dashed border-border-primary bg-transparent text-text-menu'
 							: 'bg-badge-1',
@@ -44,7 +45,12 @@ export function ChipMenu(props: ChipMenuProps) {
 					)}
 				>
 					{label}
-					<Icon name="ChevronDown" size={16} />
+					{/* Same divider and arrow as the History split button. */}
+					<Separator
+						orientation="vertical"
+						className={cn('mx-1 h-3.5', dashed && 'bg-text-menu/40')}
+					/>
+					<Icon name="ArrowShortTop" size={16} className="rotate-180" />
 				</Badge>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="min-w-[10rem]">
