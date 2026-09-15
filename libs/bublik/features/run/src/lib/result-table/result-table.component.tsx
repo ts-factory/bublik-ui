@@ -198,8 +198,6 @@ export interface ResultTableProps {
 	 * `ResultTableToolbar` itself, beside its own heading.
 	 */
 	toolbar?: 'inline' | 'external';
-	/** Drawn at the start of the inline bar: the List / Matrix switcher. */
-	toolbarLeading?: ReactNode;
 	/** Tree indent of the rows, in rem (the filter bar stays flush). */
 	indent?: number;
 	/**
@@ -250,7 +248,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		stickyTop = height + HEADER_HEIGHT,
 		scrollRef,
 		toolbar = 'inline',
-		toolbarLeading,
 		indent = 0,
 		toolbarTrailing,
 		toolbarClassName,
@@ -352,7 +349,6 @@ export const ResultTable = memo((props: ResultTableProps) => {
 					<ResultTableFilters
 						filters={filters}
 						selectable={selectable}
-						leading={toolbarLeading}
 						className="min-w-0 flex-1"
 					/>
 					{toolbarTrailing ? (

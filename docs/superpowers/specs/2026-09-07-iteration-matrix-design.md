@@ -4,7 +4,7 @@
 A test can run many iterations over a parameter grid (e.g. `throughput` = 96 iterations across 5 varying params). The current list view makes it hard to see *what/how* is iterated, which combinations are covered, and where the gaps are.
 
 ## Solution
-An alternative **Matrix view** of a test's iteration list, reached by a **List / Matrix toggle** at the start of the iteration filter row. Pure client-side — reuses the `RunDataResults[]` already loaded by `useGetResultsTableQuery`. No backend, no new endpoint, no new npm dependency.
+An alternative **Matrix view** of a test's iteration list, reached by a **List / Matrix toggle** in the test's run-table row (shown while the row is expanded). Pure client-side — reuses the `RunDataResults[]` already loaded by `useGetResultsTableQuery`. No backend, no new endpoint, no new npm dependency.
 
 ## Data
 Each `RunDataResults` carries `parameters: string[]` (`"name=value"`), `obtained_result.result_type`, `has_error`, `has_measurements`. Parse params into a map per iteration (`MatrixIteration`, which also keeps its source row for links).
@@ -18,11 +18,11 @@ Each `RunDataResults` carries `parameters: string[]` (`"name=value"`), `obtained
 - `matrix-cell-drawer.tsx` — side drawer listing the iterations of the clicked cell.
 
 ## Integration
-`ResultTableContainer` reads the view from the URL and renders `ResultTable` or `ResultMatrixContainer` from the same `data`. Both views share the same sticky filter row (`List | Matrix ‖ filters ‖ Reset`), which is always visible; the matrix applies the filters too (filtered-out iterations become dashed cells). The list keeps the tree indent; the matrix is flush with the run-table row and wrapped so a wide matrix scrolls inside the row instead of stretching the run table.
+`ResultTableContainer` reads the view from the URL and renders `ResultTable` or `ResultMatrixContainer` from the same `data`. Both views share the same sticky filter row (`filters ‖ Reset`): in the list it is always visible above the column headers, with the History link at its end; in the matrix it is always visible at the top; the matrix applies the filters too (filtered-out iterations become dashed cells). The list keeps the tree indent; the matrix is flush with the run-table row and wrapped so a wide matrix scrolls inside the row instead of stretching the run table.
 
 ## Layout
 ```
-List | Matrix ‖ Obtained Result · Result Type · Verdicts · Artifacts · Parameters ‖ Reset   (sticky)
+Obtained Result · Result Type · Verdicts · Artifacts · Parameters ‖ Reset   (sticky)
 ┌ rail ───────────┬ content ─────────────────────────────────────────────────────┐
 │ SUGGESTED  Reset │ test_name  rows × cols · N cells · X% filled   CELL [Coverage|Result] [ ] Margins │
 │ PARAMETERS       ├──────────────────────────────────────────────────────────────┤

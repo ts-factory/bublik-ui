@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode } from 'react';
-
 import {
 	isClassifiable,
 	useResultSelection
@@ -30,14 +28,12 @@ export interface ResultTableFiltersProps {
 	 * button is not drawn.
 	 */
 	selectable?: readonly RunDataResults[];
-	/** Rendered before the filters, e.g. the List / Matrix switcher. */
-	leading?: ReactNode;
 	className?: string;
 }
 
 /**
  * The filter row every host of the result table shows above it:
- * `leading | facets | Reset … Select All`. The facets scroll sideways on a narrow
+ * `facets | Reset … Select All`. The facets scroll sideways on a narrow
  * window rather than wrap, so the row keeps one height for the header pinned
  * under it; Reset stays beside them, outside the scroll, so it is never
  * scrolled out of reach. State comes from `useDataTableFilters`.
@@ -45,7 +41,6 @@ export interface ResultTableFiltersProps {
 export function ResultTableFilters({
 	filters,
 	selectable,
-	leading,
 	className
 }: ResultTableFiltersProps) {
 	const {
@@ -77,12 +72,6 @@ export function ResultTableFilters({
 
 	return (
 		<div className={cn('flex items-center gap-2', className)}>
-			{leading ? (
-				<>
-					{leading}
-					<Separator orientation="vertical" className="h-5 shrink-0" />
-				</>
-			) : null}
 			<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap [&>*]:shrink-0">
 				<DataTableFacetedFilter
 					title="Obtained Result"

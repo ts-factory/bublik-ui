@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { RunDataResults } from '@/shared/types';
@@ -52,8 +52,6 @@ export interface ResultMatrixContainerProps {
 	classification: ParamClassification;
 	/** Top offset of the expanded run-table row, for the sticky filter row. */
 	height: number;
-	/** The List / Matrix switcher, rendered at the start of the filter row. */
-	viewToggle: ReactNode;
 	showLinkToRun?: boolean;
 	path?: string;
 }
@@ -75,7 +73,6 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 		iterations,
 		classification,
 		height,
-		viewToggle,
 		showLinkToRun,
 		path
 	} = props;
@@ -206,7 +203,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 				className="sticky z-10 flex h-9 items-center border-b border-border-primary bg-white px-4 shadow-sticky"
 				style={{ top: stickyTop }}
 			>
-				<ResultTableFilters filters={filters} leading={viewToggle} />
+				<ResultTableFilters filters={filters} />
 			</div>
 			<div className="flex">
 				{/* The wrapper carries the border so it spans the full row height

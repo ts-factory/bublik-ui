@@ -5,7 +5,7 @@ import { PopoverPortal } from '@radix-ui/react-popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { MergedRun, RunData, RunStatsColumn } from '@/shared/types';
+import { MergedRun, NodeEntity, RunData, RunStatsColumn } from '@/shared/types';
 import {
 	cn,
 	Icon,
@@ -18,6 +18,7 @@ import { getTreeNode } from '@/bublik/run-utils';
 
 import { badgeColumns } from './badge-columns';
 import { TestComments } from '../components/test-comments';
+import { ResultViewSwitch } from '../../result-table/result-view-switch';
 import { ColumnId } from '../types';
 import {
 	buildColumnGroups,
@@ -76,6 +77,11 @@ function getColumns({
 			if (!node) return null;
 
 			const { name, type } = node;
+			// The switch drives the expanded content, so it only shows with it.
+			const viewSwitch =
+				type === NodeEntity.Test && row.getIsExpanded() ? (
+					<ResultViewSwitch row={row} />
+				) : null;
 
 			return (
 				<TableNode
@@ -91,6 +97,7 @@ function getColumns({
 					}}
 					isExpanded={row.getIsExpanded()}
 					depth={row.depth}
+					trailing={viewSwitch}
 				/>
 			);
 		},
