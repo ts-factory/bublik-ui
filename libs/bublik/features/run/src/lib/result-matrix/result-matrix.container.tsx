@@ -333,7 +333,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 									}
 								>
 									<Icon name="SwapArrows" size={18} className="mr-1.5" />
-									Fill
+									Stretch
 								</ButtonTw>
 							</Tooltip>
 						</div>

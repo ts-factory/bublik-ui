@@ -27,7 +27,8 @@ export interface ResultViewState {
 	facetMode?: MatrixFacetMode;
 	mode?: MatrixCellMode;
 	margins?: boolean;
-	/** Stretch the table(s) to the available width. */
+	/** The Stretch toggle: size the table(s) to the available width. The
+	 * key stays `fill` so existing links keep working. */
 	fill?: boolean;
 }
 

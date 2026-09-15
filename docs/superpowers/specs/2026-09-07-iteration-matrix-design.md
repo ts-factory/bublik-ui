@@ -41,7 +41,7 @@ Vocabulary follows the filter controls ("Obtained Result", "Result Type" = Expec
 - Hovering a cell highlights its row and column headers (crosshair) and tints the row and column.
 
 ## URL state
-Per-row `resultView` query param (compressed JSON keyed by run-table row id, like `columnFilters`): view, rows / cols / facets, facet selections, facet mode, cell mode, margins. Only non-default fields are stored. Old links keep working; nothing existing is renamed.
+Per-row `resultView` query param (compressed JSON keyed by run-table row id, like `columnFilters`): view, rows / cols / facets, facet selections, facet mode, cell mode, margins, `fill` (the Stretch toggle; the key is kept for existing links). Only non-default fields are stored. Old links keep working; nothing existing is renamed.
 
 ## Auto-suggestions (from variability + coverage)
 Balanced (two highest-cardinality on axes), Densest (independent pair, most filled), Expose gaps (associated pair, most missing), Nested rows (pack a low-cardinality param under the top one). Association drives the choice but is not shown as a matrix.
