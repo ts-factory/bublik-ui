@@ -181,17 +181,16 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 		resetMatrix();
 	}, [resetMatrix]);
 
+	// The axes themselves are already spelled out by the table's corner cell
+	// and the facet chips / panel titles, so only the coverage is summarised.
 	const summary = useMemo(() => {
 		const axes = [...state.rows, ...state.cols, ...state.facets];
 		if (!state.rows.length || !state.cols.length) return null;
 		const cells = combos(axes, classification.values).length;
 		const present = presenceSet(iterations, axes).size;
 		const filled = cells ? Math.round((present / cells) * 100) : 0;
-		const layout = `${state.rows.join(' ▸ ')} × ${state.cols.join(' ▸ ')}${
-			state.facets.length ? ` ▸ ${state.facets.join(' ▸ ')}` : ''
-		}`;
 
-		return `${layout} · ${cells} cells · ${filled}% filled`;
+		return `${cells} cells · ${filled}% filled`;
 	}, [state.rows, state.cols, state.facets, classification.values, iterations]);
 
 	const stickyTop = height + HEADER_HEIGHT;
@@ -223,24 +222,13 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
 					{/* Sticky under the filter row, like the rail. Fixed height so it
-					    lines up with the rail header; controls never wrap, the summary
-					    gives way first. */}
+					    lines up with the rail header; controls never wrap, overflow
+					    scrolls sideways. */}
 					<div
 						className="sticky z-10 flex shrink-0 items-center justify-between gap-x-3 border-b border-border-primary bg-white px-4"
 						style={{ top: railTop, height: RAIL_HEADER_HEIGHT }}
 					>
 						<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap [&>*]:shrink-0">
-							{summary ? (
-								<>
-									<span
-										className="!shrink truncate text-[0.75rem] leading-[1.125rem] text-text-menu"
-										title={summary}
-									>
-										{summary}
-									</span>
-									<Separator orientation="vertical" className="mx-1 h-5" />
-								</>
-							) : null}
 							<span className={LABEL}>Cell</span>
 							<JoinedToggleGroup<MatrixCellMode>
 								aria-label="Cell mode"
@@ -349,6 +337,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 						onCellClick={handleCellClick}
 						fill={state.fill}
 						top={railTop + RAIL_HEADER_HEIGHT}
+						caption={summary}
 					/>
 				</div>
 			</div>

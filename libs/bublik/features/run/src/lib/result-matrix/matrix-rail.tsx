@@ -78,7 +78,7 @@ export function MatrixRail(props: MatrixRailProps) {
 							className="mr-1.5"
 							style={{ transform: 'scaleX(-1)' }}
 						/>
-						Reset layout
+						Reset Layout
 					</ButtonTw>
 				</Tooltip>
 			</div>

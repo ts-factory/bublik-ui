@@ -24,11 +24,11 @@ Each `RunDataResults` carries `parameters: string[]` (`"name=value"`), `obtained
 ```
 Obtained Result · Result Type · Verdicts · Artifacts · Parameters ‖ Reset   (sticky)
 ┌ rail ───────────┬ content ─────────────────────────────────────────────────────┐
-│ SUGGESTED  Reset │ test_name  rows × cols · N cells · X% filled   CELL [Coverage|Result] [ ] Margins │
+│ SUGGESTED  Reset │ CELL [Coverage|Result] [ ] Margins  FACETS [Filter|Split] chips   Stretch │
 │ PARAMETERS       ├──────────────────────────────────────────────────────────────┤
 │ FACETS           │ facet value chips (filter mode)                              │
 │                  │ matrix (full width) or small multiples                       │
-│                  │ legend                                                       │
+│                  │ legend                               N cells · X% filled     │
 └──────────────────┴──────────────────────────────────────────────────────────────┘
 ```
 

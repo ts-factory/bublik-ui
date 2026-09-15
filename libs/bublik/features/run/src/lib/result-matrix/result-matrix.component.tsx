@@ -28,6 +28,8 @@ export interface ResultMatrixBodyProps {
 	fill: boolean;
 	/** Viewport offset of the content header's bottom edge when stuck. */
 	top: number;
+	/** Coverage summary shown next to the legend ("320 cells · 100% filled"). */
+	caption?: string | null;
 }
 
 /** Height of a small-multiple title row. */
@@ -44,7 +46,8 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 		selectedKey,
 		onCellClick,
 		fill,
-		top
+		top,
+		caption
 	} = props;
 	const { values } = classification;
 	const canRender = state.rows.length > 0 && state.cols.length > 0;
@@ -139,11 +142,16 @@ export function ResultMatrixBody(props: ResultMatrixBodyProps) {
 			</div>
 			<div
 				className={cn(
-					'px-4 py-2',
+					'flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2',
 					(fill || isTrellis) && 'border-t border-border-primary'
 				)}
 			>
 				<MatrixLegend mode={state.mode} />
+				{caption ? (
+					<span className="whitespace-nowrap text-[0.6875rem] font-semibold uppercase tracking-wide leading-[0.875rem] text-text-menu">
+						{caption}
+					</span>
+				) : null}
 			</div>
 		</div>
 	);
