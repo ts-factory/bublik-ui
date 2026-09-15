@@ -31,7 +31,7 @@ import {
 } from './matrix-analysis';
 import { MatrixCellDrawer } from './matrix-cell-drawer';
 import { MatrixFacetFilters } from './matrix-facet-filters';
-import { MatrixRail } from './matrix-rail';
+import { MatrixRail, RAIL_HEADER_HEIGHT } from './matrix-rail';
 import { MatrixCellRef, cellKey } from './matrix-table';
 import { ResultMatrixBody } from './result-matrix.component';
 import {
@@ -220,11 +220,19 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 					/>
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
-					<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border-primary px-4 py-1">
-						<div className="flex flex-wrap items-center gap-2">
+					{/* Fixed height: it lines up with the rail header on the left.
+					    Controls never wrap; the summary gives way first. */}
+					<div
+						className="flex shrink-0 items-center justify-between gap-x-3 border-b border-border-primary px-4"
+						style={{ height: RAIL_HEADER_HEIGHT }}
+					>
+						<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap [&>*]:shrink-0">
 							{summary ? (
 								<>
-									<span className="text-[0.75rem] leading-[1.125rem] text-text-menu">
+									<span
+										className="!shrink truncate text-[0.75rem] leading-[1.125rem] text-text-menu"
+										title={summary}
+									>
 										{summary}
 									</span>
 									<Separator orientation="vertical" className="mx-1 h-5" />
@@ -305,7 +313,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 								</>
 							) : null}
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex shrink-0 items-center gap-2">
 							<Tooltip
 								content={
 									state.fill

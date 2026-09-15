@@ -23,7 +23,7 @@ export function MatrixFacetFilters(props: MatrixFacetFiltersProps) {
 	if (!facets.length) return null;
 
 	return (
-		<div className="flex flex-wrap items-center gap-2">
+		<div className="flex items-center gap-2 [&>*]:shrink-0">
 			{facets.map((param) => {
 				const selected = facetSel[param] ?? FACET_ALL;
 				const isAll = selected === FACET_ALL;
