@@ -277,7 +277,7 @@ export function ResultMatrixContainer(props: ResultMatrixContainerProps) {
 											},
 											{
 												value: 'trellis',
-												label: 'Small multiples',
+												label: 'Split',
 												tooltip: 'One matrix per facet value'
 											}
 										]}

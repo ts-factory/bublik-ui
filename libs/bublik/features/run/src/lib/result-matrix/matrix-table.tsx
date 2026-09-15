@@ -47,10 +47,10 @@ export function cellKey(rowTuple: string[], colTuple: string[]): string {
 
 /** Blue ramp: the app uses primary for neutral counts (totals, "run"). */
 export const COVERAGE_CLASSES = [
-	'bg-primary/10',
-	'bg-primary/20',
-	'bg-primary/35',
-	'bg-primary/55 text-white'
+	'bg-primary/10 text-text-primary',
+	'bg-primary/25 text-text-primary',
+	'bg-primary/45 text-text-primary',
+	'bg-primary text-white'
 ];
 
 export const RESULT_CLASSES = {
