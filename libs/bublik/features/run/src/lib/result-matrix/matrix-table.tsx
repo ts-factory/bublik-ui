@@ -97,11 +97,16 @@ const STICKY_TOP = 'sticky top-0 z-20';
 /** The first row-header column sticks to the left of the scroll container. */
 const STICKY_LEFT = 'sticky left-0 z-10';
 const MARGIN_CELL = 'bg-badge-0 text-text-primary';
-/** Crosshair: the header cells of the hovered row / column. */
-const CROSSHAIR_HEADER = 'bg-primary text-white';
 /** Crosshair: the other cells of the hovered row / column (drawn over the fill). */
 const CROSSHAIR_CELL =
 	'shadow-[inset_0_0_0_999px_hsl(var(--colors-primary)/0.12)]';
+/**
+ * Crosshair: the header cells of the hovered row / column. A slightly
+ * stronger tint than the body cells plus primary text, drawn as an inset
+ * shadow so the sticky headers keep their opaque background.
+ */
+const CROSSHAIR_HEADER =
+	'shadow-[inset_0_0_0_999px_hsl(var(--colors-primary)/0.18)] text-primary';
 
 interface Hover {
 	row: number;
