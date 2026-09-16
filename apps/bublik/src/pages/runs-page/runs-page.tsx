@@ -39,16 +39,14 @@ function RunsPage() {
 	useRunsPageTitle();
 
 	return (
-		<>
-			<div className="flex flex-col gap-1 p-2">
-				<header className="flex items-center justify-between gap-4 px-6 py-4 bg-white rounded-t-xl">
-					<RunsFormContainer />
-					<CopyShortUrlButtonContainer variant="header" />
-				</header>
-				<RunsModePickerContainer />
-				<ScrollToTopPage />
-			</div>
-		</>
+		<div className="flex flex-col gap-1 p-2">
+			<header className="flex items-center justify-between gap-4 px-6 py-4 bg-white rounded-t-xl">
+				<RunsFormContainer />
+				<CopyShortUrlButtonContainer variant="header" />
+			</header>
+			<RunsModePickerContainer />
+			<ScrollToTopPage />
+		</div>
 	);
 }
 
