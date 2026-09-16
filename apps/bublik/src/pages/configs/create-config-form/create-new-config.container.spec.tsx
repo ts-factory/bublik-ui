@@ -4,7 +4,8 @@ import {
 	forwardRef,
 	type ButtonHTMLAttributes,
 	type InputHTMLAttributes,
-	type ReactNode
+	type ReactNode,
+	type TextareaHTMLAttributes
 } from 'react';
 import {
 	cleanup,
@@ -68,6 +69,21 @@ vi.mock('@/shared/tailwind-ui', () => ({
 			<input ref={ref} aria-label={label} {...props} />
 		</label>
 	)),
+	TextArea: forwardRef<
+		HTMLTextAreaElement,
+		TextareaHTMLAttributes<HTMLTextAreaElement> & {
+			label: string;
+			error?: string;
+		}
+	>(({ label, error: _error, ...props }, ref) => (
+		<label>
+			{label}
+			<textarea ref={ref} aria-label={label} {...props} />
+		</label>
+	)),
+	InputLabel: ({ children }: { children: ReactNode }) => (
+		<label>{children}</label>
+	),
 	cn: (...values: Array<string | false | null | undefined>) =>
 		values.filter(Boolean).join(' '),
 	Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
