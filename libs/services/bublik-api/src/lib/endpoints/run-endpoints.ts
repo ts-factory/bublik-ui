@@ -25,7 +25,8 @@ import {
 	MergedRun,
 	RunStats,
 	RunSourceAPIRResponseSchema,
-	ResultDetailsAPIResponseSchema
+	ResultDetailsAPIResponseSchema,
+	RESULT_TYPE
 } from '@/shared/types';
 import { config } from '@/bublik/config';
 
@@ -58,6 +59,43 @@ export interface Verdict {
 	value: string;
 	hash: string;
 	comment: string;
+}
+
+/**
+ * Result statuses the `/results` endpoint can name in its `results` filter.
+ *
+ * The backend validates the filter against its status groups and answers 400
+ * for anything outside them. UNSPEC is a status a result can carry -- the
+ * import schema accepts it -- but no group names it, so asking for it by name
+ * throws the whole request away instead of widening it.
+ */
+const FILTERABLE_RESULT_TYPES: RESULT_TYPE[] = [
+	RESULT_TYPE.Passed,
+	RESULT_TYPE.Failed,
+	RESULT_TYPE.Killed,
+	RESULT_TYPE.Cored,
+	RESULT_TYPE.Incomplete,
+	RESULT_TYPE.Skipped,
+	RESULT_TYPE.Faked,
+	RESULT_TYPE.Empty
+];
+
+/**
+ * Turns the statuses a column asks for into the `results` query parameter.
+ *
+ * A request for every status the endpoint can name is sent without the filter,
+ * which is how UNSPEC results reach the table: the endpoint cannot be asked for
+ * them, but it returns them when nothing narrows the query. Anything narrower
+ * keeps its filter, minus the statuses the endpoint would reject.
+ */
+export function toResultsFilterParam(results: RESULT_TYPE[]): string {
+	const requested = new Set(
+		results.filter((result) => FILTERABLE_RESULT_TYPES.includes(result))
+	);
+
+	if (requested.size === FILTERABLE_RESULT_TYPES.length) return '';
+
+	return [...requested].join(config.queryDelimiter);
 }
 
 export function buildResultsTableParams({
@@ -214,7 +252,7 @@ export const runEndpoints = {
 
 					const requests = query.selectors.flatMap((selector) =>
 						Object.entries(query.requests).map(([_columnId, props]) => {
-							const results = props.results.join(config.queryDelimiter);
+							const results = toResultsFilterParam(props.results);
 							const resultProperties = props.resultProperties.join(
 								config.queryDelimiter
 							);
