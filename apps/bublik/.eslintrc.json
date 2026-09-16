@@ -1,9 +1,5 @@
 {
-	"extends": [
-		"plugin:playwright/recommended",
-		"plugin:@nx/react",
-		"../../.eslintrc.json"
-	],
+	"extends": ["plugin:@nx/react", "../../.eslintrc.json"],
 	"ignorePatterns": [
 		"!**/*",
 		"**/vite.config.*.timestamp*",
@@ -24,6 +20,7 @@
 		},
 		{
 			"files": ["e2e/**/*.{ts,js,tsx,jsx}"],
+			"extends": ["plugin:playwright/recommended"],
 			"rules": {}
 		}
 	]
