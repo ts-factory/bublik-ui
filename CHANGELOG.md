@@ -1,5 +1,84 @@
 
 
+### [2.18.1](https://github.com/ts-factory/bublik-ui/compare/v2.17.1...v2.18.1) (2026-09-16)
+
+
+### 🚀 New Feature
+
+* **chat:** add AI assistant with model selection and persistent threads ([3ff9c3b](https://github.com/ts-factory/bublik-ui/commit/3ff9c3b88e7f5e6c1b043fac38f5259d0e36b7f8))
+* **chat:** add streaming and rich response rendering ([f28f4e4](https://github.com/ts-factory/bublik-ui/commit/f28f4e4bafd9e8a2cf193d86e832f3e50be64149))
+* **chat:** align AI models, reasoning, and generated files ([422685c](https://github.com/ts-factory/bublik-ui/commit/422685ca8a3d1bbf8079cebab75f5ed482cfcfd0))
+* **chat:** gate sidebar navigation ([81a72ce](https://github.com/ts-factory/bublik-ui/commit/81a72cebd6b0cfde6ec924db573599c108faca2c))
+* **chat:** support cancellation and context compaction ([99e2784](https://github.com/ts-factory/bublik-ui/commit/99e2784a3b89bbdd405847a784bef8f3866db037))
+* **dashboard:** show native tooltip on truncated text cells ([e488537](https://github.com/ts-factory/bublik-ui/commit/e48853779de4cc2456e83e4e5ba48a48f6893bf3))
+* **log:** render scenario step outline in test meta ([cf6b24a](https://github.com/ts-factory/bublik-ui/commit/cf6b24a3b97fc7b68a13e28cbbbd8b1e4917c417))
+* **log:** show test parameter descriptions in parameters table ([d742903](https://github.com/ts-factory/bublik-ui/commit/d74290338cdd68d8fc7718c2ccb3d85cad2289a1))
+* **report:** make header with links to Run, Log, Source sticky ([34c9eb3](https://github.com/ts-factory/bublik-ui/commit/34c9eb3037e93c521ba4058578b4f9d6d46a3d1c))
+* **run-details:** show duration in collapsed run header ([561a808](https://github.com/ts-factory/bublik-ui/commit/561a80886a605e3f11c6354c9a4f0ebf13adc1fd))
+* **sidebar:** display version information next to "Bublik" label ([ad8b14e](https://github.com/ts-factory/bublik-ui/commit/ad8b14eb3064d4055c3a1a7758fbca65332e75c5))
+* **ui:** add reusable Markdown component ([d00c14a](https://github.com/ts-factory/bublik-ui/commit/d00c14a0264708258d57c0a771fa57d2732566b6))
+* **ui:** expose test hooks for e2e selectors ([0170b9d](https://github.com/ts-factory/bublik-ui/commit/0170b9d4f617efac8e274d2a0389bb9fe1f12f6c))
+* **ui:** float text area label like text input ([e35d142](https://github.com/ts-factory/bublik-ui/commit/e35d1426e81c001d643404186085d324ee0aca83))
+
+
+### 💅 Polish
+
+* **run:** make gap between items smaller for consistency ([97b9fea](https://github.com/ts-factory/bublik-ui/commit/97b9fea29049a5264b6fde20b1fd7a96b928f194))
+
+
+### 🐛 Bug Fix
+
+* **api:** refetch config-derived data when a config changes ([1bc9ef9](https://github.com/ts-factory/bublik-ui/commit/1bc9ef94abf6ff0fa47e214af267b9471320bf0a))
+* **api:** register the chat tag with RTK Query ([1c6abc5](https://github.com/ts-factory/bublik-ui/commit/1c6abc5e16614243ed63265b3c39be5779687f8f))
+* **auth:** refresh the session for the `me` query and share one refresh ([882f4ca](https://github.com/ts-factory/bublik-ui/commit/882f4ca05e137ed57bf4b3713b3bcf9f3a7e45c5))
+* **chat:** harden thread state and background run recovery ([c7c4ffe](https://github.com/ts-factory/bublik-ui/commit/c7c4ffeb302cb0c851dcf710d5c12c919851cf9f))
+* **chat:** preserve markdown, reasoning, and tool rendering ([fd6ec17](https://github.com/ts-factory/bublik-ui/commit/fd6ec17424a0848f46c13f974a890db14fdc0497))
+* **config:** lock AI configuration to default project ([0a8cf84](https://github.com/ts-factory/bublik-ui/commit/0a8cf847a3bb05eb1af52f72faaad3a542554c3a))
+* **configs:** fall back to the form value when the editor has none ([9c102fb](https://github.com/ts-factory/bublik-ui/commit/9c102fb865bd6f3835d3a292cf28d8adfc8a1c0c))
+* **deploy-info:** tolerate unpopulated server version data ([9234318](https://github.com/ts-factory/bublik-ui/commit/923431815c0693c9d609a5e615dedb627f9f63dd))
+* **history:** default to latest three months ([a5aecdf](https://github.com/ts-factory/bublik-ui/commit/a5aecdf4161a3df8e7a28302697b6808773ad4c3))
+* **history:** drop the debug logging from the filter refresh ([a0a0771](https://github.com/ts-factory/bublik-ui/commit/a0a07713cda99e86570bf6d22b37cc31cad8de92))
+* **lint:** scope the playwright rules to the e2e suite ([3a37660](https://github.com/ts-factory/bublik-ui/commit/3a376603d939217a380c4cee9cca5a8f6a011e9a))
+* **log:** [tree] keep the ancestor chain when filtering to errors only ([925330c](https://github.com/ts-factory/bublik-ui/commit/925330cbb70e76994335f883fd2d55360e371eb7))
+* **log:** disable New Bug when its data fails to load ([25bf979](https://github.com/ts-factory/bublik-ui/commit/25bf979e0827a8c6a0f99005215afb1a389ab915))
+* **log:** retry transient JSON generation failures ([694eca1](https://github.com/ts-factory/bublik-ui/commit/694eca11430262b41658fa182c7c1b3655d5c514)), closes [#573](https://github.com/ts-factory/bublik-ui/issues/573)
+* **log:** stop getChunks emitting an empty chunk between skipped items ([aafa05d](https://github.com/ts-factory/bublik-ui/commit/aafa05d44a9cf7ff9deffd4d60e9170d98d178ee))
+* **log:** stop the all-pages pager racing the cache for its page count ([308c1be](https://github.com/ts-factory/bublik-ui/commit/308c1be7e6b2eebf140cd694b0848f5dd9279891))
+* **run-diff:** propagate deep child changes to parent packages ([c24d4c8](https://github.com/ts-factory/bublik-ui/commit/c24d4c826f316124e93d5c661a5ec38d0b9c40ee)), closes [#3](https://github.com/ts-factory/bublik-ui/issues/3)
+* **run:** [result-table] stop the results filter rejecting UNSPEC ([2549c9e](https://github.com/ts-factory/bublik-ui/commit/2549c9e681e17aa3569ab2c6b23d3140399555b6))
+* **runs:** [form] preserve dirty filter values without remounting ([9ee9571](https://github.com/ts-factory/bublik-ui/commit/9ee95710b41778e120a9d9e2a7a8eed307786cd0))
+* **runs:** drop the redundant fragment wrapper ([8958d7e](https://github.com/ts-factory/bublik-ui/commit/8958d7e6ec5384b840cef56438d605d2d29c06f3))
+* **run:** support UNSPEC and EMPTY result statuses ([1131ce7](https://github.com/ts-factory/bublik-ui/commit/1131ce74bcc2cd41339effaf17e8ee09469cc9b2))
+* **ui:** use font-medium for floating field labels ([e1f50c2](https://github.com/ts-factory/bublik-ui/commit/e1f50c2779f41cdf7193c4702b68cbfc3fe709d1))
+
+
+### 🔧 Continuous Integration | CI
+
+* **e2e:** add a cross-repository playwright workflow ([2ee4594](https://github.com/ts-factory/bublik-ui/commit/2ee45941a85d18a5f09680fb8263bab67dd4766e))
+
+
+### 📝 Documentation
+
+* add CONTRIBUTING.md ([f161352](https://github.com/ts-factory/bublik-ui/commit/f16135284752520abd1db0fe9f86bbf9f76dd73d))
+
+
+### ✅ Tests
+
+* **config:** stub TextArea and InputLabel in the tailwind-ui mock ([67c7d9d](https://github.com/ts-factory/bublik-ui/commit/67c7d9d05520765252316133796e4738d60985d2))
+* **e2e:** add the page objects shared across pages ([c15f725](https://github.com/ts-factory/bublik-ui/commit/c15f7259fe2baa2a4700bfb0900152bc2d2344e5))
+* **e2e:** cover auth, help, tools and navigation with gherkin scenarios ([a53b59c](https://github.com/ts-factory/bublik-ui/commit/a53b59c9d71e9ad38a8227fb2facdf208be5cbbb))
+* **e2e:** cover the admin pages with gherkin scenarios ([11e86c0](https://github.com/ts-factory/bublik-ui/commit/11e86c0baaa733bd18b326dc383a077f0d6a96ed))
+* **e2e:** cover the compare and multiple pages with gherkin scenarios ([1eacd53](https://github.com/ts-factory/bublik-ui/commit/1eacd531c3415f3f9100418499ca921eb5738f14))
+* **e2e:** cover the dashboard with gherkin scenarios ([c4c0626](https://github.com/ts-factory/bublik-ui/commit/c4c0626c36c71d1f3dcf2ed3b263eca9a807ba2b))
+* **e2e:** cover the history page with gherkin scenarios ([51692f9](https://github.com/ts-factory/bublik-ui/commit/51692f924216b2dcd6775704057127f40b888e4f))
+* **e2e:** cover the log page with gherkin scenarios ([49e5af8](https://github.com/ts-factory/bublik-ui/commit/49e5af8d9d363b1fad51760e9fc1f2a1e5ef2df3))
+* **e2e:** cover the report and measurements pages with gherkin scenarios ([f79b769](https://github.com/ts-factory/bublik-ui/commit/f79b769b3d6ef1ed3739669e647b9c3e7f3349be))
+* **e2e:** cover the run details page with gherkin scenarios ([5ef5ad2](https://github.com/ts-factory/bublik-ui/commit/5ef5ad2a6c46f4c5d73cd77aa928dc9953f68c8f))
+* **e2e:** cover the runs page with gherkin scenarios ([2e99639](https://github.com/ts-factory/bublik-ui/commit/2e996397db56f9a0cce643307d37b028d831cf5f))
+* **e2e:** describe the fixture data with a generated manifest ([b5be2c8](https://github.com/ts-factory/bublik-ui/commit/b5be2c81922511d4005b39aba49493c772b1c0f1))
+* **e2e:** scaffold the playwright harness ([d63332b](https://github.com/ts-factory/bublik-ui/commit/d63332b41dc84fc763fa19765d7a216e8ddbaa9f))
+* **e2e:** sign in and import the fixture bundles before the suite runs ([cbd3322](https://github.com/ts-factory/bublik-ui/commit/cbd3322192c748615e08a5ccb1d17240b11efb75))
+
 ### [2.17.1](https://github.com/ts-factory/bublik-ui/compare/v2.17.0...v2.17.1) (2026-07-30)
 
 
