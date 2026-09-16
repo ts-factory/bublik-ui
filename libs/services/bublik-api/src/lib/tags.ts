@@ -22,7 +22,8 @@ export const tagTypes: BUBLIK_TAG[] = [
 	BUBLIK_TAG.importEvents,
 	BUBLIK_TAG.SessionList,
 	BUBLIK_TAG.Project,
-	BUBLIK_TAG.Analytics
+	BUBLIK_TAG.Analytics,
+	BUBLIK_TAG.Chat
 ];
 
 type TagDescription = BUBLIK_TAG | { type: BUBLIK_TAG; id?: string | number };
