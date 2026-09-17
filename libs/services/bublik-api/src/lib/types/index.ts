@@ -21,5 +21,7 @@ export const enum BUBLIK_TAG {
 	Issues = 'issues',
 	IssueRules = 'issue-rules',
 	ResultClassification = 'result-classification',
-	Chat = 'chat'
+	Chat = 'chat',
+	AccessTokens = 'access-tokens',
+	AdminAccessTokens = 'admin-access-tokens'
 }

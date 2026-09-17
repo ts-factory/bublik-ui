@@ -26,7 +26,9 @@ export const tagTypes: BUBLIK_TAG[] = [
 	BUBLIK_TAG.Chat,
 	BUBLIK_TAG.Issues,
 	BUBLIK_TAG.IssueRules,
-	BUBLIK_TAG.ResultClassification
+	BUBLIK_TAG.ResultClassification,
+	BUBLIK_TAG.AccessTokens,
+	BUBLIK_TAG.AdminAccessTokens
 ];
 
 type TagDescription = BUBLIK_TAG | { type: BUBLIK_TAG; id?: string | number };
