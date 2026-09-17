@@ -56,7 +56,7 @@ export function SettingsModal() {
 				<DialogOverlay className={dialogOverlayStyles()} />
 				<DialogContent
 					className={cn(
-						'h-[560px] lg:h-[640px] xl:h-[720px] w-[92vw] z-50 bg-bg-primary rounded-xl max-w-[860px] overflow-hidden p-0 shadow-2xl',
+						'h-[85vh] max-h-[798px] min-h-[560px] w-[92vw] z-50 bg-bg-primary rounded-xl max-w-[1022px] overflow-hidden p-0 shadow-2xl',
 						dialogContentStyles()
 					)}
 				>

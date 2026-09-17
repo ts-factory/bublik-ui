@@ -1,6 +1,11 @@
 import { ReactNode } from 'react';
 
-export type SettingsTab = 'account' | 'appearance' | 'beta' | 'preferences';
+export type SettingsTab =
+	| 'account'
+	| 'appearance'
+	| 'tokens'
+	| 'beta'
+	| 'preferences';
 
 export interface SettingsTabConfig {
 	id: SettingsTab;
