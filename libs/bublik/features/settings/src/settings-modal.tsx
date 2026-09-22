@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import { Icon, ProfilePicture, toast, useSidebar } from '@/shared/tailwind-ui';
 import {
@@ -7,16 +9,18 @@ import {
 	dialogOverlayStyles,
 	DialogPortal,
 	Dialog,
-	DialogTrigger,
 	DialogContent,
 	DialogTitle,
 	DialogClose
 } from '@/shared/tailwind-ui';
 import { useAuth } from '@/bublik/features/auth';
+import { requestLogin } from '@/services/bublik-api';
 import { SETTINGS_TABS } from './constants';
 import type { SettingsTab } from './types';
 import { SettingsContent } from './settings-content';
 import { SettingsNavItem } from './components/settings-nav-item';
+import { SidebarAccountRow } from './components/sidebar-account-row';
+import { getUserLabel } from './user-label';
 
 export function SettingsModal() {
 	const [activeTab = 'account', setActiveTab] =
@@ -25,8 +29,9 @@ export function SettingsModal() {
 		'settings-open',
 		withDefault(BooleanParam, false)
 	);
-	const { user, logout } = useAuth();
+	const { user, isLoading, logout } = useAuth();
 	const { isSidebarOpen } = useSidebar();
+	const userLabel = user ? getUserLabel(user) : null;
 
 	const handleLogout = async () => {
 		await logout();
@@ -35,21 +40,18 @@ export function SettingsModal() {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<button
-					className={cn(
-						'h-10 w-full justify-start gap-3 rounded-lg pr-2.5 text-text-menu shadow-none transition-all duration-200',
-						'flex rounded-[0.625rem] items-center hover:text-primary transition-[margin-bottom] group relative',
-						isSidebarOpen ? 'pl-4' : 'pl-2.5',
-						open && 'bg-primary-wash text-primary'
-					)}
-				>
-					<div className="size-7 grid place-items-center">
-						<Icon name="SettingsSliders" size={24} className="shrink-0" />
-					</div>
-					<span className="truncate text-[1.125rem] font-medium">Settings</span>
-				</button>
-			</DialogTrigger>
+			<SidebarAccountRow
+				user={user}
+				isLoading={isLoading}
+				isSidebarOpen={Boolean(isSidebarOpen)}
+				isActive={open}
+				onOpenSettings={(tab) => {
+					setActiveTab(tab);
+					setOpen(true);
+				}}
+				onSignOut={handleLogout}
+				onSignIn={() => void requestLogin({ kind: 'manual' })}
+			/>
 			<DialogPortal>
 				<DialogOverlay className={dialogOverlayStyles()} />
 				<DialogContent
@@ -64,20 +66,22 @@ export function SettingsModal() {
 						{/* Sidebar */}
 						<div className="flex flex-col bg-slate-1 border-r border-slate-3">
 							{/* User header */}
-							{user && (
+							{userLabel && (
 								<div className="px-6 pt-6 pb-6 border-b border-border-primary flex flex-col justify-center">
 									<div className="flex items-center gap-3">
 										<ProfilePicture
-											displayName={user.displayName}
-											className="w-9 h-9 text-xs"
+											displayName={userLabel.name}
+											className="size-9 text-xs"
 										/>
 										<div className="flex flex-col min-w-0">
 											<span className="text-sm font-semibold text-text-primary truncate">
-												{user.displayName}
+												{userLabel.name}
 											</span>
-											<span className="text-xs text-text-menu truncate">
-												{user.email}
-											</span>
+											{userLabel.detail ? (
+												<span className="text-xs text-text-menu truncate">
+													{userLabel.detail}
+												</span>
+											) : null}
 										</div>
 									</div>
 								</div>
@@ -101,7 +105,7 @@ export function SettingsModal() {
 										className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium text-text-unexpected rounded-md hover:bg-red-50 transition-colors"
 									>
 										<Icon name="BoxArrowRight" size={18} />
-										<span>Sign out</span>
+										<span>Sign Out</span>
 									</button>
 								</div>
 							)}

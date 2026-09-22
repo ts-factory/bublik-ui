@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
 import { routes } from '@/router';
@@ -58,6 +59,11 @@ export const useAuth = () => {
 
 		resetOnArrival.current = false;
 		dispatch(bublikAPI.util.resetApiState());
+		// Known to be signed out: seed `me` so it doesn't go back to loading and
+		// blank the account row until the server confirms
+		dispatch(
+			bublikAPI.util.upsertQueryData('me', undefined, null) as unknown as AnyAction
+		);
 	}, [location, dispatch]);
 
 	const logout = async () => {

@@ -1,6 +1,6 @@
 import { useAuth } from '@/bublik/features/auth';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { requestLogin } from '@/services/bublik-api';
 import {
 	EditUserProfileContainer,
 	ChangePasswordFormContainer
@@ -36,23 +36,18 @@ export function AccountSettingsContent() {
 					<Icon name="Profile" className="size-10 text-text-menu" />
 					<div className="space-y-1">
 						<h3 className="text-base font-semibold text-text-primary">
-							Login Required
+							Sign-in required
 						</h3>
 						<p className="text-sm text-text-menu max-w-sm">
-							Log in to manage your profile and security settings.
+							Sign in to manage your profile and security settings.
 						</p>
 					</div>
-					<ButtonTw asChild variant="primary" size="md">
-						<LinkWithProject
-							to={{
-								pathname: '/auth/login',
-								search: `?redirect_url=${encodeURIComponent(
-									window.location.href
-								)}`
-							}}
-						>
-							Login
-						</LinkWithProject>
+					<ButtonTw
+						variant="primary"
+						size="md"
+						onClick={() => void requestLogin({ kind: 'manual' })}
+					>
+						Sign In
 					</ButtonTw>
 				</div>
 			)}
