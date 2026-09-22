@@ -86,3 +86,12 @@ Feature: Authentication
     And the sign-in dialog is not open
     And the sidebar still remembers the history page
     And the sidebar offers to sign in
+
+  Scenario: Signing out from a public page keeps me on it
+    Given I have signed in through the login page
+    And I open the help page
+    And the sidebar shows who I am signed in as
+    When I choose Sign Out from the account menu
+    Then I am still on the help page
+    And the sign-in dialog is not open
+    And the sidebar offers to sign in

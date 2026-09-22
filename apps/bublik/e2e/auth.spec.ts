@@ -210,9 +210,7 @@ test.describe('Authentication', () => {
 		});
 	});
 
-	test('Signing in from the sidebar keeps me on the page', async ({
-		page
-	}) => {
+	test('Signing in from the sidebar keeps me on the page', async ({ page }) => {
 		const sidebar = new Sidebar(page);
 		const dialog = page.getByTestId('login-dialog');
 
@@ -220,9 +218,8 @@ test.describe('Authentication', () => {
 			await page.context().clearCookies();
 		});
 		await when('I open the help page', () => page.goto('help/faq'));
-		await then(
-			'the sidebar offers to sign in',
-			() => sidebar.expectSignedOut()
+		await then('the sidebar offers to sign in', () =>
+			sidebar.expectSignedOut()
 		);
 		await when('I choose Sign In in the sidebar', () =>
 			sidebar.signInButton().click()
@@ -300,9 +297,32 @@ test.describe('Authentication', () => {
 				HISTORY_SEARCH
 			)
 		);
-		await and(
-			'the sidebar offers to sign in',
-			() => sidebar.expectSignedOut()
+		await and('the sidebar offers to sign in', () => sidebar.expectSignedOut());
+	});
+
+	test('Signing out from a public page keeps me on it', async ({ page }) => {
+		const loginPage = new LoginPage(page);
+		const sidebar = new Sidebar(page);
+
+		// A session of its own, as in the scenario above
+		await given('I have signed in through the login page', () =>
+			loginPage.signInAsAdmin()
 		);
+		await and('I open the help page', () => page.goto('help/faq'));
+		await and('the sidebar shows who I am signed in as', () =>
+			sidebar.expectSignedIn()
+		);
+		await when('I choose Sign Out from the account menu', () =>
+			sidebar
+				.openAccountMenu()
+				.then(() => sidebar.accountMenuItem('Sign Out').click())
+		);
+		await then('I am still on the help page', () =>
+			expect(page).toHaveURL(/\/help\/faq/)
+		);
+		await and('the sign-in dialog is not open', () =>
+			expect(page.getByTestId('login-dialog')).toHaveCount(0)
+		);
+		await and('the sidebar offers to sign in', () => sidebar.expectSignedOut());
 	});
 });

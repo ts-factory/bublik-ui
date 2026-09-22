@@ -7,6 +7,7 @@ import { requestLogin } from '@/services/bublik-api';
 import { Spinner } from '@/shared/tailwind-ui';
 
 import { useAuth } from '../hooks';
+import { markProtectedPageOpen } from './protected-page';
 
 interface ProtectedRouteProps {
 	/** `admin`: a signed-in user without the role is asked to sign in as one. */
@@ -26,6 +27,8 @@ const NOTES = {
 function ProtectedRoute({ access }: ProtectedRouteProps) {
 	const { user, isAdmin, isLoading } = useAuth();
 	const allowed = access === 'admin' ? isAdmin : Boolean(user);
+
+	useEffect(() => markProtectedPageOpen(), []);
 
 	useEffect(() => {
 		if (isLoading || allowed) return;
