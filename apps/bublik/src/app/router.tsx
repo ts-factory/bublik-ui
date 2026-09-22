@@ -42,6 +42,7 @@ import { HistoryPageV2 } from '../pages/history-page/history-page';
 import { RunsPage } from '../pages/runs-page';
 import { RunsLayout } from '../pages/runs-layout';
 
+import { LoginDialogContainer } from '@/bublik/features/auth';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import {
@@ -211,6 +212,7 @@ const router = createBrowserRouter(
 					options={{ updateType: 'replaceIn' }}
 				>
 					<BublikCommand />
+					<LoginDialogContainer />
 					<AnalyticsRouteTracker />
 					<IframeNavigationReporter />
 					<Outlet />
