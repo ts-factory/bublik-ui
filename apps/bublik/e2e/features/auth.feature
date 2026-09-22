@@ -79,9 +79,10 @@ Feature: Authentication
 
   Scenario: Signing out from a protected page returns me to the dashboard signed out
     Given I have signed in through the login page
-    And I open the protected users page
+    And I open the protected users page with a remembered history page
     And the sidebar shows who I am signed in as
     When I choose Sign Out from the account menu
     Then the dashboard is open
     And the sign-in dialog is not open
+    And the sidebar still remembers the history page
     And the sidebar offers to sign in

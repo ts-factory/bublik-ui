@@ -21,8 +21,8 @@ class AdminUsersPage {
 		return this.page.getByRole('dialog');
 	}
 
-	async goto(): Promise<void> {
-		await this.page.goto('admin/users');
+	async goto(search = ''): Promise<void> {
+		await this.page.goto(`admin/users${search}`);
 		await expect(this.createUserButton).toBeVisible({ timeout: 30_000 });
 	}
 

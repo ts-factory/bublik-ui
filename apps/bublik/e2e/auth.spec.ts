@@ -6,9 +6,18 @@ import { AdminUsersPage } from './pages/admin-users-page';
 import { LoginPage } from './pages/login-page';
 import { Sidebar } from './pages/sidebar';
 import { and, given, then, when } from './support/gherkin';
+import {
+	encodeSidebarState,
+	SIDEBAR_ALIASES,
+	SIDEBAR_STATE_PARAM,
+	sidebarState
+} from './support/sidebar-state';
 import { adminEmail, adminPassword } from './support/session';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+
+/** A history search the sidebar remembers, to check sign out keeps it. */
+const HISTORY_SEARCH = 'testName=sign-out-keeps-sidebar-state';
 
 test.describe('Authentication', () => {
 	test('Signing in with valid credentials opens the dashboard', async ({
@@ -262,7 +271,15 @@ test.describe('Authentication', () => {
 		await given('I have signed in through the login page', () =>
 			loginPage.signInAsAdmin()
 		);
-		await and('I open the protected users page', () => usersPage.goto());
+		await and(
+			'I open the protected users page with a remembered history page',
+			() =>
+				usersPage.goto(
+					`?${SIDEBAR_STATE_PARAM}=${encodeSidebarState({
+						[SIDEBAR_ALIASES.historyLastLinear]: HISTORY_SEARCH
+					})}`
+				)
+		);
 		await and('the sidebar shows who I am signed in as', () =>
 			sidebar.expectSignedIn()
 		);
@@ -276,6 +293,12 @@ test.describe('Authentication', () => {
 		);
 		await and('the sign-in dialog is not open', () =>
 			expect(page.getByTestId('login-dialog')).toHaveCount(0)
+		);
+		await and('the sidebar still remembers the history page', () =>
+			sidebarState(page).expectAliasCarries(
+				SIDEBAR_ALIASES.historyLastLinear,
+				HISTORY_SEARCH
+			)
 		);
 		await and(
 			'the sidebar offers to sign in',

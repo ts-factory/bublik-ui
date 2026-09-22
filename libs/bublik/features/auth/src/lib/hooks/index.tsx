@@ -2,11 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
 import { routes } from '@/router';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
 import {
 	bublikAPI,
@@ -28,7 +29,8 @@ export type AuthenticatedUser = {
 
 export const useAuth = () => {
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
+	// Keeps the sidebar state and the selected project across sign out
+	const navigate = useNavigateWithProject();
 	const location = useLocation();
 
 	const [login] = useLoginMutation();
