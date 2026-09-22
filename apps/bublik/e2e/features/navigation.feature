@@ -47,6 +47,12 @@ Feature: Navigation
     When I hover the version next to the Bublik label
     Then the deployed UI and API versions are shown
 
+  Scenario: The account menu in the sidebar opens a settings section
+    Given I open the dashboard
+    And the sidebar shows who I am signed in as
+    When I open my account menu and choose Appearance
+    Then the settings dialog is open on the Appearance section
+
   Scenario: An unknown address shows the not-found page
     When I open an address that does not exist
     Then the not-found page is shown

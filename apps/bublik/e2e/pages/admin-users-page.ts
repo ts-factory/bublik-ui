@@ -27,7 +27,11 @@ class AdminUsersPage {
 	}
 
 	async expectUserListed(email: string): Promise<void> {
-		await expect(this.page.getByText(email).first()).toBeVisible({
+		await expect(
+			this.page
+				.getByRole('table')
+				.getByRole('link', { name: email, exact: true })
+		).toBeVisible({
 			timeout: 30_000
 		});
 	}
