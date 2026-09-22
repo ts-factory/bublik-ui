@@ -9,8 +9,13 @@ import {
 } from 'react';
 import type { To } from 'react-router-dom';
 
-import { cn, Tooltip, useSidebar } from '@/shared/tailwind-ui';
-import { accordionLinkStyles, paddingTransition } from './sidebar-nav.styles';
+import {
+	cn,
+	sidebarPaddingTransition,
+	Tooltip,
+	useSidebar
+} from '@/shared/tailwind-ui';
+import { accordionLinkStyles } from './sidebar-nav.styles';
 import { toString } from './sidebar-nav.utils';
 
 function getNodeText(node: ReactNode): string {
@@ -73,7 +78,7 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 	const isSidebarOpen = !!isSidebarOpenRaw;
 
 	const className = accordionLinkStyles({ isActive, isSidebarOpen, disabled });
-	const style = paddingTransition;
+	const style = sidebarPaddingTransition;
 
 	const labelText = getLabelTextFromChildren(children);
 	const tooltipProps = {

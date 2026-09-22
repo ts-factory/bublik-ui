@@ -14,6 +14,7 @@ import {
 	Icon,
 	Tooltip,
 	useSidebar,
+	sidebarPaddingTransition,
 	Dialog,
 	DialogPortal,
 	ModalContent,
@@ -24,7 +25,7 @@ import {
 	SidebarNavLinkInternalProps,
 	SidebarNavLinkExternalProps
 } from './sidebar-nav.types';
-import { linkStyles, paddingTransition } from './sidebar-nav.styles';
+import { linkStyles } from './sidebar-nav.styles';
 import { toString } from './sidebar-nav.utils';
 
 interface SidebarNavInternalLinkContextValue {
@@ -95,7 +96,7 @@ const SidebarNavInternalLinkComponent = forwardRef<
 	);
 
 	const className = linkStyles({ isSidebarOpen, disabled: isDisabled });
-	const style = paddingTransition;
+	const style = sidebarPaddingTransition;
 
 	if (isDisabled) {
 		return (
@@ -158,7 +159,7 @@ export const SidebarNavExternalLink = ({
 		<a
 			href={href}
 			className={linkStyles({ isSidebarOpen })}
-			style={paddingTransition}
+			style={sidebarPaddingTransition}
 			target="_blank"
 			rel="noopener noreferrer"
 		>

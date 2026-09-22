@@ -20,6 +20,14 @@ export const useSidebar = () => {
 	return context;
 };
 
+/**
+ * Inline so the sidebar items animate their padding and margin while the
+ * sidebar opens and closes, without animating anything else
+ */
+export const sidebarPaddingTransition = {
+	transition: 'padding 0.5s ease, margin 0.5s ease'
+};
+
 export interface SidebarProviderProps extends SidebarContext {
 	children?: ReactNode;
 }

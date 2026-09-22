@@ -1,7 +1,13 @@
 import { useState } from 'react';
 
 import { bublikAPI } from '@/services/bublik-api';
-import { Icon, Tooltip, cn, useSidebar } from '@/shared/tailwind-ui';
+import {
+	Icon,
+	Tooltip,
+	cn,
+	sidebarPaddingTransition,
+	useSidebar
+} from '@/shared/tailwind-ui';
 
 import { useProjectSearch } from '../hooks';
 
@@ -44,12 +50,12 @@ function ProjectPickerContainer() {
 			<Tooltip content="Projects" side="right" sideOffset={14}>
 				<div
 					data-testid="project-picker-trigger"
+					style={sidebarPaddingTransition}
 					className={cn(
 						'group w-full relative rounded-[0.625rem] py-[7px] cursor-pointer',
 						'hover:bg-primary-wash text-text-menu hover:text-primary',
 						'flex min-w-0 flex-grow gap-3.5 items-center',
-						'transition-[padding] transition-[margin-bottom] duration-500',
-						isSidebarOpen ? 'pl-4' : 'pl-2',
+						isSidebarOpen ? 'pl-4' : 'pl-1.5',
 						isOpen &&
 							isSidebarOpen &&
 							'bg-primary hover:bg-primary hover:text-white text-white mb-3.5'
