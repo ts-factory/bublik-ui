@@ -73,7 +73,10 @@ export default defineConfig(({ mode }) => {
 					secure: false,
 					followRedirects: true,
 					rewrite: (path: string) => {
-						const externalUrl = /=([^&]+)/.exec(path)?.[1];
+						const externalUrl = new URL(
+							path,
+							'http://localhost'
+						).searchParams.get('url');
 
 						if (!externalUrl) {
 							throw new Error(`[PROXY] externalUrl not found: ${path}`);
@@ -82,7 +85,9 @@ export default defineConfig(({ mode }) => {
 						console.log(`[PROXY] Rewrite path: ${path}`);
 						console.log(`[PROXY] External URL: ${externalUrl}`);
 
-						return externalUrl.replace(LOGS_TARGET, '');
+						const { pathname, search } = new URL(externalUrl);
+
+						return `${pathname}${search}`;
 					}
 				}
 			}

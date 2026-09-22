@@ -15,6 +15,7 @@ import {
 	TreeDataAPIResponse
 } from '@/shared/types';
 import { transformLogTree } from '@/shared/utils';
+import { config } from '@/bublik/config';
 
 import { BUBLIK_TAG } from '../types';
 import { configDependent } from '../tags';
@@ -180,6 +181,24 @@ const waitForLogRetry = (
 	});
 };
 
+/**
+ * The backend returns absolute log URLs pointing at the log server, which is a
+ * different origin from the Vite dev server and fails CORS. In development
+ * route them through the dev server's `/external` proxy instead.
+ */
+const toFetchableLogUrl = (url: string): string => {
+	if (!config.isDev) return url;
+
+	try {
+		if (new URL(url).origin === window.location.origin) return url;
+	} catch {
+		// Relative URL, already same-origin
+		return url;
+	}
+
+	return `${config.rootUrl}/external?url=${encodeURIComponent(url)}`;
+};
+
 export const fetchJson = async <T = unknown>(
 	externalUrl: string,
 	signal?: AbortSignal
@@ -195,9 +214,11 @@ export const fetchJson = async <T = unknown>(
 		signal
 	};
 
+	const url = toFetchableLogUrl(externalUrl);
+
 	for (let attempt = 0; attempt <= LOG_JSON_RETRY_DELAYS_MS.length; attempt++) {
 		try {
-			const response = await fetch(externalUrl, options);
+			const response = await fetch(url, options);
 
 			if (!response.ok) {
 				const error = getBublikFromStatusCode(response);
