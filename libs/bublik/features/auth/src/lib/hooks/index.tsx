@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentType, ReactNode, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Navigate, To, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { User } from '@/shared/types';
 import { routes } from '@/router';
@@ -28,6 +28,7 @@ export type AuthenticatedUser = {
 export const useAuth = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [login] = useLoginMutation();
 	const [logoutMutation] = useLogoutMutation();
@@ -49,10 +50,24 @@ export const useAuth = () => {
 		};
 	}, [data]);
 
+	// Set by logout: the cache is dropped only once the page being left is gone
+	const resetOnArrival = useRef(false);
+
+	useEffect(() => {
+		if (!resetOnArrival.current) return;
+
+		resetOnArrival.current = false;
+		dispatch(bublikAPI.util.resetApiState());
+	}, [location, dispatch]);
+
 	const logout = async () => {
 		try {
 			await logoutMutation().unwrap();
-			dispatch(bublikAPI.util.resetApiState());
+			// Leave before resetting the cache: a reset makes every mounted query
+			// refetch, and a protected page would be rejected and ask to sign in
+			// again over the dashboard. The effect above resets once the dashboard
+			// has rendered and the old page is unmounted.
+			resetOnArrival.current = true;
 			navigate(routes.dashboard({}));
 		} catch {
 			toast.error('Failed to logout');
@@ -67,29 +82,5 @@ export const useAuth = () => {
 		isAdmin: Boolean(user?.roles.includes('admin')),
 		changePassword: changePasswordMutation,
 		verifyEmail
-	};
-};
-
-interface WithAuthConfig {
-	fallback?: ReactNode;
-	redirectTo?: To;
-}
-
-export interface WithAuthProps {
-	firstName: string;
-	lastName: string;
-}
-
-export const withAuth = <T extends WithAuthProps = WithAuthProps>(
-	WrappedComponent: ComponentType<T>
-) => {
-	return (config?: WithAuthConfig) => (props: Omit<T, keyof WithAuthProps>) => {
-		const { user, isLoading } = useAuth();
-
-		if (isLoading) return config?.fallback || null;
-
-		if (!user) return <Navigate to={config?.redirectTo ?? '/auth/login'} />;
-
-		return <WrappedComponent {...user} {...(props as T)} />;
 	};
 };

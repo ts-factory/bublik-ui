@@ -42,7 +42,7 @@ import { HistoryPageV2 } from '../pages/history-page/history-page';
 import { RunsPage } from '../pages/runs-page';
 import { RunsLayout } from '../pages/runs-layout';
 
-import { LoginDialogContainer } from '@/bublik/features/auth';
+import { LoginDialogContainer, ProtectedRoute } from '@/bublik/features/auth';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import {
@@ -250,8 +250,13 @@ const router = createBrowserRouter(
 					children: [
 						{ path: '/', element: <RedirectToDashboard /> },
 						{ path: '/dashboard', element: <DashboardPageV2 /> },
-						{ path: '/chat', element: <ChatPage /> },
-						{ path: '/chat/:threadId', element: <ChatPage /> },
+						{
+							element: <ProtectedRoute />,
+							children: [
+								{ path: '/chat', element: <ChatPage /> },
+								{ path: '/chat/:threadId', element: <ChatPage /> }
+							]
+						},
 						{
 							path: '/tools/packet-viewer',
 							element: (
@@ -312,16 +317,21 @@ const router = createBrowserRouter(
 								},
 								{ path: 'flower', element: <FlowerFeature /> },
 								{
-									path: 'users',
-									element: (
-										<LazyRoute>
-											<AdminUsersPage />
-										</LazyRoute>
-									)
-								},
-								{
-									path: 'analytics',
-									element: <AdminAnalyticsPage />
+									element: <ProtectedRoute access="admin" />,
+									children: [
+										{
+											path: 'users',
+											element: (
+												<LazyRoute>
+													<AdminUsersPage />
+												</LazyRoute>
+											)
+										},
+										{
+											path: 'analytics',
+											element: <AdminAnalyticsPage />
+										}
+									]
 								},
 								{
 									path: 'config',
