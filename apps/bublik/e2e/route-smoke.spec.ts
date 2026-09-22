@@ -109,6 +109,9 @@ test.describe('Navigation', () => {
 		await then('the deployed UI and API versions are shown', () =>
 			sidebar.expectDeployInfoOnHover()
 		);
+		await and('a release version opens its release notes in a new tab', () =>
+			sidebar.expectVersionLinksToReleaseNotes()
+		);
 	});
 
 	test('The account menu in the sidebar opens a settings section', async ({

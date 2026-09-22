@@ -3,6 +3,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 
 const HOVER_CARD_OPEN_TIMEOUT = 5_000;
+const RELEASE_TAG = /^v\d+\.\d+\.\d+/;
 
 class Sidebar {
 	constructor(private readonly page: Page) {}
@@ -118,6 +119,26 @@ class Sidebar {
 		await expect(this.page.getByText(/^API:/).first()).toBeVisible({
 			timeout: 15_000
 		});
+	}
+
+	/**
+	 * Only a build sitting exactly on a release tag has release notes to link
+	 * to. The e2e stack builds the checked-out tree, which `git_version_env.sh`
+	 * labels `dev` unless HEAD is a tag, so the expectation follows the label.
+	 */
+	async expectVersionLinksToReleaseNotes(): Promise<void> {
+		const label = this.versionLabel();
+		const version = (await label.textContent())?.trim() ?? '';
+
+		if (RELEASE_TAG.test(version)) {
+			await expect(label).toHaveAttribute(
+				'href',
+				new RegExp(`/docs/blog/release-${version.replace(/\./g, '\\.')}$`)
+			);
+			await expect(label).toHaveAttribute('target', '_blank');
+		} else {
+			await expect(label).not.toHaveAttribute('href');
+		}
 	}
 }
 

@@ -4,8 +4,12 @@ import { HoverCard, useSidebar, Tooltip, Icon, cn } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	DeployInfoContainer,
-	frontendAppVersion
+	frontendAppVersion,
+	frontendReleaseNotesUrl
 } from '@/bublik/features/deploy-info';
+
+const versionClassName =
+	'ml-1 inline-flex translate-y-px items-center text-xs font-medium leading-none text-text-menu';
 
 export const SidebarLogoButton = () => {
 	const { isSidebarOpen, toggleSidebar } = useSidebar();
@@ -41,12 +45,24 @@ export const SidebarLogoButton = () => {
 				<span className="text-[1.375rem] leading-[0.75rem]">Bublik</span>
 			</LinkWithProject>
 			<HoverCard content={<DeployInfoContainer />} side="right" sideOffset={8}>
-				<span
-					data-testid="sidebar-version"
-					className="ml-1 inline-flex translate-y-px items-center text-xs font-medium leading-none text-text-menu"
-				>
-					{frontendAppVersion}
-				</span>
+				{frontendReleaseNotesUrl ? (
+					<a
+						href={frontendReleaseNotesUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						data-testid="sidebar-version"
+						className={cn(
+							versionClassName,
+							'hover:underline underline-offset-2'
+						)}
+					>
+						{frontendAppVersion}
+					</a>
+				) : (
+					<span data-testid="sidebar-version" className={versionClassName}>
+						{frontendAppVersion}
+					</span>
+				)}
 			</HoverCard>
 		</div>
 	);

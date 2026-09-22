@@ -46,6 +46,7 @@ Feature: Navigation
     Given I open the dashboard
     When I hover the version next to the Bublik label
     Then the deployed UI and API versions are shown
+    And a release version opens its release notes in a new tab
 
   Scenario: The account menu in the sidebar opens a settings section
     Given I open the dashboard
