@@ -7,3 +7,8 @@ export * from './lib/types';
 export * from './lib/utils';
 export * from './lib/endpoints';
 export * from './lib/error-handling';
+export {
+	isNotAuthenticatedError,
+	NOT_AUTHENTICATED_MESSAGE
+} from './lib/base-query-with-auth';
+export * from './lib/login-prompt';

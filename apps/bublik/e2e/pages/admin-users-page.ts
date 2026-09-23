@@ -21,13 +21,17 @@ class AdminUsersPage {
 		return this.page.getByRole('dialog');
 	}
 
-	async goto(): Promise<void> {
-		await this.page.goto('admin/users');
+	async goto(search = ''): Promise<void> {
+		await this.page.goto(`admin/users${search}`);
 		await expect(this.createUserButton).toBeVisible({ timeout: 30_000 });
 	}
 
 	async expectUserListed(email: string): Promise<void> {
-		await expect(this.page.getByText(email).first()).toBeVisible({
+		await expect(
+			this.page
+				.getByRole('table')
+				.getByRole('link', { name: email, exact: true })
+		).toBeVisible({
 			timeout: 30_000
 		});
 	}

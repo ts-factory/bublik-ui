@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import { BooleanParam, StringParam, useQueryParam } from 'use-query-params';
 import {
 	fetchServerSentEvents,
 	useChat,
@@ -30,6 +31,8 @@ import {
 	BUBLIK_TAG,
 	useGetChatModelsQuery,
 	useGetChatThreadQuery,
+	useGetMcpStatusQuery,
+	useGetServerFeaturesQuery,
 	useCancelChatRunMutation,
 	type ChatContextUsage,
 	type ChatModel,
@@ -41,6 +44,7 @@ import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
 
 import {
 	ContextUsageIndicator,
+	McpStatusIndicator,
 	Conversation,
 	ConversationContent,
 	ConversationScrollButton,
@@ -500,6 +504,16 @@ function ChatThreadConversation({
 }) {
 	const dispatch = useDispatch();
 	const [input, setInput] = useState('');
+	// Which MCP servers the next message can use. Probing opens the
+	// connections, so it is fetched once and refreshed on demand.
+	const mcpStatus = useGetMcpStatusQuery();
+	const { data: features } = useGetServerFeaturesQuery();
+	const [, setSettingsOpen] = useQueryParam('settings-open', BooleanParam);
+	const [, setSettingsTab] = useQueryParam('settings-tab', StringParam);
+	const openMcpServerSettings = () => {
+		setSettingsTab('mcp-servers');
+		setSettingsOpen(true);
+	};
 	// Context meter, seeded from the thread's persisted usage then updated live
 	// by the server's CUSTOM events (context usage at run end, compaction
 	// mid-run). Resets naturally with the thread remount (key=threadId).
@@ -747,6 +761,16 @@ function ChatThreadConversation({
 											onValueChange={modelControls.onEffortChange}
 										/>
 									) : null}
+									<McpStatusIndicator
+										status={mcpStatus.data}
+										isFetching={mcpStatus.isFetching}
+										onRefresh={() => void mcpStatus.refetch()}
+										onManage={
+											features?.user_mcp_servers_enabled
+												? openMcpServerSettings
+												: undefined
+										}
+									/>
 									<ContextUsageIndicator
 										tokens={contextUsage?.tokens}
 										limit={

@@ -14,8 +14,7 @@ export {
 	toggleWrapperStyles,
 	linkStyles,
 	listWrapperStyles,
-	accordionLinkStyles,
-	paddingTransition
+	accordionLinkStyles
 } from './lib/sidebar-nav.styles';
 
 export {

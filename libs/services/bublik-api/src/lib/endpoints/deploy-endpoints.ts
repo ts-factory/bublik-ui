@@ -63,7 +63,9 @@ const VersionSummary = z.object({
 
 const ServerFeaturesSchema = z.object({
 	analytics_enabled: z.boolean(),
-	chat_enabled: z.boolean()
+	chat_enabled: z.boolean(),
+	/** Chat is on and an admin allowed at least one host for users' own MCP servers. */
+	user_mcp_servers_enabled: z.boolean().optional()
 });
 
 export type VersionSummary = z.infer<typeof VersionSummary>;

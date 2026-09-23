@@ -5,18 +5,25 @@ import { expect, Locator, Page } from '@playwright/test';
 import { adminEmail, adminPassword } from '../support/session';
 
 class LoginPage {
-	constructor(private readonly page: Page) {}
+	/**
+	 * `scope` narrows the form lookups, e.g. to the sign-in dialog that opens
+	 * over a page; it defaults to the whole login page.
+	 */
+	constructor(
+		private readonly page: Page,
+		private readonly scope: Page | Locator = page
+	) {}
 
 	get emailInput(): Locator {
-		return this.page.locator('input[name="email"]');
+		return this.scope.locator('input[name="email"]');
 	}
 
 	get passwordInput(): Locator {
-		return this.page.locator('input[name="password"]');
+		return this.scope.locator('input[name="password"]');
 	}
 
 	get submitButton(): Locator {
-		return this.page.getByRole('button', { name: 'Sign in' });
+		return this.scope.getByRole('button', { name: 'Sign in' });
 	}
 
 	async goto(searchParams?: string): Promise<void> {

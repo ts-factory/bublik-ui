@@ -58,6 +58,33 @@ export const ChatModelsResponseSchema = z.object({
 
 export type ChatModelsResponse = z.infer<typeof ChatModelsResponseSchema>;
 
+export const McpServerStatusSchema = z.object({
+	scope: z.enum(['global', 'user']),
+	/** The tool-name prefix: the config id for global servers, the slug for the user's. */
+	id: z.string(),
+	name: z.string(),
+	status: z.enum([
+		'connected',
+		'unavailable',
+		'disabled',
+		'misconfigured',
+		'collision'
+	]),
+	tools: z.number().nullable(),
+	/** Why a user's own server could not be reached; never set for global ones. */
+	error: z.string().nullable(),
+	server_id: z.number().nullable()
+});
+
+export type McpServerStatus = z.infer<typeof McpServerStatusSchema>;
+
+export const McpStatusResponseSchema = z.object({
+	global: z.array(McpServerStatusSchema),
+	user: z.array(McpServerStatusSchema)
+});
+
+export type McpStatusResponse = z.infer<typeof McpStatusResponseSchema>;
+
 export const ChatThreadListItemSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -111,6 +138,18 @@ export const chatEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
+		/**
+		 * Probes every MCP server the caller's next run would attach. Each call
+		 * opens the connections, so it is fetched on demand rather than polled.
+		 */
+		getMcpStatus: build.query<McpStatusResponse, void>({
+			query: () => ({
+				url: withApiV2('/chat/mcp-status', true),
+				cache: 'no-cache'
+			}),
+			responseSchema: McpStatusResponseSchema,
+			providesTags: [BUBLIK_TAG.McpServers]
+		}),
 		getChatModels: build.query<ChatModelsResponse, void>({
 			query: () => ({
 				url: withApiV2('/chat/models', true),

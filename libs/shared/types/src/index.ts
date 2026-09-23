@@ -10,6 +10,7 @@ export * from './lib/measurements';
 export * from './lib/run-import';
 export * from './lib/log-json-schema';
 export * from './lib/auth';
+export * from './lib/mcp-servers';
 export * from './lib/import';
 export * from './lib/performance';
 export * from './lib/report';

@@ -16,9 +16,9 @@ import { Sidebar } from '@/bublik/features/sidebar';
 function FooterNav() {
 	return (
 		<>
-			<SettingsModal />
 			<AdminSidebarNav />
 			<HelpSidebarNav />
+			<SettingsModal />
 		</>
 	);
 }

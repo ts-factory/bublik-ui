@@ -111,6 +111,31 @@ test.describe('Navigation', () => {
 		);
 	});
 
+	test('The account menu in the sidebar opens a settings section', async ({
+		page
+	}) => {
+		const dashboardPage = new DashboardPage(page);
+		const sidebar = new Sidebar(page);
+
+		await given('I open the dashboard', () => dashboardPage.goto());
+		await and('the sidebar shows who I am signed in as', () =>
+			sidebar.expectSignedIn()
+		);
+		await when('I open my account menu and choose Appearance', () =>
+			sidebar
+				.openAccountMenu()
+				.then(() => sidebar.accountMenuItem('Appearance').click())
+		);
+		await then(
+			'the settings dialog is open on the Appearance section',
+			async () => {
+				await expect(sidebar.settingsDialog()).toBeVisible({ timeout: 15_000 });
+				await expect(page).toHaveURL(/settings-open=1/);
+				await expect(page).toHaveURL(/settings-tab=appearance/);
+			}
+		);
+	});
+
 	test('An unknown address shows the not-found page', async ({ page }) => {
 		await when('I open an address that does not exist', () =>
 			page.goto('definitely-not-a-bublik-page')

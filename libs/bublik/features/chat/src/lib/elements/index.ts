@@ -5,6 +5,7 @@ export * from './context-usage-indicator';
 export * from './conversation';
 export * from './file-card';
 export * from './loader';
+export * from './mcp-status-indicator';
 export * from './message';
 export * from './part-state';
 export * from './prompt-input';

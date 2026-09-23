@@ -1249,3 +1249,118 @@ test.describe('Run Details Page', () => {
 		}
 	);
 });
+
+test.describe('Run Details Page (signed out)', () => {
+	test.use({ storageState: { cookies: [], origins: [] } });
+
+	test(
+		'Marking a run as compromised while signed out asks me to sign in',
+		{ tag: ['@run', '@compromised', '@auth'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = scratchRun();
+			const dialog = page.getByTestId('login-dialog');
+			const sessionChecked = page.waitForResponse(
+				(response) =>
+					response.url().includes('/auth/profile/info/') &&
+					response.status() === 403
+			);
+			const loginRequiredAction = runPage.loginRequiredAction(
+				'Log in to mark the run as compromised'
+			);
+
+			await given(
+				'I am signed out and open a run that is not compromised',
+				async () => {
+					await runPage.goto(runId);
+					await sessionChecked;
+					await runPage.expectLoaded(expectedRun.name);
+					await expect(loginRequiredAction).toHaveText(/Mark as compromised/, {
+						timeout: 30_000
+					});
+				}
+			);
+			await when('I click the mark as compromised action', () =>
+				loginRequiredAction.click()
+			);
+			await then(
+				'the sign-in dialog explains why sign-in is needed',
+				async () => {
+					await expect(
+						dialog.getByText('Log in to mark the run as compromised.')
+					).toBeVisible({ timeout: 15_000 });
+					await expect(
+						dialog.getByRole('button', { name: 'Sign in' })
+					).toBeVisible();
+				}
+			);
+			await when('I click outside the sign-in dialog', () =>
+				page.mouse.click(5, 5)
+			);
+			await then('the sign-in dialog closes', () =>
+				expect(dialog).toHaveCount(0, { timeout: 15_000 })
+			);
+			await and('I am still on the run page', () =>
+				expect(page).toHaveURL(new RegExp(`/runs/${runId}`))
+			);
+		}
+	);
+
+	test(
+		'Notes cannot be added while signed out and point to signing in',
+		{ tag: ['@run', '@comments', '@auth'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = scratchRun();
+			const dialog = page.getByTestId('login-dialog');
+			let testRow = page.locator('never');
+			const sessionChecked = page.waitForResponse(
+				(response) =>
+					response.url().includes('/auth/profile/info/') &&
+					response.status() === 403
+			);
+			const addNote = () =>
+				runPage
+					.noteCell(testRow)
+					.getByRole('button', { name: 'Log in to add notes' });
+
+			await given(
+				"I am signed out and open an imported run's page with the Notes column shown",
+				async () => {
+					await runPage.goto(runId);
+					await sessionChecked;
+					await runPage.expectLoaded(expectedRun.name);
+					await runPage.showColumn('Notes');
+					testRow = await runPage.expandUntilTestRow();
+				}
+			);
+			await then(
+				'adding a note is disabled with a hint to log in',
+				async () => {
+					await expect(
+						runPage.noteCell(testRow).getByTestId('login-required')
+					).toHaveAttribute('aria-label', 'Log in to add notes');
+					await addNote().hover();
+					await expect(
+						page.getByRole('tooltip', { name: 'Log in to add notes' })
+					).toBeVisible();
+				}
+			);
+			await when('I click it anyway', () => addNote().click());
+			await then('I am asked to sign in to add notes', () =>
+				expect(
+					page.getByTestId('login-dialog').getByText('Log in to add notes.')
+				).toBeVisible()
+			);
+			await when('I close the sign-in dialog', () =>
+				dialog.getByRole('button', { name: 'Close' }).click()
+			);
+			await then('the sign-in dialog is closed', () =>
+				expect(dialog).toHaveCount(0, { timeout: 15_000 })
+			);
+			await and('I am still on the run page', () =>
+				expect(page).toHaveURL(new RegExp(`/runs/${runId}`))
+			);
+		}
+	);
+});

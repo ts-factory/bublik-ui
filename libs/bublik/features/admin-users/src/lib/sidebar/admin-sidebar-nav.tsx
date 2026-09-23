@@ -57,6 +57,18 @@ export function AdminSidebarNav() {
 						Users
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
+				{isAdmin ? (
+					<SidebarNavSubmenuItemContainer
+						to="/admin/tokens"
+						pattern={{ path: '/admin/tokens' }}
+						linkComponent={LinkWithProject}
+					>
+						<SidebarNavSubmenuItemContainer.Icon name="Paper" size={24} />
+						<SidebarNavSubmenuItemContainer.Label>
+							Tokens
+						</SidebarNavSubmenuItemContainer.Label>
+					</SidebarNavSubmenuItemContainer>
+				) : null}
 				<SidebarNavSubmenuItemContainer
 					to="/admin/import"
 					pattern={{ path: '/admin/import' }}

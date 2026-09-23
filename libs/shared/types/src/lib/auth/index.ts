@@ -219,3 +219,60 @@ export const ResetUserPasswordSchema = z
 export type ResetUserPasswordFormInputs = z.infer<
 	typeof ResetUserPasswordSchema
 >;
+
+/**
+ |--------------------------------------------------
+ | ACCESS TOKENS
+ |--------------------------------------------------
+ */
+
+export const AccessTokenStatusSchema = z.enum([
+	'active',
+	'expired',
+	'revoked'
+]);
+
+export type AccessTokenStatus = z.infer<typeof AccessTokenStatusSchema>;
+
+/**
+ * A token as the API is willing to describe it. There is deliberately no
+ * field for the value: it exists only in the response to a creation, and the
+ * server keeps nothing that could reproduce it.
+ */
+export const AccessTokenSchema = z.object({
+	id: z.number(),
+	name: z.string(),
+	prefix: z.string(),
+	status: AccessTokenStatusSchema,
+	owner: z.string(),
+	created: z.string(),
+	expires_at: z.string().nullable(),
+	last_used_at: z.string().nullable(),
+	revoked_at: z.string().nullable(),
+	revoked_by: z.string().nullable()
+});
+
+export type AccessToken = z.infer<typeof AccessTokenSchema>;
+
+/** The creation response, and the only carrier of a token's value. */
+export const CreatedAccessTokenSchema = AccessTokenSchema.extend({
+	token: z.string()
+});
+
+export type CreatedAccessToken = z.infer<typeof CreatedAccessTokenSchema>;
+
+/** Fixed expiries offered by the API; null means the token never expires. */
+export const ACCESS_TOKEN_EXPIRY_OPTIONS = [7, 30, 90, null] as const;
+
+export const CreateAccessTokenSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.min(1, 'Name must be provided!')
+		.max(64, 'Name must be 64 characters or fewer'),
+	expires_in: z
+		.union([z.literal(7), z.literal(30), z.literal(90), z.null()])
+		.default(30)
+});
+
+export type CreateAccessTokenInputs = z.infer<typeof CreateAccessTokenSchema>;

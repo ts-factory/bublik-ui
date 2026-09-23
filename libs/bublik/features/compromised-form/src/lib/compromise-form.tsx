@@ -34,6 +34,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { useDispatch } from 'react-redux';
 import { formatTimeToAPI } from '@/shared/utils';
+import { LoginRequired } from '@/bublik/features/auth';
 
 interface CompromisedButtonProps {
 	isCompromised: boolean;
@@ -104,13 +105,15 @@ export const CompromiseInfo = forwardRef<HTMLDivElement, DefineInfoProps>(
 					<span className="text-[0.875rem] font-semibold leading-[1.125rem]">
 						Run is compromised
 					</span>
-					<button
-						className="p-px transition-colors rounded-md text-primary hover:bg-primary-wash active:text-white active:bg-primary"
-						onClick={onDeleteClick}
-						aria-label="Remove compomised status"
-					>
-						<Icon name="Bin" size={22} />
-					</button>
+					<LoginRequired message="Log in to remove the compromised status">
+						<button
+							className="p-px transition-colors rounded-md text-primary hover:bg-primary-wash active:text-white active:bg-primary"
+							onClick={onDeleteClick}
+							aria-label="Remove compomised status"
+						>
+							<Icon name="Bin" size={22} />
+						</button>
+					</LoginRequired>
 				</div>
 
 				<p className="text-[0.875rem] text-text-menu leading-[0.875rem] break-all">
@@ -306,6 +309,21 @@ export const CompromiseStatus = (props: CompromiseStatusProps) => {
 		setIsOpen(false);
 	};
 
+	const trigger = (
+		<PopoverTrigger
+			asChild
+			disabled={!tags?.length}
+			aria-label="Compromised form"
+		>
+			<CompromiseStatusButton
+				isCompromised={isCompromised}
+				isLoading={isLoading}
+				isError={isError}
+				isActive={isOpen}
+			/>
+		</PopoverTrigger>
+	);
+
 	const renderContent = () => {
 		if (!runDetails || !tags?.length) {
 			return null;
@@ -333,18 +351,14 @@ export const CompromiseStatus = (props: CompromiseStatusProps) => {
 
 	return (
 		<Popover onOpenChange={setIsOpen} open={isOpen} modal>
-			<PopoverTrigger
-				asChild
-				disabled={!tags?.length}
-				aria-label="Compromised form"
-			>
-				<CompromiseStatusButton
-					isCompromised={isCompromised}
-					isLoading={isLoading}
-					isError={isError}
-					isActive={isOpen}
-				/>
-			</PopoverTrigger>
+			{/* A compromised run's details stay readable; only removing needs a session */}
+			{isCompromised ? (
+				trigger
+			) : (
+				<LoginRequired message="Log in to mark the run as compromised">
+					{trigger}
+				</LoginRequired>
+			)}
 			<PopoverContent sideOffset={8}>{renderContent()}</PopoverContent>
 		</Popover>
 	);
@@ -429,7 +443,9 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 		toast.promise(deleteCompromisePromise, {
 			success: 'Removed compromise status!',
 			loading: 'Removing compromise status...',
-			error: 'Failed to remove compromise status!',
+			error: (err: unknown) =>
+				getErrorMessage(err).description ||
+				'Failed to remove compromise status!',
 			position: 'top-center'
 		});
 		dispatch(bublikAPI.util.invalidateTags(DASHBOARD_TO_INVALIDATE));

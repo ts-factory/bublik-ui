@@ -5,6 +5,7 @@ import { EndpointBuilder } from '@reduxjs/toolkit/query';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
 import { API_REDUCER_PATH } from '../constants';
+import { isNotAuthenticatedError } from '../base-query-with-auth';
 
 import type {
 	ChangePasswordInputs,
@@ -49,11 +50,23 @@ export const authEndpoints = {
 			query: () => ({ url: authUrls.logout.url, method: 'POST' }),
 			invalidatesTags: [BUBLIK_TAG.User]
 		}),
-		me: build.query<User, void>({
-			query: () => ({
-				url: authUrls.me.url,
-				cache: 'no-store'
-			}),
+		me: build.query<User | null, void>({
+			// Signed out is an answer, not a failure: null lets the UI tell "no
+			// session" apart from "still asking", and lets logout set it upfront
+			async queryFn(_arg, _api, _extraOptions, baseQuery) {
+				const result = await baseQuery({
+					url: authUrls.me.url,
+					cache: 'no-store'
+				});
+
+				if (result.error) {
+					return isNotAuthenticatedError(result.error)
+						? { data: null }
+						: { error: result.error };
+				}
+
+				return { data: result.data as User };
+			},
 			providesTags: () => [BUBLIK_TAG.User],
 			keepUnusedDataFor: Number.MAX_SAFE_INTEGER
 		}),

@@ -5,6 +5,7 @@ export { ReactComponent as Aggregation } from './aggregation.svg';
 export { ReactComponent as ArrowLeanUp } from './arrow-lean-up.svg';
 export { ReactComponent as ArrowShortSmall } from './arrow-short-small.svg';
 export { ReactComponent as ArrowShortTop } from './arrow-short-top.svg';
+export { ReactComponent as ArrowShortUpDown } from './arrow-short-up-down.svg';
 export { ReactComponent as Bin } from './bin.svg';
 export { ReactComponent as BoxArrowRight } from './box-arrow-right.svg';
 export { ReactComponent as BoxCheckmark } from './box-checkmark.svg';
