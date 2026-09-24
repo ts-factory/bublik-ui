@@ -52,13 +52,46 @@ export const isRefreshExempt = (args: string | FetchArgs) => {
 const isAuthError = (result: RawResult) =>
 	Boolean(result.error && result.error.status === AUTH_ERROR_CODE);
 
+/** Message the backend sends when there is no valid session at all. */
+export const NOT_AUTHENTICATED_MESSAGE = 'Not Authenticated';
+
+/**
+ * Endpoints that are expected to be rejected for anonymous visitors and must
+ * not ask them to log in (the `me` query runs on every page).
+ */
+export const LOGIN_PROMPT_EXEMPT_ENDPOINTS = ['me'] as const;
+
+/**
+ * Whether the error means "log in first", as opposed to a 403 for a logged-in
+ * user who lacks permissions (`You are not authorized to perform this action`).
+ */
+export const isNotAuthenticatedError = (error: unknown): boolean => {
+	if (typeof error !== 'object' || error === null) return false;
+
+	const { status, data } = error as { status?: unknown; data?: unknown };
+
+	if (status !== AUTH_ERROR_CODE) return false;
+	if (data === NOT_AUTHENTICATED_MESSAGE) return true;
+	if (typeof data !== 'object' || data === null) return false;
+
+	const { messages } = data as { messages?: unknown };
+
+	return Array.isArray(messages)
+		? messages.includes(NOT_AUTHENTICATED_MESSAGE)
+		: messages === NOT_AUTHENTICATED_MESSAGE;
+};
+
+const isLoginPromptExempt = (api: BaseQueryApi) =>
+	(LOGIN_PROMPT_EXEMPT_ENDPOINTS as readonly string[]).includes(api.endpoint);
+
 export interface CreateBaseQueryWithAuthOptions {
 	baseQuery: RawBaseQuery;
 	/**
-	 * Called once per request whose session could not be restored
-	 * (refresh failed and the retried request is still rejected).
+	 * Called when a request is still rejected as "Not Authenticated" after the
+	 * silent refresh. Resolve `true` once the user logged in to retry the
+	 * request, `false` to hand the original error back to the caller.
 	 */
-	onRefreshFailed?: (api: BaseQueryApi) => void;
+	onAuthRequired?: (api: BaseQueryApi) => Promise<boolean>;
 }
 
 /**
@@ -70,10 +103,12 @@ export interface CreateBaseQueryWithAuthOptions {
  * - After the shared refresh settles the original request is retried exactly
  *   once, even when the refresh failed: another tab may have rotated the cookie
  *   in the shared jar in the meantime.
+ * - If the session is still missing, `onAuthRequired` gets a chance to log the
+ *   user in, after which the request is retried one last time.
  */
 export function createBaseQueryWithAuth({
 	baseQuery,
-	onRefreshFailed
+	onAuthRequired
 }: CreateBaseQueryWithAuthOptions): BaseQueryFn<
 	string | FetchArgs,
 	unknown,
@@ -120,8 +155,16 @@ export function createBaseQueryWithAuth({
 
 		if (refreshed || !isAuthError(retried)) return retried;
 
-		onRefreshFailed?.(api);
+		if (
+			!onAuthRequired ||
+			isLoginPromptExempt(api) ||
+			!isNotAuthenticatedError(retried.error)
+		) {
+			return result;
+		}
 
-		return result;
+		const loggedIn = await onAuthRequired(api);
+
+		return loggedIn ? baseQuery(args, api, extraOptions) : result;
 	};
 }

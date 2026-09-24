@@ -12,7 +12,7 @@ const Avatar = React.forwardRef<
 	<AvatarPrimitive.Root
 		ref={ref}
 		className={cn(
-			'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+			'relative flex size-10 shrink-0 overflow-hidden rounded-full',
 			className
 		)}
 		{...props}
@@ -66,7 +66,7 @@ export const ProfilePicture = ({
 		.join('');
 
 	return (
-		<Avatar className={cn('w-12 h-12', className)} {...props}>
+		<Avatar className={cn('size-12', className)} {...props}>
 			<AvatarImage src={imageUrl} />
 			<AvatarFallback>{placeholder}</AvatarFallback>
 		</Avatar>

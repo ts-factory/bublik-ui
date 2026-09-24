@@ -616,6 +616,10 @@ class RunPage {
 		return this.page.getByTestId('run-comment-value');
 	}
 
+	loginRequiredAction(message: string): Locator {
+		return this.page.getByRole('button', { name: message, exact: true });
+	}
+
 	async openCommentEditor(): Promise<void> {
 		await this.page
 			.getByRole('banner')

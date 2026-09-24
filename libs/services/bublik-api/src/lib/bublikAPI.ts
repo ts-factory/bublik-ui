@@ -2,13 +2,12 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-import { config } from '@/bublik/config';
-
 import { tagTypes } from './tags';
 import { BUBLIK_API_REDUCER_PATH } from './constants';
 import { getAPIConfig } from './config';
 import { getMinutes } from './utils';
 import { createBaseQueryWithAuth } from './base-query-with-auth';
+import { requestLogin } from './login-prompt';
 import {
 	adminUsersEndpoints,
 	authEndpoints,
@@ -27,33 +26,11 @@ import {
 	chatEndpoints
 } from './endpoints';
 
-/**
- * Whether the store already holds a logged-in user. Anonymous visitors on
- * public pages also get a 403 from the `me` query and must not be sent to the
- * login page.
- */
-function hasCachedUser(state: unknown): boolean {
-	type MeState = Parameters<
-		ReturnType<typeof bublikAPI.endpoints.me.select>
-	>[0];
-
-	return Boolean(bublikAPI.endpoints.me.select()(state as MeState).data);
-}
-
 const baseQueryWithAuth = createBaseQueryWithAuth({
 	baseQuery: fetchBaseQuery(getAPIConfig()),
-	onRefreshFailed: (api) => {
-		if (!hasCachedUser(api.getState())) return;
-
-		// Session is gone for real: go to the login page and come back here after re-auth.
-		const loginUrl = new URL(
-			`${window.location.origin}${config.baseUrl}/auth/login`
-		);
-
-		loginUrl.searchParams.set('redirect_url', window.location.href);
-
-		window.location.replace(loginUrl);
-	}
+	// A rejected query means the page can't render; a mutation is a single action
+	onAuthRequired: (api) =>
+		requestLogin({ kind: api.type === 'query' ? 'page' : 'action' })
 });
 
 export const bublikAPI = createApi({

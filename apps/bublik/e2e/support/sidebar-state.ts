@@ -1,7 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Page } from '@playwright/test';
-import { decompressFromEncodedURIComponent } from 'lz-string';
+import {
+	compressToEncodedURIComponent,
+	decompressFromEncodedURIComponent
+} from 'lz-string';
 
 const SIDEBAR_STATE_PARAM = '_s';
 
@@ -91,6 +94,13 @@ function decodeSidebarState(url: string): Record<string, SidebarStateValue> {
 	return values;
 }
 
+/** `_s` value for the given compact entries, e.g. `{ hl: 'testName=foo' }`. */
+function encodeSidebarState(values: Record<string, SidebarStateValue>): string {
+	return compressToEncodedURIComponent(
+		JSON.stringify([SIDEBAR_STATE_VERSION, values])
+	);
+}
+
 class SidebarState {
 	constructor(private readonly page: Page) {}
 
@@ -172,6 +182,7 @@ function sidebarState(page: Page): SidebarState {
 
 export {
 	decodeSidebarState,
+	encodeSidebarState,
 	SIDEBAR_ALIASES,
 	SIDEBAR_STATE_MAX_LENGTH,
 	SIDEBAR_STATE_PARAM,

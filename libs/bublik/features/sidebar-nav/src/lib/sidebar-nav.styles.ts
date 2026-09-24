@@ -65,7 +65,3 @@ export const accordionLinkStyles = cva({
 		disabled: { true: 'cursor-not-allowed hover:text-text-menu' }
 	}
 });
-
-export const paddingTransition = {
-	transition: 'padding 0.5s ease, margin 0.5s ease'
-};

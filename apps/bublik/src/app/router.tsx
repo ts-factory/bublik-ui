@@ -21,6 +21,7 @@ import { RedirectToDashboard, RedirectToLogPage } from './redirects';
 import { AdminAnalyticsPage } from '../pages/admin-analytics';
 import { AuthLayout } from '../pages/auth/auth.layout';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
+import { AdminTokensPage } from '../pages/admin-tokens/admin-tokens.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { ChatPage } from '../pages/chat-page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -42,6 +43,7 @@ import { HistoryPageV2 } from '../pages/history-page/history-page';
 import { RunsPage } from '../pages/runs-page';
 import { RunsLayout } from '../pages/runs-layout';
 
+import { LoginDialogContainer, ProtectedRoute } from '@/bublik/features/auth';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import {
@@ -211,6 +213,7 @@ const router = createBrowserRouter(
 					options={{ updateType: 'replaceIn' }}
 				>
 					<BublikCommand />
+					<LoginDialogContainer />
 					<AnalyticsRouteTracker />
 					<IframeNavigationReporter />
 					<Outlet />
@@ -248,8 +251,13 @@ const router = createBrowserRouter(
 					children: [
 						{ path: '/', element: <RedirectToDashboard /> },
 						{ path: '/dashboard', element: <DashboardPageV2 /> },
-						{ path: '/chat', element: <ChatPage /> },
-						{ path: '/chat/:threadId', element: <ChatPage /> },
+						{
+							element: <ProtectedRoute />,
+							children: [
+								{ path: '/chat', element: <ChatPage /> },
+								{ path: '/chat/:threadId', element: <ChatPage /> }
+							]
+						},
 						{
 							path: '/tools/packet-viewer',
 							element: (
@@ -310,16 +318,29 @@ const router = createBrowserRouter(
 								},
 								{ path: 'flower', element: <FlowerFeature /> },
 								{
-									path: 'users',
-									element: (
-										<LazyRoute>
-											<AdminUsersPage />
-										</LazyRoute>
-									)
-								},
-								{
-									path: 'analytics',
-									element: <AdminAnalyticsPage />
+									element: <ProtectedRoute access="admin" />,
+									children: [
+										{
+											path: 'users',
+											element: (
+												<LazyRoute>
+													<AdminUsersPage />
+												</LazyRoute>
+											)
+										},
+										{
+											path: 'tokens',
+											element: (
+												<LazyRoute>
+													<AdminTokensPage />
+												</LazyRoute>
+											)
+										},
+										{
+											path: 'analytics',
+											element: <AdminAnalyticsPage />
+										}
+									]
 								},
 								{
 									path: 'config',

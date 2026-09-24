@@ -43,19 +43,26 @@ export const DialogClose = DialogPrimitive.Close;
 export const DialogOverlay = DialogPrimitive.Overlay;
 export const DialogPortal = DialogPrimitive.Portal;
 
-export const ModalContent = forwardRef<
-	HTMLDivElement,
-	DialogPrimitive.DialogContentProps
->(({ className, ...props }, ref) => {
-	return (
-		<DialogOverlay className={dialogOverlayStyles()}>
-			<DialogContent
-				{...props}
-				className={cn(dialogContentStyles(), className)}
-				ref={ref}
-			>
-				{props.children}
-			</DialogContent>
-		</DialogOverlay>
-	);
-});
+export type ModalContentProps = DialogPrimitive.DialogContentProps & {
+	/**
+	 * Classes for the backdrop. Needed when a dialog opens on top of another
+	 * one and both layers have to be raised together.
+	 */
+	overlayClassName?: string;
+};
+
+export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>(
+	({ className, overlayClassName, ...props }, ref) => {
+		return (
+			<DialogOverlay className={cn(dialogOverlayStyles(), overlayClassName)}>
+				<DialogContent
+					{...props}
+					className={cn(dialogContentStyles(), className)}
+					ref={ref}
+				>
+					{props.children}
+				</DialogContent>
+			</DialogOverlay>
+		);
+	}
+);

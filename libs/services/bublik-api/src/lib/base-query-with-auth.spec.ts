@@ -5,6 +5,7 @@ import type { BaseQueryApi } from '@reduxjs/toolkit/query/react';
 
 import {
 	createBaseQueryWithAuth,
+	isNotAuthenticatedError,
 	isRefreshExempt,
 	REFRESH_URL
 } from './base-query-with-auth';
@@ -19,7 +20,15 @@ const api = {
 	type: 'query'
 } as unknown as BaseQueryApi;
 
-const forbidden = { error: { status: 403, data: 'Not Authenticated' } };
+const forbidden = {
+	error: { status: 403, data: { messages: ['Not Authenticated'] } }
+};
+const notAuthorized = {
+	error: {
+		status: 403,
+		data: { messages: ['You are not authorized to perform this action'] }
+	}
+};
 const ok = (data: unknown) => ({ data });
 
 type Args = { url: string; method?: string };
@@ -70,22 +79,76 @@ describe('createBaseQueryWithAuth', () => {
 		expect(result.data).toBe('/a');
 	});
 
-	it('retries once after a failed refresh and reports failure if still rejected', async () => {
+	it('retries once after a failed refresh and asks for login if still rejected', async () => {
 		const baseQuery = vi.fn(async () => forbidden);
-		const onRefreshFailed = vi.fn();
+		const onAuthRequired = vi.fn(async () => false);
 		const query = createBaseQueryWithAuth({
 			baseQuery: baseQuery as never,
-			onRefreshFailed
+			onAuthRequired
 		});
 
 		const result = await query({ url: '/a' }, api, {});
 
 		expect(result).toBe(forbidden);
-		expect(onRefreshFailed).toHaveBeenCalledTimes(1);
-		expect(onRefreshFailed).toHaveBeenCalledWith(api);
+		expect(onAuthRequired).toHaveBeenCalledTimes(1);
+		expect(onAuthRequired).toHaveBeenCalledWith(api);
 		// original + refresh + single retry, never a loop
 		expect(baseQuery).toHaveBeenCalledTimes(3);
 		expect(refreshCalls(baseQuery)).toHaveLength(1);
+	});
+
+	it('retries the request once the user logged in', async () => {
+		let loggedIn = false;
+		const baseQuery = vi.fn(async (args: Args) =>
+			loggedIn && args.url !== REFRESH_URL ? ok(args.url) : forbidden
+		);
+		const onAuthRequired = vi.fn(async () => {
+			loggedIn = true;
+			return true;
+		});
+		const query = createBaseQueryWithAuth({
+			baseQuery: baseQuery as never,
+			onAuthRequired
+		});
+
+		const result = await query({ url: '/a', method: 'POST' }, api, {});
+
+		expect(result.data).toBe('/a');
+		expect(onAuthRequired).toHaveBeenCalledTimes(1);
+		// original + refresh + retry + retry after login
+		expect(baseQuery).toHaveBeenCalledTimes(4);
+	});
+
+	it('does not ask for login when the user lacks permissions', async () => {
+		const baseQuery = vi.fn(async () => notAuthorized);
+		const onAuthRequired = vi.fn(async () => true);
+		const query = createBaseQueryWithAuth({
+			baseQuery: baseQuery as never,
+			onAuthRequired
+		});
+
+		const result = await query({ url: '/a' }, api, {});
+
+		expect(result).toBe(notAuthorized);
+		expect(onAuthRequired).not.toHaveBeenCalled();
+	});
+
+	it('does not ask anonymous visitors to log in for the me query', async () => {
+		const baseQuery = vi.fn(async () => forbidden);
+		const onAuthRequired = vi.fn(async () => true);
+		const query = createBaseQueryWithAuth({
+			baseQuery: baseQuery as never,
+			onAuthRequired
+		});
+
+		const result = await query(
+			{ url: '/api/v2/auth/profile/info/' },
+			{ ...api, endpoint: 'me' },
+			{}
+		);
+
+		expect(result).toBe(forbidden);
+		expect(onAuthRequired).not.toHaveBeenCalled();
 	});
 
 	it('keeps the session when another tab refreshed the cookie meanwhile', async () => {
@@ -95,16 +158,16 @@ describe('createBaseQueryWithAuth', () => {
 			calls += 1;
 			return calls === 1 ? forbidden : ok(args.url);
 		});
-		const onRefreshFailed = vi.fn();
+		const onAuthRequired = vi.fn(async () => false);
 		const query = createBaseQueryWithAuth({
 			baseQuery: baseQuery as never,
-			onRefreshFailed
+			onAuthRequired
 		});
 
 		const result = await query({ url: '/a' }, api, {});
 
 		expect(result.data).toBe('/a');
-		expect(onRefreshFailed).not.toHaveBeenCalled();
+		expect(onAuthRequired).not.toHaveBeenCalled();
 	});
 
 	it('returns non-auth errors and successes untouched', async () => {
@@ -121,10 +184,10 @@ describe('createBaseQueryWithAuth', () => {
 
 	it('never refreshes for unauthenticated auth flows', async () => {
 		const baseQuery = vi.fn(async () => forbidden);
-		const onRefreshFailed = vi.fn();
+		const onAuthRequired = vi.fn(async () => true);
 		const query = createBaseQueryWithAuth({
 			baseQuery: baseQuery as never,
-			onRefreshFailed
+			onAuthRequired
 		});
 
 		const result = await query(
@@ -135,7 +198,7 @@ describe('createBaseQueryWithAuth', () => {
 
 		expect(result).toBe(forbidden);
 		expect(baseQuery).toHaveBeenCalledTimes(1);
-		expect(onRefreshFailed).not.toHaveBeenCalled();
+		expect(onAuthRequired).not.toHaveBeenCalled();
 	});
 });
 
@@ -162,5 +225,26 @@ describe('isRefreshExempt', () => {
 	])('does not exempt %s', (url) => {
 		expect(isRefreshExempt(url)).toBe(false);
 		expect(isRefreshExempt({ url })).toBe(false);
+	});
+});
+
+describe('isNotAuthenticatedError', () => {
+	it('matches the missing-session 403', () => {
+		expect(isNotAuthenticatedError(forbidden.error)).toBe(true);
+		expect(
+			isNotAuthenticatedError({ status: 403, data: 'Not Authenticated' })
+		).toBe(true);
+	});
+
+	it.each([
+		['missing permissions', notAuthorized.error],
+		[
+			'other status',
+			{ status: 401, data: { messages: ['Not Authenticated'] } }
+		],
+		['no body', { status: 403 }],
+		['not an object', 'Not Authenticated']
+	])('ignores %s', (_, error) => {
+		expect(isNotAuthenticatedError(error)).toBe(false);
 	});
 });

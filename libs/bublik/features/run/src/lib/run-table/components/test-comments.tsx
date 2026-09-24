@@ -15,10 +15,12 @@ import {
 } from '@/shared/types';
 import { useConfirm } from '@/shared/hooks';
 import {
+	getErrorMessage,
 	useCreateTestCommentMutation,
 	useDeleteTestCommentMutation,
 	useEditTestCommentMutation
 } from '@/services/bublik-api';
+import { LoginRequired } from '@/bublik/features/auth';
 import {
 	ButtonTw,
 	cn,
@@ -29,6 +31,10 @@ import {
 	PopoverTrigger,
 	Tooltip
 } from '@/shared/tailwind-ui';
+
+/** Shows the server's reason, e.g. a missing permission, instead of a generic failure. */
+const toastError = (fallback: string) => (e: unknown) =>
+	getErrorMessage(e).description || fallback;
 
 function useTestComment() {
 	const [createTestCommentMutation] = useCreateTestCommentMutation();
@@ -41,7 +47,7 @@ function useTestComment() {
 
 			toast.promise(promise, {
 				loading: 'Creating note...',
-				error: 'Failed to create note!',
+				error: toastError('Failed to create note!'),
 				success: 'Successfully created note.'
 			});
 		} catch (e) {
@@ -56,7 +62,7 @@ function useTestComment() {
 				const promise = deleteTestCommentMutation(params).unwrap();
 				toast.promise(promise, {
 					loading: 'Deleting note...',
-					error: 'Failed to delete note!',
+					error: toastError('Failed to delete note!'),
 					success: 'Successfully deleted note.'
 				});
 			} catch (e) {
@@ -70,7 +76,7 @@ function useTestComment() {
 			const promise = editTestCommentMutation(params).unwrap();
 			toast.promise(promise, {
 				loading: 'Editing note...',
-				error: 'Failed to edit note!',
+				error: toastError('Failed to edit note!'),
 				success: 'Successfully edited note.'
 			});
 		} catch (e) {
@@ -189,14 +195,16 @@ function TestComments(props: TestCommentsProps) {
 				className="flex items-center gap-1 justify-end pr-2"
 			>
 				<Popover>
-					<Tooltip content="Add Node">
-						<PopoverTrigger asChild>
-							<ButtonTw variant="secondary" size="xss" className="size-6">
-								<Icon name="FilePlus" className="size-5 shrink-0" />
-								<span className="sr-only">Add Note</span>
-							</ButtonTw>
-						</PopoverTrigger>
-					</Tooltip>
+					<LoginRequired message="Log in to add notes">
+						<Tooltip content="Add Note">
+							<PopoverTrigger asChild>
+								<ButtonTw variant="secondary" size="xss" className="size-6">
+									<Icon name="FilePlus" className="size-5 shrink-0" />
+									<span className="sr-only">Add Note</span>
+								</ButtonTw>
+							</PopoverTrigger>
+						</Tooltip>
+					</LoginRequired>
 					<PopoverPortal container={document.body}>
 						<PopoverContent
 							className={cn(
@@ -243,18 +251,20 @@ function TestComments(props: TestCommentsProps) {
 					</PopoverTrigger>
 				</Tooltip>
 				<Popover>
-					<Tooltip content="Edit Note">
-						<PopoverTrigger asChild>
-							<ButtonTw
-								variant="secondary"
-								size="xss"
-								aria-label="Edit Note"
-								className="size-6"
-							>
-								<Icon name="Edit" className="size-5 shrink-0" />
-							</ButtonTw>
-						</PopoverTrigger>
-					</Tooltip>
+					<LoginRequired message="Log in to edit notes">
+						<Tooltip content="Edit Note">
+							<PopoverTrigger asChild>
+								<ButtonTw
+									variant="secondary"
+									size="xss"
+									aria-label="Edit Note"
+									className="size-6"
+								>
+									<Icon name="Edit" className="size-5 shrink-0" />
+								</ButtonTw>
+							</PopoverTrigger>
+						</Tooltip>
+					</LoginRequired>
 
 					<PopoverPortal>
 						<PopoverContent
@@ -307,92 +317,99 @@ function TestComments(props: TestCommentsProps) {
 											{format(new Date(c.updated), 'HH:mm')}
 										</span>
 									</div>
-									<div className="flex flex-col gap-2">
-										<Tooltip content="Edit Note">
-											<ButtonTw
-												variant="ghost"
-												size="xss"
-												aria-label="Edit Note"
-												className="size-6"
-												onClick={() => {
-													setInput(c.comment);
-													setEditId(Number(c.comment_id));
-													inputRef.current?.focus();
-												}}
-											>
-												<Icon
-													name="Edit"
-													className="size-5 shrink-0 text-blue-500"
-												/>
-											</ButtonTw>
-										</Tooltip>
-										<Tooltip content="Delete Note">
-											<ButtonTw
-												variant="destruction-secondary"
-												size="xss"
-												aria-label="Delete Note"
-												className="size-6"
-												onClick={() =>
-													handleEditTestCommentClick(Number(c.comment_id), '')
-												}
-											>
-												<Icon name="Bin" className="size-5 shrink-0" />
-											</ButtonTw>
-										</Tooltip>
-									</div>
+									<LoginRequired
+										message="Log in to edit notes"
+										className="self-start"
+									>
+										<div className="flex flex-col gap-2">
+											<Tooltip content="Edit Note">
+												<ButtonTw
+													variant="ghost"
+													size="xss"
+													aria-label="Edit Note"
+													className="size-6"
+													onClick={() => {
+														setInput(c.comment);
+														setEditId(Number(c.comment_id));
+														inputRef.current?.focus();
+													}}
+												>
+													<Icon
+														name="Edit"
+														className="size-5 shrink-0 text-blue-500"
+													/>
+												</ButtonTw>
+											</Tooltip>
+											<Tooltip content="Delete Note">
+												<ButtonTw
+													variant="destruction-secondary"
+													size="xss"
+													aria-label="Delete Note"
+													className="size-6"
+													onClick={() =>
+														handleEditTestCommentClick(Number(c.comment_id), '')
+													}
+												>
+													<Icon name="Bin" className="size-5 shrink-0" />
+												</ButtonTw>
+											</Tooltip>
+										</div>
+									</LoginRequired>
 								</li>
 							))}
 						</ul>
-						<div className="mt-4 flex flex-col gap-2">
-							<textarea
-								className={cn(
-									'w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent text-xs'
-								)}
-								value={input}
-								onChange={(e) => setInput(e.target.value)}
-								placeholder="Add note..."
-								ref={inputRef}
-								rows={4}
-							/>
-							<div className="flex items-center gap-2">
-								<ButtonTw
-									onClick={async () => {
-										if (!input) return;
+						<LoginRequired message="Log in to add notes" className="w-full">
+							<div className="mt-4 flex flex-col gap-2 w-full">
+								<textarea
+									className={cn(
+										'w-full px-3.5 py-[7px] outline-none border border-border-primary rounded text-text-secondary transition-all hover:border-primary disabled:text-text-menu disabled:cursor-not-allowed focus:border-primary focus:shadow-text-field active:shadow-none focus:ring-transparent text-xs'
+									)}
+									value={input}
+									onChange={(e) => setInput(e.target.value)}
+									placeholder="Add note..."
+									ref={inputRef}
+									rows={4}
+								/>
+								<div className="flex items-center gap-2">
+									<ButtonTw
+										onClick={async () => {
+											if (!input) return;
 
-										try {
-											if (editId) {
-												await handleEditTestCommentClick(editId, input);
-											} else {
-												await handleCreateTestCommentClick(input);
+											try {
+												if (editId) {
+													await handleEditTestCommentClick(editId, input);
+												} else {
+													await handleCreateTestCommentClick(input);
+												}
+											} catch (e) {
+												return;
 											}
-										} catch (e) {
-											return;
-										}
-										setEditId(null);
-										setInput('');
-									}}
-									variant="primary"
-									size="xs"
-									className="flex-1"
-								>
-									{editId ? 'Edit' : 'Add Note'}
-								</ButtonTw>
-								{editId ? (
-									<Tooltip content="Cancel">
-										<button
-											className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
-											onClick={() => {
-												setEditId(null);
-												setInput('');
-												inputRef.current?.focus();
-											}}
-										>
-											<Icon name="Cross" className="size-3.5" />
-										</button>
-									</Tooltip>
-								) : null}
+											setEditId(null);
+											setInput('');
+										}}
+										variant="primary"
+										size="xs"
+										className="flex-1"
+									>
+										{editId ? 'Edit' : 'Add Note'}
+									</ButtonTw>
+									{editId ? (
+										<Tooltip content="Cancel">
+											<button
+												className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
+												onClick={() => {
+													setEditId(null);
+													setInput('');
+													inputRef.current?.focus();
+												}}
+											>
+												<Icon name="Cross" className="size-3.5" />
+											</button>
+										</Tooltip>
+									) : null}
+								</div>
 							</div>
-						</div>
+						</LoginRequired>
 					</PopoverContent>
 				</PopoverPortal>
 			</Popover>
