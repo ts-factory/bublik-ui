@@ -14,6 +14,7 @@ import {
 	DataTableFacetedFilter,
 	Icon
 } from '@/shared/tailwind-ui';
+import { toSingleLineParameterLabel } from '@/shared/utils';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from '../slice';
@@ -143,7 +144,10 @@ export function PlotListContainerByResult() {
 			new Set(data?.map((d) => d.parameters_list).flat()) ?? []
 		)
 			.sort()
-			.map((param) => ({ label: param, value: param }));
+			.map((param) => ({
+				label: toSingleLineParameterLabel(param),
+				value: param
+			}));
 
 		return all;
 	}, [data]);
@@ -318,6 +322,7 @@ function MeasurementsList(
 								start={m.start}
 								parameters={m.parameters_list}
 								separator={config.keyValueSubmitDelimiter}
+								displayDelimiter={config.keyValueDisplayDelimiter}
 							/>
 						</div>
 						{m.measurement_series_charts.length ? (

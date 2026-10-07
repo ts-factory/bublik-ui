@@ -11,7 +11,6 @@ import {
 } from '@tanstack/react-table';
 
 import {
-	Badge,
 	ButtonTw,
 	CardHeader,
 	cn,
@@ -20,6 +19,7 @@ import {
 	CollapsibleTrigger,
 	Icon,
 	Kbd,
+	ParameterValue,
 	Separator,
 	Spinner,
 	Tooltip
@@ -30,6 +30,7 @@ import {
 	RunDetailsAPIResponse,
 	TestBlock
 } from '@/shared/types';
+import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { useIsSticky, usePhysicalHotkeys } from '@/shared/hooks';
@@ -449,6 +450,38 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 
 const helper = createColumnHelper<NotProcessedPoint>();
 
+interface ArgListProps {
+	args: Record<string, string | number | null>;
+}
+
+function ArgList({ args }: ArgListProps) {
+	return (
+		<ul className="flex flex-wrap gap-1">
+			{Object.entries(args).map(([name, rawValue]) => {
+				const value = String(rawValue ?? '');
+
+				return (
+					<li key={`${name}_${value}`}>
+						<ParameterValue
+							// An arg always has a value: keep the delimiter when it is empty
+							// so it does not read as a bare tag
+							name={
+								value
+									? name
+									: `${name}${config.keyValueDisplayDelimiter.trimEnd()}`
+							}
+							value={value}
+							className="bg-badge-1"
+							displayDelimiter={config.keyValueDisplayDelimiter}
+							submitDelimiter={config.keyValueSubmitDelimiter}
+						/>
+					</li>
+				);
+			})}
+		</ul>
+	);
+}
+
 const columns = [
 	helper.accessor('test_name', {
 		header: 'Test Name',
@@ -460,17 +493,7 @@ const columns = [
 			const commonArgs = cell.getValue();
 			if (!commonArgs || !Object.keys(commonArgs).length) return;
 
-			return (
-				<ul className="flex flex-wrap gap-1">
-					{Object.entries(commonArgs).map(([name, value]) => (
-						<li key={`${name}_${value}`}>
-							<Badge className="bg-badge-1">
-								{name}: {value}
-							</Badge>
-						</li>
-					))}
-				</ul>
-			);
+			return <ArgList args={commonArgs} />;
 		}
 	}),
 	helper.accessor('args_vals', {
@@ -478,17 +501,7 @@ const columns = [
 		cell: ({ cell }) => {
 			const args = cell.getValue();
 
-			return (
-				<ul className="flex flex-wrap gap-1">
-					{Object.entries(args).map(([name, value]) => (
-						<li key={`${name}_${value}`}>
-							<Badge className="bg-badge-1">
-								{name}: {value}
-							</Badge>
-						</li>
-					))}
-				</ul>
-			);
+			return <ArgList args={args} />;
 		}
 	}),
 	helper.accessor('reasons', {

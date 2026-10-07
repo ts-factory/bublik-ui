@@ -3,8 +3,8 @@
 import { FC, SVGProps } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 
-import { getKeyValueParts, TIME_DOT_FORMAT_FULL } from '@/shared/utils';
-import { Icon } from '@/shared/tailwind-ui';
+import { parseParameter, TIME_DOT_FORMAT_FULL } from '@/shared/utils';
+import { Icon, ParameterValue } from '@/shared/tailwind-ui';
 
 import { InfoItem } from './info-item';
 
@@ -38,7 +38,10 @@ export interface InfoBlockProps {
 	obtainedResult?: string;
 	parameters: string[];
 	isError?: boolean;
+	/** Submit delimiter splitting each `name=value` entry of `parameters`. */
 	separator?: string;
+	/** Delimiter shown between name and value, e.g. `: `. */
+	displayDelimiter?: string;
 	start?: string;
 }
 
@@ -49,7 +52,8 @@ export function InfoBlock(props: InfoBlockProps) {
 		isError,
 		parameters,
 		start,
-		separator = '='
+		separator = '=',
+		displayDelimiter
 	} = props;
 
 	return (
@@ -79,9 +83,25 @@ export function InfoBlock(props: InfoBlockProps) {
 			</div>
 			<div className="flex flex-wrap items-center gap-4">
 				{parameters.map((param) => {
-					const [label, value] = getKeyValueParts(param, separator);
+					const parsed = parseParameter(param, separator);
 
-					return <InfoItem key={param} label={label} value={value ?? ''} />;
+					if (parsed.isPreformatted) {
+						return (
+							<ParameterValue
+								key={param}
+								name={parsed.name}
+								value={parsed.value}
+								mode="badge"
+								className="bg-primary-wash"
+								displayDelimiter={displayDelimiter}
+								submitDelimiter={separator}
+							/>
+						);
+					}
+
+					return (
+						<InfoItem key={param} label={parsed.name} value={parsed.value} />
+					);
 				})}
 			</div>
 		</div>

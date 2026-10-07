@@ -149,6 +149,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 					parameters={parameters}
 					isError={has_error}
 					separator={config.keyValueSubmitDelimiter}
+					displayDelimiter={config.keyValueDisplayDelimiter}
 				/>
 			</div>
 		</div>

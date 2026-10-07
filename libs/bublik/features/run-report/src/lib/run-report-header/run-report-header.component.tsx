@@ -11,8 +11,11 @@ import {
 	CardHeader,
 	Icon,
 	cn,
+	ParameterValue,
 	RunModeToggle
 } from '@/shared/tailwind-ui';
+import { isPreformattedParameterValue } from '@/shared/utils';
+import { config } from '@/bublik/config';
 import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -110,6 +113,21 @@ function List(props: ListProps) {
 			</span>
 			<ul className="col-start-3 flex items-center gap-2 flex-wrap">
 				{props.items.map((item) => {
+					if (isPreformattedParameterValue(item.value)) {
+						return (
+							<li key={`${item.name}_${item.value}`}>
+								<ParameterValue
+									name={item.name}
+									value={item.value}
+									mode="badge"
+									className={item.className}
+									displayDelimiter={config.keyValueDisplayDelimiter}
+									submitDelimiter={config.keyValueSubmitDelimiter}
+								/>
+							</li>
+						);
+					}
+
 					if (item.url) {
 						return (
 							<a
@@ -120,7 +138,9 @@ function List(props: ListProps) {
 							>
 								<Badge className={cn(item.className, 'hover:underline')}>
 									<span className="text-[0.625rem] font-medium leading-[1.125rem]">
-										{item.name}: {item.value}
+										{item.name}
+										{config.keyValueDisplayDelimiter}
+										{item.value}
 									</span>
 								</Badge>
 							</a>
@@ -133,7 +153,9 @@ function List(props: ListProps) {
 							className={item.className}
 						>
 							<span className="text-[0.625rem] font-medium leading-[1.125rem]">
-								{item.name}: {item.value}
+								{item.name}
+								{config.keyValueDisplayDelimiter}
+								{item.value}
 							</span>
 						</Badge>
 					);
