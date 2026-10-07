@@ -42,7 +42,6 @@ export const queryToGlobalFilter = (
 		parameters: queryArrToString({ value: query.parameters, defaultValue: [] }),
 		tags: queryArrToString({ value: query.runData, defaultValue: [] }),
 		resultType: null,
-		isNotExpected: null,
-		substringFilter: ''
+		isNotExpected: null
 	};
 };

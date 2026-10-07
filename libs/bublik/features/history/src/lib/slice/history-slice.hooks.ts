@@ -15,6 +15,7 @@ import {
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from './history-slice';
 import {
+	copyHistorySearchParam,
 	formToSearchState,
 	historySearchStateToQuery,
 	queryToHistorySearchState
@@ -78,6 +79,7 @@ export const useHistoryFormSearchState = () => {
 
 	const updateSearchParams = () => {
 		const params = new URLSearchParams(historySearchStateToQuery(state));
+		copyHistorySearchParam(searchParams, params);
 
 		navigateWithProject(
 			{ pathname: '/history', search: `?${params.toString()}` },
@@ -104,6 +106,7 @@ export const useHistoryFormSearchState = () => {
 			newSearchParams.set('page', String(1));
 			newSearchParams.set('pageSize', String(pageSize));
 			newSearchParams.delete(PROJECT_KEY);
+			copyHistorySearchParam(searchParams, newSearchParams);
 
 			for (const [key, value] of searchParams) {
 				if (key !== PROJECT_KEY) continue;

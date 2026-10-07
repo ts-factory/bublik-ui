@@ -7,6 +7,7 @@ import { HistoryAPIQuery, VERDICT_TYPE } from '@/shared/types';
 
 import { HistorySearchFormState } from './history-slice.types';
 import {
+	copyHistorySearchParam,
 	historySearchStateToQuery,
 	queryToHistorySearchState,
 	searchQueryToBackendQuery
@@ -107,6 +108,36 @@ describe('searchQueryToBackendQuery', () => {
 
 	it('leaves the project out entirely when the URL does not scope one', () => {
 		expect(searchQueryToBackendQuery({}).projects).toBeUndefined();
+	});
+
+	it('sends the substring search trimmed', () => {
+		expect(searchQueryToBackendQuery({ search: '  timeout ' }).search).toBe(
+			'timeout'
+		);
+	});
+
+	it('leaves out a substring search that is empty or only whitespace', () => {
+		expect(searchQueryToBackendQuery({}).search).toBeUndefined();
+		expect(searchQueryToBackendQuery({ search: '' }).search).toBeUndefined();
+		expect(searchQueryToBackendQuery({ search: '   ' }).search).toBeUndefined();
+	});
+});
+
+describe('copyHistorySearchParam', () => {
+	it('keeps the substring search when the query is rebuilt', () => {
+		const to = new URLSearchParams({ testName: 'rx_fcs' });
+
+		copyHistorySearchParam(new URLSearchParams({ search: 'lost' }), to);
+
+		expect(to.toString()).toBe('testName=rx_fcs&search=lost');
+	});
+
+	it('adds nothing when there is no substring search', () => {
+		const to = new URLSearchParams({ testName: 'rx_fcs' });
+
+		copyHistorySearchParam(new URLSearchParams({ search: '' }), to);
+
+		expect(to.has('search')).toBe(false);
 	});
 });
 

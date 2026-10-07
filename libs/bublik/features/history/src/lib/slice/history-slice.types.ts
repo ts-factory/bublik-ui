@@ -19,8 +19,6 @@ export type HistoryGlobalFilter = {
 	resultType: RESULT_TYPE | null;
 	/** Is result not expected */
 	isNotExpected: boolean | null;
-	/** Global substring filter */
-	substringFilter: string;
 };
 
 export type HistorySliceState = {
