@@ -176,6 +176,12 @@ const HISTORY_URL_PARAMS = {
 		whenAbsent: 'results are not narrowed by verdict',
 		writtenBy: 'the global search form'
 	},
+	search: {
+		sentAs: 'search',
+		values: 'substring, matched case-insensitively by the server',
+		whenAbsent: 'results are not narrowed by a substring',
+		writtenBy: 'the substring filter; cleared by Reset Filter'
+	},
 	mode: {
 		sentAs: null,
 		values: HISTORY_MODES.join(' | '),
@@ -352,6 +358,17 @@ class HistoryPage {
 			return (
 				isHistory &&
 				(!testPath || url.searchParams.get('test_name') === testPath)
+			);
+		});
+	}
+
+	waitForHistorySearchRequest(search: string): Promise<Request> {
+		return this.page.waitForRequest((request) => {
+			const url = new URL(request.url());
+
+			return (
+				url.pathname.endsWith('/api/v2/history/') &&
+				url.searchParams.get('search') === search
 			);
 		});
 	}
