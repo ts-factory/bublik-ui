@@ -559,7 +559,13 @@ class HistoryPage {
 		columnId: HistoryColumn,
 		rowIndex = 0
 	): Promise<void> {
-		await this.cells(columnId).nth(rowIndex).click({ button: 'right' });
+		// The menu trigger wraps only the cell content, and a cell stretches to
+		// the row height, so the cell's centre can fall on empty space below it
+		await this.cells(columnId)
+			.nth(rowIndex)
+			.getByTestId('tw-badge-list')
+			.first()
+			.click({ button: 'right' });
 		await expect(this.page.getByRole('menu')).toBeVisible({ timeout: 15_000 });
 	}
 
