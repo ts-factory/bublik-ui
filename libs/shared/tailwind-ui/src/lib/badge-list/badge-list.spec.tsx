@@ -44,7 +44,7 @@ describe('components/BadgeList', () => {
 		);
 		expect(asFragment()).toMatchSnapshot();
 	});
-	it('should render env badges', () => {
+	it('should render a plain env badge inline', () => {
 		const { asFragment } = render(
 			<BadgeList
 				{...getBadgeListProps()}
@@ -54,6 +54,47 @@ describe('components/BadgeList', () => {
 			/>
 		);
 		expect(asFragment()).toMatchSnapshot();
+	});
+	it('should render preformatted parameters as their own blocks', () => {
+		const { asFragment } = render(
+			<BadgeList
+				badges={[
+					{ payload: 'badge-1' },
+					{ payload: 'env={ addr 10.0.0.1, port 8080, proto tcp }' },
+					{ payload: 'tmpl=pdus {\n  eth\n}' }
+				]}
+				className="bg-badge-10"
+				preformattedMode="pre"
+			/>
+		);
+		expect(asFragment()).toMatchSnapshot();
+	});
+	it('should collapse preformatted parameters into badges by default', () => {
+		const { queryByTestId, getByLabelText } = render(
+			<BadgeList
+				badges={[
+					{ payload: 'badge-1' },
+					{ payload: 'env={ addr 10.0.0.1, port 8080, proto tcp }' }
+				]}
+			/>
+		);
+		expect(queryByTestId('tw-parameter-block')).not.toBeInTheDocument();
+		expect(getByLabelText('Expand env')).toBeInTheDocument();
+	});
+	it('should keep the raw payload when a preformatted badge is clicked', () => {
+		const mock = vi.fn();
+		const payload = 'env={ addr 10.0.0.1, port 8080, proto tcp }';
+		const { getByTestId, getByLabelText } = render(
+			<BadgeList
+				badges={[{ payload }]}
+				onBadgeClick={mock}
+				preformattedMode="pre"
+			/>
+		);
+		fireEvent.click(getByLabelText('Copy env'));
+		expect(mock).not.toHaveBeenCalled();
+		fireEvent.click(getByTestId('tw-parameter-block'));
+		expect(mock).toHaveBeenCalledWith({ payload });
 	});
 	it('should call onClick with badge item payload', async () => {
 		const mock = vi.fn();

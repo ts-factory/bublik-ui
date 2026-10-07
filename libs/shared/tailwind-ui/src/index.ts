@@ -20,7 +20,7 @@ export * from './lib/error-boundary';
 export * from './lib/iframe-to-old';
 export * from './lib/badge-input';
 export * from './lib/scroll-area';
-export * from './lib/env-badge';
+export * from './lib/parameter-value';
 export * from './lib/table-sort';
 export * from './lib/combo-select';
 export * from './lib/tw-table';
