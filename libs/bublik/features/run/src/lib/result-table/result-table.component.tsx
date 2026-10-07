@@ -36,7 +36,10 @@ import {
 	DataTableFacetedFilter,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { formatKeyValueForDisplay } from '@/shared/utils';
+import {
+	formatKeyValueForDisplay,
+	toSingleLineParameterLabel
+} from '@/shared/utils';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import {
 	decodeCompressedOrJsonState,
@@ -602,12 +605,13 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const parameters = useMemo(() => {
 		return Array.from(new Set(filteredData.map((row) => row.parameters).flat()))
 			.filter(Boolean)
-			.filter((parameter) => !parameter.includes('\n')) // Filter out formatted parameters
 			.map((parameter) => ({
-				label: formatKeyValueForDisplay(parameter, {
-					displayDelimiter: config.keyValueDisplayDelimiter,
-					submitDelimiter: config.keyValueSubmitDelimiter
-				}),
+				label: toSingleLineParameterLabel(
+					formatKeyValueForDisplay(parameter, {
+						displayDelimiter: config.keyValueDisplayDelimiter,
+						submitDelimiter: config.keyValueSubmitDelimiter
+					})
+				),
 				value: parameter
 			}));
 	}, [filteredData]);

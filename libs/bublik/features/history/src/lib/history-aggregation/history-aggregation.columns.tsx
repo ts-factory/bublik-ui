@@ -42,6 +42,7 @@ export const columns: ColumnDef<HistoryDataAggregation>[] = [
 							onBadgeClick={onBadgeCellClick(cell, 'parameters')}
 							selectedBadges={globalFilter.parameters}
 							className="bg-badge-1"
+							preformattedMode="pre"
 						/>
 						<Badge className="bg-primary-wash">{hash}</Badge>
 					</div>

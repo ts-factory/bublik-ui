@@ -186,6 +186,7 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 						selectedBadges={cell.table.getState().globalFilter['parameters']}
 						onBadgeClick={onBadgeClick(cell, 'parameters')}
 						className="bg-badge-1"
+						preformattedMode="pre"
 					/>
 				</HistoryContextMenuContainer>
 			);

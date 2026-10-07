@@ -3,9 +3,9 @@
 import { FC, useMemo } from 'react';
 import { diffArrays } from 'diff';
 
-import { Badge, cn } from '@/shared/tailwind-ui';
+import { ParameterValue, cn } from '@/shared/tailwind-ui';
 import { config } from '@/bublik/config';
-import { formatKeyValueForDisplay } from '@/shared/utils';
+import { parseParameter } from '@/shared/utils';
 
 export interface ParameterDiffProps {
 	side: 'left' | 'right';
@@ -39,22 +39,25 @@ export const ParametersDiff: FC<ParameterDiffProps> = (props) => {
 			{diff.map((change, idx) => (
 				<div key={idx} className="flex flex-col flex-wrap gap-1">
 					{change.value.map((value) => {
-						const displayValue = formatKeyValueForDisplay(value, {
-							displayDelimiter: config.keyValueDisplayDelimiter,
-							submitDelimiter: config.keyValueSubmitDelimiter
-						});
+						const parsed = parseParameter(
+							value,
+							config.keyValueSubmitDelimiter
+						);
 
 						return (
-							<Badge
+							<ParameterValue
 								key={value}
+								name={parsed.name}
+								value={parsed.value}
+								mode="pre"
 								className={cn(
 									'bg-badge-1',
 									change.added && 'bg-green-300 text-black',
 									change.removed && 'bg-red-300 text-black'
 								)}
-							>
-								{displayValue}
-							</Badge>
+								displayDelimiter={config.keyValueDisplayDelimiter}
+								submitDelimiter={config.keyValueSubmitDelimiter}
+							/>
 						);
 					})}
 				</div>
