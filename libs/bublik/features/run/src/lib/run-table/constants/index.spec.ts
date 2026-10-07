@@ -35,11 +35,13 @@ describe('run table column defaults', () => {
 		});
 	});
 
-	it('preserves API default column order after the tree column', () => {
+	it('preserves API default column order after the leading columns', () => {
 		expect(
-			createDefaultColumnOrder(['failed', 'passed', 'run']).slice(0, 4)
+			createDefaultColumnOrder(['failed', 'passed', 'run']).slice(0, 6)
 		).toEqual([
 			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
 			ColumnId.FailedExpected,
 			ColumnId.PassedExpected,
 			ColumnId.Run
@@ -49,6 +51,8 @@ describe('run table column defaults', () => {
 	it('appends missing configurable columns after API ordered columns', () => {
 		expect(createDefaultColumnOrder(['failed', 'passed', 'run'])).toEqual([
 			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
 			ColumnId.FailedExpected,
 			ColumnId.PassedExpected,
 			ColumnId.Run,
@@ -59,16 +63,70 @@ describe('run table column defaults', () => {
 			ColumnId.FailedUnexpected,
 			ColumnId.SkippedExpected,
 			ColumnId.SkippedUnexpected,
+			ColumnId.Abnormal
+		]);
+	});
+
+	it('keeps Objective and Notes next to the tree for the backend default', () => {
+		expect(
+			createDefaultColumnOrder([
+				'run',
+				'passed',
+				'failed',
+				'passed_unexpected',
+				'failed_unexpected',
+				'skipped',
+				'skipped_unexpected',
+				'abnormal'
+			])
+		).toEqual([
+			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
+			ColumnId.Run,
+			ColumnId.PassedExpected,
+			ColumnId.FailedExpected,
+			ColumnId.PassedUnexpected,
+			ColumnId.FailedUnexpected,
+			ColumnId.SkippedExpected,
+			ColumnId.SkippedUnexpected,
 			ColumnId.Abnormal,
+			ColumnId.Total,
+			ColumnId.ExpectedTotal,
+			ColumnId.UnexpectedTotal
+		]);
+	});
+
+	it('keeps the configured position of Objective and Notes', () => {
+		expect(
+			createDefaultColumnOrder(['run', 'objective', 'comments']).slice(0, 4)
+		).toEqual([
+			ColumnId.Tree,
+			ColumnId.Run,
 			ColumnId.Objective,
 			ColumnId.Comments
 		]);
 	});
 
+	it('leads with only the unlisted one of Objective and Notes', () => {
+		expect(createDefaultColumnOrder(['run', 'objective']).slice(0, 4)).toEqual([
+			ColumnId.Tree,
+			ColumnId.Comments,
+			ColumnId.Run,
+			ColumnId.Objective
+		]);
+	});
+
 	it('deduplicates repeated API default columns', () => {
 		expect(
-			createDefaultColumnOrder(['run', 'passed', 'run']).slice(0, 3)
-		).toEqual([ColumnId.Tree, ColumnId.Run, ColumnId.PassedExpected]);
+			createDefaultColumnOrder(['run', 'passed', 'run']).slice(0, 5)
+		).toEqual([
+			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
+			ColumnId.Run,
+			ColumnId.PassedExpected
+		]);
 	});
 });
 

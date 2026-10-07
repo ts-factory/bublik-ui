@@ -110,13 +110,14 @@ const CONFIGURABLE_COLUMN_IDS = [
 	ColumnId.Comments
 ];
 
+/** Placed right after the tree unless the project config positions them. */
+const LEADING_COLUMN_IDS = [ColumnId.Objective, ColumnId.Comments];
+
 export const DEFAULT_COLUMN_ORDER = [
 	ColumnId.Tree,
-	ColumnId.Objective,
-	ColumnId.Comments,
+	...LEADING_COLUMN_IDS,
 	...CONFIGURABLE_COLUMN_IDS.filter(
-		(columnId) =>
-			columnId !== ColumnId.Objective && columnId !== ColumnId.Comments
+		(columnId) => !LEADING_COLUMN_IDS.includes(columnId)
 	)
 ];
 
@@ -145,11 +146,21 @@ export function createDefaultColumnOrder(
 		new Set(defaultColumns.map((column) => RUN_STATS_COLUMN_ID_MAP[column]))
 	);
 	const orderedColumnIdsSet = new Set(orderedColumnIds);
-	const restColumnIds = CONFIGURABLE_COLUMN_IDS.filter(
+	const leadingColumnIds = LEADING_COLUMN_IDS.filter(
 		(columnId) => !orderedColumnIdsSet.has(columnId)
 	);
+	const restColumnIds = CONFIGURABLE_COLUMN_IDS.filter(
+		(columnId) =>
+			!orderedColumnIdsSet.has(columnId) &&
+			!LEADING_COLUMN_IDS.includes(columnId)
+	);
 
-	return [ColumnId.Tree, ...orderedColumnIds, ...restColumnIds];
+	return [
+		ColumnId.Tree,
+		...leadingColumnIds,
+		...orderedColumnIds,
+		...restColumnIds
+	];
 }
 
 /**
