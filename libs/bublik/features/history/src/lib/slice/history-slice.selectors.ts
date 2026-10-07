@@ -47,8 +47,7 @@ export const selectLinearGlobalFilter = createSelector(
 		parameters: filter.parameters,
 		verdicts: filter.verdicts,
 		resultType: filter.resultType,
-		isNotExpected: filter.isNotExpected,
-		substringFilter: filter.substringFilter
+		isNotExpected: filter.isNotExpected
 	})
 );
 
@@ -58,8 +57,7 @@ export const selectAggregationGlobalFilter = createSelector(
 		verdicts: filter.verdicts,
 		parameters: filter.parameters,
 		resultType: filter.resultType,
-		isNotExpected: filter.isNotExpected,
-		substringFilter: filter.substringFilter
+		isNotExpected: filter.isNotExpected
 	})
 );
 

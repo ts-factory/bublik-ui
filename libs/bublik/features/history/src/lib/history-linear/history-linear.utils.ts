@@ -73,12 +73,7 @@ export const globalFilterFn: FilterFn<HistoryDataLinear> = (
 			  isNotExpected === filterValue.isNotExpected
 			: true;
 
-	// 3. Substring filter
-	const inSubstringFilter = allTags.some((str) =>
-		str.includes(filterValue.substringFilter)
-	);
-
-	return containsAll && resultsMatch && inSubstringFilter;
+	return containsAll && resultsMatch;
 };
 
 export const onBadgeClick =

@@ -131,6 +131,14 @@ export const getLegendItems = (search: HistoryAPIQuery): LegendItem[] => {
 			iconSize: 24,
 			label: 'Parameters Expression',
 			value: state.testArgExpr
+		},
+		{
+			// Set by the box beside the form, not by the form itself, so a
+			// narrowed query needs it here to explain what it is missing
+			iconName: 'MagnifyingGlass',
+			iconSize: 24,
+			label: 'Substring Filter',
+			value: search.search
 		}
 	];
 

@@ -74,10 +74,5 @@ export const globalFilterFn: FilterFn<HistoryDataAggregation> = (
 		allRowTags.includes(filter)
 	);
 
-	// 4. Substring filter
-	const inSubstringFilter = allRowTags.some((tag) =>
-		tag.includes(filterValue.substringFilter)
-	);
-
-	return containsInTags && resultsMatch && inSubstringFilter;
+	return containsInTags && resultsMatch;
 };

@@ -40,4 +40,13 @@ describe('getLegendItems', () => {
 		expect(Array.isArray(branchesItem?.value)).toBe(true);
 		expect(branchesItem?.value).toEqual(['main', 'dev']);
 	});
+
+	it('lists the substring search, which lives outside the search form', () => {
+		const substring = (query: HistoryAPIQuery) =>
+			getLegendItems(query).find((item) => item.label === 'Substring Filter');
+
+		expect(substring({ search: 'timeout' })?.value).toBe('timeout');
+		expect(substring({ search: '  ' })).toBeUndefined();
+		expect(substring({})).toBeUndefined();
+	});
 });

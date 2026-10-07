@@ -4,15 +4,10 @@ import { HistorySliceState } from '../slice';
 
 export type HistoryLinearGlobalFilter = Pick<
 	HistorySliceState['globalFilter'],
-	| 'verdicts'
-	| 'parameters'
-	| 'tags'
-	| 'resultType'
-	| 'isNotExpected'
-	| 'substringFilter'
+	'verdicts' | 'parameters' | 'tags' | 'resultType' | 'isNotExpected'
 >;
 
 export type ArrayKeys = Exclude<
 	keyof HistoryLinearGlobalFilter,
-	'resultType' | 'isNotExpected' | 'substringFilter'
+	'resultType' | 'isNotExpected'
 >;

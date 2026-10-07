@@ -16,7 +16,10 @@ import {
 } from '@/bublik/config';
 
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
-import { historySearchStateToQuery } from '../slice/history-slice.utils';
+import {
+	copyHistorySearchParam,
+	historySearchStateToQuery
+} from '../slice/history-slice.utils';
 import {
 	PROJECT_KEY,
 	useNavigateWithProject
@@ -101,6 +104,7 @@ export const useHistoryRefresh = () => {
 			params.set('mode', mode);
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
+			copyHistorySearchParam(searchParams, params);
 
 			// Use navigateWithProject to properly preserve sidebar params
 			const searchString = params.toString();
