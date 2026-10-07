@@ -29,6 +29,27 @@ Feature: Run details
     When I expand the first collapsed package of the tree
     Then more rows are shown than before
 
+  # The project's default columns rarely list Objective and Notes. They still
+  # sit next to the tree rather than trailing the hidden total columns.
+  @run
+  Scenario: Objective and Notes lead the Columns menu by default
+    Given I open an imported run's page without a saved column order
+    When I open the Columns menu
+    Then Objective and Notes are listed first
+
+  @run
+  Scenario: The table header lists columns in the Columns menu order
+    Given I open an imported run's page
+    When I show every column from the Columns menu
+    Then the table header lists the columns in the Columns menu order
+
+  @run @url-params
+  Scenario: A column order from the link reorders the table header and the Columns menu alike
+    Given a link that reverses the default column order
+    When I open that link and show every column
+    Then the Columns menu lists the columns in the link's order
+    And the table header lists the columns in the Columns menu order
+
   @needs-nok
   Scenario: Open NOK expands the result tables of the unexpected results
     Given I open a run that has unexpected results

@@ -189,6 +189,87 @@ test.describe('Run Details Page', () => {
 
 	// eslint-disable-next-line playwright/expect-expect
 	test(
+		'Objective and Notes lead the Columns menu by default',
+		{ tag: ['@run'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = representativeImportedRun(
+				requireManifest()
+			);
+
+			await given(
+				"I open an imported run's page without a saved column order",
+				async () => {
+					await runPage.goto(runId);
+					await runPage.expectLoaded(expectedRun.name);
+				}
+			);
+			await when('I open the Columns menu', () => runPage.openColumnsMenu());
+			await then('Objective and Notes are listed first', () =>
+				runPage.expectColumnsMenuToLeadWith(['Objective', 'Notes'])
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'The table header lists columns in the Columns menu order',
+		{ tag: ['@run'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = representativeImportedRun(
+				requireManifest()
+			);
+
+			await given("I open an imported run's page", async () => {
+				await runPage.goto(runId);
+				await runPage.expectLoaded(expectedRun.name);
+			});
+			await when('I show every column from the Columns menu', () =>
+				runPage.showAllColumns()
+			);
+			await then(
+				'the table header lists the columns in the Columns menu order',
+				() => runPage.expectHeaderToMatchColumnsMenu()
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A column order from the link reorders the table header and the Columns menu alike',
+		{ tag: ['@run', '@url-params'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = representativeImportedRun(
+				requireManifest()
+			);
+			let linkOrder: string[] = [];
+
+			await given('a link that reverses the default column order', async () => {
+				await runPage.goto(runId);
+				await runPage.expectLoaded(expectedRun.name);
+				linkOrder = (await runPage.columnsMenuOrder()).reverse();
+			});
+			await when('I open that link and show every column', async () => {
+				await runPage.gotoWithParams(runId, {
+					columnOrder: JSON.stringify(['TREE', ...linkOrder])
+				});
+				await runPage.expectLoaded(expectedRun.name);
+				await runPage.showAllColumns();
+			});
+			await then("the Columns menu lists the columns in the link's order", () =>
+				runPage.expectColumnsMenuOrder(linkOrder)
+			);
+			await and(
+				'the table header lists the columns in the Columns menu order',
+				() => runPage.expectHeaderToMatchColumnsMenu()
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
 		'Open NOK expands the result tables of the unexpected results',
 		{ tag: ['@needs-nok'] },
 		async ({ page }) => {

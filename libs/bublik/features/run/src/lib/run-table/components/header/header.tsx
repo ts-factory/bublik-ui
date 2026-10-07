@@ -147,11 +147,13 @@ function RunHeaderCell({
 	) : (
 		flexRender(header.column.columnDef.header, header.getContext())
 	);
+	const isLeaf = !header.isPlaceholder && header.subHeaders.length === 0;
 
 	return (
 		<th
 			ref={setNodeRef}
 			colSpan={header.colSpan}
+			data-column-id={isLeaf ? header.column.id : undefined}
 			className={cn(
 				'group/header px-2 border-b bg-white',
 				!isLast && 'border-r border-border-primary',

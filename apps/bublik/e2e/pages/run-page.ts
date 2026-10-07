@@ -591,6 +591,91 @@ class RunPage {
 		await this.page.keyboard.press('Escape');
 	}
 
+	private columnsMenuItems(): Locator {
+		return this.page.getByRole('menu').getByTestId('column-visibility-item');
+	}
+
+	private async closeColumnsMenu(): Promise<void> {
+		await this.page.keyboard.press('Escape');
+		await expect(this.page.getByRole('menu')).toBeHidden({ timeout: 15_000 });
+	}
+
+	private openColumnsMenuIds(): Promise<string[]> {
+		return this.columnsMenuItems().evaluateAll((items) =>
+			items.map((item) => item.getAttribute('data-column-id') ?? '')
+		);
+	}
+
+	/** Column ids as the Columns menu lists them, hidden columns included. */
+	async columnsMenuOrder(): Promise<string[]> {
+		await this.openColumnsMenu();
+		const ids = await this.openColumnsMenuIds();
+		await this.closeColumnsMenu();
+
+		return ids;
+	}
+
+	/** Column ids of the visible header cells, left to right, without the tree. */
+	headerColumnOrder(): Promise<string[]> {
+		return this.page
+			.getByTestId('run-table')
+			.locator('thead')
+			.first()
+			.locator('th[data-column-id]')
+			.evaluateAll((cells) =>
+				cells
+					.map((cell) => cell.getAttribute('data-column-id') ?? '')
+					.filter((id) => id !== 'TREE')
+			);
+	}
+
+	async showAllColumns(): Promise<void> {
+		await this.openColumnsMenu();
+		const hiddenIds = await this.columnsMenuItems()
+			.and(this.page.locator('[data-state="unchecked"]'))
+			.evaluateAll((items) =>
+				items.map((item) => item.getAttribute('data-column-id') ?? '')
+			);
+
+		for (const id of hiddenIds) {
+			const item = this.columnsMenuItems().and(
+				this.page.locator(`[data-column-id="${id}"]`)
+			);
+			await item.click();
+			await expect(item).toHaveAttribute('data-state', 'checked');
+		}
+
+		await this.closeColumnsMenu();
+	}
+
+	/** Reads the Columns menu that is already open. */
+	async expectColumnsMenuToLeadWith(ids: string[]): Promise<void> {
+		await expect
+			.poll(
+				async () => (await this.openColumnsMenuIds()).slice(0, ids.length),
+				{ timeout: 15_000 }
+			)
+			.toEqual(ids);
+	}
+
+	async expectColumnsMenuOrder(ids: string[]): Promise<void> {
+		await expect
+			.poll(() => this.columnsMenuOrder(), { timeout: 15_000 })
+			.toEqual(ids);
+	}
+
+	/** Expects every column to be shown, since the menu lists hidden ones too. */
+	async expectHeaderToMatchColumnsMenu(): Promise<void> {
+		const menuOrder = await this.columnsMenuOrder();
+
+		await expect
+			.poll(() => this.headerColumnOrder(), {
+				timeout: 15_000,
+				message: 'header columns in the Columns menu order'
+			})
+			.toEqual(menuOrder);
+	}
+
 	async expectRowCountAbove(previous: number): Promise<void> {
 		await expect
 			.poll(() => this.rows().count(), { timeout: 30_000 })

@@ -181,6 +181,9 @@ function ColumnVisibilityRow({
 }: ColumnVisibilityRowProps) {
 	return (
 		<div
+			data-testid="column-visibility-item"
+			data-column-id={item.id}
+			data-state={item.checked ? 'checked' : 'unchecked'}
 			className={cn(
 				'flex items-center gap-1.5 rounded py-1 pl-1 pr-2 text-xs hover:bg-primary-wash',
 				dragHandle ? '' : 'pl-2',
