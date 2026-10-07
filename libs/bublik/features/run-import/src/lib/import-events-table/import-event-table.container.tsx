@@ -126,13 +126,28 @@ function useImportEventsRefreshCountdown(
 interface ImportEventsRefreshControlProps {
 	available: boolean;
 	checked: boolean;
-	countdown: ImportEventsRefreshCountdown;
+	fulfilledTimeStamp?: number;
+	intervalMs: number;
+	isFetching: boolean;
 	onCheckedChange: (checked: boolean) => void;
 }
 
 function ImportEventsRefreshControl(props: ImportEventsRefreshControlProps) {
-	const { available, checked, countdown, onCheckedChange } = props;
+	const {
+		available,
+		checked,
+		fulfilledTimeStamp,
+		intervalMs,
+		isFetching,
+		onCheckedChange
+	} = props;
 	const isEnabled = available && checked;
+	const countdown = useImportEventsRefreshCountdown({
+		enabled: isEnabled,
+		fulfilledTimeStamp,
+		intervalMs,
+		isFetching
+	});
 	const radius = 10;
 	const circumference = 2 * Math.PI * radius;
 	const strokeDashoffset = circumference * (1 - countdown.progress);
@@ -323,12 +338,6 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 				refetchOnMountOrArgChange: true
 			}
 		);
-	const refreshCountdown = useImportEventsRefreshCountdown({
-		enabled: isPollingEnabled,
-		fulfilledTimeStamp,
-		intervalMs: IMPORT_EVENTS_POLLING_INTERVAL_MS,
-		isFetching
-	});
 	return (
 		<>
 			<div className="px-6 py-4 bg-white rounded-t-xl">
@@ -343,7 +352,9 @@ export const ImportEventsTableContainer = (props: PropsWithChildren) => {
 						<ImportEventsRefreshControl
 							available={isAutoRefreshAvailable}
 							checked={autoRefreshEnabled}
-							countdown={refreshCountdown}
+							fulfilledTimeStamp={fulfilledTimeStamp}
+							intervalMs={IMPORT_EVENTS_POLLING_INTERVAL_MS}
+							isFetching={isFetching}
 							onCheckedChange={setAutoRefreshEnabled}
 						/>
 						{props.children}
