@@ -346,11 +346,13 @@ test.describe('History Page', () => {
 	);
 
 	test(
-		'The substring filter narrows the results already loaded',
+		'The substring filter narrows the query on the server',
 		HISTORY,
 		async ({ page }) => {
 			const historyPage = new HistoryPage(page);
 			const testPath = firstHistoryTestPath();
+			const search = 'no-result-matches-this';
+			let searchRequest: Promise<unknown> = Promise.resolve();
 
 			await given('I search the history for a test path', async () => {
 				await historyPage.gotoWithTestPath(testPath, dateRange());
@@ -361,15 +363,20 @@ test.describe('History Page', () => {
 				await expect(historyPage.substringFilter).toBeVisible({
 					timeout: 30_000
 				});
-				await historyPage.substringFilter.fill('no-result-matches-this');
+				searchRequest = historyPage.waitForHistorySearchRequest(search);
+				await historyPage.substringFilter.fill(search);
 			});
-			await then('the substring filter holds that value', () =>
+			await then(
+				'the history request carries the substring as its search',
+				() => searchRequest
+			);
+			await and('the substring filter holds that value', () =>
 				expect(historyPage.substringFilter).toHaveValue(
 					'no-result-matches-this'
 				)
 			);
 			await and('no results are left in the table', () =>
-				expect(historyPage.rows()).toHaveCount(0, { timeout: 30_000 })
+				historyPage.expectNoResults()
 			);
 		}
 	);
@@ -1630,51 +1637,72 @@ test.describe('History Page', () => {
 	);
 
 	test(
-		'The substring filter is not recorded in the URL and is lost on a reload',
+		'The substring filter is recorded in the URL and survives a reload',
 		HISTORY_URL,
 		async ({ page }) => {
 			const historyPage = new HistoryPage(page);
 			const testPath = badgeCase().testPath;
-			let before = 0;
+			const search = 'no-result-matches-this';
 
 			await given('I open a history query with results listed', async () => {
 				await openBadgeCase(historyPage, 'linear');
-				before = await historyPage.rows().count();
-				expect(before).toBeGreaterThan(0);
+				expect(await historyPage.rows().count()).toBeGreaterThan(0);
 			});
 			await when('I narrow the results with the substring filter', async () => {
 				await expect(historyPage.substringFilter).toBeVisible({
 					timeout: 30_000
 				});
-				await historyPage.substringFilter.fill('no-result-matches-this');
+				await historyPage.substringFilter.fill(search);
 			});
-			await then('fewer results are listed', () =>
-				expect
-					.poll(() => historyPage.rows().count(), {
-						timeout: 30_000,
-						message: 'rows after the substring filter'
-					})
-					.toBeLessThan(before)
+			await then('the search is recorded in the URL', () =>
+				historyPage.expectParams({ testName: testPath, search })
 			);
-			await and('the query parameters are unchanged', () =>
-				historyPage.expectParams({
-					testName: testPath,
-					mode: 'linear',
-					substring: null,
-					filter: null
-				})
+			await and('the page is back to the first', () =>
+				historyPage.expectParams({ page: '1' })
 			);
+			// The query matches nothing, so the page shows the empty state and
+			// no table for expectModeReady to wait on
 			await when('I reload the page', async () => {
 				await page.reload();
-				await historyPage.expectModeReady('linear');
+				await historyPage.expectReady();
 			});
-			await then('every result of the query is listed again', () =>
-				expect
-					.poll(() => historyPage.rows().count(), {
-						timeout: 60_000,
-						message: 'rows after the reload'
-					})
-					.toBe(before)
+			await then('the substring filter still holds the search', () =>
+				expect(historyPage.substringFilter).toHaveValue(search)
+			);
+			await and('no results are listed', () => historyPage.expectNoResults());
+		}
+	);
+
+	test(
+		'Reset Filter clears the substring filter',
+		HISTORY_URL,
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const testPath = badgeCase().testPath;
+
+			await given(
+				'I open a history link narrowed by a substring search',
+				async () => {
+					await historyPage.gotoWithTestPath(testPath, {
+						...dateRange(),
+						mode: 'linear',
+						search: 'no-result-matches-this'
+					});
+					await historyPage.expectReady();
+					await historyPage.expectNoResults();
+				}
+			);
+			await when('I press Reset Filter', () =>
+				historyPage.resetFilterButton.click()
+			);
+			await then('the search is dropped from the URL', () =>
+				historyPage.expectParams({ testName: testPath, search: null })
+			);
+			await and('the substring filter is empty', () =>
+				expect(historyPage.substringFilter).toHaveValue('')
+			);
+			await and('the results of the query are listed again', () =>
+				historyPage.expectHasResults()
 			);
 		}
 	);
