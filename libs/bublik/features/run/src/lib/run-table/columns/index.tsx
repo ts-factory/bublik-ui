@@ -27,7 +27,7 @@ import {
 import { LinkWithProject } from '@/bublik/features/projects';
 import { getTreeNode } from '@/bublik/run-utils';
 import { HistorySearchBuilder } from '@/shared/utils';
-import { stringifySearch } from '@/router';
+import { legacyStringifySearch } from '@/router';
 
 import { badgeColumns } from './badge-columns';
 import { TestComments } from '../components/test-comments';
@@ -46,7 +46,7 @@ function getHistoryViewLink(
 	const query = new HistorySearchBuilder(path.join('/')).withRunIds(runIds);
 	if (maybeDate) query.withAnchorDate(maybeDate);
 
-	return { pathname: '/history', search: stringifySearch(query.build()) };
+	return { pathname: '/history', search: legacyStringifySearch(query.build()) };
 }
 
 interface HistoryRunLinksDropdownMenuProps {

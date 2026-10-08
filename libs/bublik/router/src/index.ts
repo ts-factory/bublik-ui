@@ -6,8 +6,26 @@ import { isFunction } from 'remeda';
 import { defaultParser, defaultStringifier } from './lib/parsing';
 
 export * from './lib/hooks';
-export * from './lib/parsing';
+// The legacy codec of the history link producers and the jsurl redirect.
+// Its `parseSearch`/`stringifySearch` keep their legacy names so
+// the router's raw codec in `./lib/search` owns the plain ones.
+export {
+	decode,
+	decodeFromBinary,
+	defaultParser,
+	defaultStringifier,
+	encode,
+	encodeToBinary,
+	handleOldUrlParsing,
+	isOldUrl,
+	parseSearch as legacyParseSearch,
+	parseSearchWith,
+	stringifySearch as legacyStringifySearch,
+	stringifySearchWith
+} from './lib/parsing';
+export * from './lib/path';
 export * from './lib/router';
+export * from './lib/search';
 
 export type Updater<T> = (valOrUpdater: ((currVal: T) => T) | T) => void;
 
