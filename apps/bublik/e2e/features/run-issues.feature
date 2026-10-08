@@ -1,13 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
-# Implemented by apps/bublik/e2e/run-issues.spec.ts — see features/README.md.
+# Implemented by apps/bublik/e2e/run-issues.spec.ts and run-issues-url.spec.ts — see features/README.md.
 #
-# Every scenario classifies a failing result of the classifiable fixture run
+# Every behaviour scenario classifies a failing result of the classifiable fixture run
 # through the Classify drawer on the run page, under an issue title only it
 # uses, and deletes that issue — rules and stamps included — as its last step.
 # Other rules on the stack may match the same tests, so Apply Rules asserts
 # the shape of its toast and this scenario's own row, never a total.
+#
+# The URL-contract scenarios at the end belong to the seeded family
+# (`@needs-classification`): they read the seeded classification through
+# `support/classification-data.ts` and change nothing.
 
 Feature: Run issues
 
@@ -77,3 +81,57 @@ Feature: Run issues
     Then the run's issues page is open with the issue listed
     And I delete the issue from the run issues page
 
+  ####################################################################
+  # The URL contract (apps/bublik/e2e/run-issues-url.spec.ts)
+  ####################################################################
+
+  @issues @needs-classification @smoke
+  Scenario: A run's issues page lists the issues its results were classified with
+    Given the fixture manifest describes a run with classified results
+    When I open that run's issues page
+    Then each seeded issue of that run is listed
+    And the header links to the run and its log
+
+  ####################################################################
+  # URL parameters
+  ####################################################################
+
+  # The codec is the one issues.feature pins. A run's issues add `open` — the
+  # only classification table whose unfolded rows travel in the URL, because
+  # its row ids are issue ids rather than positions on a page — and page at
+  # twenty-five rather than a hundred.
+
+  @issues @needs-classification @url-params
+  Scenario: Unfolding an issue's results records it in the URL and survives a reload
+    Given a run's issues page is open
+    When I unfold the results of a seeded issue
+    Then the URL records that issue as open
+    And its results are shown
+    When I reload the page
+    Then its results are still shown
+    When I fold the results again
+    Then the open key is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: Narrowing a run's issues by category records the facet
+    Given a run's issues page is open
+    When I narrow the list to a category its rules use
+    Then the URL records that category
+    When I reset the filters
+    Then the category is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: A run's issues page at twenty-five rows writes no page size
+    Given a run's issues page is open
+    Then the URL carries no page size
+    When I show ten issues per page
+    Then the URL records ten rows per page
+    And at most ten issues are listed
+
+  @issues @needs-classification @url-params
+  Scenario: A run issues link restores the open issue, the search and the sort
+    Given a link that pins an open issue, its title as the search term and the issue sort
+    When I open that link
+    Then the issue's results are shown
+    And the list is narrowed and sorted as the link says
+    And the link still carries every parameter it was opened with

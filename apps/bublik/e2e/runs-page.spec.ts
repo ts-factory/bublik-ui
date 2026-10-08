@@ -10,6 +10,7 @@ import { and, given, then, when } from './support/gherkin';
 import { requireCapability } from './support/capabilities';
 import { requireManifest } from './support/manifest';
 import type { Bundle } from './support/manifest';
+import { withUserPreferences } from './support/user-preferences';
 import {
 	durationCoveringFixtures,
 	expectedNokCount,
@@ -31,13 +32,8 @@ function badgeDate(): string {
 	).date;
 }
 
-async function withBadgeFiltersApplied(page: Page): Promise<void> {
-	await page.addInitScript(() => {
-		window.localStorage.setItem(
-			'user-preferences',
-			JSON.stringify({ runs: { autoApplyBadgeFilters: true } })
-		);
-	});
+function withBadgeFiltersApplied(page: Page): Promise<void> {
+	return withUserPreferences(page, { runs: { autoApplyBadgeFilters: true } });
 }
 
 async function openWithDiscriminatingBadge(

@@ -843,4 +843,65 @@ test.describe('Run Report Page', () => {
 			);
 		}
 	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Expanding a measurement block records it as open in the URL',
+		{ tag: ['@report', '@needs-report', '@url-params'] },
+		async ({ page }) => {
+			const { reportPage, fixture } = await openRenderedReport(page);
+			const block = requireCapability(
+				fixture.measurementItems[0],
+				'Report payload contains no measurement blocks.'
+			);
+
+			await given('I open a rendered report', async () => {
+				await reportPage.expectTocEntryCollapsed(block.id);
+				await reportPage.expectSearchParam(block.id, null);
+			});
+			await when('I expand a measurement block in the table of contents', () =>
+				reportPage.toggleTocEntry(block.id)
+			);
+			await then('the URL records that block as open', async () => {
+				await reportPage.expectTocEntryExpanded(block.id);
+				await reportPage.expectSearchParam(block.id, '1');
+			});
+			await when('I collapse it again', () =>
+				reportPage.toggleTocEntry(block.id)
+			);
+			await then('the URL records that block as collapsed', async () => {
+				await reportPage.expectTocEntryCollapsed(block.id);
+				await reportPage.expectSearchParam(block.id, '0');
+			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A report link can open a measurement block that starts collapsed',
+		{ tag: ['@report', '@needs-report', '@url-params'] },
+		async ({ page }) => {
+			const reportPage = new RunReportPage(page);
+			const fixture = await reportFixture(page, requireManifest());
+			const block = requireCapability(
+				fixture.measurementItems[0],
+				'Report payload contains no measurement blocks.'
+			);
+			const search = new URLSearchParams({ [block.id]: '1' }).toString();
+
+			await given('a link that pins a measurement block as open', () =>
+				expect(search).toContain('=1')
+			);
+			await when('I open that link', async () => {
+				await reportPage.goto(fixture.runId, fixture.configId, { search });
+				await reportPage.expectLoaded();
+			});
+			await then('that block is expanded in the table of contents', () =>
+				reportPage.expectTocEntryExpanded(block.id)
+			);
+			await and('the link still carries the block key', () =>
+				reportPage.expectSearchParam(block.id, '1')
+			);
+		}
+	);
 });

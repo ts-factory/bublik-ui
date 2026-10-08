@@ -151,3 +151,45 @@ Feature: Navigation
     When I open that issue's page and move to the dashboard
     Then the Issue sidebar item links to that issue
     And I delete that issue
+
+  # `hide-sidebar` is parsed by the layout itself: `1` and `true` hide, `0` and
+  # `false` show, case does not matter, and anything else is as good as absent.
+  @url-params
+  Scenario Outline: The sidebar follows the hide-sidebar value in the link
+    When I open the dashboard with hide-sidebar set to the given value
+    Then the sidebar is shown or hidden as the value says
+
+    Examples:
+      | case                                            | value | sidebar |
+      | hide-sidebar=1 hides the sidebar                | 1     | hidden  |
+      | hide-sidebar=true hides the sidebar             | true  | hidden  |
+      | hide-sidebar=TRUE hides the sidebar             | TRUE  | hidden  |
+      | hide-sidebar=0 shows the sidebar                | 0     | shown   |
+      | hide-sidebar=false shows the sidebar            | false | shown   |
+      | An unknown hide-sidebar value shows the sidebar | yes   | shown   |
+
+  # The settings dialog lives in the URL on every page: `settings-open` is `1`
+  # or `0`, `settings-tab` names the section, and both are written with
+  # replaceIn, so the page's own parameters survive opening and closing it.
+  @url-params
+  Scenario: A settings link opens the dialog on the named section
+    Given a dashboard link that asks for the Beta settings section
+    When I open that link
+    Then the settings dialog is open on the Beta section
+
+  @url-params
+  Scenario: Closing the settings dialog records it as closed and keeps the rest of the link
+    Given the settings dialog is open on the Beta section from a dated dashboard link
+    When I close the settings dialog
+    Then the URL records the dialog as closed
+    And the section and the date are still pinned
+
+  # The palette navigates to the current pathname with only the settings keys,
+  # so the page's own parameters are dropped while the project scope is
+  # re-added by the project-aware navigation.
+  @url-params
+  Scenario: The command palette's Profile item opens the account settings on the current page
+    Given I open the dashboard scoped to a project on a fixture date
+    When I open the command palette and choose Profile
+    Then the settings dialog is open on the Account section
+    And the URL records the account section and the project but not the date

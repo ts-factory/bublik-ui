@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
-# Implemented by apps/bublik/e2e/issue.spec.ts — see features/README.md.
+# Implemented by apps/bublik/e2e/issue.spec.ts and issue-url.spec.ts — see features/README.md.
 #
-# The issue each scenario opens is recorded through the issues page first,
+# The issue each behaviour scenario opens is recorded through the issues page first,
 # under a title only that scenario uses, and deleted from the issue page as
 # the last step — which also removes the rules written under it.
+#
+# The URL-contract scenarios at the end belong to the seeded family
+# (`@needs-classification`): they read the seeded classification through
+# `support/classification-data.ts` and change nothing.
 
 Feature: Issue
 
@@ -83,3 +87,51 @@ Feature: Issue
     When I close the sign-in dialog
     Then the sign-in dialog is closed
     And the signed-in session deletes that issue
+
+  ####################################################################
+  # The URL contract (apps/bublik/e2e/issue-url.spec.ts)
+  ####################################################################
+
+  @issues @needs-classification @smoke
+  Scenario: An issue page shows the issue and its rules
+    Given the fixture manifest seeds an open issue with rules
+    When I open that issue's page
+    Then the issue's title is shown
+    And each of its rules is listed
+
+  # The id is validated before anything is fetched: a word in its place is the
+  # page's own empty state, not a request for issue NaN.
+  @issues
+  Scenario: An issue address that is not a number shows the empty state
+    When I open the issues address with a word in place of the id
+    Then the page reports the id as missing or invalid
+
+  ####################################################################
+  # URL parameters
+  ####################################################################
+
+  # One issue's rules table shares the all-rules codec and keys; what differs
+  # is that its column choices are remembered apart from the rules list's.
+
+  @issues @needs-classification @url-params
+  Scenario: Searching an issue's rules records the term
+    Given an issue's page is open
+    When I search its rules for the test of one of them
+    Then the URL records the term
+    And that rule is still listed
+
+  @issues @needs-classification @url-params
+  Scenario: Hiding a column on an issue's rules does not hide it on the rules list
+    Given an issue's page is open
+    When I hide the Test column
+    Then the URL records the Test column as hidden
+    And the Test column is gone
+    When I open the rules list
+    Then the Test column is shown there
+
+  @issues @needs-classification @url-params
+  Scenario: An issue link keeps the project scope
+    Given a link to a seeded issue scoped to its project
+    When I open that link
+    Then the issue's title is shown
+    And the link still carries the project

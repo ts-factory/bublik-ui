@@ -1,13 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
-# Implemented by apps/bublik/e2e/issues.spec.ts — see features/README.md.
+# Implemented by apps/bublik/e2e/issues.spec.ts and issues-url.spec.ts — see features/README.md.
 #
-# No scenario here relies on seeded issues: each one records the issue it
+# No behaviour scenario relies on seeded issues: each one records the issue it
 # needs through the New Issue drawer, under a title only it uses, and deletes
 # it again as its last step. The stack may carry other issues, so nothing
 # asserts an empty state or an absolute count — only the rows carrying the
 # scenario's own title.
+#
+# The URL-contract scenarios at the end belong to the seeded family
+# (`@needs-classification`): they read the seeded classification through
+# `support/classification-data.ts` and change nothing.
 
 Feature: Issues
 
@@ -174,3 +178,128 @@ Feature: Issues
     When I click outside the sign-in dialog
     Then the sign-in dialog closes
     And I am still on the issues page
+
+  ####################################################################
+  # The URL contract (apps/bublik/e2e/issues-url.spec.ts)
+  ####################################################################
+
+  @issues @needs-classification @smoke
+  Scenario: The issues list shows the seeded issues grouped by project
+    Given the fixture manifest seeds issues into two projects
+    When I open the issues list for every project
+    Then both projects head a group of issues
+    And a seeded issue of each project is listed
+
+  @issues @needs-classification
+  Scenario: Scoping the issues list to a project hides the other projects' issues
+    Given the fixture manifest seeds issues into two projects
+    When I open the issues list scoped to one of them
+    Then only that project heads a group
+    And the other project's issue is not listed
+
+  @issues @needs-classification
+  Scenario: An issue's title opens its page
+    Given the issues list shows a seeded issue
+    When I follow the issue's title
+    Then that issue's page is open
+
+  ####################################################################
+  # URL parameters
+  ####################################################################
+
+  # The issues, rules and run issues tables share one URL codec
+  # (`classification-table.params.ts`): `page`, `pageSize`, `q`, `sort`, the
+  # facets, `cols` and `order`, every write a replaceIn, every default an
+  # absent key. These scenarios pin that codec on the issues list; the rules
+  # and run issues features pin only what differs there — their defaults,
+  # their facets and, for a run's issues, `open`.
+
+  @issues @needs-classification @url-params
+  Scenario: Searching the issues list records the term and returns to the first page
+    Given the issues list is open on its second page of ten
+    When I search for a seeded issue's title
+    Then the URL records the term and is back on the first page
+    And that issue is listed
+    When I clear the search
+    Then the term is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: Filtering issues by state records the facet and survives a reload
+    Given the issues list is open
+    When I narrow the list to closed issues
+    Then the URL records the closed state
+    And every listed issue is closed
+    When I reload the page
+    Then every listed issue is still closed
+    When I reset the filters
+    Then the state is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: Sorting the issues list cycles through ascending, descending and none
+    Given the issues list is open
+    When I sort by the Issue column
+    Then the URL records the ascending sort
+    When I sort by the Issue column again
+    Then the URL records the descending sort
+    When I sort by the Issue column a third time
+    Then the URL records that no sort is applied
+
+  @issues @needs-classification @url-params
+  Scenario: Changing the rows per page records the size and the page
+    Given the issues list is open
+    When I show ten issues per page
+    Then the URL records ten rows per page
+    When I open the next page
+    Then the URL records the second page
+    When I show a hundred issues per page
+    Then the page size and the page are dropped from the URL
+
+  # `clampPage` rewrites a page the data cannot fill, so a stale link lands on
+  # the last page rather than on an empty one.
+  @issues @needs-classification @url-params
+  Scenario: A page past the end is clamped to the last page
+    Given a link asking for the ninety-ninth page of ten
+    When I open that link
+    Then the URL is rewritten to the last page
+    And issues are listed
+
+  @issues @needs-classification @url-params
+  Scenario: Hiding a column records it and showing it again drops it
+    Given the issues list is open
+    When I hide the Key column
+    Then the URL records the Key column as hidden
+    And the Key column is gone
+    When I reload the page
+    Then the Key column is still gone
+    When I show the Key column
+    Then the column override is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: Reordering columns records the whole order
+    Given the issues list is open
+    When I drag the Issue column onto the Key column
+    Then the URL records an order with Issue before Key
+    And the Issue header comes before the Key header
+    When I reload the page
+    Then the Issue header still comes before the Key header
+
+  # Every scenario above builds its state by clicking. This is the other half:
+  # someone opening the link that state produced.
+  @issues @needs-classification @url-params
+  Scenario: An issues link restores the search, the facets, the sort and the columns
+    Given a link that pins a search term, the open state, the Issue sort, a page size and a hidden column
+    When I open that link
+    Then the list is narrowed, sorted and laid out as the link says
+    And the link still carries every parameter it was opened with
+
+  @issues @needs-classification @url-params
+  Scenario: Issues list controls preserve the project scope and the other parameters
+    Given the issues list is open scoped to a project with closed issues shown
+    When I search for a term
+    Then the project scope and the state are still pinned
+
+  @issues @needs-classification @url-params
+  Scenario: The sidebar's Issues link returns to the last issues list address
+    Given the issues list is open with a state filter
+    When I move to the dashboard
+    Then the compressed sidebar state remembers the filtered issues list

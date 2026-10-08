@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
-# Implemented by apps/bublik/e2e/issue-rules.spec.ts — see features/README.md.
+# Implemented by apps/bublik/e2e/issue-rules.spec.ts and issue-rules-url.spec.ts — see features/README.md.
 #
-# Each scenario records the issue its rule hangs off through the issues page,
+# Each behaviour scenario records the issue its rule hangs off through the issues page,
 # writes the rule here, and deletes the issue — rule included — as its last
 # step. The facets count only the rules the search leaves, so a scenario that
 # wants a filter option to exist searches for its own test first.
+#
+# The URL-contract scenarios at the end belong to the seeded family
+# (`@needs-classification`): they read the seeded classification through
+# `support/classification-data.ts` and change nothing.
 
 Feature: Issue rules
 
@@ -145,3 +149,66 @@ Feature: Issue rules
     Then I am asked to sign in to create rules
     When I close the sign-in dialog
     Then the sign-in dialog is closed
+
+  ####################################################################
+  # The URL contract (apps/bublik/e2e/issue-rules-url.spec.ts)
+  ####################################################################
+
+  @issues @needs-classification @smoke
+  Scenario: The rules list shows the seeded rules grouped by project
+    Given the fixture manifest seeds rules for an issue
+    When I open the rules list for every project
+    Then the issue's project heads a group of rules
+    And the issue's rules are listed
+
+  @issues @needs-classification
+  Scenario: A rule's issue opens the issue page
+    Given the rules list shows a seeded rule
+    When I follow the rule's issue
+    Then that issue's page is open
+
+  ####################################################################
+  # URL parameters
+  ####################################################################
+
+  # The codec is the one issues.feature pins; what is pinned here is what the
+  # rules list does differently — its facets, its default sort and the
+  # matcher columns that start hidden.
+
+  @issues @needs-classification @url-params
+  Scenario: Narrowing the rules to the active ones records the facet
+    Given the rules list is open
+    When I narrow the list to active rules
+    Then the URL records the active facet
+    And every listed rule is active
+    When I reset the filters
+    Then the facet is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: Sorting the rules by test records the sort
+    Given the rules list is open
+    Then the URL carries no sort for the server's order
+    When I sort by the Test column
+    Then the URL records the ascending test sort
+
+  @issues @needs-classification @url-params
+  Scenario: Showing a matcher column records it as shown
+    Given the rules list is open
+    When I show the Tags column
+    Then the URL records the Tags column as shown
+    And the Tags column is present
+    When I hide the Tags column
+    Then the column override is dropped from the URL
+
+  @issues @needs-classification @url-params
+  Scenario: A rules link restores the search, the facets and the page size
+    Given a link that pins a search term, the active facet, a category and a page size
+    When I open that link
+    Then the list is narrowed as the link says
+    And the link still carries every parameter it was opened with
+
+  @issues @needs-classification @url-params
+  Scenario: The sidebar's Rules link returns to the last rules list address
+    Given the rules list is open with the active facet
+    When I move to the dashboard
+    Then the compressed sidebar state remembers the filtered rules list

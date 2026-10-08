@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* eslint-disable playwright/expect-expect */
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './support/test';
 
 import { ConfigPage } from './pages/config-page';
@@ -518,6 +520,189 @@ test.describe('Navigation', () => {
 				await issuesPage.deleteIssue(title);
 				issueCleanup.forget(issueId);
 			});
+		}
+	);
+
+	test.describe('The sidebar follows the hide-sidebar value in the link', () => {
+		const sidebar = (page: Page) => page.locator('#sidebar');
+
+		async function openWithHideSidebar(
+			page: Page,
+			value: string,
+			expected: 'shown' | 'hidden'
+		): Promise<void> {
+			const dashboardPage = new DashboardPage(page);
+
+			await when(
+				'I open the dashboard with hide-sidebar set to the given value',
+				() => dashboardPage.gotoWithParams({ 'hide-sidebar': value })
+			);
+			await then(
+				'the sidebar is shown or hidden as the value says',
+				async () => {
+					if (expected === 'hidden') {
+						await expect(sidebar(page)).toHaveCount(0, { timeout: 30_000 });
+					} else {
+						await expect(sidebar(page)).toBeVisible({ timeout: 30_000 });
+					}
+					await urlParams(page).expect({ 'hide-sidebar': value });
+				}
+			);
+		}
+
+		test(
+			'hide-sidebar=1 hides the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, '1', 'hidden')
+		);
+
+		test(
+			'hide-sidebar=true hides the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, 'true', 'hidden')
+		);
+
+		test(
+			'hide-sidebar=TRUE hides the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, 'TRUE', 'hidden')
+		);
+
+		test(
+			'hide-sidebar=0 shows the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, '0', 'shown')
+		);
+
+		test(
+			'hide-sidebar=false shows the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, 'false', 'shown')
+		);
+
+		test(
+			'An unknown hide-sidebar value shows the sidebar',
+			{ tag: ['@url-params'] },
+			({ page }) => openWithHideSidebar(page, 'yes', 'shown')
+		);
+	});
+
+	test(
+		'A settings link opens the dialog on the named section',
+		{ tag: ['@url-params'] },
+		async ({ page }) => {
+			const dashboardPage = new DashboardPage(page);
+			const sidebar = new Sidebar(page);
+			const link = { 'settings-open': '1', 'settings-tab': 'beta' };
+
+			await given(
+				'a dashboard link that asks for the Beta settings section',
+				() => expect(link['settings-tab']).toBe('beta')
+			);
+			await when('I open that link', () => dashboardPage.gotoWithParams(link));
+			await then(
+				'the settings dialog is open on the Beta section',
+				async () => {
+					await expect(sidebar.settingsDialog()).toBeVisible({
+						timeout: 30_000
+					});
+					await expect(
+						sidebar.settingsDialog().getByText('Beta Settings')
+					).toBeVisible();
+				}
+			);
+		}
+	);
+
+	test(
+		'Closing the settings dialog records it as closed and keeps the rest of the link',
+		{ tag: ['@url-params'] },
+		async ({ page }) => {
+			const dashboardPage = new DashboardPage(page);
+			const sidebar = new Sidebar(page);
+			const runCase = representativeImportedRun(requireManifest());
+			const date = runCase.expectedRun.dashboardDate;
+
+			await given(
+				'the settings dialog is open on the Beta section from a dated dashboard link',
+				async () => {
+					await dashboardPage.gotoWithParams({
+						main: date,
+						'settings-open': '1',
+						'settings-tab': 'beta'
+					});
+					await expect(sidebar.settingsDialog()).toBeVisible({
+						timeout: 30_000
+					});
+				}
+			);
+			await when('I close the settings dialog', () =>
+				page.keyboard.press('Escape')
+			);
+			await then('the URL records the dialog as closed', async () => {
+				await expect(sidebar.settingsDialog()).toBeHidden({ timeout: 15_000 });
+				await dashboardPage.expectParams({ 'settings-open': '0' });
+			});
+			await and('the section and the date are still pinned', () =>
+				dashboardPage.expectParams({ 'settings-tab': 'beta', main: date })
+			);
+		}
+	);
+
+	test(
+		"The command palette's Profile item opens the account settings on the current page",
+		{ tag: ['@url-params'] },
+		async ({ page, request }) => {
+			const dashboardPage = new DashboardPage(page);
+			const sidebar = new Sidebar(page);
+			const runCase = representativeImportedRun(requireManifest());
+			const date = runCase.expectedRun.dashboardDate;
+			let projectId = '';
+
+			await given(
+				'I open the dashboard scoped to a project on a fixture date',
+				async () => {
+					projectId = String(
+						requireCapability(
+							await projectIdByName(request, runCase.bundle.project),
+							`Project "${runCase.bundle.project}" is not registered.`
+						)
+					);
+					await dashboardPage.gotoWithParams({
+						main: date,
+						project: projectId
+					});
+					await dashboardPage.expectRunIdVisible(runCase.runId);
+				}
+			);
+			await when('I open the command palette and choose Profile', async () => {
+				await pressMod(page, 'KeyK');
+				await page
+					.getByPlaceholder('Type a command or search...')
+					.waitFor({ state: 'visible', timeout: 15_000 });
+				await page.getByRole('option', { name: 'Profile' }).click();
+			});
+			await then(
+				'the settings dialog is open on the Account section',
+				async () => {
+					await expect(sidebar.settingsDialog()).toBeVisible({
+						timeout: 30_000
+					});
+					await expect(
+						sidebar.settingsDialog().getByText('Password', { exact: true })
+					).toBeVisible();
+				}
+			);
+			await and(
+				'the URL records the account section and the project but not the date',
+				() =>
+					dashboardPage.expectParams({
+						'settings-open': '1',
+						'settings-tab': 'account',
+						project: projectId,
+						main: null
+					})
+			);
 		}
 	);
 });
