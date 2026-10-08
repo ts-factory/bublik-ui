@@ -26,6 +26,12 @@ class AdminUsersPage {
 		await expect(this.createUserButton).toBeVisible({ timeout: 30_000 });
 	}
 
+	userRow(email: string): Locator {
+		return this.page.getByRole('row').filter({
+			has: this.page.getByRole('link', { name: email, exact: true })
+		});
+	}
+
 	async expectUserListed(email: string): Promise<void> {
 		await expect(
 			this.page
@@ -33,6 +39,37 @@ class AdminUsersPage {
 				.getByRole('link', { name: email, exact: true })
 		).toBeVisible({
 			timeout: 30_000
+		});
+	}
+
+	async expectUserStatus(email: string, status: string): Promise<void> {
+		await expect(
+			this.userRow(email).getByTestId('tw-badge').filter({ hasText: status })
+		).toBeVisible({ timeout: 30_000 });
+	}
+
+	async expectUserJoinedDate(email: string): Promise<void> {
+		await expect(
+			this.userRow(email)
+				.getByRole('cell')
+				.filter({
+					hasText: /^\d{4}\.\d{2}\.\d{2}$/
+				})
+		).toBeVisible({ timeout: 30_000 });
+	}
+
+	async deactivateUser(email: string): Promise<void> {
+		await this.userRow(email)
+			.getByRole('button', { name: 'Deactivate user' })
+			.click();
+		const confirm = this.page.getByRole('alertdialog');
+		await expect(confirm).toBeVisible({ timeout: 15_000 });
+		await confirm.getByRole('button', { name: 'Deactivate' }).click();
+	}
+
+	async expectNotice(text: string): Promise<void> {
+		await expect(this.page.getByText(text).first()).toBeVisible({
+			timeout: 15_000
 		});
 	}
 

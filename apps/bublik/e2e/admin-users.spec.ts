@@ -3,7 +3,7 @@
 import { expect, test } from './support/test';
 
 import { AdminUsersPage } from './pages/admin-users-page';
-import { given, then, when } from './support/gherkin';
+import { and, given, then, when } from './support/gherkin';
 import { adminEmail } from './support/session';
 
 test.describe('Admin Users Page', () => {
@@ -50,6 +50,44 @@ test.describe('Admin Users Page', () => {
 			await then('no user was created', async () => {
 				await expect(page.getByText(email)).toHaveCount(0);
 			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'The users table shows the administrator as active',
+		{ tag: ['@admin'] },
+		async ({ page }) => {
+			const usersPage = new AdminUsersPage(page);
+
+			await when('I open the users page', () => usersPage.goto());
+			await then(
+				"the administrator's row shows the status Active and a joined date",
+				async () => {
+					await usersPage.expectUserStatus(adminEmail(), 'Active');
+					await usersPage.expectUserJoinedDate(adminEmail());
+				}
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Deactivating your own account is refused',
+		{ tag: ['@admin'] },
+		async ({ page }) => {
+			const usersPage = new AdminUsersPage(page);
+
+			await given('I open the users page', () => usersPage.goto());
+			await when('I deactivate my own account and confirm', () =>
+				usersPage.deactivateUser(adminEmail())
+			);
+			await then('I am told that users cannot deactivate themselves', () =>
+				usersPage.expectNotice('Users cannot deactivate themselves')
+			);
+			await and("the administrator's account is still listed as Active", () =>
+				usersPage.expectUserStatus(adminEmail(), 'Active')
+			);
 		}
 	);
 });
