@@ -82,6 +82,13 @@ test(
   shared reading helpers are in `support/url-params.ts`. The compressed sidebar
   state (`_s`) is decoded by `support/sidebar-state.ts` — it is where the runs
   selection lives, so it is not readable as a plain parameter.
+- `@url-snapshot` marks the scenarios that pin every route's final address, every
+  internal link and the push-or-replace outcome of scripted writes against the
+  committed `snapshots/url-snapshot.json` (`support/url-snapshot.ts`). Record it
+  with `playwright test --grep @url-snapshot --update-snapshots` on the build whose
+  URLs are the reference; every later run diffs against it. Only `_s` (kept as a
+  presence flag), chat thread UUIDs and the key order inside JSON or lz-string
+  values are normalised. It runs on the first browser in `E2E_BROWSERS` only.
 - Area tags name the page a scenario belongs to, so one page's suite can be run on its own
   (`playwright test --grep @dashboard`). In use: `@dashboard`, `@history`, `@runs`,
   `@run`, `@log`, `@measurements`, `@report`.
