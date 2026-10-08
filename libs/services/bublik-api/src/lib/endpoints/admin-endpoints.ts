@@ -7,6 +7,7 @@ import { BUBLIK_TAG } from '../types';
 import { API_REDUCER_PATH } from '../constants';
 
 import {
+	AdminActivateUserInputs,
 	AdminCreateUserInputs,
 	AdminDeleteUserInputs,
 	AdminUpdateUserInputs,
@@ -45,6 +46,17 @@ export const adminUsersEndpoints = {
 				url: withApiV2('/auth/admin/deactivate_user'),
 				method: 'POST',
 				body: deletedUser
+			}),
+			invalidatesTags: [BUBLIK_TAG.AdminUsersTable]
+		}),
+		adminActivateUser: build.mutation<
+			{ message: string },
+			AdminActivateUserInputs
+		>({
+			query: (activatedUser) => ({
+				url: withApiV2('/auth/admin/activate_user'),
+				method: 'POST',
+				body: activatedUser
 			}),
 			invalidatesTags: [BUBLIK_TAG.AdminUsersTable]
 		})

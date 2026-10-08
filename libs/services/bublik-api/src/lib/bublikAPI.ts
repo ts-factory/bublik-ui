@@ -138,6 +138,7 @@ export const {
 	useAdminGetUsersQuery,
 	useAdminCreateUserMutation,
 	useAdminDeleteUserMutation,
+	useAdminActivateUserMutation,
 	useAdminUpdateUserMutation,
 	useGetPerformanceTimeoutsQuery,
 	useGetRunReportQuery,
