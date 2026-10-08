@@ -64,7 +64,11 @@ function num(): Codec<number> {
 	};
 }
 
-/** A boolean with one wire spelling per value; anything else reads as absent. */
+/**
+ * A boolean with one wire spelling per value; anything else reads as absent.
+ * For keys with their own spellings, such as the history form's
+ * `untriaged=true`/`untriaged=`; `bool01` and `boolTrue` are the common pairs.
+ */
 function boolOf(trueWire: string, falseWire: string): Codec<boolean> {
 	return {
 		parse: (raw) => {
@@ -306,8 +310,33 @@ function passthrough(): Codec<string | string[]> {
 	};
 }
 
+/** What `validated` needs of a zod schema: `safeParse` and nothing else. */
+interface Validator {
+	safeParse(value: unknown): { success: boolean };
+}
+
+/**
+ * A codec whose decoded value must also pass a schema (zod, in practice):
+ * a value the schema rejects reads as absent, so the page shows its own
+ * fallback instead of the router's error. The value is handed on as the
+ * inner codec decoded it, never as the schema transformed it, so the wire
+ * bytes survive the next write.
+ */
+function validated<T>(inner: Codec<T>, schema: Validator): Codec<T> {
+	return {
+		parse: (raw) => {
+			const value = inner.parse(raw);
+			if (value === undefined) return undefined;
+
+			return schema.safeParse(value).success ? value : undefined;
+		},
+		serialize: inner.serialize
+	};
+}
+
 export {
 	bool01,
+	boolOf,
 	boolTrue,
 	compressedJson,
 	date,
@@ -318,6 +347,7 @@ export {
 	passthrough,
 	repeated,
 	repeatedNum,
-	str
+	str,
+	validated
 };
-export type { Codec, DelimitedOptions, WireValue };
+export type { Codec, DelimitedOptions, Validator, WireValue };

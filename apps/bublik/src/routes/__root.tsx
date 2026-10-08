@@ -3,6 +3,8 @@
 import { lazy, Suspense } from 'react';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 
+import { rootSearch } from './-search/root.search';
+
 const RouterDevtools = import.meta.env.DEV
 	? lazy(() =>
 			import('@tanstack/react-router-devtools').then((module) => ({
@@ -25,5 +27,7 @@ function RootComponent() {
 // The command palette, login dialog, analytics tracker and iframe reporter
 // move here from the React Router tree with the shell switch (#62).
 export const Route = createRootRoute({
+	validateSearch: rootSearch.validateSearch,
+	search: { middlewares: rootSearch.middlewares },
 	component: RootComponent
 });

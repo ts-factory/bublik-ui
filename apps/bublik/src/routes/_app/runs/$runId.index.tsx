@@ -3,7 +3,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { RunPage } from '../../../pages/run-page';
+import { runSearch } from '../../-search/run.search';
 
 export const Route = createFileRoute('/_app/runs/$runId/')({
+	validateSearch: runSearch.validateSearch,
+	search: { middlewares: runSearch.middlewares },
 	component: RunPage
 });

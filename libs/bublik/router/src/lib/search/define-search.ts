@@ -20,6 +20,8 @@ type Typed<S extends Shape> = {
 type Search<S extends Shape> = Typed<S> & Record<string, unknown>;
 
 interface SearchSchema<S extends Shape> {
+	/** The declared keys and their codecs, for tests and tooling that enumerate them. */
+	shape: S;
 	/** Wire → typed. Keeps unknown keys, fills no defaults, never throws. */
 	validateSearch: (raw: Record<string, unknown>) => Search<S>;
 	/** Typed → wire, run after child routes and the updater, so the router only ever stringifies strings. */
@@ -82,7 +84,7 @@ function defineSearch<S extends Shape>(
 		...omitUndefined(search)
 	});
 
-	return { validateSearch, middlewares: [middleware], withDefaults };
+	return { shape, validateSearch, middlewares: [middleware], withDefaults };
 }
 
 export { defineSearch };
