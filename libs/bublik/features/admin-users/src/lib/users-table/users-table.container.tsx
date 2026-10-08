@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
+	AdminActivateUserInputs,
 	AdminCreateUserInputs,
 	AdminDeleteUserInputs,
 	AdminUpdateUserInputs
 } from '@/shared/types';
 import {
+	useAdminActivateUserMutation,
 	useAdminCreateUserMutation,
 	useAdminDeleteUserMutation,
 	useAdminGetUsersQuery,
@@ -27,6 +29,7 @@ export const useAdminUsers = () => {
 	const { data, isLoading, isFetching, error } = useAdminGetUsersQuery();
 	const [createUserMutation] = useAdminCreateUserMutation();
 	const [deleteUserMutation] = useAdminDeleteUserMutation();
+	const [activateUserMutation] = useAdminActivateUserMutation();
 	const [updateUserMutation] = useAdminUpdateUserMutation();
 
 	const createUser = async (newUser: AdminCreateUserInputs) => {
@@ -51,6 +54,16 @@ export const useAdminUsers = () => {
 		}
 	};
 
+	const activateUser = async (activatedUser: AdminActivateUserInputs) => {
+		if (!user) return toast.error('You are not authenticated');
+
+		try {
+			await activateUserMutation(activatedUser);
+		} catch (e: unknown) {
+			toast.error('Failed to reactivate user');
+		}
+	};
+
 	const updateUser = async (updatedUser: AdminUpdateUserInputs) => {
 		if (!user) return toast.error('You are not authenticated');
 
@@ -68,6 +81,7 @@ export const useAdminUsers = () => {
 		error,
 		createUser,
 		deleteUser,
+		activateUser,
 		updateUser
 	};
 };

@@ -82,6 +82,7 @@ const analyticsEventNames = {
 	adminUsersCreateSubmit: 'admin_users_create_submit',
 	adminUsersUpdateSubmit: 'admin_users_update_submit',
 	adminUsersDeactivateConfirm: 'admin_users_deactivate_confirm',
+	adminUsersActivateConfirm: 'admin_users_activate_confirm',
 	adminAnalyticsFiltersApply: 'admin_analytics_filters_apply',
 	netPacketFilterApply: 'net_packet_filter_apply',
 	netPacketSelectPacket: 'net_packet_select_packet',
