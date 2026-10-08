@@ -7,6 +7,7 @@ import {
 	AdminUpdateUserInputs
 } from '@/shared/types';
 import {
+	getErrorMessage,
 	useAdminActivateUserMutation,
 	useAdminCreateUserMutation,
 	useAdminDeleteUserMutation,
@@ -32,25 +33,33 @@ export const useAdminUsers = () => {
 	const [activateUserMutation] = useAdminActivateUserMutation();
 	const [updateUserMutation] = useAdminUpdateUserMutation();
 
+	// The backend explains what went wrong ("No user found with this email",
+	// "Users cannot deactivate themselves", ...), so show that over a stock text
+	const reportError = (e: unknown, fallback: string) =>
+		toast.error(getErrorMessage(e).description || fallback);
+
 	const createUser = async (newUser: AdminCreateUserInputs) => {
 		try {
-			await createUserMutation(newUser);
+			await createUserMutation(newUser).unwrap();
 		} catch (e: unknown) {
-			toast.error('Failed to create new user');
+			reportError(e, 'Failed to create new user');
 		}
 	};
 
 	const deleteUser = async (deletedUser: AdminDeleteUserInputs) => {
 		if (!user) return toast.error('You are not authenticated');
 
-		try {
-			if (user.email === deletedUser.email) {
-				return toast.error('You are trying to delete yourself!');
-			}
+		// Refused here as well as by the backend: an older backend would
+		// deactivate the administrator for real
+		if (user.email === deletedUser.email) {
+			return toast.error('Users cannot deactivate themselves');
+		}
 
-			await deleteUserMutation(deletedUser);
+		try {
+			await deleteUserMutation(deletedUser).unwrap();
+			toast.success('The user was deactivated');
 		} catch (e: unknown) {
-			toast.error('Failed to delete user');
+			reportError(e, 'Failed to deactivate user');
 		}
 	};
 
@@ -58,9 +67,10 @@ export const useAdminUsers = () => {
 		if (!user) return toast.error('You are not authenticated');
 
 		try {
-			await activateUserMutation(activatedUser);
+			await activateUserMutation(activatedUser).unwrap();
+			toast.success('A verification link has been sent to the user');
 		} catch (e: unknown) {
-			toast.error('Failed to reactivate user');
+			reportError(e, 'Failed to reactivate user');
 		}
 	};
 
@@ -68,9 +78,9 @@ export const useAdminUsers = () => {
 		if (!user) return toast.error('You are not authenticated');
 
 		try {
-			await updateUserMutation(updatedUser);
-		} catch (e) {
-			toast.error('Failed to update user');
+			await updateUserMutation(updatedUser).unwrap();
+		} catch (e: unknown) {
+			reportError(e, 'Failed to update user');
 		}
 	};
 
