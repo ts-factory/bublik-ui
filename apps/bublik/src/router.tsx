@@ -1,0 +1,63 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { createRouter, type RouterHistory } from '@tanstack/react-router';
+
+import { Spinner } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
+import { parseSearch, stringifySearch } from '@/router';
+
+import { RouteErrorBoundary } from './app/route-error-boundary';
+import { NoMatchFeature } from './pages/not-found-page';
+import { routeTree } from './routeTree.gen';
+
+function RoutePending() {
+	return <Spinner className="h-48" />;
+}
+
+/**
+ * The TanStack router and its options. A factory rather than a
+ * module-level instance: creating a browser history patches
+ * `window.history.pushState`/`replaceState`, rewrites `history.state` and
+ * registers a popstate listener on the spot, which the React Router tree that
+ * still owns the shell would see. The shell switch (#62) creates the instance.
+ */
+function createAppRouter(history?: RouterHistory) {
+	return createRouter({
+		routeTree,
+		history,
+		// '/v2' or '<prefix>/v2'
+		basepath: config.baseUrl,
+		// Never rewrite '/report/?config=' or '/activate/.../' on load.
+		trailingSlash: 'preserve',
+		caseSensitive: false,
+		// URLSearchParams in, strings and string arrays out, byte-identical back.
+		parseSearch,
+		stringifySearch,
+		// Keep unknown keys.
+		search: { strict: false },
+		defaultStructuralSharing: true,
+		defaultPreload: 'intent',
+		defaultPreloadDelay: 50,
+		// RTK Query owns freshness.
+		defaultPreloadStaleTime: 0,
+		defaultPendingComponent: RoutePending,
+		defaultPendingMs: 1000,
+		defaultPendingMinMs: 500,
+		defaultErrorComponent: RouteErrorBoundary,
+		defaultNotFoundComponent: NoMatchFeature,
+		notFoundMode: 'fuzzy',
+		// Nothing restores scroll today; the runs pagination scrolls its own container.
+		scrollRestoration: false
+	});
+}
+
+type AppRouter = ReturnType<typeof createAppRouter>;
+
+declare module '@tanstack/react-router' {
+	interface Register {
+		router: AppRouter;
+	}
+}
+
+export { createAppRouter };
+export type { AppRouter };
