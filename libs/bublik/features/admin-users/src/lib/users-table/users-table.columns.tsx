@@ -4,10 +4,13 @@ import { createColumnHelper } from '@tanstack/react-table';
 
 import { AdminUpdateUserInputs, User } from '@/shared/types';
 import { Badge } from '@/shared/tailwind-ui';
-import { upperCaseFirstLetter } from '@/shared/utils';
+import { formatTimeToDot, upperCaseFirstLetter } from '@/shared/utils';
 
 import { UpdateUserFormModalContainer } from '../update-user-form';
-import { getBadgeColorByRole } from './users-table.utils';
+import {
+	getBadgeColorByRole,
+	getBadgeStyleByStatus
+} from './users-table.utils';
 import { DeactivateUserContainer } from '../deactivate-user';
 
 const helper = createColumnHelper<User>();
@@ -48,8 +51,22 @@ export const columns = [
 	helper.accessor('last_name', {
 		header: 'Last name'
 	}),
-	helper.accessor('is_active', {
-		header: 'Active'
+	helper.accessor('status', {
+		header: 'Status',
+		cell: (cell) => {
+			const status = cell.getValue<User['status']>();
+			const { variant, className } = getBadgeStyleByStatus(status);
+
+			return (
+				<Badge variant={variant} className={className}>
+					{upperCaseFirstLetter(status)}
+				</Badge>
+			);
+		}
+	}),
+	helper.accessor('date_joined', {
+		header: 'Joined',
+		cell: (cell) => formatTimeToDot(cell.getValue<string>())
 	}),
 	helper.accessor('email', {
 		header: 'Email',
