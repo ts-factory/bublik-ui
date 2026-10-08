@@ -65,10 +65,14 @@ export default defineConfig({
 			use: { ...setupDevice, storageState: SHARED_STORAGE_STATE },
 			dependencies: ['auth']
 		},
-		...browsers.map((name) => ({
+		...browsers.map((name, index) => ({
 			name,
 			use: { ...BROWSER_DEVICES[name], storageState: SHARED_STORAGE_STATE },
-			dependencies: ['auth', 'import']
+			dependencies: ['auth', 'import'],
+			// The URL snapshot pins what the app writes, which does not depend on
+			// the engine, and one committed file cannot be written by three
+			// projects at once — so it runs on the first requested browser only.
+			...(index > 0 ? { testIgnore: /url-snapshot\.spec\.ts$/ } : {})
 		}))
 	]
 });
