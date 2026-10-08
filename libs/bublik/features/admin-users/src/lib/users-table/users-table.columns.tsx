@@ -12,6 +12,7 @@ import {
 	getBadgeStyleByStatus
 } from './users-table.utils';
 import { DeactivateUserContainer } from '../deactivate-user';
+import { ActivateUserContainer } from '../activate-user';
 
 const helper = createColumnHelper<User>();
 
@@ -30,7 +31,11 @@ export const columns = [
 			return (
 				<div className="flex items-center gap-2">
 					<UpdateUserFormModalContainer defaultValues={defaultUpdateValues} />
-					<DeactivateUserContainer email={user.email} />
+					{user.status === 'deactivated' ? (
+						<ActivateUserContainer email={user.email} />
+					) : (
+						<DeactivateUserContainer email={user.email} />
+					)}
 				</div>
 			);
 		}
