@@ -8,7 +8,7 @@ import {
 	VERDICT_TYPE
 } from '@/shared/types';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { routes, stringifySearch, useSearchState } from '@/router';
+import { legacyStringifySearch, routes, useSearchState } from '@/router';
 import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
@@ -230,8 +230,8 @@ const getHistorySearch = (
 	};
 
 	return {
-		allUnexpected: stringifySearch(allUnexpected),
-		similarUnexpected: stringifySearch(similarUnexpected),
-		historyQuery: stringifySearch(historyQuery)
+		allUnexpected: legacyStringifySearch(allUnexpected),
+		similarUnexpected: legacyStringifySearch(similarUnexpected),
+		historyQuery: legacyStringifySearch(historyQuery)
 	};
 };

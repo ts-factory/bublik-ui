@@ -19,7 +19,7 @@ import {
 	DEFAULT_VERDICT_LOOKUP,
 	getDefaultHistoryDateRange
 } from '@/bublik/config';
-import { stringifySearch } from '@/router';
+import { legacyStringifySearch } from '@/router';
 
 import { formatTimeToAPI } from './time';
 
@@ -175,7 +175,7 @@ interface GetToLocationOptions {
 function getToLocation(options: GetToLocationOptions): To {
 	const { search, mode, preview } = options;
 
-	const searchParams = new URLSearchParams(stringifySearch(search));
+	const searchParams = new URLSearchParams(legacyStringifySearch(search));
 	searchParams.set('mode', mode ?? 'linear');
 	if (preview) searchParams.set('fromRun', 'true');
 

@@ -6,7 +6,7 @@ import { To } from 'react-router-dom';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
-import { stringifySearch } from '@/router';
+import { legacyStringifySearch } from '@/router';
 import {
 	ButtonTw,
 	Icon,
@@ -25,7 +25,7 @@ function getHistoryViewLink(
 	const query = new HistorySearchBuilder(path.join('/')).withRunIds(runIds);
 	if (maybeDate) query.withAnchorDate(maybeDate);
 
-	return { pathname: '/history', search: stringifySearch(query.build()) };
+	return { pathname: '/history', search: legacyStringifySearch(query.build()) };
 }
 
 export interface RunHistoryLinkProps {
