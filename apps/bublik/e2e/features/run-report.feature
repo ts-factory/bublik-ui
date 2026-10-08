@@ -200,3 +200,24 @@ Feature: Run report
     Then the config and both selected records are still pinned
     When I collapse a test block in the table of contents
     Then the config and both selected records are still pinned
+
+
+  # Every block in the table of contents has a key of its own, named by the
+  # block id: `1` open, `0` collapsed, absent for the block type's default.
+  # Test and argument-values blocks start open — the collapse scenario above
+  # pins `0` for them — and measurement blocks start collapsed, so opening one
+  # is what writes `1`.
+  @report @needs-report @url-params
+  Scenario: Expanding a measurement block records it as open in the URL
+    Given I open a rendered report
+    When I expand a measurement block in the table of contents
+    Then the URL records that block as open
+    When I collapse it again
+    Then the URL records that block as collapsed
+
+  @report @needs-report @url-params
+  Scenario: A report link can open a measurement block that starts collapsed
+    Given a link that pins a measurement block as open
+    When I open that link
+    Then that block is expanded in the table of contents
+    And the link still carries the block key

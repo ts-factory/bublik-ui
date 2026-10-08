@@ -236,3 +236,21 @@ Feature: Dashboard
     When I open that link
     Then the runs of that day are listed
     And the URL still carries the empty search term
+
+
+  @dashboard @url-params
+  Scenario: A legacy dates link with one day pins it as the main date
+    Given a link that pins a single day in the old encoded dates parameter
+    When I open that link
+    Then the URL pins that day as the main date and no second date
+    And the URL no longer carries the encoded dates parameter
+
+  # The rewrite replaces the legacy address rather than stacking on it, so
+  # Back leaves the dashboard instead of bouncing through the rewrite again.
+  @dashboard @url-params
+  Scenario: A legacy dates link is rewritten in place
+    Given I open the runs page
+    When I open a legacy dates link
+    Then the URL pins the days the link encoded
+    When I go back
+    Then the runs page is open again

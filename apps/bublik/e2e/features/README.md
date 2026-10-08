@@ -65,7 +65,9 @@ test(
 - **Steps describe user intent, not selectors.** "I click the run's NOK counter", not
   "I click `[data-testid=dashboard-cell-link]`". Selectors belong in `e2e/pages/*.ts`.
 - **Data comes from the fixture manifest**, never from hardcoded run ids. Use
-  `requireManifest()` plus the helpers in `support/sample-cases.ts`, `support/e2e-data.ts`.
+  `requireManifest()` plus the helpers in `support/sample-cases.ts`, `support/e2e-data.ts`
+  and, for the seeded issues, rules and classified runs, `support/seeded-classification.ts`
+  (`support/classification-data.ts` picks from it for the URL-contract scenarios).
 - **Never `test.skip` when fixture data is missing.** Wrap the lookup in
   `requireCapability(value, reason)` (`support/capabilities.ts`) so the run fails loudly —
   a silently skipped scenario is worse than no scenario.
@@ -79,7 +81,9 @@ test(
   parameter surface can be checked on its own (`playwright test --grep @url-params`).
   Each page's inventory of parameters lives beside its page object as a
   `*_URL_PARAMS` table (`pages/dashboard-page.ts`, `pages/runs-page.ts`, …), and the
-  shared reading helpers are in `support/url-params.ts`. The compressed sidebar
+  shared reading helpers are in `support/url-params.ts`. The four classification
+  tables share one codec, so `pages/classification-table.ts` holds the common keys
+  and each table's page object spreads them with its own defaults and facets. The compressed sidebar
   state (`_s`) is decoded by `support/sidebar-state.ts` — it is where the runs
   selection lives, so it is not readable as a plain parameter.
 - `@url-snapshot` marks the scenarios that pin every route's final address, every
@@ -91,7 +95,8 @@ test(
   values are normalised. It runs on the first browser in `E2E_BROWSERS` only.
 - Area tags name the page a scenario belongs to, so one page's suite can be run on its own
   (`playwright test --grep @dashboard`). In use: `@dashboard`, `@history`, `@runs`,
-  `@run`, `@log`, `@measurements`, `@report`.
+  `@run`, `@log`, `@measurements`, `@report`, `@issues` (the issues list, the rules
+  list, an issue and a run's issues), `@chat`.
 
 ## Checking
 

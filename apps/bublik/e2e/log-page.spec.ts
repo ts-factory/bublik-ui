@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* eslint-disable playwright/expect-expect */
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './support/test';
 
 import type { APIRequestContext } from '@playwright/test';
@@ -28,6 +30,7 @@ import {
 	representativeNokRun
 } from './support/sample-cases';
 import type { ClassifiableRun } from './support/sample-cases';
+import { withUserPreferences } from './support/user-preferences';
 
 const issueCleanup = new IssueCleanup('log');
 
@@ -769,6 +772,78 @@ test.describe('Log Page', () => {
 			);
 			await then('the header offers Classify and Apply Rules', () =>
 				logPage.expectClassificationActions()
+			);
+		}
+	);
+
+	/** The "prefer legacy log" preference, as the preferences form stores it. */
+	function preferLegacyLog(page: Page): Promise<void> {
+		return withUserPreferences(page, {
+			log: { preferLegacyLog: true, rememberAllPages: true }
+		});
+	}
+
+	test(
+		'The legacy log preference redirects a plain log link to the legacy renderer',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open the log of an imported run without naming a renderer',
+				() => logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog')
+			);
+			await then('the URL records the legacy renderer', () =>
+				logPage.expectParams({ legacy: 'true', mode: 'treeAndinfoAndlog' })
+			);
+			await and('the legacy log frame is shown', () =>
+				logPage.expectLegacyLogVisible()
+			);
+		}
+	);
+
+	test(
+		'A link that names the JSON renderer is not redirected by the legacy preference',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open the log of an imported run asking for the JSON renderer',
+				() => logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog&legacy=false')
+			);
+			await then('the URL still names the JSON renderer', () =>
+				logPage.expectParams({ legacy: 'false' })
+			);
+			await and('the JSON log is shown', () => logPage.expectJsonLogVisible());
+		}
+	);
+
+	test(
+		'The legacy preference redirect drops the deprecated experimental parameter',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open a log link that still carries the deprecated parameter',
+				() =>
+					logPage.goto(
+						runCase.runId,
+						'mode=treeAndinfoAndlog&experimental=false'
+					)
+			);
+			await then('the deprecated parameter is dropped from the URL', () =>
+				logPage.expectParams({ experimental: null })
+			);
+			await and('the URL records the legacy renderer', () =>
+				logPage.expectParams({ legacy: 'true' })
 			);
 		}
 	);

@@ -820,4 +820,63 @@ test.describe('Dashboard', () => {
 			);
 		}
 	);
+
+	test(
+		'A legacy dates link with one day pins it as the main date',
+		{ tag: ['@dashboard', '@url-params'] },
+		async ({ page }) => {
+			const dashboard = new DashboardPage(page);
+			const { expectedRun, runId } = anyRun();
+			const day = expectedRun.dashboardDate;
+			const dates = Buffer.from(JSON.stringify({ main: day })).toString(
+				'base64'
+			);
+
+			await given(
+				'a link that pins a single day in the old encoded dates parameter',
+				() => expect(dates).not.toBe('')
+			);
+			await when('I open that link', async () => {
+				await dashboard.gotoWithParams({ dates, mode: 'rows' });
+				await dashboard.expectRunIdVisible(runId);
+			});
+			await then(
+				'the URL pins that day as the main date and no second date',
+				() => dashboard.expectParams({ main: day, secondary: null })
+			);
+			await and('the URL no longer carries the encoded dates parameter', () =>
+				dashboard.expectParamsAbsent(['dates'])
+			);
+		}
+	);
+
+	test(
+		'A legacy dates link is rewritten in place',
+		{ tag: ['@dashboard', '@url-params'] },
+		async ({ page }) => {
+			const dashboard = new DashboardPage(page);
+			const { expectedRun } = anyRun();
+			const later = expectedRun.dashboardDate;
+			const earlier = shiftDate(later, -1);
+			const dates = Buffer.from(
+				JSON.stringify({ startDate: earlier, endDate: later })
+			).toString('base64');
+
+			await given('I open the runs page', async () => {
+				await page.goto('runs');
+				await expect(page).toHaveURL(/\/runs(?:$|\?)/);
+			});
+			await when('I open a legacy dates link', () =>
+				dashboard.gotoWithParams({ dates, mode: 'columns' })
+			);
+			await then('the URL pins the days the link encoded', async () => {
+				await dashboard.expectParams({ main: later, secondary: earlier });
+				await dashboard.expectParamsAbsent(['dates']);
+			});
+			await when('I go back', () => page.goBack());
+			await then('the runs page is open again', () =>
+				expect(page).toHaveURL(/\/runs(?:$|\?)/, { timeout: 15_000 })
+			);
+		}
+	);
 });
