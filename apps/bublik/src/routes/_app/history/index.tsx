@@ -3,7 +3,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { HistoryPageV2 } from '../../../pages/history-page';
+import { historySearch } from '../../-search/history.search';
 
 export const Route = createFileRoute('/_app/history/')({
+	validateSearch: historySearch.validateSearch,
+	search: { middlewares: historySearch.middlewares },
 	component: HistoryPageV2
 });

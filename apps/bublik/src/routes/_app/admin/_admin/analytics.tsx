@@ -3,7 +3,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AdminAnalyticsPage } from '../../../../pages/admin-analytics';
+import { adminAnalyticsSearch } from '../../../-search/admin-analytics.search';
 
 export const Route = createFileRoute('/_app/admin/_admin/analytics')({
+	validateSearch: adminAnalyticsSearch.validateSearch,
+	search: { middlewares: adminAnalyticsSearch.middlewares },
 	component: AdminAnalyticsPage
 });

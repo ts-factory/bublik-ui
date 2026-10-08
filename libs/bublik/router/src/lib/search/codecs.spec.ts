@@ -2,9 +2,11 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 import { compressToEncodedURIComponent } from 'lz-string';
+import { z } from 'zod';
 
 import {
 	bool01,
+	boolOf,
 	boolTrue,
 	compressedJson,
 	date,
@@ -15,7 +17,8 @@ import {
 	passthrough,
 	repeated,
 	repeatedNum,
-	str
+	str,
+	validated
 } from './codecs';
 
 // Expected values mirror the encoders in use today: `serialize-query-params`
@@ -289,5 +292,74 @@ describe('passthrough', () => {
 		expect(passthrough().parse(['a', 'b'])).toEqual(['a', 'b']);
 		expect(passthrough().serialize(['a', 'b'])).toEqual(['a', 'b']);
 		expect(passthrough().parse(undefined)).toBeUndefined();
+	});
+});
+
+describe('boolOf', () => {
+	// The history form writes `untriaged=true` when the box is ticked and
+	// `untriaged=` when it is not, and reads `=== 'true'`.
+	const untriaged = boolOf('true', '');
+
+	it('reads and writes the two given spellings', () => {
+		expect(untriaged.parse('true')).toBe(true);
+		expect(untriaged.parse('')).toBe(false);
+		expect(untriaged.serialize(true)).toBe('true');
+		expect(untriaged.serialize(false)).toBe('');
+	});
+
+	it('anything else is undefined and absent stays absent', () => {
+		expect(untriaged.parse('1')).toBeUndefined();
+		expect(untriaged.parse('false')).toBeUndefined();
+		expect(untriaged.parse(undefined)).toBeUndefined();
+		expect(untriaged.serialize(undefined)).toBeUndefined();
+	});
+
+	it('is idempotent on typed input', () => {
+		expect(untriaged.parse(true)).toBe(true);
+		expect(untriaged.parse(false)).toBe(false);
+	});
+});
+
+describe('validated', () => {
+	const configParams = validated(
+		json<{ type: string; name?: string }>(),
+		z
+			.object({ type: z.string(), name: z.string().min(1).optional() })
+			.or(z.object({ type: z.string() }))
+	);
+
+	it('reads a value the schema accepts, as the inner codec decoded it', () => {
+		expect(configParams.parse('{"name":"per_conf","type":"global"}')).toEqual({
+			name: 'per_conf',
+			type: 'global'
+		});
+	});
+
+	it('writes through the inner codec, so the bytes are untouched', () => {
+		const wire = '{"name":"per_conf","type":"global"}';
+
+		expect(configParams.serialize(configParams.parse(wire))).toBe(wire);
+	});
+
+	it('a value the schema rejects reads as absent, so the page shows its own fallback', () => {
+		expect(configParams.parse('{"name":"per_conf"}')).toBeUndefined();
+		expect(configParams.parse('{"type":5}')).toBeUndefined();
+		expect(configParams.parse('not json')).toBeUndefined();
+		expect(configParams.parse(undefined)).toBeUndefined();
+	});
+
+	it('is idempotent on typed input', () => {
+		const typed = { type: 'global', name: 'per_conf' };
+
+		expect(configParams.parse(typed)).toEqual(typed);
+	});
+
+	it('layers on a string codec too (the packet viewer fileUrl)', () => {
+		const fileUrl = validated(str(), z.string().url());
+
+		expect(fileUrl.parse('https://logs.example.invalid/e2e/run.pcap')).toBe(
+			'https://logs.example.invalid/e2e/run.pcap'
+		);
+		expect(fileUrl.parse('not-a-url')).toBeUndefined();
 	});
 });
