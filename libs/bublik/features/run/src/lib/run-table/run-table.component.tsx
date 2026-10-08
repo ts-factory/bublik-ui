@@ -50,7 +50,7 @@ import { ColumnId } from './types';
 import { useGlobalRequirements } from '../hooks';
 import {
 	getRowId,
-	migrateExpandedStateUrl,
+	migrateExpandedState,
 	shouldMigrateExpandedState
 } from './run-table.hooks';
 
@@ -363,7 +363,15 @@ export const RunTable = (props: RunTableProps) => {
 
 	useMount(() => {
 		if (shouldMigrateExpandedState(expanded)) {
-			migrateExpandedStateUrl(expanded, table.getCoreRowModel().rowsById);
+			// Through the router, as every other run-table write: the router
+			// keeps its own keys in `history.state`, so the URL is never
+			// rewritten behind its back.
+			onExpandedChange(
+				migrateExpandedState(
+					expanded,
+					table.getCoreRowModel().rowsById
+				) as ExpandedState
+			);
 		}
 	});
 

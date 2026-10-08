@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { matchPath } from 'react-router-dom';
+import { matchPath } from '@/router';
 
 export type SubmenuMatchPattern = {
 	path: string;

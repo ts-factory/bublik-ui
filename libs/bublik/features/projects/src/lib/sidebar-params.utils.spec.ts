@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { parsePath } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+
+import { parsePath } from '@/router';
 
 import { SIDEBAR_STATE_PARAM } from '@/shared/types';
 

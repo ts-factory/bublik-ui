@@ -1,15 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
-import {
-	useQueryParam,
-	withDefault,
-	NumberParam,
-	StringParam,
-	QueryParamConfig,
-	JsonParam
-} from 'use-query-params';
 import {
 	ExpandedState,
 	Row,
@@ -37,6 +28,16 @@ import {
 } from './constants';
 import { ColumnId } from './types';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import {
+	useLocation,
+	useQueryParam,
+	withDefault,
+	NumberParam,
+	StringParam,
+	QueryParamConfig,
+	JsonParam
+} from '@/router';
 
 const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
 	encode: (value) => {
@@ -307,27 +308,6 @@ export function migrateExpandedState(
 
 export function shouldMigrateExpandedState(expanded: ExpandedState): boolean {
 	return Object.keys(expanded).some((key) => key.includes('.'));
-}
-
-export function migrateExpandedStateUrl(
-	oldExpanded: ExpandedState,
-	rows: Record<string, Row<RunData | MergedRun>>
-) {
-	const newExpanded = migrateExpandedState(oldExpanded, rows);
-	const currentUrl = new URL(window.location.href);
-
-	try {
-		// Encode with the same compressed format every other run-table writer
-		// uses, then actually apply the rewritten URL.
-		currentUrl.searchParams.set('expanded', encodeCompressedState(newExpanded));
-		window.history.replaceState(
-			window.history.state,
-			'',
-			currentUrl.toString()
-		);
-	} catch (error) {
-		console.error('Failed to migrate expanded state:', error, newExpanded);
-	}
 }
 
 export function useTargetIterationId() {

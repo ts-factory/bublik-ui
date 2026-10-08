@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
+
+import { useParams } from '@/router';
 
 import { MeasurementChartToolbar, Plot } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';

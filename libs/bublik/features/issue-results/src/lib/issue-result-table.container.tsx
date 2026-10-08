@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { OnChangeFn, PaginationState, Row } from '@tanstack/react-table';
-import { useQueryParams } from 'use-query-params';
+import { useQueryParams } from '@/router';
 
 import {
 	ClassificationFooter,

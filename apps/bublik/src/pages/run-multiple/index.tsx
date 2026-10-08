@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMount } from 'react-use';
-import { useSearchParams } from 'react-router-dom';
-import { BooleanParam, useQueryParam } from 'use-query-params';
+import { useSearchParams, BooleanParam, useQueryParam, routes } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
@@ -16,7 +15,6 @@ import {
 	Icon,
 	RunModeToggle
 } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';

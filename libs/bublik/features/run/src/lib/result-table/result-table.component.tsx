@@ -27,7 +27,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
-import { QueryParamConfig, useQueryParam, withDefault } from 'use-query-params';
+import { QueryParamConfig, useQueryParam, withDefault } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useIsSticky, useMount } from '@/shared/hooks';

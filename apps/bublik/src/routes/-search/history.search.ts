@@ -5,6 +5,7 @@ import {
 	defineSearch,
 	delimited,
 	enumOf,
+	passthrough,
 	repeated,
 	str,
 	type InferSearch
@@ -39,7 +40,10 @@ const historySearch = defineSearch(
 		branches: list(),
 		labels: list(),
 		runData: list(),
-		runIds: list(),
+		// Written `;`-joined by the history form and as a repeated key by the
+		// multiple-runs page's history links; the page parses both itself, so
+		// the wire value passes through untouched (the URL snapshot pins both).
+		runIds: passthrough(),
 		runProperties: list(),
 		resultProperties: list(),
 		results: list(),

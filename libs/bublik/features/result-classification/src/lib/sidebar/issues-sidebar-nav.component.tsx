@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import { useLocation, matchPath } from '@/router';
 
 import { LinkWithProject, useProjectSearch } from '@/bublik/features/projects';
 import {

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { matchPath, useLocation, type PathPattern } from 'react-router-dom';
+import { matchPath, useLocation, type PathPattern } from '@/router';
 
 export type ActivePattern = Pick<PathPattern, 'path' | 'end' | 'caseSensitive'>;
 

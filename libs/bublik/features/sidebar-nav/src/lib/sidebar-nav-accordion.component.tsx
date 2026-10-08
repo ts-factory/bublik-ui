@@ -7,7 +7,7 @@ import {
 	type ReactNode,
 	type ComponentType
 } from 'react';
-import type { To } from 'react-router-dom';
+import type { To } from '@/router';
 
 import {
 	cn,

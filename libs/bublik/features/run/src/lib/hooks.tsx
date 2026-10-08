@@ -11,7 +11,7 @@ import {
 	useState
 } from 'react';
 import { createNextState } from '@reduxjs/toolkit';
-import { useQueryParam, ArrayParam, withDefault } from 'use-query-params';
+import { useQueryParam, ArrayParam, withDefault } from '@/router';
 
 import { ResultTableFilter } from '@/shared/types';
 

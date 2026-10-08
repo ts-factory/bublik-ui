@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams, routes } from '@/router';
 
 import {
 	ApplyRulesButton,
@@ -17,7 +17,6 @@ import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
-import { routes } from '@/router';
 import {
 	ButtonTw,
 	CardHeader,

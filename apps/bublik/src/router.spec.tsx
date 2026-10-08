@@ -167,15 +167,23 @@ describe('createAppRouter', () => {
 		);
 	});
 
-	it('serves an unknown URL as not found without rewriting it', async () => {
-		const router = await routerAt('/definitely-not-a-bublik-page?project=1');
+	it.each([
+		'/definitely-not-a-bublik-page?project=1',
+		'/runs/1/garbage',
+		'/admin/garbage',
+		'/auth/garbage',
+		'/help'
+	])(
+		'serves the unknown URL %s as not found inside the app shell without rewriting it',
+		async (url) => {
+			const router = await routerAt(url);
 
-		expect(router.state.location.href).toBe(
-			'/definitely-not-a-bublik-page?project=1'
-		);
-		// Nothing below the root matches; the router's not-found component renders.
-		expect(matched(router)).toEqual(['__root__']);
-	});
+			expect(router.state.location.href).toBe(url);
+			// The `$` splat under the app layout is React Router's `*` route: the
+			// not-found page renders inside the shell, sidebar included.
+			expect(matched(router)).toEqual(['__root__', '/_app', '/_app/$']);
+		}
+	);
 
 	it('builds hrefs under the base URL', async () => {
 		const router = await routerAt('/dashboard');

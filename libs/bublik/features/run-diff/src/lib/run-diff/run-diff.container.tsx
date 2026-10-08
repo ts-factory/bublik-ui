@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback } from 'react';
 import { ExpandedState, Row, VisibilityState } from '@tanstack/react-table';
-import { JsonParam, withDefault, useQueryParam } from 'use-query-params';
+import { JsonParam, withDefault, useQueryParam } from '@/router';
 
 import { MergedRunDataWithDiff } from './run-diff.types';
 import { useRunDiffState } from './run-diff.container.hooks';

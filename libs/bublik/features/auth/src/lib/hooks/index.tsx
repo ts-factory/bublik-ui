@@ -2,11 +2,10 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
-import { routes } from '@/router';
+import { useLocation, routes } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
 import {

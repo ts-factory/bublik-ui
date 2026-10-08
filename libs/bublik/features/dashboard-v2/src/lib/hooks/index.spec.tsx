@@ -17,7 +17,7 @@ vi.mock('react-redux', () => ({
 	useDispatch: () => mocks.dispatch
 }));
 
-vi.mock('use-query-params', () => ({
+vi.mock('@/router', () => ({
 	BooleanParam: {},
 	DateParam: {},
 	StringParam: {},

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
-import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
+import { BooleanParam, useQueryParam, withDefault } from '@/router';
 
 import {
 	DEFAULT_ENABLE_PAIR_GAIN_COLUMNS,

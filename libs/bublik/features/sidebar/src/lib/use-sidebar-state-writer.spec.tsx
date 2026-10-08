@@ -12,7 +12,7 @@ const { navigateMock, locationState } = vi.hoisted(() => ({
 	locationState: { openUnexpected: true }
 }));
 
-vi.mock('react-router-dom', () => ({
+vi.mock('@/router', () => ({
 	useLocation: () => ({ state: locationState }),
 	useNavigate: () => navigateMock
 }));

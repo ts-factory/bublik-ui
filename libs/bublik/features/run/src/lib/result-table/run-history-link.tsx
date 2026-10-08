@@ -1,12 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
-import { To } from 'react-router-dom';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
-import { legacyStringifySearch } from '@/router';
+import { To, legacyStringifySearch } from '@/router';
 import {
 	ButtonTw,
 	Icon,

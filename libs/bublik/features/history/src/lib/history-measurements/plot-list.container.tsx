@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useMemo } from 'react';
-import { ArrayParam, useQueryParam, withDefault } from 'use-query-params';
+import { ArrayParam, useQueryParam, withDefault, routes } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 import { HistoryMeasurementResult } from '@/services/bublik-api';
 import { config } from '@/bublik/config';
 import { InfoBlock, SelectedChartsPopover } from '@/shared/charts';

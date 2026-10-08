@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren, Suspense } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '@/router';
 
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
 import { HIDE_SIDEBAR_QUERY_KEY } from '@/bublik/features/projects';

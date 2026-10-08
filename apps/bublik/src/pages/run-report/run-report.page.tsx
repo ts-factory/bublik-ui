@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useRunSidebarState } from '@/bublik/features/run';

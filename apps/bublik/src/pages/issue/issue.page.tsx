@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
@@ -16,7 +15,7 @@ import {
 	useNavigateWithProject
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { routes } from '@/router';
+import { useParams, routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 
 import { BublikEmptyState } from '@/bublik/features/ui-state';

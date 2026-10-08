@@ -15,7 +15,7 @@ import {
 	useContext,
 	useState
 } from 'react';
-import { useLocation, type To } from 'react-router-dom';
+import { useLocation, type To } from '@/router';
 
 import {
 	cn,

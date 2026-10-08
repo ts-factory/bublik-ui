@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { matchPath, useLocation, useSearchParams } from 'react-router-dom';
+import { matchPath, useLocation, useSearchParams } from '@/router';
 
 import {
 	RUNS_CHARTS_DEFAULT_URL,

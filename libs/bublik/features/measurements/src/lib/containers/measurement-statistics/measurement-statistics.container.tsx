@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import { useParams } from '@/router';
 
 import { MeasurementsRouterParams } from '@/shared/types';
 import { config } from '@/bublik/config';

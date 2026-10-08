@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, routes } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
@@ -18,7 +18,6 @@ import {
 } from '@/bublik/features/result-classification';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { routes } from '@/router';
 import { usePrefetchLogPage } from '@/services/bublik-api';
 import {
 	ButtonTw,

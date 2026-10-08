@@ -1,5 +1,6 @@
-import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+
+import { useSearchParams } from '@/router';
 
 import { NetPacketAnalyserContainer } from '@/bublik/features/net-analysis';
 

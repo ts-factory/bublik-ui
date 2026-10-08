@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect } from 'react';
-import { matchPath, useLocation, useParams } from 'react-router-dom';
+import { matchPath, useLocation, useParams } from '@/router';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { Icon } from '@/shared/tailwind-ui';

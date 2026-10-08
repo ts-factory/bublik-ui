@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/router';
 
 import { useGetHistoryLinearQuery } from '@/services/bublik-api';
 

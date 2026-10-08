@@ -2,9 +2,10 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useMemo } from 'react';
 import { sub } from 'date-fns';
-import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
+
+import { useSearchParams } from '@/router';
 
 import { RunsAPIQuery } from '@/shared/types';
 import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';

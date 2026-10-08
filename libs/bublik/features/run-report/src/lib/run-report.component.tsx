@@ -1,14 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
 import {
 	createColumnHelper,
 	flexRender,
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
+
+import {
+	useLocation,
+	useNavigate,
+	useSearchParams,
+	BooleanParam,
+	useQueryParam,
+	withDefault
+} from '@/router';
 
 import {
 	ButtonTw,

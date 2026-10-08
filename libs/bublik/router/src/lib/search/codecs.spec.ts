@@ -13,6 +13,7 @@ import {
 	delimited,
 	enumOf,
 	json,
+	keepRaw,
 	num,
 	passthrough,
 	repeated,
@@ -361,5 +362,33 @@ describe('validated', () => {
 			'https://logs.example.invalid/e2e/run.pcap'
 		);
 		expect(fileUrl.parse('not-a-url')).toBeUndefined();
+	});
+});
+
+describe('keepRaw', () => {
+	const codec = keepRaw(date());
+
+	it('parses what the inner codec parses and writes it back the same way', () => {
+		expect(codec.parse('2024-02-09')).toEqual(new Date(2024, 1, 9));
+		expect(codec.serialize(new Date(2024, 1, 9))).toBe('2024-02-09');
+	});
+
+	it('keeps a string the inner codec cannot parse, and writes it back verbatim', () => {
+		expect(codec.parse('not-a-date')).toBe('not-a-date');
+		expect(codec.serialize('not-a-date')).toBe('not-a-date');
+		expect(codec.parse('')).toBe('');
+		expect(codec.serialize('')).toBe('');
+	});
+
+	it('is absent when absent', () => {
+		expect(codec.parse(undefined)).toBeUndefined();
+		expect(codec.serialize(undefined)).toBeUndefined();
+	});
+
+	it('accepts its own typed value unchanged', () => {
+		const value = new Date(2024, 1, 9);
+
+		expect(codec.parse(value)).toBe(value);
+		expect(codec.parse(codec.parse('not-a-date'))).toBe('not-a-date');
 	});
 });

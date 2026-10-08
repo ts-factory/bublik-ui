@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useCallback, useMemo } from 'react';
-import { useQueryParam, NumberParam, JsonParam } from 'use-query-params';
 import { useSessionStorage } from 'react-use';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import { useQueryParam, NumberParam, JsonParam } from '@/router';
 
 import {
 	bublikAPI,

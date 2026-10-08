@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { OnChangeFn } from '@tanstack/react-table';
 import { useDispatch } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '@/router';
 
 import {
 	BUBLIK_TAG,

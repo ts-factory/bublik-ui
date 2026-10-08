@@ -2,11 +2,6 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import {
-	useQueryParam,
-	useQueryParams,
-	type QueryParamConfigMap
-} from 'use-query-params';
 import type {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -16,6 +11,12 @@ import type {
 	SortingState,
 	VisibilityState
 } from '@tanstack/react-table';
+
+import {
+	useQueryParam,
+	useQueryParams,
+	type QueryParamConfigMap
+} from '@/router';
 
 import { useLocalStorage } from '@/shared/hooks';
 

@@ -2,10 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useRef, useSyncExternalStore } from 'react';
 import { useDispatch } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
-import { routes } from '@/router';
+import { useCanGoBack, useLocation, useNavigate, routes } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { LoginFormInputs } from '@/shared/types';
 import {
@@ -60,8 +59,8 @@ export function LoginDialogContainer() {
 	const { pathname } = useLocation();
 	const note = reason ? getNote(reason, pathname) : null;
 	const isPagePrompt = reason?.kind === 'page';
-	// `idx` is React Router's position in its own history stack
-	const canGoBack = (window.history.state?.idx ?? 0) > 0;
+	// Whether this entry is the first the router created in this tab
+	const canGoBack = useCanGoBack();
 	const [login] = useLoginMutation();
 	const formRef = useRef<LoginFormHandle>(null);
 

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '@/router';
 
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 import {

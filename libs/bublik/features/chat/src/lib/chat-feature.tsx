@@ -9,7 +9,6 @@ import {
 	useState
 } from 'react';
 import { useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import {
 	fetchServerSentEvents,
 	useChat,
@@ -23,6 +22,8 @@ import {
 	RefreshCwIcon,
 	UnfoldHorizontalIcon
 } from 'lucide-react';
+
+import { useParams } from '@/router';
 
 import { config } from '@/bublik/config';
 import {

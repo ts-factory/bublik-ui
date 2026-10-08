@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { To } from 'react-router-dom';
+import type { To } from './compat/to';
 
 import {
 	DashboardConfig,
@@ -70,10 +70,5 @@ export const routes = {
 	runIssues: buildRoute<RunIssuesConfig>({
 		getPathname: ({ runId }) => `/runs/${runId}/issues`
 	}),
-	runs: buildRoute<never>('/runs'),
-	flower: buildRoute('/flower'),
-	tests: buildRoute('/tests'),
-	developers: buildRoute('/developers'),
-	account: buildRoute('/account'),
-	import: buildRoute('/import')
+	runs: buildRoute<never>('/runs')
 } as const;

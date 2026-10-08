@@ -18,8 +18,9 @@ function RoutePending() {
  * The TanStack router and its options. A factory rather than a
  * module-level instance: creating a browser history patches
  * `window.history.pushState`/`replaceState`, rewrites `history.state` and
- * registers a popstate listener on the spot, which the React Router tree that
- * still owns the shell would see. The shell switch (#62) creates the instance.
+ * registers a popstate listener on the spot, so it must happen once, where
+ * the app mounts (`app/router.tsx`); the specs create their own on a memory
+ * history.
  */
 function createAppRouter(history?: RouterHistory) {
 	return createRouter({
@@ -47,7 +48,10 @@ function createAppRouter(history?: RouterHistory) {
 		defaultNotFoundComponent: NoMatchFeature,
 		notFoundMode: 'fuzzy',
 		// Nothing restores scroll today; the runs pagination scrolls its own container.
-		scrollRestoration: false
+		scrollRestoration: false,
+		// React Router left the fragment to the browser; the report page scrolls
+		// to its anchors itself.
+		defaultHashScrollIntoView: false
 	});
 }
 

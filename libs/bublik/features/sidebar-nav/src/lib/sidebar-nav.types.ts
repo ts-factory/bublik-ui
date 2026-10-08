@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { MouseEventHandler, ReactNode } from 'react';
-import type { To } from 'react-router-dom';
+import type { To } from '@/router';
 
-export type { LinkProps } from 'react-router-dom';
+export type { LinkProps } from '@/router';
 
 export type SidebarNavLinkBaseProps = {
 	label: string;

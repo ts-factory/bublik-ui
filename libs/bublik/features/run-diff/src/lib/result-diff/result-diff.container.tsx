@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Row } from '@tanstack/react-table';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import { useSearchParams } from '@/router';
 
 import { useGetResultsTableQuery } from '@/services/bublik-api';
 import { BublikEmptyState } from '@/bublik/features/ui-state';

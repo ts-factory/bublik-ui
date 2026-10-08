@@ -153,6 +153,22 @@ describe('/dashboard', () => {
 		});
 	});
 
+	it('keeps an unparsable day on the URL through an unrelated write', async () => {
+		const router = await routerAt('/dashboard?main=not-a-date&mode=rows');
+
+		expect(leafSearch(router)).toMatchObject({ main: 'not-a-date' });
+
+		await router.navigate({
+			to: '/dashboard',
+			search: (prev: DashboardSearch) => ({ ...prev, _s: 'abc' }),
+			replace: true
+		});
+
+		expect(router.history.location.href).toBe(
+			`${config.baseUrl}/dashboard?main=not-a-date&mode=rows&_s=abc`
+		);
+	});
+
 	it('defaults reload and tv to off', () => {
 		expect(dashboardSearch.withDefaults({})).toEqual({
 			reload: false,
@@ -237,6 +253,25 @@ describe('/history and /history/v2', () => {
 			pageSize: '25',
 			mode: 'linear'
 		});
+	});
+	it.each([
+		['the history form writes', '/history?runIds=26764%3B1113&mode=linear'],
+		[
+			'the multiple-runs page links with',
+			'/history?runIds=26764&runIds=1113&selected=26764&mode=aggregation'
+		]
+	])('keeps runIds as %s it through a write', async (_, wire) => {
+		const router = await routerAt(wire);
+
+		await router.navigate({
+			to: '/history',
+			search: (prev: HistorySearch) => ({ ...prev, _s: 'abc' }),
+			replace: true
+		});
+
+		expect(router.history.location.href).toBe(
+			`${config.baseUrl}${wire}&_s=abc`
+		);
 	});
 });
 
@@ -709,13 +744,26 @@ describe('/admin/config', () => {
 		typed
 	});
 
-	it('a new_config the schema rejects reads as absent and the default applies', async () => {
+	it('a new_config the schema rejects stays as its raw string through a write', async () => {
 		const router = await routerAt(
 			'/admin/config?new_config=%7B%22type%22%3A5%7D'
 		);
 
-		expect(leafSearch(router)).toEqual({});
-		expect(configSearch.withDefaults(leafSearch(router))).toEqual({
+		expect(leafSearch(router)).toEqual({ new_config: '{"type":5}' });
+
+		await router.navigate({
+			to: '/admin/config',
+			search: (prev: ConfigSearch) => ({ ...prev, _s: 'abc' }),
+			replace: true
+		});
+
+		expect(router.history.location.href).toBe(
+			`${config.baseUrl}/admin/config?new_config=%7B%22type%22%3A5%7D&_s=abc`
+		);
+	});
+
+	it('an absent new_config reads as the global default', () => {
+		expect(configSearch.withDefaults({})).toEqual({
 			new_config: { type: 'global', name: 'per_conf' }
 		});
 	});
@@ -741,6 +789,22 @@ describe('/tools/packet-viewer', () => {
 
 		expect(leafSearch(router)).toEqual({ runId: 1 });
 		expect(packetViewerSearch.withDefaults({})).toEqual({});
+	});
+
+	it('a run id that is not a number stays on the URL through a write', async () => {
+		const router = await routerAt(
+			'/tools/packet-viewer?fileUrl=https%3A%2F%2Fexample.com%2Fc.pcap&runId=not-a-number'
+		);
+
+		await router.navigate({
+			to: '/tools/packet-viewer',
+			search: (prev: PacketViewerSearch) => ({ ...prev, _s: 'abc' }),
+			replace: true
+		});
+
+		expect(router.history.location.href).toBe(
+			`${config.baseUrl}/tools/packet-viewer?fileUrl=https%3A%2F%2Fexample.com%2Fc.pcap&runId=not-a-number&_s=abc`
+		);
 	});
 });
 
