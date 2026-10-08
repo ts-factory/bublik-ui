@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
+
+import { useSearchParams } from '@/router';
 
 import { isFunction } from '@/shared/utils';
 

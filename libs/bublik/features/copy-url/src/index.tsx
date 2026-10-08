@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+
+import { useLocation } from '@/router';
 
 import { useLazyGetShortUrlQuery } from '@/services/bublik-api';
 import { CommandItem, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';

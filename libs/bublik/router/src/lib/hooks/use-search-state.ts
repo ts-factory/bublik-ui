@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { camelizeKeys } from 'humps';
 
+import { useLocation, useNavigate } from '../compat/navigation';
 import {
 	handleOldUrlParsing,
 	isOldUrl,
@@ -14,6 +14,11 @@ import {
 type Updater<S> = S | ((prevState: S) => S);
 
 export interface UseSearchStateConfig {
+	/**
+	 * `'window'` used to bypass the router with `history.replaceState`; the
+	 * TanStack router keeps its own keys in `history.state`, so it is now a
+	 * replace navigation like the default.
+	 */
 	type?: 'replace' | 'push' | 'window';
 }
 
@@ -43,23 +48,7 @@ export const useSearchState = <T extends Record<string, unknown>>(
 			const nextState = isFunction(updater) ? updater(search) : updater;
 			const searchStr = stringifySearch(nextState);
 
-			switch (config.type) {
-				case 'push':
-					navigate({ search: searchStr });
-					break;
-				case 'replace':
-					navigate({ search: searchStr }, { replace: true });
-					break;
-				case 'window':
-					window.history.replaceState(
-						null,
-						'',
-						`${window.location.pathname}${searchStr}`
-					);
-					break;
-				default:
-					navigate({ search: searchStr }, { replace: true });
-			}
+			navigate({ search: searchStr }, { replace: config.type !== 'push' });
 		},
 		[config.type, navigate, search]
 	);

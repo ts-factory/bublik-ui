@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { isValid, parseISO } from 'date-fns';
-import { createPath, Link, parsePath, To } from 'react-router-dom';
 import { ComponentProps } from 'react';
 
 import {
@@ -19,7 +18,13 @@ import {
 	DEFAULT_VERDICT_LOOKUP,
 	getDefaultHistoryDateRange
 } from '@/bublik/config';
-import { legacyStringifySearch } from '@/router';
+import {
+	createPath,
+	Link,
+	parsePath,
+	To,
+	legacyStringifySearch
+} from '@/router';
 
 import { formatTimeToAPI } from './time';
 

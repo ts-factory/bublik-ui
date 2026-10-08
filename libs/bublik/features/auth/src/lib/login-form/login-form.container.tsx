@@ -2,10 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { To, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
-import { routes } from '@/router';
+import { To, useNavigate, useSearchParams, routes } from '@/router';
 
 import { LoginFormInputs } from '@/shared/types';
 import { bublikAPI, useLoginMutation } from '@/services/bublik-api';

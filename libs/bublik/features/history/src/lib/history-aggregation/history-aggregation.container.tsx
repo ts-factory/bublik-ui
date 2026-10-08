@@ -13,7 +13,7 @@ import { useAggregationGlobalFilter } from './history-aggregation.hooks';
 import { HistoryEmpty } from '../history-empty';
 import { useHistoryActions } from '../slice';
 import { HistoryError } from '../history-error';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/router';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 export const HistoryAggregationContainer = () => {

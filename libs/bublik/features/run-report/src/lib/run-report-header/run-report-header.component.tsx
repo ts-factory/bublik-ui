@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
+import { BooleanParam, useQueryParam, withDefault, routes } from '@/router';
 
-import { routes } from '@/router';
 import { RunDetailsAPIResponse } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import {

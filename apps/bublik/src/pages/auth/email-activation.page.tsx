@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useMount } from '@/shared/hooks';

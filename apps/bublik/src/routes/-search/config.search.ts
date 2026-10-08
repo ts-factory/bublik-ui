@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { defineSearch, json, num, validated, type InferSearch } from '@/router';
+import {
+	defineSearch,
+	json,
+	keepRaw,
+	num,
+	validated,
+	type InferSearch
+} from '@/router';
 import {
 	ConfigSchemaParamsSchema,
 	type ConfigSchemaParams
@@ -8,13 +15,17 @@ import {
 
 /**
  * `/admin/config`. `new_config` describes the config being
- * created; a value its zod schema rejects reads as absent, so the page sees
- * the global `per_conf` default without the URL being rewritten.
+ * created. A value that is not JSON or that its zod schema rejects stays on
+ * the URL as its raw string (`keepRaw`, pinned by
+ * `admin-configs.feature`); a reader treats a string as "use the global
+ * `per_conf` default".
  */
 const configSearch = defineSearch(
 	{
 		configId: num(),
-		new_config: validated(json<ConfigSchemaParams>(), ConfigSchemaParamsSchema)
+		new_config: keepRaw(
+			validated(json<ConfigSchemaParams>(), ConfigSchemaParamsSchema)
+		)
 	},
 	{ new_config: { type: 'global', name: 'per_conf' } }
 );

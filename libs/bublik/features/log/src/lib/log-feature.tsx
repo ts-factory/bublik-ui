@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { formatTimeToDot } from '@/shared/utils';

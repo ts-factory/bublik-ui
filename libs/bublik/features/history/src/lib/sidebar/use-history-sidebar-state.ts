@@ -2,8 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import { useSearchParams } from '@/router';
 
 import {
 	HISTORY_MODE_DEFAULT,

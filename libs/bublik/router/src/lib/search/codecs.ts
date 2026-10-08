@@ -310,6 +310,26 @@ function passthrough(): Codec<string | string[]> {
 	};
 }
 
+/**
+ * A lossy codec made lossless: a string the inner codec cannot parse is kept
+ * as that string and written back verbatim, so an unrelated write leaves it
+ * on the URL as `use-query-params`' merges did (the escape
+ * hatch for the keys a scenario pins, such as the dashboard's `main=not-a-date`).
+ * Readers see `T | string` and must treat a string as "unparsable".
+ */
+function keepRaw<T>(inner: Codec<T>): Codec<T | string> {
+	return {
+		parse: (raw) => {
+			const value = inner.parse(raw);
+			if (value !== undefined) return value;
+
+			return typeof raw === 'string' ? raw : firstString(raw);
+		},
+		serialize: (value) =>
+			typeof value === 'string' ? value : inner.serialize(value)
+	};
+}
+
 /** What `validated` needs of a zod schema: `safeParse` and nothing else. */
 interface Validator {
 	safeParse(value: unknown): { success: boolean };
@@ -343,6 +363,7 @@ export {
 	delimited,
 	enumOf,
 	json,
+	keepRaw,
 	num,
 	passthrough,
 	repeated,

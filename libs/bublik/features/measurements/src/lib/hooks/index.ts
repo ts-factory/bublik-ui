@@ -1,9 +1,10 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
+	useNavigate,
+	useSearchParams,
 	useQueryParam,
 	NumericArrayParam,
 	withDefault
-} from 'use-query-params';
+} from '@/router';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';

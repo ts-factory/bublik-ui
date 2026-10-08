@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root';
 import { Route as AppRouteImport } from './routes/_app';
 import { Route as AuthRouteRouteImport } from './routes/auth/route';
 import { Route as AppIndexRouteImport } from './routes/_app/index';
+import { Route as AppSplatRouteImport } from './routes/_app/$';
 import { Route as AppProtectedRouteImport } from './routes/_app/_protected';
 import { Route as AppRunsRouteImport } from './routes/_app/_runs';
 import { Route as AppAdminRouteRouteImport } from './routes/_app/admin/route';
@@ -58,6 +59,11 @@ const AuthRouteRoute = AuthRouteRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any);
+const AppSplatRoute = AppSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => AppRoute,
 } as any);
 const AppProtectedRoute = AppProtectedRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteRouteWithChildren;
   '/': typeof AppIndexRoute;
   '/admin': typeof AppAdminRouteRouteWithChildren;
+  '/$': typeof AppSplatRoute;
   '/dashboard': typeof AppDashboardRoute;
   '/auth/forgot': typeof AuthForgotRoute;
   '/auth/login': typeof AuthLoginRoute;
@@ -263,6 +270,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteRouteWithChildren;
+  '/$': typeof AppSplatRoute;
   '/': typeof AppIndexRoute;
   '/dashboard': typeof AppDashboardRoute;
   '/auth/forgot': typeof AuthForgotRoute;
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteRouteWithChildren;
   '/_app': typeof AppRouteWithChildren;
   '/_app/admin': typeof AppAdminRouteRouteWithChildren;
+  '/_app/$': typeof AppSplatRoute;
   '/_app/_protected': typeof AppProtectedRouteWithChildren;
   '/_app/_runs': typeof AppRunsRouteWithChildren;
   '/_app/dashboard': typeof AppDashboardRoute;
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/'
     | '/admin'
+    | '/$'
     | '/dashboard'
     | '/auth/forgot'
     | '/auth/login'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | '/auth'
+    | '/$'
     | '/'
     | '/dashboard'
     | '/auth/forgot'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app'
     | '/_app/admin'
+    | '/_app/$'
     | '/_app/_protected'
     | '/_app/_runs'
     | '/_app/dashboard'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       path: '/';
       fullPath: '/';
       preLoaderRoute: typeof AppIndexRouteImport;
+      parentRoute: typeof AppRoute;
+    };
+    '/_app/$': {
+      id: '/_app/$';
+      path: '/$';
+      fullPath: '/$';
+      preLoaderRoute: typeof AppSplatRouteImport;
       parentRoute: typeof AppRoute;
     };
     '/_app/_protected': {
@@ -788,6 +807,7 @@ const AppRunsRouteWithChildren =
 
 interface AppRouteChildren {
   AppAdminRouteRoute: typeof AppAdminRouteRouteWithChildren;
+  AppSplatRoute: typeof AppSplatRoute;
   AppProtectedRoute: typeof AppProtectedRouteWithChildren;
   AppRunsRoute: typeof AppRunsRouteWithChildren;
   AppDashboardRoute: typeof AppDashboardRoute;
@@ -809,6 +829,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRouteRoute: AppAdminRouteRouteWithChildren,
+  AppSplatRoute: AppSplatRoute,
   AppProtectedRoute: AppProtectedRouteWithChildren,
   AppRunsRoute: AppRunsRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,

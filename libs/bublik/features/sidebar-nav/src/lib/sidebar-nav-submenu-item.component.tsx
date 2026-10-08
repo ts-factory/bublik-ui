@@ -8,7 +8,7 @@ import type {
 	ReactNode
 } from 'react';
 import { createContext, useContext, useState } from 'react';
-import { useLocation, type To } from 'react-router-dom';
+import { useLocation, type To } from '@/router';
 
 import {
 	cn,

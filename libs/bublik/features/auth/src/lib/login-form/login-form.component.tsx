@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { forwardRef, ReactNode, useImperativeHandle } from 'react';
-import { Link } from 'react-router-dom';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Link } from '@/router';
 
 import { ButtonTw, FormAlertError, TextField } from '@/shared/tailwind-ui';
 import { LoginFormInputs, LoginFormSchema } from '@/shared/types';

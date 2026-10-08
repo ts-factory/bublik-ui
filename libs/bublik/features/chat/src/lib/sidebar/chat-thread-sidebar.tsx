@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2025-2026 OKTET LTD */
 import { FormEvent, useState } from 'react';
 import { ArchiveIcon, ArchiveRestoreIcon, ChevronDownIcon } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 
 import {
 	useGetChatThreadsQuery,

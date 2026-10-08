@@ -9,7 +9,7 @@ import {
 	useLayoutEffect,
 	useRef
 } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/router';
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 

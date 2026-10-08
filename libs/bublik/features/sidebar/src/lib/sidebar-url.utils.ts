@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
-import { parsePath } from 'react-router-dom';
 import {
 	compressToEncodedURIComponent,
 	decompressFromEncodedURIComponent
 } from 'lz-string';
+
+import { parsePath } from '@/router';
 
 import { SIDEBAR_PREFIX } from '@/shared/types';
 import { transformUrlSearch } from '@/shared/utils';

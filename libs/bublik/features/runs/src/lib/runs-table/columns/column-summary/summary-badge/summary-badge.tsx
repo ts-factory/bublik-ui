@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { LinkProps } from 'react-router-dom';
+import { LinkProps } from '@/router';
 
 import { cva } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';

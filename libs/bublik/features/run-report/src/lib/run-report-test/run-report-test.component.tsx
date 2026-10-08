@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from '@/router';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
 import {

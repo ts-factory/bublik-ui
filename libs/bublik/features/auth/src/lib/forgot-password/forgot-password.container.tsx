@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/router';
 
 import { ForgotPasswordInputs } from '@/shared/types';
 import { useRequestResetPasswordMutation } from '@/services/bublik-api';

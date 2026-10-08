@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import type { QueryParamConfig } from 'use-query-params';
 import type {
 	ExpandedState,
 	SortingState,
 	VisibilityState
 } from '@tanstack/react-table';
+
+import type { QueryParamConfig } from '@/router';
 
 import {
 	DELIMITER,

@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '@/router';
 
 import { useGetIssuesQuery } from '@/services/bublik-api';
 import {

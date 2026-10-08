@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';

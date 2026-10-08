@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useParams } from 'react-router-dom';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { MeasurementsRouterParams } from '@/shared/types';
@@ -11,6 +10,8 @@ import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { MeasurementStatisticsContainer } from '../../containers';
 import { useResultSelectCharts } from '../../hooks';
 import { useMemo } from 'react';
+
+import { useParams } from '@/router';
 
 function ModeOverlay() {
 	const { runId, resultId } = useParams<MeasurementsRouterParams>();

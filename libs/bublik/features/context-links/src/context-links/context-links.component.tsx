@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ComponentProps, PropsWithChildren } from 'react';
-import { To } from 'react-router-dom';
+import { To } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { cn, HoverCard, HoverCardProps, Icon } from '@/shared/tailwind-ui';

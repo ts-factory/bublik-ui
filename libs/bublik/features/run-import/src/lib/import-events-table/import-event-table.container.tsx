@@ -3,16 +3,17 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import * as SwitchPrimitive from '@radix-ui/react-switch';
 import {
-	JsonParam,
-	useQueryParam,
-	useQueryParams,
-	withDefault
-} from 'use-query-params';
-import {
 	ExpandedState,
 	OnChangeFn,
 	PaginationState
 } from '@tanstack/react-table';
+
+import {
+	JsonParam,
+	useQueryParam,
+	useQueryParams,
+	withDefault
+} from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ImportTaskFilters } from '@/shared/types';

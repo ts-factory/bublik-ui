@@ -7,8 +7,7 @@ import {
 	useCallback,
 	useEffect
 } from 'react';
-import { useNavigate, useSearchParams, To } from 'react-router-dom';
-import { useQueryParam } from 'use-query-params';
+import { useNavigate, useSearchParams, To, useQueryParam } from '@/router';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';

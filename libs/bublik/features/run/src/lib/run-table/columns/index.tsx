@@ -5,7 +5,7 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { PopoverPortal } from '@radix-ui/react-popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { To } from 'react-router-dom';
+import { To, legacyStringifySearch } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, NodeEntity, RunData, RunStatsColumn } from '@/shared/types';
@@ -27,7 +27,6 @@ import {
 import { LinkWithProject } from '@/bublik/features/projects';
 import { getTreeNode } from '@/bublik/run-utils';
 import { HistorySearchBuilder } from '@/shared/utils';
-import { legacyStringifySearch } from '@/router';
 
 import { badgeColumns } from './badge-columns';
 import { TestComments } from '../components/test-comments';

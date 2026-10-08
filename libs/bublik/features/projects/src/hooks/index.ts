@@ -6,7 +6,7 @@ import {
 	useLocation,
 	useNavigate,
 	useSearchParams
-} from 'react-router-dom';
+} from '@/router';
 
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 

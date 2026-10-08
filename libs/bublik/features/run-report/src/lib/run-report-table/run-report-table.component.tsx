@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useCallback, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 
 import { ReportPoint, ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';

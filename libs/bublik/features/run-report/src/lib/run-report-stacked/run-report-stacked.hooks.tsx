@@ -1,12 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
 import { useMemo, createContext, useContext, useCallback } from 'react';
-import {
-	ArrayParam,
-	BooleanParam,
-	useQueryParam,
-	withDefault
-} from 'use-query-params';
+import { ArrayParam, BooleanParam, useQueryParam, withDefault } from '@/router';
 
 import { useGetRunReportQuery } from '@/services/bublik-api';
 import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';

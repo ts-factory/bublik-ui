@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { matchPath } from 'react-router-dom';
 import { toast } from 'sonner';
+
+import { matchPath } from '@/router';
 
 import { useNavigateWithProject } from '@/bublik/features/projects';
 

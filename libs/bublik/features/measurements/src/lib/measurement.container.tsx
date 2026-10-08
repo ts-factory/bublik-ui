@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { MeasurementsRouterParams, MeasurementsSearch } from '@/shared/types';
-import { useSearchState } from '@/router';
+import { useParams, useSearchState } from '@/router';
 import {
 	useGetResultInfoQuery,
 	usePrefetchLogPage,

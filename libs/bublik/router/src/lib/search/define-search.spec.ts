@@ -16,6 +16,7 @@ import {
 	delimited,
 	enumOf,
 	json,
+	keepRaw,
 	num,
 	passthrough,
 	repeated,
@@ -210,6 +211,42 @@ describe('defineSearch through a router', () => {
 		).toBe('/v2/runs?mode=charts');
 	});
 
+	it('raw wire values (what the compat shims write) come out byte-identical, in <Link> hrefs too', async () => {
+		const router = await routerAt('/v2/runs?page=1');
+		const wire = {
+			tv: '0',
+			legacy: 'false',
+			page: '3',
+			main: '2024-02-09',
+			globalRequirements: ['a', 'b'],
+			runData: 'x;y',
+			columnOrder: '["a","b"]',
+			project: ['1', '2'],
+			'settings-open': '0'
+		};
+
+		// Without `_includeValidateSearch` nothing turns the strings into typed
+		// values before the middleware serializes them: `'0'` is truthy.
+		expect(router.buildLocation({ to: '/runs', search: wire }).href).toBe(
+			'/v2/runs?tv=0&legacy=false&page=3&main=2024-02-09&globalRequirements=a&globalRequirements=b&runData=x%3By&columnOrder=%5B%22a%22%2C%22b%22%5D&project=1&project=2&settings-open=0'
+		);
+
+		await router.navigate({ to: '/runs', search: wire });
+
+		expect(href(router)).toBe(
+			'/v2/runs?tv=0&legacy=false&page=3&main=2024-02-09&globalRequirements=a&globalRequirements=b&runData=x%3By&columnOrder=%5B%22a%22%2C%22b%22%5D&project=1&project=2&settings-open=0'
+		);
+	});
+
+	it('a null value (use-query-params "remove") drops the key in a middleware too', async () => {
+		const router = await routerAt('/v2/runs?page=1&tv=1');
+
+		expect(
+			router.buildLocation({ to: '/runs', search: { page: '2', tv: null } })
+				.href
+		).toBe('/v2/runs?page=2');
+	});
+
 	it('an unknown enum value survives an unrelated update', async () => {
 		const router = await routerAt('/v2/runs?mode=bogus');
 
@@ -236,6 +273,46 @@ describe('defineSearch through a router', () => {
 		});
 
 		expect(href(router)).toBe('/v2/runs?_s=x&pageSize=50');
+	});
+
+	it('a keepRaw key keeps an unparsable value through an unrelated update', async () => {
+		const root = createRootRoute();
+		const dashboard = createRoute({
+			getParentRoute: () => root,
+			path: '/dashboard',
+			...(() => {
+				const schema = defineSearch({ main: keepRaw(date()), mode: str() });
+
+				return {
+					validateSearch: schema.validateSearch,
+					search: { middlewares: schema.middlewares }
+				};
+			})()
+		});
+		const router = createRouter({
+			routeTree: root.addChildren([dashboard]),
+			history: createMemoryHistory({
+				initialEntries: ['/v2/dashboard?main=not-a-date&mode=rows']
+			}),
+			basepath: '/v2',
+			parseSearch,
+			stringifySearch
+		});
+		await router.load();
+
+		expect(router.state.matches[1].search).toMatchObject({
+			main: 'not-a-date'
+		});
+
+		await router.navigate({
+			to: '/dashboard',
+			search: (prev: Record<string, unknown>) => ({ ...prev, _s: 'abc' }),
+			replace: true
+		});
+
+		expect(router.history.location.href).toBe(
+			'/v2/dashboard?main=not-a-date&mode=rows&_s=abc'
+		);
 	});
 
 	it('setting a key to undefined removes it; the empty string writes key=', async () => {

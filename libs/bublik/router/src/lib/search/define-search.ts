@@ -72,8 +72,16 @@ function defineSearch<S extends Shape>(
 		const result = next(search);
 		const wire: Record<string, unknown> = { ...result };
 
+		// `parse` first: a navigation hands this the validated (typed) search,
+		// but a `<Link>` href is built without validation, so a raw wire string
+		// (`tv: '0'`, as the compat shims and link builders write it) or a
+		// `null` (use-query-params' "remove") can arrive here too. Every codec
+		// parses its own typed value unchanged, so this is a no-op for the
+		// typed case and the exact wire bytes for the raw one.
 		for (const key in shape) {
-			if (key in result) wire[key] = shape[key].serialize(result[key]);
+			if (key in result) {
+				wire[key] = shape[key].serialize(shape[key].parse(result[key]));
+			}
 		}
 
 		return wire as Search<S>;

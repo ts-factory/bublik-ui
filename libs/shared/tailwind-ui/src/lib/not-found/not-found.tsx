@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@/router';
 
 import { ButtonTw } from '../button';
 import { ErrorPage } from '../error-page';

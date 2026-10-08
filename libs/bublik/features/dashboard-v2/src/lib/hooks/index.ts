@@ -2,14 +2,15 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { addDays } from 'date-fns';
+
 import {
 	BooleanParam,
 	DateParam,
 	StringParam,
 	useQueryParam,
 	withDefault
-} from 'use-query-params';
-import { addDays } from 'date-fns';
+} from '@/router';
 
 import {
 	BUBLIK_TAG,

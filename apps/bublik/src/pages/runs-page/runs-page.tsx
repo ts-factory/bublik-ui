@@ -7,9 +7,10 @@ import {
 } from '@/bublik/features/runs';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
-import { useSearchParams } from 'react-router-dom';
 import { formatTimeToDot, parseISODuration } from '@/shared/utils';
 import { formatDuration } from 'date-fns';
+
+import { useSearchParams } from '@/router';
 
 function useRunsPageTitle() {
 	const [searchParams] = useSearchParams();

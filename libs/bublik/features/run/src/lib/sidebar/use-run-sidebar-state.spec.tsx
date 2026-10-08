@@ -16,10 +16,8 @@ let currentPathname = '/';
 // Tests mutate this to simulate different `_s` contents.
 const sidebarStateValues: Record<string, string | null> = {};
 
-vi.mock('react-router-dom', async () => {
-	const actual = await vi.importActual<typeof import('react-router-dom')>(
-		'react-router-dom'
-	);
+vi.mock('@/router', async () => {
+	const actual = await vi.importActual<typeof import('@/router')>('@/router');
 
 	return {
 		...actual,
