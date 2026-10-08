@@ -1,9 +1,14 @@
 {
-	"extends": ["plugin:@nx/react", "../../.eslintrc.json"],
+	"extends": [
+		"plugin:@nx/react",
+		"plugin:@tanstack/router/recommended",
+		"../../.eslintrc.json"
+	],
 	"ignorePatterns": [
 		"!**/*",
 		"**/vite.config.*.timestamp*",
-		"**/vitest.config.*.timestamp*"
+		"**/vitest.config.*.timestamp*",
+		"src/routeTree.gen.ts"
 	],
 	"overrides": [
 		{
