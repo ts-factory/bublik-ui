@@ -95,3 +95,45 @@ Feature: Navigation
     Then no sidebar is shown
     And the URL still hides the sidebar
 
+
+  ####################################################################
+  # Issues
+  ####################################################################
+
+  @issues
+  Scenario: The sidebar Issues submenu opens the issues and rules pages
+    Given I open the dashboard
+    When I open the Issues submenu and choose Issues
+    Then the issues page is open
+    When I open the Issues submenu and choose Rules
+    Then the rules page is open
+
+  @issues
+  Scenario: The command palette opens the issues page
+    Given I open the dashboard
+    When I open the command palette and choose Issues
+    Then the issues page is open
+
+  # The issues pages used to live under /admin; links written then still work.
+  @issues
+  Scenario: Old admin issue addresses redirect to the issues pages
+    When I open the old admin issues address
+    Then the issues page is open
+    When I open the old admin rules address
+    Then the rules page is open
+
+  @issues @url-params
+  Scenario: The compressed sidebar state remembers the issues pages I visited
+    Given I open a run's issues page
+    And I move to the issues page, search it, and do the same on the rules page
+    When I move to the dashboard
+    Then the compressed sidebar state remembers the issues search, the rules page and the run's issues
+    And it decodes at the version the app writes and stays inside its budget
+
+  @issues @issues-write
+  Scenario: The Issue sidebar link stays disabled until an issue was opened
+    Given I record an issue and open the dashboard
+    Then the Issue sidebar item is not a link
+    When I open that issue's page and move to the dashboard
+    Then the Issue sidebar item links to that issue
+    And I delete that issue
