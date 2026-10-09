@@ -5,6 +5,7 @@ import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { RunData, RunsData, RunStats } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 
+import type { RunsSearchValues } from '../runs-search';
 import {
 	RunsProgressFilterSummary,
 	RunsProgressGroup,
@@ -555,18 +556,16 @@ function getMetricDelta(
 }
 
 function buildFilterSummary(
-	searchParams: URLSearchParams
+	search: RunsSearchValues
 ): RunsProgressFilterSummary[] {
 	const summary: RunsProgressFilterSummary[] = [];
-	const runData = searchParams.get('runData');
-	const tagExpr = searchParams.get('tagExpr');
-	const calendarMode = searchParams.get('calendarMode');
-	const duration = searchParams.get('duration');
-	const startDate = searchParams.get('startDate');
-	const finishDate = searchParams.get('finishDate');
+	const { runData, tagExpr, calendarMode, duration, startDate, finishDate } =
+		search;
 
-	if (runData)
-		summary.push({ label: 'Metas', value: runData.split(';').join(', ') });
+	// `runData=` is an empty list and shows nothing, as the empty string did.
+	if (runData?.length) {
+		summary.push({ label: 'Metas', value: runData.join(', ') });
+	}
 	if (tagExpr) summary.push({ label: 'Tag expression', value: tagExpr });
 	if (calendarMode === 'duration' && duration) {
 		summary.push({ label: 'Range', value: duration });

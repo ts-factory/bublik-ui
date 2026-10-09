@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMemo, useState } from 'react';
-import { useSearchParams } from '@/router';
 
 import {
 	RunsProgress,
@@ -24,10 +23,11 @@ import {
 	sortRunsNewestFirst
 } from './runs-progress.utils';
 import { useRunsQuery } from '../hooks';
+import { runsRoute } from '../runs-search';
 import type { RunsProgressRun } from './runs-progress.types';
 
 function RunsProgressContainer() {
-	const [searchParams] = useSearchParams();
+	const search = runsRoute.useSearch();
 	const [groupKey, setGroupKey] = useState<string | null>(null);
 	const [timeFrameDays, setTimeFrameDays] = useState<number | null>(null);
 	const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
@@ -88,10 +88,7 @@ function RunsProgressContainer() {
 		[focusedRuns, timeFrameDays, groupKey]
 	);
 	const rows = useMemo(() => buildRunsProgressRows(orderedRuns), [orderedRuns]);
-	const filters = useMemo(
-		() => buildFilterSummary(searchParams),
-		[searchParams]
-	);
+	const filters = useMemo(() => buildFilterSummary(search), [search]);
 
 	const statsPending = sortedRuns.length > 0 && !progressRuns.length;
 

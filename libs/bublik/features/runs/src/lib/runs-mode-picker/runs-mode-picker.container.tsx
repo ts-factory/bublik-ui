@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { lazy, Suspense } from 'react';
-import { useSearchParams } from '@/router';
 
 import { Spinner } from '@/shared/tailwind-ui';
 
 import { RunsTableContainer } from '../runs-table';
+import { runsRoute } from '../runs-search';
 
 const RunsStatsContainer = lazy(() =>
 	import('../runs-stats').then((module) => ({
@@ -20,11 +20,13 @@ const RunsProgressContainer = lazy(() =>
 );
 
 export const RunsModePickerContainer = () => {
-	const [searchParams] = useSearchParams();
+	const mode = runsRoute.useSearch({
+		select: (search): string | undefined => search.mode
+	});
 
-	if (searchParams.get('mode') === 'table') return <RunsTableContainer />;
+	if (mode === 'table') return <RunsTableContainer />;
 
-	if (searchParams.get('mode') === 'charts') {
+	if (mode === 'charts') {
 		return (
 			<Suspense fallback={<Spinner className="h-48" />}>
 				<RunsStatsContainer />
@@ -32,7 +34,7 @@ export const RunsModePickerContainer = () => {
 		);
 	}
 
-	if (searchParams.get('mode') === 'progress') {
+	if (mode === 'progress') {
 		return (
 			<Suspense fallback={<Spinner className="h-48" />}>
 				<RunsProgressContainer />

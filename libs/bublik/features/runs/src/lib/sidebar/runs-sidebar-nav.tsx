@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from '@/router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -28,7 +29,7 @@ const RUNS_SIDEBAR_PATTERNS = [
 ];
 
 export function RunsSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const {
 		selectedRunIds,
 		isCompareAvailable,
@@ -74,36 +75,36 @@ export function RunsSidebarNav() {
 	})();
 
 	useEffect(() => {
-		const isRunsPage = matchPath('/runs', location.pathname);
-		const isMultiplePage = matchPath('/multiple', location.pathname);
-		const isComparePage = matchPath('/compare', location.pathname);
+		const isRunsPage = matchRoutePath({ to: '/runs' }, pathname);
+		const isMultiplePage = matchRoutePath({ to: '/multiple' }, pathname);
+		const isComparePage = matchRoutePath({ to: '/compare' }, pathname);
+		const url = pathname + searchStr;
 
 		if (isRunsPage) {
-			const searchParams = new URLSearchParams(location.search);
-			const mode = searchParams.get('mode');
+			const mode = new URLSearchParams(searchStr).get('mode');
 
 			if (mode === 'charts') {
-				setLastVisited('charts', location.pathname + location.search);
+				setLastVisited('charts', url);
 				return;
 			} else if (mode === 'progress') {
-				setLastVisited('progress', location.pathname + location.search);
+				setLastVisited('progress', url);
 				return;
 			} else {
-				setLastVisited('list', location.pathname + location.search);
+				setLastVisited('list', url);
 				return;
 			}
 		}
 
 		if (isComparePage) {
-			setLastVisited('compare', location.pathname + location.search);
+			setLastVisited('compare', url);
 			return;
 		}
 
 		if (isMultiplePage) {
-			setLastVisited('multiple', location.pathname + location.search);
+			setLastVisited('multiple', url);
 			return;
 		}
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	const finalCompareUrl = hasSameSelectedRunsInLastCompareUrl
 		? lastCompareUrl ?? '/compare'
