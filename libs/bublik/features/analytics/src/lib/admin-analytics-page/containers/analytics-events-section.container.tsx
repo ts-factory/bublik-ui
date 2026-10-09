@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMemo } from 'react';
-import { useSearchParams } from '@/router';
 
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import {
@@ -15,18 +14,20 @@ import { AnalyticsEventsSection } from '../components/analytics-events-section.c
 import { AnalyticsPagination } from '../components/analytics-pagination.component';
 import {
 	AnalyticsFilterKey,
-	AnalyticsQueryArgs,
-	ParsedQueryState
+	AnalyticsQueryArgs
 } from '../admin-analytics-page.types';
 import {
 	buildQueryArgs,
-	clearFilterParams,
+	clearFilterChanges,
+	filterValuesChanges,
 	hasActiveFilters,
 	PAGE_SIZE_OPTIONS,
-	parseSearchParams,
-	updateQueryValue,
-	updateQueryValues
+	queryValueChanges
 } from '../admin-analytics-page.utils';
+import {
+	useAnalyticsQueryState,
+	useAnalyticsSearchWriter
+} from '../admin-analytics-page.hooks';
 
 interface AnalyticsEventsSectionContainerProps {
 	skip: boolean;
@@ -36,12 +37,8 @@ function AnalyticsEventsSectionContainer(
 	props: AnalyticsEventsSectionContainerProps
 ) {
 	const { skip } = props;
-	const [searchParams, setSearchParams] = useSearchParams();
-
-	const queryState = useMemo<ParsedQueryState>(
-		() => parseSearchParams(searchParams),
-		[searchParams]
-	);
+	const queryState = useAnalyticsQueryState();
+	const writeSearch = useAnalyticsSearchWriter();
 
 	const queryArgs = useMemo<AnalyticsQueryArgs>(
 		() => buildQueryArgs(queryState),
@@ -89,9 +86,7 @@ function AnalyticsEventsSectionContainer(
 			selectedCount: values.length
 		});
 
-		const params = new URLSearchParams(searchParams);
-		updateQueryValues(params, key, values);
-		setSearchParams(params);
+		writeSearch(filterValuesChanges(key, values));
 	};
 
 	const handleSearchChange = (value?: string) => {
@@ -100,9 +95,7 @@ function AnalyticsEventsSectionContainer(
 			hasValue: Boolean(value)
 		});
 
-		const params = new URLSearchParams(searchParams);
-		updateQueryValue(params, 'search', value);
-		setSearchParams(params);
+		writeSearch(queryValueChanges('search', value));
 	};
 
 	const handlePayloadSearchChange = (value?: string) => {
@@ -111,9 +104,7 @@ function AnalyticsEventsSectionContainer(
 			hasValue: Boolean(value)
 		});
 
-		const params = new URLSearchParams(searchParams);
-		updateQueryValue(params, 'payload_search', value);
-		setSearchParams(params);
+		writeSearch(queryValueChanges('payload_search', value));
 	};
 
 	const handleClearFilters = () => {
@@ -121,31 +112,24 @@ function AnalyticsEventsSectionContainer(
 			filterKey: 'clear_all'
 		});
 
-		const params = new URLSearchParams(searchParams);
-		clearFilterParams(params);
-		setSearchParams(params);
+		writeSearch(clearFilterChanges());
 	};
 
 	const handlePageChange = (page: number) => {
-		const params = new URLSearchParams(searchParams);
-		params.set('page', `${Math.max(1, Math.min(page, totalPages))}`);
-		setSearchParams(params);
+		writeSearch({ page: `${Math.max(1, Math.min(page, totalPages))}` });
 	};
 
 	const handlePageSizeChange = (pageSize: number) => {
-		const params = new URLSearchParams(searchParams);
-		params.set(
-			'page_size',
-			`${
+		writeSearch({
+			page_size: `${
 				PAGE_SIZE_OPTIONS.includes(
 					pageSize as (typeof PAGE_SIZE_OPTIONS)[number]
 				)
 					? pageSize
 					: queryState.pageSize
-			}`
-		);
-		params.set('page', '1');
-		setSearchParams(params);
+			}`,
+			page: '1'
+		});
 	};
 
 	return (

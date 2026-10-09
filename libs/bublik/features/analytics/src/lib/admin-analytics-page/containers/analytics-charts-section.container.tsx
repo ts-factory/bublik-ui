@@ -1,21 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useMemo, useState } from 'react';
-import { useSearchParams } from '@/router';
 
 import { BublikErrorState } from '@/bublik/features/ui-state';
 import { useGetAnalyticsChartsQuery } from '@/services/bublik-api';
 
 import { AnalyticsChartsSection } from '../components/analytics-charts-section.component';
-import {
-	AnalyticsQueryArgs,
-	ParsedQueryState
-} from '../admin-analytics-page.types';
+import { AnalyticsQueryArgs } from '../admin-analytics-page.types';
 import {
 	buildQueryArgs,
-	parseSearchParams,
-	updateQueryValues
+	filterValuesChanges
 } from '../admin-analytics-page.utils';
+import {
+	useAnalyticsQueryState,
+	useAnalyticsSearchWriter
+} from '../admin-analytics-page.hooks';
 
 interface AnalyticsChartsSectionContainerProps {
 	skip: boolean;
@@ -25,13 +24,9 @@ function AnalyticsChartsSectionContainer(
 	props: AnalyticsChartsSectionContainerProps
 ) {
 	const { skip } = props;
-	const [searchParams, setSearchParams] = useSearchParams();
+	const queryState = useAnalyticsQueryState();
+	const writeSearch = useAnalyticsSearchWriter();
 	const [isChartsExposed, setIsChartsExposed] = useState(true);
-
-	const queryState = useMemo<ParsedQueryState>(
-		() => parseSearchParams(searchParams),
-		[searchParams]
-	);
 
 	const queryArgs = useMemo<AnalyticsQueryArgs>(
 		() => buildQueryArgs(queryState),
@@ -52,18 +47,18 @@ function AnalyticsChartsSectionContainer(
 	}
 
 	const handlePagePathClick = (path: string) => {
-		const params = new URLSearchParams(searchParams);
-		params.delete('event_name');
-		updateQueryValues(params, 'event_type', ['page_view']);
-		updateQueryValues(params, 'path', [path]);
-		setSearchParams(params);
+		writeSearch({
+			event_name: undefined,
+			...filterValuesChanges('event_type', ['page_view']),
+			...filterValuesChanges('path', [path])
+		});
 	};
 
 	const handleEventNameClick = (eventName: string) => {
-		const params = new URLSearchParams(searchParams);
-		updateQueryValues(params, 'event_type', ['event']);
-		updateQueryValues(params, 'event_name', [eventName]);
-		setSearchParams(params);
+		writeSearch({
+			...filterValuesChanges('event_type', ['event']),
+			...filterValuesChanges('event_name', [eventName])
+		});
 	};
 
 	return (
