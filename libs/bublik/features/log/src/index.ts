@@ -4,5 +4,6 @@ export * from './lib/log-feature';
 export * from './lib/hooks';
 export * from './lib/containers/log-tree';
 export * from './lib/containers/log-container';
+export * from './lib/containers/link-to-measurements';
 export * from './lib/components';
 export * from './lib/sidebar';
