@@ -7,7 +7,8 @@ import { RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
 import {
 	getHistorySearch,
 	HistorySearch,
-	HistorySearchBuilder
+	HistorySearchBuilder,
+	transformUrlSearch
 } from './router';
 
 const runFixture: RunDetailsAPIResponse = {
@@ -145,5 +146,33 @@ describe('getHistorySearch', () => {
 		expect(getSearchParams(direct.testNameAndParameters).get('testName')).toBe(
 			path
 		);
+	});
+});
+
+describe('transformUrlSearch', () => {
+	it('rewrites the search and keeps the pathname and hash', () => {
+		expect(
+			transformUrlSearch('/runs?mode=charts&page=2#top', (params) =>
+				params.delete('page')
+			)
+		).toBe('/runs?mode=charts#top');
+	});
+
+	it('takes a replacement and drops an emptied search', () => {
+		expect(
+			transformUrlSearch('/runs?mode=charts', () => new URLSearchParams())
+		).toBe('/runs');
+	});
+
+	it('leaves a ? inside the hash alone', () => {
+		expect(
+			transformUrlSearch('/report#a?b', (params) => params.set('x', '1'))
+		).toBe('/report?x=1#a?b');
+	});
+
+	it('keeps an empty pathname empty and drops a bare #', () => {
+		expect(
+			transformUrlSearch('?page=2#', (params) => params.set('page', '3'))
+		).toBe('?page=3');
 	});
 });

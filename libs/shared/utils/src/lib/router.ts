@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { isValid, parseISO } from 'date-fns';
-import { ComponentProps } from 'react';
+import type { HistoryState } from '@tanstack/react-router';
 
 import {
 	RunDetailsAPIResponse,
@@ -18,13 +18,7 @@ import {
 	DEFAULT_VERDICT_LOOKUP,
 	getDefaultHistoryDateRange
 } from '@/bublik/config';
-import {
-	createPath,
-	Link,
-	parsePath,
-	To,
-	legacyStringifySearch
-} from '@/router';
+import { legacyStringifySearch, splitTo, type To } from '@/router';
 
 import { formatTimeToAPI } from './time';
 
@@ -36,15 +30,12 @@ export const transformUrlSearch = (
 	url: string,
 	transform: (params: URLSearchParams) => URLSearchParams | void
 ): string => {
-	const path = parsePath(url);
-	const params = new URLSearchParams(path.search ?? '');
+	const { to, search: rawSearch, hash } = splitTo(url);
+	const params = new URLSearchParams(rawSearch);
 	const search = (transform(params) ?? params).toString();
 
-	return createPath({
-		pathname: path.pathname ?? '',
-		search: search ? `?${search}` : '',
-		hash: path.hash
-	});
+	// Not `joinTo`: a search-only URL keeps its empty pathname
+	return `${to}${search ? `?${search}` : ''}${hash === '#' ? '' : hash}`;
 };
 
 export const buildQuery = (config: {
@@ -65,13 +56,16 @@ export const buildQuery = (config: {
 	};
 };
 
+/** A history link: spread it into `LinkWithProject`. */
+export type HistoryLinkProps = { to: To; state: HistoryState };
+
 export type HistorySearch = {
-	testName: ComponentProps<typeof Link>;
-	testNameAndVerdicts: ComponentProps<typeof Link>;
-	testNameAndParameters: ComponentProps<typeof Link>;
-	testNameAndParametersAndImportantTags: ComponentProps<typeof Link>;
-	testNameAndParametersAndAllTags: ComponentProps<typeof Link>;
-	testNameAndParametersAndVerdicts: ComponentProps<typeof Link>;
+	testName: HistoryLinkProps;
+	testNameAndVerdicts: HistoryLinkProps;
+	testNameAndParameters: HistoryLinkProps;
+	testNameAndParametersAndImportantTags: HistoryLinkProps;
+	testNameAndParametersAndAllTags: HistoryLinkProps;
+	testNameAndParametersAndVerdicts: HistoryLinkProps;
 };
 
 class HistorySearchBuilder {

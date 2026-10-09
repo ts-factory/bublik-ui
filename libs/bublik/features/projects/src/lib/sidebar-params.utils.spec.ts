@@ -2,13 +2,11 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { parsePath } from '@/router';
-
 import { SIDEBAR_STATE_PARAM } from '@/shared/types';
 
 import {
 	mergeParamsWithSidebarState,
-	mergeStringUrlWithSidebarState
+	resolveTargetWithSidebarState
 } from './sidebar-params.utils';
 
 const SIDEBAR_STATE_VALUE = 'compressedSidebarState';
@@ -31,58 +29,71 @@ describe('mergeParamsWithSidebarState', () => {
 	});
 });
 
-describe('mergeStringUrlWithSidebarState', () => {
-	const currentParams = new URLSearchParams(
-		`project=2&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}`
-	);
+describe('resolveTargetWithSidebarState', () => {
+	const current = {
+		pathname: '/dashboard',
+		search: `?project=2&${SIDEBAR_STATE_PARAM}=${SIDEBAR_STATE_VALUE}&hide-sidebar=1&mode=x`
+	};
 
-	it('preserves hash when target already has query params', () => {
-		const result = mergeStringUrlWithSidebarState(
-			'/runs?mode=charts#details',
-			currentParams,
-			[42]
-		);
-		const parsed = parsePath(result);
-		const search = new URLSearchParams(parsed.search || '');
-
-		expect(parsed.pathname).toBe('/runs');
-		expect(parsed.hash).toBe('#details');
-		expect(search.get('mode')).toBe('charts');
-		expect(search.get('global.runs.lastMode')).toBeNull();
-		expect(search.get(SIDEBAR_STATE_PARAM)).toBe(SIDEBAR_STATE_VALUE);
-		expect(search.getAll('project')).toEqual(['42']);
+	it('resolves a string target with the sidebar state, hide-sidebar and projects merged in', () => {
+		expect(
+			resolveTargetWithSidebarState('/runs?mode=charts#details', current, [42])
+		).toEqual({
+			to: '/runs',
+			search: {
+				mode: 'charts',
+				[SIDEBAR_STATE_PARAM]: SIDEBAR_STATE_VALUE,
+				'hide-sidebar': '1',
+				project: '42'
+			},
+			hash: 'details'
+		});
 	});
 
-	it('preserves hash when target has no query params', () => {
-		const result = mergeStringUrlWithSidebarState(
-			'/runs#details',
-			currentParams,
-			[42]
+	it('resolves an object target the same way as its string form', () => {
+		expect(
+			resolveTargetWithSidebarState(
+				{ pathname: '/runs', search: 'mode=charts', hash: '#details' },
+				current,
+				[42]
+			)
+		).toEqual(
+			resolveTargetWithSidebarState('/runs?mode=charts#details', current, [42])
 		);
-		const parsed = parsePath(result);
-		const search = new URLSearchParams(parsed.search || '');
-
-		expect(parsed.pathname).toBe('/runs');
-		expect(parsed.hash).toBe('#details');
-		expect(search.get('global.runs.lastMode')).toBeNull();
-		expect(search.get(SIDEBAR_STATE_PARAM)).toBe(SIDEBAR_STATE_VALUE);
-		expect(search.getAll('project')).toEqual(['42']);
 	});
 
-	it('handles relative paths without moving hash into query', () => {
-		const result = mergeStringUrlWithSidebarState(
-			'../runs?mode=charts#details',
-			currentParams,
-			[42]
-		);
-		const parsed = parsePath(result);
-		const search = new URLSearchParams(parsed.search || '');
+	it('keeps an explicit sidebar state on the target and writes every project', () => {
+		expect(
+			resolveTargetWithSidebarState(
+				`/runs?${SIDEBAR_STATE_PARAM}=mine`,
+				current,
+				[1, 2]
+			).search
+		).toEqual({
+			[SIDEBAR_STATE_PARAM]: 'mine',
+			'hide-sidebar': '1',
+			project: ['1', '2']
+		});
+	});
 
-		expect(parsed.pathname).toBe('../runs');
-		expect(parsed.hash).toBe('#details');
-		expect(search.get('mode')).toBe('charts');
-		expect(search.get('global.runs.lastMode')).toBeNull();
-		expect(search.get(SIDEBAR_STATE_PARAM)).toBe(SIDEBAR_STATE_VALUE);
-		expect(search.getAll('project')).toEqual(['42']);
+	it('keeps a relative pathname for the router to resolve', () => {
+		expect(
+			resolveTargetWithSidebarState('../runs?mode=charts#details', current, [])
+				.to
+		).toBe('../runs');
+	});
+
+	it('stays on the current pathname for a search-only target, without a hash', () => {
+		expect(
+			resolveTargetWithSidebarState({ search: '?page=2' }, current, [])
+		).toEqual({
+			to: '/dashboard',
+			search: {
+				page: '2',
+				[SIDEBAR_STATE_PARAM]: SIDEBAR_STATE_VALUE,
+				'hide-sidebar': '1'
+			},
+			hash: undefined
+		});
 	});
 });

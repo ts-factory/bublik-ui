@@ -6,7 +6,7 @@ import {
 	decompressFromEncodedURIComponent
 } from 'lz-string';
 
-import { parsePath } from '@/router';
+import { splitTo } from '@/router';
 
 import { SIDEBAR_PREFIX } from '@/shared/types';
 import { transformUrlSearch } from '@/shared/utils';
@@ -573,7 +573,7 @@ export function getUpdatedSearchParams(
 export function stripSidebarParamsFromUrl(url: string): string {
 	// Runs per URL key on every encode, so skip the rewrite when there is
 	// nothing to strip.
-	if (!parsePath(url).search) {
+	if (!splitTo(url).search) {
 		return url;
 	}
 
@@ -611,7 +611,7 @@ export function getModeFromSearch<T extends string>(
  * Gets base URL without mode parameter.
  */
 export function getBaseUrl(url: string): string {
-	if (!parsePath(url).search) {
+	if (!splitTo(url).search) {
 		return url;
 	}
 

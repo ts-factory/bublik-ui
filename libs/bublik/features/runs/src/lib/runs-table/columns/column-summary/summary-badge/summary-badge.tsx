@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { LinkProps } from '@/router';
-
 import { cva } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	LinkWithProject,
+	type LinkWithProjectProps
+} from '@/bublik/features/projects';
 
 const linkStyles = cva({
 	base: [
@@ -13,7 +14,7 @@ const linkStyles = cva({
 	]
 });
 
-export interface SummaryBadgeProps extends LinkProps {
+export interface SummaryBadgeProps extends LinkWithProjectProps {
 	label: string;
 	count: number;
 	percentage?: number;
