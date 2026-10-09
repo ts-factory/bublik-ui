@@ -1,11 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath, useParams } from 'react-router-dom';
+import { useLocation, matchPath } from 'react-router-dom';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { RunPageParams } from '@/shared/types';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -19,40 +18,55 @@ import { useRunSidebarState } from './use-run-sidebar-state';
 import {
 	RunDetailsDialog,
 	RunReportDialog,
+	RunIssuesDialog,
 	RunMainDialog
 } from './run-dialogs';
 
 const RUN_SIDEBAR_PATTERNS = [
 	{ path: '/runs/:runId' },
-	{ path: '/runs/:runId/report' }
+	{ path: '/runs/:runId/report' },
+	{ path: '/runs/:runId/issues' }
 ];
 
 export function RunSidebarNav() {
 	const location = useLocation();
-	const { runId } = useParams<RunPageParams>();
 	const {
 		isDetailsAvailable,
 		isReportAvailable,
+		isIssuesAvailable,
 		isMainLinkAvailable,
-		lastDetailsUrl,
-		lastReportUrl,
 		detailsUrl,
 		reportUrl,
+		issuesUrl,
 		mainLinkUrl,
 		isReportLoading,
+		isIssuesLoading,
+		issueCount,
 		setLastVisited
 	} = useRunSidebarState();
 
+	/**
+	 * The run id comes from `matchPath`, not `useParams`: the sidebar renders in
+	 * the pathless layout route, above the `Outlet`, so `useParams` there only
+	 * ever sees the layout's own (empty) params and this effect never ran.
+	 *
+	 * `/runs/:runId/report` is deliberately absent -- the report page records
+	 * itself once it has a config id, and two writers in one commit clobber
+	 * each other's `_s`.
+	 */
 	useEffect(() => {
-		if (matchPath('/runs/:runId/report', location.pathname) && runId) {
-			setLastVisited('report', location.pathname + location.search, runId);
-		} else if (matchPath('/runs/:runId', location.pathname) && runId) {
-			setLastVisited('details', location.pathname + location.search, runId);
-		}
-	}, [location.pathname, location.search, runId, setLastVisited]);
+		const issuesMatch = matchPath('/runs/:runId/issues', location.pathname);
+		const match = issuesMatch ?? matchPath('/runs/:runId', location.pathname);
+		const matchedRunId = match?.params.runId;
 
-	const finalDetailsUrl = lastDetailsUrl || detailsUrl;
-	const finalReportUrl = reportUrl || lastReportUrl || '/runs';
+		if (!matchedRunId || !/^\d+$/.test(matchedRunId)) return;
+
+		setLastVisited(
+			issuesMatch ? 'issues' : 'details',
+			location.pathname + location.search,
+			matchedRunId
+		);
+	}, [location.pathname, location.search, setLastVisited]);
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={RUN_SIDEBAR_PATTERNS}>
@@ -75,7 +89,7 @@ export function RunSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					to={finalDetailsUrl}
+					to={detailsUrl}
 					pattern={{ path: '/runs/:runId' }}
 					disabled={!isDetailsAvailable}
 					linkComponent={LinkWithProject}
@@ -92,7 +106,7 @@ export function RunSidebarNav() {
 					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to={finalReportUrl}
+					to={reportUrl ?? '/runs'}
 					pattern={{ path: '/runs/:runId/report' }}
 					disabled={!isReportAvailable}
 					linkComponent={LinkWithProject}
@@ -109,6 +123,37 @@ export function RunSidebarNav() {
 					) : (
 						<SidebarNavSubmenuItemContainer.InfoButton>
 							<RunReportDialog />
+						</SidebarNavSubmenuItemContainer.InfoButton>
+					)}
+				</SidebarNavSubmenuItemContainer>
+				<SidebarNavSubmenuItemContainer
+					to={issuesUrl}
+					pattern={{ path: '/runs/:runId/issues' }}
+					disabled={!isIssuesAvailable}
+					linkComponent={LinkWithProject}
+				>
+					<SidebarNavSubmenuItemContainer.Icon
+						name="IssueIcon"
+						className="size-6"
+					/>
+					<SidebarNavSubmenuItemContainer.Label>
+						Issues
+					</SidebarNavSubmenuItemContainer.Label>
+					{isIssuesLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : issueCount > 0 ? (
+						<span
+							className="ml-auto rounded bg-badge-0 px-1.5 text-[0.6875rem] font-medium leading-[1.125rem] tabular-nums text-text-primary"
+							data-testid="run-sidebar-issue-count"
+						>
+							{issueCount}
+						</span>
+					) : (
+						<SidebarNavSubmenuItemContainer.InfoButton>
+							<RunIssuesDialog />
 						</SidebarNavSubmenuItemContainer.InfoButton>
 					)}
 				</SidebarNavSubmenuItemContainer>
