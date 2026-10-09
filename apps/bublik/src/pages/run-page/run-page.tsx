@@ -17,7 +17,6 @@ import {
 } from '@/bublik/features/result-classification';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { usePrefetchLogPage } from '@/services/bublik-api';
 import {
 	ButtonTw,
 	CardHeader,
@@ -101,7 +100,6 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 
 export const RunPage = () => {
 	const { runId } = runRoute.useParams();
-	usePrefetchLogPage({ runId });
 
 	return (
 		<div className="flex flex-col gap-1 p-2">

@@ -1,10 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	useGetResultInfoQuery,
-	usePrefetchLogPage,
-	usePrefetchRun
-} from '@/services/bublik-api';
+import { useGetResultInfoQuery } from '@/services/bublik-api';
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 
 import { ModePicker } from './components';
@@ -21,8 +17,6 @@ export const MeasurementContainer = () => {
 		start: data?.start,
 		runId
 	});
-	usePrefetchRun({ runId });
-	usePrefetchLogPage({ runId, resultId });
 
 	return (
 		<div data-testid="measurements-page" data-measurements-mode={mode}>

@@ -44,11 +44,26 @@ async function prefetch(
 
 const OPTIONS = { subscribe: false } as const;
 
-/** The run page: its details (the table follows from them). */
-function loadRun({ context, params }: RunLoaderArgs): Promise<void> {
+/**
+ * The run page: its details, its source link, and its table as the page asks
+ * for it (the run id as a string, the requirements on the address, `[]` for
+ * none), so the page reads the same cache entry.
+ */
+function loadRun({
+	context,
+	params,
+	deps
+}: RunLoaderArgs & {
+	deps: { requirements: string[] | undefined };
+}): Promise<void> {
 	return prefetch(
 		context,
-		bublikAPI.endpoints.getRunDetails.initiate(params.runId, OPTIONS)
+		bublikAPI.endpoints.getRunDetails.initiate(params.runId, OPTIONS),
+		bublikAPI.endpoints.getRunTableByRunId.initiate(
+			{ runId: String(params.runId), requirements: deps.requirements ?? [] },
+			OPTIONS
+		),
+		bublikAPI.endpoints.getRunSource.initiate(params.runId, OPTIONS)
 	);
 }
 
