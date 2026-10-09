@@ -8,17 +8,20 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
+import { useChatPath } from '../chat-path';
+
 const CHAT_SIDEBAR_PATTERNS = [{ to: '/chat' }, { to: '/chat/$threadId' }];
 
 export function ChatSidebarNav() {
 	const { data: features } = useGetServerFeaturesQuery();
+	const chatPath = useChatPath();
 
 	if (!features?.chat_enabled) return null;
 
 	return (
 		<SidebarNavItem patterns={CHAT_SIDEBAR_PATTERNS}>
 			<SidebarNavLinkWrapper label="Assistant">
-				<SidebarNavInternalLink to="/chat" linkComponent={LinkWithProject}>
+				<SidebarNavInternalLink to={chatPath()} linkComponent={LinkWithProject}>
 					<SidebarNavInternalLink.Icon name="Chat" />
 					<SidebarNavInternalLink.Label>Chat</SidebarNavInternalLink.Label>
 				</SidebarNavInternalLink>

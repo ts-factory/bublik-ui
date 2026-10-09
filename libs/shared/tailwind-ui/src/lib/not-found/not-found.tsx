@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useRouter } from '@tanstack/react-router';
+import { linkOptions, useRouter } from '@tanstack/react-router';
 
 import { RouterLink } from '@/router';
 
 import { ButtonTw } from '../button';
 import { ErrorPage } from '../error-page';
+
+const DASHBOARD = linkOptions({ to: '/dashboard' }).to;
 
 export const NotFound = () => {
 	const router = useRouter();
@@ -39,7 +41,7 @@ export const NotFound = () => {
 						asChild
 						className={'w-full'}
 					>
-						<RouterLink to="/dashboard">Go to dashboard</RouterLink>
+						<RouterLink to={DASHBOARD}>Go to dashboard</RouterLink>
 					</ButtonTw>
 				</>
 			}

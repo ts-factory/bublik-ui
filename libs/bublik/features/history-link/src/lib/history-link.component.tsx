@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { linkOptions } from '@tanstack/react-router';
+
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { Icon, SplitButton, Tooltip, ButtonTw } from '@/shared/tailwind-ui';
 import type { HistorySearch } from '@/shared/utils';
+
+const HISTORY = linkOptions({ to: '/history' }).to;
 
 export interface HistoryLinkComponentProps {
 	search: {
@@ -36,7 +40,7 @@ const trackHistoryLinkClick = (action: HistoryLinkAction) => {
  */
 const LoadingState = () => (
 	<ButtonTw variant="secondary" size="xss" state="loading" asChild>
-		<LinkWithProject to="/history">
+		<LinkWithProject to={HISTORY}>
 			<Icon
 				name="ProgressIndicator"
 				className="mr-1.5 animate-spin"
@@ -52,7 +56,7 @@ const LoadingState = () => (
  */
 const ErrorState = () => (
 	<ButtonTw variant="secondary" size="xss" state="disabled" asChild>
-		<LinkWithProject to="/history">
+		<LinkWithProject to={HISTORY}>
 			<Icon name="BoxArrowRight" className="mr-1.5" size={20} />
 			History
 		</LinkWithProject>

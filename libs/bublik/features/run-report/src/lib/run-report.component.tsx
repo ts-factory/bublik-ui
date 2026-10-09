@@ -29,7 +29,10 @@ import {
 	TestBlock
 } from '@/shared/types';
 import { config } from '@/bublik/config';
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	LinkWithProject,
+	TypedLinkWithProject
+} from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { useIsSticky, usePhysicalHotkeys } from '@/shared/hooks';
 
@@ -372,10 +375,10 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 				}
 			>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<LinkWithProject to={`/admin/config?configId=${configId}`}>
+					<TypedLinkWithProject to="/admin/config" search={{ configId }}>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Config
-					</LinkWithProject>
+					</TypedLinkWithProject>
 				</ButtonTw>
 			</CardHeader>
 			<div className="p-4 flex flex-col gap-4">
