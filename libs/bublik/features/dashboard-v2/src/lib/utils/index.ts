@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { splitTo, type Path } from '@/router';
 import { CELL_CONTEXT, CellContextValue } from '@/shared/types';
 
 import { DASHBOARD_TABLE_ID } from '../hooks';
@@ -16,13 +17,23 @@ export const getNextDates = (): GetNextDatesReturn => {
 	};
 };
 
-export const getUrl = (url: string, runId?: number | string) => {
+/**
+ * Where a dashboard cell with a relative `url` handler leads, as a link
+ * object for `LinkWithProject`: `tree` is the run's log in the tree mode,
+ * `runs` the run page, anything else `/<url>/<runId>`.
+ */
+export const getUrl = (url: string, runId?: number | string): Path => {
 	const map: Record<string, string> = {
 		tree: `/log/${runId}?mode=treeAndinfoAndlog`,
 		runs: `/runs/${runId}`
 	};
 
-	return map[url] ?? `/${url}/${runId}`;
+	// The params may carry the rest of the path and a query of their own
+	// (`runs` + `1726/report/?config=11`), so every target is split after it
+	// is built, as `LinkWithProject` split the string it was handed.
+	const { to, search, hash } = splitTo(map[url] ?? `/${url}/${runId}`);
+
+	return { pathname: to, search, hash };
 };
 
 export const getColorFromContext = (
