@@ -1,37 +1,63 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
-	NavigateOptions,
-	To,
-	useLocation,
-	useNavigate,
-	useSearchParams
-} from '@/router';
+	useRouter,
+	type AnyRouter,
+	type HistoryState
+} from '@tanstack/react-router';
 
+import {
+	currentLocation,
+	parseSearch,
+	useRenderedLocation,
+	type To
+} from '@/router';
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
 import { PROJECT_KEY } from '../constants';
-import {
-	mergeParamsWithSidebarState,
-	mergeStringUrlWithSidebarState
-} from '../lib/sidebar-params.utils';
+import { resolveTargetWithSidebarState } from '../lib/sidebar-params.utils';
 
-function useProjectSearch() {
-	const [searchParams, setSearchParams] = useSearchParams();
+interface NavigateWithProjectOptions {
+	replace?: boolean;
+	state?: HistoryState;
+}
 
-	const projectIds = useMemo(() => {
-		const values = searchParams.getAll(PROJECT_KEY);
+interface ProjectSearch {
+	projectIds: number[];
+	setProjectsIds: (projectIds: number[]) => void;
+}
 
-		return values.filter(Boolean).map(Number);
-	}, [searchParams]);
+/**
+ * The selected projects (`?project=1&project=2`) of the page on screen, and
+ * a setter that pushes the current page with the new selection (the hash
+ * and `location.state` are dropped, as before).
+ */
+function useProjectSearch(): ProjectSearch {
+	const router = useRouter<AnyRouter>();
+	const { searchStr } = useRenderedLocation();
+
+	const projectIds = useMemo(
+		() =>
+			new URLSearchParams(searchStr)
+				.getAll(PROJECT_KEY)
+				.filter(Boolean)
+				.map(Number),
+		[searchStr]
+	);
 
 	function setProjectIds(projectIds: number[]) {
-		const params = new URLSearchParams(searchParams);
+		const params = new URLSearchParams(searchStr);
 
 		params.delete(PROJECT_KEY);
 		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
 
-		setSearchParams(params);
+		void router.navigate({
+			to: currentLocation(router).pathname,
+			search: parseSearch(params.toString()),
+			resetScroll: false
+		});
 	}
 
 	return {
@@ -40,46 +66,36 @@ function useProjectSearch() {
 	};
 }
 
-function useNavigateWithProject() {
+/**
+ * `navigate` that carries the sidebar state, `hide-sidebar` and the selected
+ * projects of the page on screen into the target, like `LinkWithProject`.
+ */
+function useNavigateWithProject(): (
+	to: To,
+	options?: NavigateWithProjectOptions
+) => void {
+	const router = useRouter<AnyRouter>();
 	const { projectIds } = useProjectSearch();
-	const _navigate = useNavigate();
-	const location = useLocation();
+	const { searchStr } = useRenderedLocation();
 
-	const navigate = useCallback(
-		(to: To, options?: NavigateOptions) => {
-			const freshSearchParams = new URLSearchParams(location.search);
-
-			if (typeof to === 'string') {
-				const finalTo = mergeStringUrlWithSidebarState(
-					to,
-					freshSearchParams,
-					projectIds
-				);
-				_navigate(finalTo, options);
-				return;
-			}
-
-			const targetParams = new URLSearchParams(to.search || '');
-			const mergedParams = mergeParamsWithSidebarState(
-				targetParams,
-				freshSearchParams,
+	return useCallback(
+		(to: To, options?: NavigateWithProjectOptions) => {
+			const target = resolveTargetWithSidebarState(
+				to,
+				{ pathname: currentLocation(router).pathname, search: searchStr },
 				projectIds
 			);
-			const search = mergedParams.toString();
 
-			_navigate(
-				{
-					pathname: to.pathname,
-					search: search ? `?${search}` : '',
-					hash: to.hash
-				},
-				options
-			);
+			void router.navigate({
+				...target,
+				replace: options?.replace,
+				state: options?.state,
+				// The pages scroll their own containers.
+				resetScroll: false
+			});
 		},
-		[_navigate, location.search, projectIds]
+		[router, searchStr, projectIds]
 	);
-
-	return navigate;
 }
 
 function useTabTitleWithPrefix(title: string | (string | undefined)[]) {
@@ -129,6 +145,7 @@ function useDeleteProject({ id }: UseProjectParams) {
 	return { deleteProject };
 }
 
+export type { NavigateWithProjectOptions, ProjectSearch };
 export {
 	useProjectSearch,
 	useDeleteProject,

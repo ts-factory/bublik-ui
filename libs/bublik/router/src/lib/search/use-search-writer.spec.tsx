@@ -73,6 +73,19 @@ describe('useSearchWriter', () => {
 		expect(router.history.location.state).toMatchObject({ fromRun: true });
 	});
 
+	it('keeps the hash with { keepHash: true } and makes the search whole with { merge: false }', async () => {
+		const { router, result } = await renderHookAt('/runs', useSearchWriter);
+
+		await write(() => {
+			void router.navigate({ to: '/runs', search: { page: '2' }, hash: 'top' });
+		});
+		await write(() =>
+			result.current({ mode: 'charts' }, { keepHash: true, merge: false })
+		);
+
+		expect(hrefOf(router)).toBe('/v2/runs?mode=charts#top');
+	});
+
 	it('pushes with { replace: false }', async () => {
 		const { router, result } = await renderHookAt('/runs', useSearchWriter);
 

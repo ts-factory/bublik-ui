@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { resolveTo, splitTarget, type ResolvedTo, type To } from '@/router';
+
 import { SIDEBAR_STATE_PARAM } from '@/shared/types';
-import { transformUrlSearch } from '@/shared/utils';
 
 import { HIDE_SIDEBAR_QUERY_KEY, PROJECT_KEY } from '../constants';
 
@@ -42,12 +43,25 @@ export function mergeParamsWithSidebarState(
 	return result;
 }
 
-export function mergeStringUrlWithSidebarState(
-	to: string,
-	currentSearchParams: URLSearchParams,
+/**
+ * A link or navigation target with the merge rule above applied, in the
+ * shape the router takes. A target without a pathname stays on
+ * `current.pathname`; one without a hash drops the current fragment.
+ */
+export function resolveTargetWithSidebarState(
+	to: To,
+	current: { pathname: string; search: string },
 	projectIds: number[]
-): string {
-	return transformUrlSearch(to, (targetParams) =>
-		mergeParamsWithSidebarState(targetParams, currentSearchParams, projectIds)
+): ResolvedTo {
+	const target = splitTarget(to);
+	const search = mergeParamsWithSidebarState(
+		new URLSearchParams(target.search),
+		new URLSearchParams(current.search),
+		projectIds
+	).toString();
+
+	return resolveTo(
+		{ pathname: target.to, search, hash: target.hash },
+		current.pathname
 	);
 }
