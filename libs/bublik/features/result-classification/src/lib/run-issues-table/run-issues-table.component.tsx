@@ -1,0 +1,241 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import type { ReactNode, RefObject } from 'react';
+import type { Row, Table } from '@tanstack/react-table';
+
+import {
+	ButtonTw,
+	DataTableFacetedFilter,
+	Icon,
+	Pagination,
+	Skeleton,
+	Tooltip
+} from '@/shared/tailwind-ui';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import type { IssueCategory, IssueState, RunIssueRow } from '@/shared/types';
+
+import {
+	ClassificationFooter,
+	ClassificationRange,
+	ClassificationSearch,
+	ClassificationTable,
+	ClassificationToolbar,
+	ClassificationToolbarSeparator
+} from '../classification-table/classification-table.component';
+import {
+	CategoryBadge,
+	IssueStateBadge,
+	RunEffectBadge
+} from '../classification/classification-badges.component';
+import type { RunIssueEffect } from '../classification/classification.types';
+import { withFacetBadges } from '../classification/facet-badges.component';
+import { ClassificationColumnsPicker } from '../classification-table/columns-picker.component';
+import { facetControls } from '../classification-table/classification-table.utils';
+import type { FacetOption } from '../classification-table/classification-table.utils';
+import { COLUMN_ID, PINNED_COLUMNS } from './run-issues-table.constants';
+
+export function RunIssuesTableLoading() {
+	return (
+		<div className="flex flex-col gap-1 p-2">
+			{Array.from({ length: 10 }, () => 0).map((_, idx) => (
+				<Skeleton key={idx} className="h-10 rounded-md" />
+			))}
+		</div>
+	);
+}
+
+export function RunIssuesTableError({ error }: { error: unknown }) {
+	return <BublikErrorState error={error} className="h-full" />;
+}
+
+export function RunIssuesTableEmpty() {
+	return (
+		<BublikEmptyState
+			title="No issues"
+			description="Nothing in this run is classified yet. Classify a failing result, or apply the active rules to this run."
+			className="h-full"
+		/>
+	);
+}
+
+export interface RunIssuesTableViewProps {
+	table: Table<RunIssueRow>;
+	scrollRef: RefObject<HTMLDivElement>;
+	isScrollable: boolean;
+	columnOrder: string[];
+	onColumnOrderChange: (order: string[]) => void;
+	search: string;
+	onSearchChange: (value: string) => void;
+	stateOptions: FacetOption[];
+	effectOptions: FacetOption[];
+	categoryOptions: FacetOption[];
+	hasFilters: boolean;
+	onResetFilters: () => void;
+	toolbarActions?: ReactNode;
+	totalCount: number;
+	renderSubRow: (row: Row<RunIssueRow>) => ReactNode;
+}
+
+export function RunIssuesTableView({
+	table,
+	scrollRef,
+	isScrollable,
+	columnOrder,
+	onColumnOrderChange,
+	search,
+	onSearchChange,
+	stateOptions,
+	effectOptions,
+	categoryOptions,
+	hasFilters,
+	onResetFilters,
+	toolbarActions,
+	totalCount,
+	renderSubRow
+}: RunIssuesTableViewProps) {
+	const facets = facetControls(table);
+
+	const { pagination } = table.getState();
+	const rows = table.getRowModel().rows;
+	const matchedCount = table.getFilteredRowModel().rows.length;
+
+	function scrollToTop() {
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function goToPage(page: number) {
+		table.setPageIndex(page - 1);
+		scrollToTop();
+	}
+
+	function setPageSize(pageSize: number) {
+		table.setPageSize(pageSize);
+		scrollToTop();
+	}
+
+	return (
+		<div className="flex flex-col flex-1 min-h-0">
+			<ClassificationToolbar>
+				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
+					Issues
+				</span>
+				<ClassificationToolbarSeparator />
+				<ClassificationSearch
+					value={search}
+					onChange={onSearchChange}
+					placeholder="Search title or key"
+					testId="run-issues-search"
+					className="min-w-[220px]"
+				/>
+				<DataTableFacetedFilter
+					title="State"
+					size="xss"
+					options={withFacetBadges(stateOptions, (state: IssueState) => (
+						<IssueStateBadge state={state} />
+					))}
+					value={facets.values(COLUMN_ID.STATE)}
+					onChange={(values) => facets.set(COLUMN_ID.STATE, values)}
+					disabled={!stateOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Effect On Run"
+					size="xss"
+					options={withFacetBadges(effectOptions, (effect: RunIssueEffect) => (
+						<RunEffectBadge effect={effect} />
+					))}
+					value={facets.values(COLUMN_ID.EFFECT)}
+					onChange={(values) => facets.set(COLUMN_ID.EFFECT, values)}
+					disabled={!effectOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Category"
+					size="xss"
+					options={withFacetBadges(
+						categoryOptions,
+						(category: IssueCategory) => (
+							<CategoryBadge category={category} />
+						)
+					)}
+					value={facets.values(COLUMN_ID.CATEGORIES)}
+					onChange={(values) => facets.set(COLUMN_ID.CATEGORIES, values)}
+					disabled={!categoryOptions.length}
+				/>
+				<ClassificationToolbarSeparator />
+				<Tooltip
+					content={hasFilters ? 'Reset all filters' : 'No filters to reset'}
+				>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						disabled={!hasFilters}
+						onClick={onResetFilters}
+						data-testid="run-issues-reset-filters"
+					>
+						<Icon name="Bin" size={18} className="mr-1.5" />
+						Reset
+					</ButtonTw>
+				</Tooltip>
+				<div className="flex items-center gap-2 ml-auto">
+					{toolbarActions ? (
+						<>
+							{toolbarActions}
+							<ClassificationToolbarSeparator />
+						</>
+					) : null}
+					<ClassificationColumnsPicker
+						table={table}
+						columnOrder={columnOrder}
+						onColumnOrderChange={onColumnOrderChange}
+					/>
+				</div>
+			</ClassificationToolbar>
+
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
+				{rows.length === 0 ? (
+					<BublikEmptyState
+						title="No matching issues"
+						description="No issue in this run matches the current filters."
+						className="h-64"
+					/>
+				) : (
+					<ClassificationTable
+						table={table}
+						stickyHeader
+						stickyShadow
+						// Description is capped now, so the surplus goes to a gutter
+						// before Actions rather than to the badge columns.
+						endGutter
+						gutterBefore={PINNED_COLUMNS.last}
+						scrollRef={scrollRef}
+						testId="run-issues-table"
+						getRowAttributes={(row) => ({
+							'data-testid': 'run-issue-row',
+							'data-issue-id': row.original.issue_id,
+							'data-issue-state': row.original.state
+						})}
+						renderSubRow={renderSubRow}
+					/>
+				)}
+			</div>
+
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={matchedCount}
+					totalCount={totalCount}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="issue"
+				/>
+				<Pagination
+					className="ml-auto"
+					variant="compact"
+					totalCount={matchedCount}
+					pageSize={pagination.pageSize}
+					currentPage={pagination.pageIndex + 1}
+					onPageChange={goToPage}
+					onPageSizeChange={setPageSize}
+				/>
+			</ClassificationFooter>
+		</div>
+	);
+}
