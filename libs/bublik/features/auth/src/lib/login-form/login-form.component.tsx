@@ -3,8 +3,7 @@
 import { forwardRef, ReactNode, useImperativeHandle } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-import { RouterLink } from '@/router';
+import { Link } from '@tanstack/react-router';
 
 import { ButtonTw, FormAlertError, TextField } from '@/shared/tailwind-ui';
 import { LoginFormInputs, LoginFormSchema } from '@/shared/types';
@@ -12,6 +11,9 @@ import { LoginFormInputs, LoginFormSchema } from '@/shared/types';
 import { AuthFormLayout } from '../auth-form-layout';
 
 export type LoginFormHandle = UseFormReturn<LoginFormInputs>;
+
+/** No `active` class on the recovery link, as with `RouterLink`. */
+const NO_ACTIVE_PROPS = {};
 
 type LoginFormProps = {
 	onSubmit?: (form: LoginFormInputs) => void;
@@ -77,13 +79,16 @@ export const LoginForm = forwardRef<LoginFormHandle, LoginFormProps>(
 						control={form.control}
 					/>
 					<div className="flex items-center justify-end">
-						<RouterLink
+						<Link
 							to="/auth/forgot"
+							// The pages scroll their own containers
+							resetScroll={false}
+							activeProps={NO_ACTIVE_PROPS}
 							onClick={onForgotPasswordClick}
 							className="text-sm font-medium text-primary hover:underline"
 						>
 							Forgot password?
-						</RouterLink>
+						</Link>
 					</div>
 					{secondaryAction ? (
 						<div className="flex gap-3">

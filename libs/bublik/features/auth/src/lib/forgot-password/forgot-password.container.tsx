@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef } from 'react';
-import { useNavigate } from '@/router';
+import { useNavigate } from '@tanstack/react-router';
 
 import { ForgotPasswordInputs } from '@/shared/types';
 import { useRequestResetPasswordMutation } from '@/services/bublik-api';
@@ -27,7 +27,7 @@ export const ForgotPasswordFormContainer = () => {
 			await requestPasswordReset(form).unwrap();
 
 			toast.success('Email with link to reset password has been sent!');
-			navigate('/auth/login');
+			navigate({ to: '/auth/login', resetScroll: false });
 		} catch (e: unknown) {
 			setErrorsOnForm(e, { handle: formHandle });
 			toast.error('Failed to send reset password email!');
