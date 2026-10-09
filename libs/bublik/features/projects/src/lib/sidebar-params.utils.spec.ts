@@ -2,10 +2,12 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
+import { parseSearch, stringifySearch } from '@/router';
 import { SIDEBAR_STATE_PARAM } from '@/shared/types';
 
 import {
 	mergeParamsWithSidebarState,
+	mergeSearchWithSidebarState,
 	resolveTargetWithSidebarState
 } from './sidebar-params.utils';
 
@@ -95,5 +97,45 @@ describe('resolveTargetWithSidebarState', () => {
 			},
 			hash: undefined
 		});
+	});
+});
+
+describe('mergeSearchWithSidebarState', () => {
+	// target, current, projects: the typed merge must write, key for key, the
+	// query string the URLSearchParams merge writes.
+	it.each([
+		['mode=charts', `${SIDEBAR_STATE_PARAM}=abc&project=2`, [42]],
+		['mode=charts&project=1', `project=2&hide-sidebar=1&_s=abc`, [42, 43]],
+		['', `hide-sidebar=1&${SIDEBAR_STATE_PARAM}=abc`, []],
+		[`${SIDEBAR_STATE_PARAM}=mine&a=1`, `${SIDEBAR_STATE_PARAM}=abc`, [1]],
+		['hide-sidebar=0', 'hide-sidebar=1&hide-sidebar=true', []],
+		['a=1&b=2', 'hide-sidebar=1&hide-sidebar=true&_s=x&_s=y', [5]],
+		['a=', 'c=3', []]
+	])('%s over %s with %j', (target, current, projectIds) => {
+		const expected = mergeParamsWithSidebarState(
+			new URLSearchParams(target),
+			new URLSearchParams(current),
+			projectIds
+		).toString();
+
+		const typed = mergeSearchWithSidebarState(
+			parseSearch(target),
+			new URLSearchParams(current),
+			projectIds
+		);
+
+		expect(stringifySearch(typed)).toBe(expected ? `?${expected}` : '');
+	});
+
+	it('appends the sidebar state after the target keys when the target leaves it undefined', () => {
+		const typed = mergeSearchWithSidebarState(
+			{ [SIDEBAR_STATE_PARAM]: undefined, page: 2 },
+			new URLSearchParams(`${SIDEBAR_STATE_PARAM}=abc`),
+			[7]
+		);
+
+		expect(stringifySearch(typed)).toBe(
+			`?page=2&${SIDEBAR_STATE_PARAM}=abc&project=7`
+		);
 	});
 });
