@@ -8,7 +8,7 @@ import {
 	type AnyRouter
 } from '@tanstack/react-router';
 
-import { boolTrue, currentLocation, str } from '@/router';
+import { boolTrue, str, writeSearch } from '@/router';
 
 /**
  * The log keys both apps read. The main app's `/log/$runId` route validates
@@ -78,11 +78,7 @@ function useLogSearchWriter(): (changes: LogSearchChanges) => void {
 
 	return useCallback(
 		(changes: LogSearchChanges) => {
-			void router.navigate({
-				to: currentLocation(router).pathname,
-				search: (prev: Record<string, unknown>) => ({ ...prev, ...changes }),
-				resetScroll: false
-			});
+			writeSearch(router, changes, { replace: false, keepState: false });
 		},
 		[router]
 	);

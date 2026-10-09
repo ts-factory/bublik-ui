@@ -1,14 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useCallback } from 'react';
-import { getRouteApi, useRouter, type AnyRouter } from '@tanstack/react-router';
+import { getRouteApi } from '@tanstack/react-router';
 import type {
 	ExpandedState,
 	OnChangeFn,
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { currentLocation, json, useSearchWriter } from '@/router';
+import { json, useSearchWriter } from '@/router';
 
 /**
  * The `/compare` route. Its schema lives with the route file
@@ -45,23 +45,20 @@ function useCompareTableState<T>(
 	key: CompareTableKey,
 	defaultValue: T
 ): [T, OnChangeFn<T>] {
-	const router = useRouter<AnyRouter>();
 	const writeSearch = useSearchWriter();
 	const value = (compareRoute.useSearch()[key] ?? defaultValue) as T;
 
 	const setValue = useCallback<OnChangeFn<T>>(
-		(updater) => {
-			const latest = currentLocation(router).search as Record<string, unknown>;
-			const next =
-				typeof updater === 'function'
-					? (updater as (old: T) => T)(
-							(jsonCodec.parse(latest[key]) ?? defaultValue) as T
-					  )
-					: updater;
-
-			writeSearch({ [key]: next });
-		},
-		[router, writeSearch, key, defaultValue]
+		(updater) =>
+			writeSearch((latest) => ({
+				[key]:
+					typeof updater === 'function'
+						? (updater as (old: T) => T)(
+								(jsonCodec.parse(latest[key]) ?? defaultValue) as T
+						  )
+						: updater
+			})),
+		[writeSearch, key, defaultValue]
 	);
 
 	return [value, setValue];

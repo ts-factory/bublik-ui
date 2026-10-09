@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { useSearch } from '@tanstack/react-router';
 import type {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -13,7 +12,7 @@ import type {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import { useSearchWriter } from '@/router';
+import { useAnySearch, useSearchWriter } from '@/router';
 
 import { useLocalStorage } from '@/shared/hooks';
 
@@ -35,18 +34,6 @@ import type {
 	ClassificationTableStateConfig
 } from './classification-table.types';
 
-/**
- * `useSearch({ strict: false })`, untyped: the tables speak for four routes
- * and read their keys through the schema's codecs, so the registered route
- * tree's union of search types has nothing to add. The router's
- * `defaultStructuralSharing` still keeps a selected value that did not
- * change the same object.
- */
-const useRouteSearch = useSearch as unknown as <T>(options: {
-	strict: false;
-	select: (search: Record<string, unknown>) => T;
-}) => T;
-
 const EMPTY_SORTING: SortingState = [];
 const EMPTY_EXPANDED: ExpandedState = {};
 
@@ -67,11 +54,11 @@ export function useClassificationTableState<F extends string>({
 
 	// Structurally shared: the same values keep the same object, so the
 	// memos below only move when the URL says something new.
-	const params = useRouteSearch({
-		strict: false,
-		select: (search) =>
-			readTableSearch(schema, search) as Record<string, unknown>
-	});
+	// The tables speak for four routes and read their keys through the
+	// schema's codecs.
+	const params = useAnySearch(
+		(search) => readTableSearch(schema, search) as Record<string, unknown>
+	);
 
 	const writeSearch = useSearchWriter();
 	const update = useCallback(
@@ -261,11 +248,9 @@ function useSearchKey<T>(
 	key: string | undefined,
 	codec: { parse: (raw: unknown) => T | undefined }
 ): T | undefined {
-	return useRouteSearch({
-		strict: false,
-		select: (search) =>
-			key === undefined ? undefined : codec.parse(search[key])
-	});
+	return useAnySearch((search) =>
+		key === undefined ? undefined : codec.parse(search[key])
+	);
 }
 
 /** `+id` / `-id` overrides, as the `cols` key spells them. */

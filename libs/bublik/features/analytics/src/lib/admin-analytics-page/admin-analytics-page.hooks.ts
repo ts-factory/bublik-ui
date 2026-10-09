@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import { type AnyRouter, getRouteApi, useRouter } from '@tanstack/react-router';
 
-import { currentLocation } from '@/router';
+import { writeSearch } from '@/router';
 
 import type {
 	AnalyticsSearch,
@@ -35,11 +35,7 @@ function useAnalyticsSearchWriter(): (changes: AnalyticsSearchChanges) => void {
 
 	return useCallback(
 		(changes) => {
-			void router.navigate({
-				to: currentLocation(router).pathname,
-				search: (latest: AnalyticsSearch) => ({ ...latest, ...changes }),
-				resetScroll: false
-			});
+			writeSearch(router, changes, { replace: false, keepState: false });
 		},
 		[router]
 	);
