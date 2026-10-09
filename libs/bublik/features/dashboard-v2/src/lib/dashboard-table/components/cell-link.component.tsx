@@ -1,7 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode } from 'react';
+import { type HistoryState } from '@tanstack/react-router';
 import { z } from 'zod';
+
+import { type Path } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DashboardCellData } from '@/shared/types';
@@ -16,7 +19,15 @@ import { getUrl } from '../../utils';
 const UNEXPECTED_COLUMN_KEY = 'unexpected';
 const PATH_TO_RUN = 'runs';
 
-function getUnexpectedNavigationState(openUnexpectedResults = false) {
+/**
+ * The `location.state` the run page reads to preview the unexpected results
+ * (`openUnexpected`) or to expand their result tables (`openUnexpectedResults`,
+ * on ctrl-click); a fresh intent id per navigation lets the run page tell a
+ * new request from a reload of the same entry.
+ */
+function getUnexpectedNavigationState(
+	openUnexpectedResults = false
+): HistoryState {
 	const openUnexpectedIntentId = `${Date.now()}-${Math.random()
 		.toString(36)
 		.slice(2)}`;
@@ -89,7 +100,7 @@ export function CellLink({
 	if (isLinkToRun) {
 		return (
 			<LinkToRun
-				to={to}
+				link={{ to, state: getUnexpectedNavigationState() }}
 				cellKey={cellKey}
 				cellString={cellString}
 				bgColor={bgColor}
@@ -103,7 +114,7 @@ export function CellLink({
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				{...cellAttributes(cellKey)}
-				to={getUrl(data.payload.url, data.payload?.params)}
+				to={to}
 				onClick={() => {
 					trackDashboardTableLinkClick({
 						cellKey,
@@ -118,24 +129,36 @@ export function CellLink({
 	);
 }
 
+/** A run link and the `location.state` it opens the run page with. */
+interface RunLink {
+	to: Path;
+	state: HistoryState;
+}
+
 interface LinkToRunProps {
 	cellKey: string;
 	cellString: string | number;
-	to: string;
+	link: RunLink;
 	bgColor?: string;
 	destination?: string;
 }
 
+/**
+ * The NOK badge. The anchor carries the preview state for the browser's own
+ * handling (middle click, open in new tab); a click or a context-menu click
+ * is a navigation of its own with a fresh intent id, and ctrl asks for the
+ * result tables expanded.
+ */
 function LinkToRun(props: LinkToRunProps) {
-	const { cellString, cellKey, to, bgColor, destination } = props;
+	const { cellString, cellKey, link, bgColor, destination } = props;
+	const { to } = link;
 	const navigate = useNavigateWithProject();
 
 	return (
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				{...cellAttributes(cellKey)}
-				to={to}
-				state={getUnexpectedNavigationState()}
+				{...link}
 				onClick={(e) => {
 					trackDashboardTableLinkClick({
 						cellKey,
