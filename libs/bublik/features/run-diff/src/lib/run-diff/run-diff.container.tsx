@@ -1,28 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback } from 'react';
-import { ExpandedState, Row, VisibilityState } from '@tanstack/react-table';
-import { JsonParam, withDefault, useQueryParam } from '@/router';
+import { Row } from '@tanstack/react-table';
 
 import { MergedRunDataWithDiff } from './run-diff.types';
 import { useRunDiffState } from './run-diff.container.hooks';
 import { ResultDiffContainer } from '../result-diff';
+import {
+	useCompareColumnVisibility,
+	useCompareExpanded
+} from '../compare-search';
 import {
 	RunDiff,
 	RunDiffEmpty,
 	RunDiffError,
 	RunDiffLoading
 } from './run-diff.component';
-
-const ExpandedParam = withDefault(JsonParam, { '0': true });
-const ColumnVisibilityParam = withDefault(JsonParam, {
-	TOTAL_LEFT: false,
-	TOTAL_RIGHT: false,
-	RUN_LEFT: false,
-	RUN_RIGHT: false,
-	ABNORMAL_LEFT: false,
-	ABNORMAL_RIGHT: false
-});
 
 export interface RunDiffContainerProps {
 	/** Run ID of the left run */
@@ -33,12 +26,8 @@ export interface RunDiffContainerProps {
 
 export const RunDiffContainer: FC<RunDiffContainerProps> = (props) => {
 	const { leftData, rightData, isLoading, error } = useRunDiffState(props);
-	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
-		'expanded',
-		ExpandedParam
-	);
-	const [columnVisibility, setColumnVisibility] =
-		useQueryParam<VisibilityState>('columnVisibility', ColumnVisibilityParam);
+	const [expanded, setExpanded] = useCompareExpanded();
+	const [columnVisibility, setColumnVisibility] = useCompareColumnVisibility();
 
 	const renderSubComponent = useCallback(
 		({ row }: { row: Row<MergedRunDataWithDiff> }) => (

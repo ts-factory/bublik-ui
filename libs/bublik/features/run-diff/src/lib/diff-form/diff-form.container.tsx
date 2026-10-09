@@ -1,32 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { toast } from 'sonner';
+import { useRouter } from '@tanstack/react-router';
 
-import { matchPath } from '@/router';
-
+import { joinTo } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { DiffForm, DiffFormValues } from './diff-form.component';
-
-const extractRunId = (value: string): number | Error => {
-	const num = Number(value);
-	if (!isNaN(num) && value.trim() !== '') return num;
-
-	try {
-		const url = new URL(value);
-		const match = matchPath('/v2/runs/:id', url.pathname);
-		if (match && match.params.id) return Number(match.params.id);
-		return new Error('Invalid run URL format');
-	} catch (e) {
-		return new Error('Invalid run ID or URL');
-	}
-};
+import { extractRunId } from './diff-form.utils';
 
 export interface DiffFormContainerProps {
 	defaultValues?: Partial<DiffFormValues>;
 }
 
 export const DiffFormContainer = (props: DiffFormContainerProps) => {
+	const router = useRouter();
 	const navigate = useNavigateWithProject();
 
 	const handleDiffFormSubmit = (form: DiffFormValues) => {
@@ -38,10 +26,14 @@ export const DiffFormContainer = (props: DiffFormContainerProps) => {
 		const rightId = extractRunId(rightRunId);
 		if (rightId instanceof Error) return toast.error(rightId.message);
 
-		navigate({
-			pathname: '/compare',
-			search: `?left=${leftId}&right=${rightId}`
+		// The router writes the typed target through the `/compare` codecs;
+		// the push carries the sidebar state and projects of the run page.
+		const target = router.buildLocation({
+			to: '/compare',
+			search: { left: String(leftId), right: String(rightId) }
 		});
+
+		navigate(joinTo({ to: target.pathname, search: target.searchStr }));
 	};
 
 	return (

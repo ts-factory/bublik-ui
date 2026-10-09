@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { memo, useState } from 'react';
-import { useSearchParams, routes } from '@/router';
+import { getRouteApi } from '@tanstack/react-router';
+
+import { routes } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { usePrefetchImmediately } from '@/services/bublik-api';
@@ -167,13 +169,18 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 	);
 });
 
+const compareRoute = getRouteApi('/_app/_runs/compare');
+
 export const RunDiffPage = () => {
-	const [searchParams] = useSearchParams();
+	const leftRunId = compareRoute.useSearch({ select: (search) => search.left });
+	const rightRunId = compareRoute.useSearch({
+		select: (search) => search.right
+	});
 
-	const leftRunId = searchParams.get('left');
-	const rightRunId = searchParams.get('right');
-
-	useTabTitleWithPrefix(`Diff - ${leftRunId} | ${rightRunId} - Bublik`);
+	// A missing side reads `null`, as `searchParams.get` returned it.
+	useTabTitleWithPrefix(
+		`Diff - ${leftRunId ?? null} | ${rightRunId ?? null} - Bublik`
+	);
 
 	if (!leftRunId || !rightRunId) {
 		return (
