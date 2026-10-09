@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { config } from '@/bublik/config';
@@ -20,6 +20,8 @@ import {
 	FormError
 } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { HISTORY_FIELD_BADGE_CLASS } from '../global-search-form.constants';
+import { useMetaSuggestions } from '../global-search-form.suggestions.hooks';
 
 export type RunSectionProps = {
 	onResetRunSectionClick: () => void;
@@ -39,6 +41,17 @@ export const RunSection = (props: RunSectionProps) => {
 		useState(() => Boolean(watch('revisionExpr')));
 	const [isTagExpressionVisible, setIsTagExpressionVisible] = useState(() =>
 		Boolean(watch('tagExpr'))
+	);
+	const metaSuggestions = useMetaSuggestions({
+		eager: watch('runData').length > 0
+	});
+	const { importantTags } = metaSuggestions;
+	const tagBadgeClassName = useCallback(
+		(tag: string) =>
+			importantTags.has(tag)
+				? HISTORY_FIELD_BADGE_CLASS.importantTags
+				: HISTORY_FIELD_BADGE_CLASS.tags,
+		[importantTags]
 	);
 
 	const runPropsError = formState.errors.runProperties?.message as
@@ -77,6 +90,10 @@ export const RunSection = (props: RunSectionProps) => {
 					<div className="flex-1">
 						<BadgeField
 							name="labels"
+							suggestions={metaSuggestions.labels}
+							suggestionsLoading={metaSuggestions.isLoading}
+							onSuggestionsRequest={metaSuggestions.request}
+							badgeClassName={HISTORY_FIELD_BADGE_CLASS.labels}
 							label="Labels"
 							placeholder="label"
 							control={control}
@@ -114,6 +131,10 @@ export const RunSection = (props: RunSectionProps) => {
 					<div className="flex-1">
 						<BadgeField
 							name="branches"
+							suggestions={metaSuggestions.branches}
+							suggestionsLoading={metaSuggestions.isLoading}
+							onSuggestionsRequest={metaSuggestions.request}
+							badgeClassName={HISTORY_FIELD_BADGE_CLASS.branches}
 							label="Branches"
 							placeholder="master"
 							control={control}
@@ -153,6 +174,10 @@ export const RunSection = (props: RunSectionProps) => {
 					<div className="flex-1">
 						<BadgeField
 							name="revisions"
+							suggestions={metaSuggestions.revisions}
+							suggestionsLoading={metaSuggestions.isLoading}
+							onSuggestionsRequest={metaSuggestions.request}
+							badgeClassName={HISTORY_FIELD_BADGE_CLASS.revisions}
 							label="Revisions"
 							placeholder="8af383125f20cc5ecdb8393bf"
 							control={control}
@@ -193,6 +218,10 @@ export const RunSection = (props: RunSectionProps) => {
 						<BadgeField
 							label="Tags"
 							name="runData"
+							suggestions={metaSuggestions.tags}
+							suggestionsLoading={metaSuggestions.isLoading}
+							onSuggestionsRequest={metaSuggestions.request}
+							badgeClassName={tagBadgeClassName}
 							placeholder="medford"
 							control={control}
 							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}

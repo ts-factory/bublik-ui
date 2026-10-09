@@ -160,7 +160,12 @@ export const queryToHistorySearchState = (
 		results: withDefault(parseArray(query.resultStatuses), []),
 		/* Verdict section */
 		verdictLookup: withDefault(query.verdictLookup, VERDICT_TYPE.String),
-		verdict: withDefault(parseArray(query.verdict), [])
+		verdict: withDefault(parseArray(query.verdict), []),
+		/* Classification section */
+		categories: withDefault(parseArray(query.categories), []),
+		untriaged: query.untriaged === 'true',
+		explained: query.explained === 'true',
+		issue: query.issue ? Number(query.issue) : null
 	};
 };
 
@@ -191,7 +196,12 @@ export const historySearchStateToForm = (
 		results: state.results,
 		/* Verdict section */
 		verdictLookup: state.verdictLookup,
-		verdict: arrayToBadgeItem(state.verdict)
+		verdict: arrayToBadgeItem(state.verdict),
+		/* Classification section */
+		categories: state.categories,
+		untriaged: state.untriaged,
+		explained: state.explained,
+		issue: state.issue
 	};
 };
 
@@ -231,6 +241,11 @@ export function searchQueryToBackendQuery(
 		verdictLookup: query.verdictLookup,
 		verdict: query.verdict,
 		search: query.search?.trim() || undefined,
+		/* Classification section */
+		categories: query.categories,
+		issue: query.issue,
+		untriaged: query.untriaged,
+		explained: query.explained,
 		page: query.page,
 		pageSize: query.pageSize,
 		projects: query.project ? [Number(query.project)] : undefined
@@ -265,7 +280,12 @@ export const historySearchStateToQuery = (
 		results: withDefault(arrayToString(state.results), ''),
 		/* Verdict section */
 		verdictLookup: state.verdictLookup,
-		verdict: withDefault(arrayToString(state.verdict), '')
+		verdict: withDefault(arrayToString(state.verdict), ''),
+		/* Classification section */
+		categories: withDefault(arrayToString(state.categories), ''),
+		untriaged: state.untriaged ? 'true' : '',
+		explained: state.explained ? 'true' : '',
+		issue: state.issue !== null ? String(state.issue) : ''
 	};
 };
 
@@ -303,6 +323,11 @@ export const formToSearchState = (
 		results: form.results,
 		/* Verdict section */
 		verdictLookup: form.verdictLookup,
-		verdict: badgeItemToArray(form.verdict)
+		verdict: badgeItemToArray(form.verdict),
+		/* Classification section */
+		categories: form.categories ?? [],
+		untriaged: form.untriaged ?? false,
+		explained: form.explained ?? false,
+		issue: form.issue ?? null
 	};
 };

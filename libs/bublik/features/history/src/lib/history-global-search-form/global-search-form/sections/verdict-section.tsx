@@ -13,6 +13,7 @@ import {
 	FormSection
 } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { HISTORY_FIELD_BADGE_CLASS } from '../global-search-form.constants';
 
 export type VerdictSectionProps = {
 	onResetVerdictSectionClick: () => void;
@@ -120,6 +121,7 @@ export const VerdictSection = (props: VerdictSectionProps) => {
 							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
 							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={lookupControls}
+							badgeClassName={HISTORY_FIELD_BADGE_CLASS.verdicts}
 						/>
 					</div>
 					<ExpressionToggleButton

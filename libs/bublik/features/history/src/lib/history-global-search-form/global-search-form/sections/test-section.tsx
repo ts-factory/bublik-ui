@@ -4,15 +4,17 @@ import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { config } from '@/bublik/config';
+import { TestPathComboboxField } from '@/bublik/features/result-classification';
 import { TextField, BadgeField } from '@/shared/tailwind-ui';
 
 import {
 	ExpressionToggleButton,
 	FieldResetButton,
-	FormSection,
-	TestPathComboboxField
+	FormSection
 } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
+import { useParameterSuggestions } from '../global-search-form.suggestions.hooks';
+import { HISTORY_FIELD_BADGE_CLASS } from '../global-search-form.constants';
 
 export type TestSectionProps = {
 	onResetTestSectionClick: () => void;
@@ -25,6 +27,7 @@ export const TestSection = (props: TestSectionProps) => {
 		useFormContext<HistoryGlobalSearchFormValues>();
 	const [isParametersExpressionVisible, setIsParametersExpressionVisible] =
 		useState(() => Boolean(watch('testArgExpr')));
+	const parameterSuggestions = useParameterSuggestions(watch('testName'));
 
 	return (
 		<FormSection className="flex flex-col">
@@ -63,6 +66,10 @@ export const TestSection = (props: TestSectionProps) => {
 							label="Parameters"
 							placeholder="time_limit:30"
 							control={control}
+							suggestions={parameterSuggestions.suggestions}
+							suggestionsLoading={parameterSuggestions.isLoading}
+							onSuggestionsRequest={parameterSuggestions.request}
+							badgeClassName={HISTORY_FIELD_BADGE_CLASS.parameters}
 							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
 							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
 							labelTrailingContent={
