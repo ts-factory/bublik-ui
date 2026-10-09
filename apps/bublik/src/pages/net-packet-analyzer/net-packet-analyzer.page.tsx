@@ -1,19 +1,36 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { getRouteApi } from '@tanstack/react-router';
 import { z } from 'zod';
-
-import { useSearchParams } from '@/router';
 
 import { NetPacketAnalyserContainer } from '@/bublik/features/net-analysis';
 
+const packetViewerRoute = getRouteApi('/_app/tools/packet-viewer');
+
+/**
+ * What the viewer needs, checked on the route's typed search:
+ * a `fileUrl` that is not a URL and an id that is not a number stay their
+ * raw strings (`keepRaw`), so they fail here and the page shows its own
+ * "invalid parameters" panel. `coerce` keeps `runId=` reading
+ * as 0, as it did on the raw query string.
+ */
 const SearchParamsSchema = z.object({
 	fileUrl: z.string().url(),
 	runId: z.coerce.number().optional(),
 	resultId: z.coerce.number().optional()
 });
 
-export function NetPacketAnalyzerPage() {
-	const [searchParams] = useSearchParams();
-	const params = Object.fromEntries(searchParams.entries());
-	const result = SearchParamsSchema.safeParse(params);
+function NetPacketAnalyzerPage() {
+	const fileUrl = packetViewerRoute.useSearch({ select: (s) => s.fileUrl });
+	const rawRunId = packetViewerRoute.useSearch({ select: (s) => s.runId });
+	const rawResultId = packetViewerRoute.useSearch({
+		select: (s) => s.resultId
+	});
+	const result = SearchParamsSchema.safeParse({
+		fileUrl,
+		runId: rawRunId,
+		resultId: rawResultId
+	});
 
 	if (!result.success) {
 		return (
@@ -50,3 +67,5 @@ export function NetPacketAnalyzerPage() {
 		/>
 	);
 }
+
+export { NetPacketAnalyzerPage };
