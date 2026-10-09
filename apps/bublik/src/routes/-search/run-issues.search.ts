@@ -3,7 +3,7 @@
 import { defineSearch, type InferSearch } from '@/router';
 import { RUN_ISSUES_TABLE_SEARCH } from '@/bublik/features/result-classification';
 
-import { RUN_SHAPE } from './run.search';
+import { RUN_TABLE_SHAPE } from './run.search';
 
 /**
  * `/runs/$runId/issues`: the issues of one run. The run issues
@@ -13,8 +13,8 @@ import { RUN_SHAPE } from './run.search';
  */
 const RUN_ISSUES_SHAPE = {
 	...RUN_ISSUES_TABLE_SEARCH.shape,
-	columnFilters: RUN_SHAPE.columnFilters,
-	globalRequirements: RUN_SHAPE.globalRequirements
+	columnFilters: RUN_TABLE_SHAPE.columnFilters,
+	globalRequirements: RUN_TABLE_SHAPE.globalRequirements
 };
 
 const runIssuesSearch = defineSearch<typeof RUN_ISSUES_SHAPE>(

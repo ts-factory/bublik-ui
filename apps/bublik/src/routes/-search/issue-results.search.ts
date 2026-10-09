@@ -3,7 +3,7 @@
 import { defineSearch, type InferSearch } from '@/router';
 import { ISSUE_RESULTS_PAGE_SEARCH } from '@/bublik/features/issue-results';
 
-import { RUN_SHAPE } from './run.search';
+import { RUN_TABLE_SHAPE } from './run.search';
 
 const { shape, defaults } = ISSUE_RESULTS_PAGE_SEARCH;
 
@@ -17,8 +17,8 @@ const issueResultsSearch = defineSearch(
 	{
 		page: shape.page,
 		pageSize: shape.pageSize,
-		columnFilters: RUN_SHAPE.columnFilters,
-		globalRequirements: RUN_SHAPE.globalRequirements
+		columnFilters: RUN_TABLE_SHAPE.columnFilters,
+		globalRequirements: RUN_TABLE_SHAPE.globalRequirements
 	},
 	{ page: defaults.page, pageSize: defaults.pageSize }
 );
