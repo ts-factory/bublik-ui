@@ -1,22 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { useSearchParams } from '@/router';
 
 import { HistoryAPIBackendQuery } from '@/shared/types';
 
 import { searchQueryToBackendQuery } from '../slice/history-slice.utils';
+import { historySearchToQuery, useHistorySearch } from './use-history-search';
 
 export const useHistoryQuery = () => {
-	const [searchParams] = useSearchParams();
+	const search = useHistorySearch(historySearchToQuery);
 
-	const query = useMemo<HistoryAPIBackendQuery>(() => {
-		const rawQuery = Object.fromEntries(
-			searchParams.entries()
-		) as HistoryAPIBackendQuery;
-
-		return searchQueryToBackendQuery(rawQuery);
-	}, [searchParams]);
+	const query = useMemo<HistoryAPIBackendQuery>(
+		() => searchQueryToBackendQuery(search),
+		[search]
+	);
 
 	return { query };
 };

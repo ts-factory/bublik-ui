@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
-import { useLocation, useSearchParams } from '@/router';
+
 import {
 	useGetHistoryAggregationQuery,
 	useGetHistoryLinearQuery
@@ -11,18 +11,16 @@ import {
 	HistoryLegendCount,
 	HistoryLegendCountLoading
 } from './history-legend-count.component';
-import { useHistoryQuery } from '../hooks';
+import { useHistoryFromRun, useHistoryQuery, useHistorySearch } from '../hooks';
 
 export const HistoryLegendCountContainer = () => {
-	const [searchParams] = useSearchParams();
 	const { query } = useHistoryQuery();
-	const mode = searchParams.get('mode');
-	const state = useLocation().state as { fromRun?: boolean };
+	const mode = useHistorySearch((search) => search.mode);
+	const fromRun = useHistoryFromRun();
 
-	const shouldLinearSkip =
-		mode === 'aggregation' || state?.fromRun || !query.testName;
+	const shouldLinearSkip = mode === 'aggregation' || fromRun || !query.testName;
 	const shouldAggregationSkip =
-		mode !== 'aggregation' || state?.fromRun || !query.testName;
+		mode !== 'aggregation' || fromRun || !query.testName;
 
 	const { data: linearData, isLoading: isLinearLoading } =
 		useGetHistoryLinearQuery(query, {

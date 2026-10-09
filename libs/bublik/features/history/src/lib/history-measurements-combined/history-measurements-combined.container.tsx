@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ComponentProps, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from '@/router';
 
 import { Point } from '@/shared/types';
 import { createBublikError } from '@/services/bublik-api';
@@ -16,9 +15,10 @@ import {
 } from '../history-measurements/plot-list.hooks';
 import { HistoryError } from '../history-error';
 import { resolvePoint } from '../history-measurements/plot-list.utils';
+import { useHistorySearch } from '../hooks';
 
 function HistoryMeasurementsCombinedContainer() {
-	const [searchParams] = useSearchParams();
+	const plotIds = useHistorySearch((search) => search.combinedPlots);
 	const { data, isLoading, isFetching, error } = useGetHistoryMeasurements();
 	const {
 		data: byResult,
@@ -51,11 +51,7 @@ function HistoryMeasurementsCombinedContainer() {
 			...byResult.flatMap((c) => c.measurement_series_charts)
 		];
 
-		const plotIdsStr = searchParams.get('combinedPlots');
-
-		if (!plotIdsStr) return [];
-
-		const plotIds = plotIdsStr.split(';').map(String);
+		if (!plotIds?.length) return [];
 
 		return allCharts
 			.filter((p) => plotIds.includes(String(p.id)))
@@ -63,7 +59,7 @@ function HistoryMeasurementsCombinedContainer() {
 				...p,
 				parameters: selectedCharts.find((c) => c.plot.id === p.id)?.parameters
 			}));
-	}, [byResult, data, searchParams, selectedCharts]);
+	}, [byResult, data, plotIds, selectedCharts]);
 
 	const handleCombinedPointClick: ComponentProps<
 		typeof StackedMeasurementChart

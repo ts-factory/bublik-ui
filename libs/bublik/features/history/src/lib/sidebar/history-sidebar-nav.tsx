@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation } from '@/router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { addModeToUrl, getBaseUrl } from '@/bublik/features/sidebar';
@@ -24,8 +25,11 @@ import { Icon } from '@/shared/tailwind-ui';
 
 const HISTORY_SIDEBAR_PATTERNS = [{ to: '/history' }];
 
+/** The canonical history route; the `/history/v2` alias is not recorded. */
+const HISTORY_ROUTE = { to: '/history' };
+
 export function HistorySidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const {
 		hasTrendData,
 		hasSeriesData,
@@ -41,24 +45,25 @@ export function HistorySidebarNav() {
 		setLastVisited
 	} = useHistorySidebarState();
 
+	// The history page on screen is remembered per mode, as its own URL.
 	useEffect(() => {
-		if (location.pathname === '/history') {
-			const searchParams = new URLSearchParams(location.search);
-			const mode = searchParams.get('mode');
+		if (!matchRoutePath(HISTORY_ROUTE, pathname)) return;
 
-			if (mode === 'linear') {
-				setLastVisited('linear', location.pathname + location.search);
-			} else if (mode === 'aggregation') {
-				setLastVisited('aggregation', location.pathname + location.search);
-			} else if (mode === 'measurements') {
-				setLastVisited('trend', location.pathname + location.search);
-			} else if (mode === 'measurements-by-iteration') {
-				setLastVisited('series', location.pathname + location.search);
-			} else if (mode === 'measurements-combined') {
-				setLastVisited('stacked', location.pathname + location.search);
-			}
+		const url = pathname + searchStr;
+		const mode = new URLSearchParams(searchStr).get('mode');
+
+		if (mode === 'linear') {
+			setLastVisited('linear', url);
+		} else if (mode === 'aggregation') {
+			setLastVisited('aggregation', url);
+		} else if (mode === 'measurements') {
+			setLastVisited('trend', url);
+		} else if (mode === 'measurements-by-iteration') {
+			setLastVisited('series', url);
+		} else if (mode === 'measurements-combined') {
+			setLastVisited('stacked', url);
 		}
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	const historyBaseUrl = getBaseUrl(mainLinkUrl);
 	const finalLinearUrl = addModeToUrl(historyBaseUrl, 'linear');

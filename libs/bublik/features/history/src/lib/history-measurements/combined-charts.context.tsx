@@ -7,11 +7,13 @@ import {
 	useCallback,
 	useEffect
 } from 'react';
-import { useNavigate, useSearchParams, To, useQueryParam } from '@/router';
+import { useSearchWriter } from '@/router';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 import { getColorByIdx } from '@/shared/charts';
 import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
+
+import { useHistorySearch, useHistorySearchNavigate } from '../hooks';
 
 const HISTORY_TREND_SELECTED_CHARTS_POPOVER_STORAGE_KEY =
 	'history-trend-selected-charts-popover-open';
@@ -54,18 +56,27 @@ interface CombinedChartsProviderProps {
 export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 	const { children } = props;
 	const [selectedCharts, setSelectedCharts] = useState<SelectedChart[]>([]);
-	const [selectedGroup, setSelectedGroup] = useQueryParam<
-		null | 'trend' | 'measurement'
-	>('chart-group');
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
+	const navigateSearch = useHistorySearchNavigate();
+	const writeSearch = useSearchWriter();
+	const mode = useHistorySearch((search) => search.mode);
+	const plotIds = useHistorySearch((search) => search.combinedPlots);
+	// An unknown `chart-group` is handed on as is, as `useQueryParam` did.
+	const selectedGroup = useHistorySearch(
+		(search) =>
+			(search['chart-group'] ?? null) as 'trend' | 'measurement' | null
+	);
+
+	// `chart-group` is merged into the current search, the entry replaced and
+	// `location.state` kept (it was a `use-query-params` key).
+	const setSelectedGroup = useCallback(
+		(group: 'trend' | 'measurement' | null) =>
+			writeSearch({ 'chart-group': group ?? undefined }),
+		[writeSearch]
+	);
 
 	const syncChartsFromData = useCallback(
 		(charts: SingleMeasurementChart[]) => {
-			const plotIdsStr = searchParams.get('combinedPlots');
-			if (!plotIdsStr) return;
-
-			const plotIds = plotIdsStr.split(';').map(String);
+			if (!plotIds) return;
 
 			if (plotIds.length > 0 && selectedCharts.length === 0) {
 				const restoredCharts: SelectedChart[] = [];
@@ -87,34 +98,31 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 				if (restoredCharts.length > 0) setSelectedCharts(restoredCharts);
 			}
 		},
-		[searchParams, selectedCharts.length]
+		[plotIds, selectedCharts.length]
 	);
 
 	useEffect(() => {
-		const mode = searchParams.get('mode');
-		const plotIdsStr = searchParams.get('combinedPlots');
-
-		if (mode !== 'measurements-combined' && !plotIdsStr && selectedGroup) {
+		if (mode !== 'measurements-combined' && !plotIds?.length && selectedGroup) {
 			setSelectedGroup(null);
 		}
-	}, [searchParams, selectedGroup, setSelectedGroup]);
+	}, [mode, plotIds, selectedGroup, setSelectedGroup]);
+
+	// The selection as `combinedPlots` (`;`-joined ids, the wire form the
+	// schema reads back) on the current page, the entry replaced.
+	const writeCombinedPlots = useCallback(
+		(ids: string | undefined) =>
+			navigateSearch({ combinedPlots: ids }, { replace: true }),
+		[navigateSearch]
+	);
 
 	const updateUrlWithCharts = useCallback(
-		(charts: SelectedChart[]) => {
-			const params = new URLSearchParams(searchParams);
-
-			if (charts.length > 0) {
-				params.set(
-					'combinedPlots',
-					charts.map((c) => String(c.plot.id)).join(';')
-				);
-			} else {
-				params.delete('combinedPlots');
-			}
-
-			navigate({ search: params.toString() }, { replace: true });
-		},
-		[searchParams, navigate]
+		(charts: SelectedChart[]) =>
+			writeCombinedPlots(
+				charts.length > 0
+					? charts.map((c) => String(c.plot.id)).join(';')
+					: undefined
+			),
+		[writeCombinedPlots]
 	);
 
 	const handleAddChartClick = useCallback(
@@ -182,24 +190,20 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 		);
 		setSelectedCharts([]);
 		setSelectedGroup(null);
-		const params = new URLSearchParams(searchParams);
-		params.delete('combinedPlots');
-		navigate({ search: params.toString() }, { replace: true });
-	}, [setSelectedGroup, searchParams, navigate]);
+		writeCombinedPlots(undefined);
+	}, [setSelectedGroup, writeCombinedPlots]);
 
-	const linkToCombined = useMemo<To>(() => {
-		const params = new URLSearchParams(searchParams);
-		params.set('mode', 'measurements-combined');
-		params.set(
-			'combinedPlots',
-			selectedCharts.map((p) => String(p.plot.id)).join(';')
-		);
-		return { pathname: '/history', search: params.toString() };
-	}, [selectedCharts, searchParams]);
-
+	// Pushes the stacked view of the selection on `/history`, the rest of the
+	// search kept.
 	const handleOpenButtonClick = useCallback(() => {
-		navigate(linkToCombined);
-	}, [linkToCombined, navigate]);
+		navigateSearch(
+			{
+				mode: 'measurements-combined',
+				combinedPlots: selectedCharts.map((p) => String(p.plot.id)).join(';')
+			},
+			{ to: '/history' }
+		);
+	}, [navigateSearch, selectedCharts]);
 
 	const value = useMemo(
 		() => ({
@@ -208,7 +212,7 @@ export const CombinedChartsProvider = (props: CombinedChartsProviderProps) => {
 			handleRemoveClick,
 			handleResetButtonClick,
 			handleOpenButtonClick,
-			selectedGroup: selectedGroup ?? null,
+			selectedGroup,
 			syncChartsFromData
 		}),
 		[

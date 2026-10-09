@@ -1,15 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
-import {
-	PROJECT_KEY,
-	useNavigateWithProject
-} from '@/bublik/features/projects';
+import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import {
 	DEFAULT_SEARCH_FORM_STATE,
@@ -17,11 +13,12 @@ import {
 	useHistoryActions
 } from '../slice';
 import { historySearchStateToQuery } from '../slice/history-slice.utils';
+import { useHistorySearch } from '../hooks';
 
 export const HistoryResetGlobalFilterContainer = () => {
 	const actions = useHistoryActions();
 	const form = useSelector(selectSearchState);
-	const [searchParams] = useSearchParams();
+	const mode = useHistorySearch((search) => search.mode ?? 'linear');
 	const dispatch = useDispatch();
 	const navigateWithProject = useNavigateWithProject();
 
@@ -40,17 +37,9 @@ export const HistoryResetGlobalFilterContainer = () => {
 			finishDate: form.finishDate
 		});
 
-		const mode = searchParams.get('mode') ?? 'linear';
-
+		// Every key, the empty ones included; `navigateWithProject` adds `_s`,
+		// `hide-sidebar` and the selected projects.
 		const nextSearchParams = new URLSearchParams({ ...historyAPIQuery, mode });
-		nextSearchParams.delete(PROJECT_KEY);
-
-		for (const [key, value] of searchParams) {
-			if (key !== PROJECT_KEY) continue;
-			nextSearchParams.append(PROJECT_KEY, value);
-		}
-
-		// Use navigateWithProject to properly preserve sidebar params
 		const searchString = nextSearchParams.toString();
 		navigateWithProject(
 			{ pathname: '/history', search: searchString ? `?${searchString}` : '' },

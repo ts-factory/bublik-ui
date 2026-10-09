@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useMemo } from 'react';
-import { ArrayParam, useQueryParam, withDefault, routes } from '@/router';
+import { routes } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { HistoryMeasurementResult } from '@/services/bublik-api';
@@ -28,6 +28,7 @@ import {
 	useHistoryMeasurementsTitle
 } from './plot-list.hooks';
 import { PlotList, PlotListLoading } from './plot-list.component';
+import { useSeriesChartFilters } from './series-chart-filters.hooks';
 
 const pluralRules = new Intl.PluralRules('en-US');
 const suffixes = {
@@ -167,17 +168,12 @@ export function PlotListContainerByResult() {
 			.map((name) => ({ label: name, value: name }));
 	}, [data]);
 
-	const [selectedByParam = [], setSelectedByParam] = useQueryParam(
-		'parametersByResultFilter',
-		withDefault(ArrayParam, []),
-		{ updateType: 'replaceIn' }
-	);
-
-	const [selectedByName = [], setSelectedByName] = useQueryParam(
-		'parametersByResultName',
-		withDefault(ArrayParam, []),
-		{ updateType: 'replaceIn' }
-	);
+	const {
+		selectedByName,
+		selectedByParam,
+		setSelectedByName,
+		setSelectedByParam
+	} = useSeriesChartFilters();
 
 	if (!query.testName) {
 		return (

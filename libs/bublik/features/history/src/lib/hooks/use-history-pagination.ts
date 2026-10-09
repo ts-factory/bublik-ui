@@ -3,42 +3,45 @@
 import { useCallback, useMemo } from 'react';
 import { OnChangeFn, PaginationState } from '@tanstack/react-table';
 
-import { useSearchParams } from '@/router';
-
 import { isFunction } from '@/shared/utils';
 
+import { useHistorySearch } from './use-history-search';
+import { useHistorySearchNavigate } from './use-history-search-navigate';
+
+/**
+ * The results table's page, as `page`/`pageSize` (1-based, strings). A page
+ * change pushes a history entry, so the browser's back button pages back;
+ * the hash and `location.state` are dropped, as `setSearchParams` did.
+ */
 export const useHistoryPagination = () => {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const page = useHistorySearch((search) => search.page);
+	const pageSize = useHistorySearch((search) => search.pageSize);
+	const navigateSearch = useHistorySearchNavigate();
 
 	const pagination = useMemo<PaginationState>(
 		() => ({
-			pageIndex: Number(searchParams.get('page') || 1) - 1,
-			pageSize: Number(searchParams.get('pageSize')) || 25
+			pageIndex: Number(page || 1) - 1,
+			pageSize: Number(pageSize) || 25
 		}),
-		[searchParams]
+		[page, pageSize]
 	);
 
 	const handlePaginationChange: OnChangeFn<PaginationState> = useCallback(
 		(updaterOrValue) => {
-			const search = new URLSearchParams(searchParams);
+			const next = isFunction(updaterOrValue)
+				? updaterOrValue(pagination)
+				: updaterOrValue;
 
-			if (isFunction(updaterOrValue)) {
-				const newValue = updaterOrValue(pagination);
-
-				search.set('page', String(newValue.pageIndex + 1));
-				search.set('pageSize', String(newValue.pageSize));
-				setSearchParams(search);
-			} else {
-				search.set('page', String(updaterOrValue.pageIndex + 1));
-				search.set('pageSize', String(updaterOrValue.pageSize));
-				setSearchParams(search);
-			}
+			navigateSearch({
+				page: String(next.pageIndex + 1),
+				pageSize: String(next.pageSize)
+			});
 
 			document
 				.getElementById('page-container')
 				?.scrollTo({ top: 0, behavior: 'smooth' });
 		},
-		[pagination, searchParams, setSearchParams]
+		[pagination, navigateSearch]
 	);
 	return { pagination, handlePaginationChange };
 };

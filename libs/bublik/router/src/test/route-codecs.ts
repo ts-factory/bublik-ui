@@ -87,6 +87,8 @@ const HISTORY: Shape = {
 	]),
 	page: str(),
 	pageSize: str(),
+	// The server-side substring filter, set by the box beside the form.
+	search: str(),
 	combinedPlots: delimited(DELIMITER),
 	'chart-group': enumOf(['trend', 'measurement']),
 	parametersByResultName: repeated(),

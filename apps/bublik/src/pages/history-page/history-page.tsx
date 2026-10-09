@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useSearchParams } from '@/router';
-
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 import {
 	HistoryFilterLegendContainer,
@@ -12,18 +10,19 @@ import {
 	HistoryResetGlobalFilterContainer,
 	HistorySubstringFilterContainer,
 	CombinedChartsProvider,
-	resolveHistoryMode
+	resolveHistoryMode,
+	useHistorySearch
 } from '@/bublik/features/history';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
 export const HistoryPageV2 = () => {
-	const [searchParams] = useSearchParams();
+	const mode = useHistorySearch((search) => resolveHistoryMode(search.mode));
 
 	return (
 		<div
 			className="flex flex-col p-2"
 			data-testid="history-page"
-			data-history-mode={resolveHistoryMode(searchParams.get('mode'))}
+			data-history-mode={mode}
 		>
 			<header className="flex flex-col gap-4 px-6 py-4 mb-1 bg-bg-primary rounded-t-xl">
 				<div className="flex flex-wrap justify-between gap-4">

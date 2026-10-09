@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
-import { useLocation } from '@/router';
 
 import { useGetHistoryLinearQuery } from '@/services/bublik-api';
 
@@ -10,7 +9,11 @@ import {
 	useHistoryLinearTitle
 } from './history-linear.hooks';
 import { useHistoryActions } from '../slice';
-import { useHistoryPagination, useHistoryQuery } from '../hooks';
+import {
+	useHistoryFromRun,
+	useHistoryPagination,
+	useHistoryQuery
+} from '../hooks';
 import {
 	HistoryLinearLoading,
 	HistoryLinearTable
@@ -24,11 +27,11 @@ export const HistoryLinearContainer = () => {
 		useHistoryLinearGlobalFilter();
 	const { pagination, handlePaginationChange } = useHistoryPagination();
 	const { query } = useHistoryQuery();
-	const state = useLocation().state as { fromRun?: boolean };
+	const fromRun = useHistoryFromRun();
 
 	const { data, isLoading, isFetching, error } = useGetHistoryLinearQuery(
 		query,
-		{ skip: state?.fromRun || !query.testName }
+		{ skip: fromRun || !query.testName }
 	);
 
 	useHistoryLinearTitle({ testName: query.testName });
