@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Outlet } from '@/router';
+import { Outlet } from '@tanstack/react-router';
 
 import { config } from '@/bublik/config';
 import { IframeToOldBublik } from '@/shared/tailwind-ui';
