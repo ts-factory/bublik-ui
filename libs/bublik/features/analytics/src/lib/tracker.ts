@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { matchRoutePath } from '@/router';
+import { matchRoutePath, type RoutePath } from '@/router';
 
 import { config } from '@/bublik/config';
 import { frontendAppVersion } from '@/bublik/features/deploy-info';
@@ -28,7 +28,7 @@ let isAnalyticsEnabled = false;
  * byte (the analytics backend groups page views by them); each is matched
  * through its route path, first match wins, in this order.
  */
-const DYNAMIC_ROUTE_PATTERNS: [to: string, reported: string][] = [
+const DYNAMIC_ROUTE_PATTERNS: [to: RoutePath, reported: string][] = [
 	[
 		'/auth/forgot_password/password_reset/$userId/$resetToken',
 		'/auth/forgot_password/password_reset/:userId/:resetToken'

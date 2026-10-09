@@ -6,7 +6,7 @@ import {
 	decompressFromEncodedURIComponent
 } from 'lz-string';
 
-import { splitTo } from '@/router';
+import { splitTo, type RoutePath } from '@/router';
 
 import { SIDEBAR_PREFIX } from '@/shared/types';
 import { transformUrlSearch } from '@/shared/utils';
@@ -61,7 +61,7 @@ interface SidebarKeyConfig {
 	 * with `/` (dynamic paths, unexpected pathnames, old payloads) pass
 	 * through untouched.
 	 */
-	pathname?: string;
+	pathname?: RoutePath;
 	/**
 	 * Full-form value the per-feature hooks reconstruct on their own from the
 	 * shared defaults in sidebar-state.constants — storing it in `_s` adds

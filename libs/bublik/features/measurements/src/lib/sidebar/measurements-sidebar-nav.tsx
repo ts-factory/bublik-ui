@@ -4,7 +4,12 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect } from 'react';
 import { useParams } from '@tanstack/react-router';
 
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePath,
+	type RoutePathPattern
+} from '@/router';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { Icon } from '@/shared/tailwind-ui';
 
@@ -33,9 +38,12 @@ const MEASUREMENTS_SIDEBAR_MODES: readonly MeasurementsSidebarMode[] = [
 	'overlay'
 ];
 
-const MEASUREMENTS_PATH = '/runs/$runId/results/$resultId/measurements';
+const MEASUREMENTS_PATH: RoutePath =
+	'/runs/$runId/results/$resultId/measurements';
 
-const MEASUREMENTS_SIDEBAR_PATTERNS = [{ to: MEASUREMENTS_PATH }];
+const MEASUREMENTS_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: MEASUREMENTS_PATH }
+];
 
 export function MeasurementsSidebarNav() {
 	const { pathname, searchStr } = useRenderedLocation();

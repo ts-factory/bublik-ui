@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 import { useRenderedLocation } from '@/router';
 import { skipToken } from '@reduxjs/toolkit/query';
 
@@ -18,6 +19,9 @@ import {
 	stripSidebarParamsFromUrl,
 	useSidebarStateWriter
 } from '@/bublik/features/sidebar';
+
+/** Where an item points before a page of its own was visited. */
+const ISSUES = linkOptions({ to: '/issues' }).to;
 
 const ISSUE_MODES: readonly IssueMode[] = ['rules', 'results'];
 
@@ -130,13 +134,13 @@ export function useIssueSidebarState(): UseIssueSidebarStateReturn {
 	const rulesUrl = useMemo(() => {
 		if (lastRulesUrl) return lastRulesUrl;
 		if (activeIssueId) return getIssueDefaultUrl(activeIssueId);
-		return '/issues';
+		return ISSUES;
 	}, [lastRulesUrl, activeIssueId]);
 
 	const resultsUrl = useMemo(() => {
 		if (lastResultsUrl) return lastResultsUrl;
 		if (activeIssueId) return getIssueResultsDefaultUrl(activeIssueId);
-		return '/issues';
+		return ISSUES;
 	}, [lastResultsUrl, activeIssueId]);
 
 	const mainLinkUrl = useMemo(() => {

@@ -69,6 +69,9 @@ jobs:
       - name: Type-check Bublik UI
         run: pnpm run typecheck
 
+      - name: Typed-link gate
+        run: pnpm run links:check
+
   test:
     runs-on: ubuntu-latest
     steps:

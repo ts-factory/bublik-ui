@@ -7,10 +7,14 @@ import {
 	SidebarNavItem
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
+import type { RoutePathPattern } from '@/router';
 
 import { useChatPath } from '../chat-path';
 
-const CHAT_SIDEBAR_PATTERNS = [{ to: '/chat' }, { to: '/chat/$threadId' }];
+// `/chat` and `/chat/<thread>`: the thread id is optional
+const CHAT_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: '/chat/{-$threadId}' }
+];
 
 export function ChatSidebarNav() {
 	const { data: features } = useGetServerFeaturesQuery();

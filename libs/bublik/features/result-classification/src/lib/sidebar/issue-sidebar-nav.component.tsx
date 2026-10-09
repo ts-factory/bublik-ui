@@ -11,7 +11,8 @@ import {
 	SidebarNavLinkWrapper,
 	SidebarNavSubmenuItemContainer,
 	SidebarNavToggle,
-	type ActivePattern
+	type ActivePattern,
+	type SubmenuMatchPattern
 } from '@/bublik/features/sidebar-nav';
 
 import { useIssueSidebarState } from './issue-sidebar.hooks';
@@ -22,16 +23,20 @@ function countTooltip(count: number, singular: string, plural: string) {
 	return `${count} ${count === 1 ? singular : plural}`;
 }
 
-const RESULTS_PATTERN = { to: '/issues/$issueId/results' };
-const RULES_PATTERN = { to: '/issues/$issueId' };
+const RESULTS_PATTERN: ActivePattern = { to: '/issues/$issueId/results' };
+const RULES_PATTERN: ActivePattern = { to: '/issues/$issueId' };
 
 const ISSUE_PATTERNS: ActivePattern[] = [RESULTS_PATTERN, RULES_PATTERN];
 
 // `/issues/rules` matches `/issues/$issueId` too; the id check below keeps
 // the Issue entry quiet there, and these stand in for its patterns. A submenu
-// item with no pattern at all counts as active, hence a path nothing routes to.
+// item with no pattern at all counts as active, hence a layout no issue page
+// is ever in: the issue pages take no `mode`.
 const NO_PATTERNS: ActivePattern[] = [];
-const NEVER_ACTIVE_PATTERN = { to: '/__none__' };
+const NEVER_ACTIVE_PATTERN: SubmenuMatchPattern = {
+	...RULES_PATTERN,
+	mode: 'never'
+};
 
 export function IssueSidebarNav() {
 	const { pathname, searchStr } = useRenderedLocation();

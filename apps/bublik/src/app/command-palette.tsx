@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useHotkey } from '@tanstack/react-hotkeys';
 import { linkOptions } from '@tanstack/react-router';
 
-import { useRenderedLocation } from '@/router';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import {
 	useNavigateWithProject,
@@ -41,9 +40,8 @@ const PAGES = {
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigateWithProject();
-	// The Profile item stays on the page on screen, whichever it is
+	// The Profile item stays on the current page with only the settings keys
 	const navigateTo = useRouterNavigateWithProject();
-	const location = useRenderedLocation();
 
 	useHotkey('Mod+K', () => setOpen((open) => !open), {
 		ignoreInputs: false,
@@ -93,9 +91,7 @@ function BublikCommand() {
 					<CommandGroup heading="Settings">
 						<CommandItem
 							onSelect={handleSelect(() =>
-								navigateTo(
-									`${location.pathname}?settings-open=1&settings-tab=account`
-								)
+								navigateTo({ search: '?settings-open=1&settings-tab=account' })
 							)}
 						>
 							<Icon name="Profile" className="w-4 h-4 mr-2" />

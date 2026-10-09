@@ -12,8 +12,11 @@ import {
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
+import type { RoutePathPattern } from '@/router';
 
-const ADMIN_SIDEBAR_PATTERNS = [{ to: '/admin', fuzzy: true }];
+const ADMIN_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: '/admin', fuzzy: true }
+];
 
 /** The admin pages, checked against the route tree (`linkOptions`). */
 const ADMIN_LINKS = {

@@ -1,11 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import type { RegisteredRouter } from '@tanstack/react-router';
+
 import { matchPath } from './path-pattern';
+
+/**
+ * A path of the registered route tree, as a `to` spells it
+ * (`/runs/$runId`), from the file route types the generated tree carries;
+ * any string in a program without a registered router.
+ */
+type RoutePath = RegisteredRouter['routeTree'] extends {
+	types: { fileRouteTypes: { to: infer To extends string } };
+}
+	? To
+	: string;
 
 /** A route path to test a pathname against. */
 interface RoutePathPattern {
 	/** A route path as the route tree spells it: `/runs/$runId`. */
-	to: string;
+	to: RoutePath;
 	/** Also match below it, at a segment boundary: `/help` matches `/help/faq`. */
 	fuzzy?: boolean;
 }
@@ -53,4 +66,4 @@ function matchRoutePath(
 }
 
 export { matchRoutePath };
-export type { RoutePathPattern };
+export type { RoutePath, RoutePathPattern };

@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
 import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
@@ -11,7 +15,7 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
 
-const DASHBOARD_SIDEBAR_PATTERNS = [{ to: '/dashboard' }];
+const DASHBOARD_SIDEBAR_PATTERNS: RoutePathPattern[] = [{ to: '/dashboard' }];
 
 export function DashboardSidebarNav() {
 	const { pathname, searchStr } = useRenderedLocation();

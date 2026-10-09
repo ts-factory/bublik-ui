@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
 import {
 	RouterLinkWithProject,
@@ -19,9 +23,12 @@ import { useIssuesSidebarState } from './issues-sidebar.hooks';
 import { OpenIssueCountBadge } from './open-issue-count-badge.component';
 import { SidebarCountBadge } from './sidebar-count-badge.component';
 
-const LIST_PATTERN = { to: '/issues' };
-const RULES_PATTERN = { to: '/issues/rules' };
-const ISSUES_SIDEBAR_PATTERNS = [LIST_PATTERN, RULES_PATTERN];
+const LIST_PATTERN: RoutePathPattern = { to: '/issues' };
+const RULES_PATTERN: RoutePathPattern = { to: '/issues/rules' };
+const ISSUES_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	LIST_PATTERN,
+	RULES_PATTERN
+];
 
 function scopeOf(isProjectPicked: boolean): string {
 	return isProjectPicked ? 'in the selected project' : 'in all projects';

@@ -3,11 +3,11 @@
 import { useCallback } from 'react';
 import { useRouter, type AnyRouter } from '@tanstack/react-router';
 
-import { writeSearch } from '@/router';
+import { writeSearch, type RoutePath } from '@/router';
 
 interface HistorySearchNavigateOptions {
-	/** The pathname to land on; the current one by default. */
-	to?: string;
+	/** The route to land on; the current pathname by default. */
+	to?: RoutePath;
 	replace?: boolean;
 }
 

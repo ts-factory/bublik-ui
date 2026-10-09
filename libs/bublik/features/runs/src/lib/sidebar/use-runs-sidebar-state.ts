@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 
 import { matchRoutePath, useRenderedLocation } from '@/router';
 
@@ -19,6 +20,11 @@ import {
 } from '@/bublik/features/sidebar';
 
 import { useRunsSelectionUrls } from '../runs-links';
+
+/** Where an item points before a page of its own was visited. */
+const RUNS = linkOptions({ to: '/runs' }).to;
+const COMPARE = linkOptions({ to: '/compare' }).to;
+const MULTIPLE = linkOptions({ to: '/multiple' }).to;
 
 const RUNS_MODES: readonly RunsMode[] = [
 	'list',
@@ -118,7 +124,7 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 			params.delete('mode');
 			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
 		}
-		return lastListUrl || '/runs';
+		return lastListUrl || RUNS;
 	}, [isOnRunsPage, location.searchStr, lastListUrl]);
 
 	const chartsUrl = useMemo(() => {
@@ -145,15 +151,15 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 		// `lastMode` is omitted from `_s` when it equals the shared default.
 		switch (lastMode ?? RUNS_MODE_DEFAULT) {
 			case 'list':
-				return lastListUrl || '/runs';
+				return lastListUrl || RUNS;
 			case 'charts':
 				return lastChartsUrl || RUNS_CHARTS_DEFAULT_URL;
 			case 'progress':
 				return lastProgressUrl || RUNS_PROGRESS_DEFAULT_URL;
 			case 'compare':
-				return lastCompareUrl || '/compare';
+				return lastCompareUrl || COMPARE;
 			case 'multiple':
-				return lastMultipleUrl || '/multiple';
+				return lastMultipleUrl || MULTIPLE;
 		}
 	}, [
 		lastMode,
