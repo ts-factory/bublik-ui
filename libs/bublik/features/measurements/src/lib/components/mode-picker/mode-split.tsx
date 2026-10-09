@@ -1,9 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useParams } from '@/router';
-
 import { CardHeader, Resizable, resizableStyles } from '@/shared/tailwind-ui';
-import { MeasurementsRouterParams } from '@/shared/types';
 import { TableHeader } from '@/shared/charts';
 
 import {
@@ -12,11 +9,10 @@ import {
 	MeasurementStatisticsContainer,
 	TablesContainer
 } from '../../containers';
+import { measurementsRoute } from '../../route';
 
 export const ModeSplit = () => {
-	const { runId, resultId } = useParams<MeasurementsRouterParams>();
-
-	if (!runId || !resultId) return null;
+	const { resultId } = measurementsRoute.useParams();
 
 	return (
 		<div className="h-screen p-2 overflow-hidden">

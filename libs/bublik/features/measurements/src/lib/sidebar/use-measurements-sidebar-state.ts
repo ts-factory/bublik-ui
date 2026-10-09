@@ -2,7 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from '@/router';
+
+import { useRenderedLocation } from '@/router';
 
 import {
 	MEASUREMENTS_MODE_DEFAULT,
@@ -37,7 +38,11 @@ export interface UseMeasurementsSidebarStateReturn {
 }
 
 export function useMeasurementsSidebarState(): UseMeasurementsSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	const { searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastMeasurementsUrl = useMemo(

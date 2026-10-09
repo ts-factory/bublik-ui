@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { skipToken } from '@reduxjs/toolkit/query';
-
-import { MeasurementsRouterParams, MeasurementsSearch } from '@/shared/types';
-import { useParams, useSearchState } from '@/router';
 import {
 	useGetResultInfoQuery,
 	usePrefetchLogPage,
@@ -13,11 +9,12 @@ import { ScrollToTopPage } from '@/shared/tailwind-ui';
 
 import { ModePicker } from './components';
 import { useMeasurementTitle } from './measurement.hooks';
+import { measurementsRoute, useMeasurementsMode } from './route';
 
 export const MeasurementContainer = () => {
-	const [search] = useSearchState<MeasurementsSearch>();
-	const { runId, resultId } = useParams<MeasurementsRouterParams>();
-	const { data } = useGetResultInfoQuery(resultId ?? skipToken);
+	const mode = useMeasurementsMode();
+	const { runId, resultId } = measurementsRoute.useParams();
+	const { data } = useGetResultInfoQuery(resultId);
 
 	useMeasurementTitle({
 		name: data?.name,
@@ -28,11 +25,8 @@ export const MeasurementContainer = () => {
 	usePrefetchLogPage({ runId, resultId });
 
 	return (
-		<div
-			data-testid="measurements-page"
-			data-measurements-mode={search?.mode ?? 'default'}
-		>
-			<ModePicker mode={search?.mode} />
+		<div data-testid="measurements-page" data-measurements-mode={mode}>
+			<ModePicker mode={mode} />
 			<ScrollToTopPage />
 		</div>
 	);
