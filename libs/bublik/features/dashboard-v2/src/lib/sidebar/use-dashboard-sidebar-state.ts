@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 import { useRenderedLocation } from '@/router';
 
 import {
@@ -11,6 +12,9 @@ import {
 	stripSidebarParamsFromUrl,
 	useSidebarStateWriter
 } from '@/bublik/features/sidebar';
+
+/** Where an item points before a page of its own was visited. */
+const DASHBOARD = linkOptions({ to: '/dashboard' }).to;
 
 export interface UseDashboardSidebarStateReturn {
 	lastUrl: string | null;
@@ -32,7 +36,7 @@ export function useDashboardSidebarState(): UseDashboardSidebarStateReturn {
 	);
 
 	const mainLinkUrl = useMemo(() => {
-		return lastUrl || '/dashboard';
+		return lastUrl || DASHBOARD;
 	}, [lastUrl]);
 
 	const setLastUrl = useCallback(

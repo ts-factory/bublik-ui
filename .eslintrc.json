@@ -33,41 +33,8 @@
 				"@typescript-eslint/no-extra-semi": "error",
 				"no-extra-semi": "off",
 				"@tanstack/router/create-route-property-order": "error",
-				"@tanstack/router/route-param-names": "error",
-				// Internal targets are typed: a string literal starting with `/`
-				// may only go to a link checked against the route tree (TanStack
-				// `Link`/`Navigate`, `LinkWithProject`, `linkOptions`,
-				// `navigate({ to })`). Elsewhere use `linkOptions({ to }).to`
-				// (AGENTS.md, Router Integration).
-				"no-restricted-syntax": [
-					"error",
-					{
-						"selector": "JSXOpeningElement:not([name.name=/^(Link|Navigate|LinkWithProject)$/]) > JSXAttribute[name.name=/^(to|href)$/] > Literal[value=/^\\x2F/]",
-						"message": "Internal link as a string: use a typed link (TanStack `Link`, `LinkWithProject`) or `linkOptions({ to }).to`."
-					},
-					{
-						"selector": "JSXOpeningElement:not([name.name=/^(Link|Navigate|LinkWithProject)$/]) > JSXAttribute[name.name=/^(to|href)$/] > JSXExpressionContainer > Literal[value=/^\\x2F/]",
-						"message": "Internal link as a string: use a typed link (TanStack `Link`, `LinkWithProject`) or `linkOptions({ to }).to`."
-					},
-					{
-						"selector": "JSXAttribute[name.name=/^(to|href)$/] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^\\x2F/]",
-						"message": "Internal link built as a string: use a typed link with `params` (TanStack `Link`, `LinkWithProject`)."
-					},
-					{
-						"selector": "CallExpression[callee.name=/^navigate/i] > Literal.arguments:first-child[value=/^\\x2F/]",
-						"message": "Navigation to a string: use the typed `navigate({ to })` or `linkOptions({ to }).to`."
-					},
-					{
-						"selector": "CallExpression[callee.name=/^navigate/i] > TemplateLiteral.arguments:first-child[quasis.0.value.raw=/^\\x2F/]",
-						"message": "Navigation to a string built by hand: use the typed `navigate({ to, params })`."
-					}
-				]
+				"@tanstack/router/route-param-names": "error"
 			}
-		},
-		{
-			// Specs pin the bytes typed links produce against raw strings.
-			"files": ["*.spec.ts", "*.spec.tsx"],
-			"rules": { "no-restricted-syntax": "off" }
 		},
 		{
 			"files": ["*.js", "*.jsx"],

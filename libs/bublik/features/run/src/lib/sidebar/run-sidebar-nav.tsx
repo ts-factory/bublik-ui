@@ -1,8 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 
-import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
+import {
+	isIdSegment,
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { RouterLinkWithProject } from '@/bublik/features/projects';
@@ -24,7 +30,10 @@ import {
 	RunMainDialog
 } from './run-dialogs';
 
-const RUN_SIDEBAR_PATTERNS = [
+/** Where the disabled report item points: the run list. */
+const RUNS = linkOptions({ to: '/runs' }).to;
+
+const RUN_SIDEBAR_PATTERNS: RoutePathPattern[] = [
 	{ to: '/runs/$runId' },
 	{ to: '/runs/$runId/report' },
 	{ to: '/runs/$runId/issues' }
@@ -119,7 +128,7 @@ export function RunSidebarNav() {
 					</SidebarNavSubmenuItemContainer.InfoButton>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to={reportUrl ?? '/runs'}
+					to={reportUrl ?? RUNS}
 					pattern={{ to: '/runs/$runId/report' }}
 					disabled={!isReportAvailable}
 					linkComponent={RouterLinkWithProject}

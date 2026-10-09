@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
 import {
 	RouterLinkWithProject,
@@ -18,9 +22,12 @@ import {
 import { useIssuesSidebarState } from './issues-sidebar.hooks';
 import { OpenIssueCountBadge } from './open-issue-count-badge.component';
 
-const LIST_PATTERN = { to: '/issues' };
-const RULES_PATTERN = { to: '/issues/rules' };
-const ISSUES_SIDEBAR_PATTERNS = [LIST_PATTERN, RULES_PATTERN];
+const LIST_PATTERN: RoutePathPattern = { to: '/issues' };
+const RULES_PATTERN: RoutePathPattern = { to: '/issues/rules' };
+const ISSUES_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	LIST_PATTERN,
+	RULES_PATTERN
+];
 
 function openIssuesTooltip(count: number, isProjectPicked: boolean): string {
 	const noun = count === 1 ? 'open issue' : 'open issues';

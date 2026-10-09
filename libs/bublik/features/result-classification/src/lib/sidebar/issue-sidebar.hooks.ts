@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 import { useRenderedLocation } from '@/router';
 
 import {
@@ -11,6 +12,9 @@ import {
 	stripSidebarParamsFromUrl,
 	useSidebarStateWriter
 } from '@/bublik/features/sidebar';
+
+/** Where an item points before a page of its own was visited. */
+const ISSUES = linkOptions({ to: '/issues' }).to;
 
 export interface UseIssueSidebarStateReturn {
 	lastIssueUrl: string | null;
@@ -50,7 +54,7 @@ export function useIssueSidebarState(): UseIssueSidebarStateReturn {
 
 	return {
 		lastIssueUrl,
-		mainLinkUrl: lastIssueUrl || '/issues',
+		mainLinkUrl: lastIssueUrl || ISSUES,
 		isAvailable: !!lastIssueUrl,
 		setLastVisited
 	};

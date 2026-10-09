@@ -9,11 +9,12 @@ import {
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
+import type { RoutePathPattern } from '@/router';
 import { useLogSidebarState } from './use-log-sidebar-state';
 
 import { LogDialog } from './log-dialog';
 
-const LOG_SIDEBAR_PATTERNS = [{ to: '/log/$runId' }];
+const LOG_SIDEBAR_PATTERNS: RoutePathPattern[] = [{ to: '/log/$runId' }];
 
 export function LogSidebarNav() {
 	// The log page records itself (`log-feature.tsx`); a writer here would be

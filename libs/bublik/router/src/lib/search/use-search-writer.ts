@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useRouter, type AnyRouter } from '@tanstack/react-router';
 
 import { currentLocation } from '../location/location';
+import type { RoutePath } from '../match/match-route-path';
 
 interface WriteSearchOptions {
 	/** Replace the history entry (the default), or push one. */
@@ -18,8 +19,8 @@ interface WriteSearchOptions {
 	 * always navigates, as those did, even when the URL would not change.
 	 */
 	keepState?: boolean;
-	/** The pathname to land on (basepath-free, verbatim); the current one by default. */
-	to?: string;
+	/** The route to land on (a path without params); the current pathname by default. */
+	to?: RoutePath;
 }
 
 /**

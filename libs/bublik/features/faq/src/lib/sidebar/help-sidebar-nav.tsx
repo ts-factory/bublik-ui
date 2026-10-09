@@ -13,13 +13,14 @@ import {
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { config } from '@/bublik/config';
+import type { RoutePathPattern } from '@/router';
 
 // The help page's address, checked against the route tree.
 const HELP_FAQ = linkOptions({ to: '/help/faq' });
 
-const HELP_SIDEBAR_PATTERNS = [
-	{ to: '/help', fuzzy: true },
-	{ to: HELP_FAQ.to }
+// Every help page; bare `/help` is no page of its own
+const HELP_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: HELP_FAQ.to, fuzzy: true }
 ];
 
 export function HelpSidebarNav() {
