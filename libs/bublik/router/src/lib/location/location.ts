@@ -2,8 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /**
  * Which location to read and which to write on, for code that runs while a
- * navigation may be in flight. Both the compat shims and
- * the native wrappers (projects, sidebar, sidebar-nav, settings) go through
+ * navigation may be in flight. The projects wrappers, the
+ * sidebar writers, sidebar-nav, settings and `useSearchWriter` go through
  * these, so reads and writes agree.
  */
 import { useCallback } from 'react';

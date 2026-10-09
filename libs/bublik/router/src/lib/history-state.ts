@@ -16,8 +16,6 @@ declare module '@tanstack/react-router' {
 		openUnexpectedIntentId?: string;
 		/** Run → history preview: the history page waits for the user's search. */
 		fromRun?: boolean;
-		/** History aggregation → run; written, never read. */
-		fromHistory?: boolean;
 	}
 }
 

@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /**
- * Test fixture for the compat shims: a small router shaped like the app's
- * (`renderWithRouter`'s options and root schema, plus a `defineSearch`
- * schema on `/runs`) on a memory history, mounted through `RouterProvider`. The
- * shims are observed through the router's location only.
+ * Test fixture for `@/router`'s own hooks: a small router shaped like the
+ * app's (`renderWithRouter`'s options and root schema, plus a `defineSearch`
+ * schema on `/runs`) on a memory history, mounted through `RouterProvider`,
+ * with a `/slow` route whose loader the test releases, so a navigation can be
+ * observed while the previous page is still rendered.
  */
 import { act, render, renderHook } from '@testing-library/react';
 import {
@@ -25,7 +26,7 @@ import {
 	num,
 	repeated
 } from '../lib/search/codecs';
-import { useLocation } from '../lib/compat/navigation';
+import { useRenderedLocation } from '../lib/location/location';
 import { defineSearch } from '../lib/search/define-search';
 import { rootSearch, routerOptions } from '../testing/render-with-router';
 
@@ -57,7 +58,7 @@ let slowGate = createGate();
 const slowPageRenders: { pathname: string; state: unknown }[] = [];
 
 function SlowPage() {
-	const { pathname, state } = useLocation();
+	const { pathname, state } = useRenderedLocation();
 	slowPageRenders.push({ pathname, state });
 
 	return null;
@@ -70,7 +71,7 @@ function holdSlowRoute(): () => void {
 	return slowGate.release;
 }
 
-function createCompatRouter(
+function createMemoryRouter(
 	initialEntries: string[],
 	component?: () => ReactElement
 ) {
@@ -109,11 +110,11 @@ function createCompatRouter(
 	});
 }
 
-type CompatRouter = ReturnType<typeof createCompatRouter>;
+type MemoryRouter = ReturnType<typeof createMemoryRouter>;
 
 /** Mounts a hook under the router at `url` (or the last of several entries). */
 async function renderHookAt<T>(url: string | string[], hook: () => T) {
-	const router = createCompatRouter(Array.isArray(url) ? url : [url]);
+	const router = createMemoryRouter(Array.isArray(url) ? url : [url]);
 	await router.load();
 
 	// `renderHook` hands the wrapper one element: the hook's host component.
@@ -133,7 +134,7 @@ async function renderHookAt<T>(url: string | string[], hook: () => T) {
 
 /** Mounts `ui` as the root component under the router at `url`. */
 async function renderAt(url: string | string[], ui: ReactElement) {
-	const router = createCompatRouter(Array.isArray(url) ? url : [url], () => ui);
+	const router = createMemoryRouter(Array.isArray(url) ? url : [url], () => ui);
 	await router.load();
 
 	const rendered = render(<RouterProvider router={router} />);
@@ -142,9 +143,9 @@ async function renderAt(url: string | string[], ui: ReactElement) {
 }
 
 /** The location the memory history holds, under the basepath. */
-const hrefOf = (router: CompatRouter) => router.history.location.href;
+const hrefOf = (router: MemoryRouter) => router.history.location.href;
 
-/** Runs a shim write and lets the router commit it. */
+/** Runs a write and lets the router commit it. */
 async function write(run: () => void) {
 	await act(async () => {
 		run();
@@ -152,7 +153,7 @@ async function write(run: () => void) {
 }
 
 export {
-	createCompatRouter,
+	createMemoryRouter,
 	holdSlowRoute,
 	hrefOf,
 	slowPageRenders,
@@ -160,4 +161,4 @@ export {
 	renderHookAt,
 	write
 };
-export type { CompatRouter };
+export type { MemoryRouter };

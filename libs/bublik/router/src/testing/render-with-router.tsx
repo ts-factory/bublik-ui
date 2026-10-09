@@ -124,15 +124,18 @@ function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
 	segments.forEach((segment, index) => {
 		const isLeaf = index === segments.length - 1;
 		const current = parent;
-		const route: AnyRoute = createRoute({
-			getParentRoute: () => current,
-			...(segment.startsWith('_') ? { id: segment } : { path: segment }),
-			...(isLeaf && search
+		const place = segment.startsWith('_') ? { id: segment } : { path: segment };
+		const schema =
+			isLeaf && search
 				? {
 						validateSearch: search.validateSearch,
 						search: { middlewares: search.middlewares }
 				  }
-				: {}),
+				: {};
+		const route: AnyRoute = createRoute({
+			getParentRoute: () => current,
+			...place,
+			...schema,
 			component: isLeaf ? Page : Outlet
 		} as never);
 

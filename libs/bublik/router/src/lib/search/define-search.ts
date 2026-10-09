@@ -74,8 +74,8 @@ function defineSearch<S extends Shape>(
 
 		// `parse` first: a navigation hands this the validated (typed) search,
 		// but a `<Link>` href is built without validation, so a raw wire string
-		// (`tv: '0'`, as the compat shims and link builders write it) or a
-		// `null` (use-query-params' "remove") can arrive here too. Every codec
+		// (`tv: '0'`, as lib hooks serving several routes and the link builders
+		// write it) or a `null` (a "remove") can arrive here too. Every codec
 		// parses its own typed value unchanged, so this is a no-op for the
 		// typed case and the exact wire bytes for the raw one.
 		for (const key in shape) {

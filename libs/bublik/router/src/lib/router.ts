@@ -3,14 +3,12 @@
 import type { To } from './path/to';
 
 import {
-	DashboardConfig,
 	IssueConfig,
 	IssuesConfig,
 	RunConfig,
 	RunIssuesConfig,
 	LogConfig,
-	MeasurementsConfig,
-	HistoryConfig
+	MeasurementsConfig
 } from './types';
 import { LogPageMode } from '@/shared/types';
 
@@ -21,10 +19,8 @@ export type RouteConfig<T> = {
 };
 
 const buildRoute =
-	<T>(config: RouteConfig<T> | string = {}) =>
+	<T>(config: RouteConfig<T> = {}) =>
 	(route: T): To => {
-		if (typeof config === 'string') return route as To;
-
 		return {
 			pathname: config.getPathname?.(route),
 			search: config.getSearch?.(route),
@@ -33,7 +29,6 @@ const buildRoute =
 	};
 
 export const routes = {
-	dashboard: buildRoute<DashboardConfig>({ getPathname: () => `/dashboard` }),
 	run: buildRoute<RunConfig>({
 		getPathname: ({ runId }) => `/runs/${runId}`,
 		getSearch: ({ targetIterationId, resultFilter }) => {
@@ -45,7 +40,6 @@ export const routes = {
 			return params.toString();
 		}
 	}),
-	history: buildRoute<HistoryConfig>({ getPathname: () => `/history` }),
 	log: buildRoute<LogConfig>({
 		getPathname: ({ runId }) => `/log/${runId}`,
 		getSearch: ({ mode = LogPageMode.TreeAndInfoAndLog, focusId }) => {
@@ -60,7 +54,6 @@ export const routes = {
 		getSearch: () => 'mode=default'
 	}),
 	issues: buildRoute<IssuesConfig>({ getPathname: () => `/issues` }),
-	issueRules: buildRoute<IssuesConfig>({ getPathname: () => `/issues/rules` }),
 	issue: buildRoute<IssueConfig>({
 		getPathname: ({ issueId }) => `/issues/${issueId}`
 	}),
@@ -69,6 +62,5 @@ export const routes = {
 	}),
 	runIssues: buildRoute<RunIssuesConfig>({
 		getPathname: ({ runId }) => `/runs/${runId}/issues`
-	}),
-	runs: buildRoute<never>('/runs')
+	})
 } as const;
