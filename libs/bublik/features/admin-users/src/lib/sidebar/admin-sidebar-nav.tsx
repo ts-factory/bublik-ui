@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { linkOptions } from '@tanstack/react-router';
+
 import { useAuth } from '@/bublik/features/auth';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -13,6 +15,15 @@ import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
 const ADMIN_SIDEBAR_PATTERNS = [{ to: '/admin', fuzzy: true }];
 
+/** The admin pages, checked against the route tree (`linkOptions`). */
+const ADMIN_LINKS = {
+	config: linkOptions({ to: '/admin/config' }).to,
+	users: linkOptions({ to: '/admin/users' }).to,
+	import: linkOptions({ to: '/admin/import' }).to,
+	flower: linkOptions({ to: '/admin/flower' }).to,
+	analytics: linkOptions({ to: '/admin/analytics' }).to
+};
+
 export function AdminSidebarNav() {
 	const { isAdmin } = useAuth();
 	const { data: features } = useGetServerFeaturesQuery();
@@ -23,7 +34,7 @@ export function AdminSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Admin">
 					<SidebarNavInternalLink
-						to="/admin/import"
+						to={ADMIN_LINKS.import}
 						linkComponent={LinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="Edit" />
@@ -35,8 +46,8 @@ export function AdminSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/config"
-					pattern={{ to: '/admin/config' }}
+					to={ADMIN_LINKS.config}
+					pattern={{ to: ADMIN_LINKS.config }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -48,8 +59,8 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/users"
-					pattern={{ to: '/admin/users' }}
+					to={ADMIN_LINKS.users}
+					pattern={{ to: ADMIN_LINKS.users }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="TwoUsers" size={24} />
@@ -58,8 +69,8 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/import"
-					pattern={{ to: '/admin/import' }}
+					to={ADMIN_LINKS.import}
+					pattern={{ to: ADMIN_LINKS.import }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="Import" size={24} />
@@ -68,8 +79,8 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/flower"
-					pattern={{ to: '/admin/flower' }}
+					to={ADMIN_LINKS.flower}
+					pattern={{ to: ADMIN_LINKS.flower }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -82,8 +93,8 @@ export function AdminSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				{showAnalytics ? (
 					<SidebarNavSubmenuItemContainer
-						to="/admin/analytics"
-						pattern={{ to: '/admin/analytics' }}
+						to={ADMIN_LINKS.analytics}
+						pattern={{ to: ADMIN_LINKS.analytics }}
 						linkComponent={LinkWithProject}
 					>
 						<SidebarNavSubmenuItemContainer.Icon
