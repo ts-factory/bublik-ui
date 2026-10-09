@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import type {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -12,88 +13,71 @@ import type {
 	VisibilityState
 } from '@tanstack/react-table';
 
-import {
-	useQueryParam,
-	useQueryParams,
-	type QueryParamConfigMap
-} from '@/router';
+import { useSearchWriter } from '@/router';
 
 import { useLocalStorage } from '@/shared/hooks';
 
-import {
-	DEFAULT_PAGE_SIZE,
-	DELIMITER,
-	KEY
-} from './classification-table.constants';
+import { DELIMITER, KEY } from './classification-table.constants';
 import {
 	groupRowId,
 	reconcileColumnOrder,
 	type ColumnOrderPins
 } from './classification-table.utils';
 import {
-	ColumnOrderParam,
-	ColumnsParam,
-	ExpandedParam,
-	FacetParam,
-	PageParam,
-	RepeatedFacetParam,
-	SearchParam,
-	createPageSizeParam,
-	createSortingParam,
-	serializeSorting
-} from './classification-table.params';
+	columnOverrides,
+	idList,
+	readTableSearch,
+	toTableWire
+} from './classification-table.search';
 import type {
 	ClassificationQueryArgs,
 	ClassificationTableState,
 	ClassificationTableStateConfig
 } from './classification-table.types';
 
+/**
+ * `useSearch({ strict: false })`, untyped: the tables speak for four routes
+ * and read their keys through the schema's codecs, so the registered route
+ * tree's union of search types has nothing to add. The router's
+ * `defaultStructuralSharing` still keeps a selected value that did not
+ * change the same object.
+ */
+const useRouteSearch = useSearch as unknown as <T>(options: {
+	strict: false;
+	select: (search: Record<string, unknown>) => T;
+}) => T;
+
 const EMPTY_SORTING: SortingState = [];
 const EMPTY_EXPANDED: ExpandedState = {};
 
-const NO_KEYS: readonly never[] = [];
-
+/**
+ * The URL state of a classification table, read through its schema from
+ * the search of the route on screen, and written back the way
+ * use-query-params' `replaceIn` did: one replace that merges the changed
+ * keys into the current search, a value equal to the table's default
+ * written as an absent key.
+ */
 export function useClassificationTableState<F extends string>({
-	filterKeys,
-	repeatedFilterKeys = NO_KEYS,
+	search: schema,
 	searchColumnId,
-	defaultPageSize = DEFAULT_PAGE_SIZE,
-	defaultSorting = EMPTY_SORTING,
 	orderingByColumnId
 }: ClassificationTableStateConfig<F>): ClassificationTableState {
+	const filterKeys = schema.facets;
 	const filterKeysToken = filterKeys.join(DELIMITER);
-	const repeatedFilterKeysToken = repeatedFilterKeys.join(DELIMITER);
-	const defaultSortingToken = serializeSorting(defaultSorting);
 
-	const paramConfig = useMemo<QueryParamConfigMap>(() => {
-		const params: QueryParamConfigMap = {
-			[KEY.PAGE]: PageParam,
-			[KEY.PAGE_SIZE]: createPageSizeParam(defaultPageSize),
-			[KEY.SEARCH]: SearchParam,
-			[KEY.SORT]: createSortingParam(defaultSorting),
-			[KEY.EXPANDED]: ExpandedParam
-		};
+	// Structurally shared: the same values keep the same object, so the
+	// memos below only move when the URL says something new.
+	const params = useRouteSearch({
+		strict: false,
+		select: (search) =>
+			readTableSearch(schema, search) as Record<string, unknown>
+	});
 
-		for (const key of filterKeys) {
-			params[key] = repeatedFilterKeys.includes(key)
-				? RepeatedFacetParam
-				: FacetParam;
-		}
-
-		return params;
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		filterKeysToken,
-		repeatedFilterKeysToken,
-		defaultPageSize,
-		defaultSortingToken
-	]);
-
-	const [params, setParams] = useQueryParams(paramConfig);
-
+	const writeSearch = useSearchWriter();
 	const update = useCallback(
-		(changes: Record<string, unknown>) => setParams(changes, 'replaceIn'),
-		[setParams]
+		(changes: Record<string, unknown>) =>
+			writeSearch(toTableWire(schema, changes)),
+		[schema, writeSearch]
 	);
 
 	const search = (params[KEY.SEARCH] as string | undefined) ?? '';
@@ -117,10 +101,10 @@ export function useClassificationTableState<F extends string>({
 
 	const pagination = useMemo<PaginationState>(
 		() => ({
-			pageIndex: Math.max(0, ((params[KEY.PAGE] as number) ?? 1) - 1),
-			pageSize: (params[KEY.PAGE_SIZE] as number) ?? defaultPageSize
+			pageIndex: Math.max(0, (params[KEY.PAGE] as number) - 1),
+			pageSize: params[KEY.PAGE_SIZE] as number
 		}),
-		[params, defaultPageSize]
+		[params]
 	);
 
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
@@ -151,7 +135,8 @@ export function useClassificationTableState<F extends string>({
 		[update]
 	);
 
-	const expanded = (params[KEY.EXPANDED] as ExpandedState) ?? EMPTY_EXPANDED;
+	const expanded =
+		(params[KEY.EXPANDED] as ExpandedState | undefined) ?? EMPTY_EXPANDED;
 
 	const onExpandedChange = useCallback<OnChangeFn<ExpandedState>>(
 		(updaterOrValue) => {
@@ -194,6 +179,7 @@ export function useClassificationTableState<F extends string>({
 		[pagination, update]
 	);
 
+	/** A link past the last page lands on the last page, by a replace. */
 	const clampPage = useCallback(
 		(pageCount: number) => {
 			if (pageCount <= 0) return;
@@ -266,13 +252,29 @@ export function useClassificationTableState<F extends string>({
 	};
 }
 
-const NO_OVERRIDES: VisibilityState = {};
-
 /**
- * The param name used when a table has not opted into URL-backed columns. It is
- * only ever read, never written, so it stays absent from every URL.
+ * The value of one search key of the route on screen, through `codec`, or
+ * `undefined` when there is no key to read. The search may hold the
+ * route's typed value or the raw wire string: the codec parses both.
  */
-const UNUSED_QUERY_KEY = 'columns';
+function useSearchKey<T>(
+	key: string | undefined,
+	codec: { parse: (raw: unknown) => T | undefined }
+): T | undefined {
+	return useRouteSearch({
+		strict: false,
+		select: (search) =>
+			key === undefined ? undefined : codec.parse(search[key])
+	});
+}
+
+/** `+id` / `-id` overrides, as the `cols` key spells them. */
+const COLUMNS_CODEC = columnOverrides();
+
+/** The column ids, left to right, as the `order` key spells them. */
+const ORDER_CODEC = idList();
+
+const NO_OVERRIDES: VisibilityState = {};
 
 /** The columns whose visibility differs from what `defaults` would give them. */
 function diffVisibility(
@@ -302,8 +304,9 @@ function hasOverrides(overrides: VisibilityState) {
  * there is room for it again; showing one explicitly records `+id` and it stays
  * shown at every width until it is hidden again.
  *
- * Pass `queryKey` to put the diff in the URL as well, making a column set
- * linkable. Without it the hook is localStorage-only, as it was before.
+ * Pass `queryKey` to put the diff in the URL as well (a replace that merges
+ * into the current search), making a column set linkable. Without it the
+ * hook is localStorage-only and never touches the URL.
  */
 export function useColumnVisibility(
 	tableKey: string,
@@ -318,18 +321,16 @@ export function useColumnVisibility(
 			NO_OVERRIDES
 		);
 
-	const [queryOverrides, setQueryOverrides] = useQueryParam<VisibilityState>(
-		queryKey ?? UNUSED_QUERY_KEY,
-		ColumnsParam
-	);
+	const queryOverrides = useSearchKey(queryKey, COLUMNS_CODEC) ?? NO_OVERRIDES;
+	const writeSearch = useSearchWriter();
 
 	const overrides =
 		queryKey && hasOverrides(queryOverrides) ? queryOverrides : storedOverrides;
 
 	// Tokens rather than the objects themselves: both sides are rebuilt on most
 	// renders, and only a change in what they *say* should move the table.
-	const defaultsToken = ColumnsParam.encode(defaults) ?? '';
-	const overridesToken = ColumnsParam.encode(overrides) ?? '';
+	const defaultsToken = COLUMNS_CODEC.serialize(defaults) ?? '';
+	const overridesToken = COLUMNS_CODEC.serialize(overrides) ?? '';
 
 	const columnVisibility = useMemo(
 		() => ({ ...defaults, ...overrides }),
@@ -347,25 +348,18 @@ export function useColumnVisibility(
 			const nextOverrides = diffVisibility(next, defaults);
 
 			setStoredOverrides(nextOverrides);
-			if (queryKey) setQueryOverrides(nextOverrides, 'replaceIn');
+			if (queryKey) {
+				writeSearch({ [queryKey]: COLUMNS_CODEC.serialize(nextOverrides) });
+			}
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[
-			columnVisibility,
-			defaultsToken,
-			queryKey,
-			setQueryOverrides,
-			setStoredOverrides
-		]
+		[columnVisibility, defaultsToken, queryKey, setStoredOverrides, writeSearch]
 	);
 
 	return [columnVisibility, setColumnVisibility];
 }
 
 const NO_SAVED_ORDER: string[] = [];
-
-/** The order counterpart of `UNUSED_QUERY_KEY`: read, never written. */
-const UNUSED_ORDER_QUERY_KEY = 'columnOrder';
 
 /**
  * Column order resolved as URL → localStorage → `defaultOrder`, reconciled
@@ -379,8 +373,9 @@ const UNUSED_ORDER_QUERY_KEY = 'columnOrder';
  * and a later change of default still applies. The tuple is shaped for
  * `useReactTable`: pass it as `state.columnOrder` and `onColumnOrderChange`.
  *
- * Pass `queryKey` to put the order in the URL as well, making it linkable.
- * Without it the hook is localStorage-only.
+ * Pass `queryKey` to put the order in the URL as well (a replace that merges
+ * into the current search), making it linkable. Without it the hook is
+ * localStorage-only and never touches the URL.
  */
 export function useColumnOrder(
 	tableKey: string,
@@ -395,10 +390,8 @@ export function useColumnOrder(
 		NO_SAVED_ORDER
 	);
 
-	const [queryOrder, setQueryOrder] = useQueryParam<string[]>(
-		queryKey ?? UNUSED_ORDER_QUERY_KEY,
-		ColumnOrderParam
-	);
+	const queryOrder = useSearchKey(queryKey, ORDER_CODEC) ?? NO_SAVED_ORDER;
+	const writeSearch = useSearchWriter();
 
 	const source = queryKey && queryOrder.length ? queryOrder : saved;
 
@@ -429,7 +422,9 @@ export function useColumnOrder(
 			const nextOrder = isDefault ? NO_SAVED_ORDER : reconciled;
 
 			setSaved(nextOrder);
-			if (queryKey) setQueryOrder(nextOrder, 'replaceIn');
+			if (queryKey) {
+				writeSearch({ [queryKey]: ORDER_CODEC.serialize(nextOrder) });
+			}
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
@@ -438,8 +433,8 @@ export function useColumnOrder(
 			firstToken,
 			lastToken,
 			queryKey,
-			setQueryOrder,
-			setSaved
+			setSaved,
+			writeSearch
 		]
 	);
 

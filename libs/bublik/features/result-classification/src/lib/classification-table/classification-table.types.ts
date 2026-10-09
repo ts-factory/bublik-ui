@@ -8,16 +8,15 @@ import type {
 	SortingState
 } from '@tanstack/react-table';
 
+import type { ClassificationSearch } from './classification-table.search';
+
 export interface ClassificationTableStateConfig<F extends string> {
-	filterKeys: readonly F[];
 	/**
-	 * The filter keys whose values are free text, kept in the URL as one param
-	 * per value (`RepeatedFacetParam`) rather than a `;` list.
+	 * The table's URL state: its facets, its defaults and the codecs, the
+	 * same schema its route declares.
 	 */
-	repeatedFilterKeys?: readonly F[];
+	search: ClassificationSearch<F>;
 	searchColumnId: string;
-	defaultPageSize?: number;
-	defaultSorting?: SortingState;
 	/**
 	 * Column id -> the field name DRF's `OrderingFilter` knows it by, for the
 	 * columns whose two names differ. A column absent from the map orders by its
