@@ -3,7 +3,7 @@
 import { config } from '@/bublik/config';
 
 /**
- * Pass absolute URL and get url for use in react-router-dom
+ * Pass absolute URL and get a basepath-free url for the router
  * @returns parsed url string for use in navigate functions
  * @param base
  */
