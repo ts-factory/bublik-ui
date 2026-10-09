@@ -18,6 +18,7 @@
 		"**/*.spec.jsx",
 		"**/*.test.jsx",
 		"src/test/**",
+		"src/testing/**",
 		"vite.config.mts"
 	],
 	"include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"]
