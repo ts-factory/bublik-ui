@@ -3,8 +3,9 @@
 import { useCallback, useMemo } from 'react';
 import { useSessionStorage } from 'react-use';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { getRouteApi } from '@tanstack/react-router';
 
-import { useQueryParam, NumberParam, JsonParam } from '@/router';
+import { useSearchWriter } from '@/router';
 
 import {
 	bublikAPI,
@@ -14,25 +15,54 @@ import {
 } from '@/services/bublik-api';
 import { toast } from '@/shared/tailwind-ui';
 
+import { DEFAULT_NEW_CONFIG } from '../../../routes/-search/config.search';
+
+const configRoute = getRouteApi('/_app/admin/config');
+
+/**
+ * What the create screen is opened with: `new_config` once its schema
+ * accepts it (unknown keys stripped), else the global `per_conf` default. A
+ * string is a value that was not JSON or that the schema rejected, kept on the
+ * URL verbatim (`keepRaw`).
+ */
+function readNewConfig(value: ConfigSchemaParams | string | undefined) {
+	const parsed = ConfigSchemaParamsSchema.safeParse(value);
+
+	return parsed.success ? parsed.data : DEFAULT_NEW_CONFIG;
+}
+
+/**
+ * The config page's URL state. Every write replaces the entry
+ * and keeps the other keys, as use-query-params' `replaceIn` did.
+ */
 function useConfigPageSearchParams() {
-	const [configId, _setConfigId] = useQueryParam('configId', NumberParam);
-	const [_newConfigParams, setNewConfigParams] =
-		useQueryParam<ConfigSchemaParams | null>('new_config', JsonParam);
+	const write = useSearchWriter();
+	const configId = configRoute.useSearch({ select: (s) => s.configId });
+	const rawNewConfig = configRoute.useSearch({ select: (s) => s.new_config });
+	const newConfigParams = useMemo<ConfigSchemaParams>(
+		() => readNewConfig(rawNewConfig),
+		[rawNewConfig]
+	);
 
-	function setConfigId(configId: number | null) {
-		setNewConfigParams(null);
-		_setConfigId(configId);
-	}
+	/** Opens a config (or the create screen for `null`), dropping `new_config` in the same write. */
+	const setConfigId = useCallback(
+		(id: number | null) =>
+			write({ new_config: undefined, configId: id ?? undefined }),
+		[write]
+	);
 
-	const newConfigParams = useMemo<ConfigSchemaParams>(() => {
-		const parsedParams = ConfigSchemaParamsSchema.safeParse(_newConfigParams);
+	/**
+	 * Opens the create screen for `params`, dropping `configId` in the same
+	 * write. `new_config` keeps its place when it was on the URL, as the
+	 * `setConfigId(null)` + `setNewConfigParams` pair this replaces left it.
+	 */
+	const openNewConfig = useCallback(
+		(params: ConfigSchemaParams) =>
+			write({ configId: undefined, new_config: params }),
+		[write]
+	);
 
-		if (!parsedParams.success) return { type: 'global', name: 'per_conf' };
-
-		return ConfigSchemaParamsSchema.parse(parsedParams.data);
-	}, [_newConfigParams]);
-
-	return { configId, setConfigId, newConfigParams, setNewConfigParams };
+	return { configId, setConfigId, newConfigParams, openNewConfig };
 }
 
 function useSavedState(key: string) {

@@ -35,7 +35,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		isFetching,
 		schema
 	} = useConfigById(configId);
-	const { setConfigId, setNewConfigParams } = useConfigPageSearchParams();
+	const { setConfigId, openNewConfig } = useConfigPageSearchParams();
 	const { confirm, confirmation, decline, isVisible } = useConfirm();
 	const markConfirm = useConfirm();
 	const { isAdmin } = useAuth();
@@ -130,8 +130,7 @@ function ConfigsEditorContainer({ configId }: ConfigsEditorContainerProps) {
 		if (currentVersion) {
 			setConfigId(currentVersion.id);
 		} else {
-			setConfigId(null);
-			setNewConfigParams({ name: config.name, type: config.type });
+			openNewConfig({ name: config.name, type: config.type });
 		}
 	}
 
