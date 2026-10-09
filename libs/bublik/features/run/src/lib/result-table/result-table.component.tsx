@@ -27,7 +27,6 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
-import { QueryParamConfig, useQueryParam, withDefault } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useIsSticky, useMount } from '@/shared/hooks';
@@ -69,11 +68,6 @@ import {
 	withFacetBadges
 } from '@/bublik/features/result-classification';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
-import {
-	decodeCompressedOrJsonState,
-	encodeCompressedState,
-	isCompressedStateValue
-} from '@/bublik/features/sidebar';
 
 import { getColumns } from './result-table.columns';
 import { ResultTableFilters } from './result-table-filters.component';
@@ -85,6 +79,7 @@ import {
 } from './constants';
 import { useTargetIterationId } from '../run-table/run-table.hooks';
 import { RowState, useGlobalRequirements } from '../hooks';
+import { useRunTableSetter, useRunTableValue } from '../run-search.hooks';
 
 /** The run table's own sticky header, which this table's header pins under. */
 const HEADER_HEIGHT = 102;
@@ -1317,35 +1312,7 @@ export function useDataTableFilters(
 	};
 }
 
-const compressedColumnFiltersParam = withDefault(
-	{
-		encode: (value) => {
-			if (value === null || value === undefined) {
-				return value;
-			}
-
-			return encodeCompressedState(value);
-		},
-		decode: (value) => decodeCompressedOrJsonState(value)
-	} as QueryParamConfig<
-		Record<string, ColumnFiltersState> | undefined,
-		Record<string, ColumnFiltersState>
-	>,
-	{}
-);
-
-function isLegacyColumnFiltersValue(value: string | null): boolean {
-	if (!value || isCompressedStateValue(value)) {
-		return false;
-	}
-
-	try {
-		JSON.parse(value);
-		return true;
-	} catch {
-		return false;
-	}
-}
+const NO_COLUMN_FILTERS: Record<string, ColumnFiltersState> = {};
 
 function getFilterSelectionCount(
 	filter: ColumnFiltersState[number] | undefined
@@ -1390,23 +1357,16 @@ function hasAnySelection(columnFilters: ColumnFiltersState): boolean {
 }
 
 function useColumnFilters(rowId: string) {
-	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
-		Record<string, ColumnFiltersState> | undefined,
-		Record<string, ColumnFiltersState>
-	>('columnFilters', compressedColumnFiltersParam, { updateType: 'replaceIn' });
+	// Compressed, every result table's filters by row id. A
+	// legacy plain-JSON value is rewritten compressed by the router as the
+	// page loads.
+	const queryColumnFilters =
+		useRunTableValue('columnFilters') ?? NO_COLUMN_FILTERS;
+	const setQueryColumnFilters = useRunTableSetter(
+		'columnFilters',
+		NO_COLUMN_FILTERS
+	);
 	const { localRequirements, setLocalRequirements } = useGlobalRequirements();
-
-	useMount(() => {
-		const columnFiltersParamValue = new URLSearchParams(
-			window.location.search
-		).get('columnFilters');
-
-		if (!isLegacyColumnFiltersValue(columnFiltersParamValue)) {
-			return;
-		}
-
-		setQueryColumnFilters(queryColumnFilters, 'replaceIn');
-	});
 
 	const columnFilters = useMemo(() => {
 		const currentFilters = queryColumnFilters?.[rowId] ?? [];
@@ -1460,7 +1420,7 @@ function useColumnFilters(rowId: string) {
 					delete next[rowId];
 				}
 
-				return Object.keys(next).length > 0 ? next : undefined;
+				return Object.keys(next).length > 0 ? next : null;
 			});
 		},
 		[columnFilters, rowId, setQueryColumnFilters]

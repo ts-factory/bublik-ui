@@ -11,9 +11,10 @@ import {
 	useState
 } from 'react';
 import { createNextState } from '@reduxjs/toolkit';
-import { useQueryParam, ArrayParam, withDefault } from '@/router';
 
 import { ResultTableFilter } from '@/shared/types';
+
+import { useRunTableSetter, useRunTableValue } from './run-search.hooks';
 
 export type RowStateContextType = [
 	RunRowState,
@@ -105,7 +106,7 @@ export const useRunTableRowState = () => {
 
 interface GlobalRequirementsContextType {
 	globalRequirements: string[];
-	setGlobalRequirements: (value: Array<string | null>) => void;
+	setGlobalRequirements: (value: string[]) => void;
 	resetGlobalRequirements: () => void;
 	localRequirements: string[];
 	setLocalRequirements: (value: string[]) => void;
@@ -114,15 +115,16 @@ interface GlobalRequirementsContextType {
 const GlobalRequirementsContext =
 	createContext<GlobalRequirementsContextType | null>(null);
 
-export const GlobalRequirementsProvider = ({ children }: PropsWithChildren) => {
-	const [_globalRequirements, setGlobalRequirements] = useQueryParam<
-		Array<string | null>
-	>('globalRequirements', withDefault(ArrayParam, []));
+const NO_REQUIREMENTS: string[] = [];
 
-	const globalRequirements = useMemo(
-		() => _globalRequirements?.filter((req) => req !== null) ?? [],
-		[_globalRequirements]
-	);
+/**
+ * The requirements applied to the whole run, from the repeated
+ * `globalRequirements` key, written with replace and merge.
+ */
+export const GlobalRequirementsProvider = ({ children }: PropsWithChildren) => {
+	const globalRequirements =
+		useRunTableValue('globalRequirements') ?? NO_REQUIREMENTS;
+	const setGlobalRequirements = useRunTableSetter('globalRequirements');
 
 	const [localRequirements, setLocalRequirements] =
 		useState<string[]>(globalRequirements);
