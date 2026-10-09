@@ -20,7 +20,8 @@ import {
 	DrawerRoot,
 	DrawerTrigger,
 	Icon,
-	RunRunning
+	RunRunning,
+	Separator
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import {
@@ -36,6 +37,10 @@ import {
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
+import {
+	ApplyRulesButton,
+	ClassifyResultContainer
+} from '@/bublik/features/result-classification';
 import { RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -157,8 +162,26 @@ function LogPreviewContainer(
 													path={path}
 												/>
 											) : null}
+											{/* Triage happens here — you open the preview to read the
+											    failure, so you should be able to classify without leaving
+											    it, and push the rule out to the rest of the run. */}
 											{resultId && runId ? (
-												<NewBugContainer runId={runId} resultId={resultId} />
+												<>
+													<Separator
+														orientation="vertical"
+														className="h-5 self-center"
+													/>
+													<NewBugContainer runId={runId} resultId={resultId} />
+													<ClassifyResultContainer
+														resultId={resultId}
+														runId={runId}
+													/>
+													<ApplyRulesButton runId={runId} />
+													<Separator
+														orientation="vertical"
+														className="h-5 self-center"
+													/>
+												</>
 											) : null}
 											<DialogClose asChild>
 												<ButtonTw

@@ -103,7 +103,11 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	if (isError) return <ResultTableError error={error} />;
 
-	if (isFetching) return <ResultTableLoading rowCount={skeletonCount} />;
+	// Skeleton only before the first rows arrive. A refetch, after a classify or
+	// a filter change, dims the rows already shown instead of replacing them.
+	if (!data && isFetching) {
+		return <ResultTableLoading rowCount={skeletonCount} />;
+	}
 
 	if (!data) return <ResultTableEmpty />;
 
@@ -121,6 +125,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 			rowState={rowState}
 			onRowClick={onRowClick}
 			path={path}
+			isFetching={isFetching}
 		/>
 	);
 }
