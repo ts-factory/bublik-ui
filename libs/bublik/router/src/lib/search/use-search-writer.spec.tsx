@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import '../history-state';
-import { hrefOf, renderHookAt, write } from '../../test/compat-router';
+import { hrefOf, renderHookAt, write } from '../../test/memory-router';
 import { useSearchWriter } from './use-search-writer';
 
 describe('useSearchWriter', () => {

@@ -211,7 +211,7 @@ describe('defineSearch through a router', () => {
 		).toBe('/v2/runs?mode=charts');
 	});
 
-	it('raw wire values (what the compat shims write) come out byte-identical, in <Link> hrefs too', async () => {
+	it('raw wire values (what untyped writers pass) come out byte-identical, in <Link> hrefs too', async () => {
 		const router = await routerAt('/v2/runs?page=1');
 		const wire = {
 			tv: '0',
@@ -276,18 +276,13 @@ describe('defineSearch through a router', () => {
 	});
 
 	it('a keepRaw key keeps an unparsable value through an unrelated update', async () => {
+		const schema = defineSearch({ main: keepRaw(date()), mode: str() });
 		const root = createRootRoute();
 		const dashboard = createRoute({
 			getParentRoute: () => root,
 			path: '/dashboard',
-			...(() => {
-				const schema = defineSearch({ main: keepRaw(date()), mode: str() });
-
-				return {
-					validateSearch: schema.validateSearch,
-					search: { middlewares: schema.middlewares }
-				};
-			})()
+			validateSearch: schema.validateSearch,
+			search: { middlewares: schema.middlewares }
 		});
 		const router = createRouter({
 			routeTree: root.addChildren([dashboard]),
@@ -446,10 +441,11 @@ describe('the order TanStack runs validateSearch, the middlewares and the update
 			}
 		});
 		const root = createRootRoute(trace('root', defineSearch({})));
+		const runsOptions = trace('runs', defineSearch({ page: num() }));
 		const runs = createRoute({
 			getParentRoute: () => root,
 			path: '/runs',
-			...trace('runs', defineSearch({ page: num() }))
+			...runsOptions
 		});
 		const router = createRouter({
 			routeTree: root.addChildren([runs]),

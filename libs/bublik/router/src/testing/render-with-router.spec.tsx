@@ -6,16 +6,16 @@ import { describe, expect, it } from 'vitest';
 
 import '../lib/history-state';
 
-import { useLocation } from '../lib/compat/navigation';
+import { useRenderedLocation } from '../lib/location/location';
 import { bool01, num } from '../lib/search/codecs';
 import { defineSearch } from '../lib/search/define-search';
 import { writeSearch } from '../lib/search/use-search-writer';
 import { renderHookWithRouter, renderWithRouter } from './render-with-router';
 
 function ShowLocation() {
-	const { pathname, search, hash } = useLocation();
+	const { pathname, searchStr, hash } = useRenderedLocation();
 
-	return <output>{`${pathname}${search}${hash}`}</output>;
+	return <output>{`${pathname}${searchStr}${hash ? `#${hash}` : ''}`}</output>;
 }
 
 describe('renderWithRouter', () => {
@@ -38,7 +38,7 @@ describe('renderWithRouter', () => {
 		function ShowState() {
 			return (
 				<output>
-					{String(useLocation<{ fromRun?: boolean }>().state.fromRun)}
+					{String(useRenderedLocation().state.fromRun)}
 				</output>
 			);
 		}
@@ -102,14 +102,17 @@ describe('a query string not in URLSearchParams form', () => {
 describe('renderHookWithRouter', () => {
 	it('runs the hook at the URL and re-runs it with new props', async () => {
 		const { router, result, rerender } = await renderHookWithRouter(
-			({ label }: { label: string }) => ({ label, location: useLocation() }),
+			({ label }: { label: string }) => ({
+				label,
+				location: useRenderedLocation()
+			}),
 			{ path: '/issues', search: 'state=open', initialProps: { label: 'a' } }
 		);
 
-		expect(result.current.location.search).toBe('?state=open');
+		expect(result.current.location.searchStr).toBe('?state=open');
 
 		await act(async () => writeSearch(router, { page: '2' }));
-		expect(result.current.location.search).toBe('?state=open&page=2');
+		expect(result.current.location.searchStr).toBe('?state=open&page=2');
 
 		rerender({ label: 'b' });
 		expect(result.current.label).toBe('b');
