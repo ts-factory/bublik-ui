@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useCallback, useMemo, useState } from 'react';
-import { useParams } from '@/router';
 
 import { ReportPoint, ReportTable } from '@/shared/types';
 import { cn, cva } from '@/shared/tailwind-ui';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 
 import { WarningsHoverCard } from '../run-report-warnings';
+import { useRunReportRunId } from '../run-report-route.hooks';
 
 const cellStyles = cva({
 	base: [
@@ -89,7 +89,7 @@ interface RunReportTableProps {
 
 function RunReportTable(props: RunReportTableProps) {
 	const { table, enablePairGainColumns } = props;
-	const { runId } = useParams<{ runId: string }>();
+	const runId = useRunReportRunId();
 	const [previewResultId, setPreviewResultId] = useState<number>();
 	const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -114,7 +114,7 @@ function RunReportTable(props: RunReportTableProps) {
 		return (
 			<>
 				<LogPreviewContainer
-					runId={Number(runId)}
+					runId={runId}
 					resultId={previewResultId}
 					measurementId={previewResultId}
 					open={isPreviewOpen}
@@ -128,7 +128,7 @@ function RunReportTable(props: RunReportTableProps) {
 	return (
 		<>
 			<LogPreviewContainer
-				runId={Number(runId)}
+				runId={runId}
 				resultId={previewResultId}
 				measurementId={previewResultId}
 				open={isPreviewOpen}
