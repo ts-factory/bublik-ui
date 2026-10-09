@@ -11,13 +11,18 @@ import {
 } from '@/services/bublik-api';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 
-import { HistoryLinkComponent } from './history-link.component';
+import {
+	HistoryLinkComponent,
+	HistoryLinkIssue
+} from './history-link.component';
 
 type HistoryLinkContainerPropsCommon = {
 	runId: number;
 	userPreferredHistoryMode?: HistoryMode;
 	disabled?: boolean;
 	path?: string;
+	/** Adds a submenu per issue that narrows the history to it. */
+	issues?: HistoryLinkIssue[];
 };
 
 export type HistoryLinkContainerProps =
@@ -60,6 +65,7 @@ function HistoryLinkContainer(props: HistoryLinkContainerProps) {
 	return (
 		<HistoryLinkComponent
 			search={search}
+			issues={props.issues}
 			isLoading={isLoading}
 			isError={isError}
 			disabled={disabled}
