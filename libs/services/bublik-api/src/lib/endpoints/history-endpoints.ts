@@ -7,7 +7,9 @@ import {
 	HistoryAPIBackendQuerySchema,
 	HistoryDataAggregationAPIResponse,
 	HistoryLinearAPIResponse,
-	HistoryLinearAPIResponseSchema
+	HistoryLinearAPIResponseSchema,
+	HistoryMetasSearchOptions,
+	IssueSearchOption
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -50,6 +52,56 @@ export const historyEndpoints = {
 				};
 			},
 			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
+		}),
+		/**
+		 * Every `name=value` parameter the given test has run with, in the
+		 * project if one is given: the parameter field's suggestions. The
+		 * endpoint 400s without `test_name` and 404s for an unknown test.
+		 */
+		getParamsSearchOptions: build.query<
+			string[],
+			{ testName: string; project?: number }
+		>({
+			query: ({ testName, project }) => ({
+				url: withApiV2('/history/params_search_options'),
+				params: prepareForSend({ test_name: testName, project }),
+				cache: 'no-cache'
+			}),
+			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
+		}),
+		/**
+		 * The tags, labels, branches and revisions of the project's runs (of
+		 * every run without one): the run fields' suggestions.
+		 */
+		getMetasSearchOptions: build.query<
+			HistoryMetasSearchOptions,
+			{ project?: number }
+		>({
+			query: ({ project }) => ({
+				url: withApiV2('/history/metas_search_options'),
+				params: prepareForSend({ project }),
+				cache: 'no-cache'
+			}),
+			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
+		}),
+		/**
+		 * The issues classifying at least one result of a given test — the issue
+		 * filter's options, playing the same role `test_search_options` and
+		 * `params_search_options` play for theirs.
+		 *
+		 * `test_name` is required, not optional: the endpoint 400s without one,
+		 * which is why the filter only opens once a test has been chosen.
+		 */
+		getIssueSearchOptions: build.query<
+			IssueSearchOption[],
+			{ testName: string; project?: number }
+		>({
+			query: ({ testName, project }) => ({
+				url: withApiV2('/history/issue_search_options'),
+				params: prepareForSend({ test_name: testName, project }),
+				cache: 'no-cache'
+			}),
+			providesTags: () => [BUBLIK_TAG.HistoryData, BUBLIK_TAG.Issues]
 		}),
 		/** Accepts the same `search` as `getHistoryLinear`, applied before grouping */
 		getHistoryAggregation: build.query<

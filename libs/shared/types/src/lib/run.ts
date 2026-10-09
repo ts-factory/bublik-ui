@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 import { NodeEntity } from './tree';
+import { ResultIssueRef } from './classification';
 
 /** Run property state */
 export const enum RUN_PROPERTIES {
@@ -199,6 +200,8 @@ export const RunDataResultsSchema = z.object({
 	result_id: z.number(),
 	iteration_id: z.number(),
 	run_id: z.number(),
+	// classify uses the result's own project, not the global selector
+	project_id: z.number().optional(),
 	has_measurements: z.boolean(),
 	has_error: z.boolean(),
 	expected_results: z.array(RunResultWithKeysSchema),
@@ -207,7 +210,23 @@ export const RunDataResultsSchema = z.object({
 	parameters: z.array(z.string()),
 	start: z.string(),
 	artifacts: z.array(z.string()).optional(),
-	requirements: z.array(z.string()).optional()
+	requirements: z.array(z.string()).optional(),
+	// `/`-joined package path including the test; '' when it can't be resolved,
+	// null when the result has no iteration. Optional: older servers omit it.
+	path: z.string().nullable().optional(),
+	// The run's tags, which the history links need. Sent by listings whose
+	// rows span runs, where fetching each run's details would be a request
+	// per run; a listing of one run leaves it out, and the details are asked
+	// for once.
+	run_tags: z
+		.object({
+			important_tags: z.array(z.string()),
+			relevant_tags: z.array(z.string())
+		})
+		.optional(),
+	// classification (Plan 2 read-side); optional for backward-compat
+	effective_expected: z.boolean().optional(),
+	issues: z.array(z.custom<ResultIssueRef>()).optional()
 });
 
 export type RunDataResults = z.infer<typeof RunDataResultsSchema>;
@@ -278,15 +297,19 @@ export interface CompromisedPostResponse {
 }
 
 /** Individual info about bugs storage */
-export type CompromisedTagValue = {
+export type IssueTrackerRef = {
 	name: string;
 	uri: string;
 };
 
-/** Information about bugs storages */
-export type CompromisedTagsResponse = {
-	/** Keys are bugs storage id and values are meta about storage */
-	issues: Record<string, CompromisedTagValue>;
+/**
+ * The project's configured issue trackers — the `REFERENCES.ISSUES` block of
+ * its references config, keyed by tracker id (the `TRACKER` half of a
+ * `ref://TRACKER/KEY` bug key).
+ */
+export type IssueTrackersResponse = {
+	/** Keys are tracker ids and values are meta about the tracker */
+	issues: Record<string, IssueTrackerRef>;
 };
 
 /**

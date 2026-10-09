@@ -23,7 +23,8 @@ import {
 	configsEndpoints,
 	projectEndpoints,
 	analyticsEndpoints,
-	chatEndpoints
+	chatEndpoints,
+	classificationEndpoints
 } from './endpoints';
 
 const baseQueryWithAuth = createBaseQueryWithAuth({
@@ -58,7 +59,8 @@ export const bublikAPI = createApi({
 	.injectEndpoints(configsEndpoints)
 	.injectEndpoints(projectEndpoints)
 	.injectEndpoints(analyticsEndpoints)
-	.injectEndpoints(chatEndpoints);
+	.injectEndpoints(chatEndpoints)
+	.injectEndpoints(classificationEndpoints);
 
 export const {
 	// Dashboard
@@ -76,13 +78,16 @@ export const {
 	useGetResultsTableQuery,
 	useGetRunSourceQuery,
 	useGetRunRequirementsQuery,
-	useGetCompromisedTagsQuery,
+	useGetIssueTrackersQuery,
 	useDeleteCompromisedStatusMutation,
 	useMarkAsCompromisedMutation,
 	// History
 	useGetHistoryLinearQuery,
 	useGetHistoryAggregationQuery,
 	useGetTestSearchOptionsQuery,
+	useGetParamsSearchOptionsQuery,
+	useGetMetasSearchOptionsQuery,
+	useGetIssueSearchOptionsQuery,
 	// Runs
 	useGetRunsTablePageQuery,
 	useGetRunsProgressInfiniteQuery,
@@ -139,5 +144,31 @@ export const {
 	useRenameChatThreadMutation,
 	useSetChatThreadArchivedMutation,
 	useDeleteChatThreadMutation,
-	useCancelChatRunMutation
+	useCancelChatRunMutation,
+	// Classification
+	useGetIssuesQuery,
+	useGetIssuePickerQuery,
+	useGetTestPickerQuery,
+	useGetIssueRulesQuery,
+	useClassifyResultMutation,
+	useGetClassifyOptionsQuery,
+	useLazyGetClassifyOptionsQuery,
+	useCloseIssuesMutation,
+	useReopenIssuesMutation,
+	useDeactivateRulesMutation,
+	useActivateRulesMutation,
+	useGetIssueQuery,
+	useApplyRulesToRunMutation,
+	useGetRunIssuesQuery,
+	useGetRunIssueResultsQuery,
+	useGetIssueResultsQuery,
+	useGetIssueResultsFacetsQuery,
+	useGetIssuesFacetsQuery,
+	useGetIssueRulesFacetsQuery,
+	useCreateIssueMutation,
+	useUpdateIssueMutation,
+	useDeleteIssueMutation,
+	useCreateRuleMutation,
+	useUpdateRuleMutation,
+	useDeleteRuleMutation
 } = bublikAPI;
