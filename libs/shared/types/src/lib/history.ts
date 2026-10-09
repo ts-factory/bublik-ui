@@ -41,6 +41,10 @@ export type HistoryAPIBackendQuery = {
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
 
+	/** Case-insensitive substring matched server-side against tags, metadata,
+	 * parameters, verdicts and result type (ts-factory/bublik#282) */
+	search?: string;
+
 	page?: string;
 	pageSize?: string;
 	projects?: number[];
@@ -72,6 +76,8 @@ export const HistoryAPIBackendQuerySchema = z.object({
 
 	verdictLookup: z.nativeEnum(VERDICT_TYPE).optional(),
 	verdict: z.string().optional(),
+
+	search: z.string().optional(),
 
 	page: z.string().optional(),
 	pageSize: z.string().optional(),
@@ -107,6 +113,9 @@ export type HistoryAPIQuery = {
 
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
+
+	search?: string;
+
 	project?: string;
 };
 

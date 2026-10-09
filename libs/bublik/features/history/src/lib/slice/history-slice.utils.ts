@@ -18,6 +18,19 @@ import { formatTimeToAPI } from '@/shared/utils';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
 import { HistorySearchFormState } from './history-slice.types';
 
+/** URL key of the server-side substring search, owned by the substring filter */
+export const HISTORY_SEARCH_KEY = 'search';
+
+/** Keep the substring search when a writer rebuilds the history query */
+export const copyHistorySearchParam = (
+	from: URLSearchParams,
+	to: URLSearchParams
+): void => {
+	const search = from.get(HISTORY_SEARCH_KEY);
+
+	if (search) to.set(HISTORY_SEARCH_KEY, search);
+};
+
 export const parseArray = (str?: string) => {
 	if (!str) return [];
 
@@ -154,6 +167,7 @@ export function searchQueryToBackendQuery(
 		/* Verdict section */
 		verdictLookup: query.verdictLookup,
 		verdict: query.verdict,
+		search: query.search?.trim() || undefined,
 		page: query.page,
 		pageSize: query.pageSize,
 		projects: query.project ? [Number(query.project)] : undefined

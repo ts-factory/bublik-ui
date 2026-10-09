@@ -97,11 +97,14 @@ Feature: History
     Then the results table lists results
     And each result links to its log and its run
 
+  # The match runs on the server, before counts and paging, so it reaches
+  # results beyond the page on screen.
   @history
-  Scenario: The substring filter narrows the results already loaded
+  Scenario: The substring filter narrows the query on the server
     Given I search the history for a test path
     When I type a substring that no result matches
-    Then the substring filter holds that value
+    Then the history request carries the substring as its search
+    And the substring filter holds that value
     And no results are left in the table
 
   # The table is server-paginated, so the page has to survive a reload — which
@@ -407,18 +410,26 @@ Feature: History
     Then both chart ids are recorded in the URL as combined plots
     And the chart group is recorded in the URL
 
-  # The substring filter is deliberately Redux-only: it narrows what is already
-  # on screen rather than the query. A regression that started writing it would
-  # make every shared link narrower than the sender meant — and one that started
-  # *reading* it would re-apply a filter the sender had already dismissed.
+  # The substring search narrows the server query, counts and paging included,
+  # so it is part of the query: a shared link has to carry it, and the page it
+  # was on may no longer exist once it applies.
   @history @url-params
-  Scenario: The substring filter is not recorded in the URL and is lost on a reload
+  Scenario: The substring filter is recorded in the URL and survives a reload
     Given I open a history query with results listed
     When I narrow the results with the substring filter
-    Then fewer results are listed
-    And the query parameters are unchanged
+    Then the search is recorded in the URL
+    And the page is back to the first
     When I reload the page
-    Then every result of the query is listed again
+    Then the substring filter still holds the search
+    And no results are listed
+
+  @history @url-params
+  Scenario: Reset Filter clears the substring filter
+    Given I open a history link narrowed by a substring search
+    When I press Reset Filter
+    Then the search is dropped from the URL
+    And the substring filter is empty
+    And the results of the query are listed again
 
   # Switching mode from the sidebar goes through the sidebar's own writer rather
   # than the search form, so it is the path most likely to drop the query.

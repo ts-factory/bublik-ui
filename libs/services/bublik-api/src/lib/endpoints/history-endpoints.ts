@@ -20,6 +20,7 @@ export const historyEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
+		/** `search` narrows the results server-side, before counts and paging */
 		getHistoryLinear: build.query<
 			HistoryLinearAPIResponse,
 			HistoryAPIBackendQuery
@@ -50,6 +51,7 @@ export const historyEndpoints = {
 			},
 			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
 		}),
+		/** Accepts the same `search` as `getHistoryLinear`, applied before grouping */
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,
 			HistoryAPIBackendQuery

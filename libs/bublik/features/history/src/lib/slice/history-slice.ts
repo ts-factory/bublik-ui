@@ -27,8 +27,7 @@ export const DEFAULT_GLOBAL_FILTER: HistorySliceState['globalFilter'] = {
 	parameters: [],
 	verdicts: [],
 	resultType: null,
-	isNotExpected: null,
-	substringFilter: ''
+	isNotExpected: null
 };
 
 const defaultHistoryDateRange = getDefaultHistoryDateRange();
@@ -74,10 +73,7 @@ const historySlice = createSlice({
 		initGlobalFilter: (
 			state,
 			action: PayloadAction<
-				PartialBy<
-					Omit<HistoryGlobalFilter, 'substringFilter'>,
-					'isNotExpected' | 'resultType'
-				>
+				PartialBy<HistoryGlobalFilter, 'isNotExpected' | 'resultType'>
 			>
 		) => {
 			const { parameters, tags, verdicts, resultType, isNotExpected } =
@@ -94,27 +90,18 @@ const historySlice = createSlice({
 		},
 		updateLinearGlobalFilter: (
 			state,
-			action: PayloadAction<Omit<HistoryGlobalFilter, 'substringFilter'>>
+			action: PayloadAction<HistoryGlobalFilter>
 		) => {
-			state.globalFilter = {
-				...action.payload,
-				substringFilter: state.globalFilter.substringFilter
-			};
+			state.globalFilter = action.payload;
 		},
 		updateAggregationGlobalFilter: (
 			state,
-			action: PayloadAction<
-				Omit<HistoryGlobalFilter, 'substringFilter' | 'tags'>
-			>
+			action: PayloadAction<Omit<HistoryGlobalFilter, 'tags'>>
 		) => {
 			state.globalFilter = {
 				...action.payload,
-				tags: state.globalFilter.tags,
-				substringFilter: state.globalFilter.substringFilter
+				tags: state.globalFilter.tags
 			};
-		},
-		updateSubstringFilter: (state, action: PayloadAction<string>) => {
-			state.globalFilter.substringFilter = action.payload;
 		},
 		resetGlobalFilter: (state) => {
 			state.globalFilter = DEFAULT_GLOBAL_FILTER;
