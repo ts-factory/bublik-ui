@@ -13,6 +13,7 @@ export * from './lib/parameter-format';
 export * from './lib/compress-tests';
 export * from './lib/router';
 export * from './lib/history-search';
+export * from './lib/run-search';
 export * from './lib/form';
 export * from './lib/log-tree';
 

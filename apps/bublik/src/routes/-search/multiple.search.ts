@@ -8,7 +8,7 @@ import {
 	type InferSearch
 } from '@/router';
 
-import { RUN_SHAPE } from './run.search';
+import { RUN_TABLE_SHAPE } from './run.search';
 
 /**
  * `/multiple`: the pinned runs, the one shown, the mode, and
@@ -16,7 +16,7 @@ import { RUN_SHAPE } from './run.search';
  */
 const multipleSearch = defineSearch(
 	{
-		...RUN_SHAPE,
+		...RUN_TABLE_SHAPE,
 		runIds: repeated(),
 		selected: str(),
 		isModeFull: bool01()
