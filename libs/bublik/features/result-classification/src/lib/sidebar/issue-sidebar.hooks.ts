@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import {
 	ISSUE_SIDEBAR_KEYS,
@@ -20,7 +20,12 @@ export interface UseIssueSidebarStateReturn {
 }
 
 export function useIssueSidebarState(): UseIssueSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	// The sidebar memory (`_s`) of the page on screen.
+	const { searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastIssueUrl = useMemo(

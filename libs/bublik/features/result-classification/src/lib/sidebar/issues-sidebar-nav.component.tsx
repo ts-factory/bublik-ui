@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from '@/router';
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { LinkWithProject, useProjectSearch } from '@/bublik/features/projects';
 import {
@@ -15,7 +15,9 @@ import {
 import { useIssuesSidebarState } from './issues-sidebar.hooks';
 import { OpenIssueCountBadge } from './open-issue-count-badge.component';
 
-const ISSUES_SIDEBAR_PATTERNS = [{ to: '/issues' }, { to: '/issues/rules' }];
+const LIST_PATTERN = { to: '/issues' };
+const RULES_PATTERN = { to: '/issues/rules' };
+const ISSUES_SIDEBAR_PATTERNS = [LIST_PATTERN, RULES_PATTERN];
 
 function openIssuesTooltip(count: number, isProjectPicked: boolean): string {
 	const noun = count === 1 ? 'open issue' : 'open issues';
@@ -25,7 +27,7 @@ function openIssuesTooltip(count: number, isProjectPicked: boolean): string {
 }
 
 export function IssuesSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const { projectIds } = useProjectSearch();
 	const {
 		listUrl,
@@ -37,12 +39,12 @@ export function IssuesSidebarNav() {
 	} = useIssuesSidebarState();
 
 	useEffect(() => {
-		if (matchPath('/issues/rules', location.pathname)) {
-			setLastVisited('rules', location.pathname + location.search);
-		} else if (matchPath('/issues', location.pathname)) {
-			setLastVisited('issues', location.pathname + location.search);
+		if (matchRoutePath(RULES_PATTERN, pathname)) {
+			setLastVisited('rules', pathname + searchStr);
+		} else if (matchRoutePath(LIST_PATTERN, pathname)) {
+			setLastVisited('issues', pathname + searchStr);
 		}
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={ISSUES_SIDEBAR_PATTERNS}>
@@ -62,7 +64,7 @@ export function IssuesSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={listUrl}
-					pattern={{ to: '/issues' }}
+					pattern={LIST_PATTERN}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -76,14 +78,14 @@ export function IssuesSidebarNav() {
 						<OpenIssueCountBadge
 							count={openIssueCount}
 							tooltip={openIssuesTooltip(openIssueCount, projectIds.length > 0)}
-							isActive={matchPath('/issues', location.pathname) !== null}
+							isActive={matchRoutePath(LIST_PATTERN, pathname) !== false}
 							testId="issues-sidebar-open-count"
 						/>
 					) : null}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={rulesUrl}
-					pattern={{ to: '/issues/rules' }}
+					pattern={RULES_PATTERN}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon

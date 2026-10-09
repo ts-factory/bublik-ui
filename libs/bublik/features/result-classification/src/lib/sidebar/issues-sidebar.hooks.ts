@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import { useGetIssuesQuery } from '@/services/bublik-api';
 import {
@@ -35,7 +35,12 @@ export interface UseIssuesSidebarStateReturn {
 }
 
 export function useIssuesSidebarState(): UseIssuesSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	// The sidebar memory (`_s`) of the page on screen.
+	const { searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 	const { projectIds } = useProjectSearch();
 
