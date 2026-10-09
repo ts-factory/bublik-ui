@@ -49,6 +49,12 @@ export interface HistoryGlobalSearchFormValues {
 	labels: BadgeItem[];
 	labelExpr: string;
 	verdictLookup: VERDICT_TYPE;
+	/* Classification section */
+	categories: string[];
+	untriaged: boolean;
+	explained: boolean;
+	/** Single issue id, or null. Matches the `?issue=42` deep link. */
+	issue: number | null;
 }
 
 export const defaultValues: HistoryGlobalSearchFormValues = {
@@ -74,5 +80,9 @@ export const defaultValues: HistoryGlobalSearchFormValues = {
 	verdictExpr: '',
 	revisionExpr: '',
 	testArgExpr: '',
-	labelExpr: ''
+	labelExpr: '',
+	categories: [],
+	untriaged: false,
+	explained: false,
+	issue: null
 };
