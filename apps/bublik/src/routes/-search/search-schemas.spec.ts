@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { createMemoryHistory } from '@tanstack/react-router';
 import { compressToEncodedURIComponent } from 'lz-string';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { config } from '@/bublik/config';
 
@@ -143,13 +143,84 @@ describe('/dashboard', () => {
 		typed
 	});
 
-	it('keeps the legacy dates blob as a raw string for the rewrite to read', async () => {
-		const router = await routerAt(
-			'/dashboard?dates=eyJtYWluIjoiMjAyNi0wNC0yMCJ9'
-		);
+	describe('a legacy dates link', () => {
+		const blob = (days: Record<string, string>) =>
+			window.btoa(JSON.stringify(days));
 
-		expect(leafSearch(router)).toEqual({
-			dates: 'eyJtYWluIjoiMjAyNi0wNC0yMCJ9'
+		it('is rewritten in place to the pinned days, keeping project and _s', async () => {
+			const dates = blob({ startDate: '2026-04-19', endDate: '2026-04-20' });
+			const router = await routerAt(
+				`/dashboard?dates=${dates}&mode=columns&project=3&project=4&_s=abc&tv=1&hide-sidebar=1#top`
+			);
+
+			expect(router.history.location.href).toBe(
+				`${config.baseUrl}/dashboard?mode=columns&secondary=2026-04-19&main=2026-04-20&project=3&project=4&_s=abc`
+			);
+			expect(router.history.length).toBe(1);
+			expect(leafSearch(router)).toEqual({
+				mode: 'columns',
+				secondary: new Date(2026, 3, 19),
+				main: new Date(2026, 3, 20),
+				project: [3, 4],
+				_s: 'abc'
+			});
+		});
+
+		it('pins a single day as the main date', async () => {
+			const router = await routerAt(
+				`/dashboard?dates=${blob({ main: '2026-04-20' })}&mode=rows`
+			);
+
+			expect(router.history.location.href).toBe(
+				`${config.baseUrl}/dashboard?mode=rows&main=2026-04-20`
+			);
+		});
+
+		it('sorts the two days: the later is main, whatever the keys', async () => {
+			const router = await routerAt(
+				`/dashboard?dates=${blob({
+					main: '2026-04-20',
+					secondary: '2026-04-22'
+				})}`
+			);
+
+			expect(router.history.location.href).toBe(
+				`${config.baseUrl}/dashboard?secondary=2026-04-20&main=2026-04-22`
+			);
+		});
+
+		it('replaces the entry it was opened with', async () => {
+			const router = await routerAt('/runs');
+
+			await router.navigate({
+				href: `/dashboard?dates=${blob({ main: '2026-04-20' })}`
+			});
+
+			expect(router.history.location.href).toBe(
+				`${config.baseUrl}/dashboard?main=2026-04-20`
+			);
+			expect(router.history.length).toBe(2);
+
+			router.history.back();
+			await vi.waitFor(() =>
+				expect(router.history.location.href).toBe(`${config.baseUrl}/runs`)
+			);
+		});
+
+		it('opens as it is when the blob cannot be read', async () => {
+			const warn = vi
+				.spyOn(console, 'warn')
+				.mockImplementation(() => undefined);
+			const router = await routerAt('/dashboard?dates=not-base64!&mode=rows');
+
+			expect(router.history.location.href).toBe(
+				`${config.baseUrl}/dashboard?dates=not-base64!&mode=rows`
+			);
+			expect(leafSearch(router)).toEqual({
+				dates: 'not-base64!',
+				mode: 'rows'
+			});
+			warn.mockRestore();
 		});
 	});
 
