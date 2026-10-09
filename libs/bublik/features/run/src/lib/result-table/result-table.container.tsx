@@ -16,6 +16,7 @@ import {
 	ResultTableLoading
 } from './result-table.component';
 import { getRowValues } from '../run-table';
+import { RunHistoryLink } from './run-history-link';
 
 function getResultSelectors(row: Row<RunData | MergedRun>) {
 	return 'parent_ids' in row.original
@@ -67,21 +68,6 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 		);
 	}, [requests, values]);
 
-	const showToolbar = useMemo(() => {
-		return rowState?.showToolbar ?? false;
-	}, [rowState?.showToolbar]);
-
-	const setShowToolbar = useCallback(
-		(showToolbar: boolean) => {
-			trackEvent(analyticsEventNames.resultTableToolbarToggle, {
-				enabled: showToolbar
-			});
-
-			return updateRowState({ ...rowState, showToolbar, rowId });
-		},
-		[updateRowState, rowId, rowState]
-	);
-
 	const onRowClick = useCallback(
 		(row: Row<RunDataResults>) => {
 			const referenceDiffRowId =
@@ -103,7 +89,11 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 
 	if (isError) return <ResultTableError error={error} />;
 
-	if (isFetching) return <ResultTableLoading rowCount={skeletonCount} />;
+	// Skeleton only before the first rows arrive. A refetch, after a classify or
+	// a filter change, dims the rows already shown instead of replacing them.
+	if (!data && isFetching) {
+		return <ResultTableLoading rowCount={skeletonCount} />;
+	}
 
 	if (!data) return <ResultTableEmpty />;
 
@@ -115,12 +105,18 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 			data={data}
 			rowId={rowId}
 			height={height}
-			showToolbar={showToolbar}
-			setShowToolbar={setShowToolbar}
+			// One run's results have one history to open; merged runs have none.
+			toolbarTrailing={
+				Array.isArray(runId) ? null : (
+					<RunHistoryLink runIds={[Number(runId)]} path={row.original.path} />
+				)
+			}
+			toolbarClassName="border-x border-border-primary"
 			targetIterationId={targetIterationId}
 			rowState={rowState}
 			onRowClick={onRowClick}
 			path={path}
+			isFetching={isFetching}
 		/>
 	);
 }

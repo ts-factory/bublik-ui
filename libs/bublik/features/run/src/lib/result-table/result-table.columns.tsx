@@ -9,19 +9,32 @@ import {
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
-import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import {
+	IssueCategory,
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
+	ResultIssueRef,
+	RunDataResults
+} from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
+	ResultIssueBadges,
+	resultClassification,
+	useResultSelection
+} from '@/bublik/features/result-classification';
+import {
 	Badge,
-	Icon,
-	ButtonTw,
 	ParameterValue,
 	VerdictList,
 	cn,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { parseParameter } from '@/shared/utils';
+import {
+	formatTimeToDot,
+	formatTimestampToFull,
+	parseParameter
+} from '@/shared/utils';
 
 import { KeyList } from './key-list';
 import { getCommonParameters } from './matcher';
@@ -44,17 +57,32 @@ interface GetColumnsOptions {
 	rowId: string;
 	data: RunDataResults[];
 	showLinkToRun?: boolean;
-	showToolbar?: boolean;
-	setShowToolbar: (showToolbar: boolean) => void;
+	/**
+	 * Lead with the test each row belongs to. Off under the run table, where
+	 * every row is the one test the table was opened from; on when the rows
+	 * span tests and runs, as an issue's results do.
+	 */
+	showTest?: boolean;
+	/** The test path shared by every row. Omit it and each row's own is used. */
 	path?: string;
+}
+
+/**
+ * The package chain above the test, e.g. `pkg1/pkg2` for
+ * `pkg1/pkg2/testpmd_txonly` — what tells apart two tests sharing a name.
+ */
+function packagePathOf(path: string | null | undefined, name: string): string {
+	if (!path) return '';
+	if (name && path.endsWith(`/${name}`)) return path.slice(0, -name.length - 1);
+
+	return path === name ? '' : path;
 }
 
 export const getColumns = ({
 	rowId,
 	data,
 	showLinkToRun = false,
-	showToolbar = false,
-	setShowToolbar,
+	showTest = false,
 	path
 }: GetColumnsOptions) => {
 	const parametersDataset = Object.fromEntries(
@@ -65,6 +93,50 @@ export const getColumns = ({
 		data.map((item) => item.parameters ?? [])
 	);
 
+	const testColumn = helper.accessor((data) => data, {
+		header: 'Test',
+		id: 'test',
+		cell: (cell) => {
+			const { name, path: rowPath, start } = cell.getValue();
+			const packagePath = packagePathOf(rowPath, name);
+
+			// The rows are tall anyway, so the name and the path wrap rather
+			// than truncate: cut from the right, a path would keep its root and
+			// lose the leaf package, which is what tells tests apart. The path
+			// breaks only at its slashes, dimmed so the segments read as a trail.
+			return (
+				<div className="flex flex-col min-w-0" title={rowPath || name}>
+					<div className="flex items-center">
+						<span className="min-w-0 font-medium">{name}</span>
+					</div>
+					{packagePath ? (
+						<span className="text-[0.6875rem] text-text-menu">
+							{packagePath.split('/').map((segment, idx) => (
+								<Fragment key={idx}>
+									{idx > 0 ? (
+										<>
+											<span className="text-text-menu/50">/</span>
+											<wbr />
+										</>
+									) : null}
+									{segment}
+								</Fragment>
+							))}
+						</span>
+					) : null}
+					<Tooltip content={formatTimestampToFull(start)}>
+						<span className="w-fit text-[0.6875rem] text-text-menu tabular-nums">
+							{formatTimeToDot(start)}
+						</span>
+					</Tooltip>
+				</div>
+			);
+		},
+		// As wide as its longest name, up to a cap the name then wraps at;
+		// not a share of the free space, which the result columns need.
+		meta: { width: 'fit-content(14rem)', headerCellClassName: 'pl-[12px]' }
+	});
+
 	return [
 		helper.accessor((data) => data, {
 			header: 'Actions',
@@ -73,24 +145,29 @@ export const getColumns = ({
 				const value = cell.getValue();
 
 				return (
-					<div className="flex items-center h-full">
+					<div className="flex items-start gap-2">
 						<ResultLinksContainer
 							runId={String(value.run_id)}
 							resultId={value.result_id}
 							result={value}
 							showLinkToRun={showLinkToRun}
-							path={path}
+							path={path ?? value.path ?? undefined}
 						/>
 					</div>
 				);
 			},
 			meta: { width: 'max-content', headerCellClassName: 'pl-9' }
 		}),
+		...(showTest ? [testColumn] : []),
 		helper.accessor(
 			(data) => ({
 				isNotExpected: data.has_error,
+				// `has_error` is already suppressed server-side, so it cannot tell a
+				// held-back failure from a pass. This can.
+				effectiveExpected: data.effective_expected,
 				verdicts: data.obtained_result.verdicts,
-				result: data.obtained_result.result_type
+				result: data.obtained_result.result_type,
+				issues: data.issues
 			}),
 			{
 				header: 'Obtained Result',
@@ -115,7 +192,33 @@ export const getColumns = ({
 						(!filterValue.resultProperties.length ||
 							filterValue.resultProperties.includes(resultProperty));
 
-					if (!obtainedResult.result || !obtainedResult.verdicts) return;
+					// Toggling a category chip is the same write as ticking the
+					// Category box in the toolbar: both land on this column's filter,
+					// which is where the chips already live.
+					function handleCategoryClick(category: IssueCategory) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								const selected = draft.categories ?? [];
+
+								draft.categories = selected.includes(category)
+									? selected.filter((c) => c !== category)
+									: [...selected, category];
+							})
+						);
+					}
+
+					// No result to render, but the stamps beneath it still are.
+					if (!obtainedResult.result || !obtainedResult.verdicts) {
+						return (
+							<div className="flex flex-col gap-1.5">
+								<ResultIssueBadges
+									issues={obtainedResult.issues}
+									selectedCategories={filterValue.categories}
+									onCategoryClick={handleCategoryClick}
+								/>
+							</div>
+						);
+					}
 
 					function handleVerdictClick(verdict: string) {
 						cell.column.setFilterValue(
@@ -155,17 +258,29 @@ export const getColumns = ({
 						);
 					}
 
+					// The verdict qualifies the result badge, so it rides on its line;
+					// the stamps that explain it go under the verdicts, exactly as the
+					// history table lays it out. Both used to sit in the Actions
+					// column, among the links, widening a column meant for buttons.
 					return (
-						<VerdictList
-							variant="obtained"
-							verdicts={obtainedResult.verdicts}
-							result={obtainedResult.result}
-							isNotExpected={obtainedResult.isNotExpected}
-							onVerdictClick={handleVerdictClick}
-							selectedVerdicts={verdicts}
-							onResultClick={handleResultClick}
-							isResultSelected={isResultSelected}
-						/>
+						<div className="flex flex-col gap-1.5">
+							<VerdictList
+								variant="obtained"
+								verdicts={obtainedResult.verdicts}
+								result={obtainedResult.result}
+								isNotExpected={obtainedResult.isNotExpected}
+								onVerdictClick={handleVerdictClick}
+								selectedVerdicts={verdicts}
+								onResultClick={handleResultClick}
+								isResultSelected={isResultSelected}
+							/>
+							<ResultIssueBadges
+								issues={obtainedResult.issues}
+								selectedCategories={filterValue.categories}
+								onCategoryClick={handleCategoryClick}
+								withSeparator
+							/>
+						</div>
 					);
 				},
 				filterFn: (
@@ -175,12 +290,16 @@ export const getColumns = ({
 						results?: RESULT_TYPE[];
 						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
+						categories?: string[];
+						classifications?: string[];
 					}
 				) => {
 					const value = row.getValue(column) as {
 						isNotExpected?: boolean;
+						effectiveExpected?: boolean;
 						result?: RESULT_TYPE;
 						verdicts?: string[];
+						issues?: ResultIssueRef[];
 					};
 					const rowResultProperty =
 						typeof value.isNotExpected === 'boolean'
@@ -192,7 +311,9 @@ export const getColumns = ({
 					if (
 						!filterValue?.results?.length &&
 						!filterValue?.resultProperties?.length &&
-						!filterValue?.verdicts?.length
+						!filterValue?.verdicts?.length &&
+						!filterValue?.categories?.length &&
+						!filterValue?.classifications?.length
 					) {
 						return true;
 					}
@@ -208,8 +329,36 @@ export const getColumns = ({
 					const matchesVerdicts =
 						!filterValue.verdicts?.length ||
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
+					// Any, not every: a result carries one stamp per matching rule, and
+					// selecting DEFECT and KNOWN asks for the results either explains,
+					// not the rare ones both do.
+					const matchesCategories =
+						!filterValue.categories?.length ||
+						(value.issues ?? []).some((issue) =>
+							filterValue.categories?.includes(issue.category)
+						);
+					// A result carries exactly one verdict, so this is a plain
+					// membership test rather than the some/every question the
+					// per-stamp axes ask. `null` is a passing result with no stamps:
+					// it shows no chip, so no chip's filter should claim it.
+					const classification = resultClassification({
+						issues: value.issues,
+						hasError: Boolean(value.isNotExpected),
+						effectiveExpected: value.effectiveExpected
+					});
+					const matchesClassifications =
+						!filterValue.classifications?.length ||
+						(classification
+							? filterValue.classifications.includes(classification.value)
+							: false);
 
-					return matchesResult && matchesResultProperties && matchesVerdicts;
+					return (
+						matchesResult &&
+						matchesResultProperties &&
+						matchesVerdicts &&
+						matchesCategories &&
+						matchesClassifications
+					);
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
 			}
@@ -247,7 +396,10 @@ export const getColumns = ({
 					</div>
 				);
 			},
-			meta: { headerCellClassName: 'pl-[12px]' }
+			// Sized to its content, capped: most rows expect one badge, and
+			// the slack is better spent on the obtained result beside it, which
+			// carries the verdicts and the stamps.
+			meta: { width: 'fit-content(20rem)', headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('artifacts', {
 			header: 'Artifacts',
@@ -283,9 +435,19 @@ export const getColumns = ({
 				const parameters = getValue();
 				const column = cell.column;
 
-				const referenceDiffRowId =
+				// Under a selection the reference is the one the bar's Compare
+				// took, for every table on the page; elsewhere it is the row the
+				// table's own click picked.
+				// eslint-disable-next-line react-hooks/rules-of-hooks
+				const selection = useResultSelection();
+				const ownReferenceRowId =
 					// eslint-disable-next-line react-hooks/rules-of-hooks
 					useRunTableRowState().rowState[rowId]?.referenceDiffRowId;
+				const referenceDiffRowId = selection
+					? selection.referenceResultId !== null
+						? String(selection.referenceResultId)
+						: undefined
+					: ownReferenceRowId;
 				const referenceParameters = referenceDiffRowId
 					? parametersDataset[referenceDiffRowId]
 					: undefined;
@@ -317,27 +479,7 @@ export const getColumns = ({
 			meta: { headerCellClassName: 'pl-[12px]' }
 		}),
 		helper.accessor('requirements', {
-			header: () => (
-				<div className="flex items-center justify-between gap-2 w-full">
-					<span>Requirements</span>
-					<Tooltip content={showToolbar ? 'Hide filters' : 'Show filters'}>
-						<ButtonTw
-							variant={showToolbar ? 'primary' : 'secondary'}
-							size="xss"
-							onClick={() => setShowToolbar(!showToolbar)}
-							className={cn(
-								'border ml-auto',
-								showToolbar
-									? 'border-primary hover:border-[#94b0ff]'
-									: 'border-border-primary hover:shadow-none hover:border-primary'
-							)}
-						>
-							<Icon name="Filter" size={16} className="mr-1.5" />
-							<span>Filters</span>
-						</ButtonTw>
-					</Tooltip>
-				</div>
-			),
+			header: 'Requirements',
 			id: COLUMN_ID.REQUIREMENTS,
 			cell: (cell) => {
 				const requirements = cell.getValue() ?? [];

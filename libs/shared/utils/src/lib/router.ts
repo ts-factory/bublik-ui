@@ -188,7 +188,7 @@ interface GetHistorySearchOutput {
 }
 
 function getHistorySearch(
-	run: RunDetailsAPIResponse,
+	run: Pick<RunDetailsAPIResponse, 'important_tags' | 'relevant_tags'>,
 	result: RunDataResults,
 	userPreferredHistoryMode: HistoryMode,
 	path?: string

@@ -30,7 +30,6 @@ const analyticsEventNames = {
 	runTableTreeToggle: 'run_table_tree_toggle',
 	runTableHistoryLinkClick: 'run_table_history_link_click',
 	runTableBadgeClick: 'run_table_badge_click',
-	resultTableToolbarToggle: 'result_table_toolbar_toggle',
 	resultTableReferenceToggle: 'result_table_reference_toggle',
 	resultTableFilterChange: 'result_table_filter_change',
 	resultTableFiltersReset: 'result_table_filters_reset',

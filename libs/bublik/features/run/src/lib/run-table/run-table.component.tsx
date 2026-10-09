@@ -29,6 +29,7 @@ import { useMount } from '@/shared/hooks';
 import { bublikAPI } from '@/services/bublik-api';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
+	Badge,
 	ButtonTw,
 	cn,
 	DataTableFacetedFilter,
@@ -127,14 +128,8 @@ export const RunTable = (props: RunTableProps) => {
 	} = props;
 
 	const columns = useMemo(
-		() =>
-			getColumns({
-				projectId,
-				runIds: typeof runId === 'string' ? [Number(runId)] : runId.map(Number),
-				defaultColumns,
-				columnOrder
-			}),
-		[columnOrder, defaultColumns, projectId, runId]
+		() => getColumns({ projectId, defaultColumns, columnOrder }),
+		[columnOrder, defaultColumns, projectId]
 	);
 
 	const table = useReactTable<RunData | MergedRun>({
@@ -452,7 +447,11 @@ function GlobalRequirementsFilter({ runId }: { runId: string | string[] }) {
 	const options =
 		availableRequirements?.map((requirement) => ({
 			label: requirement,
-			value: requirement
+			value: requirement,
+			// The chip the result table's Requirements filter and cell draw.
+			render: (
+				<Badge className="bg-badge-2 text-text-primary">{requirement}</Badge>
+			)
 		})) ?? [];
 
 	function handleChange(values: string[] | undefined) {
