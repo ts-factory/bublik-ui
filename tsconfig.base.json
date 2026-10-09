@@ -46,6 +46,9 @@
 			"@/bublik/features/history-link": [
 				"libs/bublik/features/history-link/src/index.ts"
 			],
+			"@/bublik/features/issue-results": [
+				"libs/bublik/features/issue-results/src/index.ts"
+			],
 			"@/bublik/features/link-to-source": [
 				"libs/bublik/features/link-to-source/src/index.ts"
 			],
@@ -67,6 +70,9 @@
 			],
 			"@/bublik/features/projects": [
 				"libs/bublik/features/projects/src/index.ts"
+			],
+			"@/bublik/features/result-classification": [
+				"libs/bublik/features/result-classification/src/index.ts"
 			],
 			"@/bublik/features/result-links": [
 				"libs/bublik/features/result-links/src/index.ts"
