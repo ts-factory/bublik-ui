@@ -7,7 +7,7 @@ import { UrlParams, urlParams } from '../support/url-params';
 
 const MEASUREMENTS_URL_PARAMS = {
 	mode: {
-		codec: 'useSearchState (plain for scalars)',
+		codec: 'plain string',
 		values: 'default | charts | tables | split | overlay',
 		whenAbsent: 'the default layout',
 		writtenBy: 'the mode picker and the Open button of the chart selection'

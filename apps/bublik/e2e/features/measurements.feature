@@ -47,10 +47,9 @@ Feature: Measurements
   # URL parameters
   ####################################################################
 
-  # This page is the app's only remaining `useSearchState` consumer, whose
-  # serializer writes scalars plain and objects as base64 of their JSON — so the
-  # mode looks ordinary while the machinery behind it is not shared with any
-  # other page. See MEASUREMENTS_URL_PARAMS in pages/measurements-page.ts.
+  # The mode is a plain string and the selected charts a repeated key. A link
+  # from the old encoded format (`~(...)`) is rewritten on load before the page
+  # renders. See MEASUREMENTS_URL_PARAMS in pages/measurements-page.ts.
 
   @measurements @url-params @needs-measurements
   Scenario: A measurements link restores the layout and the selected charts

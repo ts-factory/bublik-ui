@@ -26,10 +26,8 @@ export const isOldUrl = (searchStr: string) => {
 };
 
 export const handleOldUrlParsing = (searchStr: string) => {
-	const query: Record<string, unknown> = JsurlParseSearch(searchStr);
-
 	window.location.replace(
-		`${window.location.pathname}${stringifySearch(query)}`
+		`${window.location.pathname}${convertOldUrlSearch(searchStr)}`
 	);
 };
 
@@ -93,3 +91,13 @@ export const defaultStringifier = (value: unknown) => {
 
 export const parseSearch = parseSearchWith(defaultParser);
 export const stringifySearch = stringifySearchWith(defaultStringifier);
+
+/**
+ * The query string a legacy jsurl (`~`) search is rewritten to: parsed as
+ * jsurl, written back in the legacy codec (objects as base64 JSON), with its
+ * `?`, or `''` when nothing is left. What `handleOldUrlParsing` reloads to,
+ * for a route's `beforeLoad` redirect.
+ */
+export function convertOldUrlSearch(searchStr: string): string {
+	return stringifySearch(JsurlParseSearch(searchStr));
+}

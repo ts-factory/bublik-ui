@@ -11,6 +11,7 @@ export * from './lib/match';
 // Its `parseSearch`/`stringifySearch` keep their legacy names so
 // the router's raw codec in `./lib/search` owns the plain ones.
 export {
+	convertOldUrlSearch,
 	decode,
 	decodeFromBinary,
 	defaultParser,
