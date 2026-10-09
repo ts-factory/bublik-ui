@@ -13,6 +13,9 @@ import { transformUrlSearch } from '@/shared/utils';
 import {
 	DASHBOARD_SIDEBAR_KEYS,
 	HISTORY_MODE_DEFAULT,
+	ISSUES_MODE_DEFAULT,
+	ISSUES_SIDEBAR_KEYS,
+	ISSUE_SIDEBAR_KEYS,
 	HISTORY_SIDEBAR_KEYS,
 	LOG_MODE_DEFAULT,
 	LOG_SIDEBAR_KEYS,
@@ -77,6 +80,12 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 		alias: 'du',
 		pathname: '/dashboard'
 	},
+	{ key: ISSUES_SIDEBAR_KEYS.LAST_LIST, alias: 'isl', pathname: '/issues' },
+	{
+		key: ISSUES_SIDEBAR_KEYS.LAST_RULES,
+		alias: 'isr',
+		pathname: '/issues/rules'
+	},
 	{
 		key: HISTORY_SIDEBAR_KEYS.LAST_STACKED,
 		alias: 'hk',
@@ -95,6 +104,13 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 		alias: 'mmu',
 		isUrl: true
 	},
+	// Dynamic pathname, so no `pathname` compaction; and deliberately no
+	// `getCompactDefault` pair despite `getRunIssuesDefaultUrl` existing --
+	// re-materializing it from the run id alone would make `lastIssuesUrl`
+	// non-null for runs with no classified results, which is exactly what
+	// `isIssuesAvailable` uses to decide the item stays disabled.
+	{ key: RUN_SIDEBAR_KEYS.LAST_ISSUES, alias: 'ri', isUrl: true },
+	{ key: ISSUE_SIDEBAR_KEYS.LAST_ISSUE, alias: 'iu', isUrl: true },
 	{ key: LOG_SIDEBAR_KEYS.LAST_LOG, alias: 'll', isUrl: true },
 	{ key: RUN_SIDEBAR_KEYS.LAST_REPORT, alias: 'rr', isUrl: true },
 	{ key: RUN_SIDEBAR_KEYS.LAST_DETAILS, alias: 'rd', isUrl: true },
@@ -141,6 +157,11 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 		key: RUNS_SIDEBAR_KEYS.LAST_MODE,
 		alias: 'rm',
 		defaultValue: RUNS_MODE_DEFAULT
+	},
+	{
+		key: ISSUES_SIDEBAR_KEYS.LAST_MODE,
+		alias: 'ism',
+		defaultValue: ISSUES_MODE_DEFAULT
 	},
 	{ key: RUNS_SIDEBAR_KEYS.SELECTED, alias: 'rs' },
 	{ key: SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID, alias: 'cr' }

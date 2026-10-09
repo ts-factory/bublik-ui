@@ -26,3 +26,27 @@ export const RedirectToLogPage = () => {
 		/>
 	);
 };
+
+/**
+ * Issues moved out of `/admin` to the top level. Shared links to the old routes
+ * must keep working and must arrive with their state intact: `project` is
+ * multi-valued and `_s` carries the whole sidebar memory, so the search string
+ * is forwarded verbatim rather than rebuilt. `replace` keeps the old URL out of
+ * the history stack so Back leaves the page instead of bouncing.
+ */
+export const RedirectToIssues = () => {
+	const params = useParams();
+	const location = useLocation();
+	const rest = params['*'];
+
+	return (
+		<Navigate
+			to={{
+				pathname: rest ? `/issues/${rest}` : '/issues',
+				search: location.search,
+				hash: location.hash
+			}}
+			replace
+		/>
+	);
+};
