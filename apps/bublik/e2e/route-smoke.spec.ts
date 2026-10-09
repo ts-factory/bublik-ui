@@ -200,6 +200,25 @@ test.describe('Navigation', () => {
 		);
 	});
 
+	test(
+		'A hand-typed query string stays as typed on a page that writes nothing',
+		{ tag: ['@url-params'] },
+		async ({ page }) => {
+			await when(
+				'I open the help page through a link whose query string uses ";" and "%20"',
+				() => page.goto('help/faq?q=a%20b;c&tags=x;y')
+			);
+			await then('the help page is shown', () =>
+				expect(page.getByText('FAQ', { exact: true }).first()).toBeVisible({
+					timeout: 30_000
+				})
+			);
+			await and('the address bar keeps the query string exactly as typed', () =>
+				expect(page).toHaveURL(/\/help\/faq\?q=a%20b;c&tags=x;y$/)
+			);
+		}
+	);
+
 	test('An unknown address shows the not-found page', async ({ page }) => {
 		await when('I open an address that does not exist', () =>
 			page.goto('definitely-not-a-bublik-page')

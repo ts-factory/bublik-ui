@@ -54,5 +54,52 @@ function stringifySearch(search: Record<string, unknown>): string {
 	return searchStr ? `?${searchStr}` : '';
 }
 
-export { parseSearch, stringifySearch };
-export type { Wire };
+/** The `parseSearch`/`stringifySearch` pair a router is created with. */
+interface SearchCodec {
+	parseSearch(searchStr: string): Wire;
+	stringifySearch(search: Record<string, unknown>): string;
+}
+
+/**
+ * `parseSearch` and `stringifySearch`, except that a search equal to the query
+ * string parsed last stringifies back to that string as it was typed. TanStack
+ * rebuilds the location on load and replaces the URL when the string differs,
+ * which would turn a hand-typed `?state=open;closed` or
+ * `?q=a%20b` into `%3B` and `+`; React Router left it as typed. A search that
+ * changed is written in `URLSearchParams` form, as every write of the app was.
+ * An empty search is always `''`, so a page loaded at `?` or `?&` does not hand
+ * that string to every link without a query.
+ *
+ * "Last" is the last call: the router parses the location and stringifies its
+ * rebuild in a row, but a `buildLocation({ href })` in between would make the
+ * load rewrite come back (no app code does that before the first render). Any
+ * href whose search equals the typed one gets the typed bytes too, a link on
+ * the same page included; the decoded values are the same. One pair per router.
+ */
+function createSearchCodec(): SearchCodec {
+	let lastParsed = { raw: '', canonical: '' };
+
+	return {
+		parseSearch(searchStr) {
+			const parsed = parseSearch(searchStr);
+			const raw = searchStr.replace(/^\?/, '');
+
+			lastParsed = {
+				raw: raw ? `?${raw}` : '',
+				canonical: stringifySearch(parsed)
+			};
+
+			return parsed;
+		},
+		stringifySearch(search) {
+			const canonical = stringifySearch(search);
+
+			return canonical && canonical === lastParsed.canonical
+				? lastParsed.raw
+				: canonical;
+		}
+	};
+}
+
+export { createSearchCodec, parseSearch, stringifySearch };
+export type { SearchCodec, Wire };

@@ -32,7 +32,7 @@ import {
 	str
 } from '../lib/search/codecs';
 import { defineSearch } from '../lib/search/define-search';
-import { parseSearch, stringifySearch } from '../lib/search/wire';
+import { createSearchCodec } from '../lib/search/wire';
 
 const BASEPATH = '/v2';
 
@@ -51,19 +51,23 @@ const rootSearch = defineSearch(
 	{ 'settings-open': false, 'settings-tab': 'account' }
 );
 
-/** The app router's options (`apps/bublik/src/router.tsx`) that change a URL or a write. */
-const routerOptions = {
-	basepath: BASEPATH,
-	trailingSlash: 'preserve',
-	caseSensitive: false,
-	parseSearch,
-	stringifySearch,
-	search: { strict: false },
-	defaultStructuralSharing: true,
-	defaultPreload: false,
-	scrollRestoration: false,
-	defaultHashScrollIntoView: false
-} as const;
+/**
+ * The app router's options (`apps/bublik/src/router.tsx`) that change a URL or
+ * a write, with a search codec of the router's own (it remembers the last parse).
+ */
+function routerOptions() {
+	return {
+		basepath: BASEPATH,
+		trailingSlash: 'preserve',
+		caseSensitive: false,
+		search: { strict: false },
+		defaultStructuralSharing: true,
+		defaultPreload: false,
+		scrollRestoration: false,
+		defaultHashScrollIntoView: false,
+		...createSearchCodec()
+	} as const;
+}
 
 interface RenderWithRouterOptions {
 	/** The pathname, basepath-free. */
@@ -108,7 +112,7 @@ function createTestRouter(entry: string, state?: HistoryState) {
 	return createRouter({
 		routeTree: root.addChildren([page]),
 		history,
-		...routerOptions
+		...routerOptions()
 	});
 }
 

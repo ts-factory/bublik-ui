@@ -4,7 +4,7 @@ import { createRouter, type RouterHistory } from '@tanstack/react-router';
 
 import { Spinner } from '@/shared/tailwind-ui';
 import { config } from '@/bublik/config';
-import { parseSearch, stringifySearch } from '@/router';
+import { createSearchCodec } from '@/router';
 
 import { RouteErrorBoundary } from './app/route-error-boundary';
 import { NoMatchFeature } from './pages/not-found-page';
@@ -31,9 +31,9 @@ function createAppRouter(history?: RouterHistory) {
 		// Never rewrite '/report/?config=' or '/activate/.../' on load.
 		trailingSlash: 'preserve',
 		caseSensitive: false,
-		// URLSearchParams in, strings and string arrays out, byte-identical back.
-		parseSearch,
-		stringifySearch,
+		// URLSearchParams in, strings and string arrays out, byte-identical
+		// back; a hand-typed query string stays as typed until a write.
+		...createSearchCodec(),
 		// Keep unknown keys.
 		search: { strict: false },
 		defaultStructuralSharing: true,

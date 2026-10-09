@@ -7,7 +7,7 @@ import {
 	type RouterHistory
 } from '@tanstack/react-router';
 
-import { defineSearch, parseSearch, str, stringifySearch } from '@/router';
+import { createSearchCodec, defineSearch, str } from '@/router';
 
 import { LogViewer } from './log-viewer';
 
@@ -43,8 +43,8 @@ function createLogViewerRouter(history?: RouterHistory) {
 	return createRouter({
 		routeTree,
 		history,
-		parseSearch,
-		stringifySearch,
+		// The app's raw codec, keeping a hand-typed query string as typed.
+		...createSearchCodec(),
 		trailingSlash: 'preserve',
 		// React Router rendered nothing for a path other than `/`.
 		defaultNotFoundComponent: () => null,

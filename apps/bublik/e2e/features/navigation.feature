@@ -193,3 +193,12 @@ Feature: Navigation
     When I open the command palette and choose Profile
     Then the settings dialog is open on the Account section
     And the URL records the account section and the project but not the date
+
+  # A link is opened as typed: the router does not re-encode a query string it
+  # did not write (`;` stays `;`, `%20` stays `%20`). A page that writes the
+  # URL on load (the sidebar state, a default) writes it in its own encoding.
+  @url-params
+  Scenario: A hand-typed query string stays as typed on a page that writes nothing
+    When I open the help page through a link whose query string uses ";" and "%20"
+    Then the help page is shown
+    And the address bar keeps the query string exactly as typed
