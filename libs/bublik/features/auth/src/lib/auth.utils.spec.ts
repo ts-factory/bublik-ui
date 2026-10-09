@@ -54,3 +54,31 @@ describe('createGetRouterUrl', () => {
 		expect(getRouterUrl(inputUrl)).toBe(expectedUrl);
 	});
 });
+
+describe('createGetRouterUrl on a prefixed deployment', () => {
+	// `config.baseUrl` is `<prefix>/v2` there, and the router's basepath with it.
+	const getRouterUrl = createGetRouterUrl('/bublik/v2');
+
+	it('strips the prefixed base URL and keeps the query and fragment', () => {
+		expect(
+			getRouterUrl(
+				'https://example.com/bublik/v2/runs/1?mode=charts&project=2#top'
+			)
+		).toBe('/runs/1?mode=charts&project=2#top');
+	});
+
+	it('round-trips a redirect_url as the login page reads it off its query', () => {
+		const pageUrl = 'https://example.com/bublik/v2/log/7?focusId=9&mode=tree';
+		const loginUrl = new URL('https://example.com/bublik/v2/auth/login');
+		loginUrl.searchParams.set('redirect_url', pageUrl);
+
+		const redirectUrl = new URL(loginUrl.href).searchParams.get('redirect_url');
+
+		expect(redirectUrl).toBe(pageUrl);
+		expect(getRouterUrl(redirectUrl ?? '')).toBe('/log/7?focusId=9&mode=tree');
+	});
+
+	it('maps the bare prefixed base URL to the router root', () => {
+		expect(getRouterUrl('https://example.com/bublik/v2')).toBe('/');
+	});
+});

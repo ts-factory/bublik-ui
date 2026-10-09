@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useNavigate, useParams } from '@/router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useMount } from '@/shared/hooks';
@@ -8,9 +8,14 @@ import { VerifyEmailSchemaInputs } from '@/shared/types';
 import { useAuth } from '@/bublik/features/auth';
 import { toast } from '@/shared/tailwind-ui';
 
+// The emails link it with a trailing slash; `trailingSlash: 'preserve'` keeps it.
+const emailActivationRoute = getRouteApi(
+	'/auth/register/activate/$userId/$token'
+);
+
 export const EmailActivationPage = () => {
 	const { verifyEmail } = useAuth();
-	const params = useParams();
+	const params = emailActivationRoute.useParams();
 	const navigate = useNavigate();
 
 	useMount(async () => {
@@ -23,7 +28,7 @@ export const EmailActivationPage = () => {
 			});
 
 			toast.success('The email is verified. You are registered.');
-			navigate('/auth/login');
+			navigate({ to: '/auth/login', resetScroll: false });
 		} catch (e) {
 			trackEvent(analyticsEventNames.authEmailActivationResult, {
 				status: 'error'

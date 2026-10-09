@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { AnyAction } from '@reduxjs/toolkit';
 import { useCanGoBack, useRouter } from '@tanstack/react-router';
 
-import { routes, useRenderedLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { LoginFormInputs } from '@/shared/types';
 import {
@@ -94,7 +94,7 @@ export function LoginDialogContainer() {
 
 		if (canGoBack) router.history.back();
 		// Keeps the sidebar state and the selected project, like the sidebar links
-		else navigateWithProject(routes.dashboard({}), { replace: true });
+		else navigateWithProject('/dashboard', { replace: true });
 	};
 
 	return (

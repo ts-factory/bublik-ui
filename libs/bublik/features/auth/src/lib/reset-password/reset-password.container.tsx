@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef } from 'react';
-import { useNavigate, useParams } from '@/router';
+import { useNavigate } from '@tanstack/react-router';
 
 import {
+	ResetPasswordParamsInputs,
 	ResetPasswordParamsSchema,
 	ResetUserPasswordFormInputs
 } from '@/shared/types';
@@ -16,9 +17,15 @@ import {
 	ResetPasswordFormHandle
 } from './reset-password.component';
 
-export const ResetPasswordFormContainer = () => {
+type ResetPasswordFormContainerProps = {
+	/** The reset link's path params, validated when the form is submitted. */
+	params: Partial<ResetPasswordParamsInputs>;
+};
+
+export const ResetPasswordFormContainer = ({
+	params
+}: ResetPasswordFormContainerProps) => {
 	const navigate = useNavigate();
-	const params = useParams();
 	const [resetPassword] = useResetPasswordMutation();
 	const formRef = useRef<ResetPasswordFormHandle>(null);
 
@@ -32,7 +39,7 @@ export const ResetPasswordFormContainer = () => {
 			await resetPassword({ ...parsedParams, ...form }).unwrap();
 
 			toast.success('Successfully reset password');
-			navigate('/auth/login');
+			navigate({ to: '/auth/login', resetScroll: false });
 		} catch (error: unknown) {
 			setErrorsOnForm(error, {
 				handle: formHandle,
