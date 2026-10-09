@@ -11,15 +11,13 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
-	type AnchorHTMLAttributes,
-	type ForwardRefExoticComponent,
-	type RefAttributes
+	type AnchorHTMLAttributes
 } from 'react';
 import {
-	Link as TanStackLink,
 	useParams as useTanStackParams,
 	useRouter,
-	type AnyRouter
+	type AnyRouter,
+	type HistoryState
 } from '@tanstack/react-router';
 
 import {
@@ -28,6 +26,7 @@ import {
 	useRenderedLocation,
 	type Location
 } from '../location/location';
+import { RouterLink } from '../link/router-link';
 import { resolveTo, type To } from '../path/to';
 
 interface NavigateOptions {
@@ -201,14 +200,6 @@ interface LinkProps
 	relative?: 'route' | 'path';
 }
 
-/** Nothing is added to a link for being active: React Router's `Link` added nothing either. */
-const NO_PROPS = {};
-
-/** The TanStack `Link` with the route-tree typing of `to` out of the way: a shim target is any string. */
-const AnyLink = TanStackLink as unknown as ForwardRefExoticComponent<
-	Record<string, unknown> & RefAttributes<HTMLAnchorElement>
->;
-
 /**
  * React Router's `<Link>`: `to` may carry a query string and a fragment, a
  * search-only target stays on the current pathname. The href is built by the
@@ -231,18 +222,15 @@ const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 	const target = useMemo(() => resolveTo(to, pathname), [to, pathname]);
 
 	return (
-		<AnyLink
+		<RouterLink
 			ref={ref}
 			{...anchorProps}
 			to={target.to}
 			search={target.search}
 			hash={target.hash}
-			state={state}
+			state={state as HistoryState | undefined}
 			replace={replace}
 			reloadDocument={reloadDocument}
-			resetScroll={false}
-			activeProps={NO_PROPS}
-			inactiveProps={NO_PROPS}
 		/>
 	);
 });

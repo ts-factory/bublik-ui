@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { BooleanParam, useQueryParam, withDefault } from '@/router';
+import { useSearch } from '@tanstack/react-router';
+
+import { useSearchWriter } from '@/router';
 import { Icon, ProfilePicture, toast, useSidebar } from '@/shared/tailwind-ui';
 import {
 	cn,
@@ -23,12 +25,22 @@ import { SidebarAccountRow } from './components/sidebar-account-row';
 import { getUserLabel } from './user-label';
 
 export function SettingsModal() {
-	const [activeTab = 'account', setActiveTab] =
-		useQueryParam<SettingsTab>('settings-tab');
-	const [open, setOpen] = useQueryParam<boolean>(
-		'settings-open',
-		withDefault(BooleanParam, false)
-	);
+	// The root route's codecs: `settings-open` is `1`/`0` (anything else
+	// reads as closed), an unknown `settings-tab` string is kept as is.
+	const activeTab = useSearch({
+		strict: false,
+		select: (search) =>
+			(search['settings-tab'] as SettingsTab | undefined) ?? 'account'
+	});
+	const open = useSearch({
+		strict: false,
+		select: (search) =>
+			(search['settings-open'] as boolean | undefined) ?? false
+	});
+	const writeSearch = useSearchWriter();
+	const setActiveTab = (tab: SettingsTab) =>
+		writeSearch({ 'settings-tab': tab });
+	const setOpen = (isOpen: boolean) => writeSearch({ 'settings-open': isOpen });
 	const { user, isLoading, logout } = useAuth();
 	const { isSidebarOpen } = useSidebar();
 	const userLabel = user ? getUserLabel(user) : null;

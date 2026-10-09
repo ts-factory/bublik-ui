@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import { useLazyGetShortUrlQuery } from '@/services/bublik-api';
 import { CommandItem, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
@@ -55,13 +55,14 @@ interface CopyShortUrlButtonContainerProps {
 	variant?: 'header' | 'card';
 }
 
-function resolveFullUrl(location: ReturnType<typeof useLocation>) {
-	return `${window.location.origin}${config.baseUrl}${location.pathname}${location.search}`;
+/** The page on screen as an absolute URL; `searchStr` carries its `?`. */
+function resolveFullUrl(location: { pathname: string; searchStr: string }) {
+	return `${window.location.origin}${config.baseUrl}${location.pathname}${location.searchStr}`;
 }
 
 function CopyShortUrlButtonContainer(props: CopyShortUrlButtonContainerProps) {
 	const { variant = 'card' } = props;
-	const location = useLocation();
+	const location = useRenderedLocation();
 	const { copyShortUrl } = useCopyShortUrl({ url: resolveFullUrl(location) });
 
 	return (
@@ -125,7 +126,7 @@ function CopyShortUrlCommandItemContainer(
 	props: CopyShortUrlCommandItemContainerProps
 ) {
 	const { includeSearchParams = true, onComplete } = props;
-	const location = useLocation();
+	const location = useRenderedLocation();
 	const { copyShortUrl } = useCopyShortUrl({ url: resolveFullUrl(location) });
 
 	return (

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { PropsWithChildren, Suspense } from 'react';
-import { useSearchParams } from '@/router';
+import { useSearch } from '@tanstack/react-router';
 
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
 import { HIDE_SIDEBAR_QUERY_KEY } from '@/bublik/features/projects';
@@ -19,8 +19,14 @@ const parseHideSidebarQuery = (value: string | null) => {
 };
 
 export const Layout = (props: PropsWithChildren) => {
-	const [searchParams] = useSearchParams();
-	const queryValue = searchParams.get(HIDE_SIDEBAR_QUERY_KEY);
+	const value = useSearch({
+		strict: false,
+		// `passthrough()` on the root route: the wire value as is
+		select: (search) =>
+			search[HIDE_SIDEBAR_QUERY_KEY] as string | string[] | undefined
+	});
+	// The first of repeated keys, as `URLSearchParams.get` read it
+	const queryValue = (Array.isArray(value) ? value[0] : value) ?? null;
 	const parsedQueryValue = parseHideSidebarQuery(queryValue);
 	const hideSidebar = parsedQueryValue ?? false;
 

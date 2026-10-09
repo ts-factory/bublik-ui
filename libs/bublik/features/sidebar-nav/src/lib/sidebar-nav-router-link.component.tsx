@@ -4,22 +4,11 @@ import {
 	forwardRef,
 	useMemo,
 	type CSSProperties,
-	type ForwardRefExoticComponent,
 	type MouseEventHandler,
-	type ReactNode,
-	type RefAttributes
+	type ReactNode
 } from 'react';
-import { Link } from '@tanstack/react-router';
 
-import { resolveTo, useRenderedLocation, type To } from '@/router';
-
-/** The TanStack `Link` with the route-tree typing of `to` out of the way: a target is any string. */
-const AnyLink = Link as unknown as ForwardRefExoticComponent<
-	Record<string, unknown> & RefAttributes<HTMLAnchorElement>
->;
-
-/** Nothing is added to a link for being active; the navs style it themselves. */
-const NO_PROPS = {};
+import { resolveTo, RouterLink, useRenderedLocation, type To } from '@/router';
 
 interface SidebarNavRouterLinkProps {
 	to: To;
@@ -43,15 +32,12 @@ const SidebarNavRouterLink = forwardRef<
 	const target = useMemo(() => resolveTo(to, pathname), [to, pathname]);
 
 	return (
-		<AnyLink
+		<RouterLink
 			ref={ref}
 			{...props}
 			to={target.to}
 			search={target.search}
 			hash={target.hash}
-			resetScroll={false}
-			activeProps={NO_PROPS}
-			inactiveProps={NO_PROPS}
 		/>
 	);
 });

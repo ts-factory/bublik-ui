@@ -3,8 +3,9 @@
 import { useRef, useSyncExternalStore } from 'react';
 import { useDispatch } from 'react-redux';
 import { AnyAction } from '@reduxjs/toolkit';
+import { useCanGoBack, useRouter } from '@tanstack/react-router';
 
-import { useCanGoBack, useLocation, useNavigate, routes } from '@/router';
+import { routes, useRenderedLocation } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { LoginFormInputs } from '@/shared/types';
 import {
@@ -54,9 +55,9 @@ function getNote(reason: LoginPromptReason, pathname: string): string | null {
 export function LoginDialogContainer() {
 	const reason = useSyncExternalStore(subscribeLoginPrompt, getLoginPrompt);
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
+	const router = useRouter();
 	const navigateWithProject = useNavigateWithProject();
-	const { pathname } = useLocation();
+	const { pathname } = useRenderedLocation();
 	const note = reason ? getNote(reason, pathname) : null;
 	const isPagePrompt = reason?.kind === 'page';
 	// Whether this entry is the first the router created in this tab
@@ -91,7 +92,7 @@ export function LoginDialogContainer() {
 
 		if (kind !== 'page') return;
 
-		if (canGoBack) navigate(-1);
+		if (canGoBack) router.history.back();
 		// Keeps the sidebar state and the selected project, like the sidebar links
 		else navigateWithProject(routes.dashboard({}), { replace: true });
 	};

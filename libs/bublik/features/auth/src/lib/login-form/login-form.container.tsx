@@ -4,7 +4,15 @@ import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { AnyAction } from '@reduxjs/toolkit';
 
-import { To, useNavigate, useSearchParams, routes } from '@/router';
+import { useRouter } from '@tanstack/react-router';
+
+import {
+	currentLocation,
+	resolveTo,
+	routes,
+	useRenderedLocation,
+	type To
+} from '@/router';
 
 import { LoginFormInputs } from '@/shared/types';
 import { bublikAPI, useLoginMutation } from '@/services/bublik-api';
@@ -19,10 +27,15 @@ type LoginFormContainerProps = {
 };
 
 export const LoginFormContainer = (props: LoginFormContainerProps) => {
-	const navigate = useNavigate();
+	const router = useRouter();
 	const dispatch = useDispatch();
+	const { searchStr } = useRenderedLocation();
 
-	const [searchParams] = useSearchParams();
+	const navigate = (to: To, options?: { replace?: boolean }) => {
+		const target = resolveTo(to, currentLocation(router).pathname);
+
+		void router.navigate({ ...target, ...options, resetScroll: false });
+	};
 	const [login] = useLoginMutation();
 	const formRef = useRef<LoginFormHandle>(null);
 
@@ -39,8 +52,11 @@ export const LoginFormContainer = (props: LoginFormContainerProps) => {
 				}) as unknown as AnyAction
 			);
 
-			const whereToRedirect = searchParams.get('redirect_url');
+			const whereToRedirect = new URLSearchParams(searchStr).get(
+				'redirect_url'
+			);
 
+			// Back to the exact pre-login URL, basepath stripped (a push)
 			if (whereToRedirect) return navigate(getRouterUrl(whereToRedirect));
 
 			return props.redirectOnSuccessTo

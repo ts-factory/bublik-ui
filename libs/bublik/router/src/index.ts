@@ -4,6 +4,7 @@ import './lib/history-state';
 
 export * from './lib/compat';
 export * from './lib/hooks';
+export * from './lib/link';
 export * from './lib/location';
 export * from './lib/match';
 // The legacy codec of the history link producers and the jsurl redirect.

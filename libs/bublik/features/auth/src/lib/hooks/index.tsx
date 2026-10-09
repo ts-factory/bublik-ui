@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
-import { useLocation, routes } from '@/router';
+import { routes, useRenderedLocation } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
 import {
@@ -32,7 +32,8 @@ export const useAuth = () => {
 	const dispatch = useDispatch();
 	// Keeps the sidebar state and the selected project across sign out
 	const navigate = useNavigateWithProject();
-	const location = useLocation();
+	// The page on screen: the reset waits until the protected page is gone
+	const location = useRenderedLocation();
 
 	const [login] = useLoginMutation();
 	const [logoutMutation] = useLogoutMutation();

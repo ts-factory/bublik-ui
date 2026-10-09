@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useHotkey } from '@tanstack/react-hotkeys';
 
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import {
@@ -28,7 +28,7 @@ import {
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigateWithProject();
-	const location = useLocation();
+	const location = useRenderedLocation();
 
 	useHotkey('Mod+K', () => setOpen((open) => !open), {
 		ignoreInputs: false,
