@@ -1,8 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useParams } from '@/router';
-
-import { MeasurementsRouterParams } from '@/shared/types';
 import { TableHeader } from '@/shared/charts';
 
 import {
@@ -10,11 +7,10 @@ import {
 	MeasurementStatisticsContainer,
 	TablesContainer
 } from '../../containers';
+import { measurementsRoute } from '../../route';
 
 export const ModeTables = () => {
-	const { runId, resultId } = useParams<MeasurementsRouterParams>();
-
-	if (!runId || !resultId) return null;
+	const { resultId } = measurementsRoute.useParams();
 
 	return (
 		<div className="p-2">

@@ -1,22 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { useMemo } from 'react';
 
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
-import { MeasurementsRouterParams } from '@/shared/types';
 import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 import { StackedMeasurementChart } from '@/shared/charts';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { MeasurementStatisticsContainer } from '../../containers';
+import { measurementsRoute } from '../../route';
 import { useResultSelectCharts } from '../../hooks';
-import { useMemo } from 'react';
-
-import { useParams } from '@/router';
 
 function ModeOverlay() {
-	const { runId, resultId } = useParams<MeasurementsRouterParams>();
-
-	if (!runId || !resultId) return null;
+	const { resultId } = measurementsRoute.useParams();
 
 	return (
 		<div className="p-2 h-full">

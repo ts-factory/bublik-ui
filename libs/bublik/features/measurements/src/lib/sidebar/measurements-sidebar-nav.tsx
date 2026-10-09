@@ -2,11 +2,11 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect } from 'react';
-import { matchPath, useLocation, useParams } from '@/router';
+import { useParams } from '@tanstack/react-router';
 
+import { matchRoutePath, useRenderedLocation } from '@/router';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { Icon } from '@/shared/tailwind-ui';
-import { MeasurementsRouterParams } from '@/shared/types';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -33,13 +33,16 @@ const MEASUREMENTS_SIDEBAR_MODES: readonly MeasurementsSidebarMode[] = [
 	'overlay'
 ];
 
-const MEASUREMENTS_SIDEBAR_PATTERNS = [
-	{ to: '/runs/$runId/results/$resultId/measurements' }
-];
+const MEASUREMENTS_PATH = '/runs/$runId/results/$resultId/measurements';
+
+const MEASUREMENTS_SIDEBAR_PATTERNS = [{ to: MEASUREMENTS_PATH }];
 
 export function MeasurementsSidebarNav() {
-	const location = useLocation();
-	const { resultId } = useParams<MeasurementsRouterParams>();
+	const { pathname, searchStr } = useRenderedLocation();
+	// The sidebar renders outside the measurements route, so it reads the
+	// params of whichever page is on screen: `resultId` is there only on the
+	// measurements page (which is what enables "Stacked Charts").
+	const { resultId } = useParams({ strict: false });
 	const { data, isLoading } = useGetSingleMeasurementQuery(
 		resultId ?? skipToken
 	);
@@ -50,20 +53,17 @@ export function MeasurementsSidebarNav() {
 	const hasStackedCharts = chartsCount >= 2;
 	const isStackedLoading = isLoading && !!resultId;
 
+	// The last result visited, stored as its pathname only (the links add the mode).
 	useEffect(() => {
-		const pathMatch = matchPath(
-			'/runs/:runId/results/:resultId/measurements',
-			location.pathname
+		if (!matchRoutePath({ to: MEASUREMENTS_PATH }, pathname)) return;
+
+		const mode = getModeFromSearch(
+			searchStr,
+			MEASUREMENTS_SIDEBAR_MODES,
+			'default'
 		);
-		if (pathMatch) {
-			const mode = getModeFromSearch(
-				location.search,
-				MEASUREMENTS_SIDEBAR_MODES,
-				'default'
-			);
-			setLastVisited(mode, location.pathname);
-		}
-	}, [location.pathname, location.search, setLastVisited]);
+		setLastVisited(mode, pathname);
+	}, [pathname, searchStr, setLastVisited]);
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={MEASUREMENTS_SIDEBAR_PATTERNS}>
@@ -88,7 +88,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('default')}
 					pattern={{
-						to: '/runs/$runId/results/$resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'default',
 						defaultMode: 'default'
 					}}
@@ -106,7 +106,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('split')}
 					pattern={{
-						to: '/runs/$runId/results/$resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'split'
 					}}
 					disabled={!isAvailable}
@@ -123,7 +123,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('tables')}
 					pattern={{
-						to: '/runs/$runId/results/$resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'tables'
 					}}
 					disabled={!isAvailable}
@@ -140,7 +140,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('overlay')}
 					pattern={{
-						to: '/runs/$runId/results/$resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'overlay'
 					}}
 					disabled={!isAvailable || !hasStackedCharts}

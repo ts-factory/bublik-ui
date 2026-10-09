@@ -1,13 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef } from 'react';
-import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { getColorByIdx, SelectedChartsPopover } from '@/shared/charts';
-import { MeasurementsMode, MeasurementsRouterParams } from '@/shared/types';
+import { MeasurementsMode } from '@/shared/types';
 
 import { ModeDefault } from './mode-default';
 import { ModeCharts } from './mode-charts';
@@ -18,6 +16,7 @@ import {
 	MEASUREMENTS_SELECTED_CHARTS_POPOVER_STORAGE_KEY,
 	useResultSelectCharts
 } from '../../hooks';
+import { measurementsRoute } from '../../route';
 
 const modeMap = {
 	[MeasurementsMode.Charts]: ModeCharts,
@@ -64,12 +63,10 @@ const suffixes = {
 } as const satisfies Record<'one' | 'other', string>;
 
 function SelectedChartsContainer() {
-	const { resultId } = useParams<MeasurementsRouterParams>();
+	const { resultId } = measurementsRoute.useParams();
 	const { selectedCharts, resetCharts, removeChart, handleOpenButtonClick } =
 		useResultSelectCharts();
-	const { data, isLoading } = useGetSingleMeasurementQuery(
-		resultId ?? skipToken
-	);
+	const { data, isLoading } = useGetSingleMeasurementQuery(resultId);
 
 	const count = selectedCharts.length;
 	const rule = pluralRules.select(count) as 'one' | 'other';

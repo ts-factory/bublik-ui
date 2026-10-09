@@ -1,11 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useParams } from '@/router';
-
-import { MeasurementsRouterParams } from '@/shared/types';
 import { config } from '@/bublik/config';
 
 import {
@@ -24,6 +20,8 @@ import {
 import { LinkToRun } from './link-to-run';
 import { LinkToLog } from './link-to-log';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
+
+import { measurementsRoute } from '../../route';
 
 export interface MeasurementStatisticsLoadingProps {
 	runId: string;
@@ -90,24 +88,13 @@ export const MeasurementStatisticsEmpty = () => {
 };
 
 export const MeasurementStatisticsContainer: FC = () => {
-	const { resultId, runId } = useParams<MeasurementsRouterParams>();
-	const { data, isLoading, error } = useGetResultInfoQuery(
-		resultId ?? skipToken
-	);
-	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
+	const { resultId, runId } = measurementsRoute.useParams();
+	const { data, isLoading, error } = useGetResultInfoQuery(resultId);
+	const { node } = useGetTreeByRunIdQuery(runId, {
 		selectFromResult: (state) => ({
-			node: !state.data || !resultId ? undefined : state.data.tree[resultId]
+			node: state.data?.tree[resultId]
 		})
 	});
-
-	if (!resultId || !runId) {
-		return (
-			<BublikEmptyState
-				title="No data"
-				description="Run id or result id is missing"
-			/>
-		);
-	}
 
 	if (error) return <MeasurementStatisticsError error={error} />;
 
