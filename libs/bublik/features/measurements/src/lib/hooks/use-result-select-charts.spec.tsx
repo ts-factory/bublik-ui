@@ -6,11 +6,16 @@ import { describe, expect, it } from 'vitest';
 import { splitTo } from '@/router';
 import { renderHookWithRouter } from '@/router/testing';
 
-import { BASEPATH, MEASUREMENTS_ROUTE } from '../../test/measurements-router';
+import { measurementsSearch } from '@/shared/utils';
 import { useMeasurementsMode, useSelectedChartIds } from '../route';
 import { useResultSelectCharts } from './index';
 
+const BASEPATH = '/v2';
 const PAGE = '/runs/1/results/11/measurements';
+const MEASUREMENTS_ROUTE = {
+	id: '/_app/runs/$runId/results/$resultId/measurements',
+	search: measurementsSearch
+};
 
 function useSelection() {
 	return {

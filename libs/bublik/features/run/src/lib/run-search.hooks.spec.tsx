@@ -4,14 +4,13 @@ import { act, waitFor } from '@testing-library/react';
 import { compressToEncodedURIComponent } from 'lz-string';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { bool01, defineSearch, repeated, str } from '@/router';
 import {
 	renderHookWithRouter,
 	renderWithRouter,
 	type RenderWithRouterOptions,
 	type TestRouter
 } from '@/router/testing';
-import { RUN_TABLE_SHAPE, runSearch } from '@/shared/utils';
+import { multipleSearch, runSearch } from '@/shared/utils';
 
 import { GlobalRequirementsProvider, useGlobalRequirements } from './hooks';
 import { useRunTableSetter } from './run-search.hooks';
@@ -24,15 +23,7 @@ import {
 // The two routes the run table renders in, wired as the app's route files
 // wire them (`routes/-search/run.search.ts`, `multiple.search.ts`).
 const RUN_ROUTE = { id: '/_app/runs/$runId/', search: runSearch };
-const MULTIPLE_ROUTE = {
-	id: '/_app/_runs/multiple',
-	search: defineSearch({
-		...RUN_TABLE_SHAPE,
-		runIds: repeated(),
-		selected: str(),
-		isModeFull: bool01()
-	})
-};
+const MULTIPLE_ROUTE = { id: '/_app/_runs/multiple', search: multipleSearch };
 
 /** lz-string, then percent-encoded as `URLSearchParams` writes it. */
 const lz = (value: unknown) =>

@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { RouterProvider } from '@tanstack/react-router';
 import { type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,10 +10,12 @@ import {
 	getSidebarStateString,
 	MEASUREMENTS_SIDEBAR_KEYS
 } from '@/bublik/features/sidebar';
-import { joinTo, splitTarget } from '@/router';
+import { joinTo, splitTarget, splitTo } from '@/router';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 
-import { createMeasurementsRouter } from '../../test/measurements-router';
+import { renderWithRouter } from '@/router/testing';
+
+import { measurementsSearch } from '@/shared/utils';
 import { MeasurementsSidebarNav } from './measurements-sidebar-nav';
 
 vi.mock('@/services/bublik-api', () => ({
@@ -81,12 +82,17 @@ const PAGE = '/runs/1/results/11/measurements';
 
 async function renderSidebarAt(url: string) {
 	// The sidebar sits in the app layout, outside the page's match.
-	const router = createMeasurementsRouter({
-		url,
+	const { to, search, hash } = splitTo(url);
+	const { router } = await renderWithRouter(<div />, {
+		route: {
+			id: '/_app/runs/$runId/results/$resultId/measurements',
+			search: measurementsSearch
+		},
+		path: to,
+		search,
+		hash,
 		layout: <MeasurementsSidebarNav />
 	});
-	await router.load();
-	render(<RouterProvider router={router} />);
 
 	return router;
 }
@@ -128,7 +134,8 @@ describe('MeasurementsSidebarNav', () => {
 				'false'
 			)
 		);
-		expect(useGetSingleMeasurementQuery).toHaveBeenCalledWith('11');
+		// The route parses the id, as the app's does
+		expect(useGetSingleMeasurementQuery).toHaveBeenCalledWith(11);
 	});
 
 	it('remembers the pathname alone and the mode in the sidebar state', async () => {

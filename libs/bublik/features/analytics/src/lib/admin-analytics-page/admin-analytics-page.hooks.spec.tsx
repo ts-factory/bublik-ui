@@ -3,7 +3,6 @@
 import { act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { defineSearch, passthrough } from '@/router';
 import { renderHookWithRouter } from '@/router/testing';
 
 import {
@@ -15,22 +14,7 @@ import {
 	filterValuesChanges,
 	queryValueChanges
 } from './admin-analytics-page.utils';
-
-/**
- * The route's schema (`apps/bublik/src/routes/-search/admin-analytics.search.ts`),
- * which a lib cannot import.
- */
-const analyticsSearch = defineSearch({
-	page: passthrough(),
-	page_size: passthrough(),
-	event_type: passthrough(),
-	event_name: passthrough(),
-	path: passthrough(),
-	anon_id: passthrough(),
-	app_version: passthrough(),
-	search: passthrough(),
-	payload_search: passthrough()
-});
+import { adminAnalyticsSearch } from '@/shared/utils';
 
 function renderAt(search: string) {
 	return renderHookWithRouter(
@@ -43,7 +27,10 @@ function renderAt(search: string) {
 			search,
 			hash: 'top',
 			state: { fromRun: true },
-			route: { id: '/_app/admin/_admin/analytics', search: analyticsSearch }
+			route: {
+				id: '/_app/admin/_admin/analytics',
+				search: adminAnalyticsSearch
+			}
 		}
 	);
 }

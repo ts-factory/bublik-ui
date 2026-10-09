@@ -1,14 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { render, screen } from '@testing-library/react';
-import { RouterProvider } from '@tanstack/react-router';
+import { screen } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-	BASEPATH,
-	createMeasurementsRouter
-} from '../../../test/measurements-router';
+import { renderWithRouter } from '@/router/testing';
+
+import { measurementsSearch } from '@/shared/utils';
 import { LinkToLog } from './link-to-log';
 import { LinkToRun } from './link-to-run';
 
@@ -23,17 +21,20 @@ vi.mock('@/shared/tailwind-ui', async (importOriginal) => ({
 	Icon: () => null
 }));
 
+const BASEPATH = '/v2';
+const MEASUREMENTS_ROUTE_ID =
+	'/_app/runs/$runId/results/$resultId/measurements';
 const PAGE = '/runs/1/results/11/measurements';
 // The keys every link carries over from the page on screen.
 const CARRIED = '_s=abc&project=4';
 
 async function renderOnPage(ui: ReactElement) {
-	const router = createMeasurementsRouter({
-		url: `${PAGE}?mode=split&selectedCharts=2&${CARRIED}#top`,
-		page: ui
+	await renderWithRouter(ui, {
+		route: { id: MEASUREMENTS_ROUTE_ID, search: measurementsSearch },
+		path: PAGE,
+		search: `?mode=split&selectedCharts=2&${CARRIED}`,
+		hash: '#top'
 	});
-	await router.load();
-	render(<RouterProvider router={router} />);
 
 	return (name: string) =>
 		screen.getByRole('link', { name }).getAttribute('href');

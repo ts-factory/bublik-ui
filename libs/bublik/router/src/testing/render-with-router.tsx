@@ -101,6 +101,11 @@ interface RenderWithRouterOptions {
 	hash?: string;
 	/** `location.state` of the entry. */
 	state?: HistoryState;
+	/**
+	 * Rendered above every route match, as the app's layout renders the
+	 * sidebar: a component here reads the page's match from outside it.
+	 */
+	layout?: ReactNode;
 }
 
 /**
@@ -164,7 +169,8 @@ function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
 function createTestRouter(
 	entry: string,
 	state?: HistoryState,
-	testRoute?: TestRoute
+	testRoute?: TestRoute,
+	layout?: ReactNode
 ) {
 	const history = createMemoryHistory({
 		initialEntries: [`${BASEPATH}${entry}`]
@@ -175,7 +181,12 @@ function createTestRouter(
 	const root = createRootRoute({
 		validateSearch: rootSearch.validateSearch,
 		search: { middlewares: rootSearch.middlewares },
-		component: Outlet
+		component: () => (
+			<>
+				{layout}
+				<Outlet />
+			</>
+		)
 	});
 	const page = createRoute({
 		getParentRoute: () => root,
@@ -203,12 +214,14 @@ async function mountRouter({
 	path = '/',
 	search = '',
 	hash = '',
-	state
+	state,
+	layout
 }: RenderWithRouterOptions) {
 	const router = createTestRouter(
 		joinTo({ to: path, search, hash }),
 		state,
-		route
+		route,
+		layout
 	);
 	await router.load();
 

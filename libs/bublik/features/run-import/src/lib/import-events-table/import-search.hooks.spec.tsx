@@ -3,7 +3,6 @@
 import { act } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { bool01, defineSearch, json, str } from '@/router';
 import { renderHookWithRouter } from '@/router/testing';
 
 import {
@@ -11,23 +10,12 @@ import {
 	useImportLogExpanded,
 	useImportTaskLogSearch
 } from './import-search.hooks';
+import { importSearch } from '@/shared/utils';
 
 vi.mock('@/bublik/features/analytics', () => ({
 	analyticsEventNames: {},
 	trackEvent: vi.fn()
 }));
-
-/**
- * The route's schema (`apps/bublik/src/routes/-search/import.search.ts`),
- * which a lib cannot import: typed writes serialize as in the app.
- */
-const importSearch = defineSearch({
-	filters: json(),
-	pagination: json(),
-	expanded: json(),
-	taskId: str(),
-	poll: bool01()
-});
 
 const PAGE = (pageIndex: number, pageSize = 25) =>
 	encodeURIComponent(JSON.stringify({ pageIndex, pageSize }));

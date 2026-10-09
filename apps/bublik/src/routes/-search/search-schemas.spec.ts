@@ -5,6 +5,7 @@ import { compressToEncodedURIComponent } from 'lz-string';
 import { describe, expect, it, vi } from 'vitest';
 
 import { config } from '@/bublik/config';
+import { rootSearch as testRootSearch } from '@/router/testing';
 
 import { createAppRouter, type AppRouter } from '../../router';
 import {
@@ -126,6 +127,28 @@ describe('root: project, _s, hide-sidebar, settings-open, settings-tab', () => {
 			'settings-open': false,
 			'settings-tab': 'account'
 		});
+	});
+
+	// `@/router/testing` cannot import the app, so it keeps the one copy of a
+	// schema there is; this keeps it the app's.
+	it('is what the router test helper renders under', () => {
+		const wire = {
+			project: ['1', '2'],
+			_s: 'N4IgLgpg',
+			'hide-sidebar': '1',
+			'settings-open': '1',
+			'settings-tab': 'appearance'
+		};
+
+		expect(Object.keys(testRootSearch.shape)).toEqual(
+			Object.keys(rootSearch.shape)
+		);
+		expect(testRootSearch.validateSearch(wire)).toEqual(
+			rootSearch.validateSearch(wire)
+		);
+		expect(testRootSearch.withDefaults({})).toEqual(
+			rootSearch.withDefaults({})
+		);
 	});
 });
 
