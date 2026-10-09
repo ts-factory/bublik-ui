@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { Fragment, ReactNode } from 'react';
+import { linkOptions } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -24,6 +25,8 @@ export interface HistoryLinkIssue {
 	/** Rendered by the caller, which knows how issues look. */
 	label: ReactNode;
 }
+
+const HISTORY = linkOptions({ to: '/history' }).to;
 
 export interface HistoryLinkComponentProps {
 	search: {
@@ -131,7 +134,7 @@ const PREFILLED_ITEMS: HistoryLinkItem[] = [
  */
 const LoadingState = () => (
 	<ButtonTw variant="secondary" size="xss" state="loading" asChild>
-		<LinkWithProject to="/history">
+		<LinkWithProject to={HISTORY}>
 			<Icon
 				name="ProgressIndicator"
 				className="mr-1.5 animate-spin"
@@ -147,7 +150,7 @@ const LoadingState = () => (
  */
 const ErrorState = () => (
 	<ButtonTw variant="secondary" size="xss" state="disabled" asChild>
-		<LinkWithProject to="/history">
+		<LinkWithProject to={HISTORY}>
 			<Icon name="BoxArrowRight" className="mr-1.5" size={20} />
 			History
 		</LinkWithProject>

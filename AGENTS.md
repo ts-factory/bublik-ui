@@ -165,7 +165,10 @@ Use shared utilities from `@/shared/utils`:
   and `hide-sidebar`; the `routes.*` builders for run, log, measurements and
   issue targets. `RouterLink` from `@/router` (those defaults built in) is
   only for a target assembled at runtime. Never hand-build an internal URL
-  string
+  string: lint rejects a `/` literal or template as `to`/`href` of anything
+  but TanStack `Link`/`Navigate` and `TypedLinkWithProject`, and as the
+  argument of a `navigate*` call; an untyped API that needs a path takes
+  `linkOptions({ to: '/dashboard' }).to`
 - Location: `useRenderedLocation()` is the page on screen;
   `useLatestLocation()`/`currentLocation(router)` is what a write builds on.
   Never write from `window.location` and never touch `window.history`
@@ -175,7 +178,11 @@ Use shared utilities from `@/shared/utils`:
 - Matching a pathname outside its route (sidebar highlighting, analytics):
   `matchRoutePath({ to, fuzzy }, pathname)` from `@/router`
 - Path params come from the route API (`getRouteApi(id).useParams()`), or
-  `useParams({ strict: false })` in a lib that renders above the page's match
+  `useParams({ strict: false })` in a lib that renders above the page's match.
+  `runId`, `resultId` and `issueId` are numbers: the routes parse them with
+  `idParams` from `@/router`, and a non-numeric id renders the route's
+  not-found page, so pages neither convert nor guard them. RTK endpoints that
+  take a bare id use `serializeIdArgs`, so `1` and `'1'` share a cache entry
 - Specs render through `renderWithRouter`/`renderHookWithRouter` from
   `@/router/testing` and assert on `router.history.location`; never mock a
   router module

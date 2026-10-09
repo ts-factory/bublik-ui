@@ -16,6 +16,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import {
 	LinkWithProject,
+	TypedLinkWithProject,
 	useNavigateWithProject
 } from '@/bublik/features/projects';
 import { routes } from '@/router';
@@ -1409,14 +1410,15 @@ const RunHeaderCell = memo(function RunHeaderCell({
 				<div className="flex min-w-0 flex-1 overflow-y-auto flex-col gap-2 px-2 py-1.5">
 					<div className="flex items-center gap-2">
 						<ButtonTw asChild variant="secondary" size="xss">
-							<LinkWithProject
-								to={`/runs/${run.id}`}
+							<TypedLinkWithProject
+								to="/runs/$runId"
+								params={{ runId: run.id }}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
 								<Icon name="BoxArrowRight" className="mr-1.5" />
 								Run
-							</LinkWithProject>
+							</TypedLinkWithProject>
 						</ButtonTw>
 						<span className="text-[0.75rem] font-medium leading-tight text-text-primary">
 							{formatTimestampToFull(run.start)}

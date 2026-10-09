@@ -4,6 +4,8 @@ import { useCallback, useEffect } from 'react';
 
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
+import { useChatPath } from './chat-path';
+
 interface StartNewThreadOptions {
 	/** Replace the current entry instead of pushing a new one. */
 	replace?: boolean;
@@ -17,11 +19,12 @@ interface StartNewThreadOptions {
  */
 function useStartNewThread(): (options?: StartNewThreadOptions) => void {
 	const navigate = useNavigateWithProject();
+	const chatPath = useChatPath();
 
 	return useCallback(
 		(options?: StartNewThreadOptions) =>
-			navigate(`/chat/${crypto.randomUUID()}`, options),
-		[navigate]
+			navigate(chatPath(crypto.randomUUID()), options),
+		[navigate, chatPath]
 	);
 }
 

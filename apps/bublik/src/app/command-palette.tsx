@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useState } from 'react';
 import { useHotkey } from '@tanstack/react-hotkeys';
+import { linkOptions } from '@tanstack/react-router';
 
 import { useRenderedLocation } from '@/router';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
@@ -17,6 +18,15 @@ import {
 	CommandSeparator,
 	Icon
 } from '@/shared/tailwind-ui';
+
+/** The palette's targets, checked against the route tree. */
+const PAGES = {
+	dashboard: linkOptions({ to: '/dashboard' }).to,
+	history: linkOptions({ to: '/history' }).to,
+	runs: linkOptions({ to: '/runs' }).to,
+	issues: linkOptions({ to: '/issues' }).to,
+	faq: linkOptions({ to: '/help/faq' }).to
+};
 
 /**
  * The Mod+K command palette, rendered on the root route. Navigation goes
@@ -55,19 +65,21 @@ function BublikCommand() {
 				<CommandList>
 					<CommandEmpty>No results found.</CommandEmpty>
 					<CommandGroup heading="Navigation">
-						<CommandItem onSelect={handleSelect(() => navigate('/dashboard'))}>
+						<CommandItem
+							onSelect={handleSelect(() => navigate(PAGES.dashboard))}
+						>
 							<Icon name="Category" className="w-4 h-4 mr-2" />
 							<span>Dashboard</span>
 						</CommandItem>
-						<CommandItem onSelect={handleSelect(() => navigate('/history'))}>
+						<CommandItem onSelect={handleSelect(() => navigate(PAGES.history))}>
 							<Icon name="TimeCircle" className="w-4 h-4 mr-2" />
 							<span>History</span>
 						</CommandItem>
-						<CommandItem onSelect={handleSelect(() => navigate('/runs'))}>
+						<CommandItem onSelect={handleSelect(() => navigate(PAGES.runs))}>
 							<Icon name="Play" className="w-4 h-4 mr-2" />
 							<span>Runs</span>
 						</CommandItem>
-						<CommandItem onSelect={handleSelect(() => navigate('/issues'))}>
+						<CommandItem onSelect={handleSelect(() => navigate(PAGES.issues))}>
 							<Icon name="TriangleExclamationMark" className="w-4 h-4 mr-2" />
 							<span>Issues</span>
 						</CommandItem>
@@ -84,7 +96,7 @@ function BublikCommand() {
 							<Icon name="Profile" className="w-4 h-4 mr-2" />
 							<span>Profile</span>
 						</CommandItem>
-						<CommandItem onSelect={handleSelect(() => navigate('/help/faq'))}>
+						<CommandItem onSelect={handleSelect(() => navigate(PAGES.faq))}>
 							<Icon name="Bulb" className="w-4 h-4 mr-2" />
 							<span>Help</span>
 						</CommandItem>

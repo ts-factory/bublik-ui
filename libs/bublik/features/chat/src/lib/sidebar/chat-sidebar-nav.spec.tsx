@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LinkWithProjectProps } from '@/bublik/features/projects';
 import { joinTo, splitTarget } from '@/router';
+import { renderWithRouter } from '@/router/testing';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
 import { ChatSidebarNav } from './chat-sidebar-nav';
@@ -43,24 +44,26 @@ vi.mock('@/bublik/features/sidebar-nav', () => {
 });
 
 describe('ChatSidebarNav', () => {
-	it('shows Chat when chat is enabled', () => {
+	it('shows Chat when chat is enabled', async () => {
 		vi.mocked(useGetServerFeaturesQuery).mockReturnValue({
 			data: { analytics_enabled: false, chat_enabled: true }
 		} as ReturnType<typeof useGetServerFeaturesQuery>);
 
-		render(<ChatSidebarNav />);
+		await renderWithRouter(<ChatSidebarNav />, { path: '/dashboard' });
 
 		expect(screen.getByText('Chat').closest('a')?.getAttribute('href')).toBe(
 			'/chat'
 		);
 	});
 
-	it('hides Chat while features are loading or chat is disabled', () => {
+	it('hides Chat while features are loading or chat is disabled', async () => {
 		vi.mocked(useGetServerFeaturesQuery).mockReturnValue({
 			data: undefined
 		} as ReturnType<typeof useGetServerFeaturesQuery>);
 
-		const { rerender } = render(<ChatSidebarNav />);
+		const { rerender } = await renderWithRouter(<ChatSidebarNav />, {
+			path: '/dashboard'
+		});
 
 		expect(screen.queryByText('Chat')).toBeNull();
 
