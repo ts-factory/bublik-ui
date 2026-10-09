@@ -69,3 +69,11 @@ Feature: Measurements
     When I reload the page
     Then both chart ids are still recorded in the URL
 
+  # The header carries the same Classify and Apply Rules actions as the log
+  # page, for the failing results that have measurements to look at.
+  @measurements @issues @needs-nok @needs-measurements
+  Scenario: A failing result with measurements offers Classify and Apply Rules
+    Given the fixture run has a failing result with measurements
+    When I open its measurements page
+    Then the header offers Classify and Apply Rules
+

@@ -6,8 +6,12 @@ import type { APIRequestContext, Page } from '@playwright/test';
 import { MeasurementsPage } from './pages/measurements-page';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
-import { firstMeasurementResultNode } from './support/e2e-data';
+import {
+	firstMeasurementResultNode,
+	sampleResultNode
+} from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
+import { classifiableMeasurementSample } from './support/sample-cases';
 
 test.describe('Measurements Page', () => {
 	test.describe('The measurements page renders every layout mode', () => {
@@ -239,6 +243,48 @@ test.describe('Measurements Page', () => {
 			});
 			await then('both chart ids are still recorded in the URL', () =>
 				measurementsPage.expectSelectedCharts(chartIds)
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A failing result with measurements offers Classify and Apply Rules',
+		{ tag: ['@measurements', '@issues', '@needs-nok', '@needs-measurements'] },
+		async ({ page, request }) => {
+			const measurementsPage = new MeasurementsPage(page);
+			let runId = 0;
+			let resultId = '';
+
+			await given(
+				'the fixture run has a failing result with measurements',
+				async () => {
+					const { run, sample } = requireCapability(
+						classifiableMeasurementSample(requireManifest()),
+						'The classifiable run has no failing result with measurements.'
+					);
+					const result = requireCapability(
+						await sampleResultNode(
+							request,
+							{
+								bundle: run.bundle,
+								expectedRun: run.expectedRun,
+								runId: run.runId
+							},
+							sample
+						),
+						'The classifiable run tree does not list its failing sample.'
+					);
+					runId = run.runId;
+					resultId = result.node.id;
+				}
+			);
+			await when('I open its measurements page', async () => {
+				await measurementsPage.goto(runId, resultId);
+				await measurementsPage.expectLoaded();
+			});
+			await then('the header offers Classify and Apply Rules', () =>
+				measurementsPage.expectClassificationActions()
 			);
 		}
 	);

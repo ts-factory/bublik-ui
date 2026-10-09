@@ -329,18 +329,11 @@ class RunPage {
 			.getByTestId('tw-badge');
 	}
 
-	/** The Classify button on a result's line; only failed or stamped results carry one. */
-	classifyTrigger(table: Locator, index = 0): Locator {
-		return this.resultCells(table, 'obtained-result')
-			.nth(index)
-			.getByTestId('classify-trigger');
-	}
-
 	async resultIdOf(table: Locator, index = 0): Promise<number> {
-		const trigger = this.classifyTrigger(table, index);
-		await expect(trigger).toBeVisible({ timeout: 30_000 });
+		const cell = this.resultCells(table, 'obtained-result').nth(index);
+		await expect(cell).toBeVisible({ timeout: 30_000 });
 
-		return Number(await trigger.getAttribute('data-result-id'));
+		return Number(await cell.getAttribute('data-result-id'));
 	}
 
 	/** The row of the result with this id in an open result table. */
@@ -351,21 +344,56 @@ class RunPage {
 
 		return this.resultCells(table, 'obtained-result').evaluateAll(
 			(cells, id) =>
-				cells.findIndex((cell) =>
-					cell.querySelector(
-						`[data-testid="classify-trigger"][data-result-id="${id}"]`
-					)
+				cells.findIndex(
+					(cell) => cell.getAttribute('data-result-id') === String(id)
 				),
 			resultId
 		);
 	}
 
-	async openClassify(table: Locator, index = 0): Promise<ClassifyDrawer> {
-		await this.classifyTrigger(table, index).click();
+	/**
+	 * Picks a result by a click on its row, clear of the badges and links that
+	 * filter or navigate instead. A click on a picked row drops it, so a picked
+	 * one is left alone.
+	 */
+	async selectResultCell(cell: Locator): Promise<void> {
+		await expect(cell).toBeVisible({ timeout: 30_000 });
+		if ((await cell.getAttribute('data-selected')) === null) {
+			await cell.click({ position: { x: 2, y: 2 } });
+		}
+		await expect(cell).toHaveAttribute('data-selected', '');
+	}
+
+	/** Opens the Classify drawer for the picked results, from the selection popover. */
+	async classifySelection(): Promise<ClassifyDrawer> {
+		const trigger = this.page.getByTestId('bulk-classify-trigger');
+		// The popover opens with the first pick, unless it was shut before:
+		// then only its pill shows, and the pill opens it.
+		await expect(this.page.getByTestId('results-selection-toggle')).toBeVisible(
+			{ timeout: 15_000 }
+		);
+		const opened = await trigger
+			.waitFor({ state: 'visible', timeout: 3_000 })
+			.then(() => true)
+			.catch(() => false);
+		if (!opened) {
+			await this.page.getByTestId('results-selection-toggle').click();
+		}
+		await expect(trigger).toBeEnabled({ timeout: 15_000 });
+		await trigger.click();
 		const drawer = new ClassifyDrawer(this.page);
 		await drawer.expectOpen();
 
 		return drawer;
+	}
+
+	/** The result table offers no Classify button of its own: a picked row is classified. */
+	async openClassify(table: Locator, index = 0): Promise<ClassifyDrawer> {
+		await this.selectResultCell(
+			this.resultCells(table, 'obtained-result').nth(index)
+		);
+
+		return this.classifySelection();
 	}
 
 	/** One stamp per issue under a result's verdicts; `display: contents`, so count them. */
@@ -403,11 +431,9 @@ class RunPage {
 
 	/** The obtained-result cell of the result with this id, wherever it sits. */
 	resultCellOf(table: Locator, resultId: number): Locator {
-		return this.resultCells(table, 'obtained-result').filter({
-			has: this.page.locator(
-				`[data-testid="classify-trigger"][data-result-id="${resultId}"]`
-			)
-		});
+		return table.locator(
+			`[data-column-id="obtained-result"][data-result-id="${resultId}"]`
+		);
 	}
 
 	async expectNoStampForResult(
@@ -517,12 +543,8 @@ class RunPage {
 				);
 
 				return cells.map((cell) => {
-					// The Classify trigger shares the result's line but filters
-					// nothing, so it is not one of the badges to pick from.
 					const items = Array.from(
-						cell.querySelectorAll(
-							'[data-testid="tw-badge"], button:not([data-testid="classify-trigger"])'
-						)
+						cell.querySelectorAll('[data-testid="tw-badge"], button')
 					).map((item) => (item.textContent ?? '').trim());
 
 					if (which === 'result') return items.slice(0, 1);
@@ -611,10 +633,6 @@ class RunPage {
 		}
 	}
 
-	get filtersToggle(): Locator {
-		return this.page.getByRole('button', { name: 'Filters' });
-	}
-
 	facetedFilter(table: Locator, title: ResultFilterTitle): Locator {
 		return table.getByRole('button', { name: new RegExp(`^${title}`) }).first();
 	}
@@ -625,18 +643,24 @@ class RunPage {
 		});
 	}
 
-	async expectToolbarHidden(table: Locator): Promise<void> {
-		await expect(this.facetedFilter(table, 'Obtained Result')).toBeHidden({
-			timeout: 15_000
-		});
+	/** The toolbar's Select All, pressed while every listed result is selected. */
+	selectAllButton(table: Locator): Locator {
+		return table.getByTestId('result-table-select-all');
 	}
 
-	/** Shows the filter toolbar through the Filters toggle unless it is already up. */
-	async ensureToolbarVisible(table: Locator): Promise<void> {
-		if (await this.facetedFilter(table, 'Obtained Result').isVisible()) return;
+	selectedResultCount(table: Locator): Promise<number> {
+		return table
+			.locator('[data-column-id="obtained-result"][data-selected]')
+			.count();
+	}
 
-		await this.filtersToggle.first().click();
-		await this.expectToolbarVisible(table);
+	/** The rows a click or Select All can pick: the plain passes cannot be. */
+	selectableResultCells(table: Locator): Locator {
+		return table.locator('[data-column-id="obtained-result"][data-selectable]');
+	}
+
+	selectableResultCount(table: Locator): Promise<number> {
+		return this.selectableResultCells(table).count();
 	}
 
 	async expectFacetedFilterReports(
@@ -1023,8 +1047,17 @@ class RunPage {
 		await this.expectNotCompromised();
 	}
 
+	/**
+	 * The History links of the table's results, which carry each result's
+	 * parameters; not the test's own one in the filter toolbar, which
+	 * `openTestNodeHistory()` follows.
+	 */
 	historyLink(testName: string): Locator {
-		return this.resultTable(testName).getByRole('link', { name: 'History' });
+		return this.resultTable(testName)
+			.getByRole('link', { name: 'History' })
+			.and(
+				this.page.locator(':not([data-testid="result-table-history-link"])')
+			);
 	}
 
 	async openResultHistoryMenu(testName: string): Promise<void> {
@@ -1043,11 +1076,18 @@ class RunPage {
 		await (section === 'direct' ? items.first() : items.last()).click();
 	}
 
+	/**
+	 * Expands the test row and follows the History link at the end of its
+	 * result table's filter toolbar.
+	 */
 	async openTestNodeHistory(row: Locator): Promise<void> {
-		await row.getByTestId('tree-history-trigger').click();
-		await this.page
-			.getByRole('menuitem', { name: 'History View Of Results In The Run' })
-			.click();
+		const testName = (await row.getAttribute('data-test-name')) ?? '';
+
+		await this.toggleTreeNode(row);
+
+		const table = this.resultTable(testName).first();
+		await expect(table).toBeVisible({ timeout: 60_000 });
+		await table.getByTestId('result-table-history-link').click();
 	}
 }
 

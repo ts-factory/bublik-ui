@@ -113,27 +113,20 @@ class ResultStamps {
 		});
 	}
 
-	/**
-	 * `table` lists exactly `count` results, each with a Classify button and
-	 * none with a stamp.
-	 */
+	/** `table` lists exactly `count` results, none with a stamp. */
 	async expectUnstamped(table: Locator, count: number): Promise<void> {
 		const results = this.run.resultCells(table, 'obtained-result');
 		await expect(results).toHaveCount(count, { timeout: 30_000 });
-		for (let index = 0; index < count; index += 1) {
-			await expect(this.run.classifyTrigger(table, index)).toBeVisible();
-		}
 		await expect(
 			table.locator('[data-testid="result-issue-stamp"]')
 		).toHaveCount(0);
 	}
 
+	/** Picks the result whose obtained-result cell this is, and classifies it. */
 	async openClassify(result: Locator): Promise<ClassifyDrawer> {
-		await result.getByTestId('classify-trigger').click();
-		const drawer = new ClassifyDrawer(this.page);
-		await drawer.expectOpen();
+		await this.run.selectResultCell(result);
 
-		return drawer;
+		return this.run.classifySelection();
 	}
 
 	/** Hovers the stamp's key and expects its tooltip to read `text`. */

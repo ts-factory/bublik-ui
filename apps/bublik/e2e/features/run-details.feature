@@ -99,8 +99,9 @@ Feature: Run details
   # rows: the obtained result, its verdicts, the artifacts, the parameters and the
   # requirements. The Expected Results column looks the same and is deliberately
   # inert. The filters are column filters, kept in the compressed `columnFilters`
-  # query parameter, so they have to survive a reload — and the toolbar's faceted
-  # pickers are the same state seen from the other side.
+  # query parameter, so they have to survive a reload — and the faceted pickers
+  # of the toolbar pinned above the table are the same state seen from the other
+  # side. The toolbar is always shown; there is no toggle to hide it.
   #
   # Two runs are used: no fixture test reports both artifacts and requirements,
   # and the runs that report requirements are the large ones.
@@ -126,31 +127,28 @@ Feature: Run details
     Then only the iterations carrying that parameter are listed
     And the Parameters filter of the toolbar reports it
 
-  # The toolbar is shown whenever a filter is applied, whatever the toggle says,
-  # so a badge click reveals it without the toggle being touched.
   @run
-  Scenario: Clicking a badge reveals the result table filter toolbar
+  Scenario: The filter toolbar is always shown above the result table
     Given I open a run with the result table of a test that reports artifacts expanded
-    Then the filter toolbar is hidden
-    When I click the obtained result badge of the first row
     Then the filter toolbar is shown
+    And no toolbar filter reports a selection
 
+  # The selection spans tables and lives in local storage, so the button
+  # counts only the rows of its own table: pressed, every one of them that
+  # can be classified is selected; pressed again, every one of them is
+  # dropped. A plain pass cannot be classified, so it is never picked.
   @run
-  Scenario: The Filters toggle shows and hides the result table toolbar
+  Scenario: Select All picks every listed classifiable result for classifying at once
     Given I open a run with the result table of a test that reports artifacts expanded
-    When I press Filters in the Requirements header
-    Then the filter toolbar is shown
-    When I press Filters again
-    Then the filter toolbar is hidden
+    When I press Select All in the toolbar
+    Then every listed classifiable result is selected and the button is pressed
+    When I press Select All again
+    Then no listed result is selected and the button is released
 
-  # The toolbar is only kept on screen once it has been asked for, so Reset —
-  # which drops the filters that were holding it open — would otherwise take the
-  # toolbar with it and leave nothing to assert against.
   @run
   Scenario: Reset clears every result table filter
     Given I open a run with the result table of a test that reports artifacts expanded
-    When I press Filters in the Requirements header
-    And I click an artifact badge that only some of the results carry
+    When I click an artifact badge that only some of the results carry
     Then only the results carrying that artifact are listed
     When I press Reset in the filter toolbar
     Then every result of that test is listed again
@@ -307,6 +305,63 @@ Feature: Run details
     Then the run page for that run is open
     And no unexpected filter is recorded in the URL
 
+  ####################################################################
+  # Classification
+  ####################################################################
+
+  # The classifiable run is a NOK run no other scenario asserts counts on, so
+  # stamping its failures as expected disturbs nothing else. Each scenario
+  # deletes the issue it created — stamps included — before it ends.
+
+  @run @issues @issues-write @needs-nok
+  Scenario: Classifying a failing result stamps it in the result table
+    Given I open the result table of a failing test of the fixture run
+    When I classify its first result as an expected known issue
+    Then the result carries a stamp for that issue with a Known badge
+    When I click the stamp's Known badge
+    Then the Category filter reports the known issue category
+    And the column filters are written to the URL
+    When I reset the result filters
+    And I pick Suppressed in the Classification filter
+    Then the Classification filter reports Suppressed and the result is still listed
+    When I delete the issue and come back to the result table
+    Then the stamp is gone from the result
+
+  @run @issues @needs-nok
+  Scenario: The Classify drawer defaults to a new issue to investigate for future runs
+    Given I open the result table of a failing test of the fixture run
+    When I open the Classify drawer of its first result
+    Then it proposes a new issue to investigate, marked, for this and future runs, matching every dimension
+    When I drop every match dimension but the path
+    Then no match dimension is on
+    When I turn the Verdicts dimension back on
+    Then the rule matches on the path and verdicts
+    And I close the drawer
+
+  @run @issues @needs-nok
+  Scenario: The Classify drawer needs a title or an existing issue
+    Given I open the Classify drawer of a failing result of the fixture run
+    When I submit it without a title
+    Then I am told a title is required
+    When I switch to an existing issue and submit again
+    Then I am told to select an issue
+    And I close the drawer
+
+  @run @issues @issues-write @needs-nok
+  Scenario: A one-off classification stamps just this result
+    Given I record an issue for the fixture project
+    And I open the result table of a failing test of the fixture run
+    When I classify its first result against that issue for this result only
+    Then the result carries a stamp for that issue
+    And the issues page counts one result under the issue
+    And I delete the issue
+
+  @run @issues @needs-classification
+  Scenario: The run header links to the run's issues
+    Given I open the page of a run the seed classified
+    When I follow the Issues link in the header
+    Then the run's issues page is open
+
   # Runs without the shared signed-in storage state.
   @run @compromised @auth
   Scenario: Marking a run as compromised while signed out asks me to sign in
@@ -323,6 +378,18 @@ Feature: Run details
     Then adding a note is disabled with a hint to log in
     When I click it anyway
     Then I am asked to sign in to add notes
+    When I close the sign-in dialog
+    Then the sign-in dialog is closed
+    And I am still on the run page
+
+  @run @issues @auth @needs-nok
+  Scenario: Classifying while signed out asks me to sign in
+    Given I am signed out and open the result table of a failing test of the fixture run
+    When I pick its first result
+    Then the Classify action is disabled with a hint to log in
+    And the Apply Rules action in the header is disabled with a hint to log in
+    When I click the Classify action anyway
+    Then I am asked to sign in to classify results
     When I close the sign-in dialog
     Then the sign-in dialog is closed
     And I am still on the run page
