@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { BooleanParam, useQueryParam, withDefault, routes } from '@/router';
+import { routes } from '@/router';
 
 import { RunDetailsAPIResponse } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
@@ -19,7 +19,7 @@ import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { LinkWithProject } from '@/bublik/features/projects';
 
-const IsOpenParam = withDefault(BooleanParam, true);
+import { useRunReportFullMode } from '../run-report-route.hooks';
 
 interface RunReportHeaderProps {
 	label: string;
@@ -29,7 +29,7 @@ interface RunReportHeaderProps {
 
 function RunReportHeader(props: RunReportHeaderProps) {
 	const { label, runId, details } = props;
-	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
+	const [isModeFull, setIsModeFull] = useRunReportFullMode();
 
 	return (
 		<>

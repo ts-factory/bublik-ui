@@ -1,16 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2025 OKTET LTD */
 import { useMemo, createContext, useContext, useCallback } from 'react';
-import { ArrayParam, BooleanParam, useQueryParam, withDefault } from '@/router';
 
 import { useGetRunReportQuery } from '@/services/bublik-api';
 import { resetSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 
-import {
-	RUN_REPORT_STACKED_SELECTED_STORAGE_KEY,
-	SELECTED_RECORDS_FOR_STACKED_KEY,
-	STACKED_DRAWER_KEY
-} from './run-report-stacked.constants';
+import { RUN_REPORT_STACKED_SELECTED_STORAGE_KEY } from './run-report-stacked.constants';
 import { Icon, ToolbarButton, Tooltip } from '@/shared/tailwind-ui';
 import {
 	ArgsValBlock,
@@ -18,6 +13,8 @@ import {
 	RecordBlock,
 	ReportChart
 } from '@/shared/types';
+
+import { useRunReportStackedSearch } from '../run-report-route.hooks';
 
 export type RecordWithContext = RecordBlock & {
 	chart?: ReportChart;
@@ -58,18 +55,8 @@ function useRunReportStackedContext() {
 }
 
 function useRunReportStackedState(runId: number, configId: number) {
-	const [_selectedIds = [], _setSelectedIds] = useQueryParam(
-		SELECTED_RECORDS_FOR_STACKED_KEY,
-		withDefault(ArrayParam, [])
-	);
-	const [isStackedOpen = false, setIsStackedOpen] = useQueryParam(
-		STACKED_DRAWER_KEY,
-		withDefault(BooleanParam, false)
-	);
-	const selectedIds = useMemo(
-		() => _selectedIds.filter((id): id is string => id !== null),
-		[_selectedIds]
-	);
+	const { selectedIds, isStackedOpen, setSelectedIds, setIsStackedOpen } =
+		useRunReportStackedSearch();
 	const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 	const { data } = useGetRunReportQuery({ runId, configId });
 
@@ -113,9 +100,9 @@ function useRunReportStackedState(runId: number, configId: number) {
 		(id: string) => {
 			if (selectedIdSet.has(id)) return;
 
-			_setSelectedIds([...selectedIds, id]);
+			setSelectedIds([...selectedIds, id]);
 		},
-		[_setSelectedIds, selectedIdSet, selectedIds]
+		[setSelectedIds, selectedIdSet, selectedIds]
 	);
 
 	const removeId = useCallback(
@@ -126,15 +113,15 @@ function useRunReportStackedState(runId: number, configId: number) {
 				resetSelectionPopoverOpenState(RUN_REPORT_STACKED_SELECTED_STORAGE_KEY);
 			}
 
-			_setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+			setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
 		},
-		[_setSelectedIds, selectedIdSet, selectedIds]
+		[setSelectedIds, selectedIdSet, selectedIds]
 	);
 
 	const clearIds = useCallback(() => {
 		resetSelectionPopoverOpenState(RUN_REPORT_STACKED_SELECTED_STORAGE_KEY);
-		_setSelectedIds([]);
-	}, [_setSelectedIds]);
+		setSelectedIds([]);
+	}, [setSelectedIds]);
 
 	const toggleId = useCallback(
 		(id: string) => {

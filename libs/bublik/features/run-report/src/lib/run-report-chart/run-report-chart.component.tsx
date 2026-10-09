@@ -4,8 +4,6 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
-import { useParams } from '@/router';
-
 import { MeasurementChartToolbar, Plot } from '@/shared/charts';
 import { ReportChart } from '@/shared/types';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
@@ -17,6 +15,7 @@ import {
 	resolveRunReportChartOptions
 } from './run-report-chart.utils';
 import { useRunReportChartState } from './run-report-chart.hooks';
+import { useRunReportRunId } from '../run-report-route.hooks';
 
 interface RunReportChartProps {
 	chart: ReportChart;
@@ -27,7 +26,7 @@ interface RunReportChartProps {
 
 function RunReportChart(props: RunReportChartProps) {
 	const { chart, isFullScreen = false, stackedButton, idx } = props;
-	const { runId } = useParams<{ runId: string }>();
+	const runId = useRunReportRunId();
 	const [resultId, setResultId] = useState<number>();
 	const [open, setOpen] = useState(false);
 
@@ -113,7 +112,7 @@ function RunReportChart(props: RunReportChartProps) {
 	return (
 		<>
 			<LogPreviewContainer
-				runId={Number(runId)}
+				runId={runId}
 				resultId={resultId}
 				measurementId={resultId}
 				open={open}
