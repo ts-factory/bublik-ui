@@ -458,3 +458,29 @@ Feature: History
     When I open that link and edit the search
     Then the form shows the test path, the hash and the tag expression the link pinned
 
+
+  ####################################################################
+  # Classification
+  ####################################################################
+
+  # The Classification section of the search form writes four params the
+  # backend filters on. The issue it narrows to is one this scenario stamps
+  # from the run page first; history itself offers no Classify button.
+
+  @history @issues @url-params
+  Scenario: Classification filters are written to the history URL and shown in the legend
+    Given I open the history for a fixture test path
+    When I tick Untriaged, Explained and the Known category in the search form and apply it
+    Then the triage state and the category are written to the URL
+    And the legend shows them as filters
+
+  @history @issues @issues-write @needs-nok @url-params
+  Scenario: Filtering history by issue shows the stamped results
+    Given I classify a failing result of the fixture run as an expected known issue
+    When I open the history of that test narrowed to the issue
+    Then the results carry the issue’s stamp
+    And the legend names the issue
+    And no Classify button is offered in the table
+    When I click the stamp's Known badge
+    Then the category is written to the URL and the page is the first
+    And I delete the issue from its page
