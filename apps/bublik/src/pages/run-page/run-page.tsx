@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useState } from 'react';
-import { useParams, routes } from '@/router';
+import { getRouteApi } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
@@ -27,11 +27,38 @@ import {
 	ScrollToTopPage,
 	Separator
 } from '@/shared/tailwind-ui';
-import { RunPageParams } from '@/shared/types';
+import { LogPageMode } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+
+const runRoute = getRouteApi('/_app/runs/$runId/');
+
+interface RunLinkProps {
+	runId: string;
+}
+
+/** The log of the whole run, in the full layout (as `routes.log` wrote it). */
+function RunLogLink({ runId }: RunLinkProps) {
+	return (
+		<ButtonTw asChild variant="secondary" size="xss">
+			<TypedLinkWithProject
+				to="/log/$runId"
+				params={{ runId }}
+				search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+				onClick={() => {
+					trackEvent(analyticsEventNames.runOpenLogClick, {
+						source: 'header'
+					});
+				}}
+			>
+				<Icon name="BoxArrowRight" className="mr-1.5" />
+				Log
+			</TypedLinkWithProject>
+		</ButtonTw>
+	);
+}
 
 export interface RunHeaderProps {
 	runId: string;
@@ -39,9 +66,6 @@ export interface RunHeaderProps {
 
 const RunHeader = ({ runId }: RunHeaderProps) => {
 	const [isModeFull, setIsModeFull] = useState(false);
-
-	const link = new URL(window.location.href);
-	link.searchParams.delete('rowState');
 
 	const handleModeToggle = () => {
 		trackEvent(analyticsEventNames.runModeToggle, {
@@ -63,19 +87,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject
-							to={routes.log({ runId })}
-							onClick={() => {
-								trackEvent(analyticsEventNames.runOpenLogClick, {
-									source: 'header'
-								});
-							}}
-						>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Log
-						</LinkWithProject>
-					</ButtonTw>
+					<RunLogLink runId={runId} />
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<DefineCompromiseContainer runId={runId} />
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
@@ -91,7 +103,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 };
 
 export const RunPage = () => {
-	const { runId } = useParams<RunPageParams>();
+	const { runId } = runRoute.useParams();
 	usePrefetchLogPage({ runId });
 
 	if (!runId) {
@@ -112,3 +124,5 @@ export const RunPage = () => {
 		</div>
 	);
 };
+
+export { RunLogLink };

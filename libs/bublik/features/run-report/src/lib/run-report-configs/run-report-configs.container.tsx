@@ -1,6 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useState } from 'react';
+import {
+	forwardRef,
+	useState,
+	type AnchorHTMLAttributes,
+	type Ref
+} from 'react';
 
 import { useGetRunReportConfigsQuery } from '@/services/bublik-api';
 import {
@@ -15,7 +20,32 @@ import {
 	Separator,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
+
+interface RunReportConfigLinkProps
+	extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+	runId: string | number;
+	configId: number;
+}
+
+/**
+ * The run's report page for one config (`/runs/$runId/report?config=`); the
+ * menu item's props and ref reach the anchor.
+ */
+const RunReportConfigLink = forwardRef(function RunReportConfigLink(
+	{ runId, configId, ...props }: RunReportConfigLinkProps,
+	ref: Ref<HTMLAnchorElement>
+) {
+	return (
+		<TypedLinkWithProject
+			ref={ref}
+			{...props}
+			to="/runs/$runId/report"
+			params={{ runId: String(runId) }}
+			search={{ config: configId }}
+		/>
+	);
+});
 
 interface RunReportConfigsContainerProps {
 	runId: string | number;
@@ -69,15 +99,13 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 								sideOffset={8}
 							>
 								<DropdownMenuItem asChild className="pl-2 gap-4">
-									<LinkWithProject
-										to={`/runs/${runId}/report?config=${config.id}`}
-									>
+									<RunReportConfigLink runId={runId} configId={config.id}>
 										{config.name}
 										<Icon
 											name="BoxArrowRight"
 											className="text-primary ml-auto w-4 h-4"
 										/>
-									</LinkWithProject>
+									</RunReportConfigLink>
 								</DropdownMenuItem>
 							</Tooltip>
 						))}
@@ -88,4 +116,4 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 	);
 }
 
-export { RunReportConfigsContainer };
+export { RunReportConfigLink, RunReportConfigsContainer };

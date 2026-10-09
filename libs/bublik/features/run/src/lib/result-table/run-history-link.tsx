@@ -3,9 +3,8 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
-import { To, legacyStringifySearch } from '@/router';
 import {
 	ButtonTw,
 	Icon,
@@ -14,17 +13,26 @@ import {
 	TOOLBAR_LABEL_CLASS,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { HistorySearchBuilder } from '@/shared/utils';
+import {
+	HistorySearchBuilder,
+	historySearch,
+	type HistoryRouteSearch
+} from '@/shared/utils';
 
-function getHistoryViewLink(
+/**
+ * The `/history` search of the test's results in these runs: the
+ * builder's wire strings, read as the history route reads them, so its
+ * codecs write the same bytes back (`runIds` `;`-joined).
+ */
+export function getHistoryViewSearch(
 	path: string[],
 	runIds: number[],
 	maybeDate?: string
-): To {
+): HistoryRouteSearch {
 	const query = new HistorySearchBuilder(path.join('/')).withRunIds(runIds);
 	if (maybeDate) query.withAnchorDate(maybeDate);
 
-	return { pathname: '/history', search: legacyStringifySearch(query.build()) };
+	return historySearch.validateSearch(query.build());
 }
 
 export interface RunHistoryLinkProps {
@@ -38,7 +46,7 @@ export interface RunHistoryLinkProps {
  */
 export function RunHistoryLink({ runIds, path }: RunHistoryLinkProps) {
 	const { data } = useGetRunDetailsQuery(runIds[0] ?? skipToken);
-	const historyLink = getHistoryViewLink(path, runIds, data?.finish);
+	const historySearchOfRuns = getHistoryViewSearch(path, runIds, data?.finish);
 
 	return (
 		<Tooltip content="History view of results in the run">
@@ -48,8 +56,9 @@ export function RunHistoryLink({ runIds, path }: RunHistoryLinkProps) {
 				className={TOOLBAR_BUTTON_CLASS}
 				asChild
 			>
-				<LinkWithProject
-					to={historyLink}
+				<TypedLinkWithProject
+					to="/history"
+					search={historySearchOfRuns}
 					data-testid="result-table-history-link"
 					aria-label="History"
 					onClick={() =>
@@ -61,7 +70,7 @@ export function RunHistoryLink({ runIds, path }: RunHistoryLinkProps) {
 				>
 					<Icon name="BoxArrowRight" size={20} className={TOOLBAR_ICON_CLASS} />
 					<span className={TOOLBAR_LABEL_CLASS}>History</span>
-				</LinkWithProject>
+				</TypedLinkWithProject>
 			</ButtonTw>
 		</Tooltip>
 	);
