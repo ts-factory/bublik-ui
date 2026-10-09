@@ -111,6 +111,10 @@ describe('<CellLink />', () => {
 	it.each([
 		['tree', '/v2/log/42?mode=treeAndinfoAndlog&_s=abc&project=3'],
 		['runs', '/v2/runs/42?_s=abc&project=3'],
+		['runs', '/v2/runs/42?_s=abc&project=3', '42'],
+		// An id the route would rewrite keeps its bytes, as before
+		['runs', '/v2/runs/042?_s=abc&project=3', '042'],
+		['tree', '/v2/log/042?mode=treeAndinfoAndlog&_s=abc&project=3', '042'],
 		['history', '/v2/history/42?_s=abc&project=3', 42],
 		// A run handler whose params carry the rest of the path and a query
 		// (the report link the dashboard renders for a configured report).
