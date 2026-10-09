@@ -1,0 +1,44 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useMemo } from 'react';
+
+import type { IssueCategory, RunIssueRow } from '@/shared/types';
+
+import {
+	CATEGORY_ORDER,
+	EFFECT_ORDER,
+	RUN_ISSUE_EFFECT_META
+} from '../classification/classification.constants';
+import {
+	categoryMeta,
+	issueStateMeta,
+	runIssueEffect
+} from '../classification/classification.utils';
+import { buildFacetOptions } from '../classification-table/classification-table.utils';
+
+export function useFacetOptions(issues: RunIssueRow[]) {
+	return useMemo(
+		() => ({
+			stateOptions: buildFacetOptions({
+				values: issues.map((issue) => issue.state),
+				order: ['open', 'closed'] as const,
+				labelFor: (state) => issueStateMeta(state).label
+			}),
+			effectOptions: buildFacetOptions({
+				values: issues.map((issue) => runIssueEffect(issue).value),
+				order: EFFECT_ORDER,
+				labelFor: (effect) => RUN_ISSUE_EFFECT_META[effect].label,
+				keywordsFor: (effect) => [RUN_ISSUE_EFFECT_META[effect].displayValue]
+			}),
+			categoryOptions: buildFacetOptions({
+				values: issues.flatMap((issue) =>
+					Array.from(new Set(issue.rules.map((rule) => rule.category)))
+				) as IssueCategory[],
+				order: CATEGORY_ORDER,
+				labelFor: (category) => categoryMeta(category).label,
+				keywordsFor: (category) => [categoryMeta(category).displayValue]
+			})
+		}),
+		[issues]
+	);
+}
