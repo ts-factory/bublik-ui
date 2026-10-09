@@ -4,9 +4,11 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { HistoryPageV2 } from '../../../pages/history-page';
 import { historySearch } from '../../-search/history.search';
+import { redirectOldUrl } from '../../-redirect-old-url';
 
 export const Route = createFileRoute('/_app/history/')({
 	validateSearch: historySearch.validateSearch,
 	search: { middlewares: historySearch.middlewares },
+	beforeLoad: redirectOldUrl,
 	component: HistoryPageV2
 });
