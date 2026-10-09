@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithRouter } from '@/router/testing';
 import { DASHBOARD_MODE } from '@/shared/types';
 
-import { dashboardSearch } from '../search';
+import { dashboardSearch } from '@/shared/utils';
 import {
 	DASHBOARD_TABLE_ID,
 	useDashboardClock,

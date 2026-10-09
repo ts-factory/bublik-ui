@@ -3,7 +3,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { bool01, defineSearch, num, repeated } from '@/router';
 import { renderWithRouter } from '@/router/testing';
 
 import {
@@ -11,14 +10,7 @@ import {
 	type TableOfContentsItem
 } from './run-report.component';
 import { RUN_REPORT_ROUTE_ID } from './run-report-route.hooks';
-
-/** `runReportSearch` of the app (see `run-report-route.hooks.spec.tsx`). */
-const runReportSearch = defineSearch({
-	config: num(),
-	isFullMode: bool01(),
-	'selected-records': repeated(),
-	'stacked-drawer': bool01()
-});
+import { runReportSearch } from '@/shared/utils';
 
 const CONTENTS: TableOfContentsItem[] = [
 	{

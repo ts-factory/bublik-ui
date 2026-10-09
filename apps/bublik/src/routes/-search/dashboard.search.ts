@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /**
- * `/dashboard`. The schema lives in the dashboard lib, whose
- * hooks read and write its keys and whose specs mount it on the test
- * router; the route file and the schema specs take it from here.
+ * `/dashboard`. A lib reads the schema, so it is defined in
+ * `@/shared/utils` (`lib/dashboard-search.ts`), with the legacy `?dates=` rewrite the route runs.
  */
-export { dashboardSearch } from '@/bublik/features/dashboard-v2';
-export type { DashboardSearch } from '@/bublik/features/dashboard-v2';
+export { dashboardSearch, rewriteLegacyDates } from '@/shared/utils';
+export type { DashboardSearch } from '@/shared/utils';

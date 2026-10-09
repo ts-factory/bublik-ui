@@ -3,7 +3,6 @@
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { bool01, defineSearch, num, repeated } from '@/router';
 import {
 	renderHookWithRouter,
 	type RenderWithRouterOptions
@@ -21,17 +20,7 @@ import {
 	useRunReportStackedSearch,
 	useScrollToReportHash
 } from './run-report-route.hooks';
-
-/**
- * `runReportSearch` of `apps/bublik/src/routes/-search/run-report.search.ts`,
- * which a lib cannot import; `search-schemas.spec.ts` pins the app's copy.
- */
-const runReportSearch = defineSearch({
-	config: num(),
-	isFullMode: bool01(),
-	'selected-records': repeated(),
-	'stacked-drawer': bool01()
-});
+import { runReportSearch } from '@/shared/utils';
 
 function atReport<Result>(
 	hook: () => Result,

@@ -9,7 +9,7 @@ import {
 	str,
 	type InferSearch
 } from '@/router';
-import { formatTimeToAPI, parseTimeApi } from '@/shared/utils';
+import { formatTimeToAPI, parseTimeApi } from './time';
 
 /**
  * `/dashboard`, the route's search schema: the route file wires

@@ -19,7 +19,9 @@ import {
 	useRunsSelection
 } from './hooks';
 import type { RunsFormValues } from './runs-form/runs-form.component';
-import { RUNS_ROUTE } from './testing/runs-route';
+import { runsSearch } from '@/shared/utils';
+
+const RUNS_ROUTE = { id: '/_app/_runs/runs', search: runsSearch };
 
 vi.mock('react-redux', () => ({
 	useDispatch: () => vi.fn(),

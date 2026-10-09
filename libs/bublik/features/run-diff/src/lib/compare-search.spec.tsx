@@ -1,10 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { act } from '@testing-library/react';
-import type { VisibilityState } from '@tanstack/react-table';
 import { describe, expect, it } from 'vitest';
 
-import { defineSearch, json, str } from '@/router';
 import { renderHookWithRouter, type TestRoute } from '@/router/testing';
 
 import {
@@ -12,16 +10,11 @@ import {
 	useCompareExpanded,
 	useCompareRunIds
 } from './compare-search';
+import { compareSearch } from '@/shared/utils';
 
-/** `/compare` as `apps/bublik/src/routes/-search/compare.search.ts` wires it. */
 const COMPARE_ROUTE: TestRoute = {
 	id: '/_app/_runs/compare',
-	search: defineSearch({
-		left: str(),
-		right: str(),
-		expanded: json<Record<string, boolean>>(),
-		columnVisibility: json<VisibilityState>()
-	})
+	search: compareSearch
 };
 
 const PAIR = 'left=1132&right=1151';

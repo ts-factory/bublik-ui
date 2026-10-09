@@ -14,7 +14,7 @@ import type { ImportTaskFilters } from '@/shared/types';
 
 /**
  * `/admin/import`'s search as its route schema types it
- * (`apps/bublik/src/routes/-search/import.search.ts`): the filter
+ * (`importSearch` in `@/shared/utils`): the filter
  * form, the pagination and the expanded rows as JSON, the open task log and
  * whether it polls.
  */

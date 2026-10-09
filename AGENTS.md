@@ -157,19 +157,39 @@ Use shared utilities from `@/shared/utils`:
   `defineSearch(shape, defaults)`, never with TanStack's default JSON codec.
   Read through `getRouteApi('<route id>').useSearch({ select })` over the
   schema's `withDefaults` (defaults live in the reader, never in
-  `validateSearch`); write through `useSearchWriter` (replace, merge) or the
-  route's `useNavigate` with a functional `search`
+  `validateSearch`), or `useAnySearch(select)` in a lib serving several
+  routes; write through `useSearchWriter`/`writeSearch` (replace and merge
+  by default; a functional update, `replace: false`, `keepState: false` for
+  the pushes that dropped `location.state`), never a hand-rolled
+  `router.navigate` on `currentLocation`
+- A route's search schema is defined once: in
+  `apps/bublik/src/routes/-search/<page>.search.ts` when only the app reads
+  it, in `@/shared/utils` (`lib/<page>-search.ts`) when a lib reads it (its
+  code or its specs), and the route file imports it through `-search`
+  either way. Not in a feature lib: the route files are not code-split, so a
+  feature barrel imported there lands in the entry chunk (the classification
+  tables, built by their lib's factory, are the one exception). Specs import
+  the real schema; nothing re-declares one, except the test helpers inside
+  `@/router`, which cannot import the app or `@/shared/utils` (the root
+  schema copy in `@/router/testing` is pinned to the app's)
 - Links and navigation are typed: TanStack `Link`/`useNavigate`/`linkOptions`
   with `to` + `params` + `search`, passing `resetScroll={false}` and
   `activeProps={{}}` (React Router neither scrolled nor added an active
-  class); `LinkWithProject`/`useNavigateWithProject` to carry `project`, `_s`
-  and `hide-sidebar`; the `routes.*` builders for run, log, measurements and
-  issue targets. `RouterLink` from `@/router` (those defaults built in) is
-  only for a target assembled at runtime. Never hand-build an internal URL
-  string: lint rejects a `/` literal or template as `to`/`href` of anything
-  but TanStack `Link`/`Navigate` and `TypedLinkWithProject`, and as the
-  argument of a `navigate*` call; an untyped API that needs a path takes
-  `linkOptions({ to: '/dashboard' }).to`
+  class); `LinkWithProject`/`useNavigateWithProject` (same typed props) to
+  carry `project`, `_s` and `hide-sidebar`. `RouterLink` from `@/router` and
+  `RouterLinkWithProject`/`useRouterNavigateWithProject` take a string target
+  and are only for one assembled at runtime (a remembered URL, a path the API
+  returns, a same-page anchor); the sidebar-nav items take string targets
+  for that reason, a static one passed as `linkOptions({ to }).to`. Never
+  hand-build an internal URL string:
+  `pnpm run links:check` (CI, type-aware over the app's program) rejects a
+  `/` literal or template that lands, through any component, object or
+  `navigate…` call, in a `to`/`href`/`pathname` the route tree does not
+  type; an untyped API that needs a path takes
+  `linkOptions({ to: '/dashboard' }).to`, a route pattern is a `RoutePath`.
+  The gate follows a literal through `?:`, `||`, `??` and casts, not through
+  a variable or a return value: keep a fallback path in a
+  `linkOptions(...).to` constant too
 - Location: `useRenderedLocation()` is the page on screen;
   `useLatestLocation()`/`currentLocation(router)` is what a write builds on.
   Never write from `window.location` and never touch `window.history`
@@ -188,7 +208,9 @@ Use shared utilities from `@/shared/utils`:
   (`apps/bublik/src/routes/-loaders.ts`): `dispatch(initiate(arg, {
   subscribe: false }))`, awaited but never unwrapped, with the exact argument
   the page passes. Links preload on intent; a `target="_blank"` link never
-  does. Routing specs pass `inertRouterContext` to `createAppRouter`
+  does, so a page does not prefetch the pages it links to on mount, and a
+  hover `usePrefetch` is only for a request no loader starts. Routing specs
+  pass `inertRouterContext` to `createAppRouter`
 - Specs render through `renderWithRouter`/`renderHookWithRouter` from
   `@/router/testing` and assert on `router.history.location`; never mock a
   router module

@@ -1,20 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { defineSearch, enumOf, repeatedNum, type InferSearch } from '@/router';
-
 /**
- * `/runs/$runId/results/$resultId/measurements`. Links always
- * write `mode=default` explicitly; the sidebar strips it from stored URLs.
+ * `/runs/$runId/results/$resultId/measurements`. A lib reads the schema, so it is defined in `@/shared/utils`
+ * (`lib/measurements-search.ts`).
  */
-const measurementsSearch = defineSearch(
-	{
-		mode: enumOf(['default', 'charts', 'tables', 'split', 'overlay']),
-		selectedCharts: repeatedNum()
-	},
-	{ mode: 'default', selectedCharts: [] }
-);
-
-type MeasurementsSearch = InferSearch<typeof measurementsSearch>;
-
-export { measurementsSearch };
-export type { MeasurementsSearch };
+export { measurementsSearch } from '@/shared/utils';
+export type { MeasurementsSearch } from '@/shared/utils';

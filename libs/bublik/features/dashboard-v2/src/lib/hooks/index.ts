@@ -16,9 +16,11 @@ import {
 import { useProjectSearch } from '@/bublik/features/projects';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DASHBOARD_MODE } from '@/shared/types';
-import { formatTimeToAPI } from '@/shared/utils';
-
-import { dashboardSearch, type DashboardSearch } from '../search';
+import {
+	dashboardSearch,
+	formatTimeToAPI,
+	type DashboardSearch
+} from '@/shared/utils';
 
 /** The dashboard route (`routes/_app/dashboard.tsx`), typed by the app's route tree. */
 const dashboardRoute = getRouteApi('/_app/dashboard');

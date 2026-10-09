@@ -14,6 +14,14 @@ export * from './lib/compress-tests';
 export * from './lib/router';
 export * from './lib/history-search';
 export * from './lib/run-search';
+export * from './lib/dashboard-search';
+export * from './lib/multiple-search';
+export * from './lib/measurements-search';
+export * from './lib/admin-analytics-search';
+export * from './lib/import-search';
+export * from './lib/run-report-search';
+export * from './lib/compare-search';
+export * from './lib/runs-search';
 export * from './lib/form';
 export * from './lib/log-tree';
 
