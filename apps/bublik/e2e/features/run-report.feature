@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/run-report.spec.ts — see features/README.md.
+#
+# Route: /runs/$runId/report
 
 Feature: Run report
 

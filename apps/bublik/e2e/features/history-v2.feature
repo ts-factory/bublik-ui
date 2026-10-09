@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/history-v2.spec.ts — see features/README.md.
+#
+# Route: /history/v2
 
 Feature: History v2 alias
 

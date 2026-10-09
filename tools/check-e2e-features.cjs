@@ -6,8 +6,10 @@ const path = require('path');
 const REPO_ROOT = path.resolve(__dirname, '..');
 const E2E_RELATIVE_DIR = 'apps/bublik/e2e';
 const FEATURES_RELATIVE_DIR = `${E2E_RELATIVE_DIR}/features`;
+const ROUTE_TREE_RELATIVE_PATH = 'apps/bublik/src/routeTree.gen.ts';
 const E2E_DIR = path.join(REPO_ROOT, E2E_RELATIVE_DIR);
 const FEATURES_DIR = path.join(REPO_ROOT, FEATURES_RELATIVE_DIR);
+const ROUTE_TREE_PATH = path.join(REPO_ROOT, ROUTE_TREE_RELATIVE_PATH);
 
 const SCENARIO_KEYWORDS = ['Scenario', 'Example'];
 const OUTLINE_KEYWORDS = ['Scenario Outline', 'Scenario Template'];
@@ -52,11 +54,40 @@ function matchKeyword(line, keywords) {
 	return null;
 }
 
+/**
+ * The page routes of the generated route tree: every route in its
+ * `FileRoutesByPath` that has no child route (layouts and pathless routes
+ * only wrap pages), as `{ id, fullPath }`.
+ */
+function parseRouteTree() {
+	const source = readFileSync(ROUTE_TREE_PATH, 'utf-8');
+	const block = source.match(/interface FileRoutesByPath \{([\s\S]*?)\n {2}\}/);
+	if (!block) {
+		throw new Error(`${ROUTE_TREE_RELATIVE_PATH} has no FileRoutesByPath`);
+	}
+
+	const routes = [];
+	const entry = /id: '([^']*)';\s*path: '[^']*';\s*fullPath: '([^']*)';/g;
+	for (const [, id, fullPath] of block[1].matchAll(entry)) {
+		routes.push({ id, fullPath });
+	}
+
+	// An index route (`/_app/`) is always a page; any other route is a
+	// layout when another route's id continues it.
+	return routes.filter(
+		({ id }) =>
+			id.endsWith('/') || !routes.some((other) => other.id.startsWith(`${id}/`))
+	);
+}
+
+const ROUTE_COMMENT = /^#\s*Route:\s*(\S+)\s*$/;
+
 function parseFeature(absolutePath) {
 	const lines = readFileSync(absolutePath, 'utf-8').split(/\r?\n/);
 	const feature = {
 		file: relative(absolutePath),
 		name: null,
+		routes: [],
 		scenarios: [],
 		errors: []
 	};
@@ -76,6 +107,12 @@ function parseFeature(absolutePath) {
 	lines.forEach((rawLine, index) => {
 		const lineNumber = index + 1;
 		const line = rawLine.trim();
+
+		const route = line.match(ROUTE_COMMENT);
+		if (route) {
+			feature.routes.push({ path: route[1], line: lineNumber });
+			return;
+		}
 
 		if (!line || line.startsWith('#')) return;
 
@@ -226,6 +263,27 @@ function main() {
 		}
 	}
 
+	const pageRoutes = parseRouteTree();
+	const declared = new Map();
+	for (const feature of features) {
+		for (const route of feature.routes) {
+			const at = `${feature.file}:${route.line}`;
+			if (!pageRoutes.some(({ fullPath }) => fullPath === route.path)) {
+				errors.push(
+					`${at} "# Route: ${route.path}" is not a page route of ${ROUTE_TREE_RELATIVE_PATH}`
+				);
+			}
+			if (!declared.has(route.path)) declared.set(route.path, at);
+		}
+	}
+	for (const { id, fullPath } of pageRoutes) {
+		if (!declared.has(fullPath)) {
+			errors.push(
+				`route "${fullPath}" (${id}) has no feature file: add "# Route: ${fullPath}" to the .feature that covers it`
+			);
+		}
+	}
+
 	const orphans = titles.filter((title) => !matchedTitles.has(title.text));
 
 	if (!quiet) {
@@ -234,6 +292,9 @@ function main() {
 		);
 		console.log(
 			`${E2E_RELATIVE_DIR}: ${specFiles.length} spec file(s), ${titles.length} test title(s)`
+		);
+		console.log(
+			`${ROUTE_TREE_RELATIVE_PATH}: ${pageRoutes.length} page route(s), ${declared.size} with a feature file`
 		);
 
 		if (orphans.length && listOrphans) {
@@ -259,7 +320,11 @@ function main() {
 		process.exit(1);
 	}
 
-	if (!quiet) console.log('\nEvery scenario has a matching Playwright test.');
+	if (!quiet) {
+		console.log(
+			'\nEvery route has a feature file and every scenario a matching Playwright test.'
+		);
+	}
 }
 
 main();

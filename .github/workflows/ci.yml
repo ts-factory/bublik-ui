@@ -42,6 +42,9 @@ jobs:
       - name: Code Linting
         run: pnpm run lint
 
+      - name: Router gate
+        run: pnpm run router:check
+
   typecheck:
     runs-on: ubuntu-latest
     steps:

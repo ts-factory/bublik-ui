@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/report-measurements.spec.ts — see features/README.md.
+#
+# Route: /runs/$runId/results/$resultId/measurements
 
 Feature: Measurements
 

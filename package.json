@@ -18,6 +18,7 @@
 		"bublik-json:start": "nx run bublik-logs:serve",
 		"test": "nx run-many --all --target=test",
 		"lint": "nx run-many --target=lint",
+		"router:check": "node ./tools/check-router-gate.cjs",
 		"typecheck": "nx run bublik:typecheck",
 		"git-info": "ts-node ./tools/get-git-info.ts",
 		"generate-schema": "ts-node ./tools/generate-log-schema.ts",

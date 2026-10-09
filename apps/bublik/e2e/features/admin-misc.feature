@@ -2,6 +2,9 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/admin-misc.spec.ts — see features/README.md.
+#
+# Route: /admin/flower
+# Route: /admin/analytics
 
 Feature: Admin tools
 

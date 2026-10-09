@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/history-page.spec.ts — see features/README.md.
+#
+# Route: /history/
 
 Feature: History
 

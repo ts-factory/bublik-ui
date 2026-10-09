@@ -10,6 +10,8 @@
 # The URL-contract scenarios at the end belong to the seeded family
 # (`@needs-classification`): they read the seeded classification through
 # `support/classification-data.ts` and change nothing.
+#
+# Route: /issues/$issueId
 
 Feature: Issue
 

@@ -2,6 +2,9 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/route-smoke.spec.ts — see features/README.md.
+#
+# Route: /
+# Route: /$
 
 Feature: Navigation
 

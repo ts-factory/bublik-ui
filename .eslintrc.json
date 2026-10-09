@@ -6,6 +6,8 @@
 		{
 			"files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
 			"rules": {
+				// Libraries never import from apps/: the route tree is typed for
+				// them through the app's program (AGENTS.md, Module Boundaries).
 				"@nx/enforce-module-boundaries": [
 					"error",
 					{
@@ -23,10 +25,15 @@
 		},
 		{
 			"files": ["*.ts", "*.tsx"],
-			"extends": ["plugin:@nx/typescript"],
+			"extends": [
+				"plugin:@nx/typescript",
+				"plugin:@tanstack/router/recommended"
+			],
 			"rules": {
 				"@typescript-eslint/no-extra-semi": "error",
-				"no-extra-semi": "off"
+				"no-extra-semi": "off",
+				"@tanstack/router/create-route-property-order": "error",
+				"@tanstack/router/route-param-names": "error"
 			}
 		},
 		{
