@@ -28,8 +28,14 @@
   that runs outside the route it tests (sidebar highlighting, analytics).
 - `RouterLink` — the TanStack `Link` for a target assembled at runtime, with
   the window scroll left alone and no active props.
-- `routes.*` — link targets for the run, log, measurements, issue and run
-  issues pages.
+- `routes.*` — link targets for the run, log, measurements, issue and issues
+  pages.
+- `idParams` / `parseId` / `isIdSegment` — the `params` option of the routes
+  whose path holds ids (`runId`, `resultId`, `issueId` as numbers, anything
+  else not found), and the same rule for a pathname matched outside its
+  route.
+- `newTabPreload` — a link that opens a new tab never preloads; `RouterLink`
+  and `TypedLinkWithProject` apply it.
 - `convertOldUrlSearch` / `isOldUrl` / `legacyStringifySearch` — the previous
   codec (`encodeURIComponent`, base64 JSON), kept for the history link
   producers and the redirect of old jsurl (`~`) links; the jsurl parser is

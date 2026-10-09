@@ -6,13 +6,14 @@ import { describe, expect, it } from 'vitest';
 import { config } from '@/bublik/config';
 
 import { createAppRouter } from '../../../router';
+import { inertRouterContext } from '../../../test/inert-router-context';
 
 async function routerAt(url: string) {
 	const history = createMemoryHistory({
 		initialEntries: ['/v2/dashboard', `${config.baseUrl}${url}`],
 		initialIndex: 1
 	});
-	const router = createAppRouter(history);
+	const router = createAppRouter(history, inertRouterContext);
 
 	// Follows a redirect thrown in `beforeLoad` before resolving.
 	await router.load();

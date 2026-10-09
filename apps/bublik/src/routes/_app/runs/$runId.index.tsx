@@ -6,12 +6,14 @@ import { idParams } from '@/router';
 
 import { NoMatchFeature } from '../../../pages/not-found-page';
 import { RunPage } from '../../../pages/run-page';
+import { loadRun } from '../../-loaders';
 import { runSearch } from '../../-search/run.search';
 
 export const Route = createFileRoute('/_app/runs/$runId/')({
 	params: idParams('runId'),
 	validateSearch: runSearch.validateSearch,
 	search: { middlewares: runSearch.middlewares },
+	loader: loadRun,
 	notFoundComponent: NoMatchFeature,
 	component: RunPage
 });

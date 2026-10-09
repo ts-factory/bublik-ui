@@ -43,6 +43,7 @@ import {
 } from './run-report.search';
 import { runSearch, type RunSearch } from './run.search';
 import { runsSearch, type RunsSearch } from './runs.search';
+import { inertRouterContext } from '../../test/inert-router-context';
 
 /**
  * lz-string, as the run table's `CompressedJsonParam` writes it, then
@@ -64,7 +65,8 @@ const lz = (value: unknown) =>
  */
 async function routerAt(url: string): Promise<AppRouter> {
 	const router = createAppRouter(
-		createMemoryHistory({ initialEntries: [`${config.baseUrl}${url}`] })
+		createMemoryHistory({ initialEntries: [`${config.baseUrl}${url}`] }),
+		inertRouterContext
 	);
 
 	await router.load();

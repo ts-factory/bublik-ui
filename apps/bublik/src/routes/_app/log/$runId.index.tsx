@@ -6,12 +6,14 @@ import { idParams } from '@/router';
 
 import { NoMatchFeature } from '../../../pages/not-found-page';
 import { LogPage } from '../../../pages/log-page';
+import { loadLog } from '../../-loaders';
 import { logSearch } from '../../-search/log.search';
 
 export const Route = createFileRoute('/_app/log/$runId/')({
 	params: idParams('runId'),
 	validateSearch: logSearch.validateSearch,
 	search: { middlewares: logSearch.middlewares },
+	loader: loadLog,
 	notFoundComponent: NoMatchFeature,
 	component: LogPage
 });

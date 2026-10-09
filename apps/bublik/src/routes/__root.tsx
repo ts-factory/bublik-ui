@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { lazy, Suspense } from 'react';
-import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 
 import { RouteErrorBoundary } from '../app/route-error-boundary';
 import { NoMatchFeature } from '../pages/not-found-page';
+import { loadApp, type RouterContext } from './-loaders';
 import { rootSearch } from './-search/root.search';
 
 // Dev only, and not under browser automation: its toggle sits over the
@@ -33,9 +34,12 @@ function RootComponent() {
 	);
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
 	validateSearch: rootSearch.validateSearch,
 	search: { middlewares: rootSearch.middlewares },
+	// The current user and the server features, once for the app's lifetime
+	loader: loadApp,
+	staleTime: Infinity,
 	component: RootComponent,
 	// A crash above the app shell: the full-page reset UI with the real error.
 	errorComponent: RouteErrorBoundary,

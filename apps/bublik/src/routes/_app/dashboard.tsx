@@ -5,6 +5,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { rewriteLegacyDates } from '@/bublik/features/dashboard-v2';
 
 import { DashboardPageV2 } from '../../pages/dashboard-page';
+import { loadDashboard } from '../-loaders';
 import { dashboardSearch } from '../-search/dashboard.search';
 
 export const Route = createFileRoute('/_app/dashboard')({
@@ -25,5 +26,6 @@ export const Route = createFileRoute('/_app/dashboard')({
 			});
 		}
 	},
+	loader: loadDashboard,
 	component: DashboardPageV2
 });

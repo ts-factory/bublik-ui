@@ -30,6 +30,17 @@ interface ProjectSearch {
 }
 
 /**
+ * The selected projects of a query string, as every page reads them (route
+ * loaders too, so a prefetch lands in the cache entry the page reads).
+ */
+function projectIdsOf(searchStr: string): number[] {
+	return new URLSearchParams(searchStr)
+		.getAll(PROJECT_KEY)
+		.filter(Boolean)
+		.map(Number);
+}
+
+/**
  * The selected projects (`?project=1&project=2`) of the page on screen, and
  * a setter that pushes the current page with the new selection (the hash
  * and `location.state` are dropped, as before).
@@ -38,14 +49,7 @@ function useProjectSearch(): ProjectSearch {
 	const router = useRouter<AnyRouter>();
 	const { searchStr } = useRenderedLocation();
 
-	const projectIds = useMemo(
-		() =>
-			new URLSearchParams(searchStr)
-				.getAll(PROJECT_KEY)
-				.filter(Boolean)
-				.map(Number),
-		[searchStr]
-	);
+	const projectIds = useMemo(() => projectIdsOf(searchStr), [searchStr]);
 
 	function setProjectIds(projectIds: number[]) {
 		const params = new URLSearchParams(searchStr);
@@ -147,6 +151,7 @@ function useDeleteProject({ id }: UseProjectParams) {
 
 export type { NavigateWithProjectOptions, ProjectSearch };
 export {
+	projectIdsOf,
 	useProjectSearch,
 	useDeleteProject,
 	useNavigateWithProject,
