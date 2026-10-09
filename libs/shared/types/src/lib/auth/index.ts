@@ -28,12 +28,18 @@ export type RefreshTokenMutationResponse = z.infer<
  |--------------------------------------------------
  */
 
+export const UserStatusSchema = z.enum(['pending', 'active', 'deactivated']);
+
+export type UserStatus = z.infer<typeof UserStatusSchema>;
+
 export const UserSchema = z.object({
 	email: z.string(),
 	first_name: z.string(),
 	last_name: z.string(),
 	roles: RolesSchema,
-	is_active: z.boolean().nullable()
+	status: UserStatusSchema,
+	is_active: z.boolean().nullable(),
+	date_joined: z.string()
 });
 
 export type User = z.infer<typeof UserSchema>;
@@ -141,9 +147,13 @@ export const AdminUpdateUserSchema = z.object({
 
 export type AdminUpdateUserInputs = z.infer<typeof AdminUpdateUserSchema>;
 
-export const AdminDeleteUser = z.object({ email: z.string().email() });
+export const AdminUserEmailSchema = z.object({ email: z.string().email() });
+
+export const AdminDeleteUser = AdminUserEmailSchema;
 
 export type AdminDeleteUserInputs = z.infer<typeof AdminDeleteUser>;
+
+export type AdminActivateUserInputs = z.infer<typeof AdminUserEmailSchema>;
 
 export const ProfileChangePasswordInputs = z
 	.object({

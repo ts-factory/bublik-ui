@@ -31,13 +31,13 @@ export const DeactivateUserContainer = ({
 		<>
 			<ConfirmDialog
 				open={isVisible}
-				title="Are you sure you want to deactivate user?"
-				description="This action cannot be undone. This will deactivate user account and it will be unavailable."
+				title="Deactivate this user?"
+				description="The user is signed out everywhere and cannot sign in. An administrator can reactivate the account later."
 				confirmLabel="Deactivate"
 				onCancelClick={decline}
 				onConfirmClick={confirm}
 			/>
-			<Tooltip content="Deactive user" disableHoverableContent>
+			<Tooltip content="Deactivate user" disableHoverableContent>
 				<ActionButton
 					aria-label="Deactivate user"
 					icon="CrossSimple"
