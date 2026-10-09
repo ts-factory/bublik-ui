@@ -110,6 +110,10 @@ Centralized error handling via `getErrorMessage` from `@/services/bublik-api`:
 Enforced by ESLint rule `@nx/enforce-module-boundaries`:
 - Libraries can only depend on other buildable libraries
 - Follow the dependency graph defined in nx.json
+- Libraries never import from `apps/`. The route tree and its `Register`
+  augmentation live in `apps/bublik`; a feature lib gets typed `to`/`params`
+  only because it compiles inside the app's program, so `nx run
+  bublik:typecheck` (not the lib's own tsc) is the gate for typed routing code
 
 ### API Integration
 Use RTK Query hooks from `@/services/bublik-api`:
@@ -139,11 +143,39 @@ Use shared utilities from `@/shared/utils`:
 - Custom utilities for time, tree, formatting, etc.
 
 ### Router Integration
-- TanStack Router, mid-migration under a byte-identical URL contract: keep
-  every URL as it was when changing routing or a query key
-- Import router APIs from `@/router` (`libs/bublik/router/README.md` lists
-  them). New code uses its permanent modules (`RouterLink`, `useSearchWriter`,
-  `useRenderedLocation`, `matchRoutePath`) and TanStack's typed route APIs; the
-  compat hooks (`useSearchParams`, `useQueryParam(s)` with a `QueryParamConfig`,
-  …) only serve the pages not yet moved off them
-- `useParams` with typed route params from `@/shared/types`
+- TanStack Router is the only router. URLs are a byte-identical contract with
+  the pre-migration app: keep every one when changing a route, a search
+  key, a link or a write's push/replace
+- Routes are files under `apps/bublik/src/routes/` (`routeTree.gen.ts` is
+  generated and committed; a build regenerates it). A route file stays thin:
+  its `defineSearch` schema, `beforeLoad` redirects and the page component.
+  Every page route needs a `# Route: <fullPath>` line in an e2e feature file
+  (`pnpm run e2e:features:check` fails otherwise)
+- Search params are declared with the `@/router` codecs (`str`, `num`,
+  `bool01`, `enumOf`, `compressedJson`, `keepRaw`, …) in
+  `defineSearch(shape, defaults)`, never with TanStack's default JSON codec.
+  Read through `getRouteApi('<route id>').useSearch({ select })` over the
+  schema's `withDefaults` (defaults live in the reader, never in
+  `validateSearch`); write through `useSearchWriter` (replace, merge) or the
+  route's `useNavigate` with a functional `search`
+- Links and navigation are typed: TanStack `Link`/`useNavigate`/`linkOptions`
+  with `to` + `params` + `search`, passing `resetScroll={false}` and
+  `activeProps={{}}` (React Router neither scrolled nor added an active
+  class); `LinkWithProject`/`useNavigateWithProject` to carry `project`, `_s`
+  and `hide-sidebar`; the `routes.*` builders for run, log, measurements and
+  issue targets. `RouterLink` from `@/router` (those defaults built in) is
+  only for a target assembled at runtime. Never hand-build an internal URL
+  string
+- Location: `useRenderedLocation()` is the page on screen;
+  `useLatestLocation()`/`currentLocation(router)` is what a write builds on.
+  Never write from `window.location` and never touch `window.history`
+  (`pnpm run router:check`, part of CI lint, fails on `history.pushState`,
+  `replaceState` or `history.state` outside `@/router`, and on any
+  `react-router-dom` or `use-query-params` import)
+- Matching a pathname outside its route (sidebar highlighting, analytics):
+  `matchRoutePath({ to, fuzzy }, pathname)` from `@/router`
+- Path params come from the route API (`getRouteApi(id).useParams()`), or
+  `useParams({ strict: false })` in a lib that renders above the page's match
+- Specs render through `renderWithRouter`/`renderHookWithRouter` from
+  `@/router/testing` and assert on `router.history.location`; never mock a
+  router module

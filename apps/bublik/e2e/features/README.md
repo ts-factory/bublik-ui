@@ -5,9 +5,9 @@ SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 
 # Feature files
 
-Every route in `apps/bublik/src/app/router.tsx` has a `.feature` file here describing
-its user stories in Gherkin, and every `Scenario` is backed by a real Playwright test in
-`apps/bublik/e2e/**/*.spec.ts`.
+Every page route in `apps/bublik/src/routeTree.gen.ts` has a `.feature` file here
+describing its user stories in Gherkin, and every `Scenario` is backed by a real
+Playwright test in `apps/bublik/e2e/**/*.spec.ts`.
 
 ## The contract
 
@@ -22,6 +22,11 @@ its user stories in Gherkin, and every `Scenario` is backed by a real Playwright
 
 Rules that the checker enforces:
 
+- Every page route (a route of the generated tree with no child route) is named by a
+  `# Route: <fullPath>` comment in the header of the feature that covers it, using
+  the tree's full path (`# Route: /runs/$runId/`, `# Route: /issues/`). A new route
+  file without one fails the check, and so does a `# Route:` line naming a route
+  that no longer exists.
 - Scenario names are **globally unique** across all feature files.
 - Every scenario (and every `Examples` row) has a matching test title.
 - Titles must be static strings — a template literal with `${…}` cannot be traced.

@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/compare-multiple.spec.ts — see features/README.md.
+#
+# Route: /compare
 
 Feature: Run comparison
 

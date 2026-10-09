@@ -7,6 +7,8 @@
 # and refusals so the suite stays idempotent. The pending and deactivated
 # states and reactivation are not scripted: they need a second account and the
 # verification email the E2E stack has nowhere to deliver.
+#
+# Route: /admin/users
 
 Feature: User administration
 

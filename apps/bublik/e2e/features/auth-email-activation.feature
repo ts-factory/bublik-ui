@@ -4,6 +4,8 @@
 # Implemented by apps/bublik/e2e/auth-tokens.spec.ts — see features/README.md.
 #
 # These scenarios run without the shared signed-in storage state.
+#
+# Route: /auth/register/activate/$userId/$token
 
 Feature: Email activation link
 

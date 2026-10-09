@@ -9,6 +9,8 @@
 # Write scenarios may apply the seeded rules to a run and stamp more results
 # under a seeded issue at any time, so counts are only ever "at least", and a
 # scenario asserts on the plan's own results: which are listed, which are gone.
+#
+# Route: /issues/$issueId/results
 
 Feature: Issue results
 

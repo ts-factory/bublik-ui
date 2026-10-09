@@ -1,9 +1,5 @@
 {
-	"extends": [
-		"plugin:@nx/react",
-		"plugin:@tanstack/router/recommended",
-		"../../.eslintrc.json"
-	],
+	"extends": ["plugin:@nx/react", "../../.eslintrc.json"],
 	"ignorePatterns": [
 		"!**/*",
 		"**/vite.config.*.timestamp*",
