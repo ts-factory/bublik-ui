@@ -5,5 +5,14 @@
  * shaped like the app's, and assert on `router.history.location`. For specs
  * only; never imported by app code.
  */
-export { renderHookWithRouter, renderWithRouter } from './render-with-router';
-export type { RenderWithRouterOptions, TestRouter } from './render-with-router';
+export {
+	renderHookWithRouter,
+	renderWithRouter,
+	rootSearch,
+	routerOptions
+} from './render-with-router';
+export type {
+	RenderWithRouterOptions,
+	TestRoute,
+	TestRouter
+} from './render-with-router';

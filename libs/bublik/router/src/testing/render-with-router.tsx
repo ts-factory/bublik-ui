@@ -14,7 +14,8 @@ import {
 	createRoute,
 	createRouter,
 	Outlet,
-	RouterProvider
+	RouterProvider,
+	type AnyRoute
 } from '@tanstack/react-router';
 import {
 	createContext,
@@ -31,7 +32,11 @@ import {
 	repeatedNum,
 	str
 } from '../lib/search/codecs';
-import { defineSearch } from '../lib/search/define-search';
+import {
+	defineSearch,
+	type SearchSchema,
+	type Shape
+} from '../lib/search/define-search';
 import { createSearchCodec } from '../lib/search/wire';
 
 const BASEPATH = '/v2';
@@ -69,7 +74,24 @@ function routerOptions() {
 	} as const;
 }
 
+/**
+ * A route of the app's tree for the page to render in, so `getRouteApi(id)`
+ * (and `useParams`/`useSearch` with `from: id`) find their match.
+ */
+interface TestRoute {
+	/**
+	 * The app's route id, e.g. `/_app/runs/$runId/report`: a `_`-prefixed
+	 * segment becomes a pathless layout, a trailing `/` an index route, and
+	 * the page renders in the last route.
+	 */
+	id: string;
+	/** The route's own search schema (from `routes/-search`), so typed reads and writes behave as in the app. */
+	search?: Pick<SearchSchema<Shape>, 'validateSearch' | 'middlewares'>;
+}
+
 interface RenderWithRouterOptions {
+	/** The route the page renders in; without it, a splat route matches every path. */
+	route?: TestRoute;
 	/** The pathname, basepath-free. */
 	path?: string;
 	/** The query string, with or without its `?`. */
@@ -91,7 +113,44 @@ function Page() {
 	return <>{useContext(PageContext)}</>;
 }
 
-function createTestRouter(entry: string, state?: HistoryState) {
+/** The chain of routes a route id stands for, below `root`, the page in the last one. */
+function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
+	const segments = id.split('/').filter(Boolean);
+	if (id.endsWith('/')) segments.push('/');
+
+	let top: AnyRoute | undefined;
+	let parent = root;
+
+	segments.forEach((segment, index) => {
+		const isLeaf = index === segments.length - 1;
+		const current = parent;
+		const route: AnyRoute = createRoute({
+			getParentRoute: () => current,
+			...(segment.startsWith('_') ? { id: segment } : { path: segment }),
+			...(isLeaf && search
+				? {
+						validateSearch: search.validateSearch,
+						search: { middlewares: search.middlewares }
+				  }
+				: {}),
+			component: isLeaf ? Page : Outlet
+		} as never);
+
+		if (parent !== root) parent.addChildren([route]);
+		top ??= route;
+		parent = route;
+	});
+
+	if (!top) throw new Error(`renderWithRouter: empty route id "${id}"`);
+
+	return top;
+}
+
+function createTestRouter(
+	entry: string,
+	state?: HistoryState,
+	testRoute?: TestRoute
+) {
 	const history = createMemoryHistory({
 		initialEntries: [`${BASEPATH}${entry}`]
 	});
@@ -110,7 +169,9 @@ function createTestRouter(entry: string, state?: HistoryState) {
 	});
 
 	return createRouter({
-		routeTree: root.addChildren([page]),
+		routeTree: root.addChildren(
+			testRoute ? [createRouteChain(root, testRoute), page] : [page]
+		),
 		history,
 		...routerOptions()
 	});
@@ -123,12 +184,17 @@ type TestRouter = ReturnType<typeof createTestRouter>;
  * as the page of whatever route matched, so `rerender` reaches them.
  */
 async function mountRouter({
+	route,
 	path = '/',
 	search = '',
 	hash = '',
 	state
 }: RenderWithRouterOptions) {
-	const router = createTestRouter(joinTo({ to: path, search, hash }), state);
+	const router = createTestRouter(
+		joinTo({ to: path, search, hash }),
+		state,
+		route
+	);
 	await router.load();
 
 	function Wrapper({ children }: { children: ReactNode }) {
@@ -167,4 +233,4 @@ async function renderHookWithRouter<Result, Props>(
 }
 
 export { renderHookWithRouter, renderWithRouter, rootSearch, routerOptions };
-export type { RenderWithRouterOptions, TestRouter };
+export type { RenderWithRouterOptions, TestRoute, TestRouter };
