@@ -1,21 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { render, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { waitFor } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
+import { renderWithRouter } from '@/router/testing';
 
 import { SHARED_SIDEBAR_KEYS } from './sidebar-state.constants';
+import { getSidebarStateString } from './sidebar-url.utils';
 import { useSidebarStateWriter } from './use-sidebar-state-writer';
-
-const { navigateMock, locationState } = vi.hoisted(() => ({
-	navigateMock: vi.fn(),
-	locationState: { openUnexpected: true }
-}));
-
-vi.mock('@/router', () => ({
-	useLocation: () => ({ state: locationState }),
-	useNavigate: () => navigateMock
-}));
 
 function HookRunner() {
 	const writeSidebarState = useSidebarStateWriter();
@@ -30,32 +23,29 @@ function HookRunner() {
 }
 
 describe('useSidebarStateWriter', () => {
-	beforeEach(() => {
-		navigateMock.mockClear();
-		window.history.replaceState(
-			null,
-			'',
-			'/v2/runs/42/report?config=7#memcached_requests_per_connection%3A1'
-		);
-	});
-
 	it('preserves the report hash without resubmitting the router basename', async () => {
-		render(<HookRunner />);
-
-		await waitFor(() => {
-			expect(navigateMock).toHaveBeenCalledWith(
-				{
-					search: expect.stringMatching(/(^|&)config=7(&|$)/),
-					hash: '#memcached_requests_per_connection%3A1'
-				},
-				{
-					replace: true,
-					state: locationState
-				}
-			);
+		const { router } = await renderWithRouter(<HookRunner />, {
+			path: '/runs/42/report',
+			search: 'config=7',
+			hash: 'memcached_requests_per_connection%3A1',
+			state: { openUnexpected: true }
 		});
 
-		const [{ search }] = navigateMock.mock.calls[0];
-		expect(new URLSearchParams(search).has('_s')).toBe(true);
+		await waitFor(() =>
+			expect(router.history.location.search).toContain('_s=')
+		);
+
+		const { pathname, search, hash, state } = router.history.location;
+		const params = new URLSearchParams(search);
+
+		expect(pathname).toBe('/v2/runs/42/report');
+		expect(params.get('config')).toBe('7');
+		expect(
+			getSidebarStateString(params, SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID)
+		).toBe('42');
+		expect(hash).toBe('#memcached_requests_per_connection%3A1');
+		expect(state).toMatchObject({ openUnexpected: true });
+		// A replace: no entry to go Back to
+		expect(router.history.length).toBe(1);
 	});
 });

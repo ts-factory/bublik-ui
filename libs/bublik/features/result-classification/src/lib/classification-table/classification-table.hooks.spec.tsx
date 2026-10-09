@@ -1,13 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import type { PropsWithChildren } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
-
 import type { VisibilityState } from '@tanstack/react-table';
+
+import { renderHookWithRouter, type TestRouter } from '@/router/testing';
 
 import {
 	useClassificationTableState,
@@ -19,33 +16,29 @@ import {
 
 const FILTER_KEYS = ['state', 'category'] as const;
 
-function wrapperFor(initialEntry: string) {
-	return function Wrapper({ children }: PropsWithChildren) {
-		return (
-			<MemoryRouter initialEntries={[initialEntry]}>
-				<QueryParamProvider
-					adapter={ReactRouter6Adapter}
-					options={{ updateType: 'replaceIn' }}
-				>
-					{children}
-				</QueryParamProvider>
-			</MemoryRouter>
-		);
-	};
+/** `/issues?page=2` as the helper's `{ path, search }`. */
+function urlOptions(initialEntry: string) {
+	const [path, search = ''] = initialEntry.split('?');
+
+	return { path, search };
+}
+
+/** The query string in the address bar, with its `?`. */
+function searchOf(router: TestRouter) {
+	return router.history.location.search;
 }
 
 function setup(initialEntry = '/issues') {
-	return renderHook(
+	return renderHookWithRouter(
 		() => ({
 			state: useClassificationTableState({
 				filterKeys: FILTER_KEYS,
 				searchColumnId: 'issue',
 				defaultPageSize: 25,
 				defaultSorting: [{ id: 'created', desc: true }]
-			}),
-			search: useLocation().search
+			})
 		}),
-		{ wrapper: wrapperFor(initialEntry) }
+		urlOptions(initialEntry)
 	);
 }
 
@@ -57,10 +50,10 @@ function pairs(search: string) {
 
 describe('useClassificationTableState', () => {
 	describe('defaults are absent, not written', () => {
-		it('starts with an empty query string', () => {
-			const { result } = setup();
+		it('starts with an empty query string', async () => {
+			const { result, router } = await setup();
 
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 			expect(result.current.state.pagination).toEqual({
 				pageIndex: 0,
 				pageSize: 25
@@ -71,103 +64,103 @@ describe('useClassificationTableState', () => {
 			expect(result.current.state.hasFilters).toBe(false);
 		});
 
-		it('drops page and pageSize again once they return to the default', () => {
-			const { result } = setup('/issues?page=3&pageSize=50');
+		it('drops page and pageSize again once they return to the default', async () => {
+			const { result, router } = await setup('/issues?page=3&pageSize=50');
 
 			expect(result.current.state.pagination).toEqual({
 				pageIndex: 2,
 				pageSize: 50
 			});
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onPaginationChange({ pageIndex: 0, pageSize: 25 })
 			);
 
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 		});
 
-		it('drops sort when it returns to the default column and direction', () => {
-			const { result } = setup('/issues?sort=title:asc');
+		it('drops sort when it returns to the default column and direction', async () => {
+			const { result, router } = await setup('/issues?sort=title:asc');
 
 			expect(result.current.state.sorting).toEqual([
 				{ id: 'title', desc: false }
 			]);
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onSortingChange([{ id: 'created', desc: true }])
 			);
 
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 		});
 	});
 
 	describe('the URL contract', () => {
-		it('writes sorting as <id>:asc|desc', () => {
-			const { result } = setup();
+		it('writes sorting as <id>:asc|desc', async () => {
+			const { result, router } = await setup();
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onSortingChange([{ id: 'title', desc: false }])
 			);
 
-			expect(result.current.search).toBe('?sort=title%3Aasc');
+			expect(searchOf(router)).toBe('?sort=title%3Aasc');
 		});
 
-		it('writes explicitly-cleared sorting as the none sentinel', () => {
-			const { result } = setup();
+		it('writes explicitly-cleared sorting as the none sentinel', async () => {
+			const { result, router } = await setup();
 
-			act(() => result.current.state.onSortingChange([]));
+			await act(async () => result.current.state.onSortingChange([]));
 
-			expect(result.current.search).toBe('?sort=none');
+			expect(searchOf(router)).toBe('?sort=none');
 			expect(result.current.state.sorting).toEqual([]);
 		});
 
-		it('joins facet values with a semicolon', () => {
-			const { result } = setup();
+		it('joins facet values with a semicolon', async () => {
+			const { result, router } = await setup();
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onColumnFiltersChange([
 					{ id: 'state', value: ['open', 'closed'] }
 				])
 			);
 
-			expect(pairs(result.current.search)).toEqual(['state=open;closed']);
+			expect(pairs(searchOf(router))).toEqual(['state=open;closed']);
 			expect(result.current.state.hasFilters).toBe(true);
 		});
 
-		it('reads a semicolon-joined facet back out of the URL', () => {
-			const { result } = setup('/issues?category=env;flaky');
+		it('reads a semicolon-joined facet back out of the URL', async () => {
+			const { result } = await setup('/issues?category=env;flaky');
 
 			expect(result.current.state.columnFilters).toEqual([
 				{ id: 'category', value: ['env', 'flaky'] }
 			]);
 		});
 
-		it('returns to page 1 when a facet or the search box narrows the list', () => {
-			const { result } = setup('/issues?page=4');
+		it('returns to page 1 when a facet or the search box narrows the list', async () => {
+			const { result, router } = await setup('/issues?page=4');
 
-			act(() => result.current.state.setSearch('timeout'));
+			await act(async () => result.current.state.setSearch('timeout'));
 
-			expect(pairs(result.current.search)).toEqual(['q=timeout']);
+			expect(pairs(searchOf(router))).toEqual(['q=timeout']);
 		});
 
-		it('returns to page 1 when the page size changes', () => {
-			const { result } = setup('/issues?page=4');
+		it('returns to page 1 when the page size changes', async () => {
+			const { result, router } = await setup('/issues?page=4');
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onPaginationChange({ pageIndex: 3, pageSize: 50 })
 			);
 
-			expect(pairs(result.current.search)).toEqual(['pageSize=50']);
+			expect(pairs(searchOf(router))).toEqual(['pageSize=50']);
 		});
 
-		it('clears facets, search and page but keeps sort and pageSize', () => {
-			const { result } = setup(
+		it('clears facets, search and page but keeps sort and pageSize', async () => {
+			const { result, router } = await setup(
 				'/issues?page=3&pageSize=50&sort=title:asc&state=open&q=timeout'
 			);
 
-			act(() => result.current.state.resetFilters());
+			await act(async () => result.current.state.resetFilters());
 
-			expect(pairs(result.current.search)).toEqual([
+			expect(pairs(searchOf(router))).toEqual([
 				'pageSize=50',
 				'sort=title:asc'
 			]);
@@ -175,50 +168,50 @@ describe('useClassificationTableState', () => {
 	});
 
 	describe('writes merge rather than rebuild', () => {
-		it('preserves a repeated project param through every kind of write', () => {
-			const { result } = setup('/issues?project=1&project=2');
+		it('preserves a repeated project param through every kind of write', async () => {
+			const { result, router } = await setup('/issues?project=1&project=2');
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onPaginationChange({ pageIndex: 1, pageSize: 25 })
 			);
-			expect(pairs(result.current.search)).toEqual([
+			expect(pairs(searchOf(router))).toEqual([
 				'page=2',
 				'project=1',
 				'project=2'
 			]);
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onSortingChange([{ id: 'title', desc: false }])
 			);
-			expect(pairs(result.current.search)).toContain('project=1');
-			expect(pairs(result.current.search)).toContain('project=2');
+			expect(pairs(searchOf(router))).toContain('project=1');
+			expect(pairs(searchOf(router))).toContain('project=2');
 
-			act(() =>
+			await act(async () =>
 				result.current.state.onColumnFiltersChange([
 					{ id: 'state', value: ['open'] }
 				])
 			);
-			expect(pairs(result.current.search)).toEqual([
+			expect(pairs(searchOf(router))).toEqual([
 				'project=1',
 				'project=2',
 				'sort=title:asc',
 				'state=open'
 			]);
 
-			act(() => result.current.state.resetFilters());
-			expect(pairs(result.current.search)).toEqual([
+			await act(async () => result.current.state.resetFilters());
+			expect(pairs(searchOf(router))).toEqual([
 				'project=1',
 				'project=2',
 				'sort=title:asc'
 			]);
 		});
 
-		it('leaves unrelated params alone', () => {
-			const { result } = setup('/issues?mode=default&_s=abc');
+		it('leaves unrelated params alone', async () => {
+			const { result, router } = await setup('/issues?mode=default&_s=abc');
 
-			act(() => result.current.state.setSearch('timeout'));
+			await act(async () => result.current.state.setSearch('timeout'));
 
-			expect(pairs(result.current.search)).toEqual([
+			expect(pairs(searchOf(router))).toEqual([
 				'_s=abc',
 				'mode=default',
 				'q=timeout'
@@ -227,34 +220,34 @@ describe('useClassificationTableState', () => {
 	});
 
 	describe('clampPage', () => {
-		it('pulls an out-of-range page back to the last one', () => {
-			const { result } = setup('/issues?page=9');
+		it('pulls an out-of-range page back to the last one', async () => {
+			const { result, router } = await setup('/issues?page=9');
 
-			act(() => result.current.state.clampPage(4));
+			await act(async () => result.current.state.clampPage(4));
 
-			expect(pairs(result.current.search)).toEqual(['page=4']);
+			expect(pairs(searchOf(router))).toEqual(['page=4']);
 		});
 
-		it('leaves an in-range page alone', () => {
-			const { result } = setup('/issues?page=2');
+		it('leaves an in-range page alone', async () => {
+			const { result, router } = await setup('/issues?page=2');
 
-			act(() => result.current.state.clampPage(4));
+			await act(async () => result.current.state.clampPage(4));
 
-			expect(pairs(result.current.search)).toEqual(['page=2']);
+			expect(pairs(searchOf(router))).toEqual(['page=2']);
 		});
 
-		it('does nothing before the row count is known', () => {
-			const { result } = setup('/issues?page=9');
+		it('does nothing before the row count is known', async () => {
+			const { result, router } = await setup('/issues?page=9');
 
-			act(() => result.current.state.clampPage(0));
+			await act(async () => result.current.state.clampPage(0));
 
-			expect(pairs(result.current.search)).toEqual(['page=9']);
+			expect(pairs(searchOf(router))).toEqual(['page=9']);
 		});
 	});
 
 	describe('queryArgs', () => {
-		it('projects the URL state into the shape DRF takes', () => {
-			const { result } = setup(
+		it('projects the URL state into the shape DRF takes', async () => {
+			const { result } = await setup(
 				'/issues?page=2&pageSize=50&sort=created:desc&state=open;closed&q=timeout'
 			);
 
@@ -267,8 +260,8 @@ describe('useClassificationTableState', () => {
 			});
 		});
 
-		it('omits the search and ordering it has nothing to say about', () => {
-			const { result } = setup('/issues?sort=none');
+		it('omits the search and ordering it has nothing to say about', async () => {
+			const { result } = await setup('/issues?sort=none');
 
 			expect(result.current.state.queryArgs).toEqual({
 				page: 1,
@@ -279,8 +272,8 @@ describe('useClassificationTableState', () => {
 			});
 		});
 
-		it('prefixes ascending orderings with nothing and descending with a dash', () => {
-			const { result } = setup('/issues?sort=title:asc');
+		it('prefixes ascending orderings with nothing and descending with a dash', async () => {
+			const { result } = await setup('/issues?sort=title:asc');
 
 			expect(result.current.state.queryArgs.ordering).toBe('title');
 		});
@@ -298,12 +291,11 @@ function setupVisibility(
 	defaults: VisibilityState = WIDE_DEFAULTS,
 	initialEntry = '/rules'
 ) {
-	return renderHook(
+	return renderHookWithRouter(
 		({ defaults: current }: { defaults: VisibilityState }) => ({
-			visibility: useColumnVisibility('spec', current, { queryKey: 'cols' }),
-			search: useLocation().search
+			visibility: useColumnVisibility('spec', current, { queryKey: 'cols' })
 		}),
-		{ wrapper: wrapperFor(initialEntry), initialProps: { defaults } }
+		{ ...urlOptions(initialEntry), initialProps: { defaults } }
 	);
 }
 
@@ -320,15 +312,15 @@ describe('useColumnVisibility', () => {
 	beforeEach(() => localStorage.clear());
 
 	describe('URL, then localStorage, then the default', () => {
-		it('reports the defaults when neither layer has anything to say', () => {
-			const { result } = setupVisibility();
+		it('reports the defaults when neither layer has anything to say', async () => {
+			const { result, router } = await setupVisibility();
 
 			expect(readVisibility(result).state).toEqual({ active: false });
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 		});
 
-		it('lets the URL override a default', () => {
-			const { result } = setupVisibility(
+		it('lets the URL override a default', async () => {
+			const { result } = await setupVisibility(
 				COMPACT_DEFAULTS,
 				'/rules?cols=%2Btags'
 			);
@@ -340,13 +332,13 @@ describe('useColumnVisibility', () => {
 			});
 		});
 
-		it('falls back to localStorage when the URL carries no columns', () => {
+		it('falls back to localStorage when the URL carries no columns', async () => {
 			localStorage.setItem(
 				'bublik.columns.spec',
 				JSON.stringify({ tags: false })
 			);
 
-			const { result } = setupVisibility();
+			const { result } = await setupVisibility();
 
 			expect(readVisibility(result).state).toEqual({
 				active: false,
@@ -354,13 +346,13 @@ describe('useColumnVisibility', () => {
 			});
 		});
 
-		it('prefers the URL over localStorage', () => {
+		it('prefers the URL over localStorage', async () => {
 			localStorage.setItem(
 				'bublik.columns.spec',
 				JSON.stringify({ tags: false })
 			);
 
-			const { result } = setupVisibility(
+			const { result } = await setupVisibility(
 				WIDE_DEFAULTS,
 				'/rules?cols=-verdicts'
 			);
@@ -373,48 +365,48 @@ describe('useColumnVisibility', () => {
 	});
 
 	describe('what a change records', () => {
-		it('records nothing when the choice already matches the default', () => {
-			const { result } = setupVisibility(COMPACT_DEFAULTS);
+		it('records nothing when the choice already matches the default', async () => {
+			const { result, router } = await setupVisibility(COMPACT_DEFAULTS);
 
-			act(() =>
+			await act(async () =>
 				readVisibility(result).setState({ ...COMPACT_DEFAULTS, tags: false })
 			);
 
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 			expect(localStorage.getItem('bublik.columns.spec')).toBe('{}');
 		});
 
-		it('records only the column that differs, to both layers', () => {
-			const { result } = setupVisibility(COMPACT_DEFAULTS);
+		it('records only the column that differs, to both layers', async () => {
+			const { result, router } = await setupVisibility(COMPACT_DEFAULTS);
 
-			act(() =>
+			await act(async () =>
 				readVisibility(result).setState({ ...COMPACT_DEFAULTS, tags: true })
 			);
 
-			expect(result.current.search).toBe('?cols=%2Btags');
+			expect(searchOf(router)).toBe('?cols=%2Btags');
 			expect(localStorage.getItem('bublik.columns.spec')).toBe(
 				JSON.stringify({ tags: true })
 			);
 		});
 
-		it('accepts an updater, the way the table hands one over', () => {
-			const { result } = setupVisibility(WIDE_DEFAULTS);
+		it('accepts an updater, the way the table hands one over', async () => {
+			const { result, router } = await setupVisibility(WIDE_DEFAULTS);
 
-			act(() =>
+			await act(async () =>
 				readVisibility(result).setState((old) => ({ ...old, verdicts: false }))
 			);
 
-			expect(result.current.search).toBe('?cols=-verdicts');
+			expect(searchOf(router)).toBe('?cols=-verdicts');
 		});
 	});
 
 	describe('a default that moves with the width', () => {
-		it('keeps an explicit choice but lets an untouched column follow', () => {
-			const { result, rerender } = setupVisibility(COMPACT_DEFAULTS);
+		it('keeps an explicit choice but lets an untouched column follow', async () => {
+			const { result, rerender } = await setupVisibility(COMPACT_DEFAULTS);
 
 			// Verdicts is switched on by hand while the table is compact; tags is
 			// left alone, hidden by the compact default rather than by a choice.
-			act(() =>
+			await act(async () =>
 				readVisibility(result).setState({ ...COMPACT_DEFAULTS, verdicts: true })
 			);
 
@@ -434,26 +426,28 @@ const DEFAULT_ORDER = ['status', 'key', 'issue', 'actions'];
 const PINS = { first: ['status'], last: ['actions'] };
 
 function setupOrder(defaultOrder: readonly string[] = DEFAULT_ORDER) {
-	return renderHook(
+	return renderHookWithRouter(
 		({ defaults }: { defaults: readonly string[] }) =>
 			useColumnOrder('spec', defaults, PINS),
-		{ wrapper: wrapperFor('/issues'), initialProps: { defaults: defaultOrder } }
+		{ ...urlOptions('/issues'), initialProps: { defaults: defaultOrder } }
 	);
 }
 
 describe('useColumnOrder', () => {
 	beforeEach(() => localStorage.clear());
 
-	it('starts from the default order', () => {
-		const { result } = setupOrder();
+	it('starts from the default order', async () => {
+		const { result } = await setupOrder();
 
 		expect(result.current[0]).toEqual(DEFAULT_ORDER);
 	});
 
-	it('remembers a reorder in localStorage', () => {
-		const { result } = setupOrder();
+	it('remembers a reorder in localStorage', async () => {
+		const { result } = await setupOrder();
 
-		act(() => result.current[1](['status', 'issue', 'key', 'actions']));
+		await act(async () =>
+			result.current[1](['status', 'issue', 'key', 'actions'])
+		);
 
 		expect(result.current[0]).toEqual(['status', 'issue', 'key', 'actions']);
 		expect(
@@ -461,32 +455,34 @@ describe('useColumnOrder', () => {
 		).toEqual(['status', 'issue', 'key', 'actions']);
 	});
 
-	it('takes an updater like the table hands it', () => {
-		const { result } = setupOrder();
+	it('takes an updater like the table hands it', async () => {
+		const { result } = await setupOrder();
 
-		act(() => result.current[1]((old) => [...old].reverse()));
+		await act(async () => result.current[1]((old) => [...old].reverse()));
 
 		// Reversed, then the pins put back where they belong.
 		expect(result.current[0]).toEqual(['status', 'issue', 'key', 'actions']);
 	});
 
-	it('reconciles a stale save against the columns the table has now', () => {
+	it('reconciles a stale save against the columns the table has now', async () => {
 		localStorage.setItem(
 			'bublik.column-order.spec',
 			JSON.stringify(['actions', 'issue', 'project', 'status'])
 		);
 
-		const { result } = setupOrder();
+		const { result } = await setupOrder();
 
 		// `project` is gone, `key` is new and lands where the default puts it,
 		// and the pins are back at their ends.
 		expect(result.current[0]).toEqual(['status', 'key', 'issue', 'actions']);
 	});
 
-	it('follows a change of default set without losing the saved order', () => {
-		const { result, rerender } = setupOrder();
+	it('follows a change of default set without losing the saved order', async () => {
+		const { result, rerender } = await setupOrder();
 
-		act(() => result.current[1](['status', 'issue', 'key', 'actions']));
+		await act(async () =>
+			result.current[1](['status', 'issue', 'key', 'actions'])
+		);
 		rerender({ defaults: ['status', 'key', 'issue', 'state', 'actions'] });
 
 		// `state` follows `issue`, its default predecessor, wherever that went.
@@ -499,37 +495,40 @@ describe('useColumnOrder', () => {
 		]);
 	});
 
-	it('neither reads nor writes the URL unless asked to', () => {
-		const { result } = renderHook(
+	it('neither reads nor writes the URL unless asked to', async () => {
+		const { result, router } = await renderHookWithRouter(
 			() => ({
-				order: useColumnOrder('spec', DEFAULT_ORDER, PINS),
-				search: useLocation().search
+				order: useColumnOrder('spec', DEFAULT_ORDER, PINS)
 			}),
-			{ wrapper: wrapperFor('/issues?columnOrder=status;issue;key;actions') }
+			// Already in the router's canonical form: it rewrites `;` to `%3B` on load.
+			urlOptions('/issues?columnOrder=status%3Bissue%3Bkey%3Bactions')
 		);
 
 		expect(result.current.order[0]).toEqual(DEFAULT_ORDER);
 
-		act(() => result.current.order[1](['status', 'issue', 'key', 'actions']));
+		await act(async () =>
+			result.current.order[1](['status', 'issue', 'key', 'actions'])
+		);
 
-		expect(result.current.search).toBe('?columnOrder=status;issue;key;actions');
+		expect(searchOf(router)).toBe(
+			'?columnOrder=status%3Bissue%3Bkey%3Bactions'
+		);
 	});
 
 	describe('linked through the URL', () => {
 		function setupLinkedOrder(initialEntry = '/issues') {
-			return renderHook(
+			return renderHookWithRouter(
 				() => ({
 					order: useColumnOrder('spec', DEFAULT_ORDER, PINS, {
 						queryKey: 'order'
-					}),
-					search: useLocation().search
+					})
 				}),
-				{ wrapper: wrapperFor(initialEntry) }
+				urlOptions(initialEntry)
 			);
 		}
 
-		it('lets a link override the default', () => {
-			const { result } = setupLinkedOrder(
+		it('lets a link override the default', async () => {
+			const { result } = await setupLinkedOrder(
 				'/issues?order=status;issue;key;actions'
 			);
 
@@ -541,13 +540,13 @@ describe('useColumnOrder', () => {
 			]);
 		});
 
-		it('falls back to localStorage when the URL carries no order', () => {
+		it('falls back to localStorage when the URL carries no order', async () => {
 			localStorage.setItem(
 				'bublik.column-order.spec',
 				JSON.stringify(['status', 'issue', 'key', 'actions'])
 			);
 
-			const { result } = setupLinkedOrder();
+			const { result, router } = await setupLinkedOrder();
 
 			expect(result.current.order[0]).toEqual([
 				'status',
@@ -555,49 +554,51 @@ describe('useColumnOrder', () => {
 				'key',
 				'actions'
 			]);
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 		});
 
-		it('prefers the URL over localStorage', () => {
+		it('prefers the URL over localStorage', async () => {
 			localStorage.setItem(
 				'bublik.column-order.spec',
 				JSON.stringify(['status', 'issue', 'key', 'actions'])
 			);
 
-			const { result } = setupLinkedOrder(
+			const { result } = await setupLinkedOrder(
 				'/issues?order=status;key;issue;actions'
 			);
 
 			expect(result.current.order[0]).toEqual(DEFAULT_ORDER);
 		});
 
-		it('records a reorder to both layers', () => {
-			const { result } = setupLinkedOrder();
+		it('records a reorder to both layers', async () => {
+			const { result, router } = await setupLinkedOrder();
 
-			act(() => result.current.order[1](['status', 'issue', 'key', 'actions']));
-
-			expect(result.current.search).toBe(
-				'?order=status%3Bissue%3Bkey%3Bactions'
+			await act(async () =>
+				result.current.order[1](['status', 'issue', 'key', 'actions'])
 			);
+
+			expect(searchOf(router)).toBe('?order=status%3Bissue%3Bkey%3Bactions');
 			expect(
 				JSON.parse(localStorage.getItem('bublik.column-order.spec') ?? '[]')
 			).toEqual(['status', 'issue', 'key', 'actions']);
 		});
 
-		it('records nothing once the order is back to the default', () => {
-			const { result } = setupLinkedOrder(
+		it('records nothing once the order is back to the default', async () => {
+			const { result, router } = await setupLinkedOrder(
 				'/issues?order=status;issue;key;actions'
 			);
 
-			act(() => result.current.order[1](['status', 'key', 'issue', 'actions']));
+			await act(async () =>
+				result.current.order[1](['status', 'key', 'issue', 'actions'])
+			);
 
-			expect(result.current.search).toBe('');
+			expect(searchOf(router)).toBe('');
 			expect(localStorage.getItem('bublik.column-order.spec')).toBe('[]');
 			expect(result.current.order[0]).toEqual(DEFAULT_ORDER);
 		});
 
-		it('keeps the pins at their ends whatever the link says', () => {
-			const { result } = setupLinkedOrder(
+		it('keeps the pins at their ends whatever the link says', async () => {
+			const { result } = await setupLinkedOrder(
 				'/issues?order=actions;issue;status;key'
 			);
 

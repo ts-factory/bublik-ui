@@ -85,7 +85,7 @@ exports[`LoginForm > should match snapshot 1`] = `
       >
         <a
           class="text-sm font-medium text-primary hover:underline"
-          href="/auth/forgot"
+          href="/v2/auth/forgot"
         >
           Forgot password?
         </a>

@@ -1,27 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { act, renderHook } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderHookWithRouter } from '@/router/testing';
 
 import { useDashboardClock } from './index';
 
 const mocks = vi.hoisted(() => ({
 	dispatch: vi.fn(),
 	invalidateTags: vi.fn(),
-	queryParams: {} as Record<string, Date | undefined>,
 	useGetDashboardByDateQuery: vi.fn()
 }));
 
 vi.mock('react-redux', () => ({
 	useDispatch: () => mocks.dispatch
-}));
-
-vi.mock('@/router', () => ({
-	BooleanParam: {},
-	DateParam: {},
-	StringParam: {},
-	useQueryParam: (name: string) => [mocks.queryParams[name], vi.fn()],
-	withDefault: (param: unknown) => param
 }));
 
 vi.mock('@/bublik/features/projects', () => ({
@@ -47,18 +40,18 @@ describe('useDashboardClock', () => {
 		mocks.dispatch.mockReset();
 		mocks.invalidateTags.mockReset();
 		mocks.useGetDashboardByDateQuery.mockReset();
-		mocks.queryParams.main = undefined;
-		mocks.queryParams.secondary = undefined;
 
 		mocks.useGetDashboardByDateQuery.mockReturnValue({
 			fulfilledTimeStamp: Date.now()
 		});
 	});
 
-	it('invalidates all active dashboard queries on refresh', () => {
+	it('invalidates all active dashboard queries on refresh', async () => {
 		const invalidationAction = { type: 'dashboard/invalidate' };
 		mocks.invalidateTags.mockReturnValue(invalidationAction);
-		const { result } = renderHook(() => useDashboardClock());
+		const { result } = await renderHookWithRouter(() => useDashboardClock(), {
+			path: '/dashboard'
+		});
 
 		act(() => result.current.refetch());
 
@@ -66,8 +59,10 @@ describe('useDashboardClock', () => {
 		expect(mocks.dispatch).toHaveBeenCalledWith(invalidationAction);
 	});
 
-	it('skips dated queries when dates are not selected', () => {
-		renderHook(() => useDashboardClock());
+	it('skips dated queries when dates are not selected', async () => {
+		await renderHookWithRouter(() => useDashboardClock(), {
+			path: '/dashboard'
+		});
 
 		expect(mocks.useGetDashboardByDateQuery).toHaveBeenNthCalledWith(1, {
 			projects: [7]

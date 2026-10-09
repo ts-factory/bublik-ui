@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
 	forwardRef,
@@ -8,9 +8,10 @@ import {
 	type CSSProperties,
 	type ReactNode
 } from 'react';
-import { MemoryRouter, type To } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { To } from '@/router';
+import { renderWithRouter } from '@/router/testing';
 import {
 	DialogClose,
 	SidebarProvider,
@@ -28,7 +29,9 @@ vi.mock('@/shared/tailwind-ui', async (importOriginal) => {
 	};
 });
 
-function renderSubmenuItem({ disabled = false }: { disabled?: boolean } = {}) {
+async function renderSubmenuItem({
+	disabled = false
+}: { disabled?: boolean } = {}) {
 	const handleLinkClick = vi.fn();
 
 	type TestLinkProps = {
@@ -57,36 +60,35 @@ function renderSubmenuItem({ disabled = false }: { disabled?: boolean } = {}) {
 		}
 	) as ComponentType<TestLinkProps>;
 
-	const result = render(
-		<MemoryRouter>
-			<TooltipProvider>
-				<SidebarProvider isSidebarOpen>
-					<SidebarNavSubmenuItemContainer
-						to="/runs"
-						disabled={disabled}
-						linkComponent={TestLink}
-					>
-						<SidebarNavSubmenuItemContainer.Label>
-							Details
-						</SidebarNavSubmenuItemContainer.Label>
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<div>
-								<span>Details help content</span>
-								<DialogClose>Close help</DialogClose>
-							</div>
-						</SidebarNavSubmenuItemContainer.InfoButton>
-					</SidebarNavSubmenuItemContainer>
-				</SidebarProvider>
-			</TooltipProvider>
-		</MemoryRouter>
+	const result = await renderWithRouter(
+		<TooltipProvider>
+			<SidebarProvider isSidebarOpen>
+				<SidebarNavSubmenuItemContainer
+					to="/runs"
+					disabled={disabled}
+					linkComponent={TestLink}
+				>
+					<SidebarNavSubmenuItemContainer.Label>
+						Details
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.InfoButton>
+						<div>
+							<span>Details help content</span>
+							<DialogClose>Close help</DialogClose>
+						</div>
+					</SidebarNavSubmenuItemContainer.InfoButton>
+				</SidebarNavSubmenuItemContainer>
+			</SidebarProvider>
+		</TooltipProvider>,
+		{ path: '/runs' }
 	);
 
 	return { ...result, handleLinkClick };
 }
 
 describe('SidebarNavSubmenuItemContainer', () => {
-	it('shows an active enabled hierarchy guide', () => {
-		const { container } = renderSubmenuItem();
+	it('shows an active enabled hierarchy guide', async () => {
+		const { container } = await renderSubmenuItem();
 		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
 
 		expect(guide).toBeInstanceOf(HTMLLIElement);
@@ -98,8 +100,8 @@ describe('SidebarNavSubmenuItemContainer', () => {
 		);
 	});
 
-	it('uses the default hierarchy guide for disabled items', () => {
-		const { container } = renderSubmenuItem({ disabled: true });
+	it('uses the default hierarchy guide for disabled items', async () => {
+		const { container } = await renderSubmenuItem({ disabled: true });
 		const guide = container.querySelector('[data-sidebar-nav-submenu-guide]');
 
 		expect(guide).toBeInstanceOf(HTMLLIElement);
@@ -110,7 +112,7 @@ describe('SidebarNavSubmenuItemContainer', () => {
 
 	it('keeps info button clicks from triggering link navigation', async () => {
 		const user = userEvent.setup();
-		const { container, handleLinkClick } = renderSubmenuItem();
+		const { container, handleLinkClick } = await renderSubmenuItem();
 
 		await user.click(screen.getByText('Details'));
 		expect(handleLinkClick).toHaveBeenCalledTimes(1);
