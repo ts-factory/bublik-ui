@@ -9,6 +9,7 @@ import type {
 } from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
+import { useSearchWriter } from '@/router';
 import type { ImportTaskFilters } from '@/shared/types';
 
 /**
@@ -78,18 +79,11 @@ function useImportSearch(): ImportSearchState {
 function useImportSearchWriter(): (
 	update: (latest: ImportPageSearch) => ImportPageSearch
 ) => void {
-	const navigate = importRoute.useNavigate();
+	const writeSearch = useSearchWriter();
 
 	return useCallback(
-		(update) => {
-			void navigate({
-				search: (latest) => ({ ...latest, ...update(latest) }),
-				replace: true,
-				state: true,
-				resetScroll: false
-			});
-		},
-		[navigate]
+		(update) => writeSearch((latest) => update(latest as ImportPageSearch)),
+		[writeSearch]
 	);
 }
 

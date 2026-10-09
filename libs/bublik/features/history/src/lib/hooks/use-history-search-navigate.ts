@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useRouter, type AnyRouter } from '@tanstack/react-router';
 
-import { currentLocation } from '@/router';
+import { writeSearch } from '@/router';
 
 interface HistorySearchNavigateOptions {
 	/** The pathname to land on; the current one by default. */
@@ -26,14 +26,7 @@ function useHistorySearchNavigate(): (
 
 	return useCallback(
 		(changes, { to, replace = false } = {}) => {
-			const current = currentLocation(router);
-
-			void router.navigate({
-				to: to ?? current.pathname,
-				search: { ...current.search, ...changes },
-				replace,
-				resetScroll: false
-			});
+			writeSearch(router, changes, { to, replace, keepState: false });
 		},
 		[router]
 	);

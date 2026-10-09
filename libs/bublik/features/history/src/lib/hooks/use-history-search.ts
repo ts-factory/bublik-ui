@@ -1,20 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useSearch } from '@tanstack/react-router';
-
-import { useRenderedLocation } from '@/router';
+import { useAnySearch, useRenderedLocation } from '@/router';
 import { HistoryAPIQuery } from '@/shared/types';
 import { historySearch, type HistoryRouteSearch } from '@/shared/utils';
-
-/**
- * `useSearch` for any route: the registered route tree types it per route
- * (and the selected value for structural sharing), while this reads the
- * search of whichever match it is rendered under.
- */
-const useAnySearch = useSearch as unknown as <T>(options: {
-	strict: false;
-	select: (search: Record<string, unknown>) => T;
-}) => T;
 
 type HistorySearchKey = keyof typeof historySearch.shape;
 
@@ -33,10 +21,7 @@ const HISTORY_SEARCH_KEYS = Object.keys(
  * so on the page itself this is a no-op.
  */
 function useHistorySearch<T>(select: (search: HistoryRouteSearch) => T): T {
-	return useAnySearch({
-		strict: false,
-		select: (search) => select(historySearch.validateSearch(search))
-	});
+	return useAnySearch((search) => select(historySearch.validateSearch(search)));
 }
 
 /** The last of a repeated key, as `Object.fromEntries(searchParams)` read it. */

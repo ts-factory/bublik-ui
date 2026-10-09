@@ -94,6 +94,45 @@ describe('useSearchWriter', () => {
 		expect(router.history.length).toBe(2);
 	});
 
+	it('hands a functional update the search the router is at right now', async () => {
+		const { router, result } = await renderHookAt(
+			'/runs?page=2',
+			useSearchWriter
+		);
+
+		await write(() => {
+			result.current({ mode: 'charts' });
+			result.current((latest) => ({
+				page: `${latest.page}0`,
+				mode: undefined
+			}));
+		});
+
+		expect(hrefOf(router)).toBe('/v2/runs?page=20');
+	});
+
+	it('drops location.state with { keepState: false } and still navigates when nothing changes', async () => {
+		const { router, result } = await renderHookAt('/runs', useSearchWriter);
+
+		await write(() => {
+			void router.navigate({
+				to: '/runs',
+				search: { page: '2' },
+				state: { fromRun: true }
+			});
+		});
+		const before = router.history.location.state.__TSR_key;
+
+		await write(() =>
+			result.current({ page: '2' }, { keepState: false, replace: false })
+		);
+
+		expect(hrefOf(router)).toBe('/v2/runs?page=2');
+		expect(router.history.location.state).not.toHaveProperty('fromRun');
+		expect(router.history.location.state.__TSR_key).not.toBe(before);
+		expect(router.history.length).toBe(3);
+	});
+
 	it('does not navigate when the search would not change', async () => {
 		const { router, result } = await renderHookAt(
 			'/runs?page=2',
