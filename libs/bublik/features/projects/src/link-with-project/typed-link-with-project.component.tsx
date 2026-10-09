@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { Link, type LinkComponent } from '@tanstack/react-router';
 
-import { useRenderedLocation } from '@/router';
+import { newTabPreload, useRenderedLocation } from '@/router';
 
 import { useProjectSearch } from '../hooks';
 import { mergeSearchWithSidebarState } from '../lib/sidebar-params.utils';
@@ -43,7 +43,7 @@ function resolveSearch(
 }
 
 function TypedLinkWithProjectImpl(
-	{ search, ...props }: AnyLinkProps,
+	{ search, preload, ...props }: AnyLinkProps,
 	ref: Ref<HTMLAnchorElement>
 ) {
 	const { projectIds } = useProjectSearch();
@@ -64,6 +64,7 @@ function TypedLinkWithProjectImpl(
 			ref={ref}
 			{...props}
 			search={searchWithProject}
+			preload={newTabPreload(props['target'] as string | undefined, preload)}
 			// The pages scroll their own containers.
 			resetScroll={false}
 			activeProps={NO_PROPS}
