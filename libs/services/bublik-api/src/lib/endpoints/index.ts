@@ -14,4 +14,5 @@ export * from './report-endpoints';
 export * from './configs-endpoints';
 export * from './project-endpoints';
 export * from './analytics-endpoints';
+export * from './classification-endpoints';
 export * from './chat-endpoints';

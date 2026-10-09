@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { RESULT_TYPE, ResultTypeSchema, RunResult, VERDICT_TYPE } from './run';
 import { Pagination } from './utils';
+import { ResultIssueRef } from './classification';
 
 /**
 |--------------------------------------------------
@@ -41,6 +42,12 @@ export type HistoryAPIBackendQuery = {
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
 
+	/* Result classification (Plan 2) */
+	categories?: string;
+	issue?: string;
+	untriaged?: string;
+	explained?: string;
+
 	page?: string;
 	pageSize?: string;
 	projects?: number[];
@@ -72,6 +79,12 @@ export const HistoryAPIBackendQuerySchema = z.object({
 
 	verdictLookup: z.nativeEnum(VERDICT_TYPE).optional(),
 	verdict: z.string().optional(),
+
+	/* Result classification (Plan 2) */
+	categories: z.string().optional(),
+	issue: z.string().optional(),
+	untriaged: z.string().optional(),
+	explained: z.string().optional(),
 
 	page: z.string().optional(),
 	pageSize: z.string().optional(),
@@ -107,6 +120,13 @@ export type HistoryAPIQuery = {
 
 	verdictLookup?: VERDICT_TYPE;
 	verdict?: string;
+
+	/* Result classification (Plan 2) */
+	categories?: string;
+	issue?: string;
+	untriaged?: string;
+	explained?: string;
+
 	project?: string;
 };
 
@@ -133,6 +153,12 @@ export type HistoryDataLinear = {
 	has_error: boolean;
 	has_measurements: boolean;
 	run_id: number;
+	/**
+	 * Project the run belongs to. History spans projects, so a row cannot be
+	 * assumed to sit in whichever one the `?project=` selector happens to hold.
+	 */
+	project_id?: number;
+	project_name?: string;
 	result_id: number;
 	iteration_id: number;
 	results?: string[];
@@ -140,11 +166,31 @@ export type HistoryDataLinear = {
 	important_tags: string[];
 	run_properties?: string[];
 	report_config_id?: number | null;
+	issues?: ResultIssueRef[];
 };
 
 const RunResultSchema = z.object({
 	result_type: ResultTypeSchema,
 	verdicts: z.array(z.string())
+});
+
+const HistoryIssueRefSchema = z.object({
+	issue_id: z.number(),
+	issue_title: z.string(),
+	issue_state: z.enum(['open', 'closed']),
+	bug_key: z.string().nullable().optional(),
+	bug_url: z.string().nullable().optional(),
+	category: z.enum([
+		'product-defect',
+		'test-bug',
+		'env',
+		'known-issue',
+		'flaky',
+		'to-investigate'
+	]),
+	expected: z.boolean().nullable(),
+	rule_id: z.number(),
+	origin: z.enum(['import', 'manual_persistent', 'manual_oneoff'])
 });
 
 export const HistoryDataLinearSchema = z.object({
@@ -159,13 +205,16 @@ export const HistoryDataLinearSchema = z.object({
 	has_error: z.boolean(),
 	has_measurements: z.boolean(),
 	run_id: z.number(),
+	project_id: z.number().optional(),
+	project_name: z.string().optional(),
 	result_id: z.number(),
 	iteration_id: z.number(),
 	results: z.array(z.string()).optional(),
 	result_properties: z.array(z.string()).optional(),
 	important_tags: z.array(z.string()),
 	run_properties: z.array(z.string()).optional(),
-	report_config_id: z.number().nullable().optional()
+	report_config_id: z.number().nullable().optional(),
+	issues: z.array(HistoryIssueRefSchema).optional()
 });
 
 export type HistoryCount = {
