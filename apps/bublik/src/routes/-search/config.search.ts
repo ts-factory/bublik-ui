@@ -20,6 +20,12 @@ import {
  * `admin-configs.feature`); a reader treats a string as "use the global
  * `per_conf` default".
  */
+/** The config the create screen opens when `new_config` is absent or unusable. */
+const DEFAULT_NEW_CONFIG: ConfigSchemaParams = {
+	type: 'global',
+	name: 'per_conf'
+};
+
 const configSearch = defineSearch(
 	{
 		configId: num(),
@@ -27,10 +33,10 @@ const configSearch = defineSearch(
 			validated(json<ConfigSchemaParams>(), ConfigSchemaParamsSchema)
 		)
 	},
-	{ new_config: { type: 'global', name: 'per_conf' } }
+	{ new_config: DEFAULT_NEW_CONFIG }
 );
 
 type ConfigSearch = InferSearch<typeof configSearch>;
 
-export { configSearch };
+export { configSearch, DEFAULT_NEW_CONFIG };
 export type { ConfigSearch };
