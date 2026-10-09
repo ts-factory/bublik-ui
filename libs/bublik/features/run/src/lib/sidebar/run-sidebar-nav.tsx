@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from '@/router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import {
@@ -68,7 +69,7 @@ function runOpenIssuesTooltip(openCount: number, totalCount: number): string {
 }
 
 export function RunSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const navigate = useNavigateWithProject();
 	const {
 		isDetailsAvailable,
@@ -92,31 +93,32 @@ export function RunSidebarNav() {
 	} = useRunSidebarState();
 
 	/**
-	 * The run id comes from `matchPath`, not `useParams`: the sidebar renders in
-	 * the pathless layout route, above the `Outlet`, so `useParams` there only
-	 * ever sees the layout's own (empty) params and this effect never ran.
+	 * The run id comes from matching the page on screen, not `useParams`: the
+	 * sidebar renders above the page's match, so `useParams` there only ever
+	 * sees the layout's own (empty) params and this effect never ran.
 	 *
 	 * `/runs/:runId/report` is deliberately absent -- the report page records
 	 * itself once it has a config id, and two writers in one commit clobber
 	 * each other's `_s`.
 	 */
 	useEffect(() => {
-		const issuesMatch = matchPath('/runs/:runId/issues', location.pathname);
-		const match = issuesMatch ?? matchPath('/runs/:runId', location.pathname);
-		const matchedRunId = match?.params.runId;
+		const issuesMatch = matchRoutePath({ to: '/runs/$runId/issues' }, pathname);
+		const match =
+			issuesMatch || matchRoutePath({ to: '/runs/$runId' }, pathname);
+		const matchedRunId = match ? match.runId : undefined;
 
 		if (!matchedRunId || !/^\d+$/.test(matchedRunId)) return;
 
 		setLastVisited(
 			issuesMatch ? 'issues' : 'details',
-			location.pathname + location.search,
+			pathname + searchStr,
 			matchedRunId
 		);
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	// A bare log URL is the log-only layout, so that icon lights on it.
-	const activeLogMode = matchPath('/log/:runId', location.pathname)
-		? getModeFromSearch(location.search, LOG_MODES, 'log')
+	const activeLogMode = matchRoutePath({ to: '/log/$runId' }, pathname)
+		? getModeFromSearch(searchStr, LOG_MODES, 'log')
 		: null;
 
 	return (
@@ -240,7 +242,8 @@ export function RunSidebarNav() {
 								count={openIssueCount}
 								tooltip={runOpenIssuesTooltip(openIssueCount, issueCount)}
 								isActive={
-									matchPath('/runs/:runId/issues', location.pathname) !== null
+									matchRoutePath({ to: '/runs/$runId/issues' }, pathname) !==
+									false
 								}
 								testId="run-sidebar-issue-count"
 							/>
