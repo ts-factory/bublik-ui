@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
 
-import { matchPath } from './match-path';
+import { matchPath } from './path-pattern';
 
 // Expected values are React Router 6's `matchPath` results for the patterns
 // the sidebar navs, the analytics tracker and the run-diff form use today.

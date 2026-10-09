@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import type { To } from './compat/to';
+import type { To } from './path/to';
 
 import {
 	DashboardConfig,

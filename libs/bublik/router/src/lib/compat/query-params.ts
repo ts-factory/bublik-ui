@@ -10,7 +10,8 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useRouter, type AnyRouter } from '@tanstack/react-router';
 
 import { parseSearch } from '../search/wire';
-import { currentLocation, useRenderedLocation } from './navigation';
+import { currentLocation, useRenderedLocation } from '../location/location';
+import { writeSearch } from '../search/use-search-writer';
 
 /** A value as use-query-params hands it to `decode` and takes it from `encode`. */
 type EncodedValue = string | (string | null)[] | null | undefined;
@@ -224,19 +225,9 @@ function commitChanges(
 	changes: Record<string, EncodedValue>,
 	updateType: UrlUpdateType
 ): void {
-	const current = currentLocation(router);
-	const search = updateType.endsWith('In')
-		? { ...current.search, ...changes }
-		: changes;
-	const target = { to: current.pathname, search };
-
-	if (router.buildLocation(target).searchStr === current.searchStr) return;
-
-	void router.navigate({
-		...target,
+	writeSearch(router, changes, {
 		replace: updateType.startsWith('replace'),
-		state: true,
-		resetScroll: false
+		merge: updateType.endsWith('In')
 	});
 }
 

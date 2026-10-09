@@ -20,13 +20,13 @@ import {
 import {
 	Link,
 	Navigate,
-	useLatestLocation,
 	useLocation,
 	useNavigate,
 	useParams,
 	useSearchParams,
 	type NavigateFunction
 } from './navigation';
+import { useLatestLocation } from '../location/location';
 
 describe('useSearchParams (react-router-dom shape)', () => {
 	it('reads the current query string as URLSearchParams', async () => {
