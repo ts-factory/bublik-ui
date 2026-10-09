@@ -5,6 +5,8 @@ import { formatISODuration, intervalToDuration } from 'date-fns';
 
 import { formatTimeToAPI } from '@/shared/utils';
 
+import type { RunsSearchValues } from '../runs-search';
+import { normalizeRunDataList } from '../runs-key-value';
 import type { RunsFormValues } from './runs-form.component';
 
 export interface RunsFormFiltersSnapshot {
@@ -31,20 +33,79 @@ export const getSelectedRunData = (
 		runData.filter((value) => value.isSelected).map((value) => value.value)
 	);
 
-export function applyRunDataToSearchParams(
-	initialSearchParams: URLSearchParams,
-	runData: string[]
-): URLSearchParams {
-	const params = new URLSearchParams(initialSearchParams);
+/**
+ * The search keys a run data filter writes: the sorted, deduplicated list
+ * (no key when it is empty) and the first page.
+ */
+export function runDataSearch(runData: string[]): {
+	runData: string[] | undefined;
+	page: string;
+} {
 	const normalizedRunData = normalizeRunData(runData);
 
-	normalizedRunData.length
-		? params.set('runData', normalizedRunData.join(';'))
-		: params.delete('runData');
+	return {
+		runData: normalizedRunData.length ? normalizedRunData : undefined,
+		page: '1'
+	};
+}
 
-	params.set('page', '1');
+interface RunsSearchFromFormOptions {
+	/** Reset drops `duration` outright: empty, it would describe a zero-length window. */
+	dropDuration?: boolean;
+}
 
-	return params;
+/**
+ * The whole `/runs` search a form submit or reset writes, from all the
+ * current keys: `calendarMode` stamped, both dates set or both removed,
+ * `duration` set in duration mode (never removed on submit), `tagExpr` and
+ * `runData` set or removed, `page` back to 1. Keys keep their place and new
+ * ones are appended in this order, as `URLSearchParams.set` did; `project`
+ * moves to the end, where `useNavigateWithProject` used to put it back.
+ * `undefined` removes a key.
+ */
+export function runsSearchFromForm(
+	current: Record<string, unknown>,
+	form: RunsFormValues,
+	{ dropDuration = false }: RunsSearchFromFormOptions = {}
+): Record<string, unknown> {
+	const { runData, tagExpr, dates, calendarMode } = form;
+	const next: Record<string, unknown> = { ...current, calendarMode };
+
+	const startDate = dates?.start
+		? formatTimeToAPI(dates.start.toDate(getLocalTimeZone()))
+		: null;
+	const finishDate = dates?.end
+		? formatTimeToAPI(dates.end.toDate(getLocalTimeZone()))
+		: null;
+
+	if (startDate && finishDate) {
+		next.startDate = startDate;
+		next.finishDate = finishDate;
+	} else {
+		next.startDate = undefined;
+		next.finishDate = undefined;
+	}
+
+	if (calendarMode === 'duration' && dates?.start && dates?.end) {
+		next.duration = formatISODuration(
+			intervalToDuration({
+				start: dates.start.toDate(getLocalTimeZone()),
+				end: dates.end.toDate(getLocalTimeZone())
+			})
+		);
+	}
+
+	next.tagExpr = tagExpr || undefined;
+	Object.assign(
+		next,
+		runDataSearch(normalizeRunDataList(getSelectedRunData(runData)))
+	);
+
+	if (dropDuration) next.duration = undefined;
+
+	const { project, ...rest } = next;
+
+	return { ...rest, project };
 }
 
 export function createRunsFormFiltersSnapshot(
@@ -76,21 +137,17 @@ export function createRunsFormFiltersSnapshot(
 	};
 }
 
-export function createRunsSearchParamsFiltersSnapshot(
-	searchParams: URLSearchParams
+export function createRunsSearchFiltersSnapshot(
+	search: RunsSearchValues
 ): RunsFormFiltersSnapshot {
 	return {
-		calendarMode: (searchParams.get('calendarMode') ??
+		calendarMode: (search.calendarMode ??
 			'default') as RunsFormValues['calendarMode'],
-		startDate: normalizeFilterValue(searchParams.get('startDate')),
-		finishDate: normalizeFilterValue(searchParams.get('finishDate')),
-		duration: normalizeFilterValue(searchParams.get('duration')),
-		tagExpr: normalizeFilterValue(searchParams.get('tagExpr')),
-		runData: normalizeRunData(
-			normalizeFilterValue(searchParams.get('runData'))
-				.split(';')
-				.filter(Boolean)
-		)
+		startDate: normalizeFilterValue(search.startDate),
+		finishDate: normalizeFilterValue(search.finishDate),
+		duration: normalizeFilterValue(search.duration),
+		tagExpr: normalizeFilterValue(search.tagExpr),
+		runData: normalizeRunData(search.runData ?? [])
 	};
 }
 

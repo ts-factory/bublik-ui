@@ -1,5 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { getRouteApi } from '@tanstack/react-router';
+import { formatDuration } from 'date-fns';
+
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 import {
 	RunsFormContainer,
@@ -8,17 +11,16 @@ import {
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 import { formatTimeToDot, parseISODuration } from '@/shared/utils';
-import { formatDuration } from 'date-fns';
 
-import { useSearchParams } from '@/router';
+const runsRoute = getRouteApi('/_app/_runs/runs');
 
 function useRunsPageTitle() {
-	const [searchParams] = useSearchParams();
+	const search = runsRoute.useSearch();
 
-	const startDate = searchParams.get('startDate') ?? '';
-	const endDate = searchParams.get('finishDate') ?? '';
-	const searchDuration = searchParams.get('duration') ?? '';
-	const calendarMode = searchParams.get('calendarMode') ?? '';
+	const startDate = search.startDate ?? '';
+	const endDate = search.finishDate ?? '';
+	const searchDuration = search.duration ?? '';
+	const calendarMode = search.calendarMode ?? '';
 
 	let title = 'Runs - Bublik';
 

@@ -20,6 +20,10 @@ import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover.constant
 
 export interface SelectionPopoverComponentProps {
 	compareIds: string[];
+	/** The comparison of the two selected runs; none unless exactly two are. */
+	compareUrl: string | null;
+	/** The selected runs in the multiple-runs view; none for fewer than two. */
+	multipleUrl: string | null;
 	renderItem: (runId: string) => ReactNode;
 	onResetClick: () => void;
 	onCompareClick?: () => void;
@@ -29,6 +33,8 @@ export interface SelectionPopoverComponentProps {
 function SelectionPopover(props: SelectionPopoverComponentProps) {
 	const {
 		compareIds,
+		compareUrl,
+		multipleUrl,
 		renderItem,
 		onResetClick,
 		onCompareClick,
@@ -68,16 +74,11 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 			</SelectionPopoverBody>
 			<SelectionPopoverFooter>
 				<div className="flex items-center gap-2">
-					{compareIds.length >= 2 ? (
+					{multipleUrl ? (
 						<LinkWithProject
 							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-ring-primary"
 							onClick={onMultipleClick}
-							to={{
-								pathname: '/multiple',
-								search: new URLSearchParams(
-									compareIds.map((s) => ['runIds', s])
-								).toString()
-							}}
+							to={multipleUrl}
 						>
 							<Icon name="PaperStack" className="size-5 mr-2" />
 							Multiple
@@ -94,14 +95,11 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 							<span>Multiple</span>
 						</ButtonTw>
 					)}
-					{compareIds.length === 2 ? (
+					{compareUrl ? (
 						<LinkWithProject
 							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-ring-primary"
 							onClick={onCompareClick}
-							to={{
-								pathname: '/compare',
-								search: `left=${compareIds[0]}&right=${compareIds[1]}`
-							}}
+							to={compareUrl}
 						>
 							<Icon
 								name="SwapArrows"

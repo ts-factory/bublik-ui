@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback, useEffect, useState } from 'react';
-import { matchPath, useLocation } from '@/router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
@@ -12,6 +13,7 @@ import { Skeleton, useSelectionPopoverOpenState } from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
 
 import { useRunsSelection } from '../hooks';
+import { useRunsSelectionUrls } from '../runs-links';
 import { useRunsSidebarState } from '../sidebar';
 import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover.constants';
 import {
@@ -82,15 +84,16 @@ export const SelectedResultItemContainer: FC<
 };
 
 export const SelectionPopoverContainer = () => {
-	const location = useLocation();
+	const { pathname } = useRenderedLocation();
 	const navigateWithProject = useNavigateWithProject();
 	const { compareIds, resetSelect } = useRunsSelection();
+	const { compareUrl, multipleUrl } = useRunsSelectionUrls(compareIds);
 	const { lastListUrl } = useRunsSidebarState();
 	const [shouldRedirectToRuns, setShouldRedirectToRuns] = useState(false);
 
 	const handleResetClick = useCallback(() => {
-		const isComparePage = !!matchPath('/compare', location.pathname);
-		const isMultiplePage = !!matchPath('/multiple', location.pathname);
+		const isComparePage = !!matchRoutePath({ to: '/compare' }, pathname);
+		const isMultiplePage = !!matchRoutePath({ to: '/multiple' }, pathname);
 
 		if (isComparePage || isMultiplePage) {
 			setShouldRedirectToRuns(true);
@@ -101,13 +104,14 @@ export const SelectionPopoverContainer = () => {
 			selectionCount: 0,
 			source: 'selection_popover'
 		});
-	}, [location.pathname, resetSelect]);
+	}, [pathname, resetSelect]);
 
 	useEffect(() => {
 		if (!shouldRedirectToRuns || compareIds.length > 0) {
 			return;
 		}
 
+		// Back to the list the selection was made on, replacing the emptied page.
 		navigateWithProject(lastListUrl || '/runs', { replace: true });
 		setShouldRedirectToRuns(false);
 	}, [
@@ -134,6 +138,8 @@ export const SelectionPopoverContainer = () => {
 	return (
 		<SelectionPopover
 			compareIds={compareIds}
+			compareUrl={compareUrl}
+			multipleUrl={multipleUrl}
 			onResetClick={handleResetClick}
 			onCompareClick={handleCompareClick}
 			onMultipleClick={handleMultipleClick}

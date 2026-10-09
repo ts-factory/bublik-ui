@@ -3,7 +3,6 @@
 import { useCallback } from 'react';
 import { OnChangeFn } from '@tanstack/react-table';
 import { useDispatch } from 'react-redux';
-import { useSearchParams } from '@/router';
 
 import {
 	BUBLIK_TAG,
@@ -13,6 +12,7 @@ import {
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 import {
+	useRunDataWriter,
 	useRunsGlobalFilter,
 	useRunsPagination,
 	useRunsQuery,
@@ -24,11 +24,10 @@ import {
 	RunsTableError,
 	RunsTableEmpty
 } from './runs-table.component';
-import { applyRunDataToSearchParams } from '../runs-form/runs-form.utils';
 
 export const RunsTableContainer = () => {
 	const dispatch = useDispatch();
-	const [searchParams, setSearchParams] = useSearchParams();
+	const writeRunData = useRunDataWriter();
 	const { userPreferences } = useUserPreferences();
 	const { pagination, handlePaginationChange } = useRunsPagination();
 	const { localGlobalFilter, handleGlobalFilterChange } = useRunsGlobalFilter();
@@ -49,12 +48,7 @@ export const RunsTableContainer = () => {
 
 			if (!autoApplyBadgeFilters) return;
 
-			setSearchParams(
-				applyRunDataToSearchParams(searchParams, nextGlobalFilter),
-				{
-					replace: true
-				}
-			);
+			writeRunData(nextGlobalFilter);
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 		},
 		[
@@ -62,8 +56,7 @@ export const RunsTableContainer = () => {
 			dispatch,
 			handleGlobalFilterChange,
 			localGlobalFilter,
-			searchParams,
-			setSearchParams
+			writeRunData
 		]
 	);
 
