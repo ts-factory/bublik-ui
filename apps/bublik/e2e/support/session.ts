@@ -3,7 +3,9 @@
 import { readFile } from 'node:fs/promises';
 
 import type {
+	Browser,
 	BrowserContextOptions,
+	Page,
 	PlaywrightWorkerArgs
 } from '@playwright/test';
 
@@ -98,10 +100,36 @@ async function freshStorageState(
 	};
 }
 
+/**
+ * Runs `fn` in a second, signed-in browser context and closes it afterwards.
+ *
+ * For the signed-out scenarios that need something to exist first — an issue
+ * whose Close and Edit guards they look at — and to remove it again, without
+ * the test itself ever holding a session.
+ */
+async function withAdminPage<T>(
+	browser: Browser,
+	playwright: Playwright,
+	baseURL: string,
+	fn: (page: Page) => Promise<T>
+): Promise<T> {
+	const context = await browser.newContext({
+		baseURL,
+		storageState: await freshStorageState(playwright, baseURL)
+	});
+
+	try {
+		return await fn(await context.newPage());
+	} finally {
+		await context.close();
+	}
+}
+
 export {
 	adminEmail,
 	adminPassword,
 	freshStorageState,
+	withAdminPage,
 	SESSION_MAX_AGE_MS,
 	SHARED_STORAGE_STATE
 };

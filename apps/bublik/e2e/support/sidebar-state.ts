@@ -24,7 +24,12 @@ const SIDEBAR_ALIASES = {
 	runsLastList: 'rll',
 	logLastMode: 'lm',
 	runsSelected: 'rs',
-	currentRunId: 'cr'
+	currentRunId: 'cr',
+	issuesLastList: 'isl',
+	issuesLastRules: 'isr',
+	issuesMode: 'ism',
+	runLastIssues: 'ri',
+	issueLast: 'iu'
 } as const;
 
 const SIDEBAR_ALIAS_PATHNAMES: Record<string, string> = {
@@ -38,7 +43,9 @@ const SIDEBAR_ALIAS_PATHNAMES: Record<string, string> = {
 	rlp: '/compare',
 	rlpr: '/runs',
 	rlc: '/runs',
-	rll: '/runs'
+	rll: '/runs',
+	isl: '/issues',
+	isr: '/issues/rules'
 };
 
 type SidebarStateValue = string | string[];

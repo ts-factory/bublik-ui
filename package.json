@@ -24,6 +24,7 @@
 		"e2e:codegen:check": "node ./tools/generate-e2e-manifest-types.cjs --check",
 		"e2e:features:check": "node ./tools/check-e2e-features.cjs",
 		"e2e:typecheck": "nx run bublik:e2e-typecheck",
+		"e2e:unit": "node --experimental-strip-types --test apps/bublik/e2e/support/*.unit.ts",
 		"e2e": "nx e2e",
 		"affected:apps": "nx affected:apps",
 		"affected:libs": "nx affected:libs",
