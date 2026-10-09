@@ -6,7 +6,7 @@ exports[`TextArea > should render default variant 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area
@@ -25,7 +25,7 @@ exports[`TextArea > should render primary variant 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area
@@ -44,7 +44,7 @@ exports[`TextArea > should render with error 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-white"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area
