@@ -4,8 +4,6 @@ import { FC } from 'react';
 import { Row } from '@tanstack/react-table';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useSearchParams } from '@/router';
-
 import { useGetResultsTableQuery } from '@/services/bublik-api';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
@@ -19,6 +17,7 @@ import {
 	ResultDiffError,
 	ResultDiffLoading
 } from './index';
+import { useCompareRunIds } from '../compare-search';
 
 const getQueries = ({
 	left,
@@ -103,10 +102,7 @@ export const ResultDiffContainer: FC<ResultDiffContainerProps> = ({ row }) => {
 		isLoading,
 		error
 	} = useResultDiffState(row.original);
-	const [searchParams] = useSearchParams();
-
-	const leftRunId = searchParams.get('left');
-	const rightRunId = searchParams.get('right');
+	const { left: leftRunId, right: rightRunId } = useCompareRunIds();
 
 	if (!leftRunId || !rightRunId) {
 		return (
