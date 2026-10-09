@@ -23,8 +23,6 @@ import {
 	UnfoldHorizontalIcon
 } from 'lucide-react';
 
-import { useParams } from '@/router';
-
 import { config } from '@/bublik/config';
 import {
 	bublikAPI,
@@ -36,7 +34,6 @@ import {
 	type ChatModel,
 	type ChatProvider
 } from '@/services/bublik-api';
-import { useNavigateWithProject } from '@/bublik/features/projects';
 import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
 
@@ -82,6 +79,7 @@ import {
 	messageText
 } from './thread-markdown';
 import { ChatThreadSidebar } from './sidebar/chat-thread-sidebar';
+import { useMintThreadOnBareChat } from './chat-thread.hooks';
 
 /** A concrete model selection: which provider + model id to run. */
 interface Selection {
@@ -123,32 +121,36 @@ interface ModelControls {
 	onEffortChange: (effort: string) => void;
 }
 
-export function ChatFeature() {
+interface ChatFeatureProps {
+	/** The `/chat/:threadId` param; absent on a bare `/chat`. */
+	threadId: string | undefined;
+}
+
+export function ChatFeature({ threadId }: ChatFeatureProps) {
 	return (
 		<div className="flex h-full gap-1 p-2">
 			<aside className="w-[300px] flex-shrink-0 overflow-hidden bg-bg-primary rounded-md">
-				<ChatThreadSidebar />
+				<ChatThreadSidebar threadId={threadId} />
 			</aside>
 			<div className="flex flex-col flex-1 min-w-0 gap-1">
-				<ChatPanel />
+				<ChatPanel threadId={threadId} />
 			</div>
 		</div>
 	);
 }
 
-function ChatPanel() {
-	const { threadId } = useParams();
-	const navigate = useNavigateWithProject();
+interface ChatPanelProps {
+	threadId: string | undefined;
+}
+
+function ChatPanel({ threadId }: ChatPanelProps) {
 	const { data, isLoading, error } = useGetChatModelsQuery(undefined, {
 		refetchOnMountOrArgChange: true
 	});
 
-	// Every conversation needs a stable id (the persistence + AG-UI key). For a
-	// bare `/chat`, mint one and move to `/chat/:threadId`; the thread row is
-	// created lazily in Postgres on the first persisted message.
-	useEffect(() => {
-		if (!threadId) navigate(`/chat/${crypto.randomUUID()}`, { replace: true });
-	}, [threadId, navigate]);
+	// A bare `/chat` gets a thread id in place; the thread row is created
+	// lazily in Postgres on the first persisted message.
+	useMintThreadOnBareChat(threadId);
 
 	const providers = useMemo(() => data?.providers ?? [], [data?.providers]);
 	const flatModels = useMemo(
