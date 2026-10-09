@@ -70,7 +70,7 @@ function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {
 							>
 								<DropdownMenuItem asChild className="pl-2 gap-4">
 									<LinkWithProject
-										to={`/runs/${runId}/report/?config=${config.id}`}
+										to={`/runs/${runId}/report?config=${config.id}`}
 									>
 										{config.name}
 										<Icon
