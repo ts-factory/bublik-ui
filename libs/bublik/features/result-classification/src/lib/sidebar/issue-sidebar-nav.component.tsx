@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -27,7 +27,7 @@ const RULES_PATTERN = { to: '/issues/$issueId' };
 
 const ISSUE_PATTERNS: ActivePattern[] = [RESULTS_PATTERN, RULES_PATTERN];
 
-// `/issues/rules` matches `/issues/$issueId` too; the digit check below keeps
+// `/issues/rules` matches `/issues/$issueId` too; the id check below keeps
 // the Issue entry quiet there, and these stand in for its patterns. A submenu
 // item with no pattern at all counts as active, hence a path nothing routes to.
 const NO_PATTERNS: ActivePattern[] = [];
@@ -53,7 +53,7 @@ export function IssueSidebarNav() {
 	const resultsMatch = matchRoutePath(RESULTS_PATTERN, pathname);
 	const match = resultsMatch || matchRoutePath(RULES_PATTERN, pathname);
 	const issueId = match ? match['issueId'] : undefined;
-	const isIssueDetail = !!issueId && /^\d+$/.test(issueId);
+	const isIssueDetail = issueId !== undefined && isIdSegment(issueId);
 	// A boolean, not the match object: that is new on every render.
 	const isResultsPage = resultsMatch !== false;
 

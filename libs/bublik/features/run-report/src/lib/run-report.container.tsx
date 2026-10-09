@@ -57,7 +57,7 @@ function RunReportContainer(props: RunReportContainerProps) {
 
 	return (
 		<div data-testid="run-report-page">
-			<RunReport runId={Number(runId)} blocks={blocks} details={details} />
+			<RunReport runId={runId} blocks={blocks} details={details} />
 		</div>
 	);
 }

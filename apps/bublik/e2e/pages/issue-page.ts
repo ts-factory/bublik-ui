@@ -164,12 +164,6 @@ class IssuePage {
 		);
 	}
 
-	get invalidId(): Locator {
-		return this.page.getByText('Issue ID is missing or invalid', {
-			exact: true
-		});
-	}
-
 	fact(label: 'Key' | 'Rules' | 'Created' | 'Updated' | 'Closed'): Locator {
 		return this.header
 			.locator('dt')
@@ -350,10 +344,6 @@ class IssuePage {
 		await expect(this.ruleActiveBadge(row)).toHaveText(
 			active ? 'Active' : 'Inactive'
 		);
-	}
-
-	async expectInvalidId(): Promise<void> {
-		await expect(this.invalidId).toBeVisible({ timeout: 30_000 });
 	}
 
 	async expectParams(expected: Record<string, string | null>): Promise<void> {

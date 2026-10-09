@@ -16,8 +16,10 @@ function AppLayout() {
 
 // Pathless layout: every page but the auth pages renders inside the app
 // shell. A page crash shows the reset UI inside the shell, so the sidebar
-// survives it; a `notFound()` thrown by a page renders the not-found page
-// inside the shell too (an unknown URL is caught by the `$` splat route).
+// survives it. A `notFound()` lands on the nearest route with a
+// `notFoundComponent`; landing here would replace the layout, so a page that
+// throws one (the id routes, `idParams` in `@/router`) has its own, rendered in the
+// outlet. An unknown URL is caught by the `$` splat route.
 export const Route = createFileRoute('/_app')({
 	component: AppLayout,
 	errorComponent: RouteErrorBoundary,

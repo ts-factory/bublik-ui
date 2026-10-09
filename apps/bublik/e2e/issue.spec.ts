@@ -332,21 +332,6 @@ test.describe('Issue Page', () => {
 			);
 		}
 	);
-
-	test(
-		'An invalid issue id shows the no-data state',
-		{ tag: ['@issues'] },
-		async ({ page }) => {
-			const issuePage = new IssuePage(page);
-
-			await when('I open the issue page with an id that is not a number', () =>
-				issuePage.goto('not-a-number')
-			);
-			await then('I am told the issue id is missing or invalid', () =>
-				issuePage.expectInvalidId()
-			);
-		}
-	);
 });
 
 test.describe('Issue Page (signed out)', () => {

@@ -113,12 +113,6 @@ class IssueResultsPage {
 		return this.table.getByText('No matching results', { exact: true });
 	}
 
-	get invalidId(): Locator {
-		return this.page.getByText('Issue ID is missing or invalid', {
-			exact: true
-		});
-	}
-
 	/** The sidebar's count of the issue's rules, on its Issue › Rules item. */
 	get sidebarRuleCount(): Locator {
 		return this.page.getByTestId('issue-sidebar-rule-count');
@@ -487,8 +481,14 @@ class IssueResultsPage {
 		await expect(this.noMatching).toBeVisible({ timeout: 30_000 });
 	}
 
-	async expectInvalidId(): Promise<void> {
-		await expect(this.invalidId).toBeVisible({ timeout: 30_000 });
+	async expectNotFound(issueId: string): Promise<void> {
+		await expect(this.page).toHaveURL(
+			new RegExp(`/issues/${issueId}/results$`)
+		);
+		await expect(this.page.getByText(/not found/i).first()).toBeVisible({
+			timeout: 15_000
+		});
+		await expect(this.page.locator('#sidebar')).toBeVisible();
 	}
 
 	async expectSidebarRuleCount(count: number): Promise<void> {

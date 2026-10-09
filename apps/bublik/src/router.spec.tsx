@@ -54,25 +54,25 @@ describe('createAppRouter', () => {
 			['/tools/packet-viewer', ['/_app', '/_app/tools/packet-viewer'], {}],
 			['/history', ['/_app', '/_app/history/'], {}],
 			['/history/v2', ['/_app', '/_app/history/v2'], {}],
-			['/log/1', ['/_app', '/_app/log/$runId/'], { runId: '1' }],
-			['/runs/1/report', ['/_app', '/_app/runs/$runId/report'], { runId: '1' }],
-			['/runs/1/issues', ['/_app', '/_app/runs/$runId/issues'], { runId: '1' }],
+			['/log/1', ['/_app', '/_app/log/$runId/'], { runId: 1 }],
+			['/runs/1/report', ['/_app', '/_app/runs/$runId/report'], { runId: 1 }],
+			['/runs/1/issues', ['/_app', '/_app/runs/$runId/issues'], { runId: 1 }],
 			[
 				'/runs/1/results/2/measurements',
 				['/_app', '/_app/runs/$runId/results/$resultId/measurements'],
-				{ runId: '1', resultId: '2' }
+				{ runId: 1, resultId: 2 }
 			],
 			['/runs', ['/_app', '/_app/_runs', '/_app/_runs/runs'], {}],
 			['/compare', ['/_app', '/_app/_runs', '/_app/_runs/compare'], {}],
 			['/multiple', ['/_app', '/_app/_runs', '/_app/_runs/multiple'], {}],
-			['/runs/1', ['/_app', '/_app/runs/$runId/'], { runId: '1' }],
+			['/runs/1', ['/_app', '/_app/runs/$runId/'], { runId: 1 }],
 			['/issues', ['/_app', '/_app/issues/'], {}],
 			['/issues/rules', ['/_app', '/_app/issues/rules'], {}],
-			['/issues/5', ['/_app', '/_app/issues/$issueId'], { issueId: '5' }],
+			['/issues/5', ['/_app', '/_app/issues/$issueId'], { issueId: 5 }],
 			[
 				'/issues/5/results',
 				['/_app', '/_app/issues/$issueId_/results'],
-				{ issueId: '5' }
+				{ issueId: 5 }
 			],
 			['/admin', ['/_app', '/_app/admin', '/_app/admin/'], {}],
 			['/admin/import', ['/_app', '/_app/admin', '/_app/admin/import'], {}],
@@ -185,13 +185,63 @@ describe('createAppRouter', () => {
 		}
 	);
 
+	describe('parses the run, result and issue ids to numbers', () => {
+		it.each([
+			['/runs/abc', '/_app/runs/$runId/'],
+			['/runs/1.5', '/_app/runs/$runId/'],
+			['/runs/-1', '/_app/runs/$runId/'],
+			['/runs/abc/report?config=2', '/_app/runs/$runId/report'],
+			['/runs/abc/issues', '/_app/runs/$runId/issues'],
+			[
+				'/runs/abc/results/2/measurements',
+				'/_app/runs/$runId/results/$resultId/measurements'
+			],
+			[
+				'/runs/1/results/abc/measurements',
+				'/_app/runs/$runId/results/$resultId/measurements'
+			],
+			['/log/abc?focusId=3', '/_app/log/$runId/'],
+			['/log/abc/old', '/_app/log/$runId/$old'],
+			['/issues/abc', '/_app/issues/$issueId'],
+			['/issues/abc/results', '/_app/issues/$issueId_/results']
+		])(
+			'%s is not found inside the app shell, at its own address',
+			async (url, routeId) => {
+				const router = await routerAt(url);
+
+				expect(router.state.location.href).toBe(url);
+				expect(matched(router)).toEqual(['__root__', '/_app', routeId]);
+				// The page's own match is not found and renders its not-found
+				// page in `_app`'s outlet: the layout around it stays. (Were the
+				// not-found to land on `_app`, it would replace the layout.)
+				expect(router.state.matches.map((match) => match.status)).toEqual([
+					'success',
+					'success',
+					'notFound'
+				]);
+				expect(router.history.length).toBe(1);
+			}
+		);
+
+		it('builds a link from numeric params', async () => {
+			const router = await routerAt('/dashboard');
+
+			expect(
+				router.buildLocation({
+					to: '/runs/$runId/results/$resultId/measurements',
+					params: { runId: 7, resultId: 12 }
+				}).href
+			).toBe(`${config.baseUrl}/runs/7/results/12/measurements`);
+		});
+	});
+
 	it('builds hrefs under the base URL', async () => {
 		const router = await routerAt('/dashboard');
 
 		expect(
 			router.buildLocation({
 				to: '/runs/$runId',
-				params: { runId: '1' },
+				params: { runId: 1 },
 				search: { page: '2' }
 			}).publicHref
 		).toBe(`${config.baseUrl}/runs/1?page=2`);

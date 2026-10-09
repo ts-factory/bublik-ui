@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
 
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import {
@@ -107,7 +107,8 @@ export function RunSidebarNav() {
 			issuesMatch || matchRoutePath({ to: '/runs/$runId' }, pathname);
 		const matchedRunId = match ? match.runId : undefined;
 
-		if (!matchedRunId || !/^\d+$/.test(matchedRunId)) return;
+		// Only an id is a run, by the rule the run routes parse it with
+		if (!matchedRunId || !isIdSegment(matchedRunId)) return;
 
 		setLastVisited(
 			issuesMatch ? 'issues' : 'details',

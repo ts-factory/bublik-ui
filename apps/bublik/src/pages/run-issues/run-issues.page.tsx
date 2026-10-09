@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useState } from 'react';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { getRouteApi } from '@tanstack/react-router';
 
 import { routes } from '@/router';
@@ -18,7 +17,6 @@ import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { BublikEmptyState } from '@/bublik/features/ui-state';
 import {
 	ButtonTw,
 	CardHeader,
@@ -27,7 +25,7 @@ import {
 	Separator
 } from '@/shared/tailwind-ui';
 
-function RunIssuesHeader({ runId }: { runId: string }) {
+function RunIssuesHeader({ runId }: { runId: number }) {
 	const [isFullMode, setIsFullMode] = useState(false);
 
 	return (
@@ -64,13 +62,7 @@ const runIssuesRoute = getRouteApi('/_app/runs/$runId/issues');
 
 function RunIssuesPage() {
 	const { runId } = runIssuesRoute.useParams();
-	const { data: details } = useGetRunDetailsQuery(
-		runId ? Number(runId) : skipToken
-	);
-
-	if (!runId) {
-		return <BublikEmptyState title="No data" description="Run ID is missing" />;
-	}
+	const { data: details } = useGetRunDetailsQuery(runId);
 
 	const projectId = details?.project_id;
 

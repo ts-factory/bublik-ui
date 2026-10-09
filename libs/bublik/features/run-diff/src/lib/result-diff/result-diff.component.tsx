@@ -88,14 +88,12 @@ const classNames: TableClassNames<RunDataResultsWithDiff> = {
 };
 
 export interface ResultDiffProps {
-	leftRunId: string;
-	rightRunId: string;
 	left?: RunDataResults[];
 	right?: RunDataResults[];
 }
 
 export const ResultDiff: FC<ResultDiffProps> = (props) => {
-	const { leftRunId, rightRunId, left = [], right = [] } = props;
+	const { left = [], right = [] } = props;
 
 	const rowsDiff = useMemo(() => {
 		return computeResultsDiff({ left, right }).filter(
@@ -103,10 +101,7 @@ export const ResultDiff: FC<ResultDiffProps> = (props) => {
 		);
 	}, [left, right]);
 
-	const columns = useMemo(
-		() => getColumns(leftRunId, rightRunId),
-		[leftRunId, rightRunId]
-	);
+	const columns = useMemo(() => getColumns(), []);
 
 	return (
 		<div className="p-2 bg-bg-primary">

@@ -44,7 +44,7 @@ async function renderOnPage(ui: ReactElement) {
 
 describe('the measurements header links', () => {
 	it('opens the log focused on the result in the full layout', async () => {
-		const hrefOf = await renderOnPage(<LinkToLog runId="1" resultId="11" />);
+		const hrefOf = await renderOnPage(<LinkToLog runId={1} resultId={11} />);
 
 		expect(hrefOf('Log')).toBe(
 			`${BASEPATH}/log/1?focusId=11&mode=treeAndinfoAndlog&${CARRIED}`
@@ -53,7 +53,7 @@ describe('the measurements header links', () => {
 
 	it('opens the run targeting the result', async () => {
 		const hrefOf = await renderOnPage(
-			<LinkToRun runId="1" targetIterationId={11} />
+			<LinkToRun runId={1} targetIterationId={11} />
 		);
 
 		expect(hrefOf('Run')).toBe(
@@ -63,7 +63,7 @@ describe('the measurements header links', () => {
 
 	it('opens the run alone without a usable target', async () => {
 		const hrefOf = await renderOnPage(
-			<LinkToRun runId="1" targetIterationId={Number('x')} />
+			<LinkToRun runId={1} targetIterationId={Number('x')} />
 		);
 
 		expect(hrefOf('Run')).toBe(`${BASEPATH}/runs/1?${CARRIED}`);

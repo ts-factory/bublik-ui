@@ -72,11 +72,6 @@ Feature: Issue
     And the issue is closed
     And I delete the issue from its page
 
-  @issues
-  Scenario: An invalid issue id shows the no-data state
-    When I open the issue page with an id that is not a number
-    Then I am told the issue id is missing or invalid
-
   # Runs without the shared signed-in storage state; the issue it looks at is
   # recorded and removed from a second, signed-in browser context.
   @issues @auth
@@ -101,12 +96,12 @@ Feature: Issue
     Then the issue's title is shown
     And each of its rules is listed
 
-  # The id is validated before anything is fetched: a word in its place is the
-  # page's own empty state, not a request for issue NaN.
+  # The route parses the id before anything is fetched: a word in its place is
+  # the not-found page inside the app shell, not a request for issue NaN.
   @issues
-  Scenario: An issue address that is not a number shows the empty state
+  Scenario: An issue address that is not a number shows the not-found page
     When I open the issues address with a word in place of the id
-    Then the page reports the id as missing or invalid
+    Then the not-found page is shown inside the app shell at that address
 
   ####################################################################
   # URL parameters

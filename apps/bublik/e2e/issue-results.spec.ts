@@ -516,7 +516,8 @@ test.describe('Issue Results Page', () => {
 	);
 
 	test(
-		'An invalid issue id on the results page shows the no-data state',
+		'An issue results address that is not a number shows the not-found page',
+		// Reads no seeded data: the route rejects the id before any request
 		{ tag: ['@issues'] },
 		async ({ page }) => {
 			const resultsPage = new IssueResultsPage(page);
@@ -525,8 +526,9 @@ test.describe('Issue Results Page', () => {
 				'I open the issue results page with an id that is not a number',
 				() => resultsPage.goto('not-a-number')
 			);
-			await then('I am told the issue id is missing or invalid', () =>
-				resultsPage.expectInvalidId()
+			await then(
+				'the not-found page is shown inside the app shell at that address',
+				() => resultsPage.expectNotFound('not-a-number')
 			);
 		}
 	);

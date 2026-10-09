@@ -16,8 +16,8 @@ export interface LinkToMeasurementsProps {
 }
 
 export interface LinkToMeasurementsComponentProps {
-	runId: string | number;
-	resultId: string;
+	runId: number;
+	resultId: number;
 	state: 'loading' | 'disabled' | 'default';
 }
 
@@ -31,7 +31,7 @@ export const LinkToMeasurements = ({
 		<ButtonTw asChild variant="secondary" size="xss" state={state}>
 			<TypedLinkWithProject
 				to="/runs/$runId/results/$resultId/measurements"
-				params={{ runId: String(runId), resultId }}
+				params={{ runId, resultId }}
 				// Written explicitly, as `routes.measurements` did
 				search={{ mode: MeasurementsMode.Default }}
 				onClick={() => {
@@ -58,13 +58,13 @@ export const LinkToMeasurementsContainer = ({
 		focusId ?? skipToken
 	);
 
-	const resultId = data?.result_id?.toString();
+	const resultId = data?.result_id;
 	const runId = data?.run_id;
 	const hasMeasurements = data?.has_measurements;
 
-	usePrefetchMeasurementsPage({ resultId });
+	usePrefetchMeasurementsPage({ resultId: resultId?.toString() });
 
-	if (!resultId || !runId) return;
+	if (resultId === undefined || runId === undefined) return;
 
 	return (
 		<LinkToMeasurements

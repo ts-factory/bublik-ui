@@ -85,7 +85,9 @@ Feature: Issue results
     And the footer counts no results
     And I delete the issue from its results page
 
+  # The route parses the id before anything is fetched: a word in its place is
+  # the not-found page inside the app shell, not a request for issue NaN.
   @issues
-  Scenario: An invalid issue id on the results page shows the no-data state
+  Scenario: An issue results address that is not a number shows the not-found page
     When I open the issue results page with an id that is not a number
-    Then I am told the issue id is missing or invalid
+    Then the not-found page is shown inside the app shell at that address

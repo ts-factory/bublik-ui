@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { skipToken } from '@reduxjs/toolkit/query';
 import { getRouteApi } from '@tanstack/react-router';
 
 import {
@@ -19,8 +18,6 @@ import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 
-import { BublikEmptyState } from '@/bublik/features/ui-state';
-
 const issueRoute = getRouteApi('/_app/issues/$issueId');
 
 export const IssuePage = () => {
@@ -29,49 +26,29 @@ export const IssuePage = () => {
 	const navigate = useNavigateWithProject();
 	const projectId = projectIds[0];
 
-	const isValidId = !!issueId && /^\d+$/.test(issueId);
-	const numericIssueId = isValidId ? Number(issueId) : undefined;
-
-	const { data: issue } = useGetIssueQuery(
-		numericIssueId !== undefined
-			? { issueId: numericIssueId, projectId }
-			: skipToken
-	);
+	const { data: issue } = useGetIssueQuery({ issueId, projectId });
 
 	useTabTitleWithPrefix([issue?.title, 'Issue - Bublik']);
-
-	if (numericIssueId === undefined) {
-		return (
-			<BublikEmptyState
-				title="No data"
-				description="Issue ID is missing or invalid"
-			/>
-		);
-	}
 
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issue-page">
 			<header className="flex flex-col bg-bg-primary rounded shrink-0">
 				<IssueHeaderBar
-					issueId={numericIssueId}
+					issueId={issueId}
 					projectId={projectId}
 					onDeleted={() => navigate(routes.issues({}))}
 				>
-					<IssueResultsButton issueId={numericIssueId} projectId={projectId} />
+					<IssueResultsButton issueId={issueId} projectId={projectId} />
 					<CopyShortUrlButtonContainer />
 				</IssueHeaderBar>
-				<IssueDetailHeader issueId={numericIssueId} projectId={projectId} />
+				<IssueDetailHeader issueId={issueId} projectId={projectId} />
 			</header>
 			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 				<IssueRulesTable
-					issueId={numericIssueId}
+					issueId={issueId}
 					projectId={projectId}
 					toolbarActions={
-						<NewRuleButton
-							projectId={projectId}
-							issueId={numericIssueId}
-							lockIssue
-						/>
+						<NewRuleButton projectId={projectId} issueId={issueId} lockIssue />
 					}
 				/>
 			</div>

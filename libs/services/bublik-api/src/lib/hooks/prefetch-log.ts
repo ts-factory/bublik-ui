@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 import { usePrefetch } from '../bublikAPI';
 
 export interface UsePrefetchLogPageConfig {
-	runId?: string;
-	resultId?: string;
+	runId?: number;
+	resultId?: number;
 }
 
 /** Prefetches log page header and log page tree */
@@ -19,11 +19,11 @@ export const usePrefetchLogPage = ({
 	const prefetchMeasurementsLink = usePrefetch('getResultInfo');
 
 	useEffect(() => {
-		if (!runId) return;
+		if (runId === undefined) return;
 
 		prefetchDetails(runId);
 		prefetchTree(runId);
-		if (resultId) prefetchMeasurementsLink(resultId);
+		if (resultId !== undefined) prefetchMeasurementsLink(resultId);
 	}, [
 		runId,
 		resultId,

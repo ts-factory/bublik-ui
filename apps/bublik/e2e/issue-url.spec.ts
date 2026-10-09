@@ -61,8 +61,8 @@ test.describe('Issue', () => {
 	);
 
 	test(
-		'An issue address that is not a number shows the empty state',
-		// Reads no seeded data
+		'An issue address that is not a number shows the not-found page',
+		// Reads no seeded data: the route rejects the id before any request
 		{ tag: ['@issues'] },
 		async ({ page }) => {
 			const issuePage = new IssuePage(page);
@@ -71,8 +71,9 @@ test.describe('Issue', () => {
 				'I open the issues address with a word in place of the id',
 				() => issuePage.goto('latest')
 			);
-			await then('the page reports the id as missing or invalid', () =>
-				issuePage.expectInvalidId()
+			await then(
+				'the not-found page is shown inside the app shell at that address',
+				() => issuePage.expectNotFound('latest')
 			);
 		}
 	);

@@ -31,12 +31,11 @@ import { LogPageMode } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { TypedLinkWithProject } from '@/bublik/features/projects';
-import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 const runRoute = getRouteApi('/_app/runs/$runId/');
 
 interface RunLinkProps {
-	runId: string;
+	runId: number;
 }
 
 /** The log of the whole run, in the full layout (as `routes.log` wrote it). */
@@ -61,7 +60,7 @@ function RunLogLink({ runId }: RunLinkProps) {
 }
 
 export interface RunHeaderProps {
-	runId: string;
+	runId: number;
 }
 
 const RunHeader = ({ runId }: RunHeaderProps) => {
@@ -84,13 +83,13 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						onToggleClick={handleModeToggle}
 					/>
 					<Separator orientation="vertical" className="h-5 self-center" />
-					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
+					<DiffFormContainer defaultValues={{ leftRunId: String(runId) }} />
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
 					<RunLogLink runId={runId} />
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<DefineCompromiseContainer runId={runId} />
-					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
+					<NewBugContainer runId={runId} resultId={runId} />
 					<RunIssuesButton runId={runId} />
 					<ApplyRulesButton runId={runId} />
 					<Separator orientation="vertical" className="h-5 self-center" />
@@ -106,10 +105,6 @@ export const RunPage = () => {
 	const { runId } = runRoute.useParams();
 	usePrefetchLogPage({ runId });
 
-	if (!runId) {
-		return <BublikEmptyState title="No data" description="Run ID is missing" />;
-	}
-
 	return (
 		<div className="flex flex-col gap-1 p-2">
 			<RunHeader runId={runId} />
@@ -117,7 +112,8 @@ export const RunPage = () => {
 				{/* One selection across every open result table, so results of
 				    several tests go into one bulk classification. */}
 				<ResultSelectionProvider>
-					<RunTableContainer runId={runId} />
+					{/* The run table, shared with /multiple, takes the ids as strings */}
+					<RunTableContainer runId={String(runId)} />
 				</ResultSelectionProvider>
 			</GlobalRequirementsProvider>
 			<ScrollToTopPage offset={158} />

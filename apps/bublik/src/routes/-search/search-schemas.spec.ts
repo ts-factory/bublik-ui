@@ -357,7 +357,7 @@ describe('/log/$runId', () => {
 
 	itRoundTrips({
 		to: '/log/$runId',
-		params: { runId: '1132' },
+		params: { runId: 1132 },
 		wire: '/log/1132?focusId=1138&mode=treeAndinfoAndlog&lineNumber=1138_42&page=2&legacy=false',
 		typed
 	});
@@ -424,7 +424,7 @@ describe('/runs/$runId', () => {
 
 	itRoundTrips({
 		to: '/runs/$runId',
-		params: { runId: '1' },
+		params: { runId: 1 },
 		wire:
 			`/runs/1?expanded=${lz(typed.expanded)}&sorting=${lz(typed.sorting)}` +
 			`&globalFilter=${lz(typed.globalFilter)}&rowState=${lz(typed.rowState)}` +
@@ -457,7 +457,7 @@ describe('/runs/$runId/report', () => {
 
 	itRoundTrips({
 		to: '/runs/$runId/report',
-		params: { runId: '1726' },
+		params: { runId: 1726 },
 		wire: '/runs/1726/report?config=11&isFullMode=0&selected-records=rec-1&selected-records=rec-2&stacked-drawer=1',
 		typed
 	});
@@ -495,7 +495,7 @@ describe('/runs/$runId/results/$resultId/measurements', () => {
 
 	itRoundTrips({
 		to: '/runs/$runId/results/$resultId/measurements',
-		params: { runId: '1', resultId: '11' },
+		params: { runId: 1, resultId: 11 },
 		wire: '/runs/1/results/11/measurements?mode=overlay&selectedCharts=2&selectedCharts=3',
 		typed
 	});
@@ -527,7 +527,7 @@ describe('/runs/$runId/issues', () => {
 
 	itRoundTrips({
 		to: '/runs/$runId/issues',
-		params: { runId: '1' },
+		params: { runId: 1 },
 		wire: '/runs/1/issues?page=2&pageSize=50&q=foo&sort=title%3Aasc&open=3%3B4&state=open&effect=fail&categories=env%3Bflaky&cols=%2Bactive%3B-tags&order=title%3Bstate',
 		typed
 	});
@@ -539,7 +539,7 @@ describe('/runs/$runId/issues', () => {
 		expect(
 			router.buildLocation({
 				to: '/runs/$runId/issues',
-				params: { runId: '1' },
+				params: { runId: 1 },
 				search: { sort: [] }
 			}).href
 		).toBe(`${config.baseUrl}/runs/1/issues?sort=none`);
@@ -551,7 +551,7 @@ describe('/runs/$runId/issues', () => {
 		expect(
 			router.buildLocation({
 				to: '/runs/$runId/issues',
-				params: { runId: '1' },
+				params: { runId: 1 },
 				search: { cols: { tags: false, active: true } }
 			}).href
 		).toBe(`${config.baseUrl}/runs/1/issues?cols=%2Bactive%3B-tags`);

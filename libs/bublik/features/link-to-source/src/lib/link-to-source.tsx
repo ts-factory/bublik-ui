@@ -7,7 +7,7 @@ import { useGetRunSourceQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 
 interface LinkToSourceFeatureProps {
-	runId: string;
+	runId: string | number;
 }
 
 function LinkToSourceContainer({ runId }: LinkToSourceFeatureProps) {

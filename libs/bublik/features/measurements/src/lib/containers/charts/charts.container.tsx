@@ -52,7 +52,7 @@ export type ChartsTiling = 'row' | 'mosaic';
 
 export interface ChartsProps {
 	layout: ChartsTiling;
-	resultId: string;
+	resultId: number;
 	isLockedMode?: boolean;
 }
 
