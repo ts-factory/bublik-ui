@@ -195,9 +195,9 @@ Feature: Dashboard
     And the URL still carries the unparsable date
 
   # The dashboard used to encode both of its days into one base64 parameter.
-  # Links from that era are still in wikis and chat logs, and the page rewrites
-  # them on load — losing everything except the layout, which is why the project
-  # is deliberately absent from the assertions below.
+  # Links from that era are still in wikis and chat logs, and the route rewrites
+  # them on load into the pinned days, keeping the layout, the selected projects
+  # and the sidebar state and dropping everything else.
   @dashboard @url-params
   Scenario: A legacy dates link is rewritten into the pinned days
     Given a link that pins its two days in the old encoded dates parameter
