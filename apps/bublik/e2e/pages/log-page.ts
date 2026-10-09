@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
 
+import { applyRulesWith } from '../support/classification';
 import { UrlParams, urlParams } from '../support/url-params';
+import { ClassifyDrawer } from './classify-drawer';
 
 type LogMode = 'log' | 'infoAndlog' | 'treeAndinfoAndlog' | 'treeAndlog';
 
@@ -255,6 +257,35 @@ class LogPage {
 
 	logRow(rowId: string): Locator {
 		return this.logTable.locator(`[data-log-row-id="${rowId}"]`);
+	}
+
+	/** The header's Classify button; shown only for a focused result that failed or is stamped. */
+	get classifyTrigger(): Locator {
+		return this.root.getByTestId('classify-trigger');
+	}
+
+	get applyRulesButton(): Locator {
+		return this.root.getByTestId('apply-rules-button');
+	}
+
+	/** Applies the rules from the log header and resolves with the toast's wording. */
+	async applyRules(): Promise<string> {
+		return applyRulesWith(this.page, this.applyRulesButton);
+	}
+
+	async openClassify(): Promise<ClassifyDrawer> {
+		await expect(this.classifyTrigger).toBeVisible({ timeout: 30_000 });
+		await this.classifyTrigger.click();
+		const drawer = new ClassifyDrawer(this.page);
+		await drawer.expectOpen();
+
+		return drawer;
+	}
+
+	async expectClassificationActions(): Promise<void> {
+		await expect(this.classifyTrigger).toBeVisible({ timeout: 30_000 });
+		await expect(this.applyRulesButton).toBeVisible();
+		await expect(this.applyRulesButton).toBeEnabled();
 	}
 
 	async logRowCount(): Promise<number> {
