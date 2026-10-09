@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { decode, encode } from './decoders';
-import { parseSearch as JsurlParseSearch } from 'react-location-jsurl';
+import { parseJsurl } from './jsurl';
 
-export const encodeToBinary = (str: string): string => {
+const encodeToBinary = (str: string): string => {
 	return btoa(
 		encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_match, p1) => {
 			return String.fromCharCode(parseInt(p1, 16));
@@ -11,27 +11,11 @@ export const encodeToBinary = (str: string): string => {
 	);
 };
 
-export const decodeFromBinary = (str: string): string => {
-	return decodeURIComponent(
-		Array.prototype.map
-			.call(atob(str), (c) => {
-				return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-			})
-			.join('')
-	);
-};
-
 export const isOldUrl = (searchStr: string) => {
 	return searchStr.includes('~') || searchStr.includes('%7E');
 };
 
-export const handleOldUrlParsing = (searchStr: string) => {
-	window.location.replace(
-		`${window.location.pathname}${convertOldUrlSearch(searchStr)}`
-	);
-};
-
-export const parseSearchWith = (parser: (str: string) => unknown) => {
+const parseSearchWith = (parser: (str: string) => unknown) => {
 	return (searchStr: string): Record<string, unknown> => {
 		if (searchStr.substring(0, 1) === '?') {
 			searchStr = searchStr.substring(1);
@@ -56,7 +40,7 @@ export const parseSearchWith = (parser: (str: string) => unknown) => {
 	};
 };
 
-export const stringifySearchWith = (stringify: (search: unknown) => string) => {
+const stringifySearchWith = (stringify: (search: unknown) => string) => {
 	return (search: Record<string, unknown>) => {
 		search = { ...search };
 
@@ -81,23 +65,19 @@ export const stringifySearchWith = (stringify: (search: unknown) => string) => {
 	};
 };
 
-export const defaultParser = (value: string) => {
-	return JSON.parse(decodeFromBinary(value));
-};
-
-export const defaultStringifier = (value: unknown) => {
+const defaultStringifier = (value: unknown) => {
 	return encodeToBinary(JSON.stringify(value));
 };
 
-export const parseSearch = parseSearchWith(defaultParser);
 export const stringifySearch = stringifySearchWith(defaultStringifier);
+
+const parseJsurlSearch = parseSearchWith(parseJsurl);
 
 /**
  * The query string a legacy jsurl (`~`) search is rewritten to: parsed as
  * jsurl, written back in the legacy codec (objects as base64 JSON), with its
- * `?`, or `''` when nothing is left. What `handleOldUrlParsing` reloads to,
- * for a route's `beforeLoad` redirect.
+ * `?`, or `''` when nothing is left. A route's `beforeLoad` redirects to it.
  */
 export function convertOldUrlSearch(searchStr: string): string {
-	return stringifySearch(JsurlParseSearch(searchStr));
+	return stringifySearch(parseJsurlSearch(searchStr));
 }
