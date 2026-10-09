@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithRouter } from '@/router/testing';
 import { SidebarProvider, TooltipProvider } from '@/shared/tailwind-ui';
 
 import { IssueSidebarNav } from './issue-sidebar-nav.component';
@@ -31,20 +31,19 @@ vi.mock('@/shared/tailwind-ui', async (importOriginal) => {
 });
 
 function renderNav(isSidebarOpen: boolean) {
-	return render(
-		<MemoryRouter initialEntries={['/issues/47']}>
-			<TooltipProvider>
-				<SidebarProvider isSidebarOpen={isSidebarOpen}>
-					<IssueSidebarNav />
-				</SidebarProvider>
-			</TooltipProvider>
-		</MemoryRouter>
+	return renderWithRouter(
+		<TooltipProvider>
+			<SidebarProvider isSidebarOpen={isSidebarOpen}>
+				<IssueSidebarNav />
+			</SidebarProvider>
+		</TooltipProvider>,
+		{ path: '/issues/47' }
 	);
 }
 
 describe('the Issue sidebar entry', () => {
-	it('shows the active issue key, without a link out to its tracker', () => {
-		renderNav(true);
+	it('shows the active issue key, without a link out to its tracker', async () => {
+		await renderNav(true);
 
 		const key = screen.getByTestId('issue-sidebar-key');
 		expect(key).toHaveTextContent('E2E-146');
@@ -52,8 +51,8 @@ describe('the Issue sidebar entry', () => {
 		expect(screen.queryByTestId('issue-sidebar-bug-link')).toBeNull();
 	});
 
-	it('follows the Issue entry when the key is clicked', () => {
-		renderNav(true);
+	it('follows the Issue entry when the key is clicked', async () => {
+		await renderNav(true);
 
 		const link = screen.getByTestId('issue-sidebar-key').closest('a');
 		expect(link).not.toBeNull();
@@ -61,8 +60,8 @@ describe('the Issue sidebar entry', () => {
 		expect(link).toHaveAccessibleName(/^Issue\b/);
 	});
 
-	it('fades the key out when the sidebar is collapsed', () => {
-		renderNav(false);
+	it('fades the key out when the sidebar is collapsed', async () => {
+		await renderNav(false);
 
 		expect(screen.getByTestId('issue-sidebar-key')).toHaveClass('opacity-0');
 	});

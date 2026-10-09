@@ -7,8 +7,10 @@ import {
 	screen
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PropsWithChildren, ReactElement, ReactNode, forwardRef } from 'react';
+import { PropsWithChildren, ReactElement, forwardRef } from 'react';
 
+import type { LinkWithProjectProps } from '@/bublik/features/projects';
+import { joinTo, splitTarget } from '@/router';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { IssueRuleRef, ResultIssueRef } from '@/shared/types';
 
@@ -30,23 +32,16 @@ vi.mock('@/icons', () => {
 	};
 });
 
-vi.mock('@/bublik/features/projects', () => {
-	interface MockLinkProps {
-		to: string | { pathname?: string };
-		children: ReactNode;
-	}
-
-	return {
-		LinkWithProject: forwardRef<
-			HTMLAnchorElement,
-			MockLinkProps & Record<string, unknown>
-		>(({ to, children, ...props }, ref) => (
-			<a ref={ref} href={typeof to === 'string' ? to : to.pathname} {...props}>
+vi.mock('@/bublik/features/projects', () => ({
+	LinkWithProject: forwardRef<HTMLAnchorElement, LinkWithProjectProps>(
+		// `state`, `replace` and `reloadDocument` are router options, not attributes.
+		({ to, children, state, replace, reloadDocument, ...props }, ref) => (
+			<a ref={ref} href={joinTo(splitTarget(to))} {...props}>
 				{children}
 			</a>
-		))
-	};
-});
+		)
+	)
+}));
 
 vi.mock('../classify/classify-button.container', () => ({
 	ClassifyButton: ({ resultId }: { resultId: number }) => (

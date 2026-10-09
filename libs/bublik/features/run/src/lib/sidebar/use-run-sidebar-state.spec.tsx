@@ -1,30 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+	LOG_SIDEBAR_KEYS,
+	RUN_MODE_DEFAULT,
+	RUN_SIDEBAR_KEYS,
+	SHARED_SIDEBAR_KEYS,
+	getSidebarState,
+	getSidebarStateString,
+	updateSidebarStateSearchParams
+} from '@/bublik/features/sidebar';
+import { renderWithRouter, type TestRouter } from '@/router/testing';
+
 import { useRunSidebarState } from './use-run-sidebar-state';
-
-const setSearchParamsMock = vi.fn();
-const locationState = { openUnexpected: true };
-
-// Mutated per-test: the hook anchors on the run id in the current path.
-let currentPathname = '/';
-
-// Values returned by the mocked getSidebarStateString, keyed by sidebar key.
-// Tests mutate this to simulate different `_s` contents.
-const sidebarStateValues: Record<string, string | null> = {};
-
-vi.mock('@/router', async () => {
-	const actual = await vi.importActual<typeof import('@/router')>('@/router');
-
-	return {
-		...actual,
-		useLocation: () => ({ state: locationState, pathname: currentPathname }),
-		useSearchParams: () => [new URLSearchParams(), setSearchParamsMock]
-	};
-});
 
 // Mutated per-test to simulate the run-issues query resolving.
 const runIssuesResult: { data: unknown[] | undefined; isLoading: boolean } = {
@@ -38,62 +29,43 @@ vi.mock('@/services/bublik-api', () => ({
 	useGetRunIssuesQuery: () => runIssuesResult
 }));
 
-vi.mock('@/bublik/features/sidebar', () => ({
-	RUN_SIDEBAR_KEYS: {
-		LAST_DETAILS: 'sidebar.run.lastDetails',
-		LAST_REPORT: 'sidebar.run.lastReport',
-		LAST_ISSUES: 'sidebar.run.lastIssues',
-		LAST_MODE: 'sidebar.run.lastMode'
-	},
-	SHARED_SIDEBAR_KEYS: {
-		CURRENT_RUN_ID: 'sidebar.currentRunId'
-	},
-	getSidebarStateString: (_params: URLSearchParams, key: string) =>
-		sidebarStateValues[key] ?? null,
-	setSidebarStateValue: (
-		sidebarState: Record<string, string>,
-		key: string,
-		value: string | null | undefined
-	) => {
-		if (value === null || value === undefined) {
-			delete sidebarState[key];
-			return;
-		}
+/** A query string carrying `values` in the sidebar state (`_s`). */
+function withSidebarState(values: Record<string, string>): string {
+	const params = updateSidebarStateSearchParams(
+		new URLSearchParams(),
+		(sidebarState) => Object.assign(sidebarState, values)
+	);
 
-		sidebarState[key] = value;
-	},
-	useSidebarStateWriter:
-		() => (updater: (sidebarState: Record<string, string>) => void) => {
-			const next = new URLSearchParams(window.location.search);
-			const previous = next.toString();
-			const state: Record<string, string> = {};
+	return params?.toString() ?? '';
+}
 
-			updater(state);
-			next.set('_s', JSON.stringify(state));
+/** A sidebar state value in the address bar. */
+function sidebarValue(router: TestRouter, key: string) {
+	return getSidebarStateString(
+		new URLSearchParams(router.history.location.search),
+		key
+	);
+}
 
-			if (next.toString() === previous) {
-				return;
-			}
+/** What the hook reports when rendered at `path` with `sidebarState` in `_s`. */
+async function renderState(
+	sidebarState: Record<string, string> = {},
+	path = '/'
+) {
+	let state = {} as ReturnType<typeof useRunSidebarState>;
 
-			setSearchParamsMock(next, { replace: true, state: locationState });
-		},
-	stripSidebarParamsFromUrl: (url: string) => url,
-	extractRunIdFromUrl: (url: string) => url.match(/\/runs\/(\d+)/)?.[1] ?? null,
-	extractRunIdFromLogUrl: (url: string) =>
-		url.match(/\/log\/(\d+)/)?.[1] ?? null,
-	RUN_MODE_DEFAULT: 'details',
-	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`,
-	getRunIssuesDefaultUrl: (runId: string) => `/runs/${runId}/issues`,
-	LOG_SIDEBAR_KEYS: {
-		LAST_LOG: 'sidebar.log.lastLog',
-		LAST_MODE: 'sidebar.log.lastMode'
-	},
-	LOG_MODE_DEFAULT: 'treeAndinfoAndlog',
-	getLogDefaultUrl: (runId: string) => `/log/${runId}`,
-	getBaseUrl: (url: string) => url.replace(/[?&]mode=[^&]*/, ''),
-	addModeToUrl: (url: string, mode: string) =>
-		`${url}${url.includes('?') ? '&' : '?'}mode=${mode}`
-}));
+	function Runner() {
+		state = useRunSidebarState();
+		return null;
+	}
+
+	await renderWithRouter(<Runner />, {
+		path,
+		search: withSidebarState(sidebarState)
+	});
+
+	return state;
+}
 
 function HookRunner() {
 	const { setLastVisited } = useRunSidebarState();
@@ -105,288 +77,242 @@ function HookRunner() {
 	return null;
 }
 
-function AvailabilityRunner({
-	onState
-}: {
-	onState: (isDetailsAvailable: boolean) => void;
-}) {
-	const { isDetailsAvailable } = useRunSidebarState();
-
-	onState(isDetailsAvailable);
-
-	return null;
-}
-
-function IssuesAvailabilityRunner({
-	onState
-}: {
-	onState: (state: { isIssuesAvailable: boolean; issueCount: number }) => void;
-}) {
-	const { isIssuesAvailable, issueCount } = useRunSidebarState();
-
-	onState({ isIssuesAvailable, issueCount });
-
-	return null;
-}
-
-function OpenIssueCountRunner({
-	onCount
-}: {
-	onCount: (count: number) => void;
-}) {
-	onCount(useRunSidebarState().openIssueCount);
-
-	return null;
-}
-
-function renderIssuesAvailability() {
-	let state = { isIssuesAvailable: false, issueCount: -1 };
-
-	render(<IssuesAvailabilityRunner onState={(value) => (state = value)} />);
-
-	return state;
-}
-
-function renderUrls() {
-	let urls = { detailsUrl: '', issuesUrl: '' };
-
-	function UrlsRunner() {
-		const { detailsUrl, issuesUrl } = useRunSidebarState();
-		urls = { detailsUrl, issuesUrl };
-		return null;
-	}
-
-	render(<UrlsRunner />);
-
-	return urls;
-}
-
-function renderLog() {
-	let log = {
-		logUrl: '',
-		mainLinkUrl: '',
-		isLogAvailable: false,
-		getLogModeUrl: (() => '') as (mode: string) => string
-	};
-
-	function LogRunner() {
-		const { logUrl, mainLinkUrl, isLogAvailable, getLogModeUrl } =
-			useRunSidebarState();
-		log = { logUrl, mainLinkUrl, isLogAvailable, getLogModeUrl };
-		return null;
-	}
-
-	render(<LogRunner />);
-
-	return log;
-}
-
 describe('useRunSidebarState', () => {
 	beforeEach(() => {
-		currentPathname = '/';
-		setSearchParamsMock.mockClear();
-		for (const key of Object.keys(sidebarStateValues)) {
-			delete sidebarStateValues[key];
-		}
 		runIssuesResult.data = undefined;
 		runIssuesResult.isLoading = false;
 	});
 
 	it('preserves navigation state while updating sidebar params', async () => {
-		render(<HookRunner />);
-
-		await waitFor(() => {
-			expect(setSearchParamsMock).toHaveBeenCalledWith(expect.anything(), {
-				replace: true,
-				state: locationState
-			});
+		const { router } = await renderWithRouter(<HookRunner />, {
+			path: '/runs/42',
+			state: { openUnexpected: true }
 		});
-	});
 
-	it('keeps details available when the cached URL is pruned but the run id survives', () => {
-		// Simulates `lastDetails` dropped by prune while `cr` (currentRunId) remains.
-		sidebarStateValues['sidebar.run.lastDetails'] = null;
-		sidebarStateValues['sidebar.currentRunId'] = '42';
-
-		let isDetailsAvailable = false;
-		render(
-			<AvailabilityRunner onState={(value) => (isDetailsAvailable = value)} />
+		await waitFor(() =>
+			expect(sidebarValue(router, SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID)).toBe(
+				'42'
+			)
 		);
-
-		expect(isDetailsAvailable).toBe(true);
+		expect(router.history.location.state).toMatchObject({
+			openUnexpected: true
+		});
+		expect(router.history.length).toBe(1);
 	});
 
-	it('marks details unavailable when neither cached URL nor run id is present', () => {
-		let isDetailsAvailable = true;
-		render(
-			<AvailabilityRunner onState={(value) => (isDetailsAvailable = value)} />
-		);
+	it('keeps details available when the cached URL is pruned but the run id survives', async () => {
+		// `lastDetails` dropped by prune while `cr` (currentRunId) remains.
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
+		});
 
-		expect(isDetailsAvailable).toBe(false);
+		expect(state.isDetailsAvailable).toBe(true);
 	});
 
-	it('marks issues unavailable when the run has no classified results', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
+	it('marks details unavailable when neither cached URL nor run id is present', async () => {
+		const state = await renderState();
+
+		expect(state.isDetailsAvailable).toBe(false);
+	});
+
+	it('marks issues unavailable when the run has no classified results', async () => {
 		runIssuesResult.data = [];
 
-		expect(renderIssuesAvailability()).toEqual({
-			isIssuesAvailable: false,
-			issueCount: 0
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
 		});
+
+		expect(state).toMatchObject({ isIssuesAvailable: false, issueCount: 0 });
 	});
 
-	it('marks issues available once the run has at least one issue', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
+	it('marks issues available once the run has at least one issue', async () => {
 		runIssuesResult.data = [{ issue_id: 1 }];
 
-		expect(renderIssuesAvailability()).toEqual({
-			isIssuesAvailable: true,
-			issueCount: 1
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
 		});
+
+		expect(state).toMatchObject({ isIssuesAvailable: true, issueCount: 1 });
 	});
 
-	it('counts only the open issues for the badge, closed ones still available', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
+	it('counts only the open issues for the badge, closed ones still available', async () => {
 		runIssuesResult.data = [
 			{ issue_id: 1, state: 'open' },
 			{ issue_id: 2, state: 'closed' }
 		];
-		let openIssueCount = -1;
 
-		render(
-			<OpenIssueCountRunner onCount={(value) => (openIssueCount = value)} />
-		);
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
+		});
 
-		expect(openIssueCount).toBe(1);
-		expect(renderIssuesAvailability()).toEqual({
+		expect(state).toMatchObject({
+			openIssueCount: 1,
 			isIssuesAvailable: true,
 			issueCount: 2
 		});
 	});
 
-	it('trusts a previous visit while the issue count is still loading', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
+	it('trusts a previous visit while the issue count is still loading', async () => {
 		runIssuesResult.isLoading = true;
 
-		expect(renderIssuesAvailability().isIssuesAvailable).toBe(false);
+		const unvisited = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
+		});
+		expect(unvisited.isIssuesAvailable).toBe(false);
 
-		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/42/issues';
-
-		expect(renderIssuesAvailability().isIssuesAvailable).toBe(true);
+		const visited = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42',
+			[RUN_SIDEBAR_KEYS.LAST_ISSUES]: '/runs/42/issues'
+		});
+		expect(visited.isIssuesAvailable).toBe(true);
 	});
 
-	it('ignores a remembered URL left behind by another run', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '200';
-		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/100?foo=1';
-		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/100/issues';
+	it('ignores a remembered URL left behind by another run', async () => {
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '200',
+			[RUN_SIDEBAR_KEYS.LAST_DETAILS]: '/runs/100?foo=1',
+			[RUN_SIDEBAR_KEYS.LAST_ISSUES]: '/runs/100/issues'
+		});
 
-		expect(renderUrls()).toEqual({
+		expect(state).toMatchObject({
 			detailsUrl: '/runs/200',
 			issuesUrl: '/runs/200/issues'
 		});
 	});
 
-	it('keeps a remembered URL that belongs to the active run', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '200';
-		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200?foo=1';
+	it('keeps a remembered URL that belongs to the active run', async () => {
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '200',
+			[RUN_SIDEBAR_KEYS.LAST_DETAILS]: '/runs/200?foo=1'
+		});
 
-		expect(renderUrls().detailsUrl).toBe('/runs/200?foo=1');
+		expect(state.detailsUrl).toBe('/runs/200?foo=1');
 	});
 
-	it('anchors on the run in the URL before the writer catches up', () => {
-		currentPathname = '/runs/300';
-		sidebarStateValues['sidebar.currentRunId'] = '200';
-		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200';
-		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/200/issues';
+	it('anchors on the run in the URL before the writer catches up', async () => {
+		const state = await renderState(
+			{
+				[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '200',
+				[RUN_SIDEBAR_KEYS.LAST_DETAILS]: '/runs/200',
+				[RUN_SIDEBAR_KEYS.LAST_ISSUES]: '/runs/200/issues'
+			},
+			'/runs/300'
+		);
 
-		expect(renderUrls()).toEqual({
+		expect(state).toMatchObject({
 			detailsUrl: '/runs/300',
 			issuesUrl: '/runs/300/issues'
 		});
 	});
 
-	it('follows the run of the log page as well', () => {
-		currentPathname = '/log/500';
-		sidebarStateValues['sidebar.currentRunId'] = '200';
-		sidebarStateValues['sidebar.run.lastDetails'] = '/runs/200';
+	it('follows the run of the log page as well', async () => {
+		const state = await renderState(
+			{
+				[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '200',
+				[RUN_SIDEBAR_KEYS.LAST_DETAILS]: '/runs/200'
+			},
+			'/log/500'
+		);
 
-		expect(renderUrls().detailsUrl).toBe('/runs/500');
+		expect(state.detailsUrl).toBe('/runs/500');
 	});
 
 	it('drops the other runs URLs when the recorded run changes', async () => {
-		render(<HookRunner />);
+		const { router } = await renderWithRouter(<HookRunner />, {
+			path: '/runs/42',
+			search: withSidebarState({
+				[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '100',
+				[RUN_SIDEBAR_KEYS.LAST_ISSUES]: '/runs/100/issues',
+				[RUN_SIDEBAR_KEYS.LAST_MODE]: 'issues'
+			})
+		});
 
-		await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalled());
+		await waitFor(() =>
+			expect(sidebarValue(router, SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID)).toBe(
+				'42'
+			)
+		);
+		const sidebarState = getSidebarState(
+			new URLSearchParams(router.history.location.search)
+		);
 
-		const [params] = setSearchParamsMock.mock.calls[0];
-
-		expect(JSON.parse(params.get('_s') as string)).toEqual({
-			'sidebar.run.lastMode': 'details',
-			'sidebar.currentRunId': '42',
-			'sidebar.run.lastDetails': '/runs/42'
+		// Every run key, the mode read as the hook reads it: `details` is the
+		// default and is left out of `_s`.
+		expect({
+			mode: sidebarState[RUN_SIDEBAR_KEYS.LAST_MODE] ?? RUN_MODE_DEFAULT,
+			runId: sidebarState[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID],
+			details: sidebarState[RUN_SIDEBAR_KEYS.LAST_DETAILS],
+			report: sidebarState[RUN_SIDEBAR_KEYS.LAST_REPORT],
+			issues: sidebarState[RUN_SIDEBAR_KEYS.LAST_ISSUES]
+		}).toEqual({
+			mode: 'details',
+			runId: '42',
+			details: '/runs/42',
+			report: undefined,
+			issues: undefined
 		});
 	});
 
-	it('sends the Run link to details when the last mode has no issues left', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
-		sidebarStateValues['sidebar.run.lastMode'] = 'issues';
-		sidebarStateValues['sidebar.run.lastIssues'] = '/runs/42/issues';
+	it('sends the Run link to details when the last mode has no issues left', async () => {
 		runIssuesResult.data = [];
 
-		let mainLinkUrl = '';
+		const state = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42',
+			[RUN_SIDEBAR_KEYS.LAST_MODE]: 'issues',
+			[RUN_SIDEBAR_KEYS.LAST_ISSUES]: '/runs/42/issues'
+		});
 
-		function MainLinkRunner() {
-			mainLinkUrl = useRunSidebarState().mainLinkUrl;
-			return null;
-		}
-
-		render(<MainLinkRunner />);
-
-		expect(mainLinkUrl).toBe('/runs/42');
+		expect(state.mainLinkUrl).toBe('/runs/42');
 	});
-	it('builds the log links from the run when nothing is remembered', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
 
-		const log = renderLog();
+	it('builds the log links from the run when nothing is remembered', async () => {
+		const log = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42'
+		});
 
 		expect(log.isLogAvailable).toBe(true);
 		expect(log.logUrl).toBe('/log/42?mode=treeAndinfoAndlog');
-		// A bare log URL already is the log-only layout.
-		expect(log.getLogModeUrl('log')).toBe('/log/42');
+		// The sidebar state derives the run's log page from the run id, so the
+		// log-only layout is named too rather than left as a bare log URL.
+		expect(log.getLogModeUrl('log')).toBe('/log/42?mode=log');
 		expect(log.getLogModeUrl('treeAndlog')).toBe('/log/42?mode=treeAndlog');
 	});
 
-	it('opens the remembered log page in the remembered layout', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
-		sidebarStateValues['sidebar.log.lastLog'] = '/log/42?focusId=7&mode=log';
-		sidebarStateValues['sidebar.log.lastMode'] = 'infoAndlog';
-
-		const log = renderLog();
+	it('opens the remembered log page in the remembered layout', async () => {
+		const log = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42',
+			[LOG_SIDEBAR_KEYS.LAST_LOG]: '/log/42?focusId=7&mode=log',
+			[LOG_SIDEBAR_KEYS.LAST_MODE]: 'infoAndlog'
+		});
 
 		expect(log.logUrl).toBe('/log/42?focusId=7&mode=infoAndlog');
 		expect(log.getLogModeUrl('log')).toBe('/log/42?focusId=7&mode=log');
 	});
 
-	it('ignores a remembered log page left behind by another run', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '200';
-		sidebarStateValues['sidebar.log.lastLog'] = '/log/100?focusId=7';
+	it('ignores a remembered log page left behind by another run', async () => {
+		const log = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '200',
+			[LOG_SIDEBAR_KEYS.LAST_LOG]: '/log/100?focusId=7'
+		});
 
-		expect(renderLog().logUrl).toBe('/log/200?mode=treeAndinfoAndlog');
+		expect(log.logUrl).toBe('/log/200?mode=treeAndinfoAndlog');
 	});
 
-	it('has no log to link without a run', () => {
-		const log = renderLog();
+	it('has no log to link without a run', async () => {
+		const log = await renderState();
 
 		expect(log.isLogAvailable).toBe(false);
 		expect(log.logUrl).toBe('/log');
 	});
 
-	it('points the Run link at the log once the log was the last page', () => {
-		sidebarStateValues['sidebar.currentRunId'] = '42';
-		sidebarStateValues['sidebar.run.lastMode'] = 'log';
-		sidebarStateValues['sidebar.log.lastLog'] = '/log/42?mode=treeAndlog';
-		sidebarStateValues['sidebar.log.lastMode'] = 'treeAndlog';
+	it('points the Run link at the log once the log was the last page', async () => {
+		const log = await renderState({
+			[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID]: '42',
+			[RUN_SIDEBAR_KEYS.LAST_MODE]: 'log',
+			[LOG_SIDEBAR_KEYS.LAST_LOG]: '/log/42?mode=treeAndlog',
+			[LOG_SIDEBAR_KEYS.LAST_MODE]: 'treeAndlog'
+		});
 
-		expect(renderLog().mainLinkUrl).toBe('/log/42?mode=treeAndlog');
+		expect(log.mainLinkUrl).toBe('/log/42?mode=treeAndlog');
 	});
 });

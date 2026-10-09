@@ -3,7 +3,9 @@
 import {
 	render,
 	renderHook,
-	type RenderHookOptions
+	type RenderHookOptions,
+	type RenderHookResult,
+	type RenderResult
 } from '@testing-library/react';
 import {
 	createMemoryHistory,
@@ -116,7 +118,7 @@ type TestRouter = ReturnType<typeof createTestRouter>;
  * A router at the options' URL and an RTL wrapper that renders its children
  * as the page of whatever route matched, so `rerender` reaches them.
  */
-async function setup({
+async function mountRouter({
 	path = '/',
 	search = '',
 	hash = '',
@@ -140,10 +142,10 @@ async function setup({
 async function renderWithRouter(
 	ui: ReactElement,
 	options: RenderWithRouterOptions = {}
-) {
-	const { router, wrapper } = await setup(options);
+): Promise<RenderResult & { router: TestRouter }> {
+	const { router, wrapper } = await mountRouter(options);
 
-	return { router, ...render(ui, { wrapper }) };
+	return Object.assign(render(ui, { wrapper }), { router });
 }
 
 /** Runs `hook` in the page at the options' URL. */
@@ -154,10 +156,10 @@ async function renderHookWithRouter<Result, Props>(
 		...options
 	}: RenderWithRouterOptions &
 		Pick<RenderHookOptions<Props>, 'initialProps'> = {}
-) {
-	const { router, wrapper } = await setup(options);
+): Promise<RenderHookResult<Result, Props> & { router: TestRouter }> {
+	const { router, wrapper } = await mountRouter(options);
 
-	return { router, ...renderHook(hook, { wrapper, initialProps }) };
+	return Object.assign(renderHook(hook, { wrapper, initialProps }), { router });
 }
 
 export { renderHookWithRouter, renderWithRouter, rootSearch, routerOptions };

@@ -1,31 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+
+import type { LinkWithProjectProps } from '@/bublik/features/projects';
+import { joinTo, splitTarget } from '@/router';
+import { renderWithRouter } from '@/router/testing';
 
 import { HistorySidebarNav } from './history-sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
 
-const mocks = vi.hoisted(() => ({
-	location: {
-		pathname: '/runs',
-		search: ''
-	}
-}));
-
-vi.mock('@/router', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('@/router')>();
-
-	return {
-		...actual,
-		useLocation: () => mocks.location
-	};
-});
-
 vi.mock('@/bublik/features/projects', () => ({
-	LinkWithProject: ({ to, children }: { to: string; children: ReactNode }) => (
-		<a href={to}>{children}</a>
+	LinkWithProject: ({ to, children }: LinkWithProjectProps) => (
+		<a href={joinTo(splitTarget(to))}>{children}</a>
 	)
 }));
 
@@ -99,7 +87,7 @@ vi.mock('./use-history-sidebar-state', () => ({
 }));
 
 describe('HistorySidebarNav', () => {
-	it('uses saved chart URLs from sidebar state for enabled chart items', () => {
+	it('uses saved chart URLs from sidebar state for enabled chart items', async () => {
 		vi.mocked(useHistorySidebarState).mockReturnValue({
 			hasTrendData: false,
 			hasSeriesData: false,
@@ -123,7 +111,7 @@ describe('HistorySidebarNav', () => {
 			setLastVisited: vi.fn()
 		});
 
-		render(<HistorySidebarNav />);
+		await renderWithRouter(<HistorySidebarNav />, { path: '/runs' });
 
 		expect(
 			screen.getByText('Trend Charts').closest('a')?.getAttribute('href')

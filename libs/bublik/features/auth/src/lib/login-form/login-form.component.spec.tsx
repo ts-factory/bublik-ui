@@ -1,30 +1,35 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { describe, it, vi, expect } from 'vitest';
-import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
+
+import { renderWithRouter } from '@/router/testing';
+
 import { LoginForm } from './login-form.component';
+
 describe('LoginForm', () => {
-	it('should render without crashing', () => {
+	it('should render without crashing', async () => {
 		const mockSubmit = vi.fn();
-		render(<LoginForm onSubmit={mockSubmit} />, { wrapper: BrowserRouter });
+		await renderWithRouter(<LoginForm onSubmit={mockSubmit} />, {
+			path: '/auth/login'
+		});
 	});
 	it('should match snapshot', async () => {
 		const mockSubmit = vi.fn();
-		const { asFragment } = render(<LoginForm onSubmit={mockSubmit} />, {
-			wrapper: BrowserRouter
-		});
+		const { asFragment } = await renderWithRouter(
+			<LoginForm onSubmit={mockSubmit} />,
+			{ path: '/auth/login' }
+		);
 		expect(asFragment()).toMatchSnapshot();
 	});
 	it('should call onSubmit when valid form is submitted', async () => {
 		const mockSubmit = vi.fn();
-		const { getByLabelText, getByRole } = render(
+		const { getByLabelText, getByRole } = await renderWithRouter(
 			<LoginForm
 				onSubmit={mockSubmit}
 				defaultValues={{ email: '', password: '' }}
 			/>,
-			{ wrapper: BrowserRouter }
+			{ path: '/auth/login' }
 		);
 		await userEvent.type(getByLabelText(/email/i), 'test@example.com');
 		await userEvent.type(getByLabelText(/password/i), 'password123');
@@ -36,9 +41,9 @@ describe('LoginForm', () => {
 	});
 	it('should not call onSubmit if email is not an email', async () => {
 		const mockSubmit = vi.fn();
-		const { getByLabelText, getByRole } = render(
+		const { getByLabelText, getByRole } = await renderWithRouter(
 			<LoginForm onSubmit={mockSubmit} />,
-			{ wrapper: BrowserRouter }
+			{ path: '/auth/login' }
 		);
 		await userEvent.type(getByLabelText(/email/i), 'testexample.com');
 		await userEvent.type(getByLabelText(/password/i), 'short');
@@ -47,9 +52,9 @@ describe('LoginForm', () => {
 	});
 	it('should not call onSubmit if email is invalid', async () => {
 		const mockSubmit = vi.fn();
-		const { getByLabelText, getByRole } = render(
+		const { getByLabelText, getByRole } = await renderWithRouter(
 			<LoginForm onSubmit={mockSubmit} />,
-			{ wrapper: BrowserRouter }
+			{ path: '/auth/login' }
 		);
 		await userEvent.type(getByLabelText(/email/i), 'invalidEmail');
 		await userEvent.type(getByLabelText(/password/i), 'validPassword123');

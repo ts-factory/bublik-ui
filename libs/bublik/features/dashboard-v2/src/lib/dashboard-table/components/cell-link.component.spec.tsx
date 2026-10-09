@@ -16,8 +16,10 @@ import {
 	fireEvent
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PropsWithChildren, ReactElement, ReactNode, forwardRef } from 'react';
+import { PropsWithChildren, ReactElement, forwardRef } from 'react';
 
+import type { LinkWithProjectProps } from '@/bublik/features/projects';
+import { joinTo, splitTarget } from '@/router';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 
 import { CellLink } from './cell-link.component';
@@ -32,28 +34,17 @@ const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
 
 const navigateWithProjectMock = vi.fn();
 
-vi.mock('@/bublik/features/projects', () => {
-	interface MockLinkWithProjectProps {
-		to: string | { pathname?: string };
-		children: ReactNode;
-	}
-
-	return {
-		LinkWithProject: forwardRef<
-			HTMLAnchorElement,
-			MockLinkWithProjectProps & Record<string, unknown>
-		>(({ to, children, ...props }, ref) => {
-			const href = typeof to === 'string' ? to : to?.pathname || '#';
-
-			return (
-				<a href={href} ref={ref} {...props}>
-					{children}
-				</a>
-			);
-		}),
-		useNavigateWithProject: () => navigateWithProjectMock
-	};
-});
+vi.mock('@/bublik/features/projects', () => ({
+	LinkWithProject: forwardRef<HTMLAnchorElement, LinkWithProjectProps>(
+		// `state`, `replace` and `reloadDocument` are router options, not attributes.
+		({ to, children, state, replace, reloadDocument, ...props }, ref) => (
+			<a ref={ref} href={joinTo(splitTarget(to))} {...props}>
+				{children}
+			</a>
+		)
+	),
+	useNavigateWithProject: () => navigateWithProjectMock
+}));
 
 describe('<CellLink />', () => {
 	beforeAll(() => {
