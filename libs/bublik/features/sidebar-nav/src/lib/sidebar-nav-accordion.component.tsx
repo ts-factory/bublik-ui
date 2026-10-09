@@ -17,7 +17,7 @@ import {
 	useSidebar
 } from '@/shared/tailwind-ui';
 import { accordionLinkStyles } from './sidebar-nav.styles';
-import { toString } from './sidebar-nav.utils';
+import { SidebarNavRouterLink } from './sidebar-nav-router-link.component';
 
 function getNodeText(node: ReactNode): string {
 	if (typeof node === 'string' || typeof node === 'number') {
@@ -148,30 +148,17 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 		);
 	}
 
-	const LinkComponent = props.linkComponent;
-
-	if (LinkComponent) {
-		return withHint(
-			<LinkComponent
-				to={props.to}
-				className={cn(className, 'group')}
-				style={style}
-				onClick={props.onClick}
-			>
-				{children}
-			</LinkComponent>
-		);
-	}
+	const LinkComponent = props.linkComponent ?? SidebarNavRouterLink;
 
 	return withHint(
-		<a
-			href={toString(props.to)}
+		<LinkComponent
+			to={props.to}
 			className={cn(className, 'group')}
 			style={style}
 			onClick={props.onClick}
 		>
 			{children}
-		</a>
+		</LinkComponent>
 	);
 };
 

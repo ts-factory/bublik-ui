@@ -40,10 +40,10 @@ const INFO_BUTTON_PLACEMENT =
 	'absolute right-full top-1/2 mr-0.5 -translate-y-1/2';
 
 const RUN_SIDEBAR_PATTERNS = [
-	{ path: '/runs/:runId' },
-	{ path: '/runs/:runId/report' },
-	{ path: '/runs/:runId/issues' },
-	{ path: '/log/:runId' }
+	{ to: '/runs/$runId' },
+	{ to: '/runs/$runId/report' },
+	{ to: '/runs/$runId/issues' },
+	{ to: '/log/$runId' }
 ];
 
 const LOG_MODE_ITEMS: ReadonlyArray<
@@ -160,7 +160,7 @@ export function RunSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={detailsUrl}
-					pattern={{ path: '/runs/:runId' }}
+					pattern={{ to: '/runs/$runId' }}
 					disabled={!isDetailsAvailable}
 					linkComponent={LinkWithProject}
 				>
@@ -177,7 +177,7 @@ export function RunSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={logUrl}
-					pattern={{ path: '/log/:runId' }}
+					pattern={{ to: '/log/$runId' }}
 					disabled={!isLogAvailable}
 					linkComponent={LinkWithProject}
 				>
@@ -195,7 +195,7 @@ export function RunSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={reportUrl ?? '/runs'}
-					pattern={{ path: '/runs/:runId/report' }}
+					pattern={{ to: '/runs/$runId/report' }}
 					disabled={!isReportAvailable}
 					linkComponent={LinkWithProject}
 				>
@@ -216,7 +216,7 @@ export function RunSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={issuesUrl}
-					pattern={{ path: '/runs/:runId/issues' }}
+					pattern={{ to: '/runs/$runId/issues' }}
 					disabled={!isIssuesAvailable}
 					linkComponent={LinkWithProject}
 				>

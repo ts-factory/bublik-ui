@@ -8,7 +8,7 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
-const CHAT_SIDEBAR_PATTERNS = [{ path: '/chat' }, { path: '/chat/:threadId' }];
+const CHAT_SIDEBAR_PATTERNS = [{ to: '/chat' }, { to: '/chat/$threadId' }];
 
 export function ChatSidebarNav() {
 	const { data: features } = useGetServerFeaturesQuery();

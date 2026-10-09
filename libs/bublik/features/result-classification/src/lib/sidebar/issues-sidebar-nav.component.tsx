@@ -16,10 +16,7 @@ import { useIssuesSidebarState } from './issues-sidebar.hooks';
 import { OpenIssueCountBadge } from './open-issue-count-badge.component';
 import { SidebarCountBadge } from './sidebar-count-badge.component';
 
-const ISSUES_SIDEBAR_PATTERNS = [
-	{ path: '/issues' },
-	{ path: '/issues/rules' }
-];
+const ISSUES_SIDEBAR_PATTERNS = [{ to: '/issues' }, { to: '/issues/rules' }];
 
 function scopeOf(isProjectPicked: boolean): string {
 	return isProjectPicked ? 'in the selected project' : 'in all projects';
@@ -85,7 +82,7 @@ export function IssuesSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={listUrl}
-					pattern={{ path: '/issues' }}
+					pattern={{ to: '/issues' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -106,7 +103,7 @@ export function IssuesSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={rulesUrl}
-					pattern={{ path: '/issues/rules' }}
+					pattern={{ to: '/issues/rules' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon

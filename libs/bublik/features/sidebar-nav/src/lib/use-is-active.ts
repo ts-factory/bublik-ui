@@ -1,10 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { matchPath, useLocation, type PathPattern } from '@/router';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
-export type ActivePattern = Pick<PathPattern, 'path' | 'end' | 'caseSensitive'>;
+/** A route path (`/runs/$runId`), exact unless `fuzzy`. */
+export type ActivePattern = RoutePathPattern;
 
-export function useIsActivePaths(patterns: ActivePattern[]) {
-	const location = useLocation();
-	return patterns.some((pattern) => matchPath(pattern, location.pathname));
+/** Whether the page on screen is at any of `patterns`. */
+export function useIsActivePaths(patterns: ActivePattern[]): boolean {
+	const { pathname } = useRenderedLocation();
+	return patterns.some((pattern) => matchRoutePath(pattern, pathname));
 }

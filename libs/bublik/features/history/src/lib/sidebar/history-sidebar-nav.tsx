@@ -22,7 +22,7 @@ import {
 } from './history-dialogs';
 import { Icon } from '@/shared/tailwind-ui';
 
-const HISTORY_SIDEBAR_PATTERNS = [{ path: '/history' }];
+const HISTORY_SIDEBAR_PATTERNS = [{ to: '/history' }];
 
 export function HistorySidebarNav() {
 	const location = useLocation();
@@ -89,7 +89,7 @@ export function HistorySidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={finalLinearUrl}
 					pattern={{
-						path: '/history',
+						to: '/history',
 						mode: 'linear',
 						emptyModeMatches: ['linear']
 					}}
@@ -105,7 +105,7 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalAggregationUrl}
-					pattern={{ path: '/history', mode: 'aggregation' }}
+					pattern={{ to: '/history', mode: 'aggregation' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="Aggregation" size={22} />
@@ -118,7 +118,7 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={trendUrl}
-					pattern={{ path: '/history', mode: 'measurements' }}
+					pattern={{ to: '/history', mode: 'measurements' }}
 					disabled={!hasTrendUrl}
 					linkComponent={LinkWithProject}
 				>
@@ -139,7 +139,7 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={seriesUrl}
-					pattern={{ path: '/history', mode: 'measurements-by-iteration' }}
+					pattern={{ to: '/history', mode: 'measurements-by-iteration' }}
 					disabled={!hasSeriesUrl}
 					linkComponent={LinkWithProject}
 				>
@@ -160,7 +160,7 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalStackedUrl}
-					pattern={{ path: '/history', mode: 'measurements-combined' }}
+					pattern={{ to: '/history', mode: 'measurements-combined' }}
 					disabled={!hasStackedUrl}
 					linkComponent={LinkWithProject}
 				>

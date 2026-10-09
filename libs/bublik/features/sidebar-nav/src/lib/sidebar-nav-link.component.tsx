@@ -31,7 +31,7 @@ import {
 	SidebarNavLinkExternalProps
 } from './sidebar-nav.types';
 import { linkStyles } from './sidebar-nav.styles';
-import { toString } from './sidebar-nav.utils';
+import { SidebarNavRouterLink } from './sidebar-nav-router-link.component';
 
 interface SidebarNavInternalLinkContextValue {
 	disabled: boolean;
@@ -120,30 +120,18 @@ const SidebarNavInternalLinkComponent = forwardRef<
 		);
 	}
 
-	if (LinkComponent) {
-		return (
-			<LinkComponent
-				ref={ref as React.Ref<HTMLAnchorElement>}
-				to={to}
-				className={className}
-				style={style}
-				onClick={onClick}
-			>
-				{content}
-			</LinkComponent>
-		);
-	}
+	const RenderedLink = LinkComponent ?? SidebarNavRouterLink;
 
 	return (
-		<a
+		<RenderedLink
 			ref={ref as React.Ref<HTMLAnchorElement>}
-			href={toString(to)}
+			to={to}
 			className={className}
 			style={style}
 			onClick={onClick}
 		>
 			{content}
-		</a>
+		</RenderedLink>
 	);
 });
 

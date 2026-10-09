@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from '@/router';
+import { useLocation, matchRoutePath } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -22,16 +22,16 @@ function countTooltip(count: number, singular: string, plural: string) {
 	return `${count} ${count === 1 ? singular : plural}`;
 }
 
-const RESULTS_PATTERN = { path: '/issues/:issueId/results' };
-const RULES_PATTERN = { path: '/issues/:issueId' };
+const RESULTS_PATTERN = { to: '/issues/$issueId/results' };
+const RULES_PATTERN = { to: '/issues/$issueId' };
 
 const ISSUE_PATTERNS: ActivePattern[] = [RESULTS_PATTERN, RULES_PATTERN];
 
-// `/issues/rules` matches `/issues/:issueId` too; the digit check below keeps
+// `/issues/rules` matches `/issues/$issueId` too; the digit check below keeps
 // the Issue entry quiet there, and these stand in for its patterns. A submenu
 // item with no pattern at all counts as active, hence a path nothing routes to.
 const NO_PATTERNS: ActivePattern[] = [];
-const NEVER_ACTIVE_PATTERN = { path: '/__none__' };
+const NEVER_ACTIVE_PATTERN = { to: '/__none__' };
 
 export function IssueSidebarNav() {
 	const location = useLocation();
@@ -50,13 +50,13 @@ export function IssueSidebarNav() {
 		setLastVisited
 	} = useIssueSidebarState();
 
-	const resultsMatch = matchPath(RESULTS_PATTERN.path, location.pathname);
+	const resultsMatch = matchRoutePath(RESULTS_PATTERN, location.pathname);
 	const match =
-		resultsMatch ?? matchPath(RULES_PATTERN.path, location.pathname);
-	const issueId = match?.params.issueId;
+		resultsMatch || matchRoutePath(RULES_PATTERN, location.pathname);
+	const issueId = match ? match['issueId'] : undefined;
 	const isIssueDetail = !!issueId && /^\d+$/.test(issueId);
 	// A boolean, not the match object: that is new on every render.
-	const isResultsPage = resultsMatch !== null;
+	const isResultsPage = resultsMatch !== false;
 
 	useEffect(() => {
 		if (!isIssueDetail) return;

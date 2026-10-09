@@ -11,7 +11,7 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
 
-const ADMIN_SIDEBAR_PATTERNS = [{ path: '/admin/*' }];
+const ADMIN_SIDEBAR_PATTERNS = [{ to: '/admin', fuzzy: true }];
 
 export function AdminSidebarNav() {
 	const { isAdmin } = useAuth();
@@ -36,7 +36,7 @@ export function AdminSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to="/admin/config"
-					pattern={{ path: '/admin/config' }}
+					pattern={{ to: '/admin/config' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -49,7 +49,7 @@ export function AdminSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to="/admin/users"
-					pattern={{ path: '/admin/users' }}
+					pattern={{ to: '/admin/users' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="TwoUsers" size={24} />
@@ -59,7 +59,7 @@ export function AdminSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to="/admin/import"
-					pattern={{ path: '/admin/import' }}
+					pattern={{ to: '/admin/import' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="Import" size={24} />
@@ -69,7 +69,7 @@ export function AdminSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to="/admin/flower"
-					pattern={{ path: '/admin/flower' }}
+					pattern={{ to: '/admin/flower' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -83,7 +83,7 @@ export function AdminSidebarNav() {
 				{showAnalytics ? (
 					<SidebarNavSubmenuItemContainer
 						to="/admin/analytics"
-						pattern={{ path: '/admin/analytics' }}
+						pattern={{ to: '/admin/analytics' }}
 						linkComponent={LinkWithProject}
 					>
 						<SidebarNavSubmenuItemContainer.Icon

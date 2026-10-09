@@ -3,8 +3,6 @@
 import { MouseEventHandler, ReactNode } from 'react';
 import type { To } from '@/router';
 
-export type { LinkProps } from '@/router';
-
 export type SidebarNavLinkBaseProps = {
 	label: string;
 	icon: ReactNode;
