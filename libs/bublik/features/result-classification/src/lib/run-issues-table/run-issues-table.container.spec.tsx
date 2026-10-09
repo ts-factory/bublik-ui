@@ -1,17 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
-import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
+import { act, fireEvent, screen } from '@testing-library/react';
 import type { ColumnDef } from '@tanstack/react-table';
 
+import { renderWithRouter } from '@/router/testing';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { RunIssueRow } from '@/shared/types';
 
 import { RunIssuesTable } from './run-issues-table.container';
-import { COLUMN_ID } from './run-issues-table.constants';
+import {
+	COLUMN_ID,
+	RUN_ISSUES_TABLE_SEARCH
+} from './run-issues-table.constants';
 
 const ISSUES: RunIssueRow[] = Array.from({ length: 25 }, (_, index) => ({
 	issue_id: index + 1,
@@ -65,28 +66,24 @@ vi.mock('../issue-results-table/issue-results-table.container', () => ({
 // jsdom has no `scrollTo`; every page change scrolls the table back to the top.
 Element.prototype.scrollTo ??= () => undefined;
 
-function Search() {
-	return <output data-testid="search">{useLocation().search}</output>;
-}
-
 /** Lets the table's queued work run — its page reset is one of those tasks. */
 function settle() {
 	return act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 }
 
-function setup(initialEntry: string) {
-	return render(
-		<MemoryRouter initialEntries={[initialEntry]}>
-			<QueryParamProvider
-				adapter={ReactRouter6Adapter}
-				options={{ updateType: 'replaceIn' }}
-			>
-				<TooltipProvider>
-					<RunIssuesTable runId={1} projectId={1} />
-				</TooltipProvider>
-				<Search />
-			</QueryParamProvider>
-		</MemoryRouter>
+function setup(search: string) {
+	return renderWithRouter(
+		<TooltipProvider>
+			<RunIssuesTable runId={1} projectId={1} />
+		</TooltipProvider>,
+		{
+			route: {
+				id: '/_app/runs/$runId/issues',
+				search: RUN_ISSUES_TABLE_SEARCH
+			},
+			path: '/runs/1/issues',
+			search
+		}
 	);
 }
 
@@ -97,7 +94,7 @@ async function click(name: string) {
 
 describe('RunIssuesTable', () => {
 	it('keeps the page Next and Previous move to', async () => {
-		setup('/runs/1/issues?pageSize=10');
+		const { router } = await setup('?pageSize=10');
 
 		expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
 
@@ -106,11 +103,11 @@ describe('RunIssuesTable', () => {
 
 		expect(screen.getByText('Page 3 of 3')).toBeInTheDocument();
 		expect(screen.getByText('Issue 21')).toBeInTheDocument();
-		expect(screen.getByTestId('search')).toHaveTextContent('page=3');
+		expect(router.history.location.search).toContain('page=3');
 
 		await click('Previous page');
 
 		expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
-		expect(screen.getByTestId('search')).toHaveTextContent('page=2');
+		expect(router.history.location.search).toContain('page=2');
 	});
 });

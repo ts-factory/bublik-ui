@@ -11,10 +11,6 @@ export {
 	useSubRowPin
 } from './lib/classification-table/classification-table.component';
 export type { SubRowPin } from './lib/classification-table/classification-table.component';
-export {
-	PageParam,
-	createPageSizeParam
-} from './lib/classification-table/classification-table.params';
 export { buildFacetOptions } from './lib/classification-table/classification-table.utils';
 export { CategoryPresetButtons } from './lib/classification-table/category-preset-buttons.component';
 export {
@@ -27,6 +23,27 @@ export type {
 	CategoryPresetId
 } from './lib/classification/category-presets';
 export type { FacetOption } from './lib/classification-table/classification-table.utils';
+
+// The tables' URL state, which their routes declare as their search.
+export {
+	columnOverrides,
+	defineClassificationSearch,
+	idList,
+	openRows,
+	readTableSearch,
+	sorting,
+	toTableWire
+} from './lib/classification-table/classification-table.search';
+export type {
+	ClassificationSearch,
+	ClassificationTableOptions
+} from './lib/classification-table/classification-table.search';
+export { ISSUES_TABLE_SEARCH } from './lib/issues-table/issues-table.constants';
+export {
+	ISSUE_RULES_TABLE_SEARCH,
+	ISSUE_TABLE_SEARCH
+} from './lib/issue-rules-table/issue-rules-table.constants';
+export { RUN_ISSUES_TABLE_SEARCH } from './lib/run-issues-table/run-issues-table.constants';
 
 export { IssuesTable } from './lib/issues-table';
 export type { IssuesTableProps } from './lib/issues-table';

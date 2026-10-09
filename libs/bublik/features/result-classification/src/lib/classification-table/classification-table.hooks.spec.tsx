@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import type { VisibilityState } from '@tanstack/react-table';
 
-import { renderHookWithRouter, type TestRouter } from '@/router/testing';
+import {
+	renderHookWithRouter,
+	type RenderWithRouterOptions,
+	type TestRouter
+} from '@/router/testing';
 
 import {
 	useClassificationTableState,
@@ -13,8 +17,13 @@ import {
 	useGroupedExpanded,
 	useHasScrolledPast
 } from './classification-table.hooks';
+import { defineClassificationSearch } from './classification-table.search';
 
-const FILTER_KEYS = ['state', 'category'] as const;
+const TABLE_SEARCH = defineClassificationSearch({
+	facets: ['state', 'category'],
+	pageSize: 25,
+	sort: [{ id: 'created', desc: true }]
+});
 
 /** `/issues?page=2` as the helper's `{ path, search }`. */
 function urlOptions(initialEntry: string) {
@@ -28,17 +37,18 @@ function searchOf(router: TestRouter) {
 	return router.history.location.search;
 }
 
-function setup(initialEntry = '/issues') {
+function setup(
+	initialEntry = '/issues',
+	extra: Omit<RenderWithRouterOptions, 'path' | 'search'> = {}
+) {
 	return renderHookWithRouter(
 		() => ({
 			state: useClassificationTableState({
-				filterKeys: FILTER_KEYS,
-				searchColumnId: 'issue',
-				defaultPageSize: 25,
-				defaultSorting: [{ id: 'created', desc: true }]
+				search: TABLE_SEARCH,
+				searchColumnId: 'issue'
 			})
 		}),
-		urlOptions(initialEntry)
+		{ ...urlOptions(initialEntry), ...extra }
 	);
 }
 
@@ -219,6 +229,49 @@ describe('useClassificationTableState', () => {
 		});
 	});
 
+	describe('how a write lands', () => {
+		it('replaces the entry, keeps location.state and drops the hash, as replaceIn did', async () => {
+			const { result, router } = await setup('/issues?state=open', {
+				hash: 'top',
+				state: { fromRun: true }
+			});
+
+			await act(async () => result.current.state.setSearch('timeout'));
+
+			expect(router.history.location.search).toBe('?state=open&q=timeout');
+			expect(router.history.location.hash).toBe('');
+			expect(router.history.location.state).toMatchObject({ fromRun: true });
+			expect(router.history.length).toBe(1);
+		});
+
+		it('writes the open rows as their ;-joined ids', async () => {
+			const { result, router } = await setup();
+
+			await act(async () =>
+				result.current.state.onExpandedChange({ '56': true, '72': true })
+			);
+			expect(searchOf(router)).toBe('?open=56%3B72');
+			expect(result.current.state.expanded).toEqual({
+				'56': true,
+				'72': true
+			});
+
+			await act(async () => result.current.state.onExpandedChange({}));
+			expect(searchOf(router)).toBe('');
+		});
+
+		it('does not navigate when nothing changes', async () => {
+			const { result, router } = await setup('/issues?page=2');
+			const before = router.history.location.state.__TSR_key;
+
+			await act(async () =>
+				result.current.state.onPaginationChange({ pageIndex: 1, pageSize: 25 })
+			);
+
+			expect(router.history.location.state.__TSR_key).toBe(before);
+		});
+	});
+
 	describe('clampPage', () => {
 		it('pulls an out-of-range page back to the last one', async () => {
 			const { result, router } = await setup('/issues?page=9');
@@ -226,6 +279,17 @@ describe('useClassificationTableState', () => {
 			await act(async () => result.current.state.clampPage(4));
 
 			expect(pairs(searchOf(router))).toEqual(['page=4']);
+			// Through the router, by a replace: Back leaves the page.
+			expect(router.history.length).toBe(1);
+			expect(result.current.state.pagination.pageIndex).toBe(3);
+		});
+
+		it('drops the key when the last page is the first', async () => {
+			const { result, router } = await setup('/issues?page=9&q=x');
+
+			await act(async () => result.current.state.clampPage(1));
+
+			expect(searchOf(router)).toBe('?q=x');
 		});
 
 		it('leaves an in-range page alone', async () => {

@@ -37,8 +37,7 @@ import {
 	COLUMN_VISIBILITY_KEY,
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_COLUMN_VISIBILITY,
-	DEFAULT_PAGE_SIZE,
-	FILTER_KEYS,
+	ISSUES_TABLE_SEARCH,
 	ORDERING_BY_COLUMN_ID,
 	PINNED_COLUMNS
 } from './issues-table.constants';
@@ -88,10 +87,8 @@ export function IssuesTable({
 		clampPage,
 		queryArgs
 	} = useClassificationTableState({
-		filterKeys: FILTER_KEYS,
+		search: ISSUES_TABLE_SEARCH,
 		searchColumnId: COLUMN_ID.ISSUE,
-		defaultPageSize: DEFAULT_PAGE_SIZE,
-		defaultSorting: [{ id: COLUMN_ID.RESULTS, desc: true }],
 		orderingByColumnId: ORDERING_BY_COLUMN_ID
 	});
 

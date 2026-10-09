@@ -38,11 +38,9 @@ import {
 	COMPACT_WIDTH_PX,
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_COLUMN_VISIBILITY,
-	DEFAULT_PAGE_SIZE,
-	FILTER_KEYS,
+	ISSUE_RULES_TABLE_SEARCH,
 	ORDERING_BY_COLUMN_ID,
-	PINNED_COLUMNS,
-	REPEATED_FILTER_KEYS
+	PINNED_COLUMNS
 } from './issue-rules-table.constants';
 import { useFacetOptions } from './issue-rules-table.hooks';
 import type { IssueRulesTableProps } from './issue-rules-table.types';
@@ -109,10 +107,10 @@ export function IssueRulesTable({
 		clampPage,
 		queryArgs
 	} = useClassificationTableState({
-		filterKeys: FILTER_KEYS,
-		repeatedFilterKeys: REPEATED_FILTER_KEYS,
+		// One schema on both pages: one issue's route declares fewer facets,
+		// but the table reads and writes the same keys there as it always has.
+		search: ISSUE_RULES_TABLE_SEARCH,
 		searchColumnId: COLUMN_ID.ISSUE,
-		defaultPageSize: DEFAULT_PAGE_SIZE,
 		orderingByColumnId: ORDERING_BY_COLUMN_ID
 	});
 

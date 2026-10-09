@@ -9,17 +9,18 @@ import {
 	useState
 } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { useSearch } from '@tanstack/react-router';
 import type { OnChangeFn, PaginationState, Row } from '@tanstack/react-table';
-import { useQueryParams } from '@/router';
 
 import {
 	ClassificationFooter,
 	ClassificationRange,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
-	PageParam,
 	ResultSelectionProvider,
-	createPageSizeParam,
+	defineClassificationSearch,
+	readTableSearch,
+	toTableWire,
 	useSubRowPin
 } from '@/bublik/features/result-classification';
 import {
@@ -35,6 +36,7 @@ import {
 	type RunRowState
 } from '@/bublik/features/run';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+import { useSearchWriter } from '@/router';
 import { useIsScrollbarVisible } from '@/shared/hooks';
 import {
 	useGetIssueResultsFacetsQuery,
@@ -165,18 +167,40 @@ export function RunIssueResultTable({
 
 const DEFAULT_PAGE_SIZE = 25;
 
-// The page the server cuts; its codecs are the rules table's, so the URL
-// reads the same on both pages.
-const PAGE_PARAMS = {
-	page: PageParam,
-	pageSize: createPageSizeParam(DEFAULT_PAGE_SIZE)
-};
+/**
+ * The page the server cuts; its codecs are the rules table's, so the URL
+ * reads the same on both pages. The route declares its `page` and
+ * `pageSize` as its search.
+ */
+export const ISSUE_RESULTS_PAGE_SEARCH = defineClassificationSearch({
+	facets: [],
+	pageSize: DEFAULT_PAGE_SIZE,
+	sort: []
+});
+
+/** `useSearch({ strict: false })`, untyped, as the classification tables read theirs. */
+const useRouteSearch = useSearch as unknown as <T>(options: {
+	strict: false;
+	select: (search: Record<string, unknown>) => T;
+}) => T;
 
 function usePagination() {
-	const [params, setParams] = useQueryParams(PAGE_PARAMS);
+	const params = useRouteSearch({
+		strict: false,
+		select: (search) => readTableSearch(ISSUE_RESULTS_PAGE_SEARCH, search)
+	});
+	const writeSearch = useSearchWriter();
+	const setParams = useCallback(
+		(changes: { page: number; pageSize?: number }) =>
+			writeSearch(toTableWire(ISSUE_RESULTS_PAGE_SEARCH, changes)),
+		[writeSearch]
+	);
 
 	const pagination = useMemo<PaginationState>(
-		() => ({ pageIndex: params.page - 1, pageSize: params.pageSize }),
+		() => ({
+			pageIndex: Math.max(0, (params.page ?? 1) - 1),
+			pageSize: params.pageSize ?? DEFAULT_PAGE_SIZE
+		}),
 		[params.page, params.pageSize]
 	);
 
@@ -185,22 +209,19 @@ function usePagination() {
 			const next =
 				typeof updater === 'function' ? updater(pagination) : updater;
 
-			setParams(
-				{ page: next.pageIndex + 1, pageSize: next.pageSize },
-				'replaceIn'
-			);
+			setParams({ page: next.pageIndex + 1, pageSize: next.pageSize });
 		},
 		[pagination, setParams]
 	);
 
 	const goToPage = useCallback(
-		(page: number) => setParams({ page }, 'replaceIn'),
+		(page: number) => setParams({ page }),
 		[setParams]
 	);
 
 	// A new size changes what page 1 holds, so start over from there.
 	const setPageSize = useCallback(
-		(pageSize: number) => setParams({ page: 1, pageSize }, 'replaceIn'),
+		(pageSize: number) => setParams({ page: 1, pageSize }),
 		[setParams]
 	);
 

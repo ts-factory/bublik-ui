@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { VisibilityState } from '@tanstack/react-table';
 
+import { defineClassificationSearch } from '../classification-table/classification-table.search';
+
 export const COLUMN_ID = {
 	STATUS: 'status',
 	PROJECT: 'rule_project',
@@ -147,8 +149,8 @@ export const COMPACT_WIDTH_PX = {
 	ONE_ISSUE: 700
 } as const;
 
-export const FILTER_KEYS = [
-	COLUMN_ID.ISSUE_STATE,
+/** The facets of a rule itself, which one issue's rules table offers too. */
+export const RULE_FACETS = [
 	COLUMN_ID.CATEGORY,
 	COLUMN_ID.DISPOSITION,
 	COLUMN_ID.ACTIVE,
@@ -156,6 +158,9 @@ export const FILTER_KEYS = [
 	COLUMN_ID.VERDICTS,
 	COLUMN_ID.PARAMETERS
 ] as const;
+
+/** Every rule's table adds the state of the rule's issue. */
+export const FILTER_KEYS = [COLUMN_ID.ISSUE_STATE, ...RULE_FACETS] as const;
 
 /** The free-text filters, kept in the URL as one param per value. */
 export const REPEATED_FILTER_KEYS = [
@@ -189,3 +194,30 @@ export const COLUMN_VISIBILITY_KEY = {
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 100;
+
+const RULES_TABLE_DEFAULTS = {
+	pageSize: DEFAULT_PAGE_SIZE,
+	sort: []
+};
+
+/**
+ * `/issues/rules`: the route's search and what the rules table
+ * reads and writes on both of its pages, with 100 rows a page, in the
+ * server's order, as the defaults.
+ */
+export const ISSUE_RULES_TABLE_SEARCH = defineClassificationSearch({
+	facets: FILTER_KEYS,
+	repeatedFacets: REPEATED_FILTER_KEYS,
+	...RULES_TABLE_DEFAULTS
+});
+
+/**
+ * `/issues/$issueId`: the route declares the rule facets only,
+ * since one issue's rules share its state; the table still reads them
+ * through `ISSUE_RULES_TABLE_SEARCH`, as it always has.
+ */
+export const ISSUE_TABLE_SEARCH = defineClassificationSearch({
+	facets: RULE_FACETS,
+	repeatedFacets: REPEATED_FILTER_KEYS,
+	...RULES_TABLE_DEFAULTS
+});

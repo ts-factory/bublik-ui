@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { VisibilityState } from '@tanstack/react-table';
 
+import { defineClassificationSearch } from '../classification-table/classification-table.search';
+
 export const COLUMN_ID = {
 	STATUS: 'status',
 	ACTIONS: 'actions',
@@ -66,3 +68,13 @@ export const FILTER_KEYS = [
 ] as const;
 
 export const DEFAULT_PAGE_SIZE = 100;
+
+/**
+ * `/issues`: the route's search and what the table reads and
+ * writes, with 100 rows a page, most results first, as the defaults.
+ */
+export const ISSUES_TABLE_SEARCH = defineClassificationSearch({
+	facets: FILTER_KEYS,
+	pageSize: DEFAULT_PAGE_SIZE,
+	sort: [{ id: COLUMN_ID.RESULTS, desc: true }]
+});

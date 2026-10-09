@@ -2,6 +2,9 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import type { VisibilityState } from '@tanstack/react-table';
 
+import { DEFAULT_PAGE_SIZE } from '../classification-table/classification-table.constants';
+import { defineClassificationSearch } from '../classification-table/classification-table.search';
+
 export const COLUMN_ID = {
 	STATUS: 'status',
 	ACTIONS: 'actions',
@@ -50,3 +53,14 @@ export const FILTER_KEYS = [
 	COLUMN_ID.EFFECT,
 	COLUMN_ID.CATEGORIES
 ] as const;
+
+/**
+ * `/runs/$runId/issues`: the route's search and what the table
+ * reads and writes, with 25 rows a page, most results first, as the
+ * defaults.
+ */
+export const RUN_ISSUES_TABLE_SEARCH = defineClassificationSearch({
+	facets: FILTER_KEYS,
+	pageSize: DEFAULT_PAGE_SIZE,
+	sort: [{ id: COLUMN_ID.RESULTS, desc: true }]
+});

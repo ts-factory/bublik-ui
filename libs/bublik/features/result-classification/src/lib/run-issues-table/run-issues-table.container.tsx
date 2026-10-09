@@ -34,8 +34,8 @@ import {
 	COLUMN_VISIBILITY_KEY,
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_COLUMN_VISIBILITY,
-	FILTER_KEYS,
-	PINNED_COLUMNS
+	PINNED_COLUMNS,
+	RUN_ISSUES_TABLE_SEARCH
 } from './run-issues-table.constants';
 import { useFacetOptions } from './run-issues-table.hooks';
 import type { RunIssuesTableProps } from './run-issues-table.types';
@@ -81,9 +81,8 @@ export function RunIssuesTable({
 		expanded,
 		onExpandedChange
 	} = useClassificationTableState({
-		filterKeys: FILTER_KEYS,
-		searchColumnId: COLUMN_ID.ISSUE,
-		defaultSorting: [{ id: COLUMN_ID.RESULTS, desc: true }]
+		search: RUN_ISSUES_TABLE_SEARCH,
+		searchColumnId: COLUMN_ID.ISSUE
 	});
 
 	const issues = data ?? EMPTY_ISSUES;
