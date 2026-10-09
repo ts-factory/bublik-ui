@@ -1,0 +1,337 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import type { ReactNode, RefObject } from 'react';
+import type { Row, Table } from '@tanstack/react-table';
+
+import {
+	ButtonTw,
+	DataTableFacetedFilter,
+	Icon,
+	Pagination,
+	Skeleton,
+	Tooltip
+} from '@/shared/tailwind-ui';
+import type { IssueCategory, IssueState } from '@/shared/types';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+
+import {
+	ClassificationFooter,
+	ClassificationRange,
+	ClassificationSearch,
+	ClassificationTable,
+	ClassificationToolbar,
+	ClassificationToolbarSeparator
+} from '../classification-table/classification-table.component';
+import {
+	facetControls,
+	type FacetOption
+} from '../classification-table/classification-table.utils';
+import {
+	CategoryBadge,
+	DispositionBadge,
+	IssueStateBadge,
+	RuleActiveBadge
+} from '../classification/classification-badges.component';
+import type { Disposition } from '../classification/classification.types';
+import { withFacetBadges } from '../classification/facet-badges.component';
+import { EXPECTED_BY_DISPOSITION } from '../shared/select-options';
+import { ClassificationColumnsPicker } from '../classification-table/columns-picker.component';
+import { ProjectGroupHeader } from '../classification-table/project-group-header.component';
+import { NewRuleButton } from '../rule-form/rule-drawer.container';
+import { COLUMN_ID, PINNED_COLUMNS } from './issue-rules-table.constants';
+import type { IssueRuleRow } from './issue-rules-table.types';
+
+export function IssueRulesTableLoading() {
+	return (
+		<div className="flex flex-col gap-1 p-2">
+			{Array.from({ length: 6 }, () => 0).map((_, idx) => (
+				<Skeleton key={idx} className="h-10 rounded-md" />
+			))}
+		</div>
+	);
+}
+
+export function IssueRulesTableError({ error }: { error: unknown }) {
+	return <BublikErrorState error={error} className="h-[40vh]" />;
+}
+
+export interface IssueRulesTableEmptyProps {
+	showIssue: boolean;
+	children?: ReactNode;
+}
+
+export function IssueRulesTableEmpty({
+	showIssue,
+	children
+}: IssueRulesTableEmptyProps) {
+	return (
+		<BublikEmptyState
+			title="No rules"
+			description={
+				showIssue
+					? 'No rules yet. Write one here, or classify a failing result and one is written for you.'
+					: 'This issue has no rules yet. Write one here, or classify a failing result against this issue.'
+			}
+			className="h-[40vh]"
+		>
+			{children}
+		</BublikEmptyState>
+	);
+}
+
+export interface IssueRulesTableViewProps {
+	table: Table<IssueRuleRow>;
+	scrollRef: RefObject<HTMLDivElement>;
+	/** Measures the room the table has, which decides how many columns fit. */
+	widthRef: (node: HTMLDivElement | null) => void;
+	isScrollable: boolean;
+	renderSubRow?: (row: Row<IssueRuleRow>) => ReactNode;
+	showIssue: boolean;
+	/** Every project at once: the rows sit under one heading per project. */
+	groupByProject: boolean;
+	columnOrder: string[];
+	onColumnOrderChange: (order: string[]) => void;
+	search: string;
+	onSearchChange: (value: string) => void;
+	issueStateOptions: FacetOption[];
+	categoryOptions: FacetOption[];
+	dispositionOptions: FacetOption[];
+	activeOptions: FacetOption[];
+	parameterOptions: FacetOption[];
+	verdictOptions: FacetOption[];
+	tagOptions: FacetOption[];
+	hasFilters: boolean;
+	onResetFilters: () => void;
+	toolbarActions?: ReactNode;
+	totalCount: number;
+}
+
+export function IssueRulesTableView({
+	table,
+	scrollRef,
+	widthRef,
+	isScrollable,
+	renderSubRow,
+	showIssue,
+	groupByProject,
+	columnOrder,
+	onColumnOrderChange,
+	search,
+	onSearchChange,
+	issueStateOptions,
+	categoryOptions,
+	dispositionOptions,
+	activeOptions,
+	parameterOptions,
+	verdictOptions,
+	tagOptions,
+	hasFilters,
+	onResetFilters,
+	toolbarActions,
+	totalCount
+}: IssueRulesTableViewProps) {
+	const facets = facetControls(table);
+
+	const { pagination } = table.getState();
+	const rows = table.getRowModel().rows;
+
+	function scrollToTop() {
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function goToPage(page: number) {
+		table.setPageIndex(page - 1);
+		scrollToTop();
+	}
+
+	function setPageSize(pageSize: number) {
+		table.setPageSize(pageSize);
+		scrollToTop();
+	}
+
+	return (
+		<div ref={widthRef} className="flex flex-col flex-1 min-h-0">
+			<ClassificationToolbar>
+				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
+					Rules
+				</span>
+				<ClassificationToolbarSeparator />
+				<ClassificationSearch
+					value={search}
+					onChange={onSearchChange}
+					placeholder={showIssue ? 'Search test or issue' : 'Search test'}
+					testId="issue-rules-search"
+					className="min-w-[220px]"
+				/>
+				{showIssue ? (
+					<DataTableFacetedFilter
+						title="State"
+						size="xss"
+						options={withFacetBadges(issueStateOptions, (state: IssueState) => (
+							<IssueStateBadge state={state} />
+						))}
+						value={facets.values(COLUMN_ID.ISSUE_STATE)}
+						onChange={(values) => facets.set(COLUMN_ID.ISSUE_STATE, values)}
+						disabled={!issueStateOptions.length}
+					/>
+				) : null}
+				<DataTableFacetedFilter
+					title="Category"
+					size="xss"
+					options={withFacetBadges(
+						categoryOptions,
+						(category: IssueCategory) => (
+							<CategoryBadge category={category} />
+						)
+					)}
+					value={facets.values(COLUMN_ID.CATEGORY)}
+					onChange={(values) => facets.set(COLUMN_ID.CATEGORY, values)}
+					disabled={!categoryOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Disposition"
+					size="xss"
+					options={withFacetBadges(
+						dispositionOptions,
+						(disposition: Disposition) => (
+							<DispositionBadge
+								expected={EXPECTED_BY_DISPOSITION[disposition]}
+							/>
+						)
+					)}
+					value={facets.values(COLUMN_ID.DISPOSITION)}
+					onChange={(values) => facets.set(COLUMN_ID.DISPOSITION, values)}
+					disabled={!dispositionOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Rule"
+					size="xss"
+					options={withFacetBadges(
+						activeOptions,
+						(active: 'true' | 'false') => (
+							<RuleActiveBadge active={active === 'true'} />
+						)
+					)}
+					value={facets.values(COLUMN_ID.ACTIVE)}
+					onChange={(values) => facets.set(COLUMN_ID.ACTIVE, values)}
+					disabled={!activeOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Parameters"
+					size="xss"
+					options={parameterOptions}
+					value={facets.values(COLUMN_ID.PARAMETERS)}
+					onChange={(values) => facets.set(COLUMN_ID.PARAMETERS, values)}
+					disabled={!parameterOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Verdicts"
+					size="xss"
+					options={verdictOptions}
+					value={facets.values(COLUMN_ID.VERDICTS)}
+					onChange={(values) => facets.set(COLUMN_ID.VERDICTS, values)}
+					disabled={!verdictOptions.length}
+				/>
+				<DataTableFacetedFilter
+					title="Tags"
+					size="xss"
+					options={tagOptions}
+					value={facets.values(COLUMN_ID.TAGS)}
+					onChange={(values) => facets.set(COLUMN_ID.TAGS, values)}
+					disabled={!tagOptions.length}
+				/>
+				<ClassificationToolbarSeparator />
+				<Tooltip
+					content={hasFilters ? 'Reset all filters' : 'No filters to reset'}
+				>
+					<ButtonTw
+						variant="secondary"
+						size="xss"
+						disabled={!hasFilters}
+						onClick={onResetFilters}
+						data-testid="issue-rules-reset-filters"
+					>
+						<Icon name="Bin" size={18} className="mr-1.5" />
+						Reset
+					</ButtonTw>
+				</Tooltip>
+				<div className="flex items-center gap-2 ml-auto">
+					{toolbarActions ? (
+						<>
+							{toolbarActions}
+							<ClassificationToolbarSeparator />
+						</>
+					) : null}
+					<ClassificationColumnsPicker
+						table={table}
+						columnOrder={columnOrder}
+						onColumnOrderChange={onColumnOrderChange}
+					/>
+				</div>
+			</ClassificationToolbar>
+
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
+				{rows.length === 0 ? (
+					<BublikEmptyState
+						title="No matching rules"
+						description="No rule matches the current filters."
+						className="h-64"
+					/>
+				) : (
+					<ClassificationTable
+						table={table}
+						stickyHeader
+						endGutter
+						gutterBefore={PINNED_COLUMNS.last}
+						scrollRef={scrollRef}
+						renderSubRow={renderSubRow}
+						renderGroupHeader={
+							groupByProject
+								? (row) => {
+										const first = row.subRows[0]?.original;
+
+										return (
+											<ProjectGroupHeader
+												name={
+													first?.projectName ?? `Project #${row.groupingValue}`
+												}
+												count={row.subRows.length}
+												noun="rule"
+											>
+												<NewRuleButton projectId={Number(row.groupingValue)} />
+											</ProjectGroupHeader>
+										);
+								  }
+								: undefined
+						}
+						testId="issue-rules-table"
+						getRowAttributes={(row) => ({
+							'data-testid': 'issue-rule-row',
+							'data-rule-id': row.original.id,
+							'data-project-id': row.original.project,
+							'data-rule-active': row.original.active ? 'true' : 'false'
+						})}
+					/>
+				)}
+			</div>
+
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={totalCount}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="rule"
+				/>
+				<Pagination
+					className="ml-auto"
+					variant="compact"
+					totalCount={totalCount}
+					pageSize={pagination.pageSize}
+					currentPage={pagination.pageIndex + 1}
+					onPageChange={goToPage}
+					onPageSizeChange={setPageSize}
+				/>
+			</ClassificationFooter>
+		</div>
+	);
+}
