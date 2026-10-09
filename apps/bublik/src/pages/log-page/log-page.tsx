@@ -5,7 +5,6 @@ import { getRouteApi } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LogPageMode } from '@/shared/types';
-import { usePrefetchLogPage, usePrefetchRun } from '@/services/bublik-api';
 import { CardHeader, RunModeToggle } from '@/shared/tailwind-ui';
 import { LogFeature, useLogSearchWriter } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
@@ -77,9 +76,6 @@ export const LogPage = () => {
 	const { runId } = routeApi.useParams();
 	const { mode } = routeApi.useSearch();
 	const { shouldRedirect } = useLegacyLogRedirect();
-
-	usePrefetchLogPage({ runId });
-	usePrefetchRun({ runId });
 
 	const isTreeShown =
 		mode === LogPageMode.TreeAndInfoAndLog || mode === LogPageMode.TreeAndLog;

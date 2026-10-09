@@ -13,6 +13,7 @@ export const Route = createFileRoute('/_app/runs/$runId/')({
 	params: idParams('runId'),
 	validateSearch: runSearch.validateSearch,
 	search: { middlewares: runSearch.middlewares },
+	loaderDeps: ({ search }) => ({ requirements: search.globalRequirements }),
 	loader: loadRun,
 	notFoundComponent: NoMatchFeature,
 	component: RunPage

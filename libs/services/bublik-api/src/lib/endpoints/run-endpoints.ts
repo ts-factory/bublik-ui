@@ -222,7 +222,7 @@ export const runEndpoints = {
 				url: withApiV2(`/runs/${runId}/source`),
 				cache: 'no-cache'
 			}),
-			argSchema: z.string(),
+			argSchema: z.string().or(z.number()),
 			responseSchema: RunSourceAPIRResponseSchema,
 			keepUnusedDataFor: getMinutes(15),
 			providesTags: configDependent(BUBLIK_TAG.Run)

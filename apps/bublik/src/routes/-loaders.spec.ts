@@ -101,11 +101,29 @@ describe('route loaders prefetch the first request of a page', () => {
 
 	it.each([
 		{
-			name: 'the run page: its details',
+			name: 'the run page: its details, its table and its source',
 			target: { to: '/runs/$runId', params: { runId: 7 } } as const,
-			requests: ['/runs/7/details'],
+			requests: ['/runs/7/details', '/runs/7/stats', '/runs/7/source'],
+			// The table as the page asks for it: no requirements is `[]`
 			cached: (store: TestStore) =>
-				bublikAPI.endpoints.getRunDetails.select('7')(store.getState())
+				bublikAPI.endpoints.getRunTableByRunId.select({
+					runId: '7',
+					requirements: []
+				})(store.getState())
+		},
+		{
+			name: 'the run page: its table with the requirements on the address',
+			target: {
+				to: '/runs/$runId',
+				params: { runId: 7 },
+				search: { globalRequirements: ['a', 'b'] }
+			} as const,
+			requests: ['/runs/7/stats/?requirements=a%3Bb'],
+			cached: (store: TestStore) =>
+				bublikAPI.endpoints.getRunTableByRunId.select({
+					runId: '7',
+					requirements: ['a', 'b']
+				})(store.getState())
 		},
 		{
 			name: 'the run report: the report of its config',
