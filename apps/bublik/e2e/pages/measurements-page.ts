@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
 
+import { applyRulesWith } from '../support/classification';
 import { UrlParams, urlParams } from '../support/url-params';
 
 const MEASUREMENTS_URL_PARAMS = {
@@ -139,6 +140,30 @@ class MeasurementsPage {
 			.getByRole('link', { name: /^Log$/ })
 			.click();
 		await expect(this.page).toHaveURL(/\/log\/\d+\?/, { timeout: 15_000 });
+	}
+
+	/** The header's Classify button; shown only when the result failed or is stamped. */
+	get classifyTrigger(): Locator {
+		return this.page
+			.getByTestId('measurements-page')
+			.getByTestId('classify-trigger');
+	}
+
+	get applyRulesButton(): Locator {
+		return this.page
+			.getByTestId('measurements-page')
+			.getByTestId('apply-rules-button');
+	}
+
+	/** Applies the rules from the page header and resolves with the toast's wording. */
+	async applyRules(): Promise<string> {
+		return applyRulesWith(this.page, this.applyRulesButton);
+	}
+
+	async expectClassificationActions(): Promise<void> {
+		await expect(this.classifyTrigger).toBeVisible({ timeout: 30_000 });
+		await expect(this.applyRulesButton).toBeVisible();
+		await expect(this.applyRulesButton).toBeEnabled();
 	}
 }
 
