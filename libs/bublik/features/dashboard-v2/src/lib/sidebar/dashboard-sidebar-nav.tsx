@@ -11,7 +11,7 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
 
-const DASHBOARD_SIDEBAR_PATTERNS = [{ path: '/dashboard' }];
+const DASHBOARD_SIDEBAR_PATTERNS = [{ to: '/dashboard' }];
 
 export function DashboardSidebarNav() {
 	const location = useLocation();

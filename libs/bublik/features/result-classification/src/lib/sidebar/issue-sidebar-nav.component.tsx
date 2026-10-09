@@ -13,7 +13,7 @@ import {
 
 import { useIssueSidebarState } from './issue-sidebar.hooks';
 
-const ISSUE_DETAIL_PATTERNS: ActivePattern[] = [{ path: '/issues/:issueId' }];
+const ISSUE_DETAIL_PATTERNS: ActivePattern[] = [{ to: '/issues/$issueId' }];
 
 const NO_PATTERNS: ActivePattern[] = [];
 

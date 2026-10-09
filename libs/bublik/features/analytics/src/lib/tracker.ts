@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { matchPath } from '@/router';
+import { matchRoutePath } from '@/router';
 
 import { config } from '@/bublik/config';
 import { frontendAppVersion } from '@/bublik/features/deploy-info';
@@ -22,14 +22,29 @@ let lastPageTrackedAt = 0;
 let listenersBound = false;
 let isAnalyticsEnabled = false;
 
-const DYNAMIC_ROUTE_PATTERNS = [
-	'/auth/forgot_password/password_reset/:userId/:resetToken',
-	'/auth/register/activate/:userId/:token',
-	'/log/:runId/:old',
-	'/log/:runId',
-	'/runs/:runId/report',
-	'/runs/:runId/results/:resultId/measurements',
-	'/runs/:runId'
+/**
+ * Pages with params are reported as their pattern, never the concrete path.
+ * The reported strings are React Router's patterns and must stay byte for
+ * byte (the analytics backend groups page views by them); each is matched
+ * through its route path, first match wins, in this order.
+ */
+const DYNAMIC_ROUTE_PATTERNS: [to: string, reported: string][] = [
+	[
+		'/auth/forgot_password/password_reset/$userId/$resetToken',
+		'/auth/forgot_password/password_reset/:userId/:resetToken'
+	],
+	[
+		'/auth/register/activate/$userId/$token',
+		'/auth/register/activate/:userId/:token'
+	],
+	['/log/$runId/$old', '/log/:runId/:old'],
+	['/log/$runId', '/log/:runId'],
+	['/runs/$runId/report', '/runs/:runId/report'],
+	[
+		'/runs/$runId/results/$resultId/measurements',
+		'/runs/:runId/results/:resultId/measurements'
+	],
+	['/runs/$runId', '/runs/:runId']
 ];
 
 const getSafeRandomId = () => {
@@ -134,9 +149,9 @@ const normalizeAnalyticsPath = (pathname: string): string => {
 			? '/'
 			: normalizedPath;
 
-	for (const pattern of DYNAMIC_ROUTE_PATTERNS) {
-		if (matchPath({ path: pattern, end: true }, pathWithoutBase)) {
-			return pattern;
+	for (const [to, reported] of DYNAMIC_ROUTE_PATTERNS) {
+		if (matchRoutePath({ to }, pathWithoutBase)) {
+			return reported;
 		}
 	}
 

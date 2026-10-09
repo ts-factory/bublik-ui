@@ -13,8 +13,8 @@ import {
 import { config } from '@/bublik/config';
 
 const HELP_SIDEBAR_PATTERNS = [
-	{ path: '/help', end: false },
-	{ path: '/help/faq' }
+	{ to: '/help', fuzzy: true },
+	{ to: '/help/faq' }
 ];
 
 export function HelpSidebarNav() {
@@ -36,7 +36,7 @@ export function HelpSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to="/help/faq"
-					pattern={{ path: '/help/faq' }}
+					pattern={{ to: '/help/faq' }}
 					linkComponent={LinkWithProject}
 				>
 					<Icon name="InformationCircleQuestionMark" className="size-7" />

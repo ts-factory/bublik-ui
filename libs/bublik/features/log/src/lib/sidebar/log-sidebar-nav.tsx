@@ -13,7 +13,7 @@ import { useLogSidebarState } from './use-log-sidebar-state';
 
 import { LogDialog } from './log-dialog';
 
-const LOG_SIDEBAR_PATTERNS = [{ path: '/log/:runId' }];
+const LOG_SIDEBAR_PATTERNS = [{ to: '/log/$runId' }];
 
 export function LogSidebarNav() {
 	// The log page records itself (`log-feature.tsx`); a writer here would be
@@ -43,7 +43,7 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('treeAndinfoAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'treeAndinfoAndlog',
 						defaultMode: 'log'
 					}}
@@ -61,7 +61,7 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('treeAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'treeAndlog'
 					}}
 					disabled={!isAvailable}
@@ -78,7 +78,7 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('infoAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'infoAndlog'
 					}}
 					disabled={!isAvailable}
@@ -95,7 +95,7 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('log')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'log'
 					}}
 					disabled={!isAvailable}

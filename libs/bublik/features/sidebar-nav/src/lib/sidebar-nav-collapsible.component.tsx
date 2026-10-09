@@ -9,7 +9,7 @@ import {
 	useLayoutEffect,
 	useRef
 } from 'react';
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import { cn, useSidebar } from '@/shared/tailwind-ui';
 
@@ -86,7 +86,7 @@ SidebarNavCollapsibleContainer.Submenu = function SidebarNavCollapsibleSubmenu({
 	const isActive = context?.isActive ?? false;
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
-	const location = useLocation();
+	const location = useRenderedLocation();
 	const listRef = useRef<HTMLUListElement>(null);
 	const [guideState, setGuideState] = useState({
 		itemCount: 0,

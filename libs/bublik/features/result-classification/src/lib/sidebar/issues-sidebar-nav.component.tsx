@@ -15,10 +15,7 @@ import {
 import { useIssuesSidebarState } from './issues-sidebar.hooks';
 import { OpenIssueCountBadge } from './open-issue-count-badge.component';
 
-const ISSUES_SIDEBAR_PATTERNS = [
-	{ path: '/issues' },
-	{ path: '/issues/rules' }
-];
+const ISSUES_SIDEBAR_PATTERNS = [{ to: '/issues' }, { to: '/issues/rules' }];
 
 function openIssuesTooltip(count: number, isProjectPicked: boolean): string {
 	const noun = count === 1 ? 'open issue' : 'open issues';
@@ -65,7 +62,7 @@ export function IssuesSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={listUrl}
-					pattern={{ path: '/issues' }}
+					pattern={{ to: '/issues' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
@@ -86,7 +83,7 @@ export function IssuesSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={rulesUrl}
-					pattern={{ path: '/issues/rules' }}
+					pattern={{ to: '/issues/rules' }}
 					linkComponent={LinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
