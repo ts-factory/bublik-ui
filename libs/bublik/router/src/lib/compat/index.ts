@@ -7,13 +7,12 @@
  */
 export { Outlet, useCanGoBack } from '@tanstack/react-router';
 
-export { matchPath } from './match-path';
-export type { PathMatch, PathPattern } from './match-path';
+export { matchPath } from '../match/path-pattern';
+export type { PathMatch, PathPattern } from '../match/path-pattern';
 export {
 	createSearchParams,
 	Link,
 	Navigate,
-	useLatestLocation,
 	useLocation,
 	useNavigate,
 	useParams,
@@ -21,7 +20,6 @@ export {
 } from './navigation';
 export type {
 	LinkProps,
-	Location,
 	NavigateFunction,
 	NavigateOptions,
 	NavigateProps,
@@ -51,4 +49,4 @@ export type {
 	UrlUpdateType
 } from './query-params';
 export { createPath, parsePath } from './to';
-export type { Path, To } from './to';
+export type { Path, To } from '../path/to';

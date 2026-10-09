@@ -3,3 +3,4 @@
 export * from './codecs';
 export * from './define-search';
 export * from './wire';
+export * from './use-search-writer';

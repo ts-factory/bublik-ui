@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { parseSearch, type Wire } from '../search/wire';
 
 /** The three parts of a `pathname?search#hash` string, each with its prefix. */
 interface SplitTo {
@@ -52,5 +53,52 @@ function joinTo({ to = '', search = '', hash = '' }: Partial<SplitTo>): string {
 	return path;
 }
 
-export { joinTo, splitTo };
-export type { SplitTo };
+/** React Router's `Path`: each part carries its own prefix. */
+interface Path {
+	pathname: string;
+	search: string;
+	hash: string;
+}
+
+/**
+ * A link or navigation target as the app's call sites still write it:
+ * a `pathname?search#hash` string or a partial `Path` (React Router's `To`).
+ * The `routes.*` builders produce the object form.
+ */
+type To = string | Partial<Path>;
+
+/** A `To` in the shape the TanStack router takes. */
+interface ResolvedTo {
+	/** The pathname, basepath-free and verbatim (no route template is interpolated). */
+	to: string;
+	/** The query string parsed to wire values; the route middlewares serialize it back. */
+	search: Wire;
+	/** The fragment without its `#`, or `undefined` for none (the router then writes none). */
+	hash: string | undefined;
+}
+
+/** The parts of a `To`, each with its prefix, absent ones `''`. */
+function splitTarget(to: To): SplitTo {
+	return typeof to === 'string'
+		? splitTo(to)
+		: { to: to.pathname ?? '', search: to.search ?? '', hash: to.hash ?? '' };
+}
+
+/**
+ * Resolves a `To` the way React Router's `useNavigate`/`<Link>` did: a
+ * missing or empty pathname means the current one (so `{ search }` rewrites
+ * the query string in place), and a missing hash drops the current fragment.
+ */
+function resolveTo(to: To, currentPathname: string): ResolvedTo {
+	const parts = splitTarget(to);
+	const hash = parts.hash.replace(/^#/, '');
+
+	return {
+		to: parts.to || currentPathname,
+		search: parseSearch(parts.search),
+		hash: hash || undefined
+	};
+}
+
+export { joinTo, resolveTo, splitTarget, splitTo };
+export type { Path, ResolvedTo, SplitTo, To };
