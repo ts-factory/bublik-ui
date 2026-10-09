@@ -42,6 +42,14 @@ describe('the measurements route', () => {
 		);
 	});
 
+	it('does not loop on a tilde the conversion keeps', async () => {
+		const url = `${PAGE}?mode=overlay&q=a~b`;
+		const router = await routerAt(url);
+
+		expect(router.history.location.href).toBe(`${config.baseUrl}${url}`);
+		expect(router.history.length).toBe(1);
+	});
+
 	it('leaves a current search alone', async () => {
 		const url = `${PAGE}?mode=overlay&selectedCharts=2&selectedCharts=3#top`;
 		const router = await routerAt(url);
