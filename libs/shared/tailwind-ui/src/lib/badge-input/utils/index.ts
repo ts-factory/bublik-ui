@@ -138,3 +138,5 @@ export const formatBadgeString = (
 		})
 		.join(`${separator} `);
 };
+
+export * from './suggestions';

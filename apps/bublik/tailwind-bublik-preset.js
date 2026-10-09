@@ -22,6 +22,8 @@ module.exports = {
 				'text-expected': 'hsl(var(--colors-text-expected) / <alpha-value>)',
 				'text-unexpected': 'hsl(var(--colors-text-unexpected) / <alpha-value>)',
 				'text-menu': 'hsl(var(--colors-text-menu) / <alpha-value>)',
+				'text-triage': 'hsl(var(--colors-text-triage) / <alpha-value>)',
+				'accent-env': 'hsl(var(--colors-accent-env) / <alpha-value>)',
 				'bg-primary': 'hsl(var(--colors-bg-primary) / <alpha-value>)',
 				'bg-body': 'hsl(var(--colors-bg-body) / <alpha-value>)',
 				'bg-fillError': 'hsl(var(--colors-bg-fillError) / <alpha-value>)',
@@ -31,6 +33,7 @@ module.exports = {
 				'bg-ok': 'hsl(var(--colors-bg-ok) / <alpha-value>)',
 				'bg-running': 'hsl(var(--colors-bg-running) / <alpha-value>)',
 				'bg-compromised': 'hsl(var(--colors-bg-compromised) / <alpha-value>)',
+				'bg-triage': 'hsl(var(--colors-bg-triage) / <alpha-value>)',
 				'bg-stopped': 'hsl(var(--colors-bg-stopped) / <alpha-value>)',
 				'bg-busy': 'hsl(var(--colors-bg-busy) / <alpha-value>)',
 				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',
@@ -52,6 +55,8 @@ module.exports = {
 				'badge-14': 'hsl(var(--colors-badge-14) / <alpha-value>)',
 				'badge-15': 'hsl(var(--colors-badge-15) / <alpha-value>)',
 				'badge-16': 'hsl(var(--colors-badge-16) / <alpha-value>)',
+				'badge-17': 'hsl(var(--colors-badge-17) / <alpha-value>)',
+				'badge-18': 'hsl(var(--colors-badge-18) / <alpha-value>)',
 				'diff-added': 'hsl(var(--diff-added) / <alpha-value>)',
 				'diff-removed': 'hsl(var(--diff-removed) / <alpha-value>)',
 				'diff-changed': 'hsl(var(--diff-changed) / <alpha-value>)',
@@ -270,7 +275,9 @@ module.exports = {
 		'bg-badge-13',
 		'bg-badge-14',
 		'bg-badge-15',
-		'bg-badge-16'
+		'bg-badge-16',
+		'bg-badge-17',
+		'bg-badge-18'
 	],
 	plugins: [
 		require('tailwindcss-radix')({ variantPrefix: 'rdx' }),
@@ -284,13 +291,33 @@ module.exports = {
 					msOverflowStyle: 'none',
 					scrollbarWidth: 'none'
 				},
-				'.words-break': { wordBreak: 'break-word' }
+				'.words-break': { wordBreak: 'break-word' },
+				// A toolbar whose buttons drop their labels while it is narrow: see
+				// the `toolbar-narrow` variant below. `-sm` is for a bar with less
+				// in it, which keeps its labels down to a narrower width.
+				'.toolbar-container': {
+					containerType: 'inline-size',
+					containerName: 'toolbar'
+				},
+				'.toolbar-container-sm': {
+					containerType: 'inline-size',
+					containerName: 'toolbar-sm'
+				}
 			});
 
 			// Variants
 			addVariant('children-but-last', '& > :not(:last-child)');
 			addVariant('children-cross', '& > *:not(:nth-of-type(2n))');
 			addVariant('children-cross', '& > *:not(:nth-last-of-type(-n + 2))');
+			// Styles that apply inside a `.toolbar-container` narrower than its
+			// content with every label drawn, so the buttons collapse to their icons:
+			// 1220px holds the result table's filter bar, 1150px the issues tables'.
+			// Outside a toolbar container the variant never matches and the labels
+			// stay.
+			addVariant('toolbar-narrow', [
+				'@container toolbar (max-width: 1219px)',
+				'@container toolbar-sm (max-width: 1149px)'
+			]);
 			// Components
 			addComponents({
 				'.chart-mosaic': {

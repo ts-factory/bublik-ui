@@ -5,6 +5,12 @@ import { RefObject, useEffect, useState } from 'react';
 export interface UseIsStickyOptions {
 	offset?: number;
 	enabled?: boolean;
+	/**
+	 * The scroller the element sticks inside, when it is not the viewport.
+	 * Read when the observer is set up, so a ref to a parent rendered in the
+	 * same commit is already filled in.
+	 */
+	rootRef?: RefObject<Element>;
 }
 
 export const useIsSticky = (
@@ -12,14 +18,15 @@ export const useIsSticky = (
 	options: UseIsStickyOptions = {}
 ) => {
 	const [isSticky, setIsSticky] = useState(false);
+	const { enabled, offset: optionsOffset, rootRef } = options;
 
 	useEffect(() => {
-		if (options.enabled === false) {
+		if (enabled === false) {
 			setIsSticky(false);
 			return;
 		}
 
-		const offset = options.offset ?? -1;
+		const offset = optionsOffset ?? -1;
 		const el = ref.current;
 
 		if (!el) return;
@@ -33,6 +40,7 @@ export const useIsSticky = (
 				}
 			},
 			{
+				root: rootRef?.current ?? null,
 				rootMargin: `${offset}px 0px 0px 0px`,
 				threshold: [1]
 			}
@@ -40,7 +48,7 @@ export const useIsSticky = (
 
 		observer.observe(el);
 		return () => observer.unobserve(el);
-	}, [ref, options.enabled, options.offset]);
+	}, [ref, enabled, optionsOffset, rootRef]);
 
 	return { isSticky };
 };

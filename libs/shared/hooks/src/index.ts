@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect, type RefObject } from 'react';
 
 export {
 	useMount,
@@ -41,30 +41,72 @@ export * from './lib/use-page-container';
 export * from './lib/use-render-when-visible';
 export * from './lib/use-progressive-visible-count';
 
+/**
+ * Whether the element the ref is attached to currently overflows vertically.
+ *
+ * Watches the content as well as the box. A `ResizeObserver` on the scroller
+ * alone only fires when the *scroller* is resized, which in a fixed-height
+ * panel — a drawer, a sidebar — is never: the thing that changes is what is
+ * inside it. Anything whose content arrives or grows after mount (an async
+ * option list, a form that swaps fields between create and edit mode) would
+ * measure once while it was still short and report `false` for good.
+ *
+ * So the observer is pointed at the children too, and a `MutationObserver`
+ * re-points it when the child list changes.
+ *
+ * The element may mount long after the hook's owner: a drawer rendered closed
+ * beside its button has none until it opens, and Radix mounts the content a
+ * render after `open` turns true. So the ref is an object whose `current`
+ * setter, which React calls on attach and detach, keeps the element in state,
+ * and the observers follow it. It stays a `RefObject`, for the popovers that
+ * portal into the scroller.
+ */
 export const useIsScrollbarVisible = <T extends HTMLElement>() => {
-	const ref = useRef<T>(null);
+	const [element, setElement] = useState<T | null>(null);
+	const [ref] = useState(() => {
+		let current: T | null = null;
+
+		return {
+			get current() {
+				return current;
+			},
+			set current(node: T | null) {
+				current = node;
+				setElement(node);
+			}
+		} as RefObject<T>;
+	});
 	const [isVisible, setIsVisible] = useState(false);
 
 	useEffect(() => {
-		if (!ref.current) return;
+		if (!element) return;
 
-		const resizeObserver = new ResizeObserver((entries) => {
-			const entry = entries?.[0];
+		const measure = () =>
+			setIsVisible(element.scrollHeight > element.clientHeight);
 
-			if (!entry) return;
+		const resizeObserver = new ResizeObserver(measure);
 
-			const element = entry.target;
-
-			if (element.scrollHeight > element.clientHeight) {
-				setIsVisible(true);
-			} else {
-				setIsVisible(false);
+		// Re-observe from scratch: children come and go, and an observer left
+		// pointing at a removed node keeps it alive for nothing.
+		const observeAll = () => {
+			resizeObserver.disconnect();
+			resizeObserver.observe(element);
+			for (const child of Array.from(element.children)) {
+				resizeObserver.observe(child);
 			}
-		});
+			measure();
+		};
 
-		resizeObserver.observe(ref.current);
-		return () => resizeObserver.disconnect();
-	}, []);
+		const mutationObserver = new MutationObserver(observeAll);
+
+		observeAll();
+		mutationObserver.observe(element, { childList: true, subtree: false });
+
+		return () => {
+			resizeObserver.disconnect();
+			mutationObserver.disconnect();
+		};
+	}, [element]);
 
 	return [ref, isVisible] as const;
 };

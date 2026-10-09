@@ -8,6 +8,7 @@ export type { VariantProps } from 'cva';
 
 export * from './run-info-helpers';
 export * from './test-utils';
+export * from './toolbar';
 export { twMerge };
 export { toast } from 'sonner';
 

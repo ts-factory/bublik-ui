@@ -14,6 +14,10 @@ export type BadgeFieldProps<T extends FieldValues> = {
 	trailingContent?: BadgeInputProps['trailingContent'];
 	keyValueDisplayDelimiter?: BadgeInputProps['keyValueDisplayDelimiter'];
 	keyValueSubmitDelimiter?: BadgeInputProps['keyValueSubmitDelimiter'];
+	suggestions?: BadgeInputProps['suggestions'];
+	suggestionsLoading?: BadgeInputProps['suggestionsLoading'];
+	onSuggestionsRequest?: BadgeInputProps['onSuggestionsRequest'];
+	badgeClassName?: BadgeInputProps['badgeClassName'];
 };
 
 export const BadgeField = <T extends FieldValues>(
