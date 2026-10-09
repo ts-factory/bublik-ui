@@ -196,6 +196,34 @@ async function firstErrorResultNode(
 	return node ? { runCase, node } : null;
 }
 
+/**
+ * The tree node of one manifest sample, for the log and measurements routes
+ * that address a result by id rather than by test name.
+ */
+async function sampleResultNode(
+	request: APIRequestContext,
+	runCase: ImportedRunCase,
+	sample: IterationEntry
+): Promise<ResultNodeCase | null> {
+	const tree = await getTree(request, runCase.runId);
+	const path = sample.pathStr || sample.path.join('/');
+	const matching = Object.values(tree.tree).filter(
+		(node) =>
+			node.entity === 'test' &&
+			(node.path === path || node.name === sample.name)
+	);
+	// A test's iterations share a name and a path, so a failing sample must not
+	// resolve to a passing sibling — that one offers nothing to classify.
+	const node =
+		(sample.unexpected || sample.status !== 'PASSED'
+			? matching.find((entry) => entry.has_error)
+			: undefined) ??
+		matching[0] ??
+		null;
+
+	return node ? { runCase, node, sample } : null;
+}
+
 async function firstMeasurementResultNode(
 	request: APIRequestContext,
 	manifest: E2EManifest
@@ -433,7 +461,8 @@ export {
 	projectIdByName,
 	reportConfiguredImportedRun,
 	reportFixture,
-	representativeImportedRun
+	representativeImportedRun,
+	sampleResultNode
 };
 
 export type {
