@@ -5,6 +5,15 @@ import type { ExpandedState, PaginationState } from '@tanstack/react-table';
 import { bool01, defineSearch, json, str, type InferSearch } from '@/router';
 import type { ImportTaskFilters } from '@/shared/types';
 
+/** No filter: every field of the form empty (a reset writes `filters={}`). */
+const NO_IMPORT_FILTERS: ImportTaskFilters = {
+	job: undefined,
+	run: undefined,
+	url: undefined,
+	celery_task: undefined,
+	status: undefined
+};
+
 /**
  * `/admin/import`. The filter form, the pagination and the
  * expanded rows are plain JSON; a reset writes `filters={}`. `taskId` opens
@@ -18,7 +27,12 @@ const importSearch = defineSearch(
 		taskId: str(),
 		poll: bool01()
 	},
-	{ filters: {}, pagination: { pageIndex: 0, pageSize: 25 }, poll: false }
+	{
+		filters: NO_IMPORT_FILTERS,
+		pagination: { pageIndex: 0, pageSize: 25 },
+		expanded: {},
+		poll: false
+	}
 );
 
 type ImportSearch = InferSearch<typeof importSearch>;

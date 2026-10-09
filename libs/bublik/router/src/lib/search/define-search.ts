@@ -19,7 +19,13 @@ type Typed<S extends Shape> = {
 /** The typed search plus the keys the route does not declare, which pass through. */
 type Search<S extends Shape> = Typed<S> & Record<string, unknown>;
 
-interface SearchSchema<S extends Shape> {
+/** The keys a schema has a default for, which `withDefaults` always fills. */
+type Defaulted<S extends Shape, D> = {
+	[K in keyof D & keyof S]-?: Exclude<Typed<S>[K], undefined>;
+};
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+interface SearchSchema<S extends Shape, D extends Typed<S> = {}> {
 	/** The declared keys and their codecs, for tests and tooling that enumerate them. */
 	shape: S;
 	/** Wire → typed. Keeps unknown keys, fills no defaults, never throws. */
@@ -27,7 +33,7 @@ interface SearchSchema<S extends Shape> {
 	/** Typed → wire, run after child routes and the updater, so the router only ever stringifies strings. */
 	middlewares: SearchMiddleware<Search<S>>[];
 	/** The page's defaults for absent keys, applied at read time (`useSearch({ select })`). */
-	withDefaults: (search: Search<S>) => Search<S>;
+	withDefaults: (search: Search<S>) => Search<S> & Defaulted<S, D>;
 }
 
 /** The typed search a `defineSearch` result validates to. */
@@ -50,10 +56,11 @@ function omitUndefined<T extends object>(value: T): T {
  * there would be written to the URL on the first unrelated update
  * (`/runs` → `/runs?mode=table&page=2`).
  */
-function defineSearch<S extends Shape>(
+// eslint-disable-next-line @typescript-eslint/ban-types
+function defineSearch<S extends Shape, D extends Typed<S> = {}>(
 	shape: S,
-	defaults: Typed<S> = {}
-): SearchSchema<S> {
+	defaults: D = {} as D
+): SearchSchema<S, D> {
 	const validateSearch = (raw: Record<string, unknown>): Search<S> => {
 		const out: Record<string, unknown> = { ...raw };
 
@@ -87,13 +94,11 @@ function defineSearch<S extends Shape>(
 		return wire as Search<S>;
 	};
 
-	const withDefaults = (search: Search<S>): Search<S> => ({
-		...defaults,
-		...omitUndefined(search)
-	});
+	const withDefaults = (search: Search<S>) =>
+		({ ...defaults, ...omitUndefined(search) } as Search<S> & Defaulted<S, D>);
 
 	return { shape, validateSearch, middlewares: [middleware], withDefaults };
 }
 
 export { defineSearch };
-export type { InferSearch, Search, SearchSchema, Shape, Typed };
+export type { Defaulted, InferSearch, Search, SearchSchema, Shape, Typed };

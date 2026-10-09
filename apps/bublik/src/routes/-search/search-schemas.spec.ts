@@ -819,10 +819,17 @@ describe('/admin/import', () => {
 		typed
 	});
 
-	it('defaults to no filter, the first page of 25 and no polling', () => {
+	it('defaults to no filter, the first page of 25, no row open and no polling', () => {
 		expect(importSearch.withDefaults({})).toEqual({
-			filters: {},
+			filters: {
+				job: undefined,
+				run: undefined,
+				url: undefined,
+				celery_task: undefined,
+				status: undefined
+			},
 			pagination: { pageIndex: 0, pageSize: 25 },
+			expanded: {},
 			poll: false
 		});
 	});
