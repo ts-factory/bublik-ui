@@ -36,11 +36,7 @@ describe('renderWithRouter', () => {
 
 	it('seeds location.state', async () => {
 		function ShowState() {
-			return (
-				<output>
-					{String(useRenderedLocation().state.fromRun)}
-				</output>
-			);
+			return <output>{String(useRenderedLocation().state.fromRun)}</output>;
 		}
 
 		const { router } = await renderWithRouter(<ShowState />, {
@@ -124,7 +120,7 @@ describe('the route option', () => {
 	const reportRoute = getRouteApi('/_app/runs/$runId/report');
 
 	function ShowReportRoute() {
-		const { runId } = reportRoute.useParams() as { runId: string };
+		const { runId } = reportRoute.useParams() as { runId: number };
 		const search = reportRoute.useSearch() as Record<string, unknown>;
 
 		return <output>{JSON.stringify({ runId, search })}</output>;
@@ -138,7 +134,7 @@ describe('the route option', () => {
 		});
 
 		expect(JSON.parse(screen.getByRole('status').textContent ?? '')).toEqual({
-			runId: '7',
+			runId: 7,
 			search: { config: 11, isFullMode: false, project: [3] }
 		});
 	});

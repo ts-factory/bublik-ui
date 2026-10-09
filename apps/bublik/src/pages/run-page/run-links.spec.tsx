@@ -62,7 +62,7 @@ describe('the run header links', () => {
 		await renderOnRunPage(
 			<>
 				<div data-testid="typed">
-					<RunLogLink runId="1" />
+					<RunLogLink runId={1} />
 				</div>
 				<LinkWithProject data-testid="string" to={routes.log({ runId: '1' })} />
 			</>
@@ -103,7 +103,7 @@ describe('the result links', () => {
 		await renderOnRunPage(
 			<>
 				<ResultLinks
-					runId="1"
+					runId={1}
 					resultId={7}
 					result={result}
 					hasMeasurements
@@ -121,7 +121,7 @@ describe('the result links', () => {
 	it('pins the wire strings: the run at the result, the focused log, the default measurements', async () => {
 		await renderOnRunPage(
 			<ResultLinks
-				runId="1"
+				runId={1}
 				resultId={7}
 				result={result}
 				hasMeasurements

@@ -45,7 +45,7 @@ describe('useLogPage', () => {
 		);
 
 		expect(result.current).toMatchObject({
-			runId: '1',
+			runId: 1,
 			focusId: 7,
 			isShowingRunLog: false,
 			page: '2',

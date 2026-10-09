@@ -65,13 +65,13 @@ function useLogTitle() {
 		focusedTestName,
 		details?.main_package,
 		formattedTime,
-		runId,
+		runId === undefined ? undefined : String(runId),
 		'Log - Bublik'
 	]);
 }
 
 export interface LogFeatureProps {
-	runId?: string;
+	runId?: number;
 	isTreeShown?: boolean;
 	children?: ReactNode;
 }
@@ -87,9 +87,9 @@ function LogFeature(props: LogFeatureProps) {
 	const { setLastVisited } = useLogSidebarState();
 
 	useEffect(() => {
-		if (runId) {
+		if (runId !== undefined) {
 			const logMode = getLogSidebarMode(mode);
-			setLastVisited(logMode, pathname + searchStr, runId);
+			setLastVisited(logMode, pathname + searchStr, String(runId));
 		}
 	}, [runId, mode, pathname, searchStr, setLastVisited]);
 
@@ -113,7 +113,7 @@ function LogFeature(props: LogFeatureProps) {
 		toggleLog();
 	};
 
-	if (!runId) return null;
+	if (runId === undefined) return null;
 
 	return (
 		<>
@@ -144,13 +144,10 @@ function LogFeature(props: LogFeatureProps) {
 								Legacy Log
 							</ButtonTw>
 							<Separator orientation="vertical" className="h-5 self-center" />
-							<LogAttachmentsContainer
-								runId={Number(runId)}
-								focusId={focusId}
-							/>
+							<LogAttachmentsContainer runId={runId} focusId={focusId} />
 							<LinkToRun runId={runId} targetIterationId={focusId} />
 							<HistoryLinkContainer
-								runId={Number(runId)}
+								runId={runId}
 								resultId={validResultId}
 								disabled={disableHistoryLink}
 								path={node?.path ?? undefined}
@@ -161,14 +158,11 @@ function LogFeature(props: LogFeatureProps) {
 							<Separator orientation="vertical" className="h-5 self-center" />
 							<NewBugContainer
 								key={`${runId}_${focusId}`}
-								resultId={focusId ?? Number(runId)}
-								runId={Number(runId)}
+								resultId={focusId ?? runId}
+								runId={runId}
 							/>
-							<ClassifyResultContainer
-								resultId={validResultId}
-								runId={Number(runId)}
-							/>
-							<ApplyRulesButton runId={Number(runId)} />
+							<ClassifyResultContainer resultId={validResultId} runId={runId} />
+							<ApplyRulesButton runId={runId} />
 						</div>
 					</CardHeader>
 					<div

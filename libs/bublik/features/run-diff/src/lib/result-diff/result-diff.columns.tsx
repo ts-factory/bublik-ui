@@ -16,10 +16,7 @@ export interface ResultLinksProps {
 	result: RunDataResults;
 }
 
-export const getColumns = (
-	leftRunId: string,
-	rightRunId: string
-): ColumnDef<RunDataResultsWithDiff>[] => {
+export const getColumns = (): ColumnDef<RunDataResultsWithDiff>[] => {
 	return [
 		{
 			id: 'GUTTER_LEFT',
@@ -41,7 +38,7 @@ export const getColumns = (
 				return (
 					<div className="flex items-center h-full">
 						<ResultLinksContainer
-							runId={leftRunId}
+							runId={data.run_id}
 							resultId={data.result_id}
 							result={data}
 						/>
@@ -112,7 +109,7 @@ export const getColumns = (
 				return (
 					<div className="flex items-center h-full">
 						<ResultLinksContainer
-							runId={rightRunId}
+							runId={data.run_id}
 							resultId={data.result_id}
 							result={data}
 						/>

@@ -5,7 +5,7 @@ import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { TypedLinkWithProject } from '@/bublik/features/projects';
 
 export interface LinkToRunProps {
-	runId: string;
+	runId: number;
 	targetIterationId?: number | null;
 }
 

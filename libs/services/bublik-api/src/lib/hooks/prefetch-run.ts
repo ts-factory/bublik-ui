@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { usePrefetch } from '../bublikAPI';
 
 export interface UsePrefetchRunConfig {
-	runId?: string;
+	runId?: number;
 }
 
 /** Prefetches run page header | run table | source */
@@ -15,10 +15,10 @@ export const usePrefetchRun = ({ runId }: UsePrefetchRunConfig) => {
 	const prefetchRunSource = usePrefetch('getRunSource');
 
 	useEffect(() => {
-		if (!runId) return;
+		if (runId === undefined) return;
 
 		prefetchRunHeader(runId);
-		prefetchRunTable({ runId });
+		prefetchRunTable({ runId: String(runId) });
 		prefetchRunSource(runId);
 	}, [runId, prefetchRunHeader, prefetchRunSource, prefetchRunTable]);
 };

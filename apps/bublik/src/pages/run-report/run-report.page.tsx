@@ -30,22 +30,21 @@ function RunReportPage() {
 	const hasConfigId = configId !== undefined;
 	const { pathname, searchStr } = useRenderedLocation();
 	const { setLastVisited } = useRunSidebarState();
-	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
+	useRunReportPageName({ runId });
 
 	useEffect(() => {
-		if (!runId || !hasConfigId) {
-			return;
-		}
+		if (!hasConfigId) return;
 
+		// The route only matches a numeric run id, so there always is one
 		trackEvent(analyticsEventNames.runReportOpen, {
-			hasRunId: Boolean(runId),
+			hasRunId: true,
 			hasConfigId
 		});
 	}, [hasConfigId, runId]);
 
 	useEffect(() => {
-		if (runId && hasConfigId) {
-			setLastVisited('report', pathname + searchStr, runId);
+		if (hasConfigId) {
+			setLastVisited('report', pathname + searchStr, String(runId));
 		}
 	}, [runId, hasConfigId, pathname, searchStr, setLastVisited]);
 
@@ -55,14 +54,10 @@ function RunReportPage() {
 		);
 	}
 
-	if (!runId) {
-		return <BublikEmptyState title="No data" description="Run ID is missing" />;
-	}
-
 	return (
 		<div className="flex flex-col gap-1 p-2">
-			<ReportStackedContextProvider runId={Number(runId)} configId={configId}>
-				<RunReportContainer runId={Number(runId)} configId={configId} />
+			<ReportStackedContextProvider runId={runId} configId={configId}>
+				<RunReportContainer runId={runId} configId={configId} />
 				<RunReportStackedSelectedContainer />
 				<RunReportStackedChartContainer />
 			</ReportStackedContextProvider>

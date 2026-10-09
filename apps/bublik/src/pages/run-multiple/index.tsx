@@ -164,18 +164,18 @@ function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
 
 	return (
 		<div className="flex h-full gap-3">
-			<RunReportConfigsContainer runId={runId} />
+			<RunReportConfigsContainer runId={data.id} />
 			<LinkToSourceContainer runId={runId} />
-			<RunMultipleNavigationLinks runId={runId} />
+			<RunMultipleNavigationLinks runId={data.id} />
 			<RunModeToggle isFullMode={isModeFull} onToggleClick={handleModeToggle} />
-			<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
+			<NewBugContainer runId={data.id} resultId={data.id} />
 			<CopyShortUrlButtonContainer />
 		</div>
 	);
 }
 
 interface RunMultipleNavigationLinksProps {
-	runId: string;
+	runId: number;
 }
 
 /** The selected run's own page and its log (as `routes.run`/`routes.log` wrote them). */

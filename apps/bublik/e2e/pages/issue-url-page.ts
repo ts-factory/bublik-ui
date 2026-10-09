@@ -69,10 +69,12 @@ class IssuePage {
 		).toBeVisible({ timeout: 30_000 });
 	}
 
-	async expectInvalidId(): Promise<void> {
-		await expect(
-			this.page.getByText('Issue ID is missing or invalid')
-		).toBeVisible({ timeout: 15_000 });
+	async expectNotFound(issueId: string): Promise<void> {
+		await expect(this.page).toHaveURL(new RegExp(`/issues/${issueId}$`));
+		await expect(this.page.getByText(/not found/i).first()).toBeVisible({
+			timeout: 15_000
+		});
+		await expect(this.page.locator('#sidebar')).toBeVisible();
 		await expect(this.root).toHaveCount(0);
 	}
 

@@ -16,7 +16,7 @@ import { TypedLinkWithProject } from '@/bublik/features/projects';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 
 export interface ResultLinksProps {
-	runId: string;
+	runId: number;
 	resultId: number;
 	result: RunDataResults;
 	userPreferredHistoryMode?: HistoryMode;
@@ -79,7 +79,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				</li>
 				<li className="pl-0.5">
 					<HistoryLinkContainer
-						runId={Number(runId)}
+						runId={runId}
 						result={result}
 						userPreferredHistoryMode={userPreferredHistoryMode}
 						path={path}
@@ -90,7 +90,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						<TypedLinkWithProject
 							className="flex items-center gap-1"
 							to="/runs/$runId/results/$resultId/measurements"
-							params={{ runId, resultId: String(resultId) }}
+							params={{ runId, resultId }}
 							// Written explicitly, as `routes.measurements` did
 							search={{ mode: MeasurementsMode.Default }}
 							onMouseEnter={onMeasurementLinkMouseEnter}
@@ -105,8 +105,8 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					<LogPreviewContainer
 						logName={result.name}
 						resultId={resultId}
-						runId={Number(runId)}
-						measurementId={hasMeasurements ? Number(resultId) : undefined}
+						runId={runId}
+						measurementId={hasMeasurements ? resultId : undefined}
 					>
 						<button
 							className="flex items-center w-full gap-1"
@@ -127,7 +127,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 };
 
 export interface ActionLinksProps {
-	runId: string;
+	runId: number;
 	resultId: number;
 	result: RunDataResults;
 	showLinkToRun?: boolean;

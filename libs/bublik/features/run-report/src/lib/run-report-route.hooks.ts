@@ -26,9 +26,7 @@ const blockToggle = bool01();
 
 /** The run of the report on screen. */
 function useRunReportRunId(): number {
-	return runReportRoute.useParams({
-		select: (params) => Number(params.runId)
-	});
+	return runReportRoute.useParams({ select: (params) => params.runId });
 }
 
 /** `config`: the report config the page renders, `undefined` when absent or not a number. */

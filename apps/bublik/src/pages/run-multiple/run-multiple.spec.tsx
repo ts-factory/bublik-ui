@@ -98,7 +98,7 @@ describe('the multiple-runs header', () => {
 		await renderOnMultiplePage(
 			<>
 				<div data-testid="typed">
-					<RunMultipleNavigationLinks runId="2" />
+					<RunMultipleNavigationLinks runId={2} />
 				</div>
 				<LinkWithProject data-testid="run" to={routes.run({ runId: '2' })} />
 				<LinkWithProject data-testid="log" to={routes.log({ runId: '2' })} />

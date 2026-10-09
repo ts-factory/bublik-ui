@@ -87,7 +87,7 @@ export const getColumns = ({
 				return (
 					<div className="flex items-center gap-2 h-full">
 						<ResultLinksContainer
-							runId={String(value.run_id)}
+							runId={value.run_id}
 							resultId={value.result_id}
 							result={value}
 							showLinkToRun={showLinkToRun}

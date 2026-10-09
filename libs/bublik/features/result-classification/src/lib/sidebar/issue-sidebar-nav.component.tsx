@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { matchRoutePath, useRenderedLocation } from '@/router';
+import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -23,10 +23,11 @@ export function IssueSidebarNav() {
 	const { pathname, searchStr } = useRenderedLocation();
 	const { mainLinkUrl, isAvailable, setLastVisited } = useIssueSidebarState();
 
-	// `/issues/rules` matches the route path too: only a numeric id is an issue.
+	// `/issues/rules` matches the route path too: only an id is an issue, by
+	// the rule the issue route parses its param with.
 	const match = matchRoutePath(ISSUE_DETAIL_PATTERN, pathname);
 	const issueId = match ? match['issueId'] : undefined;
-	const isIssueDetail = !!issueId && /^\d+$/.test(issueId);
+	const isIssueDetail = issueId !== undefined && isIdSegment(issueId);
 
 	useEffect(() => {
 		if (!isIssueDetail) return;

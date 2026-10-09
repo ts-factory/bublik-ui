@@ -50,7 +50,7 @@ describe('the log page links', () => {
 		await renderOnLogPage(
 			<>
 				<div data-testid="typed">
-					<LinkToRun runId="1" targetIterationId={7} />
+					<LinkToRun runId={1} targetIterationId={7} />
 				</div>
 				<LinkWithProject
 					data-testid="string"
@@ -70,7 +70,7 @@ describe('the log page links', () => {
 	it('"Run" opens the whole run when nothing is focused', async () => {
 		await renderOnLogPage(
 			<div data-testid="typed">
-				<LinkToRun runId="1" targetIterationId={null} />
+				<LinkToRun runId={1} targetIterationId={null} />
 			</div>
 		);
 
@@ -83,7 +83,7 @@ describe('the log page links', () => {
 		await renderOnLogPage(
 			<>
 				<div data-testid="typed">
-					<LinkToMeasurements runId={1} resultId="7" state="default" />
+					<LinkToMeasurements runId={1} resultId={7} state="default" />
 				</div>
 				<LinkWithProject
 					data-testid="string"

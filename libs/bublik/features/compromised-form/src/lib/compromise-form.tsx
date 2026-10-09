@@ -222,7 +222,7 @@ export const CompromiseForm: FC<DefineCompromisedFormProps> = (props) => {
 CompromiseForm.displayName = 'CompromiseForm';
 
 export interface DefineCompromisedFeatureProps {
-	runId: string;
+	runId: number;
 }
 
 export const DefineCompromiseContainer = ({
@@ -364,7 +364,7 @@ export const CompromiseStatus = (props: CompromiseStatusProps) => {
 	);
 };
 
-type UseCompromiseConfig = { runId: string };
+type UseCompromiseConfig = { runId: number };
 
 export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 	const dispatch = useDispatch();
@@ -419,7 +419,7 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 				bugId: parseInt(bugId),
 				comment,
 				referenceKey: bugStorageKey,
-				runId: parseInt(runId)
+				runId
 			}).unwrap();
 
 			toast.promise(markCompromisePromise, {

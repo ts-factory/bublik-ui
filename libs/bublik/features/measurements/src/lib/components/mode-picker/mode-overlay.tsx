@@ -30,7 +30,7 @@ function ModeOverlay() {
 }
 
 interface OverlayContainerProps {
-	resultId: string;
+	resultId: number;
 }
 
 function OverlayContainer({ resultId }: OverlayContainerProps) {

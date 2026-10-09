@@ -118,12 +118,5 @@ export const ResultDiffContainer: FC<ResultDiffContainerProps> = ({ row }) => {
 
 	if (!leftData || !rightData) return <ResultDiffEmpty />;
 
-	return (
-		<ResultDiff
-			left={leftData}
-			right={rightData}
-			leftRunId={leftRunId}
-			rightRunId={rightRunId}
-		/>
-	);
+	return <ResultDiff left={leftData} right={rightData} />;
 };

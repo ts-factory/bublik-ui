@@ -7,7 +7,7 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import { useLinkTarget } from '../../link-target';
 
 interface LinkToRunProps {
-	runId: string;
+	runId: number;
 	targetIterationId?: number;
 }
 

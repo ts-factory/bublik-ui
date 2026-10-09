@@ -24,8 +24,8 @@ import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { measurementsRoute } from '../../route';
 
 export interface MeasurementStatisticsLoadingProps {
-	runId: string;
-	resultId: string;
+	runId: number;
+	resultId: number;
 	path?: string;
 }
 
@@ -39,12 +39,8 @@ export const MeasurementStatisticsLoading: FC<
 		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
-					<HistoryLinkContainer
-						runId={Number(runId)}
-						resultId={Number(resultId)}
-						path={path}
-					/>
+					<LinkToRun runId={runId} targetIterationId={resultId} />
+					<HistoryLinkContainer runId={runId} resultId={resultId} path={path} />
 					<LinkToLog runId={runId} resultId={resultId} />
 				</div>
 			</CardHeader>
@@ -124,10 +120,10 @@ export const MeasurementStatisticsContainer: FC = () => {
 		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
+					<LinkToRun runId={runId} targetIterationId={resultId} />
 					<HistoryLinkContainer
-						runId={Number(runId)}
-						resultId={Number(resultId)}
+						runId={runId}
+						resultId={resultId}
 						path={node?.path ?? undefined}
 					/>
 					<LinkToLog runId={runId} resultId={resultId} />
@@ -135,11 +131,8 @@ export const MeasurementStatisticsContainer: FC = () => {
 					{/* Same triage-where-you-are reasoning as the log page and the
 					    preview drawer: the container renders nothing unless the
 					    result actually failed. */}
-					<ClassifyResultContainer
-						resultId={Number(resultId)}
-						runId={Number(runId)}
-					/>
-					<ApplyRulesButton runId={Number(runId)} />
+					<ClassifyResultContainer resultId={resultId} runId={runId} />
+					<ApplyRulesButton runId={runId} />
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />
 				</div>

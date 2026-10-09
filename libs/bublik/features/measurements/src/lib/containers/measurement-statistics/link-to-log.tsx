@@ -8,8 +8,8 @@ import { LogPageMode } from '@/shared/types';
 import { useLinkTarget } from '../../link-target';
 
 export interface LinkToLogProps {
-	runId: string;
-	resultId: string;
+	runId: number;
+	resultId: number;
 }
 
 export const LinkToLog = ({ runId, resultId }: LinkToLogProps) => {
@@ -18,7 +18,7 @@ export const LinkToLog = ({ runId, resultId }: LinkToLogProps) => {
 		to: '/log/$runId',
 		params: { runId },
 		search: {
-			focusId: Number(resultId),
+			focusId: resultId,
 			mode: LogPageMode.TreeAndInfoAndLog
 		}
 	});

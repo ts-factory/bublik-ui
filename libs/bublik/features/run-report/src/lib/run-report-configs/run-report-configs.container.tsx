@@ -24,7 +24,7 @@ import { TypedLinkWithProject } from '@/bublik/features/projects';
 
 interface RunReportConfigLinkProps
 	extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
-	runId: string | number;
+	runId: number;
 	configId: number;
 }
 
@@ -41,14 +41,14 @@ const RunReportConfigLink = forwardRef(function RunReportConfigLink(
 			ref={ref}
 			{...props}
 			to="/runs/$runId/report"
-			params={{ runId: String(runId) }}
+			params={{ runId }}
 			search={{ config: configId }}
 		/>
 	);
 });
 
 interface RunReportConfigsContainerProps {
-	runId: string | number;
+	runId: number;
 }
 
 function RunReportConfigsContainer({ runId }: RunReportConfigsContainerProps) {

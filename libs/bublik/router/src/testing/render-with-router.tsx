@@ -24,6 +24,7 @@ import {
 	type ReactNode
 } from 'react';
 
+import { idParams } from '../lib/params/id-params';
 import { joinTo } from '../lib/path/to';
 import {
 	bool01,
@@ -113,6 +114,13 @@ function Page() {
 	return <>{useContext(PageContext)}</>;
 }
 
+/** The path segments the app's routes parse to numbers, and their keys. */
+const ID_PARAM_SEGMENTS: Record<string, string | undefined> = {
+	$runId: 'runId',
+	$resultId: 'resultId',
+	$issueId: 'issueId'
+};
+
 /** The chain of routes a route id stands for, below `root`, the page in the last one. */
 function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
 	const segments = id.split('/').filter(Boolean);
@@ -125,6 +133,9 @@ function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
 		const isLeaf = index === segments.length - 1;
 		const current = parent;
 		const place = segment.startsWith('_') ? { id: segment } : { path: segment };
+		// The app's id routes parse these to numbers (`idParams`)
+		const idKey = ID_PARAM_SEGMENTS[segment];
+		const params = idKey ? { params: idParams(idKey) } : {};
 		const schema =
 			isLeaf && search
 				? {
@@ -135,6 +146,7 @@ function createRouteChain(root: AnyRoute, { id, search }: TestRoute): AnyRoute {
 		const route: AnyRoute = createRoute({
 			getParentRoute: () => current,
 			...place,
+			...params,
 			...schema,
 			component: isLeaf ? Page : Outlet
 		} as never);

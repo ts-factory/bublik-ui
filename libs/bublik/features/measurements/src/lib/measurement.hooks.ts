@@ -6,7 +6,7 @@ import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 export type useMeasurementTitleConfig = {
 	name?: string;
 	start?: string;
-	runId?: string;
+	runId?: number;
 };
 
 export const useMeasurementTitle = ({
@@ -16,5 +16,10 @@ export const useMeasurementTitle = ({
 }: useMeasurementTitleConfig) => {
 	const formattedTime = start ? formatTimeToDot(start) : '';
 
-	useTabTitleWithPrefix([name, formattedTime, runId, 'Measurements - Bublik']);
+	useTabTitleWithPrefix([
+		name,
+		formattedTime,
+		runId === undefined ? undefined : String(runId),
+		'Measurements - Bublik'
+	]);
 };

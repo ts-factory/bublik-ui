@@ -61,7 +61,7 @@ function useLogSearch(): LogSearch {
 }
 
 /** `runId` of the route match on screen; the log viewer has none. */
-function useLogRunId(): string | undefined {
+function useLogRunId(): number | undefined {
 	return useParams({ strict: false }).runId;
 }
 
