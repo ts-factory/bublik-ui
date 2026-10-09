@@ -1,0 +1,293 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+import { useEffect, type RefObject } from 'react';
+import { Controller } from 'react-hook-form';
+
+import {
+	ErrorMessage,
+	FormAlertError,
+	FormSection,
+	FormSectionSubheader,
+	Input,
+	SelectInput
+} from '@/shared/tailwind-ui';
+import type { IssueCategory } from '@/shared/types';
+
+import {
+	EXPECTED_SELECT_OPTIONS,
+	SelectedOptionHint
+} from '../shared/select-options';
+import { CategoryPicker } from '../pickers/category-picker.component';
+import { IssuePicker } from '../pickers/issue-picker.container';
+import { MatchScope } from '../rule-form/match-scope.component';
+import {
+	CLEARED_SCOPE_PICKS,
+	DEFAULT_SCOPE_PICKS
+} from '../rule-form/match-scope.utils';
+import { MatchingExplainer } from '../rule-form/matching-explainer.component';
+import { splitBugKey } from '../shared/bug-key.utils';
+import { defaultDispositionForCategories } from '../shared/category.constants';
+import { useDefaultTracker } from '../shared/tracker-default.hooks';
+import {
+	TrackerCombobox,
+	useTrackerOptions
+} from '../pickers/tracker-combobox.container';
+import { ClassifyForm } from './classify-form.types';
+
+export function ClassifyFields({
+	form,
+	projectId,
+	resultIds,
+	container
+}: {
+	form: ClassifyForm;
+	projectId?: number;
+	resultIds: number[];
+	container?: RefObject<HTMLElement>;
+}) {
+	const {
+		register,
+		control,
+		watch,
+		setValue,
+		formState: { errors, dirtyFields }
+	} = form;
+	const mode = watch('mode');
+	const categories = watch('categories') as IssueCategory[];
+	const expectedTouched = Boolean(dirtyFields.expected);
+
+	useEffect(() => {
+		if (expectedTouched) return;
+
+		const disposition = defaultDispositionForCategories(categories);
+
+		if (disposition) setValue('expected', disposition);
+	}, [categories, expectedTouched, setValue]);
+	const { options: trackerOptions, defaultTracker } =
+		useTrackerOptions(projectId);
+
+	useDefaultTracker(form, defaultTracker, mode === 'new');
+
+	return (
+		<>
+			{errors.root?.message ? (
+				<FormAlertError title="Error" description={errors.root.message} />
+			) : null}
+
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-primary" />
+				<FormSection.Header name="Issue" />
+				<div className="flex flex-col gap-4">
+					<div data-testid="classify-mode">
+						<Controller
+							control={control}
+							name="mode"
+							render={({ field }) => (
+								<SelectInput
+									label="Source"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={[
+										{ value: 'new', displayValue: 'New issue' },
+										{ value: 'existing', displayValue: 'Existing issue' }
+									]}
+								/>
+							)}
+						/>
+					</div>
+
+					{mode === 'new' ? (
+						<>
+							<Input
+								label="Title"
+								placeholder="Short label, e.g. the bug's summary"
+								data-testid="classify-title"
+								error={errors.title?.message}
+								{...register('title')}
+							/>
+							<div className="flex gap-4">
+								<div className="w-2/5" data-testid="classify-tracker">
+									<Controller
+										control={control}
+										name="tracker"
+										render={({ field }) => (
+											<TrackerCombobox
+												value={field.value ?? ''}
+												onChange={field.onChange}
+												options={trackerOptions}
+												error={errors.tracker?.message}
+												container={container}
+											/>
+										)}
+									/>
+								</div>
+								<div className="flex-1">
+									<Controller
+										control={control}
+										name="bugKey"
+										render={({ field }) => (
+											<Input
+												label="Bug Key"
+												placeholder="FOO-123"
+												data-testid="classify-bug-key"
+												name={field.name}
+												ref={field.ref}
+												onBlur={field.onBlur}
+												value={field.value ?? ''}
+												error={errors.bugKey?.message}
+												onChange={(event) => {
+													const next = event.target.value;
+													const split = splitBugKey(next, trackerOptions);
+
+													if (!split) {
+														field.onChange(next);
+														return;
+													}
+
+													setValue('tracker', split.tracker, {
+														shouldValidate: true
+													});
+													field.onChange(split.key);
+												}}
+											/>
+										)}
+									/>
+								</div>
+							</div>
+						</>
+					) : (
+						<div data-testid="classify-issue">
+							<Controller
+								control={control}
+								name="issueId"
+								render={({ field }) => (
+									<IssuePicker
+										label="Issue"
+										projectId={projectId}
+										value={field.value}
+										onChange={(id) => field.onChange(id)}
+										container={container}
+									/>
+								)}
+							/>
+							{errors.issueId?.message ? (
+								<ErrorMessage>{errors.issueId.message}</ErrorMessage>
+							) : null}
+						</div>
+					)}
+				</div>
+			</FormSection>
+
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-bg-warning" />
+				<FormSection.Header name="Classification" />
+				<div className="flex flex-col gap-4">
+					<div data-testid="classify-category">
+						<Controller
+							control={control}
+							name="categories"
+							render={({ field }) => (
+								<CategoryPicker
+									value={field.value}
+									onChange={field.onChange}
+									container={container}
+								/>
+							)}
+						/>
+						{errors.categories?.message ? (
+							<ErrorMessage>{errors.categories.message}</ErrorMessage>
+						) : null}
+					</div>
+
+					<div data-testid="classify-expected">
+						<Controller
+							control={control}
+							name="expected"
+							render={({ field }) => (
+								<>
+									<SelectInput
+										label="Disposition"
+										value={field.value}
+										onValueChange={field.onChange}
+										name={field.name}
+										options={EXPECTED_SELECT_OPTIONS}
+									/>
+									<SelectedOptionHint
+										options={EXPECTED_SELECT_OPTIONS}
+										value={field.value}
+									/>
+								</>
+							)}
+						/>
+						{errors.expected?.message ? (
+							<ErrorMessage>{errors.expected.message}</ErrorMessage>
+						) : null}
+					</div>
+				</div>
+			</FormSection>
+
+			<FormSection className="flex flex-col">
+				<FormSection.Bar className="bg-bg-interrupted" />
+				<FormSection.Header
+					name="Scope"
+					beside={<MatchingExplainer container={container} />}
+				>
+					{/* The header pads its buttons 5px; 5 more end the icons where
+					    the fields' arrows do. */}
+					<div className="flex items-center gap-1 pr-[5px]">
+						<FormSection.ResetToDefaultButton
+							helpMessage="Back to what the results share"
+							onClick={() =>
+								setValue('picks', DEFAULT_SCOPE_PICKS, { shouldDirty: true })
+							}
+						/>
+						<FormSection.ResetButton
+							helpMessage="Empty every picker: match on the paths alone"
+							onClick={() =>
+								setValue('picks', CLEARED_SCOPE_PICKS, { shouldDirty: true })
+							}
+						/>
+					</div>
+				</FormSection.Header>
+				<div className="mb-5">
+					<div data-testid="classify-scope">
+						<Controller
+							control={control}
+							name="scope"
+							render={({ field }) => (
+								<SelectInput
+									label="Apply to"
+									value={field.value}
+									onValueChange={field.onChange}
+									name={field.name}
+									options={[
+										{
+											value: 'future',
+											displayValue: 'This + future matching runs'
+										},
+										{
+											value: 'oneoff',
+											displayValue:
+												resultIds.length > 1
+													? 'Just these results'
+													: 'Just this result'
+										}
+									]}
+								/>
+							)}
+						/>
+						{errors.scope?.message ? (
+							<ErrorMessage>{errors.scope.message}</ErrorMessage>
+						) : null}
+					</div>
+				</div>
+				<div>
+					{/* Close over the hint that opens the block: it explains this
+					    heading, not the field above it. */}
+					<FormSectionSubheader name="Match scope" className="mb-1" />
+					<MatchScope form={form} resultIds={resultIds} container={container} />
+				</div>
+			</FormSection>
+		</>
+	);
+}
