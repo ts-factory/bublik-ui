@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { routes } from '@/router';
-
-import { RunDetailsAPIResponse } from '@/shared/types';
+import { LogPageMode, RunDetailsAPIResponse } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import {
 	Badge,
@@ -52,13 +50,17 @@ function RunReportHeader(props: RunReportHeaderProps) {
 							/>
 							<LinkToSourceContainer runId={runId.toString()} />
 							<ButtonTw asChild variant="secondary" size="xss">
-								<LinkWithProject to={routes.run({ runId })}>
+								<LinkWithProject to="/runs/$runId" params={{ runId }}>
 									<Icon name="BoxArrowRight" className="mr-1.5" />
 									Run
 								</LinkWithProject>
 							</ButtonTw>
 							<ButtonTw asChild variant="secondary" size="xss">
-								<LinkWithProject to={routes.log({ runId })}>
+								<LinkWithProject
+									to="/log/$runId"
+									params={{ runId }}
+									search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+								>
 									<Icon name="BoxArrowRight" className="mr-1.5" />
 									Log
 								</LinkWithProject>

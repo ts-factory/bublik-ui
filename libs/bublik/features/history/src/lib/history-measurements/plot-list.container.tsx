@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useMemo } from 'react';
-import { routes } from '@/router';
-
 import { LinkWithProject } from '@/bublik/features/projects';
 import { HistoryMeasurementResult } from '@/services/bublik-api';
 import { config } from '@/bublik/config';
@@ -14,6 +12,7 @@ import {
 	Icon
 } from '@/shared/tailwind-ui';
 import { toSingleLineParameterLabel } from '@/shared/utils';
+import { MeasurementsMode } from '@/shared/types';
 
 import { useHistoryQuery } from '../hooks';
 import { useHistoryActions } from '../slice';
@@ -293,17 +292,19 @@ function MeasurementsList(
 						<CardHeader label={m.test_name}>
 							<div className="flex items-center gap-4">
 								<ButtonTw variant="secondary" size="xss" asChild>
-									<LinkWithProject to={routes.run({ runId: m.run_id })}>
+									<LinkWithProject
+										to="/runs/$runId"
+										params={{ runId: m.run_id }}
+									>
 										<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
 										<span>Run</span>
 									</LinkWithProject>
 								</ButtonTw>
 								<ButtonTw variant="secondary" size="xss" asChild>
 									<LinkWithProject
-										to={routes.measurements({
-											runId: m.run_id,
-											resultId: m.result_id
-										})}
+										to="/runs/$runId/results/$resultId/measurements"
+										params={{ runId: m.run_id, resultId: m.result_id }}
+										search={{ mode: MeasurementsMode.Default }}
 									>
 										<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
 										<span>Result</span>

@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { legacyStringifySearch } from '@/router';
 import { renderWithRouter } from '@/router/testing';
 import {
-	LinkWithProject,
-	TypedLinkWithProject
+	RouterLinkWithProject,
+	LinkWithProject
 } from '@/bublik/features/projects';
 import { HistorySearchBuilder, historySearch } from '@/shared/utils';
 
@@ -44,12 +44,12 @@ describe('the result table history link', () => {
 
 		await renderWithRouter(
 			<>
-				<TypedLinkWithProject
+				<LinkWithProject
 					data-testid="typed"
 					to="/history"
 					search={getHistoryViewSearch(path, [1, 2], '2026-01-10T08:00:00')}
 				/>
-				<LinkWithProject
+				<RouterLinkWithProject
 					data-testid="string"
 					to={{ pathname: '/history', search: legacyStringifySearch(legacy) }}
 				/>
@@ -73,7 +73,7 @@ describe('the result table history link', () => {
 
 	it('keeps the default window when the run has no finish date', async () => {
 		await renderWithRouter(
-			<TypedLinkWithProject
+			<LinkWithProject
 				data-testid="typed"
 				to="/history"
 				search={getHistoryViewSearch(['suite'], [7])}

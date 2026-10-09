@@ -3,7 +3,6 @@
 import { useGetIssueQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 
 export interface IssueResultsButtonProps {
 	issueId: number;
@@ -60,7 +59,7 @@ export function IssueResultsButton({
 			size="xss"
 			data-testid="issue-results-button"
 		>
-			<LinkWithProject to={routes.issueResults({ issueId })}>
+			<LinkWithProject to="/issues/$issueId/results" params={{ issueId }}>
 				<Icon name="Paper" className="size-5 mr-1.5" />
 				<span>Results</span>
 			</LinkWithProject>

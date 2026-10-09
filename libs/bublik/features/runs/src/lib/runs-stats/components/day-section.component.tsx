@@ -6,8 +6,6 @@ import ReactEChartsCore from 'echarts-for-react/lib/core';
 import { toast } from 'sonner';
 
 import { BarChart, LineChart } from '@/shared/charts';
-import { useNavigateWithProject } from '@/bublik/features/projects';
-
 import { COLOR_MAP, getGroupedTests } from '../runs-stats.component.utils';
 import { RunsChartBucket, TestByWeekDaySchema } from '../runs-stats.types';
 import { RunsListModal } from './runs-list.component';
@@ -17,7 +15,6 @@ interface HandlePointClickProps {
 }
 
 function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
-	const navigate = useNavigateWithProject();
 	const ref = useRef<ReactEChartsCore>(null);
 
 	useEffect(() => {
@@ -42,7 +39,7 @@ function useHandlePointClick({ onRunListOpen }: HandlePointClickProps) {
 
 			instance.off('click', handleClick);
 		};
-	}, [navigate, onRunListOpen]);
+	}, [onRunListOpen]);
 
 	return { ref };
 }

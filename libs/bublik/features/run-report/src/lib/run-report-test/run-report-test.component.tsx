@@ -18,7 +18,7 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 
 import { StackedAdd } from '../run-report-stacked';
 import { RunReportChart } from '../run-report-chart';
@@ -114,7 +114,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 								className="bg-bg-primary"
 								style={{ zIndex: 8 }}
 								label={
-									<LinkWithProject
+									<RouterLinkWithProject
 										className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 										to={{
 											search,
@@ -122,7 +122,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 										}}
 									>
 										{argsValBlock.label}
-									</LinkWithProject>
+									</RouterLinkWithProject>
 								}
 							>
 								<ArgValNavigationControls
@@ -158,7 +158,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 												zIndex: 6
 											}}
 											label={
-												<LinkWithProject
+												<RouterLinkWithProject
 													className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 													to={{
 														search,
@@ -166,7 +166,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 													}}
 												>
 													{measurement.label}
-												</LinkWithProject>
+												</RouterLinkWithProject>
 											}
 										/>
 										<div
@@ -353,13 +353,13 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 				<CardHeader
 					label={
 						<div className="flex items-center gap-2">
-							<LinkWithProject
+							<RouterLinkWithProject
 								to={{ hash: encodeURIComponent(id), search }}
 								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 								onClick={() => toast.success('Saved location')}
 							>
 								{label}
-							</LinkWithProject>
+							</RouterLinkWithProject>
 						</div>
 					}
 					ref={ref}

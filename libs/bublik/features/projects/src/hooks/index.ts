@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import {
 	useRouter,
 	type AnyRouter,
-	type HistoryState
+	type HistoryState,
+	type UseNavigateResult
 } from '@tanstack/react-router';
 
 import {
@@ -17,7 +18,10 @@ import {
 import { bublikAPI, getErrorMessage } from '@/services/bublik-api';
 
 import { PROJECT_KEY } from '../constants';
-import { resolveTargetWithSidebarState } from '../lib/sidebar-params.utils';
+import {
+	mergeSearchWithSidebarState,
+	resolveTargetWithSidebarState
+} from '../lib/sidebar-params.utils';
 
 interface NavigateWithProjectOptions {
 	replace?: boolean;
@@ -70,11 +74,83 @@ function useProjectSearch(): ProjectSearch {
 	};
 }
 
+/** A typed link's or navigation's `search`, in every form TanStack takes. */
+type SearchOption =
+	| true
+	| Record<string, unknown>
+	| ((prev: Record<string, unknown>) => Record<string, unknown>)
+	| undefined;
+
+function resolveSearch(
+	search: SearchOption,
+	prev: Record<string, unknown>
+): Record<string, unknown> {
+	if (typeof search === 'function') return search(prev);
+	if (search === true) return prev;
+
+	return search ?? {};
+}
+
 /**
- * `navigate` that carries the sidebar state, `hide-sidebar` and the selected
- * projects of the page on screen into the target, like `LinkWithProject`.
+ * A typed target's `search` as the updater `LinkWithProject` and
+ * `useNavigateWithProject` hand the router: the target's keys, then the
+ * sidebar state, `hide-sidebar` and the projects of the page on screen
+ * (`mergeSearchWithSidebarState`).
  */
-function useNavigateWithProject(): (
+function useSearchWithProjectOf(): (
+	search: SearchOption
+) => (prev: Record<string, unknown>) => Record<string, unknown> {
+	const { projectIds } = useProjectSearch();
+	const { searchStr } = useRenderedLocation();
+
+	return useCallback(
+		(search: SearchOption) => (prev: Record<string, unknown>) =>
+			mergeSearchWithSidebarState(
+				resolveSearch(search, prev),
+				new URLSearchParams(searchStr),
+				projectIds
+			),
+		[searchStr, projectIds]
+	);
+}
+
+/** `useSearchWithProjectOf` for one link's `search`. */
+function useSearchWithProject(
+	search: SearchOption
+): (prev: Record<string, unknown>) => Record<string, unknown> {
+	const withProject = useSearchWithProjectOf();
+
+	return useMemo(() => withProject(search), [withProject, search]);
+}
+
+/**
+ * The router's `navigate`, typed against the route tree, that carries the
+ * sidebar state, `hide-sidebar` and the selected projects of the page on
+ * screen into the target by `LinkWithProject`'s rule, and leaves the window
+ * scroll alone.
+ */
+function useNavigateWithProject(): UseNavigateResult<string> {
+	const router = useRouter<AnyRouter>();
+	const withProject = useSearchWithProjectOf();
+
+	return useCallback(
+		(options: { search?: SearchOption } & Record<string, unknown>) =>
+			router.navigate({
+				...options,
+				search: withProject(options.search),
+				resetScroll: false
+			} as Parameters<AnyRouter['navigate']>[0]),
+		[router, withProject]
+	) as unknown as UseNavigateResult<string>;
+}
+
+/**
+ * `useNavigateWithProject` for a target assembled at runtime (a stored URL,
+ * a query string built by the legacy history codec): the target is a
+ * `pathname?search#hash` string or its parts, verbatim; no pathname stays on
+ * the current page.
+ */
+function useRouterNavigateWithProject(): (
 	to: To,
 	options?: NavigateWithProjectOptions
 ) => void {
@@ -149,11 +225,13 @@ function useDeleteProject({ id }: UseProjectParams) {
 	return { deleteProject };
 }
 
-export type { NavigateWithProjectOptions, ProjectSearch };
+export type { NavigateWithProjectOptions, ProjectSearch, SearchOption };
 export {
 	projectIdsOf,
 	useProjectSearch,
 	useDeleteProject,
 	useNavigateWithProject,
+	useRouterNavigateWithProject,
+	useSearchWithProject,
 	useTabTitleWithPrefix
 };

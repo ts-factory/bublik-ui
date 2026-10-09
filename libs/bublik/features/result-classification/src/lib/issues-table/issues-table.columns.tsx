@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { linkOptions } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { Badge, BadgeVariants, Tooltip } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import { formatTimeToDot, formatTimestampToFull } from '@/shared/utils';
 
 import { ISSUE_RULES_STATE_META } from '../classification/classification.constants';
@@ -147,7 +147,11 @@ export function getColumns(): ColumnDef<IssueTableRow, unknown>[] {
 					<Tooltip content="Show the results this issue is stamped on, across every run. A result two of its rules both match counts twice.">
 						<Badge
 							as={LinkWithProject}
-							to={routes.issueResults({ issueId: row.original.id })}
+							// The badge renders the link: its target is checked here.
+							{...linkOptions({
+								to: '/issues/$issueId/results',
+								params: { issueId: row.original.id }
+							})}
 							variant={BadgeVariants.PrimaryActive}
 							isInteractive
 							className="tabular-nums hover:underline"
@@ -203,7 +207,8 @@ export function getColumns(): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => (
 				<Tooltip content={`Manage the rules behind ${row.original.title}`}>
 					<LinkWithProject
-						to={routes.issue({ issueId: row.original.id })}
+						to="/issues/$issueId"
+						params={{ issueId: row.original.id }}
 						className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 					>
 						{row.original.title}

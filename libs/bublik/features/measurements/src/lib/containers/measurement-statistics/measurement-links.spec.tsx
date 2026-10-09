@@ -5,9 +5,6 @@ import { RouterProvider } from '@tanstack/react-router';
 import type { ReactElement, ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
-
 import {
 	BASEPATH,
 	createMeasurementsRouter
@@ -67,23 +64,5 @@ describe('the measurements header links', () => {
 		);
 
 		expect(hrefOf('Run')).toBe(`${BASEPATH}/runs/1?${CARRIED}`);
-	});
-});
-
-describe('routes.measurements, the link every other page uses', () => {
-	it('always writes the default mode', async () => {
-		expect(routes.measurements({ runId: '1', resultId: '11' })).toEqual({
-			pathname: PAGE,
-			search: 'mode=default',
-			hash: undefined
-		});
-
-		const hrefOf = await renderOnPage(
-			<LinkWithProject to={routes.measurements({ runId: '1', resultId: '11' })}>
-				Result
-			</LinkWithProject>
-		);
-
-		expect(hrefOf('Result')).toBe(`${BASEPATH}${PAGE}?mode=default&${CARRIED}`);
 	});
 });

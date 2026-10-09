@@ -4,7 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { Badge, BadgeVariants, Tooltip } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import type { RunIssueRow } from '@/shared/types';
 
 import { runIssueEffect } from '../classification/classification.utils';
@@ -176,7 +175,8 @@ export function getColumns(
 				return (
 					<Tooltip content={`Manage the rules behind ${title}`}>
 						<LinkWithProject
-							to={routes.issue({ issueId: issue_id })}
+							to="/issues/$issueId"
+							params={{ issueId: issue_id }}
 							className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 						>
 							{title}

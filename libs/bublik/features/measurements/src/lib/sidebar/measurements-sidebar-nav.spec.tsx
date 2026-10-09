@@ -6,7 +6,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { LinkWithProjectProps } from '@/bublik/features/projects';
+import type { RouterLinkWithProjectProps } from '@/bublik/features/projects';
 import {
 	getSidebarStateString,
 	MEASUREMENTS_SIDEBAR_KEYS
@@ -22,7 +22,7 @@ vi.mock('@/services/bublik-api', () => ({
 }));
 
 vi.mock('@/bublik/features/projects', () => ({
-	LinkWithProject: ({ to, children }: LinkWithProjectProps) => (
+	RouterLinkWithProject: ({ to, children }: RouterLinkWithProjectProps) => (
 		<a href={joinTo(splitTarget(to))}>{children}</a>
 	)
 }));

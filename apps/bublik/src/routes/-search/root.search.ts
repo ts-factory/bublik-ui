@@ -4,10 +4,10 @@ import {
 	bool01,
 	defineSearch,
 	enumOf,
+	type InferSearch,
 	passthrough,
 	repeatedNum,
-	str,
-	type InferSearch
+	str
 } from '@/router';
 
 /**
@@ -15,9 +15,10 @@ import {
  * so `useSearch` is typed for them everywhere. The sidebar lib decodes `_s`
  * itself and `Layout` parses `hide-sidebar` (`1|true|0|false`) itself.
  *
- * No key is retained across navigations here: `LinkWithProject` and
- * `useNavigateWithProject` re-add `project`, `_s` and `hide-sidebar`
- * explicitly, as today, so links that drop them on purpose keep dropping them.
+ * No key is retained across navigations here: `LinkWithProject`,
+ * `useNavigateWithProject` and their runtime variants re-add `project`, `_s`
+ * and `hide-sidebar` explicitly, as today, so links that drop them on
+ * purpose keep dropping them.
  */
 const rootSearch = defineSearch(
 	{

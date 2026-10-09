@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useMount } from '@/shared/hooks';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { useNavigateWithProject } from '@/bublik/features/projects';
+import { parseSearch } from '@/router';
 
 import { useHistoryQuery, useHistorySearch } from '../hooks';
 import { useHistoryActions } from './history-slice';
@@ -66,10 +67,11 @@ export const useHistoryFormSearchState = () => {
 		// Keep the substring filter: it is not part of the form being rebuilt.
 		if (search) params.set(HISTORY_SEARCH_KEY, search);
 
-		navigateWithProject(
-			{ pathname: '/history', search: `?${params.toString()}` },
-			{ replace: true }
-		);
+		void navigateWithProject({
+			to: '/history',
+			search: parseSearch(params.toString()),
+			replace: true
+		});
 	};
 
 	const handleFormChange = useCallback(
@@ -97,13 +99,11 @@ export const useHistoryFormSearchState = () => {
 			if (search) newSearchParams.set(HISTORY_SEARCH_KEY, search);
 
 			const searchString = newSearchParams.toString();
-			navigateWithProject(
-				{
-					pathname: '/history',
-					search: searchString ? `?${searchString}` : ''
-				},
-				{ replace: true }
-			);
+			void navigateWithProject({
+				to: '/history',
+				search: parseSearch(searchString),
+				replace: true
+			});
 			// The badge selection starts as what the URL now applies, so that
 			// deselecting a badge later drops it from the search
 			actions.updateLinearGlobalFilter({

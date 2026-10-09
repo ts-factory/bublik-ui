@@ -3,9 +3,6 @@
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-
-import { useLinkTarget } from '../../link-target';
-
 interface LinkToRunProps {
 	runId: number;
 	targetIterationId?: number;
@@ -13,17 +10,13 @@ interface LinkToRunProps {
 
 function LinkToRun(props: LinkToRunProps) {
 	const { runId, targetIterationId } = props;
-	// `routes.run({ runId, targetIterationId })`: no key for a missing or zero id.
-	const to = useLinkTarget({
-		to: '/runs/$runId',
-		params: { runId },
-		search: { targetIterationId: targetIterationId || undefined }
-	});
-
 	return (
 		<ButtonTw asChild variant="secondary" size="xss">
 			<LinkWithProject
-				to={to}
+				to="/runs/$runId"
+				params={{ runId }}
+				// No key for a missing or zero id
+				search={{ targetIterationId: targetIterationId || undefined }}
 				onClick={() => {
 					trackEvent(analyticsEventNames.measurementsLinkToRunClick, {
 						source: 'measurements_header'

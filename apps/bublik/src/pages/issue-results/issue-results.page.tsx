@@ -17,7 +17,6 @@ import {
 	useTabTitleWithPrefix
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon, Separator } from '@/shared/tailwind-ui';
 
@@ -34,10 +33,10 @@ function IssueResultsHeader({ issueId, projectId }: IssueResultsHeaderProps) {
 			<IssueHeaderBar
 				issueId={issueId}
 				projectId={projectId}
-				onDeleted={() => navigate(routes.issues({}))}
+				onDeleted={() => navigate({ to: '/issues' })}
 			>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<LinkWithProject to={routes.issue({ issueId })}>
+					<LinkWithProject to="/issues/$issueId" params={{ issueId }}>
 						<Icon name="BoxArrowRight" className="mr-1.5 size-5" />
 						Rules
 					</LinkWithProject>

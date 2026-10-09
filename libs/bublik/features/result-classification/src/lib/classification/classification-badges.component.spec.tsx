@@ -7,10 +7,13 @@ import {
 	screen
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PropsWithChildren, ReactElement, forwardRef } from 'react';
+import {
+	PropsWithChildren,
+	ReactElement,
+	forwardRef,
+	type AnchorHTMLAttributes
+} from 'react';
 
-import type { LinkWithProjectProps } from '@/bublik/features/projects';
-import { joinTo, splitTarget } from '@/router';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { IssueRuleRef, ResultIssueRef } from '@/shared/types';
 
@@ -32,11 +35,23 @@ vi.mock('@/icons', () => {
 	};
 });
 
+interface TypedLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+	to: string;
+	params?: Record<string, unknown>;
+	search?: unknown;
+	state?: unknown;
+	preload?: unknown;
+}
+
 vi.mock('@/bublik/features/projects', () => ({
-	LinkWithProject: forwardRef<HTMLAnchorElement, LinkWithProjectProps>(
-		// `state`, `replace` and `reloadDocument` are router options, not attributes.
-		({ to, children, state, replace, reloadDocument, ...props }, ref) => (
-			<a ref={ref} href={joinTo(splitTarget(to))} {...props}>
+	LinkWithProject: forwardRef<HTMLAnchorElement, TypedLinkProps>(
+		// `params` fill the route template; the rest are router options.
+		({ to, params, search, state, preload, children, ...props }, ref) => (
+			<a
+				ref={ref}
+				href={to.replace(/\$(\w+)/g, (_, key: string) => String(params?.[key]))}
+				{...props}
+			>
 				{children}
 			</a>
 		)

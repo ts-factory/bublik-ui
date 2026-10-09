@@ -31,7 +31,7 @@ import {
 import { config } from '@/bublik/config';
 import {
 	LinkWithProject,
-	TypedLinkWithProject
+	RouterLinkWithProject
 } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { useIsSticky, usePhysicalHotkeys } from '@/shared/hooks';
@@ -238,7 +238,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 						<div className="size-4 rounded-full" />
 					)}
 					{/* Only the config: the link drops every other key of the page. */}
-					<LinkWithProject
+					<RouterLinkWithProject
 						data-testid="run-report-toc-link"
 						to={{
 							search: `?config=${configId}`,
@@ -253,7 +253,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 						onClick={() => scrollToReportItem(item.id)}
 					>
 						{item.label}
-					</LinkWithProject>
+					</RouterLinkWithProject>
 				</div>
 			</div>
 			{item.children && item.children.length ? (
@@ -375,10 +375,10 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 				}
 			>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<TypedLinkWithProject to="/admin/config" search={{ configId }}>
+					<LinkWithProject to="/admin/config" search={{ configId }}>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Config
-					</TypedLinkWithProject>
+					</LinkWithProject>
 				</ButtonTw>
 			</CardHeader>
 			<div className="p-4 flex flex-col gap-4">
@@ -681,12 +681,12 @@ function RunReportContentItem({
 				className={cn('sticky bg-bg-primary z-[10]', !isSticky && 'rounded-t')}
 				style={{ top: RUN_REPORT_STICKY_HEADER_HEIGHT }}
 				label={
-					<LinkWithProject
+					<RouterLinkWithProject
 						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 						to={{ search, hash: encodeURIComponent(block.id) }}
 					>
 						{block.label}
-					</LinkWithProject>
+					</RouterLinkWithProject>
 				}
 				ref={handleRef}
 			>

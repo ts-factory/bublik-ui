@@ -16,8 +16,8 @@ import {
 	resizableStyles,
 	Spinner
 } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+import { LogPageMode } from '@/shared/types';
 
 import {
 	Data,
@@ -549,10 +549,12 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 							<>
 								<ButtonTw variant="secondary" size="xss" asChild>
 									<LinkWithProject
-										to={routes.log({
-											runId: props.runId,
-											focusId: props.resultId
-										})}
+										to="/log/$runId"
+										params={{ runId: props.runId }}
+										search={{
+											focusId: props.resultId || undefined,
+											mode: LogPageMode.TreeAndInfoAndLog
+										}}
 										onClick={() => {
 											trackEvent(analyticsEventNames.netPacketBacklinkClick, {
 												action: 'log'
@@ -565,7 +567,8 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 								</ButtonTw>
 								<ButtonTw variant="secondary" size="xss" asChild>
 									<LinkWithProject
-										to={routes.run({ runId: props.runId })}
+										to="/runs/$runId"
+										params={{ runId: props.runId }}
 										onClick={() => {
 											trackEvent(analyticsEventNames.netPacketBacklinkClick, {
 												action: 'run'

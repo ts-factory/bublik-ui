@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -71,7 +71,7 @@ export function IssueSidebarNav() {
 				<SidebarNavLinkWrapper label="Issue">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 						disabled={!isAvailable}
 					>
 						<SidebarNavInternalLink.Icon name="Paper" />
@@ -91,7 +91,7 @@ export function IssueSidebarNav() {
 					to={resultsUrl}
 					pattern={isIssueDetail ? RESULTS_PATTERN : NEVER_ACTIVE_PATTERN}
 					disabled={!isResultsAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="Paper"
@@ -122,7 +122,7 @@ export function IssueSidebarNav() {
 					to={rulesUrl}
 					pattern={isIssueDetail ? RULES_PATTERN : NEVER_ACTIVE_PATTERN}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="SettingsSliders"

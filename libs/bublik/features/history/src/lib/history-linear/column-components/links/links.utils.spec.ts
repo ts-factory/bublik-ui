@@ -30,7 +30,7 @@ const RUN_DATA_IMPORTANT_FIRST =
 const VERDICT = 'verdict=v+1%3Bv2';
 
 // The strings the legacy `useSearchState` + `stringifySearch` pair produced
-// for the same searches, as `LinkWithProject` puts them on the link.
+// for the same searches, as `RouterLinkWithProject` puts them on the link.
 describe('getHistoryShortcuts', () => {
 	it('carries the test path, dates, page size, mode and lists of the current search', () => {
 		const base =

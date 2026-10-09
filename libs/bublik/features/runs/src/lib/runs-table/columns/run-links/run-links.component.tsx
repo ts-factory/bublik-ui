@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { LogPageMode } from '@/shared/types';
-import { routes } from '@/router';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -15,7 +14,9 @@ export const RunLinks = ({ runId }: RunLinksProps) => {
 			<ButtonTw asChild variant="secondary" size="xss">
 				<LinkWithProject
 					data-testid="run-log-link"
-					to={routes.log({ runId, mode: LogPageMode.TreeAndLog })}
+					to="/log/$runId"
+					params={{ runId }}
+					search={{ mode: LogPageMode.TreeAndLog }}
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
@@ -24,7 +25,8 @@ export const RunLinks = ({ runId }: RunLinksProps) => {
 			<ButtonTw asChild variant="secondary" size="xss">
 				<LinkWithProject
 					data-testid="run-details-link"
-					to={routes.run({ runId })}
+					to="/runs/$runId"
+					params={{ runId }}
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run

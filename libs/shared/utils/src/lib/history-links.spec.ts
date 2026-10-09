@@ -2,9 +2,20 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { stringifySearch } from '@/router';
 import { RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
 
-import { getHistorySearch, type HistorySearch } from './router';
+import {
+	getHistorySearch,
+	type HistoryLinkProps,
+	type HistorySearch
+} from './router';
+
+/** A link as the URL it opens: the wire search in `URLSearchParams` form. */
+const urlOf = ({ to, search, state }: HistoryLinkProps) => ({
+	url: `${to}${stringifySearch(search)}`,
+	state
+});
 
 /**
  * The exact wire strings of the history links the run, log and measurements
@@ -61,18 +72,12 @@ describe('getHistorySearch wire strings', () => {
 			);
 			const shortcut = key as keyof HistorySearch;
 
-			expect(direct[shortcut]).toEqual({
-				to: {
-					pathname: '/history',
-					search: `${BASE}${narrowing}&mode=aggregation`
-				},
+			expect(urlOf(direct[shortcut])).toEqual({
+				url: `/history?${BASE}${narrowing}&mode=aggregation`,
 				state: { fromRun: false }
 			});
-			expect(prefilled[shortcut]).toEqual({
-				to: {
-					pathname: '/history',
-					search: `${BASE}${narrowing}&mode=aggregation&fromRun=true`
-				},
+			expect(urlOf(prefilled[shortcut])).toEqual({
+				url: `/history?${BASE}${narrowing}&mode=aggregation&fromRun=true`,
 				state: { fromRun: true }
 			});
 		}
@@ -81,9 +86,6 @@ describe('getHistorySearch wire strings', () => {
 	it('writes the user preferred mode, linear included', () => {
 		const { direct } = getHistorySearch(run, result, 'linear');
 
-		expect(direct.testName.to).toEqual({
-			pathname: '/history',
-			search: `${BASE}&mode=linear`
-		});
+		expect(urlOf(direct.testName).url).toBe(`/history?${BASE}&mode=linear`);
 	});
 });

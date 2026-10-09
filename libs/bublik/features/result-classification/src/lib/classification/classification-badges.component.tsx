@@ -11,7 +11,6 @@ import {
 	cn
 } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 import type {
 	IssueCategory,
 	IssueRuleRef,
@@ -488,7 +487,8 @@ export function BugKeyChip({
 					// The key leads to what the issue stamped, across every run;
 					// the rules behind it are a sub-page away from there.
 					<LinkWithProject
-						to={routes.issueResults({ issueId })}
+						to="/issues/$issueId/results"
+						params={{ issueId }}
 						data-testid="issue-key-link"
 						{...keyProps}
 					>

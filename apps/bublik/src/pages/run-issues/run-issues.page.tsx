@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { getRouteApi } from '@tanstack/react-router';
 
-import { routes } from '@/router';
-
 import {
 	ApplyRulesButton,
 	RunIssuesTable
@@ -24,6 +22,7 @@ import {
 	RunModeToggle,
 	Separator
 } from '@/shared/tailwind-ui';
+import { LogPageMode } from '@/shared/types';
 
 function RunIssuesHeader({ runId }: { runId: number }) {
 	const [isFullMode, setIsFullMode] = useState(false);
@@ -38,13 +37,17 @@ function RunIssuesHeader({ runId }: { runId: number }) {
 					/>
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.run({ runId })}>
+						<LinkWithProject to="/runs/$runId" params={{ runId }}>
 							<Icon name="BoxArrowRight" className="mr-1.5 size-5" />
 							Run
 						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.log({ runId })}>
+						<LinkWithProject
+							to="/log/$runId"
+							params={{ runId }}
+							search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+						>
 							<Icon name="BoxArrowRight" className="mr-1.5 size-5" />
 							Log
 						</LinkWithProject>

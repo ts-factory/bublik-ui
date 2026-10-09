@@ -24,7 +24,7 @@ import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { useGetRunDetailsQuery, usePrefetch } from '@/services/bublik-api';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 const multipleRoute = getRouteApi('/_app/_runs/multiple');
@@ -127,7 +127,7 @@ function RunDetailsHeaderLabel() {
 						state={selectedRunId === runId ? 'active' : 'default'}
 						asChild
 					>
-						<TypedLinkWithProject
+						<LinkWithProject
 							to="/multiple"
 							// Every key of the page kept, `selected` set in place
 							search={(prev) => ({ ...prev, selected: runId })}
@@ -136,7 +136,7 @@ function RunDetailsHeaderLabel() {
 						>
 							<Icon name="Paper" className="size-5 mr-1.5" />
 							<span>Run {runId}</span>
-						</TypedLinkWithProject>
+						</LinkWithProject>
 					</ButtonTw>
 				))}
 			</div>
@@ -185,7 +185,7 @@ function RunMultipleNavigationLinks({
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<TypedLinkWithProject
+				<LinkWithProject
 					to="/runs/$runId"
 					params={{ runId }}
 					onClick={() => {
@@ -196,10 +196,10 @@ function RunMultipleNavigationLinks({
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
-				</TypedLinkWithProject>
+				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<TypedLinkWithProject
+				<LinkWithProject
 					to="/log/$runId"
 					params={{ runId }}
 					search={{ mode: LogPageMode.TreeAndInfoAndLog }}
@@ -211,7 +211,7 @@ function RunMultipleNavigationLinks({
 				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
-				</TypedLinkWithProject>
+				</LinkWithProject>
 			</ButtonTw>
 		</>
 	);

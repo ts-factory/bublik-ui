@@ -6,7 +6,10 @@ import { linkOptions } from '@tanstack/react-router';
 
 import { useRenderedLocation } from '@/router';
 import { CopyShortUrlCommandItemContainer } from '@/bublik/features/copy-url';
-import { useNavigateWithProject } from '@/bublik/features/projects';
+import {
+	useNavigateWithProject,
+	useRouterNavigateWithProject
+} from '@/bublik/features/projects';
 import {
 	Command,
 	CommandDialog,
@@ -21,11 +24,11 @@ import {
 
 /** The palette's targets, checked against the route tree. */
 const PAGES = {
-	dashboard: linkOptions({ to: '/dashboard' }).to,
-	history: linkOptions({ to: '/history' }).to,
-	runs: linkOptions({ to: '/runs' }).to,
-	issues: linkOptions({ to: '/issues' }).to,
-	faq: linkOptions({ to: '/help/faq' }).to
+	dashboard: linkOptions({ to: '/dashboard' }),
+	history: linkOptions({ to: '/history' }),
+	runs: linkOptions({ to: '/runs' }),
+	issues: linkOptions({ to: '/issues' }),
+	faq: linkOptions({ to: '/help/faq' })
 };
 
 /**
@@ -38,6 +41,8 @@ const PAGES = {
 function BublikCommand() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigateWithProject();
+	// The Profile item stays on the page on screen, whichever it is
+	const navigateTo = useRouterNavigateWithProject();
 	const location = useRenderedLocation();
 
 	useHotkey('Mod+K', () => setOpen((open) => !open), {
@@ -88,7 +93,7 @@ function BublikCommand() {
 					<CommandGroup heading="Settings">
 						<CommandItem
 							onSelect={handleSelect(() =>
-								navigate(
+								navigateTo(
 									`${location.pathname}?settings-open=1&settings-tab=account`
 								)
 							)}

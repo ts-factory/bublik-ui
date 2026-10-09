@@ -35,7 +35,7 @@
   else not found), and the same rule for a pathname matched outside its
   route.
 - `newTabPreload` — a link that opens a new tab never preloads; `RouterLink`
-  and `TypedLinkWithProject` apply it.
+  and `LinkWithProject` apply it.
 - `convertOldUrlSearch` / `isOldUrl` / `legacyStringifySearch` — the previous
   codec (`encodeURIComponent`, base64 JSON), kept for the history link
   producers and the redirect of old jsurl (`~`) links; the jsurl parser is

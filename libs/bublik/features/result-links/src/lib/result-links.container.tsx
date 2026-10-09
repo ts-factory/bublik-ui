@@ -13,7 +13,7 @@ import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import {
 	HistoryLinkContainer,
@@ -60,7 +60,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				{showLinkToRun ? (
 					<li>
 						<ButtonTw variant="secondary" size="xss" asChild>
-							<TypedLinkWithProject
+							<LinkWithProject
 								className="gap-1"
 								to="/runs/$runId"
 								params={{ runId }}
@@ -70,13 +70,13 @@ export const ResultLinks = (props: ResultLinksProps) => {
 							>
 								<Icon name="Paper" className="size-5" />
 								Run {runId}
-							</TypedLinkWithProject>
+							</LinkWithProject>
 						</ButtonTw>
 					</li>
 				) : null}
 				<li>
 					<ButtonTw variant="secondary" size="xss" asChild>
-						<TypedLinkWithProject
+						<LinkWithProject
 							className="gap-1"
 							onMouseEnter={onLogLinkMouseEnter}
 							onClick={() => onLinkClick?.('log')}
@@ -90,7 +90,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Log
-						</TypedLinkWithProject>
+						</LinkWithProject>
 					</ButtonTw>
 				</li>
 				<li>
@@ -106,7 +106,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				{hasMeasurements && (
 					<li>
 						<ButtonTw variant="secondary" size="xss" asChild>
-							<TypedLinkWithProject
+							<LinkWithProject
 								className="gap-1"
 								to="/runs/$runId/results/$resultId/measurements"
 								params={{ runId, resultId }}
@@ -120,7 +120,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 									className="grid place-items-center"
 								/>
 								Result
-							</TypedLinkWithProject>
+							</LinkWithProject>
 						</ButtonTw>
 					</li>
 				)}

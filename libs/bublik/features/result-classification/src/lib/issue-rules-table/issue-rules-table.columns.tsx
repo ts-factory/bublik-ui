@@ -4,8 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BadgeVariants, Icon, Tooltip, cn } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
-
 import {
 	dispositionKey,
 	effectFor,
@@ -65,7 +63,8 @@ const ISSUE_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 	cell: ({ row }) => (
 		<Tooltip content={`Open ${row.original.issueTitle} and its other rules`}>
 			<LinkWithProject
-				to={routes.issue({ issueId: row.original.issue })}
+				to="/issues/$issueId"
+				params={{ issueId: row.original.issue }}
 				className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 			>
 				{row.original.issueTitle}

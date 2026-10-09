@@ -3,7 +3,7 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -56,7 +56,7 @@ export function RunHistoryLink({ runIds, path }: RunHistoryLinkProps) {
 				className={TOOLBAR_BUTTON_CLASS}
 				asChild
 			>
-				<TypedLinkWithProject
+				<LinkWithProject
 					to="/history"
 					search={historySearchOfRuns}
 					data-testid="result-table-history-link"
@@ -70,7 +70,7 @@ export function RunHistoryLink({ runIds, path }: RunHistoryLinkProps) {
 				>
 					<Icon name="BoxArrowRight" size={20} className={TOOLBAR_ICON_CLASS} />
 					<span className={TOOLBAR_LABEL_CLASS}>History</span>
-				</TypedLinkWithProject>
+				</LinkWithProject>
 			</ButtonTw>
 		</Tooltip>
 	);

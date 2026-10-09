@@ -15,5 +15,4 @@ export {
 	stringifySearch as legacyStringifySearch
 } from './lib/parsing';
 export * from './lib/path';
-export * from './lib/router';
 export * from './lib/search';

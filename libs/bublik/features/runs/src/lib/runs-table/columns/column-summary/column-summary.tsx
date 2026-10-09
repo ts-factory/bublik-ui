@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { routes } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 
 import { SummaryBadge } from './summary-badge';
@@ -40,7 +39,6 @@ function ColumnSummary(props: ColumnSummaryProps) {
 		unexpectedPercentage
 	} = props;
 	const navigate = useNavigateWithProject();
-	const to = routes.run({ runId });
 
 	return (
 		<div
@@ -50,31 +48,35 @@ function ColumnSummary(props: ColumnSummaryProps) {
 			)}
 		>
 			<SummaryBadge
-				to={to}
+				runId={runId}
 				label="Total"
 				count={totalCount}
 				percentage={totalPlannedPercentage}
 				className="bg-badge-9"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={runId}
 				label="OK"
 				count={expectedCount}
 				percentage={expectedPercentage}
 				className="bg-badge-3"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={runId}
 				state={getUnexpectedNavigationState()}
 				onContextMenu={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, {
+						navigate({
+							to: '/runs/$runId',
+							params: { runId },
 							state: getUnexpectedNavigationState(true)
 						});
 					} else {
-						navigate(to, {
+						navigate({
+							to: '/runs/$runId',
+							params: { runId },
 							state: getUnexpectedNavigationState()
 						});
 					}
@@ -83,11 +85,15 @@ function ColumnSummary(props: ColumnSummaryProps) {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, {
+						navigate({
+							to: '/runs/$runId',
+							params: { runId },
 							state: getUnexpectedNavigationState(true)
 						});
 					} else {
-						navigate(to, {
+						navigate({
+							to: '/runs/$runId',
+							params: { runId },
 							state: getUnexpectedNavigationState()
 						});
 					}
