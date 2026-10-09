@@ -67,6 +67,35 @@ describe('renderWithRouter', () => {
 	});
 });
 
+describe('a query string not in URLSearchParams form', () => {
+	it('stays as typed on load, as React Router left it', async () => {
+		const { router } = await renderWithRouter(<ShowLocation />, {
+			path: '/issues',
+			search: '?state=open;closed&q=a%20b'
+		});
+
+		expect(router.history.location.href).toBe(
+			'/v2/issues?state=open;closed&q=a%20b'
+		);
+		expect(screen.getByRole('status').textContent).toBe(
+			'/issues?state=open;closed&q=a%20b'
+		);
+	});
+
+	it('is written in URLSearchParams form by the next write', async () => {
+		const { router } = await renderWithRouter(<ShowLocation />, {
+			path: '/issues',
+			search: '?state=open;closed&q=a%20b'
+		});
+
+		await act(async () => writeSearch(router, { page: '2' }));
+
+		expect(router.history.location.href).toBe(
+			'/v2/issues?state=open%3Bclosed&q=a+b&page=2'
+		);
+	});
+});
+
 describe('renderHookWithRouter', () => {
 	it('runs the hook at the URL and re-runs it with new props', async () => {
 		const { router, result, rerender } = await renderHookWithRouter(

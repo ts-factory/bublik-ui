@@ -11,7 +11,7 @@ import {
 	specLiteralQueries
 } from '../../test/corpus';
 import { isOldUrl } from '../parsing';
-import { parseSearch, stringifySearch } from './wire';
+import { createSearchCodec, parseSearch, stringifySearch } from './wire';
 
 describe('parseSearch', () => {
 	it('reads every value as a string, repeated keys as an array', () => {
@@ -158,5 +158,47 @@ describe('round-trips the e2e oracles', () => {
 		expect(roundTrip(wire)).toBe(wire);
 		expect(isOldUrl(legacy)).toBe(true);
 		expect(isOldUrl(wire)).toBe(true);
+	});
+});
+
+describe('createSearchCodec', () => {
+	it('stringifies the search it parsed last back to the string as typed', () => {
+		const codec = createSearchCodec();
+		const search = codec.parseSearch('?state=open;closed&q=a%20b');
+
+		expect(codec.stringifySearch(search)).toBe('?state=open;closed&q=a%20b');
+		expect(codec.stringifySearch({ ...search })).toBe(
+			'?state=open;closed&q=a%20b'
+		);
+	});
+
+	it('writes a changed search in URLSearchParams form', () => {
+		const codec = createSearchCodec();
+		const search = codec.parseSearch('?state=open;closed&q=a%20b');
+
+		expect(codec.stringifySearch({ ...search, page: '2' })).toBe(
+			'?state=open%3Bclosed&q=a+b&page=2'
+		);
+		expect(codec.stringifySearch({ q: 'a b', state: 'open;closed' })).toBe(
+			'?q=a+b&state=open%3Bclosed'
+		);
+	});
+
+	it('writes an empty search as nothing, whatever was parsed', () => {
+		const codec = createSearchCodec();
+
+		codec.parseSearch('?&');
+		expect(codec.stringifySearch({})).toBe('');
+	});
+
+	it('remembers per codec', () => {
+		const a = createSearchCodec();
+		const b = createSearchCodec();
+
+		a.parseSearch('?q=a%20b');
+		b.parseSearch('?q=c');
+
+		expect(a.stringifySearch({ q: 'a b' })).toBe('?q=a%20b');
+		expect(b.stringifySearch({ q: 'a b' })).toBe('?q=a+b');
 	});
 });

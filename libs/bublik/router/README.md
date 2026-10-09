@@ -6,7 +6,9 @@
 `@/router`: the one module that owns URL encoding.
 
 - `parseSearch` / `stringifySearch` — the raw query-string codec (`URLSearchParams`
-  in and out, repeated keys as arrays, no coercion).
+  in and out, repeated keys as arrays, no coercion), and `createSearchCodec()`,
+  the pair a router is created with: the same codec, except that an unchanged
+  search keeps the query string as typed.
 - the codec catalogue (`str`, `num`, `bool01`, `boolTrue`, `date`, `json`,
   `compressedJson`, `repeated`, `repeatedNum`, `delimited`, `enumOf`,
   `passthrough`, plus `keepRaw` to keep an unparsable string verbatim and

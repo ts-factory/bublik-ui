@@ -105,7 +105,7 @@ function createCompatRouter(
 		history: createMemoryHistory({
 			initialEntries: initialEntries.map((entry) => `/v2${entry}`)
 		}),
-		...routerOptions
+		...routerOptions()
 	});
 }
 
