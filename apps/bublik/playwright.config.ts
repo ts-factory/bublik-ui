@@ -10,10 +10,15 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:4400/v2/';
 
 const preset = nxE2EPreset(__filename, { testDir: './e2e' });
 
+// A wide window: the devices' 1280px one collapses the result table's
+// filter bar to icons and counts, and the scenarios read the picked
+// values off the facets as chips.
+const VIEWPORT = { width: 1920, height: 1080 };
+
 const BROWSER_DEVICES = {
-	chromium: devices['Desktop Chrome'],
-	firefox: devices['Desktop Firefox'],
-	webkit: devices['Desktop Safari']
+	chromium: { ...devices['Desktop Chrome'], viewport: VIEWPORT },
+	firefox: { ...devices['Desktop Firefox'], viewport: VIEWPORT },
+	webkit: { ...devices['Desktop Safari'], viewport: VIEWPORT }
 } as const;
 
 type BrowserName = keyof typeof BROWSER_DEVICES;
