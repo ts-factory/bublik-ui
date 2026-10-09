@@ -11,38 +11,25 @@ import type {
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useSearchWriter } from '@/router';
 import type { ImportTaskFilters } from '@/shared/types';
+import { importSearch, type ImportSearch } from '@/shared/utils';
 
 /**
- * `/admin/import`'s search as its route schema types it
- * (`importSearch` in `@/shared/utils`): the filter
- * form, the pagination and the expanded rows as JSON, the open task log and
- * whether it polls.
+ * `/admin/import`'s search as its route schema (`importSearch`)
+ * types it: the filter form, the pagination and the expanded rows as JSON,
+ * the open task log and whether it polls.
  */
-interface ImportPageSearch {
-	filters?: ImportTaskFilters;
-	pagination?: PaginationState;
-	expanded?: ExpandedState;
-	taskId?: string;
-	poll?: boolean;
-}
+type ImportPageSearch = ImportSearch;
 
 const importRoute = getRouteApi('/_app/admin/import');
 
-const DEFAULT_FILTERS: ImportTaskFilters = {
-	job: undefined,
-	run: undefined,
-	url: undefined,
-	celery_task: undefined,
-	status: undefined
-};
-
-const DEFAULT_PAGINATION: PaginationState = {
-	pageIndex: 0,
-	pageSize: 25
-};
-
-/** No row expanded: what react-table reads an absent `expanded` as. */
-const NO_EXPANDED_ROWS: ExpandedState = {};
+/** The schema's read-time defaults; no row expanded is what react-table reads an absent `expanded` as. */
+const {
+	filters: DEFAULT_FILTERS,
+	pagination: DEFAULT_PAGINATION,
+	expanded: NO_EXPANDED_ROWS
+} = importSearch.withDefaults({}) as Required<
+	Pick<ImportSearch, 'filters' | 'pagination' | 'expanded'>
+>;
 
 interface ImportSearchState {
 	filters: ImportTaskFilters;

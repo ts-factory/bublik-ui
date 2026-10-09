@@ -40,5 +40,10 @@ function isBlockOpen(
 	return blockToggle.parse(search[blockId]);
 }
 
-export { isBlockOpen, runReportSearch };
+/** A block toggle as written on the URL: `1` open, `0` collapsed. */
+function blockToggleWire(open: boolean): string {
+	return blockToggle.serialize(open) as string;
+}
+
+export { blockToggleWire, isBlockOpen, runReportSearch };
 export type { RunReportSearch };

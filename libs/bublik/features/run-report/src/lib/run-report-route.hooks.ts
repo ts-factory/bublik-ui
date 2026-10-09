@@ -3,26 +3,20 @@
 /**
  * The report page's URL, read and written through the typed API
  * of its route, `apps/bublik/src/routes/_app/runs/$runId.report.tsx`, whose
- * schema is `runReportSearch` (`routes/-search/run-report.search.ts`). A lib
- * cannot import the app, so the schema's defaults are applied here, at read
- * time, and the dynamic block keys are read with the same `bool01()` codec.
+ * schema is `runReportSearch` (`@/shared/utils`): its defaults apply at read
+ * time, and the dynamic block keys are read and written by its block codec.
  */
 import { useCallback, useEffect } from 'react';
 import { getRouteApi } from '@tanstack/react-router';
 
-import { bool01, useRenderedLocation, useSearchWriter } from '@/router';
+import { useRenderedLocation, useSearchWriter } from '@/router';
+import { blockToggleWire, isBlockOpen, runReportSearch } from '@/shared/utils';
 
 import { scrollToReportItem } from './run-report-navigation.utils';
 
 const RUN_REPORT_ROUTE_ID = '/_app/runs/$runId/report';
 
 const runReportRoute = getRouteApi(RUN_REPORT_ROUTE_ID);
-
-/** Nothing selected: one instance, so a selector keeps returning the same value. */
-const NO_SELECTED_RECORDS: string[] = [];
-
-/** `1` open, `0` collapsed; anything else is the block type's default. */
-const blockToggle = bool01();
 
 /** The run of the report on screen. */
 function useRunReportRunId(): number {
@@ -37,7 +31,7 @@ function useRunReportConfigId(): number | undefined {
 /** `isFullMode` (full run details unless `0`), written as a replace that merges, as `useQueryParam` did. */
 function useRunReportFullMode(): [boolean, (isFullMode: boolean) => void] {
 	const isFullMode = runReportRoute.useSearch({
-		select: (search) => search.isFullMode ?? true
+		select: (search) => runReportSearch.withDefaults(search).isFullMode
 	});
 	const writeSearch = useSearchWriter();
 
@@ -61,10 +55,10 @@ interface RunReportStackedSearch {
 /** The stacked-chart selection and drawer, each written as a replace that merges. */
 function useRunReportStackedSearch(): RunReportStackedSearch {
 	const selectedIds = runReportRoute.useSearch({
-		select: (search) => search['selected-records'] ?? NO_SELECTED_RECORDS
+		select: (search) => runReportSearch.withDefaults(search)['selected-records']
 	});
 	const isStackedOpen = runReportRoute.useSearch({
-		select: (search) => search['stacked-drawer'] ?? false
+		select: (search) => runReportSearch.withDefaults(search)['stacked-drawer']
 	});
 	const writeSearch = useSearchWriter();
 
@@ -90,15 +84,12 @@ function useRunReportBlockOpen(
 	openByDefault: boolean
 ): [boolean, (open: boolean) => void] {
 	const open = runReportRoute.useSearch({
-		select: (search) =>
-			blockToggle.parse((search as Record<string, unknown>)[blockId]) ??
-			openByDefault
+		select: (search) => isBlockOpen(search, blockId) ?? openByDefault
 	});
 	const writeSearch = useSearchWriter();
 
 	const setOpen = useCallback(
-		(value: boolean) =>
-			writeSearch({ [blockId]: blockToggle.serialize(value) }),
+		(value: boolean) => writeSearch({ [blockId]: blockToggleWire(value) }),
 		[writeSearch, blockId]
 	);
 
