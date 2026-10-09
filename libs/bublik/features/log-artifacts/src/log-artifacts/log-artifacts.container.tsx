@@ -1,4 +1,4 @@
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 
 import { bublikAPI, GetLogAttachmentByType } from '@/services/bublik-api';
 import {
@@ -184,6 +184,27 @@ function TextAttachment({
 	);
 }
 
+/**
+ * The packet viewer's search for a capture: `fileUrl` first, then the ids,
+ * only as a pair (the order the query string was built in). The packet
+ * viewer route's codecs serialize it.
+ */
+function getPacketViewerSearch(
+	data: Pick<GetLogAttachmentByType<'packet-capture'>, 'uri' | 'path'>,
+	baseUrl: string,
+	runId?: number,
+	resultId?: number
+): { fileUrl: string; runId?: number; resultId?: number } {
+	const fileUrl = data.uri || (data.path ? `${baseUrl}/${data.path}` : '');
+	const hasIds = Boolean(runId && resultId);
+
+	return {
+		fileUrl,
+		runId: hasIds ? runId : undefined,
+		resultId: hasIds ? resultId : undefined
+	};
+}
+
 interface PacketCaptureAttachmentProps {
 	data: GetLogAttachmentByType<'packet-capture'>;
 	baseUrl: string;
@@ -197,19 +218,6 @@ function PacketCaptureAttachment({
 	runId,
 	resultId
 }: PacketCaptureAttachmentProps) {
-	function getPacketViewerUrl(): string {
-		const fileUrl = data.uri || (data.path ? `${baseUrl}/${data.path}` : '');
-		const searchParams = new URLSearchParams();
-		searchParams.set('fileUrl', fileUrl);
-
-		if (runId && resultId) {
-			searchParams.set('runId', runId.toString());
-			searchParams.set('resultId', resultId.toString());
-		}
-
-		return `/tools/packet-viewer?${searchParams.toString()}`;
-	}
-
 	function handleDownloadAttachmentClick() {
 		if (!data.uri && !data.path) {
 			toast.error('No path or uri to download');
@@ -225,7 +233,7 @@ function PacketCaptureAttachment({
 		});
 	}
 
-	const viewerUrl = getPacketViewerUrl();
+	const viewerSearch = getPacketViewerSearch(data, baseUrl, runId, resultId);
 	const hasValidUrl = data.uri || data.path;
 
 	return (
@@ -242,10 +250,14 @@ function PacketCaptureAttachment({
 					{hasValidUrl &&
 					data.view_type === 'bublik-tools/net-packet-analyzer' ? (
 						<DropdownMenuItem asChild className="pl-2">
-							<LinkWithProject to={viewerUrl} target="_blank">
+							<TypedLinkWithProject
+								to="/tools/packet-viewer"
+								search={viewerSearch}
+								target="_blank"
+							>
 								<Icon name="EyeShow" size={20} className="mr-2" />
 								View
-							</LinkWithProject>
+							</TypedLinkWithProject>
 						</DropdownMenuItem>
 					) : (
 						<DropdownMenuItem disabled className="pl-2">
@@ -343,4 +355,4 @@ function LogAttachmentsContainer(props: LogAttachmentsContainerProps) {
 	);
 }
 
-export { LogAttachmentsContainer };
+export { getPacketViewerSearch, LogAttachmentsContainer };

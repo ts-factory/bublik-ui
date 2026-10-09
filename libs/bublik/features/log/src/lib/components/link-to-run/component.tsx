@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { routes } from '@/router';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 
 export interface LinkToRunProps {
 	runId: string;
@@ -15,11 +14,11 @@ export function LinkToRun(props: LinkToRunProps) {
 
 	return (
 		<ButtonTw asChild variant="secondary" size="xss">
-			<LinkWithProject
-				to={routes.run({
-					runId,
-					targetIterationId: targetIterationId ?? undefined
-				})}
+			<TypedLinkWithProject
+				to="/runs/$runId"
+				params={{ runId }}
+				// The whole run when nothing (or `0`) is focused, as `routes.run` wrote it
+				search={{ targetIterationId: targetIterationId || undefined }}
 				onClick={() => {
 					trackEvent(analyticsEventNames.logLinkToRunClick, {
 						source: 'log_toolbar'
@@ -28,7 +27,7 @@ export function LinkToRun(props: LinkToRunProps) {
 			>
 				<Icon name="BoxArrowRight" className="mr-1.5" />
 				Run
-			</LinkWithProject>
+			</TypedLinkWithProject>
 		</ButtonTw>
 	);
 }
