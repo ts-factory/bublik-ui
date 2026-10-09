@@ -1,13 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { HistoryMode, RunDataResults } from '@/shared/types';
+import {
+	HistoryMode,
+	LogPageMode,
+	MeasurementsMode,
+	RunDataResults
+} from '@/shared/types';
 import { usePrefetch } from '@/services/bublik-api';
-import { routes } from '@/router';
 import { Icon } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 
@@ -43,26 +47,35 @@ export const ResultLinks = (props: ResultLinksProps) => {
 			<ul className="flex flex-col items-start gap-3">
 				{showLinkToRun ? (
 					<li className="pl-2">
-						<LinkWithProject
+						<TypedLinkWithProject
 							className="flex items-center w-full gap-1"
-							to={routes.run({ runId, targetIterationId: resultId })}
+							to="/runs/$runId"
+							params={{ runId }}
+							// As `routes.run` wrote it: no key for a zero id
+							search={{ targetIterationId: resultId || undefined }}
 							onClick={() => onLinkClick?.('run')}
 						>
 							<Icon name="Paper" className="size-5" />
 							Run {runId}
-						</LinkWithProject>
+						</TypedLinkWithProject>
 					</li>
 				) : null}
 				<li className="pl-2">
-					<LinkWithProject
+					<TypedLinkWithProject
 						className="flex items-center w-full gap-1"
 						onMouseEnter={onLogLinkMouseEnter}
 						onClick={() => onLinkClick?.('log')}
-						to={routes.log({ runId, focusId: resultId })}
+						to="/log/$runId"
+						params={{ runId }}
+						// `routes.log`: the result focused, the full layout
+						search={{
+							focusId: resultId || undefined,
+							mode: LogPageMode.TreeAndInfoAndLog
+						}}
 					>
 						<Icon name="BoxArrowRight" className="grid place-items-center" />
 						Log
-					</LinkWithProject>
+					</TypedLinkWithProject>
 				</li>
 				<li className="pl-0.5">
 					<HistoryLinkContainer
@@ -74,15 +87,18 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				</li>
 				{hasMeasurements && (
 					<li className="pl-2">
-						<LinkWithProject
+						<TypedLinkWithProject
 							className="flex items-center gap-1"
-							to={routes.measurements({ runId, resultId })}
+							to="/runs/$runId/results/$resultId/measurements"
+							params={{ runId, resultId: String(resultId) }}
+							// Written explicitly, as `routes.measurements` did
+							search={{ mode: MeasurementsMode.Default }}
 							onMouseEnter={onMeasurementLinkMouseEnter}
 							onClick={() => onLinkClick?.('result')}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Result
-						</LinkWithProject>
+						</TypedLinkWithProject>
 					</li>
 				)}
 				<li className="pl-2">

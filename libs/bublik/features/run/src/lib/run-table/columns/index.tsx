@@ -5,7 +5,6 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { PopoverPortal } from '@radix-ui/react-popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { To, legacyStringifySearch } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, NodeEntity, RunData, RunStatsColumn } from '@/shared/types';
@@ -24,9 +23,13 @@ import {
 	Separator,
 	TableNode
 } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { TypedLinkWithProject } from '@/bublik/features/projects';
 import { getTreeNode } from '@/bublik/run-utils';
-import { HistorySearchBuilder } from '@/shared/utils';
+import {
+	HistorySearchBuilder,
+	historySearch,
+	type HistoryRouteSearch
+} from '@/shared/utils';
 
 import { badgeColumns } from './badge-columns';
 import { TestComments } from '../components/test-comments';
@@ -37,15 +40,20 @@ import {
 	createDefaultColumnOrder
 } from '../constants';
 
-function getHistoryViewLink(
+/**
+ * The `/history` search of the test node's results in these runs: the
+ * builder's wire strings, read as the history route reads them, so its
+ * codecs write the same bytes back (`runIds` `;`-joined).
+ */
+function getHistoryViewSearch(
 	path: string[],
 	runIds: number[],
 	maybeDate?: string
-): To {
+): HistoryRouteSearch {
 	const query = new HistorySearchBuilder(path.join('/')).withRunIds(runIds);
 	if (maybeDate) query.withAnchorDate(maybeDate);
 
-	return { pathname: '/history', search: legacyStringifySearch(query.build()) };
+	return historySearch.validateSearch(query.build());
 }
 
 interface HistoryRunLinksDropdownMenuProps {
@@ -57,7 +65,7 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 	const { runIds, path } = props;
 	const [open, setOpen] = useState(false);
 	const { data } = useGetRunDetailsQuery(props.runIds?.[0] ?? skipToken);
-	const historyLink = getHistoryViewLink(path, runIds, data?.finish);
+	const historySearchOfRuns = getHistoryViewSearch(path, runIds, data?.finish);
 
 	return (
 		<DropdownMenu
@@ -93,8 +101,9 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 				<DropdownMenuLabel>Open Direct Search</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<LinkWithProject
-						to={historyLink}
+					<TypedLinkWithProject
+						to="/history"
+						search={historySearchOfRuns}
 						className="pl-2"
 						onClick={() => {
 							trackEvent(analyticsEventNames.runTableHistoryLinkClick, {
@@ -109,7 +118,7 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 							className="mr-2 text-primary"
 						/>
 						<span>History View Of Results In The Run</span>
-					</LinkWithProject>
+					</TypedLinkWithProject>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
@@ -285,4 +294,4 @@ function getColumns({
 	return groupColumnsByOrder(orderedColumns, helper);
 }
 
-export { getColumns };
+export { getColumns, getHistoryViewSearch };
