@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
+import { getRouteApi } from '@tanstack/react-router';
 
 import {
 	IssueDetailHeader,
@@ -18,7 +19,7 @@ import {
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
-import { useParams, routes } from '@/router';
+import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 import { ButtonTw, Icon, Separator } from '@/shared/tailwind-ui';
 
@@ -51,8 +52,10 @@ function IssueResultsHeader({ issueId, projectId }: IssueResultsHeaderProps) {
 	);
 }
 
+const issueResultsRoute = getRouteApi('/_app/issues/$issueId_/results');
+
 export const IssueResultsPage = () => {
-	const { issueId } = useParams<{ issueId: string }>();
+	const { issueId } = issueResultsRoute.useParams();
 	const { projectIds } = useProjectSearch();
 	const projectId = projectIds[0];
 

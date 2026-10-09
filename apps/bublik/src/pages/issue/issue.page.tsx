@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
+import { getRouteApi } from '@tanstack/react-router';
 
 import {
 	IssueDetailHeader,
@@ -15,13 +16,15 @@ import {
 	useNavigateWithProject
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { useParams, routes } from '@/router';
+import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
+const issueRoute = getRouteApi('/_app/issues/$issueId');
+
 export const IssuePage = () => {
-	const { issueId } = useParams<{ issueId: string }>();
+	const { issueId } = issueRoute.useParams();
 	const { projectIds } = useProjectSearch();
 	const navigate = useNavigateWithProject();
 	const projectId = projectIds[0];
