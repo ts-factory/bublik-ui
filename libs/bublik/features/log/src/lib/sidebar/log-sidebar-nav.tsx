@@ -1,8 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect } from 'react';
-import { useLocation, matchPath, useParams } from 'react-router-dom';
-
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -12,35 +9,16 @@ import {
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
-import { LogPageParams } from '@/shared/types';
-import { getModeFromSearch, LogSidebarMode } from '@/bublik/features/sidebar';
-
 import { useLogSidebarState } from './use-log-sidebar-state';
 
 import { LogDialog } from './log-dialog';
 
-const LOG_SIDEBAR_MODES: readonly LogSidebarMode[] = [
-	'log',
-	'infoAndlog',
-	'treeAndlog',
-	'treeAndinfoAndlog'
-];
-
 const LOG_SIDEBAR_PATTERNS = [{ path: '/log/:runId' }];
 
 export function LogSidebarNav() {
-	const location = useLocation();
-	const { runId } = useParams<LogPageParams>();
-	const { isAvailable, getModeUrl, mainLinkUrl, setLastVisited } =
-		useLogSidebarState();
-
-	useEffect(() => {
-		const pathMatch = matchPath('/log/:runId', location.pathname);
-		if (pathMatch && runId) {
-			const mode = getModeFromSearch(location.search, LOG_SIDEBAR_MODES, 'log');
-			setLastVisited(mode, location.pathname, runId);
-		}
-	}, [location.pathname, location.search, runId, setLastVisited]);
+	// The log page records itself (`log-feature.tsx`); a writer here would be
+	// a second one in the same commit, and they clobber each other's `_s`.
+	const { isAvailable, getModeUrl, mainLinkUrl } = useLogSidebarState();
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={LOG_SIDEBAR_PATTERNS}>
