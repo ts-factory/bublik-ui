@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import {
 	DASHBOARD_SIDEBAR_KEYS,
@@ -19,12 +19,16 @@ export interface UseDashboardSidebarStateReturn {
 }
 
 export function useDashboardSidebarState(): UseDashboardSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	const { searchStr } = useRenderedLocation();
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastUrl = useMemo(
-		() => getSidebarStateString(searchParams, DASHBOARD_SIDEBAR_KEYS.LAST_URL),
-		[searchParams]
+		() =>
+			getSidebarStateString(
+				new URLSearchParams(searchStr),
+				DASHBOARD_SIDEBAR_KEYS.LAST_URL
+			),
+		[searchStr]
 	);
 
 	const mainLinkUrl = useMemo(() => {

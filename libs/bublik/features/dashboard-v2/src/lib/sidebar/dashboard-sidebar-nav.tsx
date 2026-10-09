@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from '@/router';
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -14,16 +14,17 @@ import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
 const DASHBOARD_SIDEBAR_PATTERNS = [{ to: '/dashboard' }];
 
 export function DashboardSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const { mainLinkUrl, setLastUrl } = useDashboardSidebarState();
 
+	// Remembers the dashboard view on screen for the sidebar link (`_s`).
 	useEffect(() => {
-		const isDashboardPage = matchPath('/dashboard', location.pathname);
+		const isDashboardPage = matchRoutePath({ to: '/dashboard' }, pathname);
 
 		if (isDashboardPage) {
-			setLastUrl(location.pathname + location.search);
+			setLastUrl(pathname + searchStr);
 		}
-	}, [location.pathname, location.search, setLastUrl]);
+	}, [pathname, searchStr, setLastUrl]);
 
 	return (
 		<SidebarNavItem patterns={DASHBOARD_SIDEBAR_PATTERNS}>
