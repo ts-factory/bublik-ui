@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useLocation, useSearchParams } from '@/router';
+import { useRenderedLocation } from '@/router';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useGetIssueQuery } from '@/services/bublik-api';
@@ -55,8 +55,12 @@ export interface UseIssueSidebarStateReturn {
 }
 
 export function useIssueSidebarState(): UseIssueSidebarStateReturn {
-	const location = useLocation();
-	const [searchParams] = useSearchParams();
+	// The page on screen and its sidebar memory (`_s`).
+	const { pathname, searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 
 	const storedRulesUrl = useMemo(
@@ -81,11 +85,11 @@ export function useIssueSidebarState(): UseIssueSidebarStateReturn {
 
 	const activeIssueId = useMemo(
 		() =>
-			extractIssueIdFromUrl(location.pathname) ??
+			extractIssueIdFromUrl(pathname) ??
 			(storedRulesUrl && extractIssueIdFromUrl(storedRulesUrl)) ??
 			(storedResultsUrl && extractIssueIdFromUrl(storedResultsUrl)) ??
 			null,
-		[location.pathname, storedRulesUrl, storedResultsUrl]
+		[pathname, storedRulesUrl, storedResultsUrl]
 	);
 
 	// A URL remembered for another issue is no use for this one.
@@ -116,8 +120,7 @@ export function useIssueSidebarState(): UseIssueSidebarStateReturn {
 	// flight we trust a previous visit to *this* issue's results, or being on
 	// that page already, rather than flashing a link to an empty page.
 	const isOnResultsPage =
-		!!activeIssueId &&
-		location.pathname === getIssueResultsDefaultUrl(activeIssueId);
+		!!activeIssueId && pathname === getIssueResultsDefaultUrl(activeIssueId);
 	const isResultsAvailable =
 		!!activeIssueId &&
 		(isResultsLoading || !issue

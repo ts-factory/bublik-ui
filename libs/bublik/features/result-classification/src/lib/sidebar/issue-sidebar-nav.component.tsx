@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchRoutePath } from '@/router';
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -34,7 +34,7 @@ const NO_PATTERNS: ActivePattern[] = [];
 const NEVER_ACTIVE_PATTERN = { to: '/__none__' };
 
 export function IssueSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const {
 		mainLinkUrl,
 		rulesUrl,
@@ -50,9 +50,8 @@ export function IssueSidebarNav() {
 		setLastVisited
 	} = useIssueSidebarState();
 
-	const resultsMatch = matchRoutePath(RESULTS_PATTERN, location.pathname);
-	const match =
-		resultsMatch || matchRoutePath(RULES_PATTERN, location.pathname);
+	const resultsMatch = matchRoutePath(RESULTS_PATTERN, pathname);
+	const match = resultsMatch || matchRoutePath(RULES_PATTERN, pathname);
 	const issueId = match ? match['issueId'] : undefined;
 	const isIssueDetail = !!issueId && /^\d+$/.test(issueId);
 	// A boolean, not the match object: that is new on every render.
@@ -61,17 +60,8 @@ export function IssueSidebarNav() {
 	useEffect(() => {
 		if (!isIssueDetail) return;
 
-		setLastVisited(
-			isResultsPage ? 'results' : 'rules',
-			location.pathname + location.search
-		);
-	}, [
-		isIssueDetail,
-		isResultsPage,
-		location.pathname,
-		location.search,
-		setLastVisited
-	]);
+		setLastVisited(isResultsPage ? 'results' : 'rules', pathname + searchStr);
+	}, [isIssueDetail, isResultsPage, pathname, searchStr, setLastVisited]);
 
 	const patterns = isIssueDetail ? ISSUE_PATTERNS : NO_PATTERNS;
 
