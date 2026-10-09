@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
-import { createPath, parsePath } from 'react-router-dom';
 
 import { snapshotUrls } from '../../test/corpus';
 import { joinTo, splitTo } from './to';
@@ -50,26 +49,22 @@ describe('joinTo', () => {
 	});
 });
 
-describe('replaces React Router parsePath/createPath', () => {
+// Pinned against React Router's parsePath/createPath while both were installed
+// (#63); the edge cases above are the ones where the two could disagree.
+describe('every URL the app produces', () => {
 	const urls = [
 		...snapshotUrls(),
 		'/runs/1/report/?config=2',
 		'/admin/issues?project=1#top',
-		'/a#b?c=d',
-		'?page=2',
-		'#top',
-		'',
 		'/'
 	];
 
-	it.each(urls)('%s', (url) => {
-		const parsed = parsePath(url);
+	it.each(urls)('%s splits and joins back to itself', (url) => {
+		const { to, search, hash } = splitTo(url);
 
-		expect(splitTo(url)).toEqual({
-			to: parsed.pathname ?? '',
-			search: parsed.search ?? '',
-			hash: parsed.hash ?? ''
-		});
-		expect(joinTo(splitTo(url))).toBe(createPath(parsed));
+		expect(to.startsWith('/')).toBe(true);
+		expect(search === '' || search.startsWith('?')).toBe(true);
+		expect(hash === '' || hash.startsWith('#')).toBe(true);
+		expect(joinTo({ to, search, hash })).toBe(url);
 	});
 });

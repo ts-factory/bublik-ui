@@ -139,10 +139,11 @@ Use shared utilities from `@/shared/utils`:
 - Custom utilities for time, tree, formatting, etc.
 
 ### Router Integration
-- Use `react-router-dom` v6
-- `use-query-params` for view state in the URL (sorting, pagination, filters,
-  toggles), against the `QueryParamProvider` at the router root. Define a custom
-  `QueryParamConfig` when the value is not a plain string or number — see
-  `classification-table.params.ts` and `run-table.hooks.ts`
-- `useSearchParams` only for reading params another feature owns
+- TanStack Router, mid-migration under a byte-identical URL contract: keep
+  every URL as it was when changing routing or a query key
+- Import router APIs from `@/router` (`libs/bublik/router/README.md` lists
+  them). New code uses its permanent modules (`RouterLink`, `useSearchWriter`,
+  `useRenderedLocation`, `matchRoutePath`) and TanStack's typed route APIs; the
+  compat hooks (`useSearchParams`, `useQueryParam(s)` with a `QueryParamConfig`,
+  …) only serve the pages not yet moved off them
 - `useParams` with typed route params from `@/shared/types`
