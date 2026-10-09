@@ -148,7 +148,8 @@ Use shared utilities from `@/shared/utils`:
   key, a link or a write's push/replace
 - Routes are files under `apps/bublik/src/routes/` (`routeTree.gen.ts` is
   generated and committed; a build regenerates it). A route file stays thin:
-  its `defineSearch` schema, `beforeLoad` redirects and the page component.
+  wiring only (`idParams`, its `defineSearch` schema, `beforeLoad`
+  redirects, a loader from `routes/-loaders.ts`, the page component).
   Every page route needs a `# Route: <fullPath>` line in an e2e feature file
   (`pnpm run e2e:features:check` fails otherwise)
 - Search params are declared with the `@/router` codecs (`str`, `num`,
@@ -183,6 +184,11 @@ Use shared utilities from `@/shared/utils`:
   `idParams` from `@/router`, and a non-numeric id renders the route's
   not-found page, so pages neither convert nor guard them. RTK endpoints that
   take a bare id use `serializeIdArgs`, so `1` and `'1'` share a cache entry
+- A route whose page starts with a request prefetches it in a loader
+  (`apps/bublik/src/routes/-loaders.ts`): `dispatch(initiate(arg, {
+  subscribe: false }))`, awaited but never unwrapped, with the exact argument
+  the page passes. Links preload on intent; a `target="_blank"` link never
+  does. Routing specs pass `inertRouterContext` to `createAppRouter`
 - Specs render through `renderWithRouter`/`renderHookWithRouter` from
   `@/router/testing` and assert on `router.history.location`; never mock a
   router module

@@ -4,10 +4,12 @@ import { createRouter, type RouterHistory } from '@tanstack/react-router';
 
 import { Spinner } from '@/shared/tailwind-ui';
 import { config } from '@/bublik/config';
+import { store } from '@/bublik/+state';
 import { createSearchCodec } from '@/router';
 
 import { RouteErrorBoundary } from './app/route-error-boundary';
 import { NoMatchFeature } from './pages/not-found-page';
+import type { RouterContext } from './routes/-loaders';
 import { routeTree } from './routeTree.gen';
 
 function RoutePending() {
@@ -22,10 +24,15 @@ function RoutePending() {
  * the app mounts (`app/router.tsx`); the specs create their own on a memory
  * history.
  */
-function createAppRouter(history?: RouterHistory) {
+function createAppRouter(
+	history?: RouterHistory,
+	context: RouterContext = { store }
+) {
 	return createRouter({
 		routeTree,
 		history,
+		// The route loaders prefetch into the RTK Query store.
+		context,
 		// '/v2' or '<prefix>/v2'
 		basepath: config.baseUrl,
 		// Never rewrite '/report/?config=' or '/activate/.../' on load.

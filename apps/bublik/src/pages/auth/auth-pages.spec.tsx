@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { config } from '@/bublik/config';
 
 import { createAppRouter } from '../../router';
+import { inertRouterContext } from '../../test/inert-router-context';
 
 const mocks = vi.hoisted(() => ({
 	verifyEmail: vi.fn(),
@@ -33,7 +34,8 @@ vi.mock('@/bublik/features/analytics', async (importOriginal) => ({
 
 async function renderAppAt(url: string) {
 	const router = createAppRouter(
-		createMemoryHistory({ initialEntries: [`${config.baseUrl}${url}`] })
+		createMemoryHistory({ initialEntries: [`${config.baseUrl}${url}`] }),
+		inertRouterContext
 	);
 
 	await router.load();
