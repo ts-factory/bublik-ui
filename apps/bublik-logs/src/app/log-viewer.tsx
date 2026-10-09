@@ -15,9 +15,10 @@ import {
 } from '@/bublik/features/log';
 import { SessionLoading, SessionRoot } from '@/bublik/features/session-log';
 
+import type { LogViewerRouter, LogViewerSearch } from './router';
 import { jsonAPI } from './store';
 
-const routeApi = getRouteApi('/');
+const routeApi = getRouteApi<'/', LogViewerRouter>('/');
 
 function LogViewer() {
 	return (
@@ -66,7 +67,10 @@ function TreeContainer() {
 	// A push that drops only `focusId`, as React Router's `setSearchParams` did.
 	const showRunLog = () => {
 		void navigate({
-			search: (search) => ({ ...search, focusId: undefined }),
+			search: (search: LogViewerSearch) => ({
+				...search,
+				focusId: undefined
+			}),
 			resetScroll: false
 		});
 	};

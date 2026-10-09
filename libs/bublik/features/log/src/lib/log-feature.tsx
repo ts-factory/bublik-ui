@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { ReactNode, useEffect, useRef } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { formatTimeToDot } from '@/shared/utils';
@@ -82,15 +82,16 @@ function LogFeature(props: LogFeatureProps) {
 	const { runId, children, isTreeShown } = props;
 	const { isLegacyLog, toggleLog } = useIsLogLegacy();
 	const { focusId, page, mode } = useLogPage();
-	const location = useLocation();
+	// The page on screen; `searchStr` carries its `?`
+	const { pathname, searchStr } = useRenderedLocation();
 	const { setLastVisited } = useLogSidebarState();
 
 	useEffect(() => {
 		if (runId) {
 			const logMode = getLogSidebarMode(mode);
-			setLastVisited(logMode, location.pathname + location.search, runId);
+			setLastVisited(logMode, pathname + searchStr, runId);
 		}
-	}, [runId, mode, location.pathname, location.search, setLastVisited]);
+	}, [runId, mode, pathname, searchStr, setLastVisited]);
 
 	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
 		selectFromResult: (state) => ({
