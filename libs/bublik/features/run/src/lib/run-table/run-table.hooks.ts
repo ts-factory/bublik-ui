@@ -8,75 +8,24 @@ import {
 	Updater,
 	VisibilityState
 } from '@tanstack/react-table';
+import { skipToken } from '@reduxjs/toolkit/query';
 
+import { useRenderedLocation } from '@/router';
 import { RunData, MergedRun, RunStatsColumn } from '@/shared/types';
-import { useLocalStorage, useMount } from '@/shared/hooks';
+import { useLocalStorage } from '@/shared/hooks';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { formatTimeToDot } from '@/shared/utils';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
-import {
-	decodeCompressedOrJsonState,
-	encodeCompressedState,
-	isCompressedStateValue
-} from '@/bublik/features/sidebar';
 
 import { RowStateContextType, RunRowState } from '../hooks';
+import { useRunTableSetter, useRunTableValue } from '../run-search.hooks';
 import {
 	createDefaultColumnOrder,
 	createDefaultColumnVisibility,
 	reconcileColumnOrder
 } from './constants';
 import { ColumnId } from './types';
-import { skipToken } from '@reduxjs/toolkit/query';
 
-import {
-	useLocation,
-	useQueryParam,
-	withDefault,
-	NumberParam,
-	StringParam,
-	QueryParamConfig,
-	JsonParam
-} from '@/router';
-
-const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
-	encode: (value) => {
-		if (value === null || value === undefined) {
-			return value;
-		}
-
-		return encodeCompressedState(value);
-	},
-	decode: (value) => decodeCompressedOrJsonState(value)
-};
-
-const ExpandedParam = CompressedJsonParam as QueryParamConfig<
-	ExpandedState,
-	ExpandedState
->;
-const GlobalFilterParam = withDefault(
-	CompressedJsonParam as QueryParamConfig<string[], string[]>,
-	[]
-);
-const RowStateParam = withDefault(
-	CompressedJsonParam as QueryParamConfig<RunRowState, RunRowState>,
-	{}
-);
-const SortingParam = withDefault(
-	CompressedJsonParam as QueryParamConfig<SortingState, SortingState>,
-	[]
-);
-const VisibilityParam = CompressedJsonParam as QueryParamConfig<
-	VisibilityState,
-	VisibilityState
->;
-const COMPRESSED_RUN_TABLE_QUERY_KEYS = [
-	'expanded',
-	'globalFilter',
-	'rowState',
-	'sorting',
-	'visibility'
-] as const;
 const RUN_TABLE_PERSISTED_QUERY_KEYS = [
 	'expanded',
 	'globalFilter',
@@ -84,18 +33,9 @@ const RUN_TABLE_PERSISTED_QUERY_KEYS = [
 	'columnFilters'
 ] as const;
 
-function isLegacyJsonStateParamValue(value: string | null): boolean {
-	if (!value || isCompressedStateValue(value)) {
-		return false;
-	}
-
-	try {
-		JSON.parse(value);
-		return true;
-	} catch {
-		return false;
-	}
-}
+const NO_SORTING: SortingState = [];
+const NO_GLOBAL_FILTER: string[] = [];
+const NO_ROW_STATE: RunRowState = {};
 
 export function hasPersistedRunTableState(search: string): boolean {
 	const searchParams = new URLSearchParams(search);
@@ -171,19 +111,19 @@ function useColumnVisibility(
 			getLocalColumnVisibility()
 		);
 
-	const [queryColumnVisibility, setQueryColumnVisibility] =
-		useQueryParam<VisibilityState>('visibility', VisibilityParam);
+	const queryColumnVisibility = useRunTableValue('visibility');
+	const setQueryColumnVisibility = useRunTableSetter('visibility');
 
-	const hasQueryColumnVisibility = hasColumnVisibility(queryColumnVisibility);
 	const hasLocalColumnVisibility = hasStoredColumnVisibility(
 		columnVisibilityStorageKey,
 		localColumnVisibility
 	);
-	const columnVisibility = hasQueryColumnVisibility
-		? queryColumnVisibility
-		: hasLocalColumnVisibility
-		? localColumnVisibility
-		: defaultColumnVisibility;
+	const columnVisibility =
+		queryColumnVisibility && hasColumnVisibility(queryColumnVisibility)
+			? queryColumnVisibility
+			: hasLocalColumnVisibility
+			? localColumnVisibility
+			: defaultColumnVisibility;
 
 	const setColumnVisibility = (
 		state: Updater<VisibilityState> | VisibilityState
@@ -191,7 +131,7 @@ function useColumnVisibility(
 		const newState =
 			typeof state === 'function' ? state(columnVisibility) : state;
 
-		setQueryColumnVisibility(newState, 'replaceIn');
+		setQueryColumnVisibility(newState);
 		setLocalColumnVisibility(newState);
 	};
 
@@ -246,21 +186,22 @@ function useColumnOrder(defaultColumns?: RunStatsColumn[], projectId?: number) {
 		getLocalColumnOrder()
 	);
 
-	const [queryColumnOrder, setQueryColumnOrder] = useQueryParam<ColumnId[]>(
-		'columnOrder',
-		JsonParam
-	);
+	// Plain JSON on the wire, unlike the other table states.
+	const queryColumnOrder = useRunTableValue('columnOrder') as
+		| ColumnId[]
+		| undefined;
+	const setQueryColumnOrder = useRunTableSetter('columnOrder');
 
-	const hasQueryColumnOrder = hasColumnOrder(queryColumnOrder);
 	const hasLocalColumnOrder = hasStoredColumnOrder(
 		columnOrderStorageKey,
 		localColumnOrder
 	);
-	const resolvedColumnOrder = hasQueryColumnOrder
-		? queryColumnOrder
-		: hasLocalColumnOrder
-		? localColumnOrder
-		: defaultColumnOrder;
+	const resolvedColumnOrder =
+		queryColumnOrder && hasColumnOrder(queryColumnOrder)
+			? queryColumnOrder
+			: hasLocalColumnOrder
+			? localColumnOrder
+			: defaultColumnOrder;
 
 	const columnOrder = useMemo(
 		() => reconcileColumnOrder(resolvedColumnOrder, defaultColumnOrder),
@@ -270,7 +211,7 @@ function useColumnOrder(defaultColumns?: RunStatsColumn[], projectId?: number) {
 	const setColumnOrder = (state: Updater<ColumnId[]> | ColumnId[]): void => {
 		const newState = typeof state === 'function' ? state(columnOrder) : state;
 
-		setQueryColumnOrder(newState, 'replaceIn');
+		setQueryColumnOrder(newState);
 		setLocalColumnOrder(newState);
 	};
 
@@ -310,13 +251,22 @@ export function shouldMigrateExpandedState(expanded: ExpandedState): boolean {
 	return Object.keys(expanded).some((key) => key.includes('.'));
 }
 
+/**
+ * The iteration a link opened the run at (`targetIterationId`),
+ * and its setter (replace, merge; `null` removes it).
+ */
 export function useTargetIterationId() {
-	const [targetIterationId, setTargetIterationId] = useQueryParam(
-		'targetIterationId',
-		NumberParam
-	);
+	const targetIterationId = useRunTableValue('targetIterationId');
+	const setTargetIterationId = useRunTableSetter('targetIterationId');
 
 	return { targetIterationId, setTargetIterationId };
+}
+
+/** The one-shot intents a link to the run passes in `location.state`. */
+export interface RunTableLocationState {
+	openUnexpected?: boolean;
+	openUnexpectedResults?: boolean;
+	openUnexpectedIntentId?: string;
 }
 
 export const useRunTableQueryState = (
@@ -324,46 +274,45 @@ export const useRunTableQueryState = (
 	defaultColumns?: RunStatsColumn[],
 	projectId?: number
 ) => {
-	const location = useLocation();
-	const navigationState = location.state as {
-		openUnexpected?: boolean;
-		openUnexpectedResults?: boolean;
-		openUnexpectedIntentId?: string;
-	};
+	// The page on screen: a page that is being left must not act on the
+	// state of the next one.
+	const location = useRenderedLocation();
+	const navigationState: RunTableLocationState = location.state;
 	// A fresh navigation carries a unique openUnexpectedIntentId; always honor
 	// it even when the target URL already has persisted table params. Only the
 	// legacy (id-less) booleans are suppressed in that case, since they cannot
 	// be distinguished from a reload of an already-interacted-with table.
 	const hasFreshIntent = Boolean(navigationState?.openUnexpectedIntentId);
 	const locationState =
-		hasFreshIntent || !hasPersistedRunTableState(location.search)
+		hasFreshIntent || !hasPersistedRunTableState(location.searchStr)
 			? navigationState
 			: undefined;
 	const { targetIterationId } = useTargetIterationId();
-	const [resultFilter] = useQueryParam('resultFilter', StringParam);
+	const resultFilter = useRunTableValue('resultFilter');
 
-	const [expanded, setExpanded] = useQueryParam<ExpandedState>(
-		'expanded',
-		withDefault(
-			ExpandedParam,
-			data && data.length > 0 ? { [getRowId(data[0], 0, undefined)]: true } : {}
-		)
+	// A legacy plain-JSON value of a compressed key (a link written before
+	// the table state was compressed) is read as is and rewritten compressed
+	// by the router, with replace, as the page loads; the dotted
+	// legacy row ids of `expanded` are migrated by the table once it has rows.
+	const defaultExpanded = useMemo<ExpandedState>(
+		() =>
+			data && data.length > 0
+				? { [getRowId(data[0], 0, undefined)]: true }
+				: {},
+		[data]
 	);
+	const expanded = useRunTableValue('expanded') ?? defaultExpanded;
+	const setExpanded = useRunTableSetter('expanded', defaultExpanded);
 
-	const [sorting, setSorting] = useQueryParam<SortingState>(
-		'sorting',
-		SortingParam
-	);
+	const sorting = useRunTableValue('sorting') ?? NO_SORTING;
+	const setSorting = useRunTableSetter('sorting', NO_SORTING);
 
-	const [globalFilter, setGlobalFilter] = useQueryParam<string[]>(
-		'globalFilter',
-		GlobalFilterParam
-	);
+	const globalFilter = useRunTableValue('globalFilter') ?? NO_GLOBAL_FILTER;
+	const setGlobalFilter = useRunTableSetter('globalFilter', NO_GLOBAL_FILTER);
 
-	const [rowState, setRowState] = useQueryParam<RunRowState>(
-		'rowState',
-		RowStateParam
-	);
+	const rowState = (useRunTableValue('rowState') ??
+		NO_ROW_STATE) as RunRowState;
+	const setRowState = useRunTableSetter('rowState', NO_ROW_STATE);
 	const rowStateContext = useMemo<RowStateContextType>(
 		() => [rowState, setRowState],
 		[rowState, setRowState]
@@ -376,38 +325,6 @@ export const useRunTableQueryState = (
 		defaultColumns,
 		projectId
 	);
-
-	useMount(() => {
-		const currentSearchParams = new URLSearchParams(window.location.search);
-
-		const keysToMigrate = COMPRESSED_RUN_TABLE_QUERY_KEYS.filter((key) =>
-			isLegacyJsonStateParamValue(currentSearchParams.get(key))
-		);
-
-		if (keysToMigrate.length === 0) {
-			return;
-		}
-
-		if (keysToMigrate.includes('expanded')) {
-			setExpanded(expanded, 'replaceIn');
-		}
-
-		if (keysToMigrate.includes('globalFilter')) {
-			setGlobalFilter(globalFilter, 'replaceIn');
-		}
-
-		if (keysToMigrate.includes('rowState')) {
-			setRowState(rowState, 'replaceIn');
-		}
-
-		if (keysToMigrate.includes('sorting')) {
-			setSorting(sorting, 'replaceIn');
-		}
-
-		if (keysToMigrate.includes('visibility')) {
-			setColumnVisibility(columnVisibility);
-		}
-	});
 
 	return {
 		locationState,
@@ -426,8 +343,8 @@ export const useRunTableQueryState = (
 		defaultColumnOrder,
 		setColumnOrder,
 		rowStateContext,
-		targetIterationId: targetIterationId ?? undefined,
-		resultColumnId: resultFilter ?? undefined
+		targetIterationId,
+		resultColumnId: resultFilter
 	};
 };
 
