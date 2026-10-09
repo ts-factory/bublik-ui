@@ -12,14 +12,15 @@ import {
 } from '@/router';
 
 /**
- * `/tools/packet-viewer`. `fileUrl` must be a URL; one that is
- * not reads as absent so the page renders its own "invalid parameters"
- * state rather than the router's error component. The ids are numbers; one
- * that is not stays on the URL as its raw string (`keepRaw`),
- * so the page keeps reporting it as invalid after the sidebar writes `_s`.
+ * `/tools/packet-viewer`. `fileUrl` must be a URL and the ids
+ * numbers; a value that is not stays on the URL as its raw string
+ * (`keepRaw`), so the page renders its own "invalid
+ * parameters" state for it, with the same validation errors, rather than
+ * the router's error component, and keeps reporting it after the sidebar
+ * writes `_s`.
  */
 const packetViewerSearch = defineSearch({
-	fileUrl: validated(str(), z.string().url()),
+	fileUrl: keepRaw(validated(str(), z.string().url())),
 	runId: keepRaw(num()),
 	resultId: keepRaw(num())
 });

@@ -853,12 +853,13 @@ describe('/tools/packet-viewer', () => {
 		typed
 	});
 
-	it('an invalid fileUrl reads as absent so the page shows its own error state', async () => {
+	it('an invalid fileUrl stays its raw string so the page shows its own error state', async () => {
 		const router = await routerAt(
 			'/tools/packet-viewer?fileUrl=not-a-url&runId=1'
 		);
 
-		expect(leafSearch(router)).toEqual({ runId: 1 });
+		expect(leafSearch(router)).toEqual({ fileUrl: 'not-a-url', runId: 1 });
+		expect(router.history.location.search).toBe('?fileUrl=not-a-url&runId=1');
 		expect(packetViewerSearch.withDefaults({})).toEqual({});
 	});
 
