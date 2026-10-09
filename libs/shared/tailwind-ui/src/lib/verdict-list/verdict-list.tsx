@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import React, { FC } from 'react';
+import React, { FC, ReactNode } from 'react';
 
 import { RESULT_TYPE } from '@/shared/types';
 
@@ -13,17 +13,36 @@ export const enum VerdictVariant {
 
 export type VerdictVariantValue = 'expected' | 'obtained';
 
+/**
+ * Boxes the result badge to one width, so whatever trails it on the line --
+ * the classification verdict and its Classify button -- lands at the same
+ * offset on every row instead of stepping about as PASSED gives way to
+ * INCOMPLETE.
+ *
+ * Sized to the longest of the seven result types with slack for a font that
+ * renders wider than measured: a badge that outgrows the box takes its own row
+ * back out of line, which is the one thing this exists to prevent.
+ */
+export const VERDICT_RESULT_BOXED_CLASS = 'min-w-[86px] justify-center';
+
 export interface VerdictResultProps {
 	variant: VerdictVariant | VerdictVariantValue;
 	resultType: RESULT_TYPE;
 	isNotExpected?: boolean;
 	isSelected?: boolean;
 	onResultClick?: (resultType: RESULT_TYPE) => void;
+	className?: string;
 }
 
 export const VerdictResult = (props: VerdictResultProps) => {
-	const { variant, resultType, onResultClick, isNotExpected, isSelected } =
-		props;
+	const {
+		variant,
+		resultType,
+		onResultClick,
+		isNotExpected,
+		isSelected,
+		className
+	} = props;
 
 	const resultVariant =
 		variant === 'obtained'
@@ -36,6 +55,7 @@ export const VerdictResult = (props: VerdictResultProps) => {
 		<Badge
 			variant={resultVariant}
 			isSelected={isSelected}
+			className={className}
 			onClick={onResultClick ? () => onResultClick?.(resultType) : undefined}
 		>
 			{resultType}
@@ -85,6 +105,20 @@ export interface VerdictListProps {
 	selectedVerdicts?: string[];
 	onResultClick?: (resultValue: RESULT_TYPE) => void;
 	onVerdictClick?: (verdict: string) => void;
+	/**
+	 * Rendered inline after the result badge, e.g. the classification verdict and
+	 * its Classify trigger -- `PASSED | NO EFFECT | Classify`. It qualifies the
+	 * result, so it belongs on the result's own line rather than under the
+	 * verdicts, where it would sit three lines from what it is talking about.
+	 */
+	resultSlot?: ReactNode;
+	/**
+	 * Applied to the result badge. Pass `VERDICT_RESULT_BOXED_CLASS` on a
+	 * surface where something trails the badge and has to line up down the
+	 * table; leave it off where the badge stands alone and would only gain
+	 * padding.
+	 */
+	resultClassName?: string;
 }
 
 export const VerdictList: FC<VerdictListProps> = (props) => {
@@ -96,18 +130,35 @@ export const VerdictList: FC<VerdictListProps> = (props) => {
 		selectedVerdicts,
 		onResultClick,
 		onVerdictClick,
-		isNotExpected
+		isNotExpected,
+		resultSlot,
+		resultClassName
 	} = props;
+
+	const resultBadge = (
+		<VerdictResult
+			variant={variant}
+			resultType={result}
+			isNotExpected={isNotExpected}
+			isSelected={isResultSelected}
+			onResultClick={onResultClick}
+			className={resultClassName}
+		/>
+	);
 
 	return (
 		<div className="flex flex-col gap-1" data-testid="tw-verdict-list">
-			<VerdictResult
-				variant={variant}
-				resultType={result}
-				isNotExpected={isNotExpected}
-				isSelected={isResultSelected}
-				onResultClick={onResultClick}
-			/>
+			{/* The row exists only when there is something to put in it: every
+			    Expected Results call site passes no slot, and wrapping the badge
+			    there would change their markup for nothing. */}
+			{resultSlot ? (
+				<div className="flex items-center gap-1.5">
+					{resultBadge}
+					{resultSlot}
+				</div>
+			) : (
+				resultBadge
+			)}
 			<ListOfVerdicts
 				verdicts={verdicts}
 				selectedVerdicts={selectedVerdicts}

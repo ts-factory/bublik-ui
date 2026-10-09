@@ -8,7 +8,8 @@ import {
 
 import { usePagination } from '@/shared/hooks';
 
-import { cva, VariantProps } from '../utils';
+import { cn, cva, VariantProps } from '../utils';
+import { Icon } from '../icon';
 import { RadixSelect } from '../select';
 
 const DEFAULT_PAGE_SIZES = ['10', '25', '50', '75', '100'];
@@ -28,6 +29,20 @@ const buttonStyles = cva({
 			],
 			log: [
 				'relative inline-flex items-center px-4 py-2 border text-sm font-medium first:rounded-l-lg last:rounded-r-lg'
+			],
+			// `bordered`, shrunk to table-footer scale. The data tables put this bar
+			// beside `xss` toolbar controls, where the shared `py-2 px-4 text-[1rem]`
+			// buttons read as a second, heavier toolbar.
+			//
+			// Square: `compact` renders only the two chevrons, and a chevron in a
+			// `px-2` box is a stub of a button — narrower than it is tall, and
+			// noticeably lopsided next to the `h-7` page-size trigger beside it.
+			// `w-7` matches the height exactly. The chevrons are icons, not the
+			// `‹ ›` glyphs, which at `text-sm` were a few pixels of stroke.
+			compact: [
+				'flex items-center justify-center h-7 w-7 rounded border',
+				'hover:border-primary hover:bg-primary-wash hover:text-primary',
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu disabled:hover:border-border-primary'
 			]
 		},
 		isActive: { true: '', false: '' }
@@ -63,6 +78,16 @@ const buttonStyles = cva({
 			variant: 'log',
 			isActive: true,
 			className: 'bg-primary-wash border-primary text-primary z-10'
+		},
+		{
+			variant: 'compact',
+			isActive: false,
+			className: 'bg-white border-border-primary text-text-primary'
+		},
+		{
+			variant: 'compact',
+			isActive: true,
+			className: 'bg-primary-wash border-primary text-primary'
 		}
 	]
 });
@@ -73,7 +98,8 @@ const wrapperStyles = cva({
 		variant: {
 			primary: 'gap-1',
 			bordered: 'gap-1',
-			log: 'relative rounded-md -space-x-px'
+			log: 'relative rounded-md -space-x-px',
+			compact: 'items-center gap-1'
 		}
 	}
 });
@@ -190,6 +216,7 @@ export const Pagination = (props: PaginationProps) => {
 		onPageChange,
 		onPageSizeChange,
 		disablePageSizeSelect,
+		className,
 		...restProps
 	} = props;
 	const paginationRange = usePagination({
@@ -199,10 +226,24 @@ export const Pagination = (props: PaginationProps) => {
 		pageSize
 	});
 
-	if (currentPage === 0 || paginationRange.length < 2) return null;
+	const isCompact = variant === 'compact';
 
-	const lastPage = paginationRange[paginationRange.length - 1];
-	const isLastPage = currentPage === lastPage;
+	if (currentPage === 0) return null;
+
+	const isSinglePage = paginationRange.length < 2;
+
+	// Every variant drops out at one page. `compact` used to stay, on the
+	// grounds that its footer would otherwise look half-empty — but what it
+	// actually produced was three inert controls (a disabled Previous, a
+	// `1 / 1` that never changes, a disabled Next) sitting next to a live
+	// row count. The footer keeps the row count and the page-size select,
+	// which is enough to look occupied without pretending to navigate.
+	if (isSinglePage && !isCompact) return null;
+
+	// At one page the range is `[1]`, at zero rows it is empty, so read the last
+	// page defensively instead of off the end of the array.
+	const lastPage = paginationRange[paginationRange.length - 1] ?? 1;
+	const isLastPage = currentPage >= Number(lastPage);
 	const isFirstPage = currentPage === 1;
 
 	const handleNextClick = () => onPageChange?.(currentPage + 1);
@@ -224,35 +265,89 @@ export const Pagination = (props: PaginationProps) => {
 	};
 
 	return (
+		// `className` is merged rather than spread through `restProps`, which would
+		// let a caller's `ml-auto` replace the wrapper's own `flex` outright — the
+		// buttons are `display: flex`, so without a flex parent they turn
+		// block-level and stack into a column.
 		<div
-			className={wrapperStyles({ variant })}
+			className={cn(wrapperStyles({ variant }), className)}
 			data-testid="tw-pagination"
 			{...restProps}
 		>
-			<PageButton
-				variant={variant}
-				onClick={handlePreviousClick}
-				disabled={isFirstPage}
-			>
-				Previous
-			</PageButton>
-			<PaginationRange
-				variant={variant}
-				range={paginationRange}
-				currentPage={currentPage}
-				showCurrentPage={showCurrentPage}
-				siblingCount={siblingCount}
-				handleDotsClick={handleDotsClick}
-				handlePageIndexClick={handlePageIndexClick}
-			/>
-			<PageButton
-				variant={variant}
-				onClick={handleNextClick}
-				disabled={isLastPage}
-			>
-				Next
-			</PageButton>
-			{disablePageSizeSelect ? null : (
+			{/* The page-size select leads on `compact`, behind its own label.
+			    Trailing the nav buttons unlabelled, a bare `100` in a dropdown
+			    immediately after `Next` read as a page number rather than as a
+			    row count — which is the single most confusing thing a table
+			    footer can do. It is a setting, not a step, so it also stops
+			    sitting inside the navigation group. */}
+			{disablePageSizeSelect || !isCompact ? null : (
+				<label className="flex items-center gap-1.5 mr-2">
+					<span className="text-xs text-text-primary">Rows</span>
+					<RadixSelect
+						label="Rows per page"
+						options={DEFAULT_PAGE_SIZES}
+						defaultValue={pageSize.toString() || DEFAULT_PAGE_SIZES[1]}
+						onValueChange={handlePageSizeChange}
+						triggerVariant="compact"
+					/>
+				</label>
+			)}
+			{isSinglePage ? null : (
+				<>
+					<PageButton
+						variant={variant}
+						onClick={handlePreviousClick}
+						disabled={isFirstPage}
+						aria-label={isCompact ? 'Previous page' : undefined}
+					>
+						{isCompact ? (
+							<Icon name="ArrowShortTop" size={20} className="-rotate-90" />
+						) : (
+							'Previous'
+						)}
+					</PageButton>
+					{/* `compact` shows position instead of a numbered range. It sits
+					    in a table footer beside a row count, where a strip of page
+					    numbers is more chrome than the footer can carry — and with
+					    100 rows a page, jumping to page 7 is rarely the thing you
+					    want. Spelled out as `Page 1 of 2`, because `1 / 1` beside a
+					    `25 of 45 rules` count put two different meanings of "of" in
+					    one bar.
+
+					    `text-text-primary`, not the muted grey the rest of a footer
+					    uses: this is the one label in the bar you have to read to know
+					    where you are, and at 12px the grey was losing against the
+					    white behind it. */}
+					{isCompact ? (
+						<span className="px-1 text-xs text-text-primary tabular-nums whitespace-nowrap">
+							Page {currentPage} of {lastPage}
+						</span>
+					) : (
+						<PaginationRange
+							variant={variant}
+							range={paginationRange}
+							currentPage={currentPage}
+							showCurrentPage={showCurrentPage}
+							siblingCount={siblingCount}
+							handleDotsClick={handleDotsClick}
+							handlePageIndexClick={handlePageIndexClick}
+						/>
+					)}
+					<PageButton
+						variant={variant}
+						onClick={handleNextClick}
+						disabled={isLastPage}
+						aria-label={isCompact ? 'Next page' : undefined}
+					>
+						{isCompact ? (
+							<Icon name="ArrowShortTop" size={20} className="rotate-90" />
+						) : (
+							'Next'
+						)}
+					</PageButton>
+				</>
+			)}
+			{disablePageSizeSelect || isCompact ? null : (
 				<RadixSelect
 					label="Page sizes"
 					options={DEFAULT_PAGE_SIZES}
