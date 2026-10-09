@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { Dispatch, SetStateAction } from 'react';
-
 import { config } from '@/bublik/config';
 
 import {
 	AnalyticsFilterKey,
 	AnalyticsQueryArgs,
+	AnalyticsSearch,
+	AnalyticsSearchChanges,
 	ParsedQueryState
 } from './admin-analytics-page.types';
 
@@ -72,18 +72,30 @@ const joinFilterValues = (values: string[]): string | undefined => {
 	return values.join(config.queryDelimiter);
 };
 
-const parseSearchParams = (searchParams: URLSearchParams): ParsedQueryState => {
-	const page = Number(searchParams.get('page') || '1');
-	const pageSize = Number(searchParams.get('page_size') || `${PAGE_SIZE}`);
+/** The first value of a key, as `URLSearchParams.get` read it; `null` when absent. */
+const firstValue = (value: string | string[] | undefined): string | null => {
+	const first = Array.isArray(value) ? value[0] : value;
+
+	return first ?? null;
+};
+
+/**
+ * The page's query state from the route's search: the snake_case keys pass
+ * through untouched, so the URL is read as it was written.
+ */
+const parseAnalyticsSearch = (search: AnalyticsSearch): ParsedQueryState => {
+	const get = (key: keyof AnalyticsSearch) => firstValue(search[key]);
+	const page = Number(get('page') || '1');
+	const pageSize = Number(get('page_size') || `${PAGE_SIZE}`);
 
 	return {
-		eventTypes: splitFilterValues(searchParams.get('event_type')),
-		eventNames: splitFilterValues(searchParams.get('event_name')),
-		paths: splitFilterValues(searchParams.get('path')),
-		anonIds: splitFilterValues(searchParams.get('anon_id')),
-		appVersions: splitFilterValues(searchParams.get('app_version')),
-		search: searchParams.get('search') || undefined,
-		payloadSearch: searchParams.get('payload_search') || undefined,
+		eventTypes: splitFilterValues(get('event_type')),
+		eventNames: splitFilterValues(get('event_name')),
+		paths: splitFilterValues(get('path')),
+		anonIds: splitFilterValues(get('anon_id')),
+		appVersions: splitFilterValues(get('app_version')),
+		search: get('search') || undefined,
+		payloadSearch: get('payload_search') || undefined,
 		page: Number.isNaN(page) || page < 1 ? 1 : page,
 		pageSize: PAGE_SIZE_OPTIONS.includes(
 			pageSize as (typeof PAGE_SIZE_OPTIONS)[number]
@@ -105,47 +117,40 @@ const buildQueryArgs = (queryState: ParsedQueryState): AnalyticsQueryArgs => ({
 	page_size: queryState.pageSize
 });
 
-const updateQueryValues = (
-	params: URLSearchParams,
+/*
+ * The writes below are change sets merged into the current search in key
+ * order: a key already on the URL keeps its place and a new one is
+ * appended, `undefined` removes one, as the `URLSearchParams` `set` and
+ * `delete` calls they replace did. Every filter change goes back to page 1.
+ */
+
+const filterValuesChanges = (
 	key: AnalyticsFilterKey,
 	values: string[]
-) => {
-	if (!values.length) {
-		params.delete(key);
-	} else {
-		params.set(key, values.join(config.queryDelimiter));
-	}
+): AnalyticsSearchChanges => ({
+	[key]: values.length ? values.join(config.queryDelimiter) : undefined,
+	page: '1'
+});
 
-	params.set('page', '1');
-};
-
-const updateQueryValue = (
-	params: URLSearchParams,
+const queryValueChanges = (
 	key: 'search' | 'payload_search',
 	value?: string,
 	resetPage = true
-) => {
-	if (!value) {
-		params.delete(key);
-	} else {
-		params.set(key, value);
-	}
+): AnalyticsSearchChanges => ({
+	[key]: value || undefined,
+	...(resetPage ? { page: '1' } : {})
+});
 
-	if (resetPage) {
-		params.set('page', '1');
-	}
-};
-
-const clearFilterParams = (params: URLSearchParams) => {
-	params.delete('event_type');
-	params.delete('event_name');
-	params.delete('path');
-	params.delete('anon_id');
-	params.delete('app_version');
-	params.delete('search');
-	params.delete('payload_search');
-	params.set('page', '1');
-};
+const clearFilterChanges = (): AnalyticsSearchChanges => ({
+	event_type: undefined,
+	event_name: undefined,
+	path: undefined,
+	anon_id: undefined,
+	app_version: undefined,
+	search: undefined,
+	payload_search: undefined,
+	page: '1'
+});
 
 const formatAxisLabel = (value: string): string => {
 	if (value.length <= CHART_LABEL_MAX_LENGTH) {
@@ -257,11 +262,10 @@ const hasActiveFilters = (queryState: ParsedQueryState): boolean => {
 	);
 };
 
-type SetSearchParams = Dispatch<SetStateAction<URLSearchParams>>;
-
 export {
 	buildQueryArgs,
-	clearFilterParams,
+	clearFilterChanges,
+	filterValuesChanges,
 	formatAxisLabel,
 	getEventNameBadgeStyle,
 	getEventNameChartColor,
@@ -273,8 +277,6 @@ export {
 	normalizeTrackedPath,
 	PAGE_SIZE,
 	PAGE_SIZE_OPTIONS,
-	parseSearchParams,
-	updateQueryValue,
-	updateQueryValues
+	parseAnalyticsSearch,
+	queryValueChanges
 };
-export type { SetSearchParams };
