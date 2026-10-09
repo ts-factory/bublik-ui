@@ -2,8 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /**
  * Test fixture for the compat shims: a small router shaped like the app's
- * (basepath `/v2`, raw search codec, `defineSearch` schemas on the root and
- * on `/runs`) on a memory history, mounted through `RouterProvider`. The
+ * (`renderWithRouter`'s options and root schema, plus a `defineSearch`
+ * schema on `/runs`) on a memory history, mounted through `RouterProvider`. The
  * shims are observed through the router's location only.
  */
 import { act, render, renderHook } from '@testing-library/react';
@@ -23,22 +23,11 @@ import {
 	enumOf,
 	json,
 	num,
-	passthrough,
-	repeated,
-	repeatedNum,
-	str
+	repeated
 } from '../lib/search/codecs';
 import { useLocation } from '../lib/compat/navigation';
 import { defineSearch } from '../lib/search/define-search';
-import { parseSearch, stringifySearch } from '../lib/search/wire';
-
-const rootSearch = defineSearch({
-	project: repeatedNum(),
-	_s: str(),
-	'hide-sidebar': passthrough(),
-	'settings-open': bool01(),
-	'settings-tab': enumOf(['account', 'appearance', 'beta', 'preferences'])
-});
+import { rootSearch, routerOptions } from '../testing/render-with-router';
 
 const runsSearch = defineSearch({
 	page: num(),
@@ -116,15 +105,7 @@ function createCompatRouter(
 		history: createMemoryHistory({
 			initialEntries: initialEntries.map((entry) => `/v2${entry}`)
 		}),
-		basepath: '/v2',
-		trailingSlash: 'preserve',
-		caseSensitive: false,
-		parseSearch,
-		stringifySearch,
-		search: { strict: false },
-		defaultStructuralSharing: true,
-		defaultPreload: false,
-		scrollRestoration: false
+		...routerOptions
 	});
 }
 
