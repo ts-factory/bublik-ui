@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import type { PaginationState } from '@tanstack/react-table';
+import type { ExpandedState, PaginationState } from '@tanstack/react-table';
 
 import { bool01, defineSearch, json, str, type InferSearch } from '@/router';
 import type { ImportTaskFilters } from '@/shared/types';
@@ -14,7 +14,7 @@ const importSearch = defineSearch(
 	{
 		filters: json<ImportTaskFilters>(),
 		pagination: json<PaginationState>(),
-		expanded: json<Record<string, boolean>>(),
+		expanded: json<ExpandedState>(),
 		taskId: str(),
 		poll: bool01()
 	},
