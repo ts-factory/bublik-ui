@@ -56,6 +56,8 @@ const historySearch = defineSearch(
 		verdictLookup: enumOf(['string', 'regex', 'none']),
 		untriaged: boolOf('true', ''),
 		explained: boolOf('true', ''),
+		// The server-side substring filter, set by the box beside the form.
+		search: str(),
 		page: str(),
 		pageSize: str(),
 		mode: enumOf([

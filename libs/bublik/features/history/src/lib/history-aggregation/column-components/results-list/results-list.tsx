@@ -39,7 +39,6 @@ export const LinkList = ({ results }: LinkListProps) => {
 					>
 						<LinkWithProject
 							to={to}
-							state={{ fromHistory: true }}
 							className={cn(
 								badgeBaseStyles(),
 								badgeVariantStyles({

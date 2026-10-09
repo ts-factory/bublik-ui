@@ -86,7 +86,73 @@ vi.mock('./use-history-sidebar-state', () => ({
 	useHistorySidebarState: vi.fn()
 }));
 
+const sidebarState = (
+	overrides: Partial<ReturnType<typeof useHistorySidebarState>> = {}
+): ReturnType<typeof useHistorySidebarState> => ({
+	hasTrendData: false,
+	hasSeriesData: false,
+	isStackedAvailable: false,
+	isTrendLoading: false,
+	isSeriesLoading: false,
+	lastLinearUrl: null,
+	lastAggregationUrl: null,
+	lastTrendUrl: null,
+	lastSeriesUrl: null,
+	lastStackedUrl: null,
+	lastMode: null,
+	linearUrl: '/history?mode=linear',
+	aggregationUrl: '/history?mode=aggregation',
+	trendUrl: '/history?mode=measurements',
+	seriesUrl: '/history?mode=measurements-by-iteration',
+	stackedUrl: null,
+	mainLinkUrl: '/history?mode=linear',
+	setLastVisited: vi.fn(),
+	...overrides
+});
+
 describe('HistorySidebarNav', () => {
+	it.each([
+		['linear', 'linear'],
+		['aggregation', 'aggregation'],
+		['measurements', 'trend'],
+		['measurements-by-iteration', 'series'],
+		['measurements-combined', 'stacked']
+	])(
+		'remembers the history page in the %s mode as its own URL',
+		async (mode, sidebarMode) => {
+			const setLastVisited = vi.fn();
+			vi.mocked(useHistorySidebarState).mockReturnValue(
+				sidebarState({ setLastVisited })
+			);
+			const search = `?testName=a+b&mode=${mode}&page=2`;
+
+			await renderWithRouter(<HistorySidebarNav />, {
+				path: '/history',
+				search
+			});
+
+			expect(setLastVisited).toHaveBeenCalledWith(
+				sidebarMode,
+				`/history${search}`
+			);
+		}
+	);
+
+	it.each([
+		['the v2 alias', '/history/v2', '?testName=t&mode=linear'],
+		['another page', '/runs', '?mode=linear'],
+		['an unknown mode', '/history', '?testName=t&mode=other']
+	])('remembers nothing on %s', async (_, path, search) => {
+		const setLastVisited = vi.fn();
+		vi.mocked(useHistorySidebarState).mockReturnValue(
+			sidebarState({ setLastVisited })
+		);
+
+		await renderWithRouter(<HistorySidebarNav />, { path, search });
+
+		expect(setLastVisited).not.toHaveBeenCalled();
+	});
+
 	it('uses saved chart URLs from sidebar state for enabled chart items', async () => {
 		vi.mocked(useHistorySidebarState).mockReturnValue({
 			hasTrendData: false,

@@ -1,26 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import {
-	HistoryDataLinear,
-	HistorySearchParams,
-	LogPageMode,
-	RESULT_PROPERTIES,
-	VERDICT_TYPE
-} from '@/shared/types';
+import { HistoryDataLinear, LogPageMode } from '@/shared/types';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { legacyStringifySearch, routes, useSearchState } from '@/router';
+import { routes } from '@/router';
 import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
-import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
+
+import { useHistorySearch } from '../../../hooks';
+import { getHistoryShortcuts } from './links.utils';
 
 export interface LinksProps {
 	row: HistoryDataLinear;
 }
 
 export const Links = ({ row }: LinksProps) => {
-	const [search] = useSearchState<HistorySearchParams>();
-	const shortcuts = getHistorySearch(row, search);
+	const shortcuts = useHistorySearch((search) =>
+		getHistoryShortcuts(row, search)
+	);
 
 	const handleLinkClick = (action: string) => {
 		trackEvent(analyticsEventNames.historyLinkClick, {
@@ -159,79 +156,4 @@ export const Links = ({ row }: LinksProps) => {
 			</LogPreviewContainer>
 		</div>
 	);
-};
-
-const getHistorySearch = (
-	row: HistoryDataLinear,
-	search: HistorySearchParams
-) => {
-	const base: Partial<HistorySearchParams> = {
-		testName: search.testName,
-		mode: search.mode,
-		page: '1',
-		pageSize: search.pageSize,
-		hash: search.hash,
-		startDate: search.startDate,
-		finishDate: search.finishDate,
-		verdictLookup: VERDICT_TYPE.String,
-		branches: search.branches,
-		parameters: search.parameters,
-		resultProperties: search.resultProperties,
-		results: search.results
-	};
-
-	// 1. All unexpected
-	// - All outcomes with unexpected
-	// - With meta, tags, parameters
-	const allUnexpected: HistorySearchParams = {
-		...base,
-		resultProperties: RESULT_PROPERTIES.Unexpected,
-		runData: [
-			...row.relevant_tags,
-			...row.important_tags,
-			...row.metadata
-		].join(';'),
-		parameters: row.parameters.join(';'),
-		results: DEFAULT_RESULT_TYPES.join(';')
-	};
-
-	// 2. Similar unexpected
-	// - All outcomes with unexpected
-	// - With meta, tags, parameters
-	// - With verdicts
-	const similarUnexpected: HistorySearchParams = {
-		...base,
-		resultProperties: RESULT_PROPERTIES.Unexpected,
-		runData: [
-			...row.relevant_tags,
-			...row.important_tags,
-			...row.metadata
-		].join(';'),
-		parameters: row.parameters.join(';'),
-		verdict: row.obtained_result.verdicts.join(';'),
-		results: DEFAULT_RESULT_TYPES.join(';')
-	};
-
-	// 3. History query
-	const historyQuery: HistorySearchParams = {
-		...base,
-		runData: [
-			...row.important_tags,
-			...row.relevant_tags,
-			...row.metadata
-		].join(';'),
-		parameters: row.parameters.join(';'),
-		results: row.obtained_result.result_type,
-		verdict: row.obtained_result.verdicts.join(';'),
-		runProperties: search.runProperties,
-		resultProperties: row.has_error
-			? RESULT_PROPERTIES.Unexpected
-			: RESULT_PROPERTIES.Expected
-	};
-
-	return {
-		allUnexpected: legacyStringifySearch(allUnexpected),
-		similarUnexpected: legacyStringifySearch(similarUnexpected),
-		historyQuery: legacyStringifySearch(historyQuery)
-	};
 };

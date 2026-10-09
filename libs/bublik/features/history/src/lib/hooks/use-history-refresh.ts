@@ -3,8 +3,6 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { useSearchParams } from '@/router';
-
 import {
 	HistoryAPIQuery,
 	RESULT_PROPERTIES,
@@ -16,15 +14,14 @@ import {
 	DEFAULT_RESULT_TYPES
 } from '@/bublik/config';
 
+import { useNavigateWithProject } from '@/bublik/features/projects';
+
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import {
-	copyHistorySearchParam,
+	HISTORY_SEARCH_KEY,
 	historySearchStateToQuery
 } from '../slice/history-slice.utils';
-import {
-	PROJECT_KEY,
-	useNavigateWithProject
-} from '@/bublik/features/projects';
+import { useHistorySearch } from './use-history-search';
 
 const globalFilterToQueryAdapter = (
 	globalFilter: HistoryGlobalFilter,
@@ -83,9 +80,9 @@ const globalFilterToQueryAdapter = (
 };
 export const useHistoryRefresh = () => {
 	const { state } = useHistoryFormSearchState();
-	const [searchParams] = useSearchParams();
-	const mode = searchParams.get('mode') ?? 'linear';
-	const pageSize = searchParams.get('pageSize') ?? 25;
+	const mode = useHistorySearch((search) => search.mode ?? 'linear');
+	const pageSize = useHistorySearch((search) => search.pageSize ?? '25');
+	const search = useHistorySearch((search) => search.search);
 	const dispatch = useDispatch();
 	const navigateWithProject = useNavigateWithProject();
 
@@ -96,18 +93,15 @@ export const useHistoryRefresh = () => {
 				historySearchStateToQuery(state)
 			);
 
+			// Every key, the empty ones included; `navigateWithProject` adds
+			// `_s`, `hide-sidebar` and the selected projects.
 			const params = new URLSearchParams(newQuery);
-			for (const [key, value] of searchParams) {
-				if (key !== PROJECT_KEY) continue;
-				params.append(PROJECT_KEY, value);
-			}
-
 			params.set('mode', mode);
 			params.set('page', String(1));
 			params.set('pageSize', String(pageSize));
-			copyHistorySearchParam(searchParams, params);
+			// Keep the substring filter: it is not part of the form being rebuilt.
+			if (search) params.set(HISTORY_SEARCH_KEY, search);
 
-			// Use navigateWithProject to properly preserve sidebar params
 			const searchString = params.toString();
 			navigateWithProject(
 				{
@@ -118,6 +112,6 @@ export const useHistoryRefresh = () => {
 			);
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[dispatch, mode, pageSize, searchParams, navigateWithProject, state]
+		[dispatch, mode, pageSize, search, navigateWithProject, state]
 	);
 };

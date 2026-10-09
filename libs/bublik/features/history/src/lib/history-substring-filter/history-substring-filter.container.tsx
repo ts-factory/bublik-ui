@@ -1,25 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { StringParam, useQueryParams, withDefault } from 'use-query-params';
 
+import { useRenderedLocation, useSearchWriter } from '@/router';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
+import { useHistorySearch } from '../hooks/use-history-search';
 import { HISTORY_SEARCH_KEY } from '../slice/history-slice.utils';
 import { HistorySubstringFilter } from './history-substring-filter.component';
 
 const SEARCH_DEBOUNCE_MS = 1000;
 
-const SEARCH_PARAMS_CONFIG = {
-	[HISTORY_SEARCH_KEY]: withDefault(StringParam, ''),
-	page: StringParam
-};
-
 export const HistorySubstringFilterContainer = () => {
-	const { key: locationKey } = useLocation();
-	const [query, setQuery] = useQueryParams(SEARCH_PARAMS_CONFIG);
-	const search = query[HISTORY_SEARCH_KEY];
+	const { href } = useRenderedLocation();
+	const search = useHistorySearch((search) => search.search ?? '');
+	const writeSearch = useSearchWriter();
 	const [value, setValue] = useState(search);
 	const pendingWrite = useRef<ReturnType<typeof setTimeout>>();
 
@@ -28,7 +23,7 @@ export const HistorySubstringFilterContainer = () => {
 	useEffect(() => {
 		clearTimeout(pendingWrite.current);
 		setValue((current) => (current.trim() === search ? current : search));
-	}, [locationKey, search]);
+	}, [href, search]);
 
 	useEffect(() => () => clearTimeout(pendingWrite.current), []);
 
@@ -46,9 +41,9 @@ export const HistorySubstringFilterContainer = () => {
 			});
 
 			// The server filters before paginating, so the current page may be gone
-			setQuery(
+			writeSearch(
 				{ [HISTORY_SEARCH_KEY]: trimmed || undefined, page: '1' },
-				'replaceIn'
+				{ replace: true }
 			);
 		}, SEARCH_DEBOUNCE_MS);
 	};

@@ -1,10 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 
 import { useGetHistoryAggregationQuery } from '@/services/bublik-api';
 
-import { useHistoryPagination, useHistoryQuery } from '../hooks';
+import {
+	useHistoryFromRun,
+	useHistoryPagination,
+	useHistoryQuery
+} from '../hooks';
 import {
 	HistoryAggregation,
 	HistoryLoadingAggregation
@@ -13,7 +17,6 @@ import { useAggregationGlobalFilter } from './history-aggregation.hooks';
 import { HistoryEmpty } from '../history-empty';
 import { useHistoryActions } from '../slice';
 import { HistoryError } from '../history-error';
-import { useLocation } from '@/router';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 
 export const HistoryAggregationContainer = () => {
@@ -21,14 +24,14 @@ export const HistoryAggregationContainer = () => {
 	const { pagination, handlePaginationChange } = useHistoryPagination();
 	const { globalFilter, handleGlobalFilterChange } =
 		useAggregationGlobalFilter();
-	const state = useLocation().state as { fromRun?: boolean };
+	const fromRun = useHistoryFromRun();
 	const { query } = useHistoryQuery();
 
 	useTabTitleWithPrefix([query?.testName, 'Aggregation - History - Bublik']);
 
 	const { data, isLoading, isFetching, error } = useGetHistoryAggregationQuery(
 		query,
-		{ skip: state?.fromRun || !query.testName }
+		{ skip: fromRun || !query.testName }
 	);
 
 	const handleOpenFormClick = useCallback(

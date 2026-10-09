@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useMount, useUnmount } from '@/shared/hooks';
@@ -16,13 +15,14 @@ import {
 } from '../slice';
 import { HistoryGlobalSearchFormValues } from './global-search-form';
 import { formToSearchState } from '../slice/history-slice.utils';
+import { useHistoryFromRun } from '../hooks';
 
 export const HistoryGlobalSearchFormContainer = () => {
 	const actions = useHistoryActions();
 	const isGlobalSearchFormOpen = useSelector(selectIsGlobalSearchFormOpen);
 	const { form, handleFormChange, handleGlobalSearchSubmit } =
 		useHistoryFormSearchState();
-	const locationState = useLocation().state as { fromRun?: boolean };
+	const fromRun = useHistoryFromRun();
 
 	const close = useCallback(
 		() => actions.toggleIsGlobalSearchOpen(false),
@@ -58,7 +58,7 @@ export const HistoryGlobalSearchFormContainer = () => {
 	);
 
 	useMount(() => {
-		if (locationState?.fromRun) {
+		if (fromRun) {
 			actions.toggleIsGlobalSearchOpen(true);
 		}
 	});
