@@ -4,7 +4,7 @@ import { forwardRef, ReactNode, useImperativeHandle } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Link } from '@/router';
+import { RouterLink } from '@/router';
 
 import { ButtonTw, FormAlertError, TextField } from '@/shared/tailwind-ui';
 import { LoginFormInputs, LoginFormSchema } from '@/shared/types';
@@ -77,13 +77,13 @@ export const LoginForm = forwardRef<LoginFormHandle, LoginFormProps>(
 						control={form.control}
 					/>
 					<div className="flex items-center justify-end">
-						<Link
+						<RouterLink
 							to="/auth/forgot"
 							onClick={onForgotPasswordClick}
 							className="text-sm font-medium text-primary hover:underline"
 						>
 							Forgot password?
-						</Link>
+						</RouterLink>
 					</div>
 					{secondaryAction ? (
 						<div className="flex gap-3">

@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
 
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 /**
  * When Bublik runs inside a cross-origin iframe (e.g. embedded in other webapp),
@@ -16,13 +16,14 @@ import { useLocation } from '@/router';
  * `path` is relative to the base URL, as it was under React Router.
  */
 function IframeNavigationReporter() {
-	const location = useLocation();
+	// The page on screen; `searchStr` carries its `?`, as `location.search` did
+	const { pathname, searchStr } = useRenderedLocation();
 
 	useEffect(() => {
 		// Skip when not embedded — avoids unnecessary postMessage noise.
 		if (window.parent === window) return;
 
-		const params = new URLSearchParams(location.search);
+		const params = new URLSearchParams(searchStr);
 		const raw = params.get('focusId');
 		const parsed = raw !== null ? parseInt(raw, 10) : null;
 		const focusId = parsed !== null && !Number.isNaN(parsed) ? parsed : null;
@@ -30,13 +31,13 @@ function IframeNavigationReporter() {
 		window.parent.postMessage(
 			{
 				type: 'bublik:navigation',
-				path: location.pathname,
-				search: location.search,
+				path: pathname,
+				search: searchStr,
 				focusId
 			},
 			'*'
 		);
-	}, [location.pathname, location.search]);
+	}, [pathname, searchStr]);
 
 	return null;
 }

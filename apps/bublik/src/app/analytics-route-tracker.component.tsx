@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import {
 	setAnalyticsEnabled,
@@ -10,7 +10,7 @@ import {
 import { bublikAPI } from '@/services/bublik-api';
 
 function AnalyticsRouteTracker() {
-	const location = useLocation();
+	const { pathname } = useRenderedLocation();
 	const { data: features } = bublikAPI.useGetServerFeaturesQuery();
 	const isAnalyticsEnabled = Boolean(features?.analytics_enabled);
 
@@ -21,8 +21,8 @@ function AnalyticsRouteTracker() {
 	useEffect(() => {
 		if (!isAnalyticsEnabled) return;
 
-		trackPageView({ path: location.pathname });
-	}, [isAnalyticsEnabled, location.pathname]);
+		trackPageView({ path: pathname });
+	}, [isAnalyticsEnabled, pathname]);
 
 	return null;
 }
