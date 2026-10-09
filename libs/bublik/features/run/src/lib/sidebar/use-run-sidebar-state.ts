@@ -4,7 +4,7 @@
 import { useCallback, useMemo } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useLocation, useSearchParams } from '@/router';
+import { useRenderedLocation } from '@/router';
 
 import {
 	RUN_MODE_DEFAULT,
@@ -79,8 +79,12 @@ export interface UseRunSidebarStateReturn {
  * rewrites one key at a time, so the siblings are routinely a run behind.
  */
 export function useRunSidebarState(): UseRunSidebarStateReturn {
-	const [searchParams] = useSearchParams();
-	const location = useLocation();
+	// The page on screen; `_s` is read raw.
+	const location = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(location.searchStr),
+		[location.searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastMode = useMemo<RunMode | null>(() => {
