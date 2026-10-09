@@ -8,6 +8,7 @@ import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { BUBLIK_TAG } from '../types';
 import { configDependent } from '../tags';
 import { API_REDUCER_PATH } from '../constants';
+import { serializeIdArgs } from '../utils';
 
 export interface RunReportConfigResponse {
 	run_report_configs: RunReportConfig[];
@@ -31,6 +32,7 @@ export const reportEndpoints = {
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getRunReportConfigs: build.query<RunReportConfigResponse, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			// A report *is* a config, so both queries here have to refetch when
 			// one is saved. `cache: 'no-cache'` because the server stamps
 			// `Cache-Control: max-age=600` on API GETs, which would otherwise

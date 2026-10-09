@@ -27,6 +27,7 @@ import {
 	isBublikParsableError
 } from '../error-handling';
 import { ResultsAndVerdictsForIteration } from './run-endpoints';
+import { serializeIdArgs } from '../utils';
 
 const RawLogAttachment = z.object({
 	type: z.literal('text').describe('type of attachment'),
@@ -294,7 +295,8 @@ export const logEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getTreeByRunId: build.query<TreeDataAPIResponse | null, string>({
+		getTreeByRunId: build.query<TreeDataAPIResponse | null, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			query: (runId) => ({
 				url: withApiV2(`/tree/${runId}`),
 				cache: 'no-cache'
