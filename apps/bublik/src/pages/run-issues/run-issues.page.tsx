@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams, routes } from '@/router';
+import { getRouteApi } from '@tanstack/react-router';
+
+import { routes } from '@/router';
 
 import {
 	ApplyRulesButton,
@@ -21,7 +23,6 @@ import {
 	RunModeToggle,
 	Separator
 } from '@/shared/tailwind-ui';
-import { RunPageParams } from '@/shared/types';
 
 function RunIssuesHeader({ runId }: { runId: string }) {
 	const [isFullMode, setIsFullMode] = useState(false);
@@ -56,8 +57,10 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 	);
 }
 
+const runIssuesRoute = getRouteApi('/_app/runs/$runId/issues');
+
 function RunIssuesPage() {
-	const { runId } = useParams<RunPageParams>();
+	const { runId } = runIssuesRoute.useParams();
 	const { data: details } = useGetRunDetailsQuery(
 		runId ? Number(runId) : skipToken
 	);
