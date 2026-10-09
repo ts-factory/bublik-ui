@@ -65,3 +65,39 @@ export function resolveTargetWithSidebarState(
 		current.pathname
 	);
 }
+
+const isAbsent = (value: unknown): boolean =>
+	value === undefined || value === null;
+
+/**
+ * `mergeParamsWithSidebarState` for a typed link's search object (the route
+ * middlewares serialize it): the target's keys first, in their order, then
+ * `_s` and `hide-sidebar` from the current URL (in its order) unless the
+ * target sets them, then the selected projects, which always replace the
+ * target's. Key for key the query string `mergeParamsWithSidebarState`
+ * writes.
+ */
+export function mergeSearchWithSidebarState(
+	target: Record<string, unknown>,
+	currentSearchParams: URLSearchParams,
+	projectIds: number[]
+): Record<string, unknown> {
+	const result: Record<string, unknown> = { ...target };
+
+	delete result[PROJECT_KEY];
+
+	for (const key of new Set(currentSearchParams.keys())) {
+		if (key !== SIDEBAR_STATE_PARAM && key !== HIDE_SIDEBAR_QUERY_KEY) continue;
+		if (!isAbsent(result[key])) continue;
+
+		const values = currentSearchParams.getAll(key);
+
+		// An absent key keeps no slot: it is appended, as `append` does.
+		delete result[key];
+		result[key] = values.length === 1 ? values[0] : values;
+	}
+
+	if (projectIds.length) result[PROJECT_KEY] = projectIds;
+
+	return result;
+}
