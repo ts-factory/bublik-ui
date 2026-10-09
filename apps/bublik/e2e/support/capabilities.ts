@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import type { E2EManifest } from './manifest';
+import type { Bundle, E2EManifest } from './manifest';
 
 const LONG_LOG_ROWS = 200;
 
@@ -95,7 +95,21 @@ function validateImportedCapabilities(manifest: E2EManifest): void {
 	);
 }
 
+/**
+ * Why a fixture run has no runId. A +ui bundle is imported by the `import`
+ * setup project, which Playwright's UI mode skips unless it is ticked.
+ */
+function missingRunIdReason(bundle: Pick<Bundle, 'id' | 'importVia'>): string {
+	return bundle.importVia === 'ui'
+		? `run "${bundle.id}" has no runId: it is imported by the \`import\` ` +
+				'setup project, which has not run (in UI mode, tick auth and import ' +
+				'in the project filter, or run `task e2e:test -- --project import` first)'
+		: `run "${bundle.id}" has no runId: it was not imported — seed the ` +
+				'stack with `task e2e:seed`';
+}
+
 export {
+	missingRunIdReason,
 	requireCapability,
 	validateFixtureCapabilities,
 	validateImportedCapabilities

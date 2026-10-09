@@ -18,6 +18,7 @@
 		"**/*.test.ts",
 		"**/*.spec.tsx",
 		"**/*.test.tsx",
+		"**/*.unit.ts",
 		"jest.config.ts",
 		"**/*.stories.ts",
 		"**/*.stories.js",
