@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -21,7 +21,10 @@ export function ChatSidebarNav() {
 	return (
 		<SidebarNavItem patterns={CHAT_SIDEBAR_PATTERNS}>
 			<SidebarNavLinkWrapper label="Assistant">
-				<SidebarNavInternalLink to={chatPath()} linkComponent={LinkWithProject}>
+				<SidebarNavInternalLink
+					to={chatPath()}
+					linkComponent={RouterLinkWithProject}
+				>
 					<SidebarNavInternalLink.Icon name="Chat" />
 					<SidebarNavInternalLink.Label>Chat</SidebarNavInternalLink.Label>
 				</SidebarNavInternalLink>

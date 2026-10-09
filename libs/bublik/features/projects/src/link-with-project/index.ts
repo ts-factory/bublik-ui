@@ -1,2 +1,4 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 export * from './link-with-project.component';
-export * from './typed-link-with-project.component';
+export * from './router-link-with-project.component';

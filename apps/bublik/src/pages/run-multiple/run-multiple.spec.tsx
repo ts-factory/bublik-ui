@@ -3,13 +3,12 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { routes } from '@/router';
 import {
 	renderHookWithRouter,
 	renderWithRouter,
 	type TestRouter
 } from '@/router/testing';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 
 import { multipleSearch } from '../../routes/-search/multiple.search';
 import {
@@ -50,7 +49,7 @@ describe('the multiple-runs header', () => {
 		await renderOnMultiplePage(
 			<>
 				<RunDetailsHeaderLabel />
-				<LinkWithProject
+				<RouterLinkWithProject
 					data-testid="string"
 					to={{
 						pathname: '/multiple',
@@ -94,14 +93,17 @@ describe('the multiple-runs header', () => {
 		expect(router.history.length).toBe(1);
 	});
 
-	it('links the selected run and its log as the routes.* builders did', async () => {
+	it('links the selected run and its log as the string targets did', async () => {
 		await renderOnMultiplePage(
 			<>
 				<div data-testid="typed">
 					<RunMultipleNavigationLinks runId={2} />
 				</div>
-				<LinkWithProject data-testid="run" to={routes.run({ runId: '2' })} />
-				<LinkWithProject data-testid="log" to={routes.log({ runId: '2' })} />
+				<RouterLinkWithProject data-testid="run" to="/runs/2" />
+				<RouterLinkWithProject
+					data-testid="log"
+					to="/log/2?mode=treeAndinfoAndlog"
+				/>
 			</>
 		);
 

@@ -10,7 +10,7 @@ import {
 	useDeleteChatThreadMutation,
 	type ChatThreadListItem
 } from '@/services/bublik-api';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { useConfirm } from '@/shared/hooks';
 import {
 	ButtonTw,
@@ -242,7 +242,7 @@ function ThreadRow({ thread, isActive, onDelete }: ThreadRowProps) {
 				isActive && 'bg-primary-wash'
 			)}
 		>
-			<TypedLinkWithProject
+			<LinkWithProject
 				to="/chat/{-$threadId}"
 				params={{ threadId: thread.id }}
 				className={cn(
@@ -262,7 +262,7 @@ function ThreadRow({ thread, isActive, onDelete }: ThreadRowProps) {
 					/>
 				) : null}
 				<span className="truncate">{thread.title || 'Untitled'}</span>
-			</TypedLinkWithProject>
+			</LinkWithProject>
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					aria-label="Thread actions"

@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { stringifySearch } from '@/router';
 import { RunDataResults, RunDetailsAPIResponse } from '@/shared/types';
 
 import {
@@ -27,16 +28,8 @@ const resultFixture: RunDataResults = {
 	}
 } as unknown as RunDataResults;
 
-const getSearchParams = (item: HistorySearch[keyof HistorySearch]) => {
-	const to = item.to;
-
-	if (typeof to === 'string') {
-		const [, search = ''] = to.split('?');
-		return new URLSearchParams(search);
-	}
-
-	return new URLSearchParams(to.search ?? '');
-};
+const getSearchParams = (item: HistorySearch[keyof HistorySearch]) =>
+	new URLSearchParams(stringifySearch(item.search));
 
 describe('getHistorySearch', () => {
 	beforeEach(() => {

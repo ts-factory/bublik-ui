@@ -20,7 +20,7 @@ import {
 	Separator,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 interface RunReportConfigLinkProps
 	extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
@@ -37,7 +37,7 @@ const RunReportConfigLink = forwardRef(function RunReportConfigLink(
 	ref: Ref<HTMLAnchorElement>
 ) {
 	return (
-		<TypedLinkWithProject
+		<LinkWithProject
 			ref={ref}
 			{...props}
 			to="/runs/$runId/report"

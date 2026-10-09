@@ -23,7 +23,7 @@ import {
 	Separator,
 	TableNode
 } from '@/shared/tailwind-ui';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { getTreeNode } from '@/bublik/run-utils';
 import {
 	HistorySearchBuilder,
@@ -101,7 +101,7 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 				<DropdownMenuLabel>Open Direct Search</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<TypedLinkWithProject
+					<LinkWithProject
 						to="/history"
 						search={historySearchOfRuns}
 						className="pl-2"
@@ -118,7 +118,7 @@ function HistoryRunLinksDropdownMenu(props: HistoryRunLinksDropdownMenuProps) {
 							className="mr-2 text-primary"
 						/>
 						<span>History View Of Results In The Run</span>
-					</TypedLinkWithProject>
+					</LinkWithProject>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

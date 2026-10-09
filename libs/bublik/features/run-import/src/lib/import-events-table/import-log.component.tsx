@@ -29,7 +29,7 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { ImportJsonLog } from '@/shared/types';
+import { ImportJsonLog, LogPageMode } from '@/shared/types';
 import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
 import { config } from '@/bublik/config';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -40,8 +40,6 @@ import {
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
-
-import { routes } from '@/router';
 
 import { useImportTaskLogSearch } from './import-search.hooks';
 
@@ -338,13 +336,18 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.log({ runId })} target="_blank">
+				<LinkWithProject
+					to="/log/$runId"
+					params={{ runId }}
+					search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+					target="_blank"
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
 				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.run({ runId })} target="_blank">
+				<LinkWithProject to="/runs/$runId" params={{ runId }} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</LinkWithProject>

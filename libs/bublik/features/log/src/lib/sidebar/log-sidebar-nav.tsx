@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -26,7 +26,7 @@ export function LogSidebarNav() {
 				<SidebarNavLinkWrapper label="Log">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 						disabled={!isAvailable}
 					>
 						<SidebarNavInternalLink.Icon name="Paper" size={28} />
@@ -48,7 +48,7 @@ export function LogSidebarNav() {
 						defaultMode: 'log'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeaderSidebar" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -65,7 +65,7 @@ export function LogSidebarNav() {
 						mode: 'treeAndlog'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSidebar" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -82,7 +82,7 @@ export function LogSidebarNav() {
 						mode: 'infoAndlog'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeader" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -99,7 +99,7 @@ export function LogSidebarNav() {
 						mode: 'log'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSingle" />
 					<SidebarNavSubmenuItemContainer.Label>

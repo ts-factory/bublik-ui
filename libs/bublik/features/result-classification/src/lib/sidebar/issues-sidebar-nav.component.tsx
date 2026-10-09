@@ -3,7 +3,10 @@
 import { useEffect } from 'react';
 import { matchRoutePath, useRenderedLocation } from '@/router';
 
-import { LinkWithProject, useProjectSearch } from '@/bublik/features/projects';
+import {
+	RouterLinkWithProject,
+	useProjectSearch
+} from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -52,7 +55,7 @@ export function IssuesSidebarNav() {
 				<SidebarNavLinkWrapper label="Issues">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="IssueIcon" className="size-7" />
 						<SidebarNavInternalLink.Label>Issues</SidebarNavInternalLink.Label>
@@ -65,7 +68,7 @@ export function IssuesSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={listUrl}
 					pattern={LIST_PATTERN}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="IssueIcon"
@@ -86,7 +89,7 @@ export function IssuesSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={rulesUrl}
 					pattern={RULES_PATTERN}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="SettingsSliders"

@@ -4,7 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { LinkWithProject } from '@/bublik/features/projects';
 import { Tooltip } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import { formatTimeToDot, formatTimestampToFull } from '@/shared/utils';
 
 import { ISSUE_RULES_STATE_META } from '../classification/classification.constants';
@@ -195,7 +194,8 @@ export function getColumns(): ColumnDef<IssueTableRow, unknown>[] {
 			cell: ({ row }) => (
 				<Tooltip content={`Manage the rules behind ${row.original.title}`}>
 					<LinkWithProject
-						to={routes.issue({ issueId: row.original.id })}
+						to="/issues/$issueId"
+						params={{ issueId: row.original.id }}
 						className="block min-w-0 font-medium break-words text-text-primary hover:text-primary hover:underline"
 					>
 						{row.original.title}

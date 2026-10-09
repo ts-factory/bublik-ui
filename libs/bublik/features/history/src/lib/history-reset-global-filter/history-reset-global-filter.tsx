@@ -6,6 +6,7 @@ import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { useNavigateWithProject } from '@/bublik/features/projects';
+import { parseSearch } from '@/router';
 
 import {
 	DEFAULT_SEARCH_FORM_STATE,
@@ -41,10 +42,11 @@ export const HistoryResetGlobalFilterContainer = () => {
 		// `hide-sidebar` and the selected projects.
 		const nextSearchParams = new URLSearchParams({ ...historyAPIQuery, mode });
 		const searchString = nextSearchParams.toString();
-		navigateWithProject(
-			{ pathname: '/history', search: searchString ? `?${searchString}` : '' },
-			{ replace: true }
-		);
+		void navigateWithProject({
+			to: '/history',
+			search: parseSearch(searchString),
+			replace: true
+		});
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 	};
 

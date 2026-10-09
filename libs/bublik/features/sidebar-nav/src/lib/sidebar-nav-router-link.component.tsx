@@ -8,8 +8,7 @@ import {
 	type ReactNode
 } from 'react';
 
-import { resolveTo, RouterLink, useRenderedLocation, type To } from '@/router';
-
+import { resolveTo, RouterLink, type To, useRenderedLocation } from '@/router';
 interface SidebarNavRouterLinkProps {
 	to: To;
 	className?: string;
@@ -22,7 +21,7 @@ interface SidebarNavRouterLinkProps {
  * The link a nav item renders when it is given no `linkComponent`: a router
  * link, so the href carries the basepath (the plain `<a>` it
  * replaces did not). It does not carry the sidebar state or projects; the
- * feature navs pass `LinkWithProject` for that.
+ * feature navs pass `RouterLinkWithProject` for that.
  */
 const SidebarNavRouterLink = forwardRef<
 	HTMLAnchorElement,

@@ -15,6 +15,7 @@ import {
 } from '@/bublik/config';
 
 import { useNavigateWithProject } from '@/bublik/features/projects';
+import { parseSearch } from '@/router';
 
 import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import {
@@ -103,13 +104,11 @@ export const useHistoryRefresh = () => {
 			if (search) params.set(HISTORY_SEARCH_KEY, search);
 
 			const searchString = params.toString();
-			navigateWithProject(
-				{
-					pathname: '/history',
-					search: searchString ? `?${searchString}` : ''
-				},
-				{ replace: true }
-			);
+			void navigateWithProject({
+				to: '/history',
+				search: parseSearch(searchString),
+				replace: true
+			});
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
 		[dispatch, mode, pageSize, search, navigateWithProject, state]

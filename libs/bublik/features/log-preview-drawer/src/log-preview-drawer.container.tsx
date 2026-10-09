@@ -23,7 +23,6 @@ import {
 	RunRunning,
 	Separator
 } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import {
 	useGetLogJsonQuery,
 	useGetRunDetailsQuery,
@@ -41,7 +40,7 @@ import {
 	ApplyRulesButton,
 	ClassifyResultContainer
 } from '@/bublik/features/result-classification';
-import { RUN_STATUS } from '@/shared/types';
+import { LogPageMode, MeasurementsMode, RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
@@ -122,7 +121,12 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.log({ runId, focusId: resultId })}
+														to="/log/$runId"
+														params={{ runId }}
+														search={{
+															focusId: resultId || undefined,
+															mode: LogPageMode.TreeAndInfoAndLog
+														}}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -133,10 +137,11 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.run({
-															runId,
-															targetIterationId: resultId
-														})}
+														to="/runs/$runId"
+														params={{ runId }}
+														search={{
+															targetIterationId: resultId || undefined
+														}}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -147,7 +152,9 @@ function LogPreviewContainer(
 											{runId && measurementId ? (
 												<ButtonTw variant="secondary" size="xss" asChild>
 													<LinkWithProject
-														to={routes.measurements({ runId, resultId })}
+														to="/runs/$runId/results/$resultId/measurements"
+														params={{ runId, resultId }}
+														search={{ mode: MeasurementsMode.Default }}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />

@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import type { AnchorHTMLAttributes } from 'react';
+import type { HistoryState } from '@tanstack/react-router';
+
 import { cva } from '@/shared/tailwind-ui';
-import {
-	LinkWithProject,
-	type LinkWithProjectProps
-} from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 const linkStyles = cva({
 	base: [
@@ -14,18 +14,24 @@ const linkStyles = cva({
 	]
 });
 
-export interface SummaryBadgeProps extends LinkWithProjectProps {
+export interface SummaryBadgeProps
+	extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+	/** The run the badge opens. */
+	runId: number;
+	state?: HistoryState;
 	label: string;
 	count: number;
 	percentage?: number;
 }
 
 export const SummaryBadge = (props: SummaryBadgeProps) => {
-	const { label, count, percentage, className, ...rest } = props;
+	const { runId, label, count, percentage, className, ...rest } = props;
 	const percentageStr = percentage ? `${percentage}%` : '0%';
 
 	return (
 		<LinkWithProject
+			to="/runs/$runId"
+			params={{ runId }}
 			data-testid="run-summary-badge"
 			data-summary={label.toLowerCase()}
 			className={linkStyles({ className })}

@@ -12,8 +12,6 @@ import { getErrorMessage, useImportRunsMutation } from '@/services/bublik-api';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { ButtonTw, cn, Icon, toast, Tooltip } from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
-import { routes } from '@/router';
-
 import { useImportLog } from './import-log.component';
 import { StatusBadge } from './import-event-table.component';
 
@@ -77,7 +75,7 @@ function ActionsCell(props: ActionCellProps) {
 	return (
 		<div className="flex flex-col justify-center gap-1 w-fit">
 			{runId && (
-				<LinkWithProject to={routes.run({ runId })}>
+				<LinkWithProject to="/runs/$runId" params={{ runId }}>
 					<ButtonTw variant="secondary" size="xss" className="justify-start">
 						<Icon name="BoxArrowRight" size={20} className="mr-1.5" />
 						<span>Run</span>

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { isIdSegment, matchRoutePath, useRenderedLocation } from '@/router';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavInternalLink,
 	SidebarNavItem,
@@ -42,7 +42,7 @@ export function IssueSidebarNav() {
 			<SidebarNavLinkWrapper label="Issue">
 				<SidebarNavInternalLink
 					to={mainLinkUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 					disabled={!isAvailable}
 				>
 					<SidebarNavInternalLink.Icon name="Paper" />

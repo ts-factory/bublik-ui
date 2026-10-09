@@ -3,7 +3,7 @@
 import { linkOptions } from '@tanstack/react-router';
 
 import { Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -29,7 +29,7 @@ export function HelpSidebarNav() {
 				<SidebarNavLinkWrapper label="Help">
 					<SidebarNavInternalLink
 						to={HELP_FAQ.to}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="Bulb" size={28} />
 						<SidebarNavInternalLink.Label>Help</SidebarNavInternalLink.Label>
@@ -42,7 +42,7 @@ export function HelpSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={HELP_FAQ.to}
 					pattern={{ to: HELP_FAQ.to }}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<Icon name="InformationCircleQuestionMark" className="size-7" />
 					<SidebarNavSubmenuItemContainer.Label>

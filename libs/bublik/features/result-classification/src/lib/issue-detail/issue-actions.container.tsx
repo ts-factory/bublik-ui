@@ -6,7 +6,6 @@ import {
 } from '@/services/bublik-api';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { ButtonTw, Icon, Tooltip, cn, toast } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import type { IssueState } from '@/shared/types';
 import { LoginRequired } from '@/bublik/features/auth';
 
@@ -39,7 +38,8 @@ export function IssueLinkButton({ issueId, title }: IssueLinkButtonProps) {
 				className="justify-start whitespace-nowrap"
 			>
 				<LinkWithProject
-					to={routes.issue({ issueId })}
+					to="/issues/$issueId"
+					params={{ issueId }}
 					data-testid="issue-rules-link"
 				>
 					<Icon name="BoxArrowRight" size={16} className="mr-1" />

@@ -1,16 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { isValid, parseISO } from 'date-fns';
-import type { HistoryState } from '@tanstack/react-router';
+import { linkOptions, type HistoryState } from '@tanstack/react-router';
 
 import {
-	RunDetailsAPIResponse,
 	HistoryAPIQuery,
 	HistoryMode,
 	HistorySearchParams,
 	RESULT_PROPERTIES,
 	RUN_PROPERTIES,
-	RunDataResults
+	RunDataResults,
+	RunDetailsAPIResponse
 } from '@/shared/types';
 import {
 	config,
@@ -18,7 +18,12 @@ import {
 	DEFAULT_VERDICT_LOOKUP,
 	getDefaultHistoryDateRange
 } from '@/bublik/config';
-import { legacyStringifySearch, splitTo, type To } from '@/router';
+import {
+	legacyStringifySearch,
+	parseSearch,
+	splitTo,
+	type Wire
+} from '@/router';
 
 import { formatTimeToAPI } from './time';
 
@@ -56,8 +61,18 @@ export const buildQuery = (config: {
 	};
 };
 
-/** A history link: spread it into `LinkWithProject`. */
-export type HistoryLinkProps = { to: To; state: HistoryState };
+const HISTORY = linkOptions({ to: '/history' }).to;
+
+/**
+ * A history link: spread it into `LinkWithProject`. The query string is
+ * built by the legacy codec, so the search is its wire form, which the
+ * route's middlewares write back byte for byte.
+ */
+export type HistoryLinkProps = {
+	to: typeof HISTORY;
+	search: Wire;
+	state: HistoryState;
+};
 
 export type HistorySearch = {
 	testName: HistoryLinkProps;
@@ -171,14 +186,16 @@ interface GetToLocationOptions {
 	preview?: boolean;
 }
 
-function getToLocation(options: GetToLocationOptions): To {
+function getToLocation(
+	options: GetToLocationOptions
+): Pick<HistoryLinkProps, 'to' | 'search'> {
 	const { search, mode, preview } = options;
 
 	const searchParams = new URLSearchParams(legacyStringifySearch(search));
 	searchParams.set('mode', mode ?? 'linear');
 	if (preview) searchParams.set('fromRun', 'true');
 
-	return { pathname: '/history', search: searchParams.toString() };
+	return { to: HISTORY, search: parseSearch(searchParams.toString()) };
 }
 
 interface GetHistorySearchOutput {
@@ -257,7 +274,7 @@ function getLinkProps(
 		Object.entries(items).map(([key, search]) => [
 			key,
 			{
-				to: getToLocation({ search, ...options }),
+				...getToLocation({ search, ...options }),
 				state: { fromRun: options.preview }
 			}
 		])

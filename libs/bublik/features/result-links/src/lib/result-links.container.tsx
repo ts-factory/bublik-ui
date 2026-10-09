@@ -11,10 +11,9 @@ import { Icon } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-
 export interface ResultLinksProps {
 	runId: number;
 	resultId: number;
@@ -47,27 +46,27 @@ export const ResultLinks = (props: ResultLinksProps) => {
 			<ul className="flex flex-col items-start gap-3">
 				{showLinkToRun ? (
 					<li className="pl-2">
-						<TypedLinkWithProject
+						<LinkWithProject
 							className="flex items-center w-full gap-1"
 							to="/runs/$runId"
 							params={{ runId }}
-							// As `routes.run` wrote it: no key for a zero id
+							// No key for a zero id
 							search={{ targetIterationId: resultId || undefined }}
 							onClick={() => onLinkClick?.('run')}
 						>
 							<Icon name="Paper" className="size-5" />
 							Run {runId}
-						</TypedLinkWithProject>
+						</LinkWithProject>
 					</li>
 				) : null}
 				<li className="pl-2">
-					<TypedLinkWithProject
+					<LinkWithProject
 						className="flex items-center w-full gap-1"
 						onMouseEnter={onLogLinkMouseEnter}
 						onClick={() => onLinkClick?.('log')}
 						to="/log/$runId"
 						params={{ runId }}
-						// `routes.log`: the result focused, the full layout
+						// The result focused, the full layout
 						search={{
 							focusId: resultId || undefined,
 							mode: LogPageMode.TreeAndInfoAndLog
@@ -75,7 +74,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 					>
 						<Icon name="BoxArrowRight" className="grid place-items-center" />
 						Log
-					</TypedLinkWithProject>
+					</LinkWithProject>
 				</li>
 				<li className="pl-0.5">
 					<HistoryLinkContainer
@@ -87,18 +86,18 @@ export const ResultLinks = (props: ResultLinksProps) => {
 				</li>
 				{hasMeasurements && (
 					<li className="pl-2">
-						<TypedLinkWithProject
+						<LinkWithProject
 							className="flex items-center gap-1"
 							to="/runs/$runId/results/$resultId/measurements"
 							params={{ runId, resultId }}
-							// Written explicitly, as `routes.measurements` did
+							// The default mode written explicitly
 							search={{ mode: MeasurementsMode.Default }}
 							onMouseEnter={onMeasurementLinkMouseEnter}
 							onClick={() => onLinkClick?.('result')}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Result
-						</TypedLinkWithProject>
+						</LinkWithProject>
 					</li>
 				)}
 				<li className="pl-2">

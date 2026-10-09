@@ -3,15 +3,13 @@
 import { screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { routes } from '@/router';
 import { renderWithRouter } from '@/router/testing';
-import { MeasurementsMode } from '@/shared/types';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import { LinkToMeasurements, LinkToRun } from '@/bublik/features/log';
 import { getPacketViewerSearch } from '@/bublik/features/log-artifacts';
 import {
-	LinkWithProject,
-	TypedLinkWithProject
+	RouterLinkWithProject,
+	LinkWithProject
 } from '@/bublik/features/projects';
 
 import { logSearch } from '../../routes/-search/log.search';
@@ -52,9 +50,9 @@ describe('the log page links', () => {
 				<div data-testid="typed">
 					<LinkToRun runId={1} targetIterationId={7} />
 				</div>
-				<LinkWithProject
+				<RouterLinkWithProject
 					data-testid="string"
-					to={routes.run({ runId: '1', targetIterationId: 7 })}
+					to="/runs/1?targetIterationId=7"
 				/>
 			</>
 		);
@@ -85,13 +83,9 @@ describe('the log page links', () => {
 				<div data-testid="typed">
 					<LinkToMeasurements runId={1} resultId={7} state="default" />
 				</div>
-				<LinkWithProject
+				<RouterLinkWithProject
 					data-testid="string"
-					to={routes.measurements({
-						runId: 1,
-						resultId: '7',
-						mode: MeasurementsMode.Default
-					})}
+					to="/runs/1/results/7/measurements?mode=default"
 				/>
 			</>
 		);
@@ -123,7 +117,7 @@ describe('the log page links', () => {
 		'"View" opens a packet capture in the packet viewer %s',
 		async (_, data, runId, resultId, search) => {
 			await renderOnLogPage(
-				<TypedLinkWithProject
+				<LinkWithProject
 					data-testid="typed"
 					to="/tools/packet-viewer"
 					search={getPacketViewerSearch(

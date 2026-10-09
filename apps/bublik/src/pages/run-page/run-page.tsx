@@ -29,8 +29,7 @@ import {
 import { LogPageMode } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
-
+import { LinkWithProject } from '@/bublik/features/projects';
 const runRoute = getRouteApi('/_app/runs/$runId/');
 
 interface RunLinkProps {
@@ -41,7 +40,7 @@ interface RunLinkProps {
 function RunLogLink({ runId }: RunLinkProps) {
 	return (
 		<ButtonTw asChild variant="secondary" size="xss">
-			<TypedLinkWithProject
+			<LinkWithProject
 				to="/log/$runId"
 				params={{ runId }}
 				search={{ mode: LogPageMode.TreeAndInfoAndLog }}
@@ -53,7 +52,7 @@ function RunLogLink({ runId }: RunLinkProps) {
 			>
 				<Icon name="BoxArrowRight" className="mr-1.5" />
 				Log
-			</TypedLinkWithProject>
+			</LinkWithProject>
 		</ButtonTw>
 	);
 }

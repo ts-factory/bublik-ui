@@ -6,7 +6,6 @@ import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
 import { useRenderedLocation } from '@/router';
-import { linkOptions } from '@tanstack/react-router';
 
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
@@ -92,7 +91,7 @@ export const useAuth = () => {
 			// again over the dashboard. The effect above resets once the dashboard
 			// has rendered and the old page is unmounted.
 			resetOnArrival.current = true;
-			navigate(linkOptions({ to: '/dashboard' }).to);
+			void navigate({ to: '/dashboard' });
 		} catch {
 			toast.error('Failed to logout');
 		}

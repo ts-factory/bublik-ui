@@ -16,10 +16,8 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import {
 	LinkWithProject,
-	TypedLinkWithProject,
 	useNavigateWithProject
 } from '@/bublik/features/projects';
-import { routes } from '@/router';
 import { SummaryBadge } from '../runs-table/columns/column-summary/summary-badge';
 import { RUN_STATUS, RunsData } from '@/shared/types';
 import {
@@ -1410,7 +1408,7 @@ const RunHeaderCell = memo(function RunHeaderCell({
 				<div className="flex min-w-0 flex-1 overflow-y-auto flex-col gap-2 px-2 py-1.5">
 					<div className="flex items-center gap-2">
 						<ButtonTw asChild variant="secondary" size="xss">
-							<TypedLinkWithProject
+							<LinkWithProject
 								to="/runs/$runId"
 								params={{ runId: run.id }}
 								target="_blank"
@@ -1418,7 +1416,7 @@ const RunHeaderCell = memo(function RunHeaderCell({
 							>
 								<Icon name="BoxArrowRight" className="mr-1.5" />
 								Run
-							</TypedLinkWithProject>
+							</LinkWithProject>
 						</ButtonTw>
 						<span className="text-[0.75rem] font-medium leading-tight text-text-primary">
 							{formatTimestampToFull(run.start)}
@@ -1502,45 +1500,60 @@ function RunHealthBar({ stats }: { stats: RunsData['stats'] }) {
 }
 
 function RunSummaryBadges({ run }: { run: RunsProgressRun['run'] }) {
-	const to = routes.run({ runId: run.id });
 	const { stats } = run;
 	const navigate = useNavigateWithProject();
 
 	return (
 		<div className="flex shrink-0 flex-wrap items-center gap-1">
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				label="Total"
 				count={stats.tests_total}
 				percentage={stats.tests_total_plan_percent}
 				className="bg-badge-9"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				label="OK"
 				count={stats.tests_total_ok}
 				percentage={stats.tests_total_ok_percent}
 				className="bg-badge-3"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				state={{ openUnexpected: true }}
 				onContextMenu={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpectedResults: true }
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpected: true }
+						});
 					}
 				}}
 				onClick={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpectedResults: true }
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpected: true }
+						});
 					}
 				}}
 				label="NOK"
@@ -1907,11 +1920,13 @@ const ResultColumnValue = memo(function ResultColumnValue({
 		>
 			{isHovered && value !== 0 && !hideValue && (
 				<LinkWithProject
-					to={routes.run({
-						runId,
-						targetIterationId: resultId,
-						resultFilter: RUNS_PROGRESS_COL_TO_RUN_COLUMN_ID[column.id]
-					})}
+					to="/runs/$runId"
+					params={{ runId }}
+					search={{
+						targetIterationId: resultId || undefined,
+						resultFilter:
+							RUNS_PROGRESS_COL_TO_RUN_COLUMN_ID[column.id] || undefined
+					}}
 					target="_blank"
 					rel="noopener noreferrer"
 					onClick={(event) => event.stopPropagation()}

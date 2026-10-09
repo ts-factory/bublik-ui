@@ -9,12 +9,11 @@ import {
 	NewRuleButton
 } from '@/bublik/features/result-classification';
 import {
+	useNavigateWithProject,
 	useProjectSearch,
-	useTabTitleWithPrefix,
-	useNavigateWithProject
+	useTabTitleWithPrefix
 } from '@/bublik/features/projects';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { routes } from '@/router';
 import { useGetIssueQuery } from '@/services/bublik-api';
 
 const issueRoute = getRouteApi('/_app/issues/$issueId');
@@ -35,7 +34,7 @@ export const IssuePage = () => {
 				<IssueHeaderBar
 					issueId={issueId}
 					projectId={projectId}
-					onDeleted={() => navigate(routes.issues({}))}
+					onDeleted={() => navigate({ to: '/issues' })}
 				>
 					<CopyShortUrlButtonContainer />
 				</IssueHeaderBar>

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { matchRoutePath, useRenderedLocation } from '@/router';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -31,7 +31,7 @@ export function DashboardSidebarNav() {
 			<SidebarNavLinkWrapper label="Dashboard">
 				<SidebarNavInternalLink
 					to={mainLinkUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavInternalLink.Icon name="Category" />
 					<SidebarNavInternalLink.Label>Dashboard</SidebarNavInternalLink.Label>

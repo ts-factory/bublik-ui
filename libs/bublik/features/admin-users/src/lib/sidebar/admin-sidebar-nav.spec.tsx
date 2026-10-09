@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { LinkWithProjectProps } from '@/bublik/features/projects';
+import type { RouterLinkWithProjectProps } from '@/bublik/features/projects';
 import { joinTo, splitTarget } from '@/router';
 import { useAuth } from '@/bublik/features/auth';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
@@ -20,7 +20,7 @@ vi.mock('@/services/bublik-api', () => ({
 }));
 
 vi.mock('@/bublik/features/projects', () => ({
-	LinkWithProject: ({ to, children }: LinkWithProjectProps) => (
+	RouterLinkWithProject: ({ to, children }: RouterLinkWithProjectProps) => (
 		<a href={joinTo(splitTarget(to))}>{children}</a>
 	)
 }));

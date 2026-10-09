@@ -4,7 +4,6 @@ import { memo, useMemo, useState } from 'react';
 
 import { EChartsOption, Plot, chartStyles } from '@/shared/charts';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 import { Icon, cn } from '@/shared/tailwind-ui';
 
 const OK_COLOR = '#65cd84';
@@ -253,10 +252,9 @@ function SparklineHoverChart({
 						</div>
 						{active.resultId !== null ? (
 							<LinkWithProject
-								to={routes.run({
-									runId: active.runId,
-									targetIterationId: active.resultId
-								})}
+								to="/runs/$runId"
+								params={{ runId: active.runId }}
+								search={{ targetIterationId: active.resultId || undefined }}
 								className="inline-flex shrink-0 items-center gap-1 rounded bg-primary-wash px-1.5 py-1 font-medium text-primary hover:bg-primary hover:text-white"
 							>
 								<Icon name="BoxArrowRight" size={12} />

@@ -3,7 +3,7 @@
 import { ComponentProps, PropsWithChildren } from 'react';
 import { To } from '@/router';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import { cn, HoverCard, HoverCardProps, Icon } from '@/shared/tailwind-ui';
 
 type LinkItem = { label: string; to: To; state?: Record<string, unknown> };
@@ -67,7 +67,7 @@ type LinkItemProps = LinkItem;
 
 const LinkItem = ({ to, label, state }: LinkItemProps) => {
 	return (
-		<LinkWithProject
+		<RouterLinkWithProject
 			className="flex items-center justify-between gap-4 px-4 py-2 transition-all rounded text-text-secondary hover:text-primary hover:bg-primary-wash focus:bg-primary-wash focus:text-primary group"
 			to={to}
 			state={state}
@@ -78,6 +78,6 @@ const LinkItem = ({ to, label, state }: LinkItemProps) => {
 				name="ArrowShortTop"
 				className="rotate-90 text-text-menu group-hover:text-primary group-focus:text-primary"
 			/>
-		</LinkWithProject>
+		</RouterLinkWithProject>
 	);
 };

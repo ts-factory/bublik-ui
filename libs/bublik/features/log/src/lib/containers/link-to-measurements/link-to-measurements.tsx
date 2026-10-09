@@ -9,8 +9,7 @@ import {
 	useGetResultInfoQuery,
 	usePrefetchMeasurementsPage
 } from '@/services/bublik-api';
-import { TypedLinkWithProject } from '@/bublik/features/projects';
-
+import { LinkWithProject } from '@/bublik/features/projects';
 export interface LinkToMeasurementsProps {
 	focusId?: string | number | null;
 }
@@ -29,10 +28,10 @@ export const LinkToMeasurements = ({
 }: LinkToMeasurementsComponentProps) => {
 	return (
 		<ButtonTw asChild variant="secondary" size="xss" state={state}>
-			<TypedLinkWithProject
+			<LinkWithProject
 				to="/runs/$runId/results/$resultId/measurements"
 				params={{ runId, resultId }}
-				// Written explicitly, as `routes.measurements` did
+				// The default mode written explicitly
 				search={{ mode: MeasurementsMode.Default }}
 				onClick={() => {
 					trackEvent(analyticsEventNames.logLinkToMeasurementsClick, {
@@ -46,7 +45,7 @@ export const LinkToMeasurements = ({
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 				)}
 				Result
-			</TypedLinkWithProject>
+			</LinkWithProject>
 		</ButtonTw>
 	);
 };

@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { forwardRef, ReactNode } from 'react';
+import { screen } from '@testing-library/react';
 
+import { renderWithRouter } from '@/router/testing';
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import type { RunIssueRow } from '@/shared/types';
 
@@ -16,24 +16,6 @@ vi.mock('@/services/bublik-api', async (importOriginal) => ({
 	useGetRunDetailsQuery: () => ({ data: { project_id: 1 } }),
 	useGetRunIssuesQuery: () => issuesQuery.current
 }));
-
-vi.mock('@/bublik/features/projects', () => {
-	interface MockLinkProps {
-		to: string | { pathname?: string };
-		children: ReactNode;
-	}
-
-	return {
-		LinkWithProject: forwardRef<
-			HTMLAnchorElement,
-			MockLinkProps & Record<string, unknown>
-		>(({ to, children, ...props }, ref) => (
-			<a ref={ref} href={typeof to === 'string' ? to : to.pathname} {...props}>
-				{children}
-			</a>
-		))
-	};
-});
 
 // The icons do not resolve under vitest; any name gets a bare svg.
 vi.mock('@/icons', async (importOriginal) => {
@@ -56,8 +38,8 @@ const ISSUE: RunIssueRow = {
 	rules: []
 };
 
-function setup() {
-	render(
+async function setup() {
+	await renderWithRouter(
 		<TooltipProvider>
 			<RunIssuesButton runId={42} />
 		</TooltipProvider>
@@ -71,28 +53,28 @@ describe('RunIssuesButton', () => {
 		issuesQuery.current = {};
 	});
 
-	it('shows a loading button while the issues load', () => {
-		const button = setup();
+	it('shows a loading button while the issues load', async () => {
+		const button = await setup();
 
 		expect(button.tagName).toBe('BUTTON');
 		expect(button).toHaveTextContent('Issues');
 	});
 
-	it('is disabled when the run has no issues', () => {
+	it('is disabled when the run has no issues', async () => {
 		issuesQuery.current = { data: [] };
 
-		expect(setup()).toBeDisabled();
+		expect(await setup()).toBeDisabled();
 	});
 
-	it('is disabled when the issues fail to load', () => {
+	it('is disabled when the issues fail to load', async () => {
 		issuesQuery.current = { error: { status: 500 } };
 
-		expect(setup()).toBeDisabled();
+		expect(await setup()).toBeDisabled();
 	});
 
-	it('links to the run issues page when the run has issues', () => {
+	it('links to the run issues page when the run has issues', async () => {
 		issuesQuery.current = { data: [ISSUE] };
 
-		expect(setup()).toHaveAttribute('href', '/runs/42/issues');
+		expect(await setup()).toHaveAttribute('href', '/v2/runs/42/issues');
 	});
 });

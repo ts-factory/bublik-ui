@@ -1,4 +1,6 @@
-import { TypedLinkWithProject } from '@/bublik/features/projects';
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { LinkWithProject } from '@/bublik/features/projects';
 
 import { bublikAPI, GetLogAttachmentByType } from '@/services/bublik-api';
 import {
@@ -250,14 +252,14 @@ function PacketCaptureAttachment({
 					{hasValidUrl &&
 					data.view_type === 'bublik-tools/net-packet-analyzer' ? (
 						<DropdownMenuItem asChild className="pl-2">
-							<TypedLinkWithProject
+							<LinkWithProject
 								to="/tools/packet-viewer"
 								search={viewerSearch}
 								target="_blank"
 							>
 								<Icon name="EyeShow" size={20} className="mr-2" />
 								View
-							</TypedLinkWithProject>
+							</LinkWithProject>
 						</DropdownMenuItem>
 					) : (
 						<DropdownMenuItem disabled className="pl-2">

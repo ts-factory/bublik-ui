@@ -9,10 +9,9 @@ import {
 } from '@/services/bublik-api';
 import { ButtonTw, Icon, Tooltip } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { routes } from '@/router';
 
 export interface RunIssuesButtonProps {
-	runId: string | number;
+	runId: number;
 	/** Omit it and the run's own project is used, as `ApplyRulesButton` does. */
 	projectId?: number;
 }
@@ -83,7 +82,7 @@ export function RunIssuesButton({ runId, projectId }: RunIssuesButtonProps) {
 			size="xss"
 			data-testid="run-issues-button"
 		>
-			<LinkWithProject to={routes.runIssues({ runId })}>
+			<LinkWithProject to="/runs/$runId/issues" params={{ runId }}>
 				<Icon name="IssueIcon" className="size-5 mr-1.5" />
 				<span>Issues</span>
 			</LinkWithProject>

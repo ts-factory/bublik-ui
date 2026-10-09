@@ -6,8 +6,8 @@ import { useRouter } from '@tanstack/react-router';
 /**
  * The path of a chat thread, or of the bare chat page without one, built by
  * the router from the typed route (`/chat/{-$threadId}` has an optional
- * param, so `/chat` alone is no `to` of its own), for the untyped
- * `LinkWithProject` and `useNavigateWithProject`. Basepath-free.
+ * param, so `/chat` alone is no `to` of its own), for the sidebar's
+ * remembered-URL link (`RouterLinkWithProject`). Basepath-free.
  */
 function useChatPath(): (threadId?: string) => string {
 	const router = useRouter();

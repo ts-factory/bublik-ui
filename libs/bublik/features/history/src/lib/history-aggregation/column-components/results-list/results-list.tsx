@@ -1,6 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { RESULT_TYPE, ResultData, ResultDataArrayObj } from '@/shared/types';
+import {
+	LogPageMode,
+	RESULT_TYPE,
+	ResultData,
+	ResultDataArrayObj
+} from '@/shared/types';
 import {
 	badgeBaseStyles,
 	BadgeListItem,
@@ -11,7 +16,6 @@ import {
 	VerdictResult,
 	VerdictVariant
 } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
 
 import { AggregationTooltip } from '../aggregation-tooltip';
@@ -25,11 +29,6 @@ export const LinkList = ({ results }: LinkListProps) => {
 	return (
 		<div className="flex flex-wrap gap-1">
 			{results.map((resultData, idx) => {
-				const to = routes.log({
-					runId: resultData.run_id,
-					focusId: resultData.result_id
-				});
-
 				return (
 					<AggregationTooltip
 						key={resultData.result_id}
@@ -38,7 +37,12 @@ export const LinkList = ({ results }: LinkListProps) => {
 						startDate={resultData.start_date}
 					>
 						<LinkWithProject
-							to={to}
+							to="/log/$runId"
+							params={{ runId: resultData.run_id }}
+							search={{
+								focusId: resultData.result_id || undefined,
+								mode: LogPageMode.TreeAndInfoAndLog
+							}}
 							className={cn(
 								badgeBaseStyles(),
 								badgeVariantStyles({

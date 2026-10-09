@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { linkOptions } from '@tanstack/react-router';
-
 import { HoverCard, useSidebar, Tooltip, Icon, cn } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
@@ -12,8 +10,6 @@ import {
 
 const versionClassName =
 	'ml-1 inline-flex translate-y-px items-center text-xs font-medium leading-none text-text-menu';
-
-const DASHBOARD = linkOptions({ to: '/dashboard' }).to;
 
 export const SidebarLogoButton = () => {
 	const { isSidebarOpen, toggleSidebar } = useSidebar();
@@ -44,7 +40,7 @@ export const SidebarLogoButton = () => {
 			</Tooltip>
 			<LinkWithProject
 				className="text-[1.375rem] font-bold self-stretch ml-0.5 flex items-center rounded-[0.625rem] hover:bg-primary-wash transition-all px-1"
-				to={DASHBOARD}
+				to="/dashboard"
 			>
 				<span className="text-[1.375rem] leading-[0.75rem]">Bublik</span>
 			</LinkWithProject>
