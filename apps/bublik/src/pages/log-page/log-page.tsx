@@ -1,17 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo, useState } from 'react';
-import { Navigate, useSearchParams } from '@/router';
+import { useEffect, useState } from 'react';
+import { getRouteApi } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { LogPageMode } from '@/shared/types';
 import { usePrefetchLogPage, usePrefetchRun } from '@/services/bublik-api';
 import { CardHeader, RunModeToggle } from '@/shared/tailwind-ui';
-import { LogFeature, useLogPage } from '@/bublik/features/log';
+import { LogFeature, useLogSearchWriter } from '@/bublik/features/log';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+
+const routeApi = getRouteApi('/_app/log/$runId/');
 
 export interface LogHeaderProps {
 	runId: string;
@@ -49,28 +51,33 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	);
 };
 
+/**
+ * The "prefer legacy log" preference: a link that names no renderer is
+ * pushed to `legacy=true`, the deprecated `experimental` dropped, the hash
+ * and `location.state` dropped, as React Router's `<Navigate>` did. A link
+ * that names one (`legacy=false` included) is left alone.
+ */
 export const useLegacyLogRedirect = () => {
-	const [searchParams] = useSearchParams();
+	const { legacy } = routeApi.useSearch();
 	const { userPreferences } = useUserPreferences();
+	const writeLogSearch = useLogSearchWriter();
 
-	const shouldRedirect = !!(
-		userPreferences.log.preferLegacyLog && !searchParams.get('legacy')
-	);
+	const shouldRedirect =
+		userPreferences.log.preferLegacyLog && legacy === undefined;
 
-	const redirectLocation = useMemo(() => {
-		const nextParams = new URLSearchParams(searchParams);
-		nextParams.set('legacy', 'true');
-		nextParams.delete('experimental');
+	useEffect(() => {
+		if (!shouldRedirect) return;
 
-		return { search: nextParams.toString() };
-	}, [searchParams]);
+		writeLogSearch({ legacy: true, experimental: undefined });
+	}, [shouldRedirect, writeLogSearch]);
 
-	return { shouldRedirect, location: redirectLocation };
+	return { shouldRedirect };
 };
 
 export const LogPage = () => {
-	const { runId, mode } = useLogPage();
-	const { location, shouldRedirect } = useLegacyLogRedirect();
+	const { runId } = routeApi.useParams();
+	const { mode } = routeApi.useSearch();
+	const { shouldRedirect } = useLegacyLogRedirect();
 
 	usePrefetchLogPage({ runId });
 	usePrefetchRun({ runId });
@@ -85,7 +92,7 @@ export const LogPage = () => {
 		return <BublikEmptyState title="No data" description="Run ID is missing" />;
 	}
 
-	if (shouldRedirect) return <Navigate to={location} />;
+	if (shouldRedirect) return null;
 
 	return (
 		<div

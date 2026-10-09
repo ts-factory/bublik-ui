@@ -1,107 +1,77 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
-import { useParams, useSearchParams } from '@/router';
 
 import { toast } from '@/shared/tailwind-ui';
-import { LogPageParams } from '@/shared/types';
+
+import { useLogRunId, useLogSearch, useLogSearchWriter } from './log-search';
 
 export { useAllPagesMemory } from './all-pages-memory';
+export { useLogSearch, useLogSearchWriter } from './log-search';
+export type { LogSearch, LogSearchChanges } from './log-search';
 
-const EXPERIMENTAL_KEY = 'experimental';
-const LEGACY_KEY = 'legacy';
-const FOCUS_ID_KEY = 'focusId';
-const LINE_NUMBER_KEY = 'lineNumber';
-const MODE_KEY = 'mode';
-const PAGE_KEY = 'page';
-
+/**
+ * The renderer (`legacy`, or the deprecated `experimental=false`) and its
+ * toggle, a push that writes `legacy=true|false` and drops `experimental`.
+ */
 export const useIsLogLegacy = () => {
-	const [searchParams, setSearchParams] = useSearchParams();
-
-	const isLegacyLog =
-		searchParams.get(LEGACY_KEY) === 'true' ||
-		searchParams.get(EXPERIMENTAL_KEY) === 'false';
+	const { isLegacyLog } = useLogSearch();
+	const writeLogSearch = useLogSearchWriter();
 
 	const toggleLog = () => {
-		const params = new URLSearchParams(searchParams);
-
-		if (
-			searchParams.get(LEGACY_KEY) === 'true' ||
-			searchParams.get(EXPERIMENTAL_KEY) === 'false'
-		) {
-			params.delete(EXPERIMENTAL_KEY);
-			params.set(LEGACY_KEY, 'false');
-		} else {
-			params.delete(EXPERIMENTAL_KEY);
-			params.set(LEGACY_KEY, 'true');
-		}
-
-		setSearchParams(params);
+		writeLogSearch({ experimental: undefined, legacy: !isLegacyLog });
 	};
 
 	return { isLegacyLog, toggleLog } as const;
 };
 
+/**
+ * The log page's search, shared by the main app and the standalone log
+ * viewer. Every write is a push, so Back walks across focus changes.
+ */
 export const useLogPage = () => {
-	const { runId } = useParams<LogPageParams>();
-	const [searchParams, setSearchParams] = useSearchParams();
-	const maybeFocusId = searchParams.get(FOCUS_ID_KEY);
-	const lineNumber = searchParams.get(LINE_NUMBER_KEY);
-	const focusId = maybeFocusId ? parseInt(maybeFocusId) : null;
+	const runId = useLogRunId();
+	const { focusId, lineNumber, mode, page } = useLogSearch();
+	const writeLogSearch = useLogSearchWriter();
 	const isShowingRunLog = !focusId;
-	const mode = searchParams.get(MODE_KEY);
-	const page = searchParams.get(PAGE_KEY);
 
 	const showRunLog = useCallback(() => {
-		setSearchParams((params) => {
-			params.delete(FOCUS_ID_KEY);
-			params.delete(LINE_NUMBER_KEY);
-			params.delete(PAGE_KEY);
-
-			return params;
+		writeLogSearch({
+			focusId: undefined,
+			lineNumber: undefined,
+			page: undefined
 		});
-	}, [setSearchParams]);
+	}, [writeLogSearch]);
 
 	const setLineNumber = useCallback(
 		(lineNumber: string) => {
-			setSearchParams((params) => {
-				params.set(LINE_NUMBER_KEY, lineNumber);
-
-				return params;
-			});
+			writeLogSearch({ lineNumber });
 
 			toast.success(`Saved location at line ${lineNumber.split('_')[1]}`);
 		},
-		[setSearchParams]
+		[writeLogSearch]
 	);
 
 	const setFocusId = useCallback(
 		(focusId: string | number) => {
-			setSearchParams((params) => {
-				params.set(FOCUS_ID_KEY, focusId.toString());
-				params.delete(LINE_NUMBER_KEY);
-				params.delete(PAGE_KEY);
-
-				return params;
+			writeLogSearch({
+				focusId: focusId.toString(),
+				lineNumber: undefined,
+				page: undefined
 			});
 		},
-		[setSearchParams]
+		[writeLogSearch]
 	);
 
+	// Page one is never written: the publisher only suffixes pages above it.
 	const setPage = useCallback(
 		(page: number | string) => {
-			setSearchParams((params) => {
-				if (Number(page) === 1) {
-					params.delete(PAGE_KEY);
-				} else {
-					params.set(PAGE_KEY, page.toString());
-				}
-
-				params.delete(LINE_NUMBER_KEY);
-				return params;
+			writeLogSearch({
+				page: Number(page) === 1 ? undefined : page.toString(),
+				lineNumber: undefined
 			});
 		},
-		[setSearchParams]
+		[writeLogSearch]
 	);
 
 	return {

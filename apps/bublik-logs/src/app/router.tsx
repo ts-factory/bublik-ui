@@ -7,7 +7,12 @@ import {
 	type RouterHistory
 } from '@tanstack/react-router';
 
-import { createSearchCodec, defineSearch, str } from '@/router';
+import {
+	createSearchCodec,
+	defineSearch,
+	str,
+	type InferSearch
+} from '@/router';
 
 import { LogViewer } from './log-viewer';
 
@@ -19,6 +24,8 @@ import { LogViewer } from './log-viewer';
  * other key (`lineNumber`, `mode`, …) passes through untouched.
  */
 const logViewerSearch = defineSearch({ focusId: str(), page: str() });
+
+type LogViewerSearch = InferSearch<typeof logViewerSearch>;
 
 const rootRoute = createRootRoute();
 
@@ -53,13 +60,16 @@ function createLogViewerRouter(history?: RouterHistory) {
 	});
 }
 
+/**
+ * Not registered with `declare module '@tanstack/react-router'`: this program
+ * also compiles the main app's feature libs (the log tree and its hooks, and
+ * everything they import), whose typed links and route APIs name the main
+ * app's routes. Registered, this one-route tree would reject them; left
+ * unregistered, they widen as they do when a lib is type-checked on its own,
+ * and the main app's typecheck is their gate. The viewer's own
+ * code is typed through `getRouteApi<'/', LogViewerRouter>`.
+ */
 type LogViewerRouter = ReturnType<typeof createLogViewerRouter>;
 
-declare module '@tanstack/react-router' {
-	interface Register {
-		router: LogViewerRouter;
-	}
-}
-
 export { createLogViewerRouter };
-export type { LogViewerRouter };
+export type { LogViewerRouter, LogViewerSearch };
