@@ -1,11 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { act, screen } from '@testing-library/react';
+import { getRouteApi } from '@tanstack/react-router';
 import { describe, expect, it } from 'vitest';
 
 import '../lib/history-state';
 
 import { useLocation } from '../lib/compat/navigation';
+import { bool01, num } from '../lib/search/codecs';
+import { defineSearch } from '../lib/search/define-search';
 import { writeSearch } from '../lib/search/use-search-writer';
 import { renderHookWithRouter, renderWithRouter } from './render-with-router';
 
@@ -110,5 +113,54 @@ describe('renderHookWithRouter', () => {
 
 		rerender({ label: 'b' });
 		expect(result.current.label).toBe('b');
+	});
+});
+
+describe('the route option', () => {
+	const reportSearch = defineSearch({ config: num(), isFullMode: bool01() });
+	const reportRoute = getRouteApi('/_app/runs/$runId/report');
+
+	function ShowReportRoute() {
+		const { runId } = reportRoute.useParams() as { runId: string };
+		const search = reportRoute.useSearch() as Record<string, unknown>;
+
+		return <output>{JSON.stringify({ runId, search })}</output>;
+	}
+
+	it('renders the page in a route of that id, with its params and typed search', async () => {
+		await renderWithRouter(<ShowReportRoute />, {
+			route: { id: '/_app/runs/$runId/report', search: reportSearch },
+			path: '/runs/7/report',
+			search: '?config=11&isFullMode=0&project=3'
+		});
+
+		expect(JSON.parse(screen.getByRole('status').textContent ?? '')).toEqual({
+			runId: '7',
+			search: { config: 11, isFullMode: false, project: [3] }
+		});
+	});
+
+	it("serializes typed writes of the route's keys through its middleware", async () => {
+		const { router } = await renderWithRouter(<ShowReportRoute />, {
+			route: { id: '/_app/runs/$runId/report', search: reportSearch },
+			path: '/runs/7/report',
+			search: '?config=11'
+		});
+
+		await act(async () => writeSearch(router, { isFullMode: false }));
+
+		expect(router.history.location.href).toBe(
+			'/v2/runs/7/report?config=11&isFullMode=0'
+		);
+	});
+
+	it('still renders the page on any other path', async () => {
+		await renderWithRouter(<ShowLocation />, {
+			route: { id: '/_app/runs/$runId/report', search: reportSearch },
+			path: '/dashboard',
+			search: '?mode=rows'
+		});
+
+		expect(screen.getByRole('status').textContent).toBe('/dashboard?mode=rows');
 	});
 });
