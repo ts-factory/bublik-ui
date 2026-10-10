@@ -11,6 +11,10 @@ import {
 	RunTableContainer
 } from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
+import {
+	ApplyRulesButton,
+	RunIssuesButton
+} from '@/bublik/features/result-classification';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { routes } from '@/router';
@@ -20,7 +24,8 @@ import {
 	CardHeader,
 	Icon,
 	RunModeToggle,
-	ScrollToTopPage
+	ScrollToTopPage,
+	Separator
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
 import { RunReportConfigsContainer } from '@/bublik/features/run-report';
@@ -54,7 +59,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 						isFullMode={isModeFull}
 						onToggleClick={handleModeToggle}
 					/>
-					<DefineCompromiseContainer runId={runId} />
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
 					<RunReportConfigsContainer runId={runId} />
 					<LinkToSourceContainer runId={runId} />
@@ -71,7 +76,12 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 							Log
 						</LinkWithProject>
 					</ButtonTw>
+					<Separator orientation="vertical" className="h-5 self-center" />
+					<DefineCompromiseContainer runId={runId} />
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
+					<RunIssuesButton runId={runId} />
+					<ApplyRulesButton runId={runId} />
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>

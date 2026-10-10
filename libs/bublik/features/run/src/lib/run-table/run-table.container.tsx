@@ -30,6 +30,7 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 
 	const {
 		data: runTableResponse,
+		currentData,
 		isLoading,
 		error,
 		isFetching
@@ -123,7 +124,10 @@ export const RunTableContainer = ({ runId }: RunTableContainerProps) => {
 				defaultColumnOrder={defaultColumnOrder}
 				onColumnOrderChange={setColumnOrder}
 				onColumnVisibilityChange={setColumnVisibility}
-				isFetching={isFetching}
+				// Dimmed only while the requirements change. The background refetch
+				// after a classify updates the counts in place; the expanded result
+				// table dims on its own.
+				isFetching={isFetching && !currentData}
 				targetIterationId={targetIterationId}
 				resultColumnId={resultColumnId}
 			/>

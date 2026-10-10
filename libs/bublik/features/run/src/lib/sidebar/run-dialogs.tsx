@@ -48,6 +48,28 @@ export function RunReportDialog() {
 	);
 }
 
+export function RunIssuesDialog() {
+	return (
+		<InstructionDialog
+			dialogTitle="Issues"
+			dialogDescription="Issues lists every classified failure in a run. It is available only once at least one result in the run carries a classification stamp."
+			steps={[
+				{
+					title: 'Go to the Run Details page',
+					description: 'Visit the Run Details page to view the run details.',
+					image: runSidebar
+				},
+				{
+					title: 'Classify a failing result',
+					description:
+						'Use the Classify action on a failing result, or press "Apply rules" on the Issues page to stamp this run with the already active rules. Creating a rule does not classify existing runs on its own.',
+					image: runSidebar
+				}
+			]}
+		/>
+	);
+}
+
 export function RunMainDialog() {
 	return (
 		<InstructionDialog

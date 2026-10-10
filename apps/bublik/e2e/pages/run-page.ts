@@ -3,7 +3,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 
 import { exactText } from '../support/e2e-data';
+import { applyRulesWith } from '../support/classification';
 import { UrlParams, urlParams } from '../support/url-params';
+import { ClassifyDrawer } from './classify-drawer';
 
 type ResultColumn =
 	| 'obtained-result'
@@ -16,7 +18,9 @@ type ResultFilterTitle =
 	| 'Result Type'
 	| 'Verdicts'
 	| 'Artifacts'
-	| 'Parameters';
+	| 'Parameters'
+	| 'Category'
+	| 'Classification';
 
 interface DiscriminatingResultBadge {
 	column: ResultColumn;
@@ -319,6 +323,159 @@ class RunPage {
 			.getByTestId('tw-badge');
 	}
 
+	/** The Classify button on a result's line; only failed or stamped results carry one. */
+	classifyTrigger(table: Locator, index = 0): Locator {
+		return this.resultCells(table, 'obtained-result')
+			.nth(index)
+			.getByTestId('classify-trigger');
+	}
+
+	async resultIdOf(table: Locator, index = 0): Promise<number> {
+		const trigger = this.classifyTrigger(table, index);
+		await expect(trigger).toBeVisible({ timeout: 30_000 });
+
+		return Number(await trigger.getAttribute('data-result-id'));
+	}
+
+	/** The row of the result with this id in an open result table. */
+	async resultIndexOf(table: Locator, resultId: number): Promise<number> {
+		await expect(this.resultCellOf(table, resultId)).toHaveCount(1, {
+			timeout: 30_000
+		});
+
+		return this.resultCells(table, 'obtained-result').evaluateAll(
+			(cells, id) =>
+				cells.findIndex((cell) =>
+					cell.querySelector(
+						`[data-testid="classify-trigger"][data-result-id="${id}"]`
+					)
+				),
+			resultId
+		);
+	}
+
+	async openClassify(table: Locator, index = 0): Promise<ClassifyDrawer> {
+		await this.classifyTrigger(table, index).click();
+		const drawer = new ClassifyDrawer(this.page);
+		await drawer.expectOpen();
+
+		return drawer;
+	}
+
+	/** One stamp per issue under a result's verdicts; `display: contents`, so count them. */
+	resultStamps(table: Locator, index = 0): Locator {
+		return this.resultCells(table, 'obtained-result')
+			.nth(index)
+			.locator('[data-testid="result-issue-stamp"]');
+	}
+
+	stampKeyLink(stamp: Locator): Locator {
+		return stamp.getByTestId('issue-key-link');
+	}
+
+	stampCategoryBadge(stamp: Locator, label: string): Locator {
+		return stamp
+			.locator('[data-category]')
+			.filter({ hasText: exactText(label) });
+	}
+
+	async expectStampFor(
+		table: Locator,
+		index: number,
+		issueId: number
+	): Promise<void> {
+		// The stamp itself carries the issue id, so it is matched directly rather
+		// than through a descendant filter.
+		const stamp = this.resultCells(table, 'obtained-result')
+			.nth(index)
+			.locator(
+				`[data-testid="result-issue-stamp"][data-issue-id="${issueId}"]`
+			);
+		await expect(stamp).toHaveCount(1, { timeout: 30_000 });
+		await expect(this.stampKeyLink(stamp)).toBeVisible({ timeout: 15_000 });
+	}
+
+	/** The obtained-result cell of the result with this id, wherever it sits. */
+	resultCellOf(table: Locator, resultId: number): Locator {
+		return this.resultCells(table, 'obtained-result').filter({
+			has: this.page.locator(
+				`[data-testid="classify-trigger"][data-result-id="${resultId}"]`
+			)
+		});
+	}
+
+	async expectNoStampForResult(
+		table: Locator,
+		resultId: number,
+		issueId: number
+	): Promise<void> {
+		const cell = this.resultCellOf(table, resultId);
+		await expect(cell).toHaveCount(1, { timeout: 30_000 });
+		await expect(
+			cell.locator(
+				`[data-testid="result-issue-stamp"][data-issue-id="${issueId}"]`
+			)
+		).toHaveCount(0, { timeout: 30_000 });
+	}
+
+	async expectNoStampFor(
+		table: Locator,
+		index: number,
+		issueId: number
+	): Promise<void> {
+		await expect(
+			this.resultCells(table, 'obtained-result')
+				.nth(index)
+				.locator(
+					`[data-testid="result-issue-stamp"][data-issue-id="${issueId}"]`
+				)
+		).toHaveCount(0, { timeout: 30_000 });
+	}
+
+	/** Picks `label` in the result table's faceted filter titled `title`. */
+	async toggleResultFacetOption(
+		table: Locator,
+		title: ResultFilterTitle,
+		label: string
+	): Promise<void> {
+		await this.facetedFilter(table, title).click();
+		const option = this.page.getByRole('option', {
+			name: label,
+			exact: true
+		});
+		await expect(option).toBeVisible({ timeout: 15_000 });
+		await option.click();
+		await this.page.keyboard.press('Escape');
+		await expect(option).toBeHidden({ timeout: 15_000 });
+	}
+
+	/** The run header's link to its issues page. */
+	get issuesHeaderLink(): Locator {
+		return this.page
+			.getByRole('banner')
+			.getByRole('link', { name: 'Issues', exact: true });
+	}
+
+	get applyRulesButton(): Locator {
+		return this.page.getByRole('banner').getByTestId('apply-rules-button');
+	}
+
+	/** Applies the rules from the run header and resolves with the toast's wording. */
+	async applyRules(): Promise<string> {
+		return applyRulesWith(this.page, this.applyRulesButton);
+	}
+
+	/** The run submenu's Issues item in the sidebar, a link once the run has issues. */
+	runSidebarIssuesLink(runId: number): Locator {
+		return this.page
+			.getByRole('navigation')
+			.locator(`a[href*="/runs/${runId}/issues"]`);
+	}
+
+	get runSidebarIssueCount(): Locator {
+		return this.page.getByTestId('run-sidebar-issue-count');
+	}
+
 	async clickResultBadge(
 		table: Locator,
 		columnId: ResultColumn,
@@ -347,8 +504,12 @@ class RunPage {
 				);
 
 				return cells.map((cell) => {
+					// The Classify trigger shares the result's line but filters
+					// nothing, so it is not one of the badges to pick from.
 					const items = Array.from(
-						cell.querySelectorAll('[data-testid="tw-badge"], button')
+						cell.querySelectorAll(
+							'[data-testid="tw-badge"], button:not([data-testid="classify-trigger"])'
+						)
 					).map((item) => (item.textContent ?? '').trim());
 
 					if (which === 'result') return items.slice(0, 1);
@@ -455,6 +616,14 @@ class RunPage {
 		await expect(this.facetedFilter(table, 'Obtained Result')).toBeHidden({
 			timeout: 15_000
 		});
+	}
+
+	/** Shows the filter toolbar through the Filters toggle unless it is already up. */
+	async ensureToolbarVisible(table: Locator): Promise<void> {
+		if (await this.facetedFilter(table, 'Obtained Result').isVisible()) return;
+
+		await this.filtersToggle.first().click();
+		await this.expectToolbarVisible(table);
 	}
 
 	async expectFacetedFilterReports(

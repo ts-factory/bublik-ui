@@ -7,7 +7,8 @@ import {
 	HistoryAPIBackendQuerySchema,
 	HistoryDataAggregationAPIResponse,
 	HistoryLinearAPIResponse,
-	HistoryLinearAPIResponseSchema
+	HistoryLinearAPIResponseSchema,
+	IssueSearchOption
 } from '@/shared/types';
 
 import { BUBLIK_TAG } from '../types';
@@ -49,6 +50,25 @@ export const historyEndpoints = {
 				};
 			},
 			providesTags: () => configDependent(BUBLIK_TAG.HistoryData)
+		}),
+		/**
+		 * The issues classifying at least one result of a given test — the issue
+		 * filter's options, playing the same role `test_search_options` and
+		 * `params_search_options` play for theirs.
+		 *
+		 * `test_name` is required, not optional: the endpoint 400s without one,
+		 * which is why the filter only opens once a test has been chosen.
+		 */
+		getIssueSearchOptions: build.query<
+			IssueSearchOption[],
+			{ testName: string; project?: number }
+		>({
+			query: ({ testName, project }) => ({
+				url: withApiV2('/history/issue_search_options'),
+				params: prepareForSend({ test_name: testName, project }),
+				cache: 'no-cache'
+			}),
+			providesTags: () => [BUBLIK_TAG.HistoryData, BUBLIK_TAG.Issues]
 		}),
 		getHistoryAggregation: build.query<
 			HistoryDataAggregationAPIResponse,

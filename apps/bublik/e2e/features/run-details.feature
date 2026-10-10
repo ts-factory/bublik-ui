@@ -307,6 +307,63 @@ Feature: Run details
     Then the run page for that run is open
     And no unexpected filter is recorded in the URL
 
+  ####################################################################
+  # Classification
+  ####################################################################
+
+  # The classifiable run is a NOK run no other scenario asserts counts on, so
+  # stamping its failures as expected disturbs nothing else. Each scenario
+  # deletes the issue it created — stamps included — before it ends.
+
+  @run @issues @issues-write @needs-nok
+  Scenario: Classifying a failing result stamps it in the result table
+    Given I open the result table of a failing test of the fixture run
+    When I classify its first result as an expected known issue
+    Then the result carries a stamp for that issue with a Known badge
+    When I click the stamp's Known badge
+    Then the Category filter reports the known issue category
+    And the column filters are written to the URL
+    When I reset the result filters
+    And I pick Suppressed in the Classification filter
+    Then the Classification filter reports Suppressed and the result is still listed
+    When I delete the issue and come back to the result table
+    Then the stamp is gone and the Classify button remains
+
+  @run @issues @needs-nok
+  Scenario: The Classify drawer defaults to a new known issue for future runs
+    Given I open the result table of a failing test of the fixture run
+    When I open the Classify drawer of its first result
+    Then it proposes a new known issue, marked, for this and future runs, matching every dimension
+    When I choose the Path only preset
+    Then no match dimension is checked
+    When I check the Verdicts dimension
+    Then the preset reads Path + Verdicts
+    And I close the drawer
+
+  @run @issues @needs-nok
+  Scenario: The Classify drawer needs a title or an existing issue
+    Given I open the Classify drawer of a failing result of the fixture run
+    When I submit it without a title
+    Then I am told a title is required
+    When I switch to an existing issue and submit again
+    Then I am told to select an issue
+    And I close the drawer
+
+  @run @issues @issues-write @needs-nok
+  Scenario: A one-off classification stamps just this result
+    Given I record an issue for the fixture project
+    And I open the result table of a failing test of the fixture run
+    When I classify its first result against that issue for this result only
+    Then the result carries a stamp for that issue
+    And the issues page counts one result under the issue
+    And I delete the issue
+
+  @run @issues @needs-classification
+  Scenario: The run header links to the run's issues
+    Given I open the page of a run the seed classified
+    When I follow the Issues link in the header
+    Then the run's issues page is open
+
   # Runs without the shared signed-in storage state.
   @run @compromised @auth
   Scenario: Marking a run as compromised while signed out asks me to sign in
@@ -323,6 +380,17 @@ Feature: Run details
     Then adding a note is disabled with a hint to log in
     When I click it anyway
     Then I am asked to sign in to add notes
+    When I close the sign-in dialog
+    Then the sign-in dialog is closed
+    And I am still on the run page
+
+  @run @issues @auth @needs-nok
+  Scenario: Classifying while signed out asks me to sign in
+    Given I am signed out and open the result table of a failing test of the fixture run
+    Then the Classify action is disabled with a hint to log in
+    And the Apply Rules action in the header is disabled with a hint to log in
+    When I click the Classify action anyway
+    Then I am asked to sign in to classify results
     When I close the sign-in dialog
     Then the sign-in dialog is closed
     And I am still on the run page

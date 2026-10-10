@@ -8,12 +8,16 @@ import type {
 	DiscriminatingHistoryBadge,
 	HistoryMode
 } from './pages/history-page';
+import { IssuePage } from './pages/issue-page';
 import { ProjectPicker } from './pages/project-picker';
+import { RunPage } from './pages/run-page';
 import { requireCapability } from './support/capabilities';
+import { IssueCleanup } from './support/classification';
 import { badgeTextToPayload, projectIdByName } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
 import { requireManifest } from './support/manifest';
 import {
+	claimFailingResult,
 	firstHistoryTestPath,
 	historyBadgeCase,
 	historyDateRange,
@@ -21,6 +25,46 @@ import {
 	historyMeasurementTestPath,
 	historyProjectPair
 } from './support/sample-cases';
+import type { ClassifiableResult } from './support/sample-cases';
+
+const issueCleanup = new IssueCleanup('history');
+
+/**
+ * Stamps the failing result this scenario claimed under a fresh expected
+ * Known issue, from the run page, and reads the issue id back from the stamp.
+ */
+async function classifyFixtureResult(
+	page: Page,
+	request: APIRequestContext,
+	title: string
+): Promise<{ failing: ClassifiableResult; issueId: number }> {
+	const failing = await claimFailingResult(request, 'history stamped');
+	const runPage = new RunPage(page);
+
+	await runPage.goto(failing.run.runId);
+	await runPage.expectLoaded(failing.run.expectedRun.name);
+	const table = await runPage.openResultTableAt(
+		failing.path.slice(0, -1),
+		failing.testName
+	);
+	const drawer = await runPage.openClassify(
+		table,
+		await runPage.resultIndexOf(table, failing.resultId)
+	);
+	await drawer.fillNewIssue({ title });
+	await drawer.setCategory('Known');
+	await drawer.setDisposition('Expected');
+	await drawer.submit();
+
+	const stamp = runPage
+		.resultStamps(table, await runPage.resultIndexOf(table, failing.resultId))
+		.first();
+	await expect(stamp).toHaveCount(1, { timeout: 30_000 });
+	const issueId = Number(await stamp.getAttribute('data-issue-id'));
+	issueCleanup.register(issueId);
+
+	return { failing, issueId };
+}
 
 const HISTORY = { tag: ['@history'] };
 const HISTORY_SMOKE = { tag: ['@history', '@smoke'] };
@@ -75,6 +119,12 @@ function waitForHistoryResponse(page: Page, testPath?: string) {
 
 test.describe('History Page', () => {
 	test.setTimeout(60_000);
+
+	test.afterEach(async ({ request }, testInfo) => {
+		if (!testInfo.tags.includes('@issues-write')) return;
+
+		await issueCleanup.sweep(request);
+	});
 
 	test(
 		'Searching by test path queries the history API',
@@ -1846,6 +1896,112 @@ test.describe('History Page', () => {
 					await expect(form.tagExpressionInput).toHaveValue(link.tagExpr);
 				}
 			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Classification filters are written to the history URL and shown in the legend',
+		{ tag: ['@history', '@issues', '@url-params'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const form = historyPage.globalSearchForm;
+
+			await given('I open the history for a fixture test path', async () => {
+				await historyPage.gotoWithTestPath(firstHistoryTestPath(), dateRange());
+				await historyPage.expectReady();
+			});
+			await when(
+				'I tick Untriaged, Explained and the Known category in the search form and apply it',
+				async () => {
+					await historyPage.openGlobalSearchForm();
+					await form.triageCheckbox('Untriaged').click();
+					await form.triageCheckbox('Explained').click();
+					await form.categoryCheckbox('Known').click();
+					await form.applySearch();
+					await form.expectHidden();
+				}
+			);
+			await then(
+				'the triage state and the category are written to the URL',
+				() =>
+					historyPage.expectParams({
+						untriaged: 'true',
+						explained: 'true',
+						categories: 'known-issue'
+					})
+			);
+			await and('the legend shows them as filters', async () => {
+				await historyPage.expectLegendPill('Untriaged', 'Yes');
+				await historyPage.expectLegendPill('Explained', 'Yes');
+				await historyPage.expectLegendPill('Categories', 'Known');
+			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Filtering history by issue shows the stamped results',
+		{
+			tag: ['@history', '@issues', '@issues-write', '@needs-nok', '@url-params']
+		},
+		async ({ page, request }) => {
+			const historyPage = new HistoryPage(page);
+			const title = issueCleanup.title('stamped');
+			let failing!: ClassifiableResult;
+			let issueId = 0;
+
+			await given(
+				'I classify a failing result of the fixture run as an expected known issue',
+				async () => {
+					({ failing, issueId } = await classifyFixtureResult(
+						page,
+						request,
+						title
+					));
+				}
+			);
+			await when(
+				'I open the history of that test narrowed to the issue',
+				async () => {
+					await historyPage.gotoWithTestPath(failing.pathStr, {
+						...dateRange(),
+						issue: String(issueId),
+						mode: 'linear'
+					});
+					// Not `expectModeReady`: the linear view is a plain grid without a
+					// table role, so its readiness is the stamp the next step looks for.
+					await historyPage.expectReady();
+				}
+			);
+			await then('the results carry the issue’s stamp', () =>
+				historyPage.expectStampsFor(issueId)
+			);
+			await and('the legend names the issue', () =>
+				historyPage.expectLegendPill('Issue', `#${issueId}`)
+			);
+			await and('no Classify button is offered in the table', () =>
+				historyPage.expectNoClassifyButton()
+			);
+			await when("I click the stamp's Known badge", () =>
+				historyPage
+					.stampCategoryBadge(
+						historyPage.resultStamps(issueId).first(),
+						'Known'
+					)
+					.click()
+			);
+			await then(
+				'the category is written to the URL and the page is the first',
+				() => historyPage.expectParams({ categories: 'known-issue', page: '1' })
+			);
+			await and('I delete the issue from its page', async () => {
+				const issuePage = new IssuePage(page);
+				await issuePage.goto(issueId);
+				await issuePage.expectLoaded(title);
+				await issuePage.deleteIssue(title);
+				issueCleanup.forget(issueId);
+			});
 		}
 	);
 });

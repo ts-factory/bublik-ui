@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, Locator, Page } from '@playwright/test';
 
+import { pickIssueOption } from '../support/classification';
+
 type VerdictLookupMode = 'String' | 'Regex' | 'None';
 
 const VERDICT_LOOKUP_LABELS: Record<VerdictLookupMode, string> = {
@@ -241,6 +243,28 @@ class HistoryGlobalSearchForm {
 
 	resultClassificationCheckbox(label: string): Locator {
 		return this.root.getByRole('checkbox', { name: label, exact: true });
+	}
+
+	/** The Classification section's Untriaged / Explained boxes. */
+	triageCheckbox(label: 'Untriaged' | 'Explained'): Locator {
+		return this.resultClassificationCheckbox(label);
+	}
+
+	/** The Classification section's category boxes, by badge label (Known, Env, …). */
+	categoryCheckbox(label: string): Locator {
+		return this.resultClassificationCheckbox(label);
+	}
+
+	get issuePicker(): Locator {
+		return this.root.getByTestId('issue-picker-input');
+	}
+
+	async pickIssue(title: string): Promise<void> {
+		await pickIssueOption(
+			this.page,
+			this.issuePicker.locator('xpath=ancestor::div[2]'),
+			title
+		);
 	}
 
 	obtainedResultCheckbox(label: string): Locator {

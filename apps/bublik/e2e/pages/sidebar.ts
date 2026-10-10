@@ -69,6 +69,107 @@ class Sidebar {
 		await expect(this.page).toHaveURL(/\/admin\/users/);
 	}
 
+	/**
+	 * Expands the sidebar when it is collapsed. The toggle's `data-state` is
+	 * its tooltip's, not the sidebar's; the submenu toggles only render while
+	 * the sidebar is expanded, so their presence is what says it is.
+	 */
+	private async openSidebar(): Promise<void> {
+		const submenuToggles = this.page
+			.getByRole('navigation')
+			.getByRole('button', { name: 'Toggle submenu' });
+
+		if ((await submenuToggles.count()) > 0) return;
+
+		await this.sidebarToggle().click();
+		await expect(submenuToggles.first()).toBeVisible({ timeout: 15_000 });
+	}
+
+	/** The main Issues item; the submenu repeats the name, so take the first. */
+	private issuesLink(): Locator {
+		return this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: 'Issues', exact: true })
+			.first();
+	}
+
+	private issuesToggle(): Locator {
+		return this.issuesLink()
+			.locator(
+				'xpath=ancestor::div[.//button[@aria-label="Toggle submenu"]][1]'
+			)
+			.getByRole('button', { name: 'Toggle submenu' });
+	}
+
+	/** Follows the main Issues item, in-app, so the compressed sidebar state travels. */
+	async openIssuesList(): Promise<void> {
+		await this.openSidebar();
+		await this.issuesLink().click();
+		await expect(this.page).toHaveURL(/\/issues(?:$|\?)/, { timeout: 15_000 });
+	}
+
+	/**
+	 * Follows one of the Issues submenu's items. The submenu is already open on
+	 * most pages; the toggle is only clicked when the item is not showing.
+	 */
+	async openIssuesSubmenu(item: 'Issues' | 'Rules'): Promise<void> {
+		await this.openSidebar();
+
+		const links = this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: item, exact: true });
+		const link = item === 'Issues' ? links.last() : links.first();
+		// A folded submenu clips its list to zero height. The item keeps its
+		// own box, so it still reads as visible; the fold shows on the list's
+		// grid container, which carries `grid-rows-[1fr]` only while open.
+		const fold = link.locator(
+			'xpath=ancestor::div[contains(@class,"grid-rows-")][1]'
+		);
+		const isUnfolded = async () =>
+			((await fold.getAttribute('class')) ?? '').includes('grid-rows-[1fr]');
+
+		if (!(await isUnfolded())) {
+			await this.issuesToggle().click();
+		}
+
+		await expect.poll(isUnfolded, { timeout: 15_000 }).toBe(true);
+		await expect(link).toBeVisible({ timeout: 15_000 });
+		await link.click();
+		await expect(this.page).toHaveURL(
+			item === 'Issues' ? /\/issues(?:$|\?)/ : /\/issues\/rules/,
+			{ timeout: 15_000 }
+		);
+	}
+
+	/** Follows the Dashboard item, in-app, so the compressed sidebar state travels. */
+	async openDashboard(): Promise<void> {
+		await this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: 'Dashboard', exact: true })
+			.click();
+		await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
+	}
+
+	/** The Issue item: a link once an issue page was visited, a plain label before. */
+	issueLink(): Locator {
+		return this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: 'Issue', exact: true });
+	}
+
+	async expectIssueLinkDisabled(): Promise<void> {
+		await expect(this.issuesLink()).toBeVisible({ timeout: 30_000 });
+		await expect(this.issueLink()).toHaveCount(0);
+	}
+
+	async expectIssueLinkTo(issueId: number): Promise<void> {
+		await expect(this.issueLink()).toHaveAttribute(
+			'href',
+			new RegExp(`/issues/${issueId}(?:$|\\?)`),
+			{ timeout: 15_000 }
+		);
+	}
+
 	settingsDialog(): Locator {
 		return this.page.getByRole('dialog', { name: 'Settings' });
 	}

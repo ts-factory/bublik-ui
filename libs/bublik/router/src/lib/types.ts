@@ -32,3 +32,13 @@ export type LogConfig = {
 export type HistoryConfig = {
 	mode?: HistoryMode;
 };
+
+export type IssuesConfig = Record<string, never>;
+
+export type IssueConfig = {
+	issueId: number | string;
+};
+
+export type RunIssuesConfig = {
+	runId: number | string;
+};

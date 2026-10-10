@@ -75,6 +75,12 @@
         "mix": {
           "type": "string"
         },
+        "pinnedResults": {
+          "items": {
+            "$ref": "#/$defs/PinnedResult"
+          },
+          "type": "array"
+        },
         "project": {
           "type": "string"
         },
@@ -160,6 +166,282 @@
         "runUrlTemplate",
         "logUrlTemplate",
         "expectedRuns"
+      ],
+      "type": "object"
+    },
+    "ClassificationIssue": {
+      "additionalProperties": false,
+      "description": "An issue the plan declares. ``issueId`` is filled by --setup-classification.",
+      "properties": {
+        "close": {
+          "type": "boolean"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fixture": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "type": "string"
+        },
+        "issueId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "projectId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "projectName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "key",
+        "close"
+      ],
+      "type": "object"
+    },
+    "ClassificationManifest": {
+      "additionalProperties": false,
+      "description": "Everything the suite needs to drive and assert result classification.",
+      "properties": {
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ClassificationIssue"
+          },
+          "type": "array"
+        },
+        "pins": {
+          "items": {
+            "$ref": "#/$defs/ClassificationPin"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/ClassificationRule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "pins",
+        "issues",
+        "rules"
+      ],
+      "type": "object"
+    },
+    "ClassificationPin": {
+      "additionalProperties": false,
+      "description": "A pin, with the bundles it landed in split by import wave.",
+      "properties": {
+        "appliesTo": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "conclusions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fixture": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "iterations": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "seededIn": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "unexpected": {
+          "type": "boolean"
+        },
+        "verdicts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "fixture",
+        "test",
+        "status",
+        "unexpected",
+        "verdicts",
+        "iterations",
+        "conclusions",
+        "seededIn",
+        "appliesTo"
+      ],
+      "type": "object"
+    },
+    "ClassificationRule": {
+      "additionalProperties": false,
+      "description": "A rule the plan declares. ``ruleId`` is filled by --setup-classification.\n\n``match`` lists the matcher dimensions kept beyond the test, which is always\nmatched. An empty list is a test-only rule: it matches every iteration of\nthat test, in every run of the project.",
+      "properties": {
+        "active": {
+          "default": true,
+          "type": "boolean"
+        },
+        "category": {
+          "enum": [
+            "product-defect",
+            "test-bug",
+            "env",
+            "known-issue",
+            "flaky",
+            "to-investigate"
+          ],
+          "type": "string"
+        },
+        "classifiedResultIds": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string"
+        },
+        "match": {
+          "items": {
+            "enum": [
+              "parameters",
+              "verdicts",
+              "tags"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pin": {
+          "type": "string"
+        },
+        "ruleId": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "enum": [
+            "future",
+            "oneoff"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "issue",
+        "pin",
+        "category",
+        "expected",
+        "scope",
+        "match"
       ],
       "type": "object"
     },
@@ -618,6 +900,88 @@
       ],
       "type": "object"
     },
+    "PinnedResult": {
+      "additionalProperties": false,
+      "description": "One leaf a classification pin forced, as generated into a bundle.\n\nThe fixture tree is identical across every run of a fixture, so a pin\nresolves to the same test and parameters in every run it applies to. That is\nwhat lets a rule written against one run be asserted against another.",
+      "properties": {
+        "params": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "pathStr": {
+          "type": "string"
+        },
+        "pin": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PASSED",
+            "FAILED",
+            "SKIPPED",
+            "KILLED",
+            "CORED",
+            "FAKED",
+            "INCOMPLETE",
+            "EMPTY"
+          ],
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "tin": {
+          "type": "integer"
+        },
+        "unexpected": {
+          "type": "boolean"
+        },
+        "verdicts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "pin",
+        "test",
+        "tin",
+        "pathStr",
+        "params",
+        "status",
+        "unexpected",
+        "verdicts"
+      ],
+      "type": "object"
+    },
+    "Project": {
+      "additionalProperties": false,
+      "description": "A Bublik project the fixtures land in, as --setup-projects configures it.",
+      "properties": {
+        "fixtures": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "trackers": {
+          "items": {
+            "$ref": "#/$defs/Tracker"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "fixtures",
+        "trackers"
+      ],
+      "type": "object"
+    },
     "ReportConfig": {
       "additionalProperties": false,
       "description": "A UI report config bundled into the manifest. ``content`` is free-form.",
@@ -694,6 +1058,27 @@
         "name"
       ],
       "type": "object"
+    },
+    "Tracker": {
+      "additionalProperties": false,
+      "description": "An issue tracker, configured under ISSUES in a project's references config.\n\n``id`` is the TRACKER of a ``ref://TRACKER/KEY`` bug key; a key whose\ntracker is not configured in its project has no external link.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "uri"
+      ],
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -707,6 +1092,17 @@
         "$ref": "#/$defs/Bundle"
       },
       "type": "array"
+    },
+    "classification": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ClassificationManifest"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "configs": {
       "items": {
@@ -731,6 +1127,12 @@
     },
     "importUrl": {
       "type": "string"
+    },
+    "projects": {
+      "items": {
+        "$ref": "#/$defs/Project"
+      },
+      "type": "array"
     },
     "uiBaseUrl": {
       "type": "string"

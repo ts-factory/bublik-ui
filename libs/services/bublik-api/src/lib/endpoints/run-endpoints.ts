@@ -9,7 +9,7 @@ import {
 	RunDataResults,
 	ResultTableAPIQueryWithFilter,
 	ResultDetailsAPIResponse,
-	CompromisedTagsResponse,
+	IssueTrackersResponse,
 	RunDetailsAPIResponse,
 	CompromisedDeleteResponse,
 	CompromisedPostResponse,
@@ -305,14 +305,14 @@ export const runEndpoints = {
 			},
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
-		getCompromisedTags: build.query<
-			CompromisedTagsResponse,
-			{ projects?: number[] }
+		getIssueTrackers: build.query<
+			IssueTrackersResponse,
+			{ projectId?: number }
 		>({
-			query: (query) => ({
+			query: ({ projectId }) => ({
 				url: withApiV2('/outside_domains/issues'),
 				cache: 'no-cache',
-				params: { project: query.projects?.[0] }
+				params: { project: projectId }
 			}),
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),

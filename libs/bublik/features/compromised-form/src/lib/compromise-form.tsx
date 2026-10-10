@@ -15,7 +15,7 @@ import {
 	bublikAPI,
 	getErrorMessage,
 	useDeleteCompromisedStatusMutation,
-	useGetCompromisedTagsQuery,
+	useGetIssueTrackersQuery,
 	useGetRunDetailsQuery,
 	useMarkAsCompromisedMutation
 } from '@/services/bublik-api';
@@ -377,8 +377,8 @@ export const useRunCompromise = ({ runId }: UseCompromiseConfig) => {
 		data: refData,
 		isFetching: isRefsLoading,
 		isError: isRefError
-	} = useGetCompromisedTagsQuery(
-		details ? { projects: [details.project_id] } : skipToken
+	} = useGetIssueTrackersQuery(
+		details ? { projectId: details.project_id } : skipToken
 	);
 
 	const {

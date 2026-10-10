@@ -223,6 +223,31 @@ const HISTORY_URL_PARAMS = {
 		values: 'project id, repeatable',
 		whenAbsent: 'every project is queried',
 		writtenBy: 'the sidebar project picker; re-appended by every form write'
+	},
+	categories: {
+		sentAs: 'categories',
+		values: '`;`-joined issue category slugs',
+		whenAbsent: 'results of every category, classified or not',
+		writtenBy:
+			'the Category boxes of the global search form, and the category chip under a result'
+	},
+	untriaged: {
+		sentAs: 'untriaged',
+		values: 'true',
+		whenAbsent: 'triaged results are not excluded',
+		writtenBy: 'the Untriaged box of the global search form'
+	},
+	explained: {
+		sentAs: 'explained',
+		values: 'true',
+		whenAbsent: 'unclassified results are not excluded',
+		writtenBy: 'the Explained box of the global search form'
+	},
+	issue: {
+		sentAs: 'issue',
+		values: 'issue id',
+		whenAbsent: 'results are not narrowed to one issue',
+		writtenBy: 'the Issue picker of the global search form'
 	}
 } as const;
 
@@ -454,15 +479,31 @@ class HistoryPage {
 					)
 				);
 
+				const badgesOf = (root: Element) =>
+					Array.from(root.querySelectorAll('button[data-testid="tw-badge"]'));
+				const text = (badge: Element) => (badge.textContent ?? '').trim();
+				// Without verdict-list blocks (the grouped table's Results/Log
+				// column), a result badge is the one that shares its parent with
+				// the rest of its block; a verdict sits in a list of badges alone.
+				const isResult = (badge: Element) =>
+					Array.from(badge.parentElement?.children ?? []).some(
+						(sibling) => sibling.getAttribute('data-testid') !== 'tw-badge'
+					);
+
 				return cells.map((cell) => {
 					const blocks = Array.from(
 						cell.querySelectorAll('[data-testid="tw-verdict-list"]')
 					);
-					const groups = (blocks.length ? blocks : [cell]).map((block) =>
-						Array.from(
-							block.querySelectorAll('button[data-testid="tw-badge"]')
-						).map((badge) => (badge.textContent ?? '').trim())
-					);
+					const groups: string[][] = blocks.length
+						? blocks.map((block) => badgesOf(block).map(text))
+						: [];
+
+					if (!blocks.length) {
+						for (const badge of badgesOf(cell)) {
+							if (isResult(badge) || !groups.length) groups.push([]);
+							groups[groups.length - 1].push(text(badge));
+						}
+					}
 
 					if (which === 'result') {
 						return groups.flatMap((items) => items.slice(0, 1));
@@ -659,6 +700,55 @@ class HistoryPage {
 
 	async openNextPage(): Promise<void> {
 		await this.pagination.getByRole('button', { name: 'Next' }).click();
+	}
+
+	/**
+	 * The issue stamps under the obtained results; `display: contents`, so count
+	 * them. Scoped to the page rather than `table`: the linear view is a plain
+	 * grid with no table role.
+	 */
+	resultStamps(issueId?: number): Locator {
+		const selector =
+			issueId === undefined
+				? '[data-testid="result-issue-stamp"]'
+				: `[data-testid="result-issue-stamp"][data-issue-id="${issueId}"]`;
+
+		return this.root.locator(selector);
+	}
+
+	stampCategoryBadge(stamp: Locator, label: string): Locator {
+		return stamp
+			.locator('[data-category]')
+			.filter({ hasText: exactText(label) });
+	}
+
+	/** The filter legend pill labelled `label`, e.g. "Issue: #42". */
+	legendPill(label: string): Locator {
+		return this.root
+			.getByText(`${label}:`, { exact: true })
+			.locator('xpath=ancestor::div[2]');
+	}
+
+	async expectLegendPill(label: string, value: string): Promise<void> {
+		await expect(this.legendPill(label)).toContainText(value, {
+			timeout: 15_000
+		});
+	}
+
+	async expectStampsFor(issueId: number): Promise<void> {
+		await expect
+			.poll(() => this.resultStamps(issueId).count(), {
+				timeout: 30_000,
+				message: `results stamped with issue #${issueId}`
+			})
+			.toBeGreaterThan(0);
+		await expect(
+			this.resultStamps(issueId).first().getByTestId('issue-key-link')
+		).toBeVisible({ timeout: 15_000 });
+	}
+
+	async expectNoClassifyButton(): Promise<void> {
+		await expect(this.root.getByTestId('classify-trigger')).toHaveCount(0);
 	}
 
 	charts(): Locator {

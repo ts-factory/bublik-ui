@@ -1,30 +1,134 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { expect, test } from './support/test';
-import type { Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
 import { DashboardPage } from './pages/dashboard-page';
+import { IssuePage } from './pages/issue-page';
+import { IssuesPage } from './pages/issues-page';
 import { LogPage } from './pages/log-page';
 import { RunPage } from './pages/run-page';
 import type { DiscriminatingResultBadge } from './pages/run-page';
 import { RunsPage } from './pages/runs-page';
 import { HistoryPage } from './pages/history-page';
+import { IssueCleanup } from './support/classification';
 import {
 	firstResultNode,
 	importedRunId,
+	projectIdByName,
 	reportConfiguredImportedRun,
 	representativeImportedRun
 } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
 import { requireCapability } from './support/capabilities';
 import { requireManifest } from './support/manifest';
+import { seededClassification } from './support/seeded-classification';
 import {
 	artifactResultCase,
+	claimFailingResult,
+	classifiableRun,
+	classifiableTestPaths,
 	mutableRun,
 	representativeNokRun,
 	requirementResultCase
 } from './support/sample-cases';
-import type { ResultTableCase } from './support/sample-cases';
+import type {
+	ClassifiableRun,
+	ClassifiableTestPath,
+	ClassifyingScenario,
+	ResultTableCase
+} from './support/sample-cases';
+
+const issueCleanup = new IssueCleanup('run');
+
+function classifiable(): {
+	run: ClassifiableRun;
+	failing: ClassifiableTestPath;
+} {
+	const run = requireCapability(
+		classifiableRun(requireManifest()),
+		'Fixture manifest contains no second NOK run safe to classify.'
+	);
+	const failing = requireCapability(
+		classifiableTestPaths(run)[0],
+		'The classifiable run has no failing test with a verdict.'
+	);
+
+	return { run, failing };
+}
+
+/**
+ * A run the seed classified a result in. The write scenarios clean up their
+ * issues, so only a seeded run is sure to have an Issues link in its header.
+ */
+function seededRunWithIssues(): { runId: number; name: string } {
+	const bundle = requireCapability(
+		seededClassification(requireManifest()).rules[0]?.classifiedIn,
+		'the seeded classification has no rule that classified a result'
+	);
+
+	return {
+		runId: requireCapability(
+			bundle.runId,
+			`seeded bundle "${bundle.id}" has no run id`
+		),
+		name: requireCapability(
+			bundle.expectedRuns[0]?.name,
+			`seeded bundle "${bundle.id}" has no expected run`
+		)
+	};
+}
+
+/** The fixture run's page with the first failing test's result table open. */
+async function openClassifiableResultTable(
+	page: Page
+): Promise<{ runPage: RunPage; table: Locator; run: ClassifiableRun }> {
+	const { run, failing } = classifiable();
+	const runPage = new RunPage(page);
+
+	await runPage.goto(run.runId);
+	await runPage.expectLoaded(run.expectedRun.name);
+	const table = await runPage.openResultTableAt(
+		failing.path.slice(0, -1),
+		failing.testName
+	);
+
+	return { runPage, table, run };
+}
+
+/**
+ * The result table holding the failing result this scenario leased, so no
+ * other write scenario stamps the same result while it runs.
+ */
+async function openClaimedResultTable(
+	page: Page,
+	request: APIRequestContext,
+	scenario: ClassifyingScenario
+): Promise<{
+	runPage: RunPage;
+	table: Locator;
+	run: ClassifiableRun;
+	testName: string;
+	resultId: number;
+}> {
+	const failing = await claimFailingResult(request, scenario);
+	const runPage = new RunPage(page);
+
+	await runPage.goto(failing.run.runId);
+	await runPage.expectLoaded(failing.run.expectedRun.name);
+	const table = await runPage.openResultTableAt(
+		failing.path.slice(0, -1),
+		failing.testName
+	);
+
+	return {
+		runPage,
+		table,
+		run: failing.run,
+		testName: failing.testName,
+		resultId: failing.resultId
+	};
+}
 
 function nokRun() {
 	const representative = requireCapability(
@@ -103,6 +207,10 @@ function historyParams(url: string): URLSearchParams {
 
 test.describe('Run Details Page', () => {
 	test.afterEach(async ({ page }, testInfo) => {
+		if (testInfo.tags.includes('@issues-write')) {
+			await issueCleanup.sweep(page.request);
+		}
+
 		const cleanups: string[] = [];
 
 		if (testInfo.tags.includes('@compromised')) cleanups.push('compromised/');
@@ -1329,6 +1437,293 @@ test.describe('Run Details Page', () => {
 			);
 		}
 	);
+
+	test(
+		'Classifying a failing result stamps it in the result table',
+		{ tag: ['@run', '@issues', '@issues-write', '@needs-nok'] },
+		async ({ page, request }) => {
+			const title = issueCleanup.title('stamp');
+			let runPage!: RunPage;
+			let table!: Locator;
+			let run!: ClassifiableRun;
+			let issueId = 0;
+			let resultId = 0;
+			let testName = '';
+			const row = () => runPage.resultIndexOf(table, resultId);
+
+			await given(
+				'I open the result table of a failing test of the fixture run',
+				async () => {
+					({ runPage, table, run, testName, resultId } =
+						await openClaimedResultTable(page, request, 'run stamp'));
+				}
+			);
+			await when(
+				'I classify its first result as an expected known issue',
+				async () => {
+					const drawer = await runPage.openClassify(table, await row());
+					await drawer.fillNewIssue({ title });
+					await drawer.setCategory('Known');
+					await drawer.setDisposition('Expected');
+					await drawer.submit();
+				}
+			);
+			await then(
+				'the result carries a stamp for that issue with a Known badge',
+				async () => {
+					const stamp = runPage.resultStamps(table, await row()).first();
+					await expect(stamp).toHaveCount(1, { timeout: 30_000 });
+					issueId = Number(await stamp.getAttribute('data-issue-id'));
+					issueCleanup.register(
+						issueId,
+						(await projectIdByName(request, run.bundle.project)) ?? undefined
+					);
+					await runPage.expectStampFor(table, await row(), issueId);
+					await expect(
+						runPage.stampCategoryBadge(stamp, 'Known')
+					).toBeVisible();
+				}
+			);
+			await when("I click the stamp's Known badge", async () =>
+				runPage
+					.stampCategoryBadge(
+						runPage.resultStamps(table, await row()).first(),
+						'Known'
+					)
+					.click()
+			);
+			await then('the Category filter reports the known issue category', () =>
+				runPage.expectFacetedFilterReports(table, 'Category', 'Known issue')
+			);
+			await and('the column filters are written to the URL', () =>
+				runPage.expectColumnFiltersInUrl()
+			);
+			await when('I reset the result filters', () =>
+				runPage.resetResultFilters(table)
+			);
+			await and('I pick Suppressed in the Classification filter', async () => {
+				// Resetting hides the toolbar again; it is behind the Filters toggle.
+				await runPage.ensureToolbarVisible(table);
+				await runPage.toggleResultFacetOption(
+					table,
+					'Classification',
+					'Suppressed'
+				);
+			});
+			await then(
+				'the Classification filter reports Suppressed and the result is still listed',
+				async () => {
+					await runPage.expectFacetedFilterReports(
+						table,
+						'Classification',
+						'Suppressed'
+					);
+					await runPage.expectStampFor(table, await row(), issueId);
+				}
+			);
+			await when(
+				'I delete the issue and come back to the result table',
+				async () => {
+					const issuePage = new IssuePage(page);
+					await issuePage.goto(issueId);
+					await issuePage.expectLoaded(title);
+					await issuePage.deleteIssue(title);
+					issueCleanup.forget(issueId);
+					// By the result's own link rather than through the tree again:
+					// the Columns menu toggles, so a second pass would hide Total.
+					await runPage.gotoWithParams(run.runId, {
+						targetIterationId: String(resultId)
+					});
+					await runPage.expectLoaded(run.expectedRun.name);
+					table = runPage.resultTable(testName).first();
+					await expect(table).toBeVisible({ timeout: 60_000 });
+				}
+			);
+			await then(
+				'the stamp is gone and the Classify button remains',
+				async () => {
+					await runPage.expectNoStampForResult(table, resultId, issueId);
+					await expect(
+						runPage
+							.resultCellOf(table, resultId)
+							.getByTestId('classify-trigger')
+					).toBeVisible();
+				}
+			);
+		}
+	);
+
+	test(
+		'The Classify drawer defaults to a new known issue for future runs',
+		{ tag: ['@run', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			let runPage!: RunPage;
+			let table!: Locator;
+
+			await given(
+				'I open the result table of a failing test of the fixture run',
+				async () => {
+					({ runPage, table } = await openClassifiableResultTable(page));
+				}
+			);
+			const drawer = await when(
+				'I open the Classify drawer of its first result',
+				() => runPage.openClassify(table, 0)
+			);
+			await then(
+				'it proposes a new known issue, marked, for this and future runs, matching every dimension',
+				() => drawer.expectDefaults()
+			);
+			await when('I choose the Path only preset', () =>
+				drawer.choosePreset('Path only')
+			);
+			await then('no match dimension is checked', async () => {
+				await drawer.expectPreset('Path only');
+				await drawer.expectFlags({
+					matchParameters: false,
+					matchVerdicts: false,
+					matchTags: false
+				});
+			});
+			await when('I check the Verdicts dimension', () =>
+				drawer.toggleFlag('matchVerdicts')
+			);
+			await then('the preset reads Path + Verdicts', async () => {
+				await drawer.expectPreset('Path + Verdicts');
+				await expect(drawer.preset('Path + Verdicts')).toHaveAttribute(
+					'data-state',
+					'checked'
+				);
+			});
+			await and('I close the drawer', () => drawer.close());
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'The Classify drawer needs a title or an existing issue',
+		{ tag: ['@run', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			const drawer = await given(
+				'I open the Classify drawer of a failing result of the fixture run',
+				async () => {
+					const { runPage, table } = await openClassifiableResultTable(page);
+
+					return runPage.openClassify(table, 0);
+				}
+			);
+			await when('I submit it without a title', () =>
+				drawer.submitButton.click()
+			);
+			await then('I am told a title is required', () =>
+				drawer.expectValidation('Title is required')
+			);
+			await when('I switch to an existing issue and submit again', async () => {
+				await drawer.setMode('Existing issue');
+				await drawer.submitButton.click();
+			});
+			await then('I am told to select an issue', () =>
+				drawer.expectValidation('Select an issue')
+			);
+			await and('I close the drawer', () => drawer.close());
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A one-off classification stamps just this result',
+		{ tag: ['@run', '@issues', '@issues-write', '@needs-nok'] },
+		async ({ page, request }) => {
+			const { run } = classifiable();
+			const title = issueCleanup.title('oneoff');
+			let resultId = 0;
+			const issuesPage = new IssuesPage(page);
+			let runPage!: RunPage;
+			let table!: Locator;
+			let projectId = 0;
+			let issueId = 0;
+
+			await given('I record an issue for the fixture project', async () => {
+				projectId = requireCapability(
+					await projectIdByName(request, run.bundle.project),
+					`Project "${run.bundle.project}" is not registered.`
+				);
+				await issuesPage.goto({ project: String(projectId) });
+				await issuesPage.expectLoaded();
+				issueId = await issuesPage.createIssue({ title });
+				issueCleanup.register(issueId, projectId);
+			});
+			await and(
+				'I open the result table of a failing test of the fixture run',
+				async () => {
+					({ runPage, table, resultId } = await openClaimedResultTable(
+						page,
+						request,
+						'run oneoff'
+					));
+				}
+			);
+			await when(
+				'I classify its first result against that issue for this result only',
+				async () => {
+					const drawer = await runPage.openClassify(
+						table,
+						await runPage.resultIndexOf(table, resultId)
+					);
+					await drawer.setMode('Existing issue');
+					await drawer.pickIssue(title);
+					await drawer.setCategory('Known');
+					await drawer.setScope('Just this result');
+					await drawer.submit();
+				}
+			);
+			await then('the result carries a stamp for that issue', async () =>
+				runPage.expectStampFor(
+					table,
+					await runPage.resultIndexOf(table, resultId),
+					issueId
+				)
+			);
+			await and(
+				'the issues page counts one result under the issue',
+				async () => {
+					await issuesPage.goto({ project: String(projectId) });
+					await issuesPage.expectLoaded();
+					await issuesPage.table.search(title);
+					await issuesPage.expectResultCount(title, 1);
+				}
+			);
+			await and('I delete the issue', async () => {
+				await issuesPage.deleteIssue(title);
+				issueCleanup.forget(issueId);
+			});
+		}
+	);
+
+	test(
+		"The run header links to the run's issues",
+		{ tag: ['@run', '@issues', '@needs-classification'] },
+		async ({ page }) => {
+			const run = seededRunWithIssues();
+			const runPage = new RunPage(page);
+
+			await given('I open the page of a run the seed classified', async () => {
+				await runPage.goto(run.runId);
+				await runPage.expectLoaded(run.name);
+			});
+			await when('I follow the Issues link in the header', async () => {
+				await expect(runPage.issuesHeaderLink).toBeVisible({
+					timeout: 15_000
+				});
+				await runPage.issuesHeaderLink.click();
+			});
+			await then("the run's issues page is open", () =>
+				expect(page).toHaveURL(new RegExp(`/runs/${run.runId}/issues`), {
+					timeout: 15_000
+				})
+			);
+		}
+	);
 });
 
 test.describe('Run Details Page (signed out)', () => {
@@ -1440,6 +1835,63 @@ test.describe('Run Details Page (signed out)', () => {
 			);
 			await and('I am still on the run page', () =>
 				expect(page).toHaveURL(new RegExp(`/runs/${runId}`))
+			);
+		}
+	);
+
+	test(
+		'Classifying while signed out asks me to sign in',
+		{ tag: ['@run', '@issues', '@auth', '@needs-nok'] },
+		async ({ page }) => {
+			const { run } = classifiable();
+			const dialog = page.getByTestId('login-dialog');
+			const sessionChecked = page.waitForResponse(
+				(response) =>
+					response.url().includes('/auth/profile/info/') &&
+					response.status() === 403
+			);
+			let table!: Locator;
+
+			await given(
+				'I am signed out and open the result table of a failing test of the fixture run',
+				async () => {
+					({ table } = await openClassifiableResultTable(page));
+					await sessionChecked;
+				}
+			);
+			const classify = table
+				.getByRole('button', {
+					name: 'Log in to classify results',
+					exact: true
+				})
+				.first();
+			await then('the Classify action is disabled with a hint to log in', () =>
+				expect(classify).toHaveText(/Classify/, { timeout: 30_000 })
+			);
+			await and(
+				'the Apply Rules action in the header is disabled with a hint to log in',
+				() =>
+					expect(
+						page.getByRole('banner').getByRole('button', {
+							name: 'Log in to apply rules',
+							exact: true
+						})
+					).toHaveText(/Apply Rules/, { timeout: 30_000 })
+			);
+			await when('I click the Classify action anyway', () => classify.click());
+			await then('I am asked to sign in to classify results', () =>
+				expect(dialog.getByText('Log in to classify results.')).toBeVisible({
+					timeout: 15_000
+				})
+			);
+			await when('I close the sign-in dialog', () =>
+				dialog.getByRole('button', { name: 'Close' }).click()
+			);
+			await then('the sign-in dialog is closed', () =>
+				expect(dialog).toHaveCount(0, { timeout: 15_000 })
+			);
+			await and('I am still on the run page', () =>
+				expect(page).toHaveURL(new RegExp(`/runs/${run.runId}`))
 			);
 		}
 	);
