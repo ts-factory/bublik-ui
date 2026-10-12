@@ -78,6 +78,15 @@ class RunDiffPage {
 		await this.url.expectWritten('expanded');
 	}
 
+	/**
+	 * The diff's first rows. They wait on both runs' stats, which the server
+	 * computes on a run's first request: seconds alone, and well past half a
+	 * minute with the rest of the suite running.
+	 */
+	async expectRowsRendered(): Promise<void> {
+		await expect(this.rows().first()).toBeVisible({ timeout: 90_000 });
+	}
+
 	async rowCount(): Promise<number> {
 		await expect(this.rows().first()).toBeVisible({ timeout: 30_000 });
 

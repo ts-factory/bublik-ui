@@ -82,6 +82,8 @@ class ImportPage {
 	async openImportForm(): Promise<void> {
 		await this.importButton.click();
 		await expect(this.importModal).toBeVisible();
+		// The URL rows render after the dialog does, and callers count them.
+		await expect(this.urlInputs.first()).toBeVisible();
 	}
 
 	async fillUrl(index: number, url: string): Promise<void> {
@@ -303,6 +305,8 @@ class ImportPage {
 		await this.importFilterSubmitButton.click();
 		await responsePromise;
 
+		// Every row, not just one: the unfiltered list on screen until the
+		// filtered one renders already holds rows for this URL.
 		await expect
 			.poll(
 				async () => {
@@ -310,18 +314,18 @@ class ImportPage {
 						return true;
 					}
 
-					const count = await this.importEventStatuses.count();
-					for (let index = 0; index < count; index++) {
-						const sourceUrl =
-							(await this.importEventStatuses
-								.nth(index)
-								.getAttribute('data-run-source-url')) ?? '';
-						if (normalizeUrl(sourceUrl) === normalizeUrl(runSourceUrl)) {
-							return true;
-						}
-					}
+					const sourceUrls = await this.importEventStatuses.evaluateAll(
+						(nodes) =>
+							nodes.map((node) => node.getAttribute('data-run-source-url'))
+					);
 
-					return false;
+					return (
+						sourceUrls.length > 0 &&
+						sourceUrls.every(
+							(sourceUrl) =>
+								normalizeUrl(sourceUrl ?? '') === normalizeUrl(runSourceUrl)
+						)
+					);
 				},
 				{
 					timeout: 30_000,

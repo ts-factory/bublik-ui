@@ -29,6 +29,12 @@ async function openRenderedReport(
 }
 
 test.describe('Run Report Page', () => {
+	// The server builds a report on every request, which takes seconds alone
+	// and can take most of a minute with the rest of the suite running.
+	test.beforeEach(() => {
+		test.slow();
+	});
+
 	// eslint-disable-next-line playwright/expect-expect
 	test(
 		'A report without a configuration reports the missing config',

@@ -73,8 +73,9 @@ class RunReportPage {
 		return this.page.getByTestId('run-report-page');
 	}
 
+	/** The server builds the report on request, slowly under load. */
 	async expectLoaded(): Promise<void> {
-		await expect(this.root).toBeVisible({ timeout: 30_000 });
+		await expect(this.root).toBeVisible({ timeout: 90_000 });
 	}
 
 	async expectNotLoaded(): Promise<void> {

@@ -69,9 +69,11 @@ test.describe('Compare Page', () => {
 			let before = 0;
 			let after = 0;
 
+			test.slow();
 			await given('I open the compare page for two runs', async () => {
 				await comparePage.goto(leftRunId, rightRunId);
 				await comparePage.expectLoaded();
+				await comparePage.expectRowsRendered();
 				before = await comparePage.rowCount();
 				expect(before).toBeGreaterThan(0);
 			});
