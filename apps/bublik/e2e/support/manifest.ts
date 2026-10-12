@@ -100,6 +100,10 @@ export {
 
 export type {
 	Bundle,
+	ClassificationIssue,
+	ClassificationManifest,
+	ClassificationPin,
+	ClassificationRule,
 	E2EManifest,
 	ExpectedMatrix,
 	ExpectedRun,
@@ -107,6 +111,7 @@ export type {
 	LogPagesEntry,
 	MeasurementSummary,
 	PackageSummary,
+	PinnedResult,
 	ReportConfig,
 	Revision
 } from './manifest.gen';

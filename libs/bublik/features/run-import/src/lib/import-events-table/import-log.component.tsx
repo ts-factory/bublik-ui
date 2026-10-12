@@ -11,17 +11,10 @@ import {
 	useRef,
 	useState
 } from 'react';
-import {
-	BooleanParam,
-	StringParam,
-	useQueryParam,
-	withDefault
-} from 'use-query-params';
 import { PauseIcon, RocketIcon } from '@radix-ui/react-icons';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetImportLogQuery } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -36,9 +29,8 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { ImportJsonLog } from '@/shared/types';
+import { ImportJsonLog, LogPageMode } from '@/shared/types';
 import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
-import { routes } from '@/router';
 import { config } from '@/bublik/config';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { LinkWithProject } from '@/bublik/features/projects';
@@ -48,6 +40,8 @@ import {
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
+
+import { useImportTaskLogSearch } from './import-search.hooks';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -68,30 +62,15 @@ function useImportLog() {
 }
 
 function ImportLogProvider({ children }: PropsWithChildren) {
-	const [taskId, setTaskId] = useQueryParam('taskId', StringParam);
-	const [enablePolling = false, setEnablePolling] = useQueryParam(
-		'poll',
-		withDefault(BooleanParam, false)
-	);
+	const {
+		taskId,
+		enablePolling,
+		toggle: toggleTaskLog,
+		close
+	} = useImportTaskLogSearch();
 
 	function toggle(task: string, enablePolling?: boolean) {
-		return () => {
-			trackEvent(analyticsEventNames.importTaskLogOpen, {
-				action: taskId ? 'close' : 'open',
-				hasTaskId: Boolean(task)
-			});
-
-			setTaskId((t) => (t ? null : task));
-
-			if (typeof enablePolling !== 'undefined') {
-				setEnablePolling(enablePolling);
-			}
-		};
-	}
-
-	function close() {
-		setTaskId(null);
-		setEnablePolling(null);
+		return () => toggleTaskLog(task, enablePolling);
 	}
 
 	return (
@@ -357,13 +336,18 @@ function HeaderLinks({ runId }: HeaderLinksProps) {
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.log({ runId })} target="_blank">
+				<LinkWithProject
+					to="/log/$runId"
+					params={{ runId }}
+					search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+					target="_blank"
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
 				</LinkWithProject>
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.run({ runId })} target="_blank">
+				<LinkWithProject to="/runs/$runId" params={{ runId }} target="_blank">
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Run
 				</LinkWithProject>

@@ -68,6 +68,9 @@
 			"@/bublik/features/projects": [
 				"libs/bublik/features/projects/src/index.ts"
 			],
+			"@/bublik/features/result-classification": [
+				"libs/bublik/features/result-classification/src/index.ts"
+			],
 			"@/bublik/features/result-links": [
 				"libs/bublik/features/result-links/src/index.ts"
 			],
@@ -100,6 +103,7 @@
 			"@/bublik/run-utils": ["libs/bublik/run-utils/src/index.ts"],
 			"@/icons": ["libs/shared/icons/src/index.ts"],
 			"@/router": ["libs/bublik/router/src/index.ts"],
+			"@/router/testing": ["libs/bublik/router/src/testing/index.ts"],
 			"@/services/bublik-api": ["libs/services/bublik-api/src/index.ts"],
 			"@/shared/charts": ["libs/shared/charts/src/index.ts"],
 			"@/shared/hooks": ["libs/shared/hooks/src/index.ts"],

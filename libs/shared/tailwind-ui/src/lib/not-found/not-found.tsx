@@ -1,12 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { Link, useNavigate } from 'react-router-dom';
+import { linkOptions, useRouter } from '@tanstack/react-router';
+
+import { RouterLink } from '@/router';
 
 import { ButtonTw } from '../button';
 import { ErrorPage } from '../error-page';
 
+const DASHBOARD = linkOptions({ to: '/dashboard' }).to;
+
 export const NotFound = () => {
-	const navigate = useNavigate();
+	const router = useRouter();
 
 	return (
 		<ErrorPage
@@ -23,7 +27,7 @@ export const NotFound = () => {
 						variant="primary"
 						size="md"
 						rounded="lg"
-						onClick={() => navigate(-1)}
+						onClick={() => router.history.back()}
 						className="w-full py-2.5"
 					>
 						<span className="text-[14px] font-semibold leading-[18px]">
@@ -37,7 +41,7 @@ export const NotFound = () => {
 						asChild
 						className={'w-full'}
 					>
-						<Link to="/dashboard">Go to dashboard</Link>
+						<RouterLink to={DASHBOARD}>Go to dashboard</RouterLink>
 					</ButtonTw>
 				</>
 			}

@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 
 import viteTsConfigPaths from 'vite-tsconfig-paths';
@@ -19,15 +20,6 @@ export default defineConfig({
 		})
 	],
 
-	// Uncomment this if you are using workers.
-	// worker: {
-	//  plugins: [
-	//    viteTsConfigPaths({
-	//      root: '../../../',
-	//    }),
-	//  ],
-	// },
-
 	// Configuration for building your library.
 	// See: https://vitejs.dev/guide/build.html#library-mode
 	build: {
@@ -44,5 +36,20 @@ export default defineConfig({
 			// External packages that should not be bundled into your library.
 			external: []
 		}
+	},
+
+	server: {
+		// The codec specs load the e2e page objects (`*_URL_PARAMS` tables) and
+		// the URL snapshot from the app, outside this project's root.
+		fs: { allow: [join(__dirname, '../../../')] }
+	},
+
+	test: {
+		reporters: ['default'],
+		globals: true,
+		// The router under test is created with a memory history, but
+		// `@tanstack/react-router` still expects a DOM to exist.
+		environment: 'jsdom',
+		include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}']
 	}
 });

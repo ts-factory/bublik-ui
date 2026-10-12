@@ -8,12 +8,14 @@ import { BUBLIK_TAG } from '../types';
 import { configDependent } from '../tags';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
 import { API_REDUCER_PATH } from '../constants';
+import { serializeIdArgs } from '../utils';
 
 export const measurementsEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
 		getResultInfo: build.query<RunDataResults, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			// `cache: 'no-cache'` throughout: the server stamps
 			// `Cache-Control: max-age=600` on API GETs, so without it a refetch
 			// triggered by a config change is answered from the browser cache
@@ -27,6 +29,7 @@ export const measurementsEndpoints = {
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getSingleMeasurement: build.query<SingleMeasurement, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			query: (resultId) => ({
 				url: withApiV2(`/results/${resultId}/measurements`),
 				cache: 'no-cache'

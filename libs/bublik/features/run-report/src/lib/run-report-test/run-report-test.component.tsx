@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { ArgsValBlock, RecordBlock } from '@/shared/types';
 import {
@@ -19,7 +18,7 @@ import {
 	toast,
 	Tooltip
 } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 
 import { StackedAdd } from '../run-report-stacked';
 import { RunReportChart } from '../run-report-chart';
@@ -32,6 +31,10 @@ import {
 	getReportRecordRenderCount
 } from '../run-report-navigation.utils';
 import type { ArgValNavigationItem } from '../run-report-navigation.utils';
+import {
+	useRunReportHash,
+	useRunReportSearchString
+} from '../run-report-route.hooks';
 
 const INITIAL_RECORDS_RENDER_COUNT = 10;
 const RECORDS_RENDER_CHUNK_SIZE = 10;
@@ -56,7 +59,7 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 		argValNavigationItems,
 		onArgValNavigate
 	} = props;
-	const [searchParams] = useSearchParams();
+	const search = useRunReportSearchString();
 	const [headerOffsetTop, setHeaderOffsetTop] = useState(0);
 	const pageContainer = usePageContainer();
 	const isPressed = usePlatformSpecificCtrl();
@@ -111,15 +114,15 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 								className="bg-white"
 								style={{ zIndex: 8 }}
 								label={
-									<LinkWithProject
+									<RouterLinkWithProject
 										className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 										to={{
-											search: searchParams.toString(),
+											search,
 											hash: encodeURIComponent(argsValBlock.id)
 										}}
 									>
 										{argsValBlock.label}
-									</LinkWithProject>
+									</RouterLinkWithProject>
 								}
 							>
 								<ArgValNavigationControls
@@ -155,15 +158,15 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 												zIndex: 6
 											}}
 											label={
-												<LinkWithProject
+												<RouterLinkWithProject
 													className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 													to={{
-														search: searchParams.toString(),
+														search,
 														hash: encodeURIComponent(measurement.id)
 													}}
 												>
 													{measurement.label}
-												</LinkWithProject>
+												</RouterLinkWithProject>
 											}
 										/>
 										<div
@@ -263,7 +266,7 @@ function MeasurementRecordList(props: MeasurementRecordListProps) {
 	const { records, enableChartView, enableTableView, offset, pageContainer } =
 		props;
 	const { enablePairGainColumns } = props;
-	const { hash } = useLocation();
+	const hash = useRunReportHash();
 	const progressiveVisibleCount = useProgressiveVisibleCount({
 		totalCount: records.length,
 		initialCount: INITIAL_RECORDS_RENDER_COUNT,
@@ -327,7 +330,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 		idx
 	} = props;
 	const { id, chart, table, label } = block;
-	const [searchParams] = useSearchParams();
+	const search = useRunReportSearchString();
 	const ref = useRef<HTMLDivElement>(null);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const { pageContainer } = props;
@@ -350,16 +353,13 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 				<CardHeader
 					label={
 						<div className="flex items-center gap-2">
-							<LinkWithProject
-								to={{
-									hash: encodeURIComponent(id),
-									search: searchParams.toString()
-								}}
+							<RouterLinkWithProject
+								to={{ hash: encodeURIComponent(id), search }}
 								className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
 								onClick={() => toast.success('Saved location')}
 							>
 								{label}
-							</LinkWithProject>
+							</RouterLinkWithProject>
 						</div>
 					}
 					ref={ref}

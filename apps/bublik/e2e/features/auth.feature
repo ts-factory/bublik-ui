@@ -4,6 +4,9 @@
 # Implemented by apps/bublik/e2e/auth.spec.ts — see features/README.md.
 #
 # These scenarios run without the shared signed-in storage state.
+#
+# Route: /auth/login
+# Route: /auth/forgot
 
 Feature: Authentication
 

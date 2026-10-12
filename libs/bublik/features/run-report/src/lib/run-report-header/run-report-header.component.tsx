@@ -1,9 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
-
-import { routes } from '@/router';
-import { RunDetailsAPIResponse } from '@/shared/types';
+import { LogPageMode, RunDetailsAPIResponse } from '@/shared/types';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import {
 	Badge,
@@ -20,7 +17,7 @@ import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { LinkWithProject } from '@/bublik/features/projects';
 
-const IsOpenParam = withDefault(BooleanParam, true);
+import { useRunReportFullMode } from '../run-report-route.hooks';
 
 interface RunReportHeaderProps {
 	label: string;
@@ -30,7 +27,7 @@ interface RunReportHeaderProps {
 
 function RunReportHeader(props: RunReportHeaderProps) {
 	const { label, runId, details } = props;
-	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
+	const [isModeFull, setIsModeFull] = useRunReportFullMode();
 
 	return (
 		<>
@@ -53,13 +50,17 @@ function RunReportHeader(props: RunReportHeaderProps) {
 							/>
 							<LinkToSourceContainer runId={runId.toString()} />
 							<ButtonTw asChild variant="secondary" size="xss">
-								<LinkWithProject to={routes.run({ runId })}>
+								<LinkWithProject to="/runs/$runId" params={{ runId }}>
 									<Icon name="BoxArrowRight" className="mr-1.5" />
 									Run
 								</LinkWithProject>
 							</ButtonTw>
 							<ButtonTw asChild variant="secondary" size="xss">
-								<LinkWithProject to={routes.log({ runId })}>
+								<LinkWithProject
+									to="/log/$runId"
+									params={{ runId }}
+									search={{ mode: LogPageMode.TreeAndInfoAndLog }}
+								>
 									<Icon name="BoxArrowRight" className="mr-1.5" />
 									Log
 								</LinkWithProject>

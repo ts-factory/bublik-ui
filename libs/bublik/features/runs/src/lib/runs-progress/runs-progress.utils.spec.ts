@@ -582,17 +582,32 @@ describe('runs progress utils', () => {
 	});
 
 	it('summarizes active filters', () => {
-		const params = new URLSearchParams({
-			runData: 'conf=a;target=b',
+		const search = {
+			runData: ['conf=a', 'target=b'],
 			tagExpr: 'nightly',
 			startDate: '2024-01-01',
 			finishDate: '2024-01-02'
-		});
+		};
 
-		expect(buildFilterSummary(params)).toEqual([
+		expect(buildFilterSummary(search)).toEqual([
 			{ label: 'Metas', value: 'conf=a, target=b' },
 			{ label: 'Tag expression', value: 'nightly' },
 			{ label: 'Range', value: '2024-01-01 - 2024-01-02' }
 		]);
+	});
+
+	it('shows no metas for an empty run data list (`runData=`)', () => {
+		expect(buildFilterSummary({ runData: [] })).toEqual([]);
+	});
+
+	it('shows the duration rather than the dates in duration mode', () => {
+		expect(
+			buildFilterSummary({
+				calendarMode: 'duration',
+				duration: 'P7D',
+				startDate: '2024-01-01',
+				finishDate: '2024-01-02'
+			})
+		).toEqual([{ label: 'Range', value: 'P7D' }]);
 	});
 });

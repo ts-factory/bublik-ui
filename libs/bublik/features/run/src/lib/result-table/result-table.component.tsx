@@ -21,11 +21,15 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
-import { QueryParamConfig, useQueryParam, withDefault } from 'use-query-params';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useIsSticky, useMount } from '@/shared/hooks';
-import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import {
+	type IssueCategory,
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
+	RunDataResults
+} from '@/shared/types';
 import { config } from '@/bublik/config';
 import {
 	cn,
@@ -40,21 +44,30 @@ import {
 	formatKeyValueForDisplay,
 	toSingleLineParameterLabel
 } from '@/shared/utils';
-import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import {
-	decodeCompressedOrJsonState,
-	encodeCompressedState,
-	isCompressedStateValue
-} from '@/bublik/features/sidebar';
+	CATEGORY_ORDER,
+	CategoryBadge,
+	RESULT_CLASSIFICATION_META,
+	RESULT_CLASSIFICATION_ORDER,
+	type ResultClassification,
+	ResultClassificationBadge,
+	buildFacetOptions,
+	categoryMeta,
+	resultClassification,
+	withFacetBadges
+} from '@/bublik/features/result-classification';
+import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { getColumns } from './result-table.columns';
 import {
 	COLUMN_ID,
 	ObtainedResultFilterSchema,
+	obtainedResultFilterCount,
 	StringArraySchema
 } from './constants';
 import { useTargetIterationId } from '../run-table/run-table.hooks';
 import { RowState, useGlobalRequirements } from '../hooks';
+import { useRunTableSetter, useRunTableValue } from '../run-search.hooks';
 
 const HEADER_HEIGHT = 102;
 const STICKY_OFFSET = HEADER_HEIGHT + 1;
@@ -109,6 +122,8 @@ export interface ResultTableProps {
 	rowState?: RowState;
 	onRowClick?: (row: Row<RunDataResults>) => void;
 	path?: string;
+	/** Refetching rows already shown: they stay, dimmed, until the new ones land. */
+	isFetching?: boolean;
 }
 
 export const ResultTable = memo((props: ResultTableProps) => {
@@ -122,7 +137,8 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		targetIterationId,
 		rowState,
 		onRowClick,
-		path
+		path,
+		isFetching = false
 	} = props;
 	const {
 		columnFilters,
@@ -134,18 +150,24 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		verdicts,
 		results,
 		resultProperties,
+		categories,
+		classifications,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
 		resultsFilter,
 		resultPropertiesFilter,
+		categoriesFilter,
+		classificationsFilter,
 		artifactsFilter,
 		onClearFilters,
 		onFilterChange,
 		onVerdictsFilterChange,
 		onResultsFilterChange,
-		onResultPropertiesFilterChange
+		onResultPropertiesFilterChange,
+		onCategoriesFilterChange,
+		onClassificationsFilterChange
 	} = useDataTableFilters(rowId, data);
 	const { hasGlobalRequirements } = useGlobalRequirementsFilters({
 		localRequirements: requirementsFilter
@@ -194,7 +216,12 @@ export const ResultTable = memo((props: ResultTableProps) => {
 	const columnCount = columns.length;
 
 	return (
-		<div className="px-4 pb-2">
+		<div
+			className={cn(
+				'px-4 pb-2',
+				isFetching && 'opacity-40 pointer-events-none'
+			)}
+		>
 			<div className="w-full">
 				<div className="grid relative z-[5]" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
@@ -279,6 +306,28 @@ export const ResultTable = memo((props: ResultTableProps) => {
 									value={verdictsFilter}
 									onChange={onVerdictsFilterChange}
 									disabled={!verdicts.length}
+								/>
+								{/* Beside Verdicts, because it answers the same question one step
+								    further on: the verdict says what went wrong, the category says
+								    what it was decided to be. */}
+								<DataTableFacetedFilter
+									title="Category"
+									size="xss"
+									options={categories}
+									value={categoriesFilter}
+									onChange={onCategoriesFilterChange}
+									disabled={!categories.length}
+								/>
+								{/* After Category, completing the thought: the category
+								    says what a failure was decided to be, this says what
+								    that decision did to the run's unexpected count. */}
+								<DataTableFacetedFilter
+									title="Classification"
+									size="xss"
+									options={classifications}
+									value={classificationsFilter}
+									onChange={onClassificationsFilterChange}
+									disabled={!classifications.length}
 								/>
 								<DataTableFacetedFilter
 									title="Artifacts"
@@ -509,6 +558,8 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const verdictsFilter = obtainedResultFilter.verdicts;
 	const resultsFilter = obtainedResultFilter.results;
 	const resultPropertiesFilter = obtainedResultFilter.resultProperties;
+	const categoriesFilter = obtainedResultFilter.categories;
+	const classificationsFilter = obtainedResultFilter.classifications;
 
 	const artifactsFilter = useMemo(() => {
 		return (columnFilters.find((filter) => filter.id === COLUMN_ID.ARTIFACTS)
@@ -518,14 +569,27 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 	const {
 		filteredData,
 		filteredDataWithoutResults,
-		filteredDataWithoutResultProperties
+		filteredDataWithoutResultProperties,
+		filteredDataWithoutCategories,
+		filteredDataWithoutClassifications
 	} = useMemo(() => {
+		/**
+		 * `exclude` names the one axis to ignore while testing a row.
+		 *
+		 * A facet's own selection must not narrow its own option list. It is
+		 * harmless on the AND axes -- once you have picked artifact A, the only
+		 * artifacts worth offering are those that co-occur with it -- but on an
+		 * OR axis it is fatal: pick UNTRIAGED and the only rows left are
+		 * untriaged, so UNTRIAGED becomes the only option and the filter can
+		 * never grow to a second value.
+		 */
 		const matchesRow = (
 			row: RunDataResults,
-			{
-				includeResults,
-				includeResultProperties
-			}: { includeResults: boolean; includeResultProperties: boolean }
+			exclude?:
+				| 'results'
+				| 'resultProperties'
+				| 'categories'
+				| 'classifications'
 		) => {
 			const rowResultProperty = row.has_error
 				? RESULT_PROPERTIES.Unexpected
@@ -539,15 +603,36 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 			const hasEveryArtifact = artifactsFilter.every((artifact) =>
 				row.artifacts?.includes(artifact)
 			);
+			// Any, not every: a result carries one stamp per matching rule, so
+			// asking for DEFECT and KNOWN means the results either explains.
+			const hasSomeCategory =
+				exclude === 'categories' ||
+				!categoriesFilter.length ||
+				(row.issues ?? []).some((issue) =>
+					categoriesFilter.includes(issue.category)
+				);
 			const hasEveryRequirement = requirementsFilter.every((requirement) =>
 				row.requirements?.includes(requirement)
 			);
+			// One verdict per result, so membership rather than some/every. A
+			// passing result with no stamps has none, and matches no selection.
+			const rowClassification = resultClassification({
+				issues: row.issues,
+				hasError: row.has_error,
+				effectiveExpected: row.effective_expected
+			});
+			const hasClassification =
+				exclude === 'classifications' ||
+				!classificationsFilter.length ||
+				(rowClassification
+					? classificationsFilter.includes(rowClassification.value)
+					: false);
 			const matchesResult =
-				!includeResults ||
+				exclude === 'results' ||
 				!resultsFilter.length ||
 				resultsFilter.includes(row.obtained_result.result_type);
 			const matchesResultProperties =
-				!includeResultProperties ||
+				exclude === 'resultProperties' ||
 				!resultPropertiesFilter.length ||
 				resultPropertiesFilter.includes(rowResultProperty);
 
@@ -556,33 +641,32 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				hasEveryVerdict &&
 				hasEveryArtifact &&
 				hasEveryRequirement &&
+				hasSomeCategory &&
+				hasClassification &&
 				matchesResult &&
 				matchesResultProperties
 			);
 		};
 
 		return {
-			filteredData: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: true,
-					includeResultProperties: true
-				})
-			),
+			filteredData: data.filter((row) => matchesRow(row)),
 			filteredDataWithoutResults: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: false,
-					includeResultProperties: true
-				})
+				matchesRow(row, 'results')
 			),
 			filteredDataWithoutResultProperties: data.filter((row) =>
-				matchesRow(row, {
-					includeResults: true,
-					includeResultProperties: false
-				})
+				matchesRow(row, 'resultProperties')
+			),
+			filteredDataWithoutCategories: data.filter((row) =>
+				matchesRow(row, 'categories')
+			),
+			filteredDataWithoutClassifications: data.filter((row) =>
+				matchesRow(row, 'classifications')
 			)
 		};
 	}, [
 		artifactsFilter,
+		categoriesFilter,
+		classificationsFilter,
 		data,
 		parametersFilter,
 		requirementsFilter,
@@ -626,6 +710,63 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 				value: verdict
 			}));
 	}, [filteredData]);
+
+	/**
+	 * The categories the loaded results are actually stamped with, drawn as the
+	 * badges the result lines carry -- DEFECT here is the DEFECT chip it selects,
+	 * as on `/issues`. The long form stays searchable.
+	 *
+	 * Counted once per result, however many of its stamps share a category: the
+	 * filter matches a result that carries any of the picked categories.
+	 */
+	const categories = useMemo(
+		() =>
+			withFacetBadges(
+				buildFacetOptions({
+					values: filteredDataWithoutCategories.flatMap((row) =>
+						Array.from(
+							new Set((row.issues ?? []).map((issue) => issue.category))
+						)
+					),
+					order: CATEGORY_ORDER,
+					labelFor: (category) => categoryMeta(category).label,
+					keywordsFor: (category) => [categoryMeta(category).displayValue]
+				}),
+				(category: IssueCategory) => <CategoryBadge category={category} />
+			),
+		[filteredDataWithoutCategories]
+	);
+
+	/**
+	 * The classifications the loaded results actually carry, as the same badges
+	 * -- AGAIN, with `Counting again` kept for the search.
+	 */
+	const classifications = useMemo(
+		() =>
+			withFacetBadges(
+				buildFacetOptions({
+					values: filteredDataWithoutClassifications
+						.map(
+							(row) =>
+								resultClassification({
+									issues: row.issues,
+									hasError: row.has_error,
+									effectiveExpected: row.effective_expected
+								})?.value
+						)
+						.filter((value) => value !== undefined),
+					order: RESULT_CLASSIFICATION_ORDER,
+					labelFor: (value) => RESULT_CLASSIFICATION_META[value].label,
+					keywordsFor: (value) => [
+						RESULT_CLASSIFICATION_META[value].displayValue
+					]
+				}),
+				(classification: ResultClassification) => (
+					<ResultClassificationBadge classification={classification} />
+				)
+			),
+		[filteredDataWithoutClassifications]
+	);
 
 	const results = useMemo(() => {
 		const orderedResultTypes = Object.values(RESULT_TYPE);
@@ -719,12 +860,8 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 						? ObtainedResultFilterSchema.parse(undefined)
 						: ObtainedResultFilterSchema.parse(draft[index].value);
 				const nextFilter = updater(currentFilter);
-				const hasValues =
-					nextFilter.verdicts.length > 0 ||
-					nextFilter.results.length > 0 ||
-					nextFilter.resultProperties.length > 0;
 
-				if (!hasValues) {
+				if (obtainedResultFilterCount(nextFilter) === 0) {
 					if (index !== -1) {
 						draft.splice(index, 1);
 					}
@@ -757,6 +894,20 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		}));
 	}
 
+	function handleCategoriesFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			categories: values ?? []
+		}));
+	}
+
+	function handleClassificationsFilterChange(values: string[] | undefined) {
+		handleObtainedResultFilterChange((filter) => ({
+			...filter,
+			classifications: values ?? []
+		}));
+	}
+
 	function handleResultPropertiesFilterChange(values: string[] | undefined) {
 		handleObtainedResultFilterChange((filter) => ({
 			...filter,
@@ -773,50 +924,28 @@ function useDataTableFilters(rowId: string, data: RunDataResults[]) {
 		verdicts,
 		results,
 		resultProperties,
+		categories,
+		classifications,
 		artifacts,
 		requirementsFilter,
 		parametersFilter,
 		verdictsFilter,
 		resultsFilter,
 		resultPropertiesFilter,
+		categoriesFilter,
+		classificationsFilter,
 		artifactsFilter,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onVerdictsFilterChange: handleVerdictsFilterChange,
 		onResultsFilterChange: handleResultsFilterChange,
-		onResultPropertiesFilterChange: handleResultPropertiesFilterChange
+		onResultPropertiesFilterChange: handleResultPropertiesFilterChange,
+		onCategoriesFilterChange: handleCategoriesFilterChange,
+		onClassificationsFilterChange: handleClassificationsFilterChange
 	};
 }
 
-const compressedColumnFiltersParam = withDefault(
-	{
-		encode: (value) => {
-			if (value === null || value === undefined) {
-				return value;
-			}
-
-			return encodeCompressedState(value);
-		},
-		decode: (value) => decodeCompressedOrJsonState(value)
-	} as QueryParamConfig<
-		Record<string, ColumnFiltersState>,
-		Record<string, ColumnFiltersState>
-	>,
-	{}
-);
-
-function isLegacyColumnFiltersValue(value: string | null): boolean {
-	if (!value || isCompressedStateValue(value)) {
-		return false;
-	}
-
-	try {
-		JSON.parse(value);
-		return true;
-	} catch {
-		return false;
-	}
-}
+const NO_COLUMN_FILTERS: Record<string, ColumnFiltersState> = {};
 
 function getFilterSelectionCount(
 	filter: ColumnFiltersState[number] | undefined
@@ -831,11 +960,7 @@ function getFilterSelectionCount(
 
 	const obtainedResult = ObtainedResultFilterSchema.safeParse(filter.value);
 	if (obtainedResult.success) {
-		return (
-			obtainedResult.data.verdicts.length +
-			obtainedResult.data.results.length +
-			obtainedResult.data.resultProperties.length
-		);
+		return obtainedResultFilterCount(obtainedResult.data);
 	}
 
 	return 0;
@@ -846,22 +971,16 @@ function findFilterById(columnFilters: ColumnFiltersState, id: string) {
 }
 
 function useColumnFilters(rowId: string) {
-	const [queryColumnFilters, setQueryColumnFilters] = useQueryParam<
-		Record<string, ColumnFiltersState>
-	>('columnFilters', compressedColumnFiltersParam, { updateType: 'replaceIn' });
+	// Compressed, every result table's filters by row id. A
+	// legacy plain-JSON value is rewritten compressed by the router as the
+	// page loads.
+	const queryColumnFilters =
+		useRunTableValue('columnFilters') ?? NO_COLUMN_FILTERS;
+	const setQueryColumnFilters = useRunTableSetter(
+		'columnFilters',
+		NO_COLUMN_FILTERS
+	);
 	const { localRequirements, setLocalRequirements } = useGlobalRequirements();
-
-	useMount(() => {
-		const columnFiltersParamValue = new URLSearchParams(
-			window.location.search
-		).get('columnFilters');
-
-		if (!isLegacyColumnFiltersValue(columnFiltersParamValue)) {
-			return;
-		}
-
-		setQueryColumnFilters(queryColumnFilters, 'replaceIn');
-	});
 
 	const columnFilters = useMemo(() => {
 		const currentFilters = queryColumnFilters?.[rowId] ?? [];
@@ -923,11 +1042,7 @@ function useColumnFilters(rowId: string) {
 
 			if (!obtainedResult.success) return false;
 
-			return (
-				obtainedResult.data.verdicts.length > 0 ||
-				obtainedResult.data.results.length > 0 ||
-				obtainedResult.data.resultProperties.length > 0
-			);
+			return obtainedResultFilterCount(obtainedResult.data) > 0;
 		}
 
 		return false;

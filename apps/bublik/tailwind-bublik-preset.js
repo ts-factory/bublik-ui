@@ -22,6 +22,8 @@ module.exports = {
 				'text-expected': 'hsl(var(--colors-text-expected) / <alpha-value>)',
 				'text-unexpected': 'hsl(var(--colors-text-unexpected) / <alpha-value>)',
 				'text-menu': 'hsl(var(--colors-text-menu) / <alpha-value>)',
+				'text-triage': 'hsl(var(--colors-text-triage) / <alpha-value>)',
+				'accent-env': 'hsl(var(--colors-accent-env) / <alpha-value>)',
 				'bg-primary': 'hsl(var(--colors-bg-primary) / <alpha-value>)',
 				'bg-body': 'hsl(var(--colors-bg-body) / <alpha-value>)',
 				'bg-fillError': 'hsl(var(--colors-bg-fillError) / <alpha-value>)',
@@ -31,6 +33,7 @@ module.exports = {
 				'bg-ok': 'hsl(var(--colors-bg-ok) / <alpha-value>)',
 				'bg-running': 'hsl(var(--colors-bg-running) / <alpha-value>)',
 				'bg-compromised': 'hsl(var(--colors-bg-compromised) / <alpha-value>)',
+				'bg-triage': 'hsl(var(--colors-bg-triage) / <alpha-value>)',
 				'bg-stopped': 'hsl(var(--colors-bg-stopped) / <alpha-value>)',
 				'bg-busy': 'hsl(var(--colors-bg-busy) / <alpha-value>)',
 				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',
@@ -52,6 +55,7 @@ module.exports = {
 				'badge-14': 'hsl(var(--colors-badge-14) / <alpha-value>)',
 				'badge-15': 'hsl(var(--colors-badge-15) / <alpha-value>)',
 				'badge-16': 'hsl(var(--colors-badge-16) / <alpha-value>)',
+				'badge-17': 'hsl(var(--colors-badge-17) / <alpha-value>)',
 				'diff-added': 'hsl(var(--diff-added) / <alpha-value>)',
 				'diff-removed': 'hsl(var(--diff-removed) / <alpha-value>)',
 				'diff-changed': 'hsl(var(--diff-changed) / <alpha-value>)',
@@ -270,7 +274,8 @@ module.exports = {
 		'bg-badge-13',
 		'bg-badge-14',
 		'bg-badge-15',
-		'bg-badge-16'
+		'bg-badge-16',
+		'bg-badge-17'
 	],
 	plugins: [
 		require('tailwindcss-radix')({ variantPrefix: 'rdx' }),

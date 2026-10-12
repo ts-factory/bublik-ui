@@ -1,9 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import { linkOptions } from '@tanstack/react-router';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
+
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -21,14 +27,18 @@ import {
 	CompareRunsDialog
 } from './runs-dialogs';
 
-const RUNS_SIDEBAR_PATTERNS = [
-	{ path: '/runs' },
-	{ path: '/compare' },
-	{ path: '/multiple' }
+/** Where an item points before a page of its own was visited. */
+const COMPARE = linkOptions({ to: '/compare' }).to;
+const MULTIPLE = linkOptions({ to: '/multiple' }).to;
+
+const RUNS_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: '/runs' },
+	{ to: '/compare' },
+	{ to: '/multiple' }
 ];
 
 export function RunsSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const {
 		selectedRunIds,
 		isCompareAvailable,
@@ -74,43 +84,43 @@ export function RunsSidebarNav() {
 	})();
 
 	useEffect(() => {
-		const isRunsPage = matchPath('/runs', location.pathname);
-		const isMultiplePage = matchPath('/multiple', location.pathname);
-		const isComparePage = matchPath('/compare', location.pathname);
+		const isRunsPage = matchRoutePath({ to: '/runs' }, pathname);
+		const isMultiplePage = matchRoutePath({ to: '/multiple' }, pathname);
+		const isComparePage = matchRoutePath({ to: '/compare' }, pathname);
+		const url = pathname + searchStr;
 
 		if (isRunsPage) {
-			const searchParams = new URLSearchParams(location.search);
-			const mode = searchParams.get('mode');
+			const mode = new URLSearchParams(searchStr).get('mode');
 
 			if (mode === 'charts') {
-				setLastVisited('charts', location.pathname + location.search);
+				setLastVisited('charts', url);
 				return;
 			} else if (mode === 'progress') {
-				setLastVisited('progress', location.pathname + location.search);
+				setLastVisited('progress', url);
 				return;
 			} else {
-				setLastVisited('list', location.pathname + location.search);
+				setLastVisited('list', url);
 				return;
 			}
 		}
 
 		if (isComparePage) {
-			setLastVisited('compare', location.pathname + location.search);
+			setLastVisited('compare', url);
 			return;
 		}
 
 		if (isMultiplePage) {
-			setLastVisited('multiple', location.pathname + location.search);
+			setLastVisited('multiple', url);
 			return;
 		}
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	const finalCompareUrl = hasSameSelectedRunsInLastCompareUrl
-		? lastCompareUrl ?? '/compare'
-		: compareUrl || lastCompareUrl || '/compare';
+		? lastCompareUrl ?? COMPARE
+		: compareUrl || lastCompareUrl || COMPARE;
 	const finalMultipleUrl = hasSameSelectedRunsInLastMultipleUrl
-		? lastMultipleUrl ?? '/multiple'
-		: multipleUrl || lastMultipleUrl || '/multiple';
+		? lastMultipleUrl ?? MULTIPLE
+		: multipleUrl || lastMultipleUrl || MULTIPLE;
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={RUNS_SIDEBAR_PATTERNS}>
@@ -118,7 +128,7 @@ export function RunsSidebarNav() {
 				<SidebarNavLinkWrapper label="Runs">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="Play" />
 						<SidebarNavInternalLink.Label>Runs</SidebarNavInternalLink.Label>
@@ -130,8 +140,8 @@ export function RunsSidebarNav() {
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
 					to={listUrl}
-					pattern={{ path: '/runs', mode: null, emptyModeMatches: ['table'] }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/runs', mode: null, emptyModeMatches: ['table'] }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="PaperListText"
@@ -146,8 +156,8 @@ export function RunsSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={chartsUrl}
-					pattern={{ path: '/runs', mode: 'charts' }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/runs', mode: 'charts' }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="LineChartMultiple"
@@ -162,8 +172,8 @@ export function RunsSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={progressUrl}
-					pattern={{ path: '/runs', mode: 'progress' }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/runs', mode: 'progress' }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="Aggregation"
@@ -179,8 +189,8 @@ export function RunsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={finalMultipleUrl}
 					disabled={!isMultipleAvailable}
-					pattern={{ path: '/multiple' }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/multiple' }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="PaperStack"
@@ -196,8 +206,8 @@ export function RunsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={finalCompareUrl}
 					disabled={!isCompareAvailable}
-					pattern={{ path: '/compare' }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/compare' }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="SwapArrows"

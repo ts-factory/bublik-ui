@@ -1,9 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useEffect } from 'react';
-import { useLocation, matchPath, useParams } from 'react-router-dom';
-
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -12,35 +9,17 @@ import {
 	SidebarNavInfoButton,
 	SidebarNavSubmenuItemContainer
 } from '@/bublik/features/sidebar-nav';
-import { LogPageParams } from '@/shared/types';
-import { getModeFromSearch, LogSidebarMode } from '@/bublik/features/sidebar';
-
+import type { RoutePathPattern } from '@/router';
 import { useLogSidebarState } from './use-log-sidebar-state';
 
 import { LogDialog } from './log-dialog';
 
-const LOG_SIDEBAR_MODES: readonly LogSidebarMode[] = [
-	'log',
-	'infoAndlog',
-	'treeAndlog',
-	'treeAndinfoAndlog'
-];
-
-const LOG_SIDEBAR_PATTERNS = [{ path: '/log/:runId' }];
+const LOG_SIDEBAR_PATTERNS: RoutePathPattern[] = [{ to: '/log/$runId' }];
 
 export function LogSidebarNav() {
-	const location = useLocation();
-	const { runId } = useParams<LogPageParams>();
-	const { isAvailable, getModeUrl, mainLinkUrl, setLastVisited } =
-		useLogSidebarState();
-
-	useEffect(() => {
-		const pathMatch = matchPath('/log/:runId', location.pathname);
-		if (pathMatch && runId) {
-			const mode = getModeFromSearch(location.search, LOG_SIDEBAR_MODES, 'log');
-			setLastVisited(mode, location.pathname, runId);
-		}
-	}, [location.pathname, location.search, runId, setLastVisited]);
+	// The log page records itself (`log-feature.tsx`); a writer here would be
+	// a second one in the same commit, and they clobber each other's `_s`.
+	const { isAvailable, getModeUrl, mainLinkUrl } = useLogSidebarState();
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={LOG_SIDEBAR_PATTERNS}>
@@ -48,7 +27,7 @@ export function LogSidebarNav() {
 				<SidebarNavLinkWrapper label="Log">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 						disabled={!isAvailable}
 					>
 						<SidebarNavInternalLink.Icon name="Paper" size={28} />
@@ -65,12 +44,12 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('treeAndinfoAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'treeAndinfoAndlog',
 						defaultMode: 'log'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeaderSidebar" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -83,11 +62,11 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('treeAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'treeAndlog'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSidebar" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -100,11 +79,11 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('infoAndlog')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'infoAndlog'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogHeader" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -117,11 +96,11 @@ export function LogSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('log')}
 					pattern={{
-						path: '/log/:runId',
+						to: '/log/$runId',
 						mode: 'log'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutLogSingle" />
 					<SidebarNavSubmenuItemContainer.Label>

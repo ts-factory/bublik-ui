@@ -1,17 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { isValid, parseISO } from 'date-fns';
-import { createPath, Link, parsePath, To } from 'react-router-dom';
-import { ComponentProps } from 'react';
+import { linkOptions, type HistoryState } from '@tanstack/react-router';
 
 import {
-	RunDetailsAPIResponse,
 	HistoryAPIQuery,
 	HistoryMode,
 	HistorySearchParams,
 	RESULT_PROPERTIES,
 	RUN_PROPERTIES,
-	RunDataResults
+	RunDataResults,
+	RunDetailsAPIResponse
 } from '@/shared/types';
 import {
 	config,
@@ -19,7 +18,12 @@ import {
 	DEFAULT_VERDICT_LOOKUP,
 	getDefaultHistoryDateRange
 } from '@/bublik/config';
-import { stringifySearch } from '@/router';
+import {
+	legacyStringifySearch,
+	parseSearch,
+	splitTo,
+	type Wire
+} from '@/router';
 
 import { formatTimeToAPI } from './time';
 
@@ -31,15 +35,12 @@ export const transformUrlSearch = (
 	url: string,
 	transform: (params: URLSearchParams) => URLSearchParams | void
 ): string => {
-	const path = parsePath(url);
-	const params = new URLSearchParams(path.search ?? '');
+	const { to, search: rawSearch, hash } = splitTo(url);
+	const params = new URLSearchParams(rawSearch);
 	const search = (transform(params) ?? params).toString();
 
-	return createPath({
-		pathname: path.pathname ?? '',
-		search: search ? `?${search}` : '',
-		hash: path.hash
-	});
+	// Not `joinTo`: a search-only URL keeps its empty pathname
+	return `${to}${search ? `?${search}` : ''}${hash === '#' ? '' : hash}`;
 };
 
 export const buildQuery = (config: {
@@ -60,13 +61,26 @@ export const buildQuery = (config: {
 	};
 };
 
+const HISTORY = linkOptions({ to: '/history' }).to;
+
+/**
+ * A history link: spread it into `LinkWithProject`. The query string is
+ * built by the legacy codec, so the search is its wire form, which the
+ * route's middlewares write back byte for byte.
+ */
+export type HistoryLinkProps = {
+	to: typeof HISTORY;
+	search: Wire;
+	state: HistoryState;
+};
+
 export type HistorySearch = {
-	testName: ComponentProps<typeof Link>;
-	testNameAndVerdicts: ComponentProps<typeof Link>;
-	testNameAndParameters: ComponentProps<typeof Link>;
-	testNameAndParametersAndImportantTags: ComponentProps<typeof Link>;
-	testNameAndParametersAndAllTags: ComponentProps<typeof Link>;
-	testNameAndParametersAndVerdicts: ComponentProps<typeof Link>;
+	testName: HistoryLinkProps;
+	testNameAndVerdicts: HistoryLinkProps;
+	testNameAndParameters: HistoryLinkProps;
+	testNameAndParametersAndImportantTags: HistoryLinkProps;
+	testNameAndParametersAndAllTags: HistoryLinkProps;
+	testNameAndParametersAndVerdicts: HistoryLinkProps;
 };
 
 class HistorySearchBuilder {
@@ -172,14 +186,16 @@ interface GetToLocationOptions {
 	preview?: boolean;
 }
 
-function getToLocation(options: GetToLocationOptions): To {
+function getToLocation(
+	options: GetToLocationOptions
+): Pick<HistoryLinkProps, 'to' | 'search'> {
 	const { search, mode, preview } = options;
 
-	const searchParams = new URLSearchParams(stringifySearch(search));
+	const searchParams = new URLSearchParams(legacyStringifySearch(search));
 	searchParams.set('mode', mode ?? 'linear');
 	if (preview) searchParams.set('fromRun', 'true');
 
-	return { pathname: '/history', search: searchParams.toString() };
+	return { to: HISTORY, search: parseSearch(searchParams.toString()) };
 }
 
 interface GetHistorySearchOutput {
@@ -258,7 +274,7 @@ function getLinkProps(
 		Object.entries(items).map(([key, search]) => [
 			key,
 			{
-				to: getToLocation({ search, ...options }),
+				...getToLocation({ search, ...options }),
 				state: { fromRun: options.preview }
 			}
 		])

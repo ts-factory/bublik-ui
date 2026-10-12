@@ -122,8 +122,8 @@ Use one of the scopes already established in the history:
 | Area                | Scopes                                                                                                                       |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Pages and features  | `run`, `runs`, `log`, `report`, `history`, `dashboard`, `import`, `measurements`, `projects`, `sidebar`, `settings`, `auth`, `analytics`, `faq`, `net`, `result` |
-| Shared / platform   | `ui`, `api`, `router`, `types`, `hooks`, `utils`, `charts`, `icons`, `form`                                                     |
-| Repository-level    | `config`, `build`, `ci`, `deps`, `docker`, `docs`, `release`, `storybook`                                                        |
+| Shared / platform   | `ui`, `api`, `router`, `routing`, `types`, `hooks`, `utils`, `charts`, `icons`, `form`                                          |
+| Repository-level    | `config`, `build`, `ci`, `deps`, `docker`, `docs`, `e2e`, `release`, `storybook`                                                 |
 
 Most of these map to a directory under `libs/bublik/features/`, `libs/shared/`,
 `libs/services/`, or `apps/`. If your change does not fit any of them, prefer the
@@ -136,6 +136,11 @@ A few conventions worth knowing:
   The same holds for `report` vs `reports`. These are not typos.
 - Prefer the singular `config` and `log` over the `configs`/`logs` variants that
   also appear in history.
+- **`router` and `routing` are different things** — `router` is the `@/router`
+  library (`libs/bublik/router`: codecs, `defineSearch`, location and link
+  helpers), `routing` is the route tree and app-wide navigation
+  (`apps/bublik/src/routes`, `apps/bublik/src/router.tsx`). A change to one
+  page's routing takes that page's scope.
 - **Multiple scopes** are joined with a comma and no space:
 
   ```

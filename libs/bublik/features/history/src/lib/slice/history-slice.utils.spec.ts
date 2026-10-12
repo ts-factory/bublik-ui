@@ -35,7 +35,11 @@ function fullSearchState(): HistorySearchFormState {
 		verdictExpr: 'timeout',
 		revisionExpr: 'rev > 100',
 		testArgExpr: 'pkt_size > 1000',
-		labelExpr: 'nightly'
+		labelExpr: 'nightly',
+		categories: ['known-issue', 'flaky'],
+		untriaged: true,
+		explained: false,
+		issue: 7
 	};
 }
 
@@ -149,8 +153,11 @@ describe('historySearchStateToQuery', () => {
 			[
 				'branchExpr',
 				'branches',
+				'categories',
+				'explained',
 				'finishDate',
 				'hash',
+				'issue',
 				'labelExpr',
 				'labels',
 				'parameters',
@@ -165,6 +172,7 @@ describe('historySearchStateToQuery', () => {
 				'tagExpr',
 				'testArgExpr',
 				'testName',
+				'untriaged',
 				'verdict',
 				'verdictExpr',
 				'verdictLookup'
@@ -226,7 +234,11 @@ describe('the history query round trip', () => {
 			verdictExpr: '',
 			revisionExpr: '',
 			testArgExpr: '',
-			labelExpr: ''
+			labelExpr: '',
+			categories: [],
+			untriaged: false,
+			explained: false,
+			issue: null
 		};
 
 		const restored = queryToHistorySearchState(

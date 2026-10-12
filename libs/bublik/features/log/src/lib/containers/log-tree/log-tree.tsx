@@ -44,7 +44,7 @@ export const TreeError = ({ error = { status: 400 } }: TreeErrorProps) => {
 };
 
 export interface TreeContainerProps {
-	runId: string;
+	runId: number;
 }
 
 export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
@@ -16,6 +15,7 @@ import {
 	resolveRunReportChartOptions
 } from './run-report-chart.utils';
 import { useRunReportChartState } from './run-report-chart.hooks';
+import { useRunReportRunId } from '../run-report-route.hooks';
 
 interface RunReportChartProps {
 	chart: ReportChart;
@@ -26,7 +26,7 @@ interface RunReportChartProps {
 
 function RunReportChart(props: RunReportChartProps) {
 	const { chart, isFullScreen = false, stackedButton, idx } = props;
-	const { runId } = useParams<{ runId: string }>();
+	const runId = useRunReportRunId();
 	const [resultId, setResultId] = useState<number>();
 	const [open, setOpen] = useState(false);
 
@@ -112,7 +112,7 @@ function RunReportChart(props: RunReportChartProps) {
 	return (
 		<>
 			<LogPreviewContainer
-				runId={Number(runId)}
+				runId={runId}
 				resultId={resultId}
 				measurementId={resultId}
 				open={open}

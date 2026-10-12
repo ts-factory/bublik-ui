@@ -9,7 +9,7 @@ import {
 	RunDataResults,
 	ResultTableAPIQueryWithFilter,
 	ResultDetailsAPIResponse,
-	CompromisedTagsResponse,
+	IssueTrackersResponse,
 	RunDetailsAPIResponse,
 	CompromisedDeleteResponse,
 	CompromisedPostResponse,
@@ -32,7 +32,7 @@ import { config } from '@/bublik/config';
 
 import { BUBLIK_TAG } from '../types';
 import { configDependent } from '../tags';
-import { getMinutes, prepareForSend } from '../utils';
+import { getMinutes, prepareForSend, serializeIdArgs } from '../utils';
 import { transformRunTable } from '../transform';
 import { API_REDUCER_PATH } from '../constants';
 import { BublikBaseQueryFn, withApiV2 } from '../config';
@@ -212,7 +212,8 @@ export const runEndpoints = {
 	endpoints: (
 		build: EndpointBuilder<BublikBaseQueryFn, BUBLIK_TAG, API_REDUCER_PATH>
 	) => ({
-		getRunSource: build.query<RunSourceAPIRResponse, string>({
+		getRunSource: build.query<RunSourceAPIRResponse, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			// `cache: 'no-cache'` here and on the queries below: the server
 			// stamps `Cache-Control: max-age=600` on API GETs, so without it a
 			// refetch triggered by a config change is answered from the browser
@@ -221,12 +222,13 @@ export const runEndpoints = {
 				url: withApiV2(`/runs/${runId}/source`),
 				cache: 'no-cache'
 			}),
-			argSchema: z.string(),
+			argSchema: z.string().or(z.number()),
 			responseSchema: RunSourceAPIRResponseSchema,
 			keepUnusedDataFor: getMinutes(15),
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunTableByRunId: build.query<RunTableAPIResponse, RunStatsParams>({
+			serializeQueryArgs: serializeIdArgs,
 			query: ({ runId, requirements }) => {
 				const queryRequirements = requirements?.join(config.queryDelimiter);
 
@@ -305,14 +307,14 @@ export const runEndpoints = {
 			},
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
-		getCompromisedTags: build.query<
-			CompromisedTagsResponse,
-			{ projects?: number[] }
+		getIssueTrackers: build.query<
+			IssueTrackersResponse,
+			{ projectId?: number }
 		>({
-			query: (query) => ({
+			query: ({ projectId }) => ({
 				url: withApiV2('/outside_domains/issues'),
 				cache: 'no-cache',
-				params: { project: query.projects?.[0] }
+				params: { project: projectId }
 			}),
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
@@ -338,6 +340,7 @@ export const runEndpoints = {
 			providesTags: configDependent(BUBLIK_TAG.Run)
 		}),
 		getRunDetails: build.query<RunDetailsAPIResponse, string | number>({
+			serializeQueryArgs: serializeIdArgs,
 			query: (runId) => ({
 				url: withApiV2(`/runs/${runId}/details`),
 				cache: 'reload'

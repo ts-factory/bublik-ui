@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/tools-packet-viewer.spec.ts — see features/README.md.
+#
+# Route: /tools/packet-viewer
 
 Feature: Packet viewer
 

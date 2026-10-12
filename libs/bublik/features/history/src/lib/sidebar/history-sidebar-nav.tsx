@@ -1,9 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
+
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import { addModeToUrl, getBaseUrl } from '@/bublik/features/sidebar';
 import {
 	SidebarNavLinkWrapper,
@@ -22,10 +27,13 @@ import {
 } from './history-dialogs';
 import { Icon } from '@/shared/tailwind-ui';
 
-const HISTORY_SIDEBAR_PATTERNS = [{ path: '/history' }];
+const HISTORY_SIDEBAR_PATTERNS: RoutePathPattern[] = [{ to: '/history' }];
+
+/** The canonical history route; the `/history/v2` alias is not recorded. */
+const HISTORY_ROUTE: RoutePathPattern = { to: '/history' };
 
 export function HistorySidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const {
 		hasTrendData,
 		hasSeriesData,
@@ -41,24 +49,25 @@ export function HistorySidebarNav() {
 		setLastVisited
 	} = useHistorySidebarState();
 
+	// The history page on screen is remembered per mode, as its own URL.
 	useEffect(() => {
-		if (location.pathname === '/history') {
-			const searchParams = new URLSearchParams(location.search);
-			const mode = searchParams.get('mode');
+		if (!matchRoutePath(HISTORY_ROUTE, pathname)) return;
 
-			if (mode === 'linear') {
-				setLastVisited('linear', location.pathname + location.search);
-			} else if (mode === 'aggregation') {
-				setLastVisited('aggregation', location.pathname + location.search);
-			} else if (mode === 'measurements') {
-				setLastVisited('trend', location.pathname + location.search);
-			} else if (mode === 'measurements-by-iteration') {
-				setLastVisited('series', location.pathname + location.search);
-			} else if (mode === 'measurements-combined') {
-				setLastVisited('stacked', location.pathname + location.search);
-			}
+		const url = pathname + searchStr;
+		const mode = new URLSearchParams(searchStr).get('mode');
+
+		if (mode === 'linear') {
+			setLastVisited('linear', url);
+		} else if (mode === 'aggregation') {
+			setLastVisited('aggregation', url);
+		} else if (mode === 'measurements') {
+			setLastVisited('trend', url);
+		} else if (mode === 'measurements-by-iteration') {
+			setLastVisited('series', url);
+		} else if (mode === 'measurements-combined') {
+			setLastVisited('stacked', url);
 		}
-	}, [location.pathname, location.search, setLastVisited]);
+	}, [pathname, searchStr, setLastVisited]);
 
 	const historyBaseUrl = getBaseUrl(mainLinkUrl);
 	const finalLinearUrl = addModeToUrl(historyBaseUrl, 'linear');
@@ -76,7 +85,7 @@ export function HistorySidebarNav() {
 				<SidebarNavLinkWrapper label="History">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="TimeCircle" />
 						<SidebarNavInternalLink.Label>History</SidebarNavInternalLink.Label>
@@ -89,11 +98,11 @@ export function HistorySidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={finalLinearUrl}
 					pattern={{
-						path: '/history',
+						to: '/history',
 						mode: 'linear',
 						emptyModeMatches: ['linear']
 					}}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="PaperListText" size={22} />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -105,8 +114,8 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalAggregationUrl}
-					pattern={{ path: '/history', mode: 'aggregation' }}
-					linkComponent={LinkWithProject}
+					pattern={{ to: '/history', mode: 'aggregation' }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="Aggregation" size={22} />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -118,9 +127,9 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={trendUrl}
-					pattern={{ path: '/history', mode: 'measurements' }}
+					pattern={{ to: '/history', mode: 'measurements' }}
 					disabled={!hasTrendUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LineChartSingle" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -139,9 +148,9 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={seriesUrl}
-					pattern={{ path: '/history', mode: 'measurements-by-iteration' }}
+					pattern={{ to: '/history', mode: 'measurements-by-iteration' }}
 					disabled={!hasSeriesUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LineChartSingle" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -160,9 +169,9 @@ export function HistorySidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalStackedUrl}
-					pattern={{ path: '/history', mode: 'measurements-combined' }}
+					pattern={{ to: '/history', mode: 'measurements-combined' }}
 					disabled={!hasStackedUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LineChartMultiple" />
 					<SidebarNavSubmenuItemContainer.Label>

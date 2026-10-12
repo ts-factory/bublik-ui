@@ -2,11 +2,11 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
 import { User } from '@/shared/types';
-import { routes } from '@/router';
+import { useRenderedLocation } from '@/router';
+
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
 import {
@@ -33,7 +33,8 @@ export const useAuth = () => {
 	const dispatch = useDispatch();
 	// Keeps the sidebar state and the selected project across sign out
 	const navigate = useNavigateWithProject();
-	const location = useLocation();
+	// The page on screen: the reset waits until the protected page is gone
+	const location = useRenderedLocation();
 
 	const [login] = useLoginMutation();
 	const [logoutMutation] = useLogoutMutation();
@@ -90,7 +91,7 @@ export const useAuth = () => {
 			// again over the dashboard. The effect above resets once the dashboard
 			// has rendered and the old page is unmounted.
 			resetOnArrival.current = true;
-			navigate(routes.dashboard({}));
+			void navigate({ to: '/dashboard' });
 		} catch {
 			toast.error('Failed to logout');
 		}

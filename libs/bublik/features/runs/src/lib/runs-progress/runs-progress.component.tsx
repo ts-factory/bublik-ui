@@ -18,7 +18,6 @@ import {
 	LinkWithProject,
 	useNavigateWithProject
 } from '@/bublik/features/projects';
-import { routes } from '@/router';
 import { SummaryBadge } from '../runs-table/columns/column-summary/summary-badge';
 import { RUN_STATUS, RunsData } from '@/shared/types';
 import {
@@ -1410,7 +1409,8 @@ const RunHeaderCell = memo(function RunHeaderCell({
 					<div className="flex items-center gap-2">
 						<ButtonTw asChild variant="secondary" size="xss">
 							<LinkWithProject
-								to={`/runs/${run.id}`}
+								to="/runs/$runId"
+								params={{ runId: run.id }}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -1500,45 +1500,60 @@ function RunHealthBar({ stats }: { stats: RunsData['stats'] }) {
 }
 
 function RunSummaryBadges({ run }: { run: RunsProgressRun['run'] }) {
-	const to = routes.run({ runId: run.id });
 	const { stats } = run;
 	const navigate = useNavigateWithProject();
 
 	return (
 		<div className="flex shrink-0 flex-wrap items-center gap-1">
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				label="Total"
 				count={stats.tests_total}
 				percentage={stats.tests_total_plan_percent}
 				className="bg-badge-9"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				label="OK"
 				count={stats.tests_total_ok}
 				percentage={stats.tests_total_ok_percent}
 				className="bg-badge-3"
 			/>
 			<SummaryBadge
-				to={to}
+				runId={run.id}
 				state={{ openUnexpected: true }}
 				onContextMenu={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpectedResults: true }
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpected: true }
+						});
 					}
 				}}
 				onClick={(e) => {
 					e.preventDefault();
 
 					if (e.ctrlKey) {
-						navigate(to, { state: { openUnexpectedResults: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpectedResults: true }
+						});
 					} else {
-						navigate(to, { state: { openUnexpected: true } });
+						navigate({
+							to: '/runs/$runId',
+							params: { runId: run.id },
+							state: { openUnexpected: true }
+						});
 					}
 				}}
 				label="NOK"
@@ -1905,11 +1920,13 @@ const ResultColumnValue = memo(function ResultColumnValue({
 		>
 			{isHovered && value !== 0 && !hideValue && (
 				<LinkWithProject
-					to={routes.run({
-						runId,
-						targetIterationId: resultId,
-						resultFilter: RUNS_PROGRESS_COL_TO_RUN_COLUMN_ID[column.id]
-					})}
+					to="/runs/$runId"
+					params={{ runId }}
+					search={{
+						targetIterationId: resultId || undefined,
+						resultFilter:
+							RUNS_PROGRESS_COL_TO_RUN_COLUMN_ID[column.id] || undefined
+					}}
 					target="_blank"
 					rel="noopener noreferrer"
 					onClick={(event) => event.stopPropagation()}

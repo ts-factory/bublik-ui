@@ -1,39 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useParams } from 'react-router-dom';
-import { skipToken } from '@reduxjs/toolkit/query';
-
-import { MeasurementsRouterParams, MeasurementsSearch } from '@/shared/types';
-import { useSearchState } from '@/router';
-import {
-	useGetResultInfoQuery,
-	usePrefetchLogPage,
-	usePrefetchRun
-} from '@/services/bublik-api';
+import { useGetResultInfoQuery } from '@/services/bublik-api';
 import { ScrollToTopPage } from '@/shared/tailwind-ui';
 
 import { ModePicker } from './components';
 import { useMeasurementTitle } from './measurement.hooks';
+import { measurementsRoute, useMeasurementsMode } from './route';
 
 export const MeasurementContainer = () => {
-	const [search] = useSearchState<MeasurementsSearch>();
-	const { runId, resultId } = useParams<MeasurementsRouterParams>();
-	const { data } = useGetResultInfoQuery(resultId ?? skipToken);
+	const mode = useMeasurementsMode();
+	const { runId, resultId } = measurementsRoute.useParams();
+	const { data } = useGetResultInfoQuery(resultId);
 
 	useMeasurementTitle({
 		name: data?.name,
 		start: data?.start,
 		runId
 	});
-	usePrefetchRun({ runId });
-	usePrefetchLogPage({ runId, resultId });
 
 	return (
-		<div
-			data-testid="measurements-page"
-			data-measurements-mode={search?.mode ?? 'default'}
-		>
-			<ModePicker mode={search?.mode} />
+		<div data-testid="measurements-page" data-measurements-mode={mode}>
+			<ModePicker mode={mode} />
 			<ScrollToTopPage />
 		</div>
 	);

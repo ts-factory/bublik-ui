@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Row } from '@tanstack/react-table';
 import { skipToken } from '@reduxjs/toolkit/query';
 
@@ -18,6 +17,7 @@ import {
 	ResultDiffError,
 	ResultDiffLoading
 } from './index';
+import { useCompareRunIds } from '../compare-search';
 
 const getQueries = ({
 	left,
@@ -102,10 +102,7 @@ export const ResultDiffContainer: FC<ResultDiffContainerProps> = ({ row }) => {
 		isLoading,
 		error
 	} = useResultDiffState(row.original);
-	const [searchParams] = useSearchParams();
-
-	const leftRunId = searchParams.get('left');
-	const rightRunId = searchParams.get('right');
+	const { left: leftRunId, right: rightRunId } = useCompareRunIds();
 
 	if (!leftRunId || !rightRunId) {
 		return (
@@ -121,12 +118,5 @@ export const ResultDiffContainer: FC<ResultDiffContainerProps> = ({ row }) => {
 
 	if (!leftData || !rightData) return <ResultDiffEmpty />;
 
-	return (
-		<ResultDiff
-			left={leftData}
-			right={rightData}
-			leftRunId={leftRunId}
-			rightRunId={rightRunId}
-		/>
-	);
+	return <ResultDiff left={leftData} right={rightData} />;
 };

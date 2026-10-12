@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC, useCallback, useEffect, useState } from 'react';
-import { matchPath, useLocation } from 'react-router-dom';
+import { linkOptions } from '@tanstack/react-router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
-import { useNavigateWithProject } from '@/bublik/features/projects';
+import { useRouterNavigateWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { Skeleton, useSelectionPopoverOpenState } from '@/shared/tailwind-ui';
@@ -81,16 +83,18 @@ export const SelectedResultItemContainer: FC<
 	);
 };
 
+const RUNS = linkOptions({ to: '/runs' }).to;
+
 export const SelectionPopoverContainer = () => {
-	const location = useLocation();
-	const navigateWithProject = useNavigateWithProject();
+	const { pathname } = useRenderedLocation();
+	const navigateWithProject = useRouterNavigateWithProject();
 	const { compareIds, resetSelect } = useRunsSelection();
 	const { lastListUrl } = useRunsSidebarState();
 	const [shouldRedirectToRuns, setShouldRedirectToRuns] = useState(false);
 
 	const handleResetClick = useCallback(() => {
-		const isComparePage = !!matchPath('/compare', location.pathname);
-		const isMultiplePage = !!matchPath('/multiple', location.pathname);
+		const isComparePage = !!matchRoutePath({ to: '/compare' }, pathname);
+		const isMultiplePage = !!matchRoutePath({ to: '/multiple' }, pathname);
 
 		if (isComparePage || isMultiplePage) {
 			setShouldRedirectToRuns(true);
@@ -101,14 +105,15 @@ export const SelectionPopoverContainer = () => {
 			selectionCount: 0,
 			source: 'selection_popover'
 		});
-	}, [location.pathname, resetSelect]);
+	}, [pathname, resetSelect]);
 
 	useEffect(() => {
 		if (!shouldRedirectToRuns || compareIds.length > 0) {
 			return;
 		}
 
-		navigateWithProject(lastListUrl || '/runs', { replace: true });
+		// Back to the list the selection was made on, replacing the emptied page.
+		navigateWithProject(lastListUrl || RUNS, { replace: true });
 		setShouldRedirectToRuns(false);
 	}, [
 		compareIds.length,

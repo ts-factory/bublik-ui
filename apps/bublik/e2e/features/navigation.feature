@@ -2,6 +2,9 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/route-smoke.spec.ts — see features/README.md.
+#
+# Route: /
+# Route: /$
 
 Feature: Navigation
 
@@ -95,3 +98,96 @@ Feature: Navigation
     Then no sidebar is shown
     And the URL still hides the sidebar
 
+
+  ####################################################################
+  # Issues
+  ####################################################################
+
+  @issues
+  Scenario: The sidebar Issues submenu opens the issues and rules pages
+    Given I open the dashboard
+    When I open the Issues submenu and choose Issues
+    Then the issues page is open
+    When I open the Issues submenu and choose Rules
+    Then the rules page is open
+
+  @issues
+  Scenario: The command palette opens the issues page
+    Given I open the dashboard
+    When I open the command palette and choose Issues
+    Then the issues page is open
+
+  # The issues pages used to live under /admin; links written then still work.
+  @issues
+  Scenario: Old admin issue addresses redirect to the issues pages
+    When I open the old admin issues address
+    Then the issues page is open
+    When I open the old admin rules address
+    Then the rules page is open
+
+  @issues @url-params
+  Scenario: The compressed sidebar state remembers the issues pages I visited
+    Given I open a run's issues page
+    And I move to the issues page, search it, and do the same on the rules page
+    When I move to the dashboard
+    Then the compressed sidebar state remembers the issues search, the rules page and the run's issues
+    And it decodes at the version the app writes and stays inside its budget
+
+  @issues @issues-write
+  Scenario: The Issue sidebar link stays disabled until an issue was opened
+    Given I record an issue and open the dashboard
+    Then the Issue sidebar item is not a link
+    When I open that issue's page and move to the dashboard
+    Then the Issue sidebar item links to that issue
+    And I delete that issue
+
+  # `hide-sidebar` is parsed by the layout itself: `1` and `true` hide, `0` and
+  # `false` show, case does not matter, and anything else is as good as absent.
+  @url-params
+  Scenario Outline: The sidebar follows the hide-sidebar value in the link
+    When I open the dashboard with hide-sidebar set to the given value
+    Then the sidebar is shown or hidden as the value says
+
+    Examples:
+      | case                                            | value | sidebar |
+      | hide-sidebar=1 hides the sidebar                | 1     | hidden  |
+      | hide-sidebar=true hides the sidebar             | true  | hidden  |
+      | hide-sidebar=TRUE hides the sidebar             | TRUE  | hidden  |
+      | hide-sidebar=0 shows the sidebar                | 0     | shown   |
+      | hide-sidebar=false shows the sidebar            | false | shown   |
+      | An unknown hide-sidebar value shows the sidebar | yes   | shown   |
+
+  # The settings dialog lives in the URL on every page: `settings-open` is `1`
+  # or `0`, `settings-tab` names the section, and both are written with
+  # replaceIn, so the page's own parameters survive opening and closing it.
+  @url-params
+  Scenario: A settings link opens the dialog on the named section
+    Given a dashboard link that asks for the Beta settings section
+    When I open that link
+    Then the settings dialog is open on the Beta section
+
+  @url-params
+  Scenario: Closing the settings dialog records it as closed and keeps the rest of the link
+    Given the settings dialog is open on the Beta section from a dated dashboard link
+    When I close the settings dialog
+    Then the URL records the dialog as closed
+    And the section and the date are still pinned
+
+  # The palette navigates to the current pathname with only the settings keys,
+  # so the page's own parameters are dropped while the project scope is
+  # re-added by the project-aware navigation.
+  @url-params
+  Scenario: The command palette's Profile item opens the account settings on the current page
+    Given I open the dashboard scoped to a project on a fixture date
+    When I open the command palette and choose Profile
+    Then the settings dialog is open on the Account section
+    And the URL records the account section and the project but not the date
+
+  # A link is opened as typed: the router does not re-encode a query string it
+  # did not write (`;` stays `;`, `%20` stays `%20`). A page that writes the
+  # URL on load (the sidebar state, a default) writes it in its own encoding.
+  @url-params
+  Scenario: A hand-typed query string stays as typed on a page that writes nothing
+    When I open the help page through a link whose query string uses ";" and "%20"
+    Then the help page is shown
+    And the address bar keeps the query string exactly as typed

@@ -74,7 +74,8 @@ export function LogPickerContainer() {
 	const effectivePage =
 		page ?? (allPagesIdentity && isRemembered(allPagesIdentity) ? '0' : null);
 
-	if (!runId) {
+	// No `$runId` route matched (the lib renders outside the log page too)
+	if (runId === undefined) {
 		return <BublikEmptyState title="No data" description="Run ID is missing" />;
 	}
 
@@ -160,7 +161,7 @@ export function LogPickerContainer() {
 }
 
 export interface HtmlLogProps {
-	runId: string;
+	runId: number;
 	focusId?: string | number | null;
 	isShowingRunLog: boolean;
 }
@@ -168,12 +169,11 @@ export interface HtmlLogProps {
 const HtmlLog = (props: HtmlLogProps) => {
 	const { runId, focusId, isShowingRunLog } = props;
 
-	const idToLoad =
-		isShowingRunLog && runId
-			? parseInt(runId)
-			: focusId
-			? parseInt(focusId.toString())
-			: undefined;
+	const idToLoad = isShowingRunLog
+		? runId
+		: focusId
+		? parseInt(focusId.toString())
+		: undefined;
 
 	const { data, error, isLoading } = useGetLogUrlByResultIdQuery(
 		idToLoad ?? skipToken
@@ -195,7 +195,7 @@ const HtmlLog = (props: HtmlLogProps) => {
 };
 
 export interface JsonLogProps {
-	runId: string;
+	runId: number;
 	focusId?: string | number | null;
 	page?: string | number | null;
 	isShowingRunLog?: boolean;

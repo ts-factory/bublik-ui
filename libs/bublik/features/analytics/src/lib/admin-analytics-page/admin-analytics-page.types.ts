@@ -25,6 +25,28 @@ type ParsedQueryState = {
 	pageSize: number;
 };
 
+/**
+ * `/admin/analytics`'s search as its route schema types it
+ * (`apps/bublik/src/routes/-search/admin-analytics.search.ts`): the backend's
+ * snake_case query, every key passed through as its wire value.
+ */
+type AnalyticsSearch = {
+	page?: string | string[];
+	page_size?: string | string[];
+	event_type?: string | string[];
+	event_name?: string | string[];
+	path?: string | string[];
+	anon_id?: string | string[];
+	app_version?: string | string[];
+	search?: string | string[];
+	payload_search?: string | string[];
+};
+
+/** A write: each key's new wire value, `undefined` to remove it. */
+type AnalyticsSearchChanges = {
+	[K in keyof AnalyticsSearch]?: string | undefined;
+};
+
 type AnalyticsFilterKey =
 	| 'event_type'
 	| 'event_name'
@@ -40,5 +62,7 @@ export type {
 	AdminAnalyticsPageComponentProps,
 	AnalyticsFilterKey,
 	AnalyticsQueryArgs,
+	AnalyticsSearch,
+	AnalyticsSearchChanges,
 	ParsedQueryState
 };

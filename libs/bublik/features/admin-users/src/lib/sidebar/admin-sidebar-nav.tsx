@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { linkOptions } from '@tanstack/react-router';
+
 import { useAuth } from '@/bublik/features/auth';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -10,8 +12,20 @@ import {
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { useGetServerFeaturesQuery } from '@/services/bublik-api';
+import type { RoutePathPattern } from '@/router';
 
-const ADMIN_SIDEBAR_PATTERNS = [{ path: '/admin/*' }];
+const ADMIN_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: '/admin', fuzzy: true }
+];
+
+/** The admin pages, checked against the route tree (`linkOptions`). */
+const ADMIN_LINKS = {
+	config: linkOptions({ to: '/admin/config' }).to,
+	users: linkOptions({ to: '/admin/users' }).to,
+	import: linkOptions({ to: '/admin/import' }).to,
+	flower: linkOptions({ to: '/admin/flower' }).to,
+	analytics: linkOptions({ to: '/admin/analytics' }).to
+};
 
 export function AdminSidebarNav() {
 	const { isAdmin } = useAuth();
@@ -23,8 +37,8 @@ export function AdminSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Admin">
 					<SidebarNavInternalLink
-						to="/admin/import"
-						linkComponent={LinkWithProject}
+						to={ADMIN_LINKS.import}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="Edit" />
 						<SidebarNavInternalLink.Label>Admin</SidebarNavInternalLink.Label>
@@ -35,9 +49,9 @@ export function AdminSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/config"
-					pattern={{ path: '/admin/config' }}
-					linkComponent={LinkWithProject}
+					to={ADMIN_LINKS.config}
+					pattern={{ to: ADMIN_LINKS.config }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="SettingsSliders"
@@ -48,9 +62,9 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/users"
-					pattern={{ path: '/admin/users' }}
-					linkComponent={LinkWithProject}
+					to={ADMIN_LINKS.users}
+					pattern={{ to: ADMIN_LINKS.users }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="TwoUsers" size={24} />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -58,9 +72,9 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/import"
-					pattern={{ path: '/admin/import' }}
-					linkComponent={LinkWithProject}
+					to={ADMIN_LINKS.import}
+					pattern={{ to: ADMIN_LINKS.import }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="Import" size={24} />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -68,9 +82,9 @@ export function AdminSidebarNav() {
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
-					to="/admin/flower"
-					pattern={{ path: '/admin/flower' }}
-					linkComponent={LinkWithProject}
+					to={ADMIN_LINKS.flower}
+					pattern={{ to: ADMIN_LINKS.flower }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon
 						name="LineChartOnline"
@@ -82,9 +96,9 @@ export function AdminSidebarNav() {
 				</SidebarNavSubmenuItemContainer>
 				{showAnalytics ? (
 					<SidebarNavSubmenuItemContainer
-						to="/admin/analytics"
-						pattern={{ path: '/admin/analytics' }}
-						linkComponent={LinkWithProject}
+						to={ADMIN_LINKS.analytics}
+						pattern={{ to: ADMIN_LINKS.analytics }}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavSubmenuItemContainer.Icon
 							name="LineChartOnline"

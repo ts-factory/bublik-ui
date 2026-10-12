@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import { linkOptions } from '@tanstack/react-router';
+
 import { Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -11,10 +13,14 @@ import {
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
 import { config } from '@/bublik/config';
+import type { RoutePathPattern } from '@/router';
 
-const HELP_SIDEBAR_PATTERNS = [
-	{ path: '/help', end: false },
-	{ path: '/help/faq' }
+// The help page's address, checked against the route tree.
+const HELP_FAQ = linkOptions({ to: '/help/faq' });
+
+// Every help page; bare `/help` is no page of its own
+const HELP_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: HELP_FAQ.to, fuzzy: true }
 ];
 
 export function HelpSidebarNav() {
@@ -23,8 +29,8 @@ export function HelpSidebarNav() {
 			<SidebarNavCollapsibleContainer.Item>
 				<SidebarNavLinkWrapper label="Help">
 					<SidebarNavInternalLink
-						to="/help/faq"
-						linkComponent={LinkWithProject}
+						to={HELP_FAQ.to}
+						linkComponent={RouterLinkWithProject}
 					>
 						<SidebarNavInternalLink.Icon name="Bulb" size={28} />
 						<SidebarNavInternalLink.Label>Help</SidebarNavInternalLink.Label>
@@ -35,9 +41,9 @@ export function HelpSidebarNav() {
 
 			<SidebarNavCollapsibleContainer.Submenu>
 				<SidebarNavSubmenuItemContainer
-					to="/help/faq"
-					pattern={{ path: '/help/faq' }}
-					linkComponent={LinkWithProject}
+					to={HELP_FAQ.to}
+					pattern={{ to: HELP_FAQ.to }}
+					linkComponent={RouterLinkWithProject}
 				>
 					<Icon name="InformationCircleQuestionMark" className="size-7" />
 					<SidebarNavSubmenuItemContainer.Label>

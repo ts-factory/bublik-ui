@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode } from 'react';
+import { type AnchorHTMLAttributes, type ReactNode } from 'react';
+import { type HistoryState } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
@@ -8,15 +9,25 @@ import { DashboardCellData } from '@/shared/types';
 import { cn, cva, Tooltip } from '@/shared/tailwind-ui';
 import {
 	LinkWithProject,
-	useNavigateWithProject
+	RouterLinkWithProject,
+	useNavigateWithProject,
+	useRouterNavigateWithProject
 } from '@/bublik/features/projects';
 
-import { getUrl } from '../../utils';
+import { getCellTarget, type CellTarget } from '../../utils';
 
 const UNEXPECTED_COLUMN_KEY = 'unexpected';
 const PATH_TO_RUN = 'runs';
 
-function getUnexpectedNavigationState(openUnexpectedResults = false) {
+/**
+ * The `location.state` the run page reads to preview the unexpected results
+ * (`openUnexpected`) or to expand their result tables (`openUnexpectedResults`,
+ * on ctrl-click); a fresh intent id per navigation lets the run page tell a
+ * new request from a reload of the same entry.
+ */
+function getUnexpectedNavigationState(
+	openUnexpectedResults = false
+): HistoryState {
 	const openUnexpectedIntentId = `${Date.now()}-${Math.random()
 		.toString(36)
 		.slice(2)}`;
@@ -83,13 +94,13 @@ export function CellLink({
 		);
 	}
 
-	const to = getUrl(data.payload.url, data.payload?.params);
+	const target = getCellTarget(data.payload.url, data.payload?.params);
 
 	// 2. Link to run with unexpected open on CTRL click
 	if (isLinkToRun) {
 		return (
 			<LinkToRun
-				to={to}
+				target={target}
 				cellKey={cellKey}
 				cellString={cellString}
 				bgColor={bgColor}
@@ -101,9 +112,9 @@ export function CellLink({
 	// 3. Relative URL
 	return (
 		<LinkHintCard destination={destination}>
-			<LinkWithProject
+			<CellAnchor
 				{...cellAttributes(cellKey)}
-				to={getUrl(data.payload.url, data.payload?.params)}
+				cellTarget={target}
 				onClick={() => {
 					trackDashboardTableLinkClick({
 						cellKey,
@@ -113,28 +124,72 @@ export function CellLink({
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
-			</LinkWithProject>
+			</CellAnchor>
 		</LinkHintCard>
 	);
+}
+
+interface CellAnchorProps
+	extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+	cellTarget: CellTarget;
+	state?: HistoryState;
+}
+
+/** A cell's link: typed for a route of the tree, the path as built otherwise. */
+function CellAnchor({ cellTarget: target, ...props }: CellAnchorProps) {
+	switch (target.kind) {
+		case 'run':
+			return <LinkWithProject {...target.link} {...props} />;
+		case 'log':
+			return <LinkWithProject {...target.link} {...props} />;
+		case 'path':
+			return <RouterLinkWithProject to={target.to} {...props} />;
+	}
+}
+
+/** Navigates to a cell's target with `state`, typed when it is a route. */
+function useNavigateToCell(): (
+	target: CellTarget,
+	state: HistoryState
+) => void {
+	const navigate = useNavigateWithProject();
+	const navigateTo = useRouterNavigateWithProject();
+
+	return (target, state) => {
+		switch (target.kind) {
+			case 'run':
+				return void navigate({ ...target.link, state });
+			case 'log':
+				return void navigate({ ...target.link, state });
+			case 'path':
+				return navigateTo(target.to, { state });
+		}
+	};
 }
 
 interface LinkToRunProps {
 	cellKey: string;
 	cellString: string | number;
-	to: string;
+	target: CellTarget;
 	bgColor?: string;
 	destination?: string;
 }
 
+/**
+ * The NOK badge. The anchor carries the preview state for the browser's own
+ * handling (middle click, open in new tab); a click or a context-menu click
+ * is a navigation of its own with a fresh intent id, and ctrl asks for the
+ * result tables expanded.
+ */
 function LinkToRun(props: LinkToRunProps) {
-	const { cellString, cellKey, to, bgColor, destination } = props;
-	const navigate = useNavigateWithProject();
+	const { cellString, cellKey, target, bgColor, destination } = props;
+	const navigate = useNavigateToCell();
 
 	return (
 		<LinkHintCard destination={destination}>
-			<LinkWithProject
+			<CellAnchor
 				{...cellAttributes(cellKey)}
-				to={to}
+				cellTarget={target}
 				state={getUnexpectedNavigationState()}
 				onClick={(e) => {
 					trackDashboardTableLinkClick({
@@ -146,11 +201,9 @@ function LinkToRun(props: LinkToRunProps) {
 
 					e.preventDefault();
 					if (e.ctrlKey) {
-						navigate(to, {
-							state: getUnexpectedNavigationState(true)
-						});
+						navigate(target, getUnexpectedNavigationState(true));
 					} else {
-						navigate(to, { state: getUnexpectedNavigationState() });
+						navigate(target, getUnexpectedNavigationState());
 					}
 				}}
 				onContextMenu={(e) => {
@@ -163,17 +216,15 @@ function LinkToRun(props: LinkToRunProps) {
 
 					e.preventDefault();
 					if (e.ctrlKey) {
-						navigate(to, {
-							state: getUnexpectedNavigationState(true)
-						});
+						navigate(target, getUnexpectedNavigationState(true));
 					} else {
-						navigate(to, { state: getUnexpectedNavigationState() });
+						navigate(target, getUnexpectedNavigationState());
 					}
 				}}
 				className={cn(linkStyles(), bgColor)}
 			>
 				{cellString}
-			</LinkWithProject>
+			</CellAnchor>
 		</LinkHintCard>
 	);
 }

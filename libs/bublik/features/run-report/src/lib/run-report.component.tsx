@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024 OKTET LTD */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { BooleanParam, useQueryParam, withDefault } from 'use-query-params';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
 	createColumnHelper,
 	flexRender,
@@ -31,7 +29,10 @@ import {
 	TestBlock
 } from '@/shared/types';
 import { config } from '@/bublik/config';
-import { LinkWithProject } from '@/bublik/features/projects';
+import {
+	LinkWithProject,
+	RouterLinkWithProject
+} from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { useIsSticky, usePhysicalHotkeys } from '@/shared/hooks';
 
@@ -48,6 +49,13 @@ import {
 } from './run-report-navigation.utils';
 import type { ArgValNavigationItem } from './run-report-navigation.utils';
 import { RUN_REPORT_STICKY_HEADER_HEIGHT } from './run-report.constants';
+import {
+	useRunReportAnchorNavigation,
+	useRunReportBlockOpen,
+	useRunReportConfigId,
+	useRunReportSearchString,
+	useScrollToReportHash
+} from './run-report-route.hooks';
 
 interface UseArgValBlockKeyboardNavigationConfig {
 	items: ArgValNavigationItem[];
@@ -197,12 +205,8 @@ interface TableOfContentsItemProps {
 function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 	const isOpenByDefault =
 		item.type === 'arg-val-block' || item.type === 'test-block';
-	const [open, setOpen] = useQueryParam(
-		item.id,
-		withDefault(BooleanParam, isOpenByDefault)
-	);
-	const [params] = useSearchParams();
-	const configid = params.get('config');
+	const [open, setOpen] = useRunReportBlockOpen(item.id, isOpenByDefault);
+	const configId = useRunReportConfigId();
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
@@ -233,10 +237,11 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 					) : (
 						<div className="size-4 rounded-full" />
 					)}
-					<LinkWithProject
+					{/* Only the config: the link drops every other key of the page. */}
+					<RouterLinkWithProject
 						data-testid="run-report-toc-link"
 						to={{
-							search: `?config=${configid}`,
+							search: `?config=${configId}`,
 							hash: encodeURIComponent(item.id)
 						}}
 						className={cn(
@@ -248,7 +253,7 @@ function TableOfContentsItem({ item, depth = 0 }: TableOfContentsItemProps) {
 						onClick={() => scrollToReportItem(item.id)}
 					>
 						{item.label}
-					</LinkWithProject>
+					</RouterLinkWithProject>
 				</div>
 			</div>
 			{item.children && item.children.length ? (
@@ -274,9 +279,7 @@ interface RunReportProps {
 
 function RunReport(props: RunReportProps) {
 	const { blocks, runId, details } = props;
-	const location = useLocation();
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
+	const navigateToAnchor = useRunReportAnchorNavigation();
 	const [pairGainColumnsByTestId, setPairGainColumnsByTestId] = useState<
 		Record<string, boolean>
 	>({});
@@ -304,20 +307,14 @@ function RunReport(props: RunReportProps) {
 	const navigateToArgValBlock = useCallback(
 		(id: string) => {
 			scrollToReportItem(id);
-			navigate({
-				search: searchParams.toString(),
-				hash: encodeURIComponent(id)
-			});
+			navigateToAnchor(encodeURIComponent(id));
 		},
-		[navigate, searchParams]
+		[navigateToAnchor]
 	);
 	const navigateToTableOfContents = useCallback(() => {
 		scrollToReportItem(RUN_REPORT_TABLE_OF_CONTENTS_ID);
-		navigate({
-			search: searchParams.toString(),
-			hash: RUN_REPORT_TABLE_OF_CONTENTS_ID
-		});
-	}, [navigate, searchParams]);
+		navigateToAnchor(RUN_REPORT_TABLE_OF_CONTENTS_ID);
+	}, [navigateToAnchor]);
 	const togglePairGainColumns = useCallback((id: string) => {
 		setPairGainColumnsByTestId((state) => ({
 			...state,
@@ -333,16 +330,7 @@ function RunReport(props: RunReportProps) {
 		onPairGainColumnsToggle: togglePairGainColumns
 	});
 
-	useEffect(() => {
-		if (!location.hash) return;
-
-		const animationFrame = requestAnimationFrame(() => {
-			const id = decodeURIComponent(location.hash.slice(1));
-			scrollToReportItem(id);
-		});
-
-		return () => cancelAnimationFrame(animationFrame);
-	}, [location.hash]);
+	useScrollToReportHash();
 
 	return (
 		<div className="flex flex-col gap-1 relative">
@@ -372,7 +360,7 @@ interface ReportConfigurationFrameProps {
 
 function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 	const { warnings, config } = props;
-	const [searchParams] = useSearchParams();
+	const configId = useRunReportConfigId();
 
 	return (
 		<div className="bg-white rounded-md flex flex-col">
@@ -387,9 +375,7 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 				}
 			>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<LinkWithProject
-						to={`/admin/config?configId=${searchParams.get('config')}`}
-					>
+					<LinkWithProject to="/admin/config" search={{ configId }}>
 						<Icon name="BoxArrowRight" className="mr-1.5" />
 						Config
 					</LinkWithProject>
@@ -668,7 +654,7 @@ function RunReportContentItem({
 		[block.common_args]
 	);
 
-	const [params] = useSearchParams();
+	const search = useRunReportSearchString();
 	const [offsetTop, setOffsetTop] = useState(0);
 	const headerRef = useRef<HTMLDivElement | null>(null);
 	// Rounded top corners only make sense while the header sits on its own card,
@@ -695,15 +681,12 @@ function RunReportContentItem({
 				className={cn('sticky bg-white z-[10]', !isSticky && 'rounded-t')}
 				style={{ top: RUN_REPORT_STICKY_HEADER_HEIGHT }}
 				label={
-					<LinkWithProject
+					<RouterLinkWithProject
 						className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem] hover:underline"
-						to={{
-							search: params.toString(),
-							hash: encodeURIComponent(block.id)
-						}}
+						to={{ search, hash: encodeURIComponent(block.id) }}
 					>
 						{block.label}
-					</LinkWithProject>
+					</RouterLinkWithProject>
 				}
 				ref={handleRef}
 			>
@@ -760,4 +743,11 @@ function RunReportContentItem({
 	);
 }
 
-export { RunReport, RunReportError, RunReportEmpty, RunReportLoading };
+export {
+	RunReport,
+	RunReportError,
+	RunReportEmpty,
+	RunReportLoading,
+	RunReportTableOfContents
+};
+export type { TableOfContentsItem };

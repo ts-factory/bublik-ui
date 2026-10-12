@@ -1,0 +1,41 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
+import type { ExpandedState, PaginationState } from '@tanstack/react-table';
+
+import { bool01, defineSearch, json, str, type InferSearch } from '@/router';
+import type { ImportTaskFilters } from '@/shared/types';
+
+/** No filter: every field of the form empty (a reset writes `filters={}`). */
+const NO_IMPORT_FILTERS: ImportTaskFilters = {
+	job: undefined,
+	run: undefined,
+	url: undefined,
+	celery_task: undefined,
+	status: undefined
+};
+
+/**
+ * `/admin/import`. The filter form, the pagination and the
+ * expanded rows are plain JSON; a reset writes `filters={}`. `taskId` opens
+ * the log of one import and `poll` keeps it refreshing.
+ */
+const importSearch = defineSearch(
+	{
+		filters: json<ImportTaskFilters>(),
+		pagination: json<PaginationState>(),
+		expanded: json<ExpandedState>(),
+		taskId: str(),
+		poll: bool01()
+	},
+	{
+		filters: NO_IMPORT_FILTERS,
+		pagination: { pageIndex: 0, pageSize: 25 },
+		expanded: {},
+		poll: false
+	}
+);
+
+type ImportSearch = InferSearch<typeof importSearch>;
+
+export { importSearch };
+export type { ImportSearch };

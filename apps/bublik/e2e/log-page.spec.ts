@@ -1,11 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* eslint-disable playwright/expect-expect */
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './support/test';
 
+import type { APIRequestContext } from '@playwright/test';
+
 import { LogPage } from './pages/log-page';
+import { RunIssuesPage } from './pages/run-issues-page';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
+import { IssueCleanup } from './support/classification';
 import {
 	firstErrorResultNode,
 	firstMeasurementResultNode,
@@ -13,12 +19,48 @@ import {
 	importedRunId,
 	longLogNode,
 	paginatedLogNode,
-	representativeImportedRun
+	representativeImportedRun,
+	sampleResultNode
 } from './support/e2e-data';
+import type { TreeNode } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
-import { representativeNokRun } from './support/sample-cases';
+import {
+	claimFailingResult,
+	classifiableRun,
+	representativeNokRun
+} from './support/sample-cases';
+import type { ClassifiableRun } from './support/sample-cases';
+import { withUserPreferences } from './support/user-preferences';
+
+const issueCleanup = new IssueCleanup('log');
+
+/** The tree node of the classifiable run's first failing sample. */
+async function classifiableLogResult(
+	request: APIRequestContext
+): Promise<{ run: ClassifiableRun; node: TreeNode }> {
+	const run = requireCapability(
+		classifiableRun(requireManifest()),
+		'Fixture manifest contains no second NOK run safe to classify.'
+	);
+	const result = requireCapability(
+		await sampleResultNode(
+			request,
+			{ bundle: run.bundle, expectedRun: run.expectedRun, runId: run.runId },
+			run.samples[0]
+		),
+		'The classifiable run tree does not list its failing sample.'
+	);
+
+	return { run, node: result.node };
+}
 
 test.describe('Log Page', () => {
+	test.afterEach(async ({ request }, testInfo) => {
+		if (!testInfo.tags.includes('@issues-write')) return;
+
+		await issueCleanup.sweep(request);
+	});
+
 	test(
 		'The log layout follows the selected mode',
 		{ tag: ['@smoke'] },
@@ -654,6 +696,154 @@ test.describe('Log Page', () => {
 			);
 			await and('the top of the log is out of view', () =>
 				logPage.expectRowOutOfViewport(topRow)
+			);
+		}
+	);
+
+	test(
+		'A failing result can be classified from the log header',
+		{ tag: ['@log', '@issues', '@issues-write', '@needs-nok'] },
+		async ({ page, request }) => {
+			const logPage = new LogPage(page);
+			const runIssuesPage = new RunIssuesPage(page);
+			const title = issueCleanup.title('header');
+			let run!: ClassifiableRun;
+
+			await given(
+				'I open the log focused on a failing result of the fixture run',
+				async () => {
+					// A tree node's id is its result's id.
+					const failing = await claimFailingResult(request, 'log header');
+					run = failing.run;
+					await logPage.goto(
+						run.runId,
+						`mode=treeAndinfoAndlog&focusId=${failing.resultId}`
+					);
+					await logPage.expectLoaded();
+				}
+			);
+			await when(
+				'I classify it from the header as an expected known issue',
+				async () => {
+					const drawer = await logPage.openClassify();
+					await drawer.fillNewIssue({ title });
+					await drawer.setCategory('Known');
+					await drawer.setDisposition('Expected');
+					await drawer.submit();
+				}
+			);
+			await then(
+				"the run's issues page lists the issue as suppressed",
+				async () => {
+					await runIssuesPage.goto(run.runId);
+					await runIssuesPage.expectLoaded();
+					await runIssuesPage.table.search(title);
+					await runIssuesPage.expectIssueListed(title);
+					await runIssuesPage.expectEffect(title, 'suppressed');
+				}
+			);
+			await and('I delete the issue from the run issues page', async () => {
+				const row = runIssuesPage.rowByTitle(title);
+				const issueId = Number(await row.getAttribute('data-issue-id'));
+				issueCleanup.register(issueId);
+				await runIssuesPage.deleteIssue(row, title);
+				await runIssuesPage.expectIssueGone(title);
+				issueCleanup.forget(issueId);
+			});
+		}
+	);
+
+	test(
+		'The log header offers Classify and Apply Rules for a failing result',
+		{ tag: ['@log', '@issues', '@needs-nok'] },
+		async ({ page, request }) => {
+			const logPage = new LogPage(page);
+
+			await given(
+				'I open the log focused on a failing result of the fixture run',
+				async () => {
+					const result = await classifiableLogResult(request);
+					await logPage.goto(
+						result.run.runId,
+						`mode=treeAndinfoAndlog&focusId=${result.node.id}`
+					);
+					await logPage.expectLoaded();
+				}
+			);
+			await then('the header offers Classify and Apply Rules', () =>
+				logPage.expectClassificationActions()
+			);
+		}
+	);
+
+	/** The "prefer legacy log" preference, as the preferences form stores it. */
+	function preferLegacyLog(page: Page): Promise<void> {
+		return withUserPreferences(page, {
+			log: { preferLegacyLog: true, rememberAllPages: true }
+		});
+	}
+
+	test(
+		'The legacy log preference redirects a plain log link to the legacy renderer',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open the log of an imported run without naming a renderer',
+				() => logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog')
+			);
+			await then('the URL records the legacy renderer', () =>
+				logPage.expectParams({ legacy: 'true', mode: 'treeAndinfoAndlog' })
+			);
+			await and('the legacy log frame is shown', () =>
+				logPage.expectLegacyLogVisible()
+			);
+		}
+	);
+
+	test(
+		'A link that names the JSON renderer is not redirected by the legacy preference',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open the log of an imported run asking for the JSON renderer',
+				() => logPage.goto(runCase.runId, 'mode=treeAndinfoAndlog&legacy=false')
+			);
+			await then('the URL still names the JSON renderer', () =>
+				logPage.expectParams({ legacy: 'false' })
+			);
+			await and('the JSON log is shown', () => logPage.expectJsonLogVisible());
+		}
+	);
+
+	test(
+		'The legacy preference redirect drops the deprecated experimental parameter',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const runCase = representativeImportedRun(requireManifest());
+
+			await given('I prefer the legacy log', () => preferLegacyLog(page));
+			await when(
+				'I open a log link that still carries the deprecated parameter',
+				() =>
+					logPage.goto(
+						runCase.runId,
+						'mode=treeAndinfoAndlog&experimental=false'
+					)
+			);
+			await then('the deprecated parameter is dropped from the URL', () =>
+				logPage.expectParams({ experimental: null })
+			);
+			await and('the URL records the legacy renderer', () =>
+				logPage.expectParams({ legacy: 'true' })
 			);
 		}
 	);

@@ -5,6 +5,8 @@
 #
 # Read-only paths only: the fixture projects and configs are created by the
 # bublik-e2e CLI, and mutating them here would make re-runs non-idempotent.
+#
+# Route: /admin/config
 
 Feature: Configuration
 

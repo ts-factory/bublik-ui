@@ -5,7 +5,7 @@ import { ExportChart } from '@/shared/charts';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
 interface ExportChartProps {
-	resultId: string;
+	resultId: number;
 }
 
 function ExportChartContainer({ resultId }: ExportChartProps) {

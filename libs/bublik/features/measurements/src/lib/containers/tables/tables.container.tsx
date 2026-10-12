@@ -26,7 +26,7 @@ export const TableError = ({ error }: TableErrorProps) => {
 };
 
 export interface TablesProps {
-	resultId: string;
+	resultId: number;
 }
 
 export function TablesContainer(props: TablesProps) {

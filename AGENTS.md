@@ -110,6 +110,10 @@ Centralized error handling via `getErrorMessage` from `@/services/bublik-api`:
 Enforced by ESLint rule `@nx/enforce-module-boundaries`:
 - Libraries can only depend on other buildable libraries
 - Follow the dependency graph defined in nx.json
+- Libraries never import from `apps/`. The route tree and its `Register`
+  augmentation live in `apps/bublik`; a feature lib gets typed `to`/`params`
+  only because it compiles inside the app's program, so `nx run
+  bublik:typecheck` (not the lib's own tsc) is the gate for typed routing code
 
 ### API Integration
 Use RTK Query hooks from `@/services/bublik-api`:
@@ -139,6 +143,74 @@ Use shared utilities from `@/shared/utils`:
 - Custom utilities for time, tree, formatting, etc.
 
 ### Router Integration
-- Use `react-router-dom` v6
-- `useSearchParams` for query parameters
-- `useParams` with typed route params from `@/shared/types`
+- TanStack Router is the only router. URLs are a byte-identical contract with
+  the pre-migration app: keep every one when changing a route, a search
+  key, a link or a write's push/replace
+- Routes are files under `apps/bublik/src/routes/` (`routeTree.gen.ts` is
+  generated and committed; a build regenerates it). A route file stays thin:
+  wiring only (`idParams`, its `defineSearch` schema, `beforeLoad`
+  redirects, a loader from `routes/-loaders.ts`, the page component).
+  Every page route needs a `# Route: <fullPath>` line in an e2e feature file
+  (`pnpm run e2e:features:check` fails otherwise)
+- Search params are declared with the `@/router` codecs (`str`, `num`,
+  `bool01`, `enumOf`, `compressedJson`, `keepRaw`, …) in
+  `defineSearch(shape, defaults)`, never with TanStack's default JSON codec.
+  Read through `getRouteApi('<route id>').useSearch({ select })` over the
+  schema's `withDefaults` (defaults live in the reader, never in
+  `validateSearch`), or `useAnySearch(select)` in a lib serving several
+  routes; write through `useSearchWriter`/`writeSearch` (replace and merge
+  by default; a functional update, `replace: false`, `keepState: false` for
+  the pushes that dropped `location.state`), never a hand-rolled
+  `router.navigate` on `currentLocation`
+- A route's search schema is defined once: in
+  `apps/bublik/src/routes/-search/<page>.search.ts` when only the app reads
+  it, in `@/shared/utils` (`lib/<page>-search.ts`) when a lib reads it (its
+  code or its specs), and the route file imports it through `-search`
+  either way. Not in a feature lib: the route files are not code-split, so a
+  feature barrel imported there lands in the entry chunk (the classification
+  tables, built by their lib's factory, are the one exception). Specs import
+  the real schema; nothing re-declares one, except the test helpers inside
+  `@/router`, which cannot import the app or `@/shared/utils` (the root
+  schema copy in `@/router/testing` is pinned to the app's)
+- Links and navigation are typed: TanStack `Link`/`useNavigate`/`linkOptions`
+  with `to` + `params` + `search`, passing `resetScroll={false}` and
+  `activeProps={{}}` (React Router neither scrolled nor added an active
+  class); `LinkWithProject`/`useNavigateWithProject` (same typed props) to
+  carry `project`, `_s` and `hide-sidebar`. `RouterLink` from `@/router` and
+  `RouterLinkWithProject`/`useRouterNavigateWithProject` take a string target
+  and are only for one assembled at runtime (a remembered URL, a path the API
+  returns, a same-page anchor); the sidebar-nav items take string targets
+  for that reason, a static one passed as `linkOptions({ to }).to`. Never
+  hand-build an internal URL string:
+  `pnpm run links:check` (CI, type-aware over the app's program) rejects a
+  `/` literal or template that lands, through any component, object or
+  `navigate…` call, in a `to`/`href`/`pathname` the route tree does not
+  type; an untyped API that needs a path takes
+  `linkOptions({ to: '/dashboard' }).to`, a route pattern is a `RoutePath`.
+  The gate follows a literal through `?:`, `||`, `??` and casts, not through
+  a variable or a return value: keep a fallback path in a
+  `linkOptions(...).to` constant too
+- Location: `useRenderedLocation()` is the page on screen;
+  `useLatestLocation()`/`currentLocation(router)` is what a write builds on.
+  Never write from `window.location` and never touch `window.history`
+  (`pnpm run router:check`, part of CI lint, fails on `history.pushState`,
+  `replaceState` or `history.state` outside `@/router`, and on any
+  `react-router-dom` or `use-query-params` import)
+- Matching a pathname outside its route (sidebar highlighting, analytics):
+  `matchRoutePath({ to, fuzzy }, pathname)` from `@/router`
+- Path params come from the route API (`getRouteApi(id).useParams()`), or
+  `useParams({ strict: false })` in a lib that renders above the page's match.
+  `runId`, `resultId` and `issueId` are numbers: the routes parse them with
+  `idParams` from `@/router`, and a non-numeric id renders the route's
+  not-found page, so pages neither convert nor guard them. RTK endpoints that
+  take a bare id use `serializeIdArgs`, so `1` and `'1'` share a cache entry
+- A route whose page starts with a request prefetches it in a loader
+  (`apps/bublik/src/routes/-loaders.ts`): `dispatch(initiate(arg, {
+  subscribe: false }))`, awaited but never unwrapped, with the exact argument
+  the page passes. Links preload on intent; a `target="_blank"` link never
+  does, so a page does not prefetch the pages it links to on mount, and a
+  hover `usePrefetch` is only for a request no loader starts. Routing specs
+  pass `inertRouterContext` to `createAppRouter`
+- Specs render through `renderWithRouter`/`renderHookWithRouter` from
+  `@/router/testing` and assert on `router.history.location`; never mock a
+  router module

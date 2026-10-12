@@ -2,7 +2,6 @@
 /* SPDX-FileCopyrightText: 2025-2026 OKTET LTD */
 import { FormEvent, useState } from 'react';
 import { ArchiveIcon, ArchiveRestoreIcon, ChevronDownIcon } from 'lucide-react';
-import { useParams } from 'react-router-dom';
 
 import {
 	useGetChatThreadsQuery,
@@ -11,10 +10,7 @@ import {
 	useDeleteChatThreadMutation,
 	type ChatThreadListItem
 } from '@/services/bublik-api';
-import {
-	LinkWithProject,
-	useNavigateWithProject
-} from '@/bublik/features/projects';
+import { LinkWithProject } from '@/bublik/features/projects';
 import { useConfirm } from '@/shared/hooks';
 import {
 	ButtonTw,
@@ -34,9 +30,15 @@ import {
 	DropdownMenuSeparator
 } from '@/shared/tailwind-ui';
 
-export function ChatThreadSidebar() {
-	const { threadId } = useParams();
-	const navigate = useNavigateWithProject();
+import { useStartNewThread } from '../chat-thread.hooks';
+
+interface ChatThreadSidebarProps {
+	/** The thread open in the panel; absent on a bare `/chat`. */
+	threadId: string | undefined;
+}
+
+export function ChatThreadSidebar({ threadId }: ChatThreadSidebarProps) {
+	const startNewThread = useStartNewThread();
 	const [archivedOpen, setArchivedOpen] = useState(false);
 	// Poll so the background-streaming indicator appears/clears for threads other
 	// than the active one (the active thread also refreshes via onFinish).
@@ -55,7 +57,7 @@ export function ChatThreadSidebar() {
 	);
 
 	function handleNewChat() {
-		navigate(`/chat/${crypto.randomUUID()}`);
+		startNewThread();
 	}
 
 	async function handleDelete(thread: ChatThreadListItem) {
@@ -241,7 +243,8 @@ function ThreadRow({ thread, isActive, onDelete }: ThreadRowProps) {
 			)}
 		>
 			<LinkWithProject
-				to={`/chat/${thread.id}`}
+				to="/chat/{-$threadId}"
+				params={{ threadId: thread.id }}
 				className={cn(
 					'flex items-center gap-2 flex-grow min-w-0 px-2 py-2 text-[0.8125rem] text-text-primary',
 					thread.is_archived && 'italic opacity-60'

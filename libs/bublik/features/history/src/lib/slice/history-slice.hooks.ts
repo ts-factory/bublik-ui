@@ -2,20 +2,17 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
 
 import { useMount } from '@/shared/hooks';
 import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
-import {
-	PROJECT_KEY,
-	useNavigateWithProject
-} from '@/bublik/features/projects';
+import { useNavigateWithProject } from '@/bublik/features/projects';
+import { parseSearch } from '@/router';
 
-import { useHistoryQuery } from '../hooks';
+import { useHistoryQuery, useHistorySearch } from '../hooks';
 import { useHistoryActions } from './history-slice';
 import {
-	copyHistorySearchParam,
+	HISTORY_SEARCH_KEY,
 	formToSearchState,
 	historySearchStateToQuery,
 	queryToHistorySearchState
@@ -74,17 +71,19 @@ export const useHistoryFormSearchState = () => {
 	const globalFilter = useSelector(selectGlobalFilter);
 	const dispatch = useDispatch();
 
-	const [searchParams] = useSearchParams();
 	const navigateWithProject = useNavigateWithProject();
+	const search = useHistorySearch((search) => search.search);
 
 	const updateSearchParams = () => {
 		const params = new URLSearchParams(historySearchStateToQuery(state));
-		copyHistorySearchParam(searchParams, params);
+		// Keep the substring filter: it is not part of the form being rebuilt.
+		if (search) params.set(HISTORY_SEARCH_KEY, search);
 
-		navigateWithProject(
-			{ pathname: '/history', search: `?${params.toString()}` },
-			{ replace: true }
-		);
+		void navigateWithProject({
+			to: '/history',
+			search: parseSearch(params.toString()),
+			replace: true
+		});
 	};
 
 	const handleFormChange = useCallback(
@@ -94,38 +93,32 @@ export const useHistoryFormSearchState = () => {
 		[actions]
 	);
 
-	const mode = searchParams.get('mode') ?? 'linear';
-	const pageSize = searchParams.get('pageSize') ?? 25;
+	const mode = useHistorySearch((search) => search.mode ?? 'linear');
+	const pageSize = useHistorySearch((search) => search.pageSize ?? '25');
 
 	const handleGlobalSearchSubmit = useCallback(
 		(form: HistoryGlobalSearchFormValues) => {
 			const params = historySearchStateToQuery(formToSearchState(form));
 			const newSearchParams = new URLSearchParams(params);
 
+			// Every key, the empty ones included, on `/history` (the v2 alias
+			// collapses); `navigateWithProject` adds `_s`,
+			// `hide-sidebar` and the selected projects.
 			newSearchParams.set('mode', mode);
 			newSearchParams.set('page', String(1));
 			newSearchParams.set('pageSize', String(pageSize));
-			newSearchParams.delete(PROJECT_KEY);
-			copyHistorySearchParam(searchParams, newSearchParams);
+			if (search) newSearchParams.set(HISTORY_SEARCH_KEY, search);
 
-			for (const [key, value] of searchParams) {
-				if (key !== PROJECT_KEY) continue;
-				newSearchParams.append(PROJECT_KEY, value);
-			}
-
-			// Use navigateWithProject to properly preserve sidebar params
 			const searchString = newSearchParams.toString();
-			navigateWithProject(
-				{
-					pathname: '/history',
-					search: searchString ? `?${searchString}` : ''
-				},
-				{ replace: true }
-			);
+			void navigateWithProject({
+				to: '/history',
+				search: parseSearch(searchString),
+				replace: true
+			});
 			actions.resetGlobalFilter();
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[actions, dispatch, mode, pageSize, searchParams, navigateWithProject]
+		[actions, dispatch, mode, pageSize, search, navigateWithProject]
 	);
 
 	return {

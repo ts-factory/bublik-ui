@@ -7,7 +7,7 @@ import {
 	type ReactNode,
 	type ComponentType
 } from 'react';
-import type { To } from 'react-router-dom';
+import type { To } from '@/router';
 
 import {
 	cn,
@@ -16,7 +16,7 @@ import {
 	useSidebar
 } from '@/shared/tailwind-ui';
 import { accordionLinkStyles } from './sidebar-nav.styles';
-import { toString } from './sidebar-nav.utils';
+import { SidebarNavRouterLink } from './sidebar-nav-router-link.component';
 
 function getNodeText(node: ReactNode): string {
 	if (typeof node === 'string' || typeof node === 'number') {
@@ -115,33 +115,18 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 		);
 	}
 
-	const LinkComponent = props.linkComponent;
-
-	if (LinkComponent) {
-		return (
-			<Tooltip {...tooltipProps}>
-				<LinkComponent
-					to={props.to}
-					className={cn(className, 'group')}
-					style={style}
-					onClick={props.onClick}
-				>
-					{children}
-				</LinkComponent>
-			</Tooltip>
-		);
-	}
+	const LinkComponent = props.linkComponent ?? SidebarNavRouterLink;
 
 	return (
 		<Tooltip {...tooltipProps}>
-			<a
-				href={toString(props.to)}
+			<LinkComponent
+				to={props.to}
 				className={cn(className, 'group')}
 				style={style}
 				onClick={props.onClick}
 			>
 				{children}
-			</a>
+			</LinkComponent>
 		</Tooltip>
 	);
 };

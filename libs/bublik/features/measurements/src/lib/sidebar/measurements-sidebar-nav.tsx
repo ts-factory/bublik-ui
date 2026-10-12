@@ -2,13 +2,18 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect } from 'react';
-import { matchPath, useLocation, useParams } from 'react-router-dom';
+import { useParams } from '@tanstack/react-router';
 
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePath,
+	type RoutePathPattern
+} from '@/router';
 import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { Icon } from '@/shared/tailwind-ui';
-import { MeasurementsRouterParams } from '@/shared/types';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -33,13 +38,19 @@ const MEASUREMENTS_SIDEBAR_MODES: readonly MeasurementsSidebarMode[] = [
 	'overlay'
 ];
 
-const MEASUREMENTS_SIDEBAR_PATTERNS = [
-	{ path: '/runs/:runId/results/:resultId/measurements' }
+const MEASUREMENTS_PATH: RoutePath =
+	'/runs/$runId/results/$resultId/measurements';
+
+const MEASUREMENTS_SIDEBAR_PATTERNS: RoutePathPattern[] = [
+	{ to: MEASUREMENTS_PATH }
 ];
 
 export function MeasurementsSidebarNav() {
-	const location = useLocation();
-	const { resultId } = useParams<MeasurementsRouterParams>();
+	const { pathname, searchStr } = useRenderedLocation();
+	// The sidebar renders outside the measurements route, so it reads the
+	// params of whichever page is on screen: `resultId` is there only on the
+	// measurements page (which is what enables "Stacked Charts").
+	const { resultId } = useParams({ strict: false });
 	const { data, isLoading } = useGetSingleMeasurementQuery(
 		resultId ?? skipToken
 	);
@@ -50,20 +61,17 @@ export function MeasurementsSidebarNav() {
 	const hasStackedCharts = chartsCount >= 2;
 	const isStackedLoading = isLoading && !!resultId;
 
+	// The last result visited, stored as its pathname only (the links add the mode).
 	useEffect(() => {
-		const pathMatch = matchPath(
-			'/runs/:runId/results/:resultId/measurements',
-			location.pathname
+		if (!matchRoutePath({ to: MEASUREMENTS_PATH }, pathname)) return;
+
+		const mode = getModeFromSearch(
+			searchStr,
+			MEASUREMENTS_SIDEBAR_MODES,
+			'default'
 		);
-		if (pathMatch) {
-			const mode = getModeFromSearch(
-				location.search,
-				MEASUREMENTS_SIDEBAR_MODES,
-				'default'
-			);
-			setLastVisited(mode, location.pathname);
-		}
-	}, [location.pathname, location.search, setLastVisited]);
+		setLastVisited(mode, pathname);
+	}, [pathname, searchStr, setLastVisited]);
 
 	return (
 		<SidebarNavCollapsibleContainer patterns={MEASUREMENTS_SIDEBAR_PATTERNS}>
@@ -71,7 +79,7 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavLinkWrapper label="Result">
 					<SidebarNavInternalLink
 						to={mainLinkUrl}
-						linkComponent={LinkWithProject}
+						linkComponent={RouterLinkWithProject}
 						disabled={!isAvailable}
 					>
 						<SidebarNavInternalLink.Icon name="LineGraph" />
@@ -88,12 +96,12 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('default')}
 					pattern={{
-						path: '/runs/:runId/results/:resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'default',
 						defaultMode: 'default'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LineChart" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -106,11 +114,11 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('split')}
 					pattern={{
-						path: '/runs/:runId/results/:resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'split'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LayoutSidebarHeader" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -123,11 +131,11 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('tables')}
 					pattern={{
-						path: '/runs/:runId/results/:resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'tables'
 					}}
 					disabled={!isAvailable}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="PaperListText" />
 					<SidebarNavSubmenuItemContainer.Label>
@@ -140,11 +148,11 @@ export function MeasurementsSidebarNav() {
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('overlay')}
 					pattern={{
-						path: '/runs/:runId/results/:resultId/measurements',
+						to: MEASUREMENTS_PATH,
 						mode: 'overlay'
 					}}
 					disabled={!isAvailable || !hasStackedCharts}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavSubmenuItemContainer.Icon name="LineChartMultiple" />
 					<SidebarNavSubmenuItemContainer.Label>

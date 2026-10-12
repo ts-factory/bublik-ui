@@ -19,6 +19,7 @@ import { LinkWithProject } from '@/bublik/features/projects';
 import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover.constants';
 
 export interface SelectionPopoverComponentProps {
+	/** The selected runs: two open side by side, two or more in the multiple-runs view. */
 	compareIds: string[];
 	renderItem: (runId: string) => ReactNode;
 	onResetClick: () => void;
@@ -36,6 +37,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 	} = props;
 
 	const hasSelection = compareIds.length > 0;
+	const [left, right] = compareIds;
 	const { open, onOpenChange, resetOpenState } = useSelectionPopoverOpenState(
 		RUNS_SELECTION_POPOVER_STORAGE_KEY
 	);
@@ -72,12 +74,8 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 						<LinkWithProject
 							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
 							onClick={onMultipleClick}
-							to={{
-								pathname: '/multiple',
-								search: new URLSearchParams(
-									compareIds.map((s) => ['runIds', s])
-								).toString()
-							}}
+							to="/multiple"
+							search={{ runIds: compareIds }}
 						>
 							<Icon name="PaperStack" className="size-5 mr-2" />
 							Multiple
@@ -98,10 +96,8 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 						<LinkWithProject
 							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
 							onClick={onCompareClick}
-							to={{
-								pathname: '/compare',
-								search: `left=${compareIds[0]}&right=${compareIds[1]}`
-							}}
+							to="/compare"
+							search={{ left, right }}
 						>
 							<Icon
 								name="SwapArrows"

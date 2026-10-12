@@ -2,10 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { To, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
-
-import { routes } from '@/router';
 
 import { LoginFormInputs } from '@/shared/types';
 import { bublikAPI, useLoginMutation } from '@/services/bublik-api';
@@ -13,17 +10,18 @@ import { setErrorsOnForm } from '@/shared/utils';
 import { toast } from '@/shared/tailwind-ui';
 
 import { LoginForm, LoginFormHandle } from './login-form.component';
-import { getRouterUrl } from '../auth.utils';
+import { useLoginRedirect } from './login-form.hooks';
 
 type LoginFormContainerProps = {
-	redirectOnSuccessTo?: To;
+	/** The login page's `redirect_url`: the absolute URL to return to. */
+	redirectUrl?: string;
 };
 
-export const LoginFormContainer = (props: LoginFormContainerProps) => {
-	const navigate = useNavigate();
+export const LoginFormContainer = ({
+	redirectUrl
+}: LoginFormContainerProps) => {
 	const dispatch = useDispatch();
-
-	const [searchParams] = useSearchParams();
+	const redirect = useLoginRedirect();
 	const [login] = useLoginMutation();
 	const formRef = useRef<LoginFormHandle>(null);
 
@@ -40,13 +38,7 @@ export const LoginFormContainer = (props: LoginFormContainerProps) => {
 				}) as unknown as AnyAction
 			);
 
-			const whereToRedirect = searchParams.get('redirect_url');
-
-			if (whereToRedirect) return navigate(getRouterUrl(whereToRedirect));
-
-			return props.redirectOnSuccessTo
-				? navigate(props.redirectOnSuccessTo, { replace: true })
-				: navigate(routes.dashboard({}), { replace: true });
+			redirect(redirectUrl);
 		} catch (e: unknown) {
 			toast.error('Failed to login!');
 			setErrorsOnForm(e, { handle: formHandle });

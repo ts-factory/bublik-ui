@@ -24,8 +24,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	});
 	const projectsQuery = bublikAPI.useGetAllProjectsQuery();
 	const { isAdmin } = useAuth();
-	const { setConfigId, configId, setNewConfigParams } =
-		useConfigPageSearchParams();
+	const { setConfigId, configId, openNewConfig } = useConfigPageSearchParams();
 	const prefetchConfigById = bublikAPI.usePrefetch('getConfigById');
 	const prefetchConfigVersions = bublikAPI.usePrefetch(
 		'getAllVersionsOfConfigById'
@@ -49,8 +48,7 @@ function ConfigsSidebarContainer(props: ConfigsSidebarContainerProps) {
 	]);
 
 	function handleCreateNewConfigClick(params: ConfigSchemaParams) {
-		setConfigId(null);
-		setNewConfigParams(params);
+		openNewConfig(params);
 	}
 
 	if (configsQuery.error) {

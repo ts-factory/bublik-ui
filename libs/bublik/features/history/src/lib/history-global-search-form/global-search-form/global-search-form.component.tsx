@@ -3,7 +3,7 @@
 import { FormProvider } from 'react-hook-form';
 
 import { useIsScrollbarVisible } from '@/shared/hooks';
-import { ButtonTw, DialogClose, Icon, cn } from '@/shared/tailwind-ui';
+import { ButtonTw, DrawerFormHeader, Icon, cn } from '@/shared/tailwind-ui';
 
 import {
 	HistoryGlobalSearchFormValues,
@@ -13,12 +13,12 @@ import {
 	useCtrlEnterSubmit,
 	useHistoryGlobalSearchForm
 } from './global-search-form.hooks';
-import { FormHeader } from './components';
 import {
 	TestSection,
 	RunSection,
 	ResultSection,
-	VerdictSection
+	VerdictSection,
+	ClassificationSection
 } from './sections';
 
 export interface GlobalSearchFormProps {
@@ -72,6 +72,7 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 						<VerdictSection
 							onResetVerdictSectionClick={form.resetVerdictSection}
 						/>
+						<ClassificationSection />
 						<StickySubmit
 							onResetClick={form.resetForm}
 							isScrollable={isVisible}
@@ -90,17 +91,11 @@ type MainFormHeaderProps = {
 const MainFormHeader = (props: MainFormHeaderProps) => {
 	return (
 		<div className="py-2 pb-4 px-11 border-b border-border-primary">
-			<FormHeader
+			<DrawerFormHeader
 				name="Global Search"
 				description="Combine test, run, result, and verdict filters to narrow down history."
-			>
-				<DialogClose
-					onClick={props.onCloseButtonClick}
-					className="rounded hover:bg-primary-wash p-2 mr-1 hover:text-primary text-text-menu"
-				>
-					<Icon name="Cross" className="size-4" />
-				</DialogClose>
-			</FormHeader>
+				onClose={props.onCloseButtonClick}
+			/>
 		</div>
 	);
 };
@@ -133,6 +128,7 @@ const StickySubmit = (props: StickySubmitProps) => {
 					type="button"
 					variant="outline"
 					size="md"
+					rounded="lg"
 					className="justify-center w-full"
 					onClick={props.onResetClick}
 				>

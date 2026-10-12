@@ -2,7 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { matchPath, useLocation, useSearchParams } from 'react-router-dom';
+import { linkOptions } from '@tanstack/react-router';
+
+import { matchRoutePath, useRenderedLocation } from '@/router';
 
 import {
 	RUNS_CHARTS_DEFAULT_URL,
@@ -16,6 +18,13 @@ import {
 	useSidebarStateWriter,
 	stripSidebarParamsFromUrl
 } from '@/bublik/features/sidebar';
+
+import { useRunsSelectionUrls } from '../runs-links';
+
+/** Where an item points before a page of its own was visited. */
+const RUNS = linkOptions({ to: '/runs' }).to;
+const COMPARE = linkOptions({ to: '/compare' }).to;
+const MULTIPLE = linkOptions({ to: '/multiple' }).to;
 
 const RUNS_MODES: readonly RunsMode[] = [
 	'list',
@@ -54,8 +63,12 @@ export interface UseRunsSidebarStateReturn {
 }
 
 export function useRunsSidebarState(): UseRunsSidebarStateReturn {
-	const [searchParams] = useSearchParams();
-	const location = useLocation();
+	// The page on screen, raw: the list URLs copy its query string as is.
+	const location = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(location.searchStr),
+		[location.searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 
 	const selectedRunIds = useMemo(
@@ -103,60 +116,50 @@ export function useRunsSidebarState(): UseRunsSidebarStateReturn {
 	// When already on the runs page, preserve the active filters/query when
 	// switching modes; otherwise fall back to the persisted last-visited URL so
 	// we don't leak the current (unrelated) page's params into /runs.
-	const isOnRunsPage = !!matchPath('/runs', location.pathname);
+	const isOnRunsPage = !!matchRoutePath({ to: '/runs' }, location.pathname);
 
 	const listUrl = useMemo(() => {
 		if (isOnRunsPage) {
-			const params = new URLSearchParams(location.search);
+			const params = new URLSearchParams(location.searchStr);
 			params.delete('mode');
 			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
 		}
-		return lastListUrl || '/runs';
-	}, [isOnRunsPage, location.search, lastListUrl]);
+		return lastListUrl || RUNS;
+	}, [isOnRunsPage, location.searchStr, lastListUrl]);
 
 	const chartsUrl = useMemo(() => {
 		if (isOnRunsPage) {
-			const params = new URLSearchParams(location.search);
+			const params = new URLSearchParams(location.searchStr);
 			params.set('mode', 'charts');
 			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
 		}
 		return lastChartsUrl || RUNS_CHARTS_DEFAULT_URL;
-	}, [isOnRunsPage, location.search, lastChartsUrl]);
+	}, [isOnRunsPage, location.searchStr, lastChartsUrl]);
 
 	const progressUrl = useMemo(() => {
 		if (isOnRunsPage) {
-			const params = new URLSearchParams(location.search);
+			const params = new URLSearchParams(location.searchStr);
 			params.set('mode', 'progress');
 			return stripSidebarParamsFromUrl(`/runs?${params.toString()}`);
 		}
 		return lastProgressUrl || RUNS_PROGRESS_DEFAULT_URL;
-	}, [isOnRunsPage, location.search, lastProgressUrl]);
+	}, [isOnRunsPage, location.searchStr, lastProgressUrl]);
 
-	const compareUrl = useMemo(() => {
-		if (!isCompareAvailable) return null;
-		return `/compare?left=${selectedRunIds[0]}&right=${selectedRunIds[1]}`;
-	}, [isCompareAvailable, selectedRunIds]);
-
-	const multipleUrl = useMemo(() => {
-		if (!isMultipleAvailable) return null;
-		const params = new URLSearchParams();
-		selectedRunIds.forEach((id: string) => params.append('runIds', id));
-		return `/multiple?${params.toString()}`;
-	}, [isMultipleAvailable, selectedRunIds]);
+	const { compareUrl, multipleUrl } = useRunsSelectionUrls(selectedRunIds);
 
 	const mainLinkUrl = useMemo(() => {
 		// `lastMode` is omitted from `_s` when it equals the shared default.
 		switch (lastMode ?? RUNS_MODE_DEFAULT) {
 			case 'list':
-				return lastListUrl || '/runs';
+				return lastListUrl || RUNS;
 			case 'charts':
 				return lastChartsUrl || RUNS_CHARTS_DEFAULT_URL;
 			case 'progress':
 				return lastProgressUrl || RUNS_PROGRESS_DEFAULT_URL;
 			case 'compare':
-				return lastCompareUrl || '/compare';
+				return lastCompareUrl || COMPARE;
 			case 'multiple':
-				return lastMultipleUrl || '/multiple';
+				return lastMultipleUrl || MULTIPLE;
 		}
 	}, [
 		lastMode,

@@ -2,7 +2,8 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { linkOptions } from '@tanstack/react-router';
+import { useRenderedLocation } from '@/router';
 
 import {
 	DASHBOARD_SIDEBAR_KEYS,
@@ -12,6 +13,9 @@ import {
 	useSidebarStateWriter
 } from '@/bublik/features/sidebar';
 
+/** Where an item points before a page of its own was visited. */
+const DASHBOARD = linkOptions({ to: '/dashboard' }).to;
+
 export interface UseDashboardSidebarStateReturn {
 	lastUrl: string | null;
 	mainLinkUrl: string;
@@ -19,16 +23,20 @@ export interface UseDashboardSidebarStateReturn {
 }
 
 export function useDashboardSidebarState(): UseDashboardSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	const { searchStr } = useRenderedLocation();
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastUrl = useMemo(
-		() => getSidebarStateString(searchParams, DASHBOARD_SIDEBAR_KEYS.LAST_URL),
-		[searchParams]
+		() =>
+			getSidebarStateString(
+				new URLSearchParams(searchStr),
+				DASHBOARD_SIDEBAR_KEYS.LAST_URL
+			),
+		[searchStr]
 	);
 
 	const mainLinkUrl = useMemo(() => {
-		return lastUrl || '/dashboard';
+		return lastUrl || DASHBOARD;
 	}, [lastUrl]);
 
 	const setLastUrl = useCallback(

@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { memo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { getRouteApi } from '@tanstack/react-router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { routes } from '@/router';
 import { usePrefetchImmediately } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -23,6 +22,7 @@ import {
 	LinkWithProject,
 	useTabTitleWithPrefix
 } from '@/bublik/features/projects';
+import { LogPageMode } from '@/shared/types';
 
 export interface RunDiffHeaderProps {
 	leftRunId: string;
@@ -70,7 +70,8 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 				<div className="flex items-center gap-4 px-4 border-r border-border-primary">
 					<ButtonTw size="xss" asChild variant="secondary">
 						<LinkWithProject
-							to={routes.run({ runId: leftRunId })}
+							to="/runs/$runId"
+							params={{ runId: Number(leftRunId) }}
 							onClick={() => handleNavigationClick('run', 'left')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -79,7 +80,9 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 					</ButtonTw>
 					<ButtonTw size="xss" asChild variant="secondary">
 						<LinkWithProject
-							to={routes.log({ runId: leftRunId })}
+							to="/log/$runId"
+							params={{ runId: Number(leftRunId) }}
+							search={{ mode: LogPageMode.TreeAndInfoAndLog }}
 							onClick={() => handleNavigationClick('log', 'left')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -117,7 +120,8 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 				<div className="flex items-center gap-4 px-4 border-l border-border-primary">
 					<ButtonTw variant="secondary" size="xss" asChild>
 						<LinkWithProject
-							to={routes.run({ runId: rightRunId })}
+							to="/runs/$runId"
+							params={{ runId: Number(rightRunId) }}
 							onClick={() => handleNavigationClick('run', 'right')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -126,7 +130,9 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 					</ButtonTw>
 					<ButtonTw variant="secondary" size="xss" asChild>
 						<LinkWithProject
-							to={routes.log({ runId: rightRunId })}
+							to="/log/$runId"
+							params={{ runId: Number(rightRunId) }}
+							search={{ mode: LogPageMode.TreeAndInfoAndLog }}
 							onClick={() => handleNavigationClick('log', 'right')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -168,13 +174,18 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 	);
 });
 
+const compareRoute = getRouteApi('/_app/_runs/compare');
+
 export const RunDiffPage = () => {
-	const [searchParams] = useSearchParams();
+	const leftRunId = compareRoute.useSearch({ select: (search) => search.left });
+	const rightRunId = compareRoute.useSearch({
+		select: (search) => search.right
+	});
 
-	const leftRunId = searchParams.get('left');
-	const rightRunId = searchParams.get('right');
-
-	useTabTitleWithPrefix(`Diff - ${leftRunId} | ${rightRunId} - Bublik`);
+	// A missing side reads `null`, as `searchParams.get` returned it.
+	useTabTitleWithPrefix(
+		`Diff - ${leftRunId ?? null} | ${rightRunId ?? null} - Bublik`
+	);
 
 	if (!leftRunId || !rightRunId) {
 		return (

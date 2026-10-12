@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/dashboard.spec.ts — see features/README.md.
+#
+# Route: /dashboard
 
 Feature: Dashboard
 
@@ -195,9 +197,9 @@ Feature: Dashboard
     And the URL still carries the unparsable date
 
   # The dashboard used to encode both of its days into one base64 parameter.
-  # Links from that era are still in wikis and chat logs, and the page rewrites
-  # them on load — losing everything except the layout, which is why the project
-  # is deliberately absent from the assertions below.
+  # Links from that era are still in wikis and chat logs, and the route rewrites
+  # them on load into the pinned days, keeping the layout, the selected projects
+  # and the sidebar state and dropping everything else.
   @dashboard @url-params
   Scenario: A legacy dates link is rewritten into the pinned days
     Given a link that pins its two days in the old encoded dates parameter
@@ -236,3 +238,21 @@ Feature: Dashboard
     When I open that link
     Then the runs of that day are listed
     And the URL still carries the empty search term
+
+
+  @dashboard @url-params
+  Scenario: A legacy dates link with one day pins it as the main date
+    Given a link that pins a single day in the old encoded dates parameter
+    When I open that link
+    Then the URL pins that day as the main date and no second date
+    And the URL no longer carries the encoded dates parameter
+
+  # The rewrite replaces the legacy address rather than stacking on it, so
+  # Back leaves the dashboard instead of bouncing through the rewrite again.
+  @dashboard @url-params
+  Scenario: A legacy dates link is rewritten in place
+    Given I open the runs page
+    When I open a legacy dates link
+    Then the URL pins the days the link encoded
+    When I go back
+    Then the runs page is open again

@@ -5,6 +5,8 @@
 #
 # The fixture runs are imported by import.setup.ts; these scenarios only exercise
 # the page around that, so a run of the suite never imports the same log twice.
+#
+# Route: /admin/import
 
 Feature: Run import
 

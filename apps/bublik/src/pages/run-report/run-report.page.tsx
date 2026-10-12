@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-/* SPDX-FileCopyrightText: 2024 OKTET LTD */
+/* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { getRouteApi } from '@tanstack/react-router';
+
+import { useRenderedLocation } from '@/router';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { useRunSidebarState } from '@/bublik/features/run';
@@ -18,48 +20,44 @@ import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import { useTabTitleWithPrefix } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
+const runReportRoute = getRouteApi('/_app/runs/$runId/report');
+
 function RunReportPage() {
-	const [searchParams] = useSearchParams();
-	const { runId } = useParams<{ runId: string }>();
-	const location = useLocation();
-	const configId = searchParams.get('config');
+	const runId = runReportRoute.useParams({ select: (params) => params.runId });
+	const configId = runReportRoute.useSearch({
+		select: (search) => search.config
+	});
+	const hasConfigId = configId !== undefined;
+	const { pathname, searchStr } = useRenderedLocation();
 	const { setLastVisited } = useRunSidebarState();
-	useRunReportPageName({ runId: runId ? Number(runId) : undefined });
+	useRunReportPageName({ runId });
 
 	useEffect(() => {
-		if (!runId || !configId) {
-			return;
-		}
+		if (!hasConfigId) return;
 
+		// The route only matches a numeric run id, so there always is one
 		trackEvent(analyticsEventNames.runReportOpen, {
-			hasRunId: Boolean(runId),
-			hasConfigId: Boolean(configId)
+			hasRunId: true,
+			hasConfigId
 		});
-	}, [configId, runId]);
+	}, [hasConfigId, runId]);
 
 	useEffect(() => {
-		if (runId && configId) {
-			setLastVisited('report', location.pathname + location.search, runId);
+		if (hasConfigId) {
+			setLastVisited('report', pathname + searchStr, String(runId));
 		}
-	}, [runId, configId, location.pathname, location.search, setLastVisited]);
+	}, [runId, hasConfigId, pathname, searchStr, setLastVisited]);
 
-	if (!configId) {
+	if (!hasConfigId) {
 		return (
 			<BublikEmptyState title="No data" description="Config ID is missing" />
 		);
 	}
 
-	if (!runId) {
-		return <BublikEmptyState title="No data" description="Run ID is missing" />;
-	}
-
 	return (
 		<div className="flex flex-col gap-1 p-2">
-			<ReportStackedContextProvider
-				runId={Number(runId)}
-				configId={Number(configId)}
-			>
-				<RunReportContainer runId={Number(runId)} configId={Number(configId)} />
+			<ReportStackedContextProvider runId={runId} configId={configId}>
+				<RunReportContainer runId={runId} configId={configId} />
 				<RunReportStackedSelectedContainer />
 				<RunReportStackedChartContainer />
 			</ReportStackedContextProvider>

@@ -1,10 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { FC } from 'react';
-import { useParams } from 'react-router-dom';
-import { skipToken } from '@reduxjs/toolkit/query';
 
-import { MeasurementsRouterParams } from '@/shared/types';
 import { config } from '@/bublik/config';
 
 import {
@@ -12,17 +9,23 @@ import {
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
 import { InfoBlock } from '@/shared/charts';
-import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
+import { CardHeader, Separator, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
+import {
+	ApplyRulesButton,
+	ClassifyResultContainer
+} from '@/bublik/features/result-classification';
 import { LinkToRun } from './link-to-run';
 import { LinkToLog } from './link-to-log';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 
+import { measurementsRoute } from '../../route';
+
 export interface MeasurementStatisticsLoadingProps {
-	runId: string;
-	resultId: string;
+	runId: number;
+	resultId: number;
 	path?: string;
 }
 
@@ -36,12 +39,8 @@ export const MeasurementStatisticsLoading: FC<
 		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
-					<HistoryLinkContainer
-						runId={Number(runId)}
-						resultId={Number(resultId)}
-						path={path}
-					/>
+					<LinkToRun runId={runId} targetIterationId={resultId} />
+					<HistoryLinkContainer runId={runId} resultId={resultId} path={path} />
 					<LinkToLog runId={runId} resultId={resultId} />
 				</div>
 			</CardHeader>
@@ -85,24 +84,13 @@ export const MeasurementStatisticsEmpty = () => {
 };
 
 export const MeasurementStatisticsContainer: FC = () => {
-	const { resultId, runId } = useParams<MeasurementsRouterParams>();
-	const { data, isLoading, error } = useGetResultInfoQuery(
-		resultId ?? skipToken
-	);
-	const { node } = useGetTreeByRunIdQuery(runId ?? skipToken, {
+	const { resultId, runId } = measurementsRoute.useParams();
+	const { data, isLoading, error } = useGetResultInfoQuery(resultId);
+	const { node } = useGetTreeByRunIdQuery(runId, {
 		selectFromResult: (state) => ({
-			node: !state.data || !resultId ? undefined : state.data.tree[resultId]
+			node: state.data?.tree[resultId]
 		})
 	});
-
-	if (!resultId || !runId) {
-		return (
-			<BublikEmptyState
-				title="No data"
-				description="Run id or result id is missing"
-			/>
-		);
-	}
 
 	if (error) return <MeasurementStatisticsError error={error} />;
 
@@ -132,13 +120,20 @@ export const MeasurementStatisticsContainer: FC = () => {
 		>
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3">
-					<LinkToRun runId={runId} targetIterationId={Number(resultId)} />
+					<LinkToRun runId={runId} targetIterationId={resultId} />
 					<HistoryLinkContainer
-						runId={Number(runId)}
-						resultId={Number(resultId)}
+						runId={runId}
+						resultId={resultId}
 						path={node?.path ?? undefined}
 					/>
 					<LinkToLog runId={runId} resultId={resultId} />
+					<Separator orientation="vertical" className="h-5 self-center" />
+					{/* Same triage-where-you-are reasoning as the log page and the
+					    preview drawer: the container renders nothing unless the
+					    result actually failed. */}
+					<ClassifyResultContainer resultId={resultId} runId={runId} />
+					<ApplyRulesButton runId={runId} />
+					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />
 				</div>
 			</CardHeader>

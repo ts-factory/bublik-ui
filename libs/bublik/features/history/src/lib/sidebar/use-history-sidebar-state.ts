@@ -2,8 +2,9 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
+
+import { useRenderedLocation } from '@/router';
 
 import {
 	HISTORY_MODE_DEFAULT,
@@ -19,7 +20,7 @@ import {
 	useGetMeasurementsQuery,
 	bublikAPI
 } from '@/services/bublik-api';
-import { useHistoryQuery } from '../hooks';
+import { useHistoryQuery, useHistorySearch } from '../hooks';
 
 const HISTORY_MODES: readonly HistorySidebarMode[] = [
 	'linear',
@@ -60,7 +61,13 @@ export interface UseHistorySidebarStateReturn {
 }
 
 export function useHistorySidebarState(): UseHistorySidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	// The mode links are built on the query string of the page on screen,
+	// whichever page that is, every key kept as written.
+	const { searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
 	const writeSidebarState = useSidebarStateWriter();
 	const { query } = useHistoryQuery();
 
@@ -77,8 +84,9 @@ export function useHistorySidebarState(): UseHistorySidebarStateReturn {
 		useGetMeasurementsQuery(linearData ? linearData.results_ids : skipToken);
 
 	// Check if stacked charts are available (has selected charts)
-	const combinedPlots = searchParams.get('combinedPlots');
-	const isStackedAvailable = !!combinedPlots && combinedPlots.length > 0;
+	const isStackedAvailable = useHistorySearch(
+		(search) => !!search.combinedPlots?.length
+	);
 
 	// Check data availability
 	const hasTrendData = !!trendData && trendData.length > 0;

@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+
+import { useCallback, useMemo } from 'react';
+import { linkOptions } from '@tanstack/react-router';
+import { useRenderedLocation } from '@/router';
+
+import {
+	ISSUE_SIDEBAR_KEYS,
+	getSidebarStateString,
+	setSidebarStateValue,
+	stripSidebarParamsFromUrl,
+	useSidebarStateWriter
+} from '@/bublik/features/sidebar';
+
+/** Where an item points before a page of its own was visited. */
+const ISSUES = linkOptions({ to: '/issues' }).to;
+
+export interface UseIssueSidebarStateReturn {
+	lastIssueUrl: string | null;
+	mainLinkUrl: string;
+	isAvailable: boolean;
+	setLastVisited: (url: string) => void;
+}
+
+export function useIssueSidebarState(): UseIssueSidebarStateReturn {
+	// The sidebar memory (`_s`) of the page on screen.
+	const { searchStr } = useRenderedLocation();
+	const searchParams = useMemo(
+		() => new URLSearchParams(searchStr),
+		[searchStr]
+	);
+	const writeSidebarState = useSidebarStateWriter();
+
+	const lastIssueUrl = useMemo(
+		() => getSidebarStateString(searchParams, ISSUE_SIDEBAR_KEYS.LAST_ISSUE),
+		[searchParams]
+	);
+
+	const setLastVisited = useCallback(
+		(url: string) => {
+			const cleanedUrl = stripSidebarParamsFromUrl(url);
+
+			writeSidebarState((sidebarState) => {
+				setSidebarStateValue(
+					sidebarState,
+					ISSUE_SIDEBAR_KEYS.LAST_ISSUE,
+					cleanedUrl
+				);
+			});
+		},
+		[writeSidebarState]
+	);
+
+	return {
+		lastIssueUrl,
+		mainLinkUrl: lastIssueUrl || ISSUES,
+		isAvailable: !!lastIssueUrl,
+		setLastVisited
+	};
+}

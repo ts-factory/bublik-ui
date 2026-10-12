@@ -20,9 +20,9 @@ import {
 	DrawerRoot,
 	DrawerTrigger,
 	Icon,
-	RunRunning
+	RunRunning,
+	Separator
 } from '@/shared/tailwind-ui';
-import { routes } from '@/router';
 import {
 	useGetLogJsonQuery,
 	useGetRunDetailsQuery,
@@ -36,7 +36,11 @@ import {
 } from '@/bublik/features/session-log';
 import { useControllableState } from '@/shared/hooks';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
-import { RUN_STATUS } from '@/shared/types';
+import {
+	ApplyRulesButton,
+	ClassifyResultContainer
+} from '@/bublik/features/result-classification';
+import { LogPageMode, MeasurementsMode, RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
@@ -117,7 +121,12 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.log({ runId, focusId: resultId })}
+														to="/log/$runId"
+														params={{ runId }}
+														search={{
+															focusId: resultId || undefined,
+															mode: LogPageMode.TreeAndInfoAndLog
+														}}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -128,10 +137,11 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.run({
-															runId,
-															targetIterationId: resultId
-														})}
+														to="/runs/$runId"
+														params={{ runId }}
+														search={{
+															targetIterationId: resultId || undefined
+														}}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -142,7 +152,9 @@ function LogPreviewContainer(
 											{runId && measurementId ? (
 												<ButtonTw variant="secondary" size="xss" asChild>
 													<LinkWithProject
-														to={routes.measurements({ runId, resultId })}
+														to="/runs/$runId/results/$resultId/measurements"
+														params={{ runId, resultId }}
+														search={{ mode: MeasurementsMode.Default }}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -157,8 +169,26 @@ function LogPreviewContainer(
 													path={path}
 												/>
 											) : null}
+											{/* Triage happens here — you open the preview to read the
+											    failure, so you should be able to classify without leaving
+											    it, and push the rule out to the rest of the run. */}
 											{resultId && runId ? (
-												<NewBugContainer runId={runId} resultId={resultId} />
+												<>
+													<Separator
+														orientation="vertical"
+														className="h-5 self-center"
+													/>
+													<NewBugContainer runId={runId} resultId={resultId} />
+													<ClassifyResultContainer
+														resultId={resultId}
+														runId={runId}
+													/>
+													<ApplyRulesButton runId={runId} />
+													<Separator
+														orientation="vertical"
+														className="h-5 self-center"
+													/>
+												</>
 											) : null}
 											<DialogClose asChild>
 												<ButtonTw

@@ -1,8 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { getRouteApi } from '@tanstack/react-router';
+
 import { LoginFormContainer } from '@/bublik/features/auth';
-import { routes } from '@/router';
+
+const loginRoute = getRouteApi('/auth/login');
 
 export const LoginPage = () => {
-	return <LoginFormContainer redirectOnSuccessTo={routes.dashboard({})} />;
+	const redirectUrl = loginRoute.useSearch({
+		select: (search) => search.redirect_url
+	});
+
+	return <LoginFormContainer redirectUrl={redirectUrl} />;
 };

@@ -2,10 +2,10 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useRef, useSyncExternalStore } from 'react';
 import { useDispatch } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
+import { useCanGoBack, useRouter } from '@tanstack/react-router';
 
-import { routes } from '@/router';
+import { useRenderedLocation } from '@/router';
 import { useNavigateWithProject } from '@/bublik/features/projects';
 import { LoginFormInputs } from '@/shared/types';
 import {
@@ -55,13 +55,13 @@ function getNote(reason: LoginPromptReason, pathname: string): string | null {
 export function LoginDialogContainer() {
 	const reason = useSyncExternalStore(subscribeLoginPrompt, getLoginPrompt);
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
+	const router = useRouter();
 	const navigateWithProject = useNavigateWithProject();
-	const { pathname } = useLocation();
+	const { pathname } = useRenderedLocation();
 	const note = reason ? getNote(reason, pathname) : null;
 	const isPagePrompt = reason?.kind === 'page';
-	// `idx` is React Router's position in its own history stack
-	const canGoBack = (window.history.state?.idx ?? 0) > 0;
+	// Whether this entry is the first the router created in this tab
+	const canGoBack = useCanGoBack();
 	const [login] = useLoginMutation();
 	const formRef = useRef<LoginFormHandle>(null);
 
@@ -92,9 +92,9 @@ export function LoginDialogContainer() {
 
 		if (kind !== 'page') return;
 
-		if (canGoBack) navigate(-1);
+		if (canGoBack) router.history.back();
 		// Keeps the sidebar state and the selected project, like the sidebar links
-		else navigateWithProject(routes.dashboard({}), { replace: true });
+		else void navigateWithProject({ to: '/dashboard', replace: true });
 	};
 
 	return (

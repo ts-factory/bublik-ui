@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/report-measurements.spec.ts — see features/README.md.
+#
+# Route: /runs/$runId/results/$resultId/measurements
 
 Feature: Measurements
 
@@ -47,10 +49,9 @@ Feature: Measurements
   # URL parameters
   ####################################################################
 
-  # This page is the app's only remaining `useSearchState` consumer, whose
-  # serializer writes scalars plain and objects as base64 of their JSON — so the
-  # mode looks ordinary while the machinery behind it is not shared with any
-  # other page. See MEASUREMENTS_URL_PARAMS in pages/measurements-page.ts.
+  # The mode is a plain string and the selected charts a repeated key. A link
+  # from the old encoded format (`~(...)`) is rewritten on load before the page
+  # renders. See MEASUREMENTS_URL_PARAMS in pages/measurements-page.ts.
 
   @measurements @url-params @needs-measurements
   Scenario: A measurements link restores the layout and the selected charts
@@ -68,4 +69,12 @@ Feature: Measurements
     Then each chart id is written as its own repeated key in the URL
     When I reload the page
     Then both chart ids are still recorded in the URL
+
+  # The header carries the same Classify and Apply Rules actions as the log
+  # page, for the failing results that have measurements to look at.
+  @measurements @issues @needs-nok @needs-measurements
+  Scenario: A failing result with measurements offers Classify and Apply Rules
+    Given the fixture run has a failing result with measurements
+    When I open its measurements page
+    Then the header offers Classify and Apply Rules
 

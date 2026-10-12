@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2024-2026 OKTET LTD
 #
 # Implemented by apps/bublik/e2e/log-page.spec.ts — see features/README.md.
+#
+# Route: /log/$runId/
 
 Feature: Log
 
@@ -209,3 +211,49 @@ Feature: Log
     When I turn on the NOK-only tree
     Then the tree lists fewer results
     And the log parameters are unchanged
+
+  ####################################################################
+  # Classification
+  ####################################################################
+
+  # The header offers Classify for a focused result that failed, and Apply
+  # Rules for the run. Classifying records an issue; the scenario deletes it
+  # again from the run's issues page. Apply Rules is only looked at, not
+  # clicked: other rules on the stack could stamp results this spec does not own.
+
+  @log @issues @issues-write @needs-nok
+  Scenario: A failing result can be classified from the log header
+    Given I open the log focused on a failing result of the fixture run
+    When I classify it from the header as an expected known issue
+    Then the run's issues page lists the issue as suppressed
+    And I delete the issue from the run issues page
+
+  @log @issues @needs-nok
+  Scenario: The log header offers Classify and Apply Rules for a failing result
+    Given I open the log focused on a failing result of the fixture run
+    Then the header offers Classify and Apply Rules
+
+
+  # `legacy` has one more writer than the toggle: the "prefer legacy log"
+  # preference, which redirects a link that does not name a renderer. A link
+  # that does name one is left alone, whichever renderer it asks for.
+  @log @url-params
+  Scenario: The legacy log preference redirects a plain log link to the legacy renderer
+    Given I prefer the legacy log
+    When I open the log of an imported run without naming a renderer
+    Then the URL records the legacy renderer
+    And the legacy log frame is shown
+
+  @log @url-params
+  Scenario: A link that names the JSON renderer is not redirected by the legacy preference
+    Given I prefer the legacy log
+    When I open the log of an imported run asking for the JSON renderer
+    Then the URL still names the JSON renderer
+    And the JSON log is shown
+
+  @log @url-params
+  Scenario: The legacy preference redirect drops the deprecated experimental parameter
+    Given I prefer the legacy log
+    When I open a log link that still carries the deprecated parameter
+    Then the deprecated parameter is dropped from the URL
+    And the URL records the legacy renderer

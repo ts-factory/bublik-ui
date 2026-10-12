@@ -2,8 +2,10 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearch } from '@tanstack/react-router';
 
+import { str } from '@/router';
+import { SIDEBAR_STATE_PARAM } from '@/shared/types';
 import {
 	LOG_MODE_DEFAULT,
 	LOG_SIDEBAR_KEYS,
@@ -45,8 +47,30 @@ export interface UseLogSidebarStateReturn {
 	setLastVisited: (mode: LogSidebarMode, url: string, runId?: string) => void;
 }
 
+const RAW = str();
+
+/**
+ * The sidebar memory (`_s`) of the route match on screen: the log page's own
+ * match, or the shell's when the sidebar renders on another page. The first
+ * value of a repeated key, as `URLSearchParams.get` read it.
+ */
+function useSidebarSearchParams(): URLSearchParams {
+	const sidebarState = useSearch({
+		strict: false,
+		select: (search) => RAW.parse(search[SIDEBAR_STATE_PARAM]) ?? null
+	});
+
+	return useMemo(
+		() =>
+			new URLSearchParams(
+				sidebarState === null ? {} : { [SIDEBAR_STATE_PARAM]: sidebarState }
+			),
+		[sidebarState]
+	);
+}
+
 export function useLogSidebarState(): UseLogSidebarStateReturn {
-	const [searchParams] = useSearchParams();
+	const searchParams = useSidebarSearchParams();
 	const writeSidebarState = useSidebarStateWriter();
 
 	const lastLogUrl = useMemo(

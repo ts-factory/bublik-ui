@@ -1,9 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useEffect } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import {
+	matchRoutePath,
+	useRenderedLocation,
+	type RoutePathPattern
+} from '@/router';
 
-import { LinkWithProject } from '@/bublik/features/projects';
+import { RouterLinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
@@ -11,26 +15,27 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useDashboardSidebarState } from './use-dashboard-sidebar-state';
 
-const DASHBOARD_SIDEBAR_PATTERNS = [{ path: '/dashboard' }];
+const DASHBOARD_SIDEBAR_PATTERNS: RoutePathPattern[] = [{ to: '/dashboard' }];
 
 export function DashboardSidebarNav() {
-	const location = useLocation();
+	const { pathname, searchStr } = useRenderedLocation();
 	const { mainLinkUrl, setLastUrl } = useDashboardSidebarState();
 
+	// Remembers the dashboard view on screen for the sidebar link (`_s`).
 	useEffect(() => {
-		const isDashboardPage = matchPath('/dashboard', location.pathname);
+		const isDashboardPage = matchRoutePath({ to: '/dashboard' }, pathname);
 
 		if (isDashboardPage) {
-			setLastUrl(location.pathname + location.search);
+			setLastUrl(pathname + searchStr);
 		}
-	}, [location.pathname, location.search, setLastUrl]);
+	}, [pathname, searchStr, setLastUrl]);
 
 	return (
 		<SidebarNavItem patterns={DASHBOARD_SIDEBAR_PATTERNS}>
 			<SidebarNavLinkWrapper label="Dashboard">
 				<SidebarNavInternalLink
 					to={mainLinkUrl}
-					linkComponent={LinkWithProject}
+					linkComponent={RouterLinkWithProject}
 				>
 					<SidebarNavInternalLink.Icon name="Category" />
 					<SidebarNavInternalLink.Label>Dashboard</SidebarNavInternalLink.Label>
