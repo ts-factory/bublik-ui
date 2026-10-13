@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { useMemo } from 'react';
+
 import { HistoryMode, RunDataResults } from '@/shared/types';
 import { usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
@@ -9,7 +11,11 @@ import { useUserPreferences } from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
-import { HistoryLinkContainer } from '@/bublik/features/history-link';
+import {
+	HistoryLinkContainer,
+	HistoryLinkIssue
+} from '@/bublik/features/history-link';
+import { historyLinkIssues } from '@/bublik/features/result-classification';
 
 export interface ResultLinksProps {
 	runId: string;
@@ -22,6 +28,7 @@ export interface ResultLinksProps {
 	onLinkClick?: (action: string) => void;
 	showLinkToRun?: boolean;
 	path?: string;
+	historyIssues?: HistoryLinkIssue[];
 }
 
 export const ResultLinks = (props: ResultLinksProps) => {
@@ -35,7 +42,8 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		onMeasurementLinkMouseEnter,
 		onLinkClick,
 		showLinkToRun = false,
-		path
+		path,
+		historyIssues
 	} = props;
 
 	return (
@@ -70,6 +78,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 						result={result}
 						userPreferredHistoryMode={userPreferredHistoryMode}
 						path={path}
+						issues={historyIssues}
 					/>
 				</li>
 				{hasMeasurements && (
@@ -116,6 +125,7 @@ export interface ActionLinksProps {
 	result: RunDataResults;
 	showLinkToRun?: boolean;
 	path?: string;
+	historyIssues?: HistoryLinkIssue[];
 }
 
 export const ResultLinksContainer = (props: ActionLinksProps) => {
@@ -137,6 +147,11 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 		prefetchResultInfo(resultId);
 	};
 
+	const historyIssues = useMemo(
+		() => historyLinkIssues(result.issues),
+		[result.issues]
+	);
+
 	const handleLinkClick = (action: string) => {
 		trackEvent(analyticsEventNames.resultTableLinkClick, { action });
 	};
@@ -153,6 +168,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 			showLinkToRun={showLinkToRun}
 			path={path}
 			onLinkClick={handleLinkClick}
+			historyIssues={historyIssues}
 		/>
 	);
 };

@@ -4,13 +4,13 @@ import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { config } from '@/bublik/config';
+import { TestPathComboboxField } from '@/bublik/features/result-classification';
 import { TextField, BadgeField } from '@/shared/tailwind-ui';
 
 import {
 	ExpressionToggleButton,
 	FieldResetButton,
-	FormSection,
-	TestPathComboboxField
+	FormSection
 } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
 

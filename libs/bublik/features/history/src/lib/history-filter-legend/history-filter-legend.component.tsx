@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { ReactNode } from 'react';
+
 import { config } from '@/bublik/config';
 import { Badge, BadgeVariants, Icon, IconProps } from '@/shared/tailwind-ui';
 import { formatKeyValueForDisplay } from '@/shared/utils';
@@ -53,6 +55,8 @@ export type LegendItem = {
 	iconName: IconProps['name'];
 	iconSize: number;
 	value?: string | string[] | null;
+	/** Replaces the value badges, for values that need more than text. */
+	content?: ReactNode;
 };
 
 export type LegendItemProps = LegendItem;
@@ -60,6 +64,7 @@ export type LegendItemProps = LegendItem;
 export const LegendItem = ({
 	label,
 	value,
+	content,
 	iconName,
 	iconSize
 }: LegendItemProps) => {
@@ -76,7 +81,7 @@ export const LegendItem = ({
 				</span>
 			</div>
 			<div className="flex flex-wrap items-center gap-3">
-				<LegendItemValue value={value} />
+				{content ?? <LegendItemValue value={value} />}
 			</div>
 		</div>
 	);
@@ -91,13 +96,14 @@ export interface LegendProps {
 export const HistoryFilterLegend = ({ items }: LegendProps) => {
 	return (
 		<div className="flex flex-wrap items-center gap-4">
-			{items.map(({ label, iconName, value, iconSize }) => (
+			{items.map(({ label, iconName, value, content, iconSize }) => (
 				<LegendItem
 					key={label}
 					label={label}
 					iconSize={iconSize}
 					iconName={iconName}
 					value={value}
+					content={content}
 				/>
 			))}
 		</div>

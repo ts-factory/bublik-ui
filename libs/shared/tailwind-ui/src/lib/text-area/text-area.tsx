@@ -4,7 +4,7 @@ import { ComponentPropsWithRef, forwardRef } from 'react';
 
 import { cn, cva, VariantProps } from '../utils';
 import { ErrorMessage } from '../error-message';
-import { InputLabel } from '../input-label';
+import { FLOATING_LABEL_BACKDROP_CLASS, InputLabel } from '../input-label';
 
 export const textAreaStyles = cva({
 	base: [
@@ -52,7 +52,8 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 					<InputLabel
 						className={cn(
 							'absolute top-[-11px] left-2',
-							disabled ? 'bg-bg-body text-border-primary' : 'bg-white'
+							FLOATING_LABEL_BACKDROP_CLASS,
+							disabled && 'text-text-menu'
 						)}
 						htmlFor={name}
 					>

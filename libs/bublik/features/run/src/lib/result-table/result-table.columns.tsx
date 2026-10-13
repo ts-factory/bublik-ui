@@ -9,14 +9,26 @@ import {
 } from '@tanstack/react-table';
 import { createNextState } from '@reduxjs/toolkit';
 
-import { RESULT_PROPERTIES, RESULT_TYPE, RunDataResults } from '@/shared/types';
+import {
+	IssueCategory,
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
+	ResultIssueRef,
+	RunDataResults
+} from '@/shared/types';
 import { config } from '@/bublik/config';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
+import {
+	ClassificationVerdict,
+	ResultIssueBadges,
+	resultClassification
+} from '@/bublik/features/result-classification';
 import {
 	Badge,
 	Icon,
 	ButtonTw,
 	ParameterValue,
+	VERDICT_RESULT_BOXED_CLASS,
 	VerdictList,
 	cn,
 	Tooltip
@@ -73,7 +85,7 @@ export const getColumns = ({
 				const value = cell.getValue();
 
 				return (
-					<div className="flex items-center h-full">
+					<div className="flex items-center gap-2 h-full">
 						<ResultLinksContainer
 							runId={String(value.run_id)}
 							resultId={value.result_id}
@@ -89,8 +101,16 @@ export const getColumns = ({
 		helper.accessor(
 			(data) => ({
 				isNotExpected: data.has_error,
+				// `has_error` is already suppressed server-side, so it cannot tell a
+				// held-back failure from a pass. This can.
+				effectiveExpected: data.effective_expected,
 				verdicts: data.obtained_result.verdicts,
-				result: data.obtained_result.result_type
+				result: data.obtained_result.result_type,
+				issues: data.issues,
+				// Classify lives beside the badges rather than in the Actions
+				// column, so the ids it needs have to travel with them.
+				resultId: data.result_id,
+				projectId: data.project_id
 			}),
 			{
 				header: 'Obtained Result',
@@ -115,7 +135,45 @@ export const getColumns = ({
 						(!filterValue.resultProperties.length ||
 							filterValue.resultProperties.includes(resultProperty));
 
-					if (!obtainedResult.result || !obtainedResult.verdicts) return;
+					// Toggling a category chip is the same write as ticking the
+					// Category box in the toolbar: both land on this column's filter,
+					// which is where the chips already live.
+					function handleCategoryClick(category: IssueCategory) {
+						cell.column.setFilterValue(
+							createNextState(filterValue ?? {}, (draft) => {
+								const selected = draft.categories ?? [];
+
+								draft.categories = selected.includes(category)
+									? selected.filter((c) => c !== category)
+									: [...selected, category];
+							})
+						);
+					}
+
+					// No result to render, but the line still carries the Classify
+					// trigger. It used to live in another column and was unaffected
+					// by this guard, so returning nothing here would quietly lose it.
+					// There is no result badge to trail, hence no leading rule.
+					if (!obtainedResult.result || !obtainedResult.verdicts) {
+						return (
+							<div className="flex flex-col gap-1.5">
+								<ClassificationVerdict
+									issues={obtainedResult.issues}
+									hasError={obtainedResult.isNotExpected}
+									effectiveExpected={obtainedResult.effectiveExpected}
+									resultId={obtainedResult.resultId}
+									projectId={obtainedResult.projectId}
+									withLeadingSeparator={false}
+									withEffect={false}
+								/>
+								<ResultIssueBadges
+									issues={obtainedResult.issues}
+									selectedCategories={filterValue.categories}
+									onCategoryClick={handleCategoryClick}
+								/>
+							</div>
+						);
+					}
 
 					function handleVerdictClick(verdict: string) {
 						cell.column.setFilterValue(
@@ -155,17 +213,40 @@ export const getColumns = ({
 						);
 					}
 
+					// The verdict qualifies the result badge, so it rides on its line;
+					// the stamps that explain it go under the verdicts, exactly as the
+					// history table lays it out. Both used to sit in the Actions
+					// column, among the links, widening a column meant for buttons.
 					return (
-						<VerdictList
-							variant="obtained"
-							verdicts={obtainedResult.verdicts}
-							result={obtainedResult.result}
-							isNotExpected={obtainedResult.isNotExpected}
-							onVerdictClick={handleVerdictClick}
-							selectedVerdicts={verdicts}
-							onResultClick={handleResultClick}
-							isResultSelected={isResultSelected}
-						/>
+						<div className="flex flex-col gap-1.5">
+							<VerdictList
+								variant="obtained"
+								verdicts={obtainedResult.verdicts}
+								result={obtainedResult.result}
+								isNotExpected={obtainedResult.isNotExpected}
+								onVerdictClick={handleVerdictClick}
+								selectedVerdicts={verdicts}
+								onResultClick={handleResultClick}
+								isResultSelected={isResultSelected}
+								resultClassName={VERDICT_RESULT_BOXED_CLASS}
+								resultSlot={
+									<ClassificationVerdict
+										issues={obtainedResult.issues}
+										hasError={obtainedResult.isNotExpected}
+										effectiveExpected={obtainedResult.effectiveExpected}
+										resultId={obtainedResult.resultId}
+										projectId={obtainedResult.projectId}
+										withEffect={false}
+									/>
+								}
+							/>
+							<ResultIssueBadges
+								issues={obtainedResult.issues}
+								selectedCategories={filterValue.categories}
+								onCategoryClick={handleCategoryClick}
+								withSeparator
+							/>
+						</div>
 					);
 				},
 				filterFn: (
@@ -175,12 +256,16 @@ export const getColumns = ({
 						results?: RESULT_TYPE[];
 						resultProperties?: RESULT_PROPERTIES[];
 						verdicts?: string[];
+						categories?: string[];
+						classifications?: string[];
 					}
 				) => {
 					const value = row.getValue(column) as {
 						isNotExpected?: boolean;
+						effectiveExpected?: boolean;
 						result?: RESULT_TYPE;
 						verdicts?: string[];
+						issues?: ResultIssueRef[];
 					};
 					const rowResultProperty =
 						typeof value.isNotExpected === 'boolean'
@@ -192,7 +277,9 @@ export const getColumns = ({
 					if (
 						!filterValue?.results?.length &&
 						!filterValue?.resultProperties?.length &&
-						!filterValue?.verdicts?.length
+						!filterValue?.verdicts?.length &&
+						!filterValue?.categories?.length &&
+						!filterValue?.classifications?.length
 					) {
 						return true;
 					}
@@ -208,8 +295,36 @@ export const getColumns = ({
 					const matchesVerdicts =
 						!filterValue.verdicts?.length ||
 						filterValue.verdicts.every((v) => value.verdicts?.includes(v));
+					// Any, not every: a result carries one stamp per matching rule, and
+					// selecting DEFECT and KNOWN asks for the results either explains,
+					// not the rare ones both do.
+					const matchesCategories =
+						!filterValue.categories?.length ||
+						(value.issues ?? []).some((issue) =>
+							filterValue.categories?.includes(issue.category)
+						);
+					// A result carries exactly one verdict, so this is a plain
+					// membership test rather than the some/every question the
+					// per-stamp axes ask. `null` is a passing result with no stamps:
+					// it shows no chip, so no chip's filter should claim it.
+					const classification = resultClassification({
+						issues: value.issues,
+						hasError: Boolean(value.isNotExpected),
+						effectiveExpected: value.effectiveExpected
+					});
+					const matchesClassifications =
+						!filterValue.classifications?.length ||
+						(classification
+							? filterValue.classifications.includes(classification.value)
+							: false);
 
-					return matchesResult && matchesResultProperties && matchesVerdicts;
+					return (
+						matchesResult &&
+						matchesResultProperties &&
+						matchesVerdicts &&
+						matchesCategories &&
+						matchesClassifications
+					);
 				},
 				meta: { headerCellClassName: 'pl-[12px]' }
 			}

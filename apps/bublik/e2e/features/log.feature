@@ -209,3 +209,24 @@ Feature: Log
     When I turn on the NOK-only tree
     Then the tree lists fewer results
     And the log parameters are unchanged
+
+  ####################################################################
+  # Classification
+  ####################################################################
+
+  # The header offers Classify for a focused result that failed, and Apply
+  # Rules for the run. Classifying records an issue; the scenario deletes it
+  # again from the run's issues page. Apply Rules is only looked at, not
+  # clicked: other rules on the stack could stamp results this spec does not own.
+
+  @log @issues @issues-write @needs-nok
+  Scenario: A failing result can be classified from the log header
+    Given I open the log focused on a failing result of the fixture run
+    When I classify it from the header as an expected known issue
+    Then the run's issues page lists the issue as suppressed
+    And I delete the issue from the run issues page
+
+  @log @issues @needs-nok
+  Scenario: The log header offers Classify and Apply Rules for a failing result
+    Given I open the log focused on a failing result of the fixture run
+    Then the header offers Classify and Apply Rules

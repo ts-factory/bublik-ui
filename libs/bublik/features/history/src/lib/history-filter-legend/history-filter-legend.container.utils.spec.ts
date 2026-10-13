@@ -28,6 +28,15 @@ describe('getLegendItems', () => {
 		expect(legendItems.some((item) => item.label === 'Date')).toBe(true);
 	});
 
+	it('names categories as the form and the badges do, not by their API slug', () => {
+		const legendItems = getLegendItems({
+			categories: 'product-defect;known-issue'
+		});
+		const categories = legendItems.find((item) => item.label === 'Categories');
+
+		expect(categories?.value).toEqual(['Defect', 'Known']);
+	});
+
 	it('keeps non-empty array values and removes empty array entries', () => {
 		const query: HistoryAPIQuery = {
 			branches: 'main; ;dev;  '
@@ -39,6 +48,17 @@ describe('getLegendItems', () => {
 		expect(branchesItem).toBeDefined();
 		expect(Array.isArray(branchesItem?.value)).toBe(true);
 		expect(branchesItem?.value).toEqual(['main', 'dev']);
+	});
+
+	it('shows the issue badge when given one, and the bare id until then', () => {
+		const issue = (content?: string) =>
+			getLegendItems({ issue: '3' }, { issue: content }).find(
+				(item) => item.label === 'Issue'
+			);
+
+		expect(issue()?.value).toBe('#3');
+		expect(issue()?.content).toBeUndefined();
+		expect(issue('badge')?.content).toBe('badge');
 	});
 
 	it('lists the substring search, which lives outside the search form', () => {

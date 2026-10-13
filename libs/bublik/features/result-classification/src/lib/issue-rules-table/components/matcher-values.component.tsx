@@ -1,0 +1,41 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import type { BadgeVariants } from '@/shared/tailwind-ui';
+
+import type { FacetControls } from '../../classification-table/classification-table.utils';
+import { MatcherChip } from './matcher-chip.component';
+
+export function MatcherValues({
+	values,
+	formatLabel,
+	columnId,
+	variant,
+	className,
+	facets
+}: {
+	values: string[];
+	/** The label for a value, when it is shown differently than it is filtered. */
+	formatLabel?: (value: string) => string;
+	columnId: string;
+	variant?: BadgeVariants;
+	className?: string;
+	facets?: FacetControls;
+}) {
+	if (!values.length) return null;
+
+	return (
+		<div className="flex flex-wrap gap-1">
+			{values.map((value) => (
+				<MatcherChip
+					key={value}
+					value={value}
+					label={formatLabel?.(value)}
+					columnId={columnId}
+					variant={variant}
+					className={className}
+					facets={facets}
+				/>
+			))}
+		</div>
+	);
+}

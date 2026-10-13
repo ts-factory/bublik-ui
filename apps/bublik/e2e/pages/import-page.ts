@@ -82,6 +82,8 @@ class ImportPage {
 	async openImportForm(): Promise<void> {
 		await this.importButton.click();
 		await expect(this.importModal).toBeVisible();
+		// The URL rows render after the dialog does, and callers count them.
+		await expect(this.urlInputs.first()).toBeVisible();
 	}
 
 	async fillUrl(index: number, url: string): Promise<void> {
