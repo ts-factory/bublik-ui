@@ -3,13 +3,17 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { HistoryAPIQuery, VERDICT_TYPE } from '@/shared/types';
+import { HistoryAPIQuery, RESULT_TYPE, VERDICT_TYPE } from '@/shared/types';
 
-import { HistorySearchFormState } from './history-slice.types';
+import {
+	HistoryGlobalFilter,
+	HistorySearchFormState
+} from './history-slice.types';
 import {
 	applyBadgeSelection,
 	copyHistorySearchParam,
 	historySearchStateToQuery,
+	isResultSelectionCleared,
 	queryToHistorySearchState,
 	searchQueryToBackendQuery
 } from './history-slice.utils';
@@ -273,5 +277,43 @@ describe('applyBadgeSelection', () => {
 		expect(applyBadgeSelection(['medford'], [], ['medford'])).toEqual([
 			'medford'
 		]);
+	});
+});
+
+describe('isResultSelectionCleared', () => {
+	const noSelection: HistoryGlobalFilter = {
+		tags: [],
+		parameters: [],
+		verdicts: [],
+		resultType: null,
+		isNotExpected: null
+	};
+
+	it('is cleared when the URL applied one result and nothing is selected', () => {
+		const applied = {
+			...fullSearchState(),
+			results: ['FAILED'],
+			resultProperties: ['unexpected']
+		};
+
+		expect(isResultSelectionCleared(applied, noSelection)).toBe(true);
+	});
+
+	it('is not cleared when the URL applied several results', () => {
+		expect(isResultSelectionCleared(fullSearchState(), noSelection)).toBe(
+			false
+		);
+	});
+
+	it('is not cleared while a result is still selected', () => {
+		const applied = { ...fullSearchState(), results: ['FAILED'] };
+
+		expect(
+			isResultSelectionCleared(applied, {
+				...noSelection,
+				resultType: RESULT_TYPE.Passed,
+				isNotExpected: false
+			})
+		).toBe(false);
 	});
 });

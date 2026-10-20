@@ -12,7 +12,8 @@ import { RESULT_PROPERTIES } from '@/shared/types';
 import {
 	applyBadgeSelection,
 	arrayToBadgeItem,
-	historySearchStateToForm
+	historySearchStateToForm,
+	isResultSelectionCleared
 } from './history-slice.utils';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
 import {
@@ -92,9 +93,11 @@ export const getCombinedForm = (
 		applyBadgeSelection(searchState.runData, applied.runData, globalFilter.tags)
 	);
 
+	const isResultCleared = isResultSelectionCleared(applied, globalFilter);
+
 	const results = globalFilter.resultType
 		? [globalFilter.resultType]
-		: formFromSearchState.results.length
+		: !isResultCleared && formFromSearchState.results.length
 		? formFromSearchState.results
 		: DEFAULT_RESULT_TYPES;
 
@@ -103,7 +106,7 @@ export const getCombinedForm = (
 			? globalFilter.isNotExpected
 				? [RESULT_PROPERTIES.Unexpected]
 				: [RESULT_PROPERTIES.Expected]
-			: formFromSearchState.resultProperties.length
+			: !isResultCleared && formFromSearchState.resultProperties.length
 			? formFromSearchState.resultProperties
 			: DEFAULT_RESULT_PROPERTIES;
 

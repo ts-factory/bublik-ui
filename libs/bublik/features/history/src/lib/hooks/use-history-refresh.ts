@@ -25,7 +25,8 @@ import {
 	applyBadgeSelection,
 	arrayToString,
 	copyHistorySearchParam,
-	historySearchStateToQuery
+	historySearchStateToQuery,
+	isResultSelectionCleared
 } from '../slice/history-slice.utils';
 import {
 	PROJECT_KEY,
@@ -39,6 +40,7 @@ const globalFilterToQueryAdapter = (
 ): HistoryAPIQuery => {
 	const { isNotExpected, resultType } = globalFilter;
 	const query = historySearchStateToQuery(state);
+	const isResultCleared = isResultSelectionCleared(applied, globalFilter);
 
 	const getResultProperties = (): RESULT_PROPERTIES[] => {
 		if (resultType != null || isNotExpected != null) {
@@ -55,7 +57,7 @@ const globalFilterToQueryAdapter = (
 			return resultProperties;
 		}
 
-		if (query.resultProperties?.length) {
+		if (!isResultCleared && query.resultProperties?.length) {
 			return query.resultProperties.split(';') as RESULT_PROPERTIES[];
 		}
 
@@ -64,7 +66,8 @@ const globalFilterToQueryAdapter = (
 
 	const getResultType = (): RESULT_TYPE[] => {
 		if (resultType) return [resultType];
-		if (query.results?.length) return query.results.split(';') as RESULT_TYPE[];
+		if (!isResultCleared && query.results?.length)
+			return query.results.split(';') as RESULT_TYPE[];
 
 		return DEFAULT_RESULT_TYPES;
 	};

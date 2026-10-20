@@ -10,13 +10,18 @@ import {
 import {
 	HistoryAPIBackendQuery,
 	HistoryAPIQuery,
+	RESULT_PROPERTIES,
+	RESULT_TYPE,
 	VERDICT_TYPE
 } from '@/shared/types';
 import { BadgeItem } from '@/shared/tailwind-ui';
 import { formatTimeToAPI } from '@/shared/utils';
 
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
-import { HistorySearchFormState } from './history-slice.types';
+import {
+	HistoryGlobalFilter,
+	HistorySearchFormState
+} from './history-slice.types';
 
 /** URL key of the server-side substring search, owned by the substring filter */
 export const HISTORY_SEARCH_KEY = 'search';
@@ -64,6 +69,43 @@ export const applyBadgeSelection = (
 			...selected
 		])
 	);
+};
+
+export function getResultTypeState(
+	results: string[],
+	resultProperties: string[]
+) {
+	let isNotExpected = null;
+	if (resultProperties.length === 1) {
+		if (resultProperties[0] === RESULT_PROPERTIES.Expected) {
+			isNotExpected = false;
+		} else if (resultProperties[0] === RESULT_PROPERTIES.Unexpected) {
+			isNotExpected = true;
+		}
+	}
+
+	return {
+		resultType: results.length === 1 ? (results[0] as RESULT_TYPE) : null,
+		isNotExpected
+	};
+}
+
+/**
+ * Whether the table deselected the obtained result badge the URL applied.
+ *
+ * The badge sets the result type and its expectation together, so clearing it
+ * drops both from the search rather than falling back to the URL's values.
+ */
+export const isResultSelectionCleared = (
+	applied: HistorySearchFormState,
+	globalFilter: HistoryGlobalFilter
+): boolean => {
+	const { resultType } = getResultTypeState(
+		applied.results,
+		applied.resultProperties
+	);
+
+	return resultType !== null && globalFilter.resultType === null;
 };
 
 export const arrayToString = (array: string[]): string | undefined => {

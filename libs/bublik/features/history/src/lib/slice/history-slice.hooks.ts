@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
 import { useMount } from '@/shared/hooks';
-import { RESULT_PROPERTIES, RESULT_TYPE } from '@/shared/types';
 import { BUBLIK_TAG, bublikAPI } from '@/services/bublik-api';
 import {
 	PROJECT_KEY,
@@ -17,6 +16,7 @@ import { useHistoryActions } from './history-slice';
 import {
 	copyHistorySearchParam,
 	formToSearchState,
+	getResultTypeState,
 	historySearchStateToQuery,
 	queryToHistorySearchState
 } from './history-slice.utils';
@@ -27,24 +27,7 @@ import {
 } from './history-slice.selectors';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
 
-export function getResultTypeState(
-	results: string[],
-	resultProperties: string[]
-) {
-	let isNotExpected = null;
-	if (resultProperties.length === 1) {
-		if (resultProperties[0] === RESULT_PROPERTIES.Expected) {
-			isNotExpected = false;
-		} else if (resultProperties[0] === RESULT_PROPERTIES.Unexpected) {
-			isNotExpected = true;
-		}
-	}
-
-	return {
-		resultType: results.length === 1 ? (results[0] as RESULT_TYPE) : null,
-		isNotExpected
-	};
-}
+export { getResultTypeState };
 
 export const useSyncHistoryQueryToState = () => {
 	const actions = useHistoryActions();
