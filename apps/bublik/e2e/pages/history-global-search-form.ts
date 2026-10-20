@@ -30,6 +30,7 @@ class HistoryGlobalSearchForm {
 	readonly revisionsInput: Locator;
 	readonly revisionExpressionInput: Locator;
 	readonly tagsInput: Locator;
+	readonly tagsField: Locator;
 	readonly tagExpressionInput: Locator;
 	readonly verdictInput: Locator;
 	readonly verdictExpressionInput: Locator;
@@ -68,6 +69,9 @@ class HistoryGlobalSearchForm {
 		);
 		this.revisionExpressionInput = this.root.getByLabel('Revision Expression');
 		this.tagsInput = this.root.getByPlaceholder('medford');
+		this.tagsField = this.root
+			.getByTestId('tw-badge-input')
+			.filter({ has: page.getByPlaceholder('medford') });
 		this.tagExpressionInput = this.root.getByRole('textbox', {
 			name: 'Tag Expression'
 		});
@@ -218,6 +222,14 @@ class HistoryGlobalSearchForm {
 
 	async setVerdictLookup(mode: VerdictLookupMode): Promise<void> {
 		await this.verdictLookupOption(mode).click();
+	}
+
+	async expectTagListed(text: string): Promise<void> {
+		await expect(this.tagsField).toContainText(text, { timeout: 15_000 });
+	}
+
+	async expectTagNotListed(text: string): Promise<void> {
+		await expect(this.tagsField).not.toContainText(text, { timeout: 15_000 });
 	}
 
 	async expectVerdictFieldAcceptsInput(): Promise<void> {

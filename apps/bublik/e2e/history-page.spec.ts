@@ -900,6 +900,114 @@ test.describe('History Page', () => {
 
 	// eslint-disable-next-line playwright/expect-expect
 	test(
+		'Deselecting a submitted metadata badge drops it from the search',
+		HISTORY_URL,
+		async ({ page }) => {
+			test.slow();
+
+			const historyPage = new HistoryPage(page);
+			let before = 0;
+			let badge!: DiscriminatingHistoryBadge;
+
+			await given(
+				'I open the history page narrowed by a submitted metadata badge',
+				async () => {
+					await openBadgeCase(historyPage, 'linear');
+					before = await historyPage.rows().count();
+					badge = await historyPage.pickDiscriminatingBadge('metadata');
+
+					await historyPage.clickBadge('metadata', badge.rowIndex, badge.text);
+					await historyPage.submitButton.click();
+					await historyPage.expectDelimitedParam(
+						'runData',
+						badgeTextToPayload(badge.text)
+					);
+					await historyPage.expectRowsNarrowedTo(
+						'metadata',
+						badge.text,
+						before
+					);
+
+					await historyPage.openGlobalSearchForm();
+					await historyPage.globalSearchForm.expectTagListed(badge.text);
+					await historyPage.globalSearchForm.close();
+					await historyPage.globalSearchForm.expectHidden();
+				}
+			);
+			await when('I deselect the badge and submit again', async () => {
+				await historyPage.clickBadge('metadata', 0, badge.text);
+				await historyPage.submitButton.click();
+			});
+			await then('the metadata is no longer recorded in the URL', () =>
+				historyPage.expectDelimitedParamExactly('runData', [])
+			);
+			await and('every result of the query is listed again', () =>
+				expect
+					.poll(() => historyPage.rows().count(), { timeout: 60_000 })
+					.toBe(before)
+			);
+			await and('the search form no longer lists the metadata', async () => {
+				await historyPage.openGlobalSearchForm();
+				await historyPage.globalSearchForm.expectTagNotListed(badge.text);
+			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Deselecting a submitted obtained result badge drops it from the search',
+		HISTORY_URL,
+		async ({ page }) => {
+			test.slow();
+
+			const historyPage = new HistoryPage(page);
+			let before = 0;
+			let badge!: DiscriminatingHistoryBadge;
+
+			await given(
+				'I open the history page narrowed by a submitted obtained result badge',
+				async () => {
+					await openBadgeCase(historyPage, 'linear');
+					before = await historyPage.rows().count();
+					badge = await historyPage.pickDiscriminatingBadge(
+						'obtained-results',
+						'result'
+					);
+
+					await historyPage.clickBadge(
+						'obtained-results',
+						badge.rowIndex,
+						badge.text
+					);
+					await historyPage.submitButton.click();
+					await historyPage.expectDelimitedParamExactly('results', [
+						badge.text
+					]);
+					await historyPage.expectRowsNarrowedTo(
+						'obtained-results',
+						badge.text,
+						before,
+						'result'
+					);
+				}
+			);
+			await when('I deselect the badge and submit again', async () => {
+				await historyPage.clickBadge('obtained-results', 0, badge.text);
+				await historyPage.submitButton.click();
+			});
+			await then('the URL no longer narrows the result types', () =>
+				historyPage.expectResultTypesNotNarrowed(badge.text)
+			);
+			await and('every result of the query is listed again', () =>
+				expect
+					.poll(() => historyPage.rows().count(), { timeout: 60_000 })
+					.toBe(before)
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
 		'Trend charts render for a test path with measurements',
 		HISTORY_MEASUREMENTS,
 		async ({ page }) => {

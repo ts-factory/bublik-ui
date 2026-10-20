@@ -234,6 +234,24 @@ Feature: History
     When I open the search form and apply it unchanged
     Then every result of the query is listed again
 
+  # Submit writes the selected badges into the query. Deselecting one and
+  # submitting again has to take it back out, rather than fall back to the
+  # value the URL already carries (#393).
+  @history @url-params
+  Scenario: Deselecting a submitted metadata badge drops it from the search
+    Given I open the history page narrowed by a submitted metadata badge
+    When I deselect the badge and submit again
+    Then the metadata is no longer recorded in the URL
+    And every result of the query is listed again
+    And the search form no longer lists the metadata
+
+  @history @url-params
+  Scenario: Deselecting a submitted obtained result badge drops it from the search
+    Given I open the history page narrowed by a submitted obtained result badge
+    When I deselect the badge and submit again
+    Then the URL no longer narrows the result types
+    And every result of the query is listed again
+
   ###########################################
   #         Charts                          #
   ###########################################

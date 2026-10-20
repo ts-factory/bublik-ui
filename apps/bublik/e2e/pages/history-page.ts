@@ -333,6 +333,25 @@ class HistoryPage {
 		await this.url.expectDelimitedContains(key, ...values);
 	}
 
+	async expectDelimitedParamExactly(
+		key: string,
+		values: readonly string[]
+	): Promise<void> {
+		await this.url.expectDelimitedExactly(key, values);
+	}
+
+	/** The query asks for every result type again, the deselected one included. */
+	async expectResultTypesNotNarrowed(deselected: string): Promise<void> {
+		await this.url.expectDelimitedContains('results', deselected);
+		await expect
+			.poll(
+				() =>
+					(this.paramValue('results') ?? '').split(';').filter(Boolean).length,
+				{ timeout: 15_000, message: 'result types in the URL' }
+			)
+			.toBeGreaterThan(1);
+	}
+
 	async expectRepeatedParam(
 		key: string,
 		values: readonly string[]
