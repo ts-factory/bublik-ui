@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Row } from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData, RunDataResults } from '@/shared/types';
 import { useGetResultsTableQuery } from '@/services/bublik-api';
+import { cn } from '@/shared/tailwind-ui';
 
 import { useRunTableRowState } from '../hooks';
 import { ColumnId } from '../run-table/types';
@@ -16,6 +17,7 @@ import {
 	ResultTableLoading
 } from './result-table.component';
 import { getRowValues } from '../run-table';
+import { ResultMatrix } from '../result-matrix';
 
 function getResultSelectors(row: Row<RunData | MergedRun>) {
 	return 'parent_ids' in row.original
@@ -44,6 +46,7 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	const { id: rowId } = row;
 	const rowState = useRunTableRowState().rowState[rowId];
 	const { updateRowState } = useRunTableRowState();
+	const [view, setView] = useState<'list' | 'matrix'>('list');
 
 	const requests = rowState?.requests
 		? Object.keys(rowState.requests).length
@@ -110,17 +113,43 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	const path = row.original.path.join('/');
 
 	return (
-		<ResultTable
-			showLinkToRun={Array.isArray(runId)}
-			data={data}
-			rowId={rowId}
-			height={height}
-			showToolbar={showToolbar}
-			setShowToolbar={setShowToolbar}
-			targetIterationId={targetIterationId}
-			rowState={rowState}
-			onRowClick={onRowClick}
-			path={path}
-		/>
+		<div className="flex flex-col">
+			<div className="flex justify-end px-2 pt-1">
+				<div className="inline-flex rounded-md border border-border-primary overflow-hidden text-xs">
+					{(['list', 'matrix'] as const).map((v) => (
+						<button
+							key={v}
+							type="button"
+							aria-pressed={view === v}
+							onClick={() => setView(v)}
+							className={cn(
+								'px-2.5 py-1 border-r border-border-primary last:border-r-0 capitalize',
+								view === v
+									? 'bg-primary text-white'
+									: 'bg-white hover:bg-gray-50'
+							)}
+						>
+							{v === 'list' ? '≣ List' : '▦ Matrix'}
+						</button>
+					))}
+				</div>
+			</div>
+			{view === 'matrix' ? (
+				<ResultMatrix results={data} />
+			) : (
+				<ResultTable
+					showLinkToRun={Array.isArray(runId)}
+					data={data}
+					rowId={rowId}
+					height={height}
+					showToolbar={showToolbar}
+					setShowToolbar={setShowToolbar}
+					targetIterationId={targetIterationId}
+					rowState={rowState}
+					onRowClick={onRowClick}
+					path={path}
+				/>
+			)}
+		</div>
 	);
 }
