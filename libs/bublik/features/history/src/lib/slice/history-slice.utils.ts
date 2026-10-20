@@ -45,6 +45,27 @@ export const badgeItemToArray = (items: BadgeItem[]): string[] => {
 	return items.map((item) => item.value);
 };
 
+/**
+ * Apply the table's badge selection to a list from the search form.
+ *
+ * The selection starts as the list the URL applied, so a value the URL applied
+ * that is no longer selected was deselected in the table and leaves the search.
+ */
+export const applyBadgeSelection = (
+	values: string[],
+	applied: string[],
+	selected: string[]
+): string[] => {
+	const deselected = applied.filter((value) => !selected.includes(value));
+
+	return Array.from(
+		new Set([
+			...values.filter((value) => !deselected.includes(value)),
+			...selected
+		])
+	);
+};
+
 export const arrayToString = (array: string[]): string | undefined => {
 	if (!array.length) return undefined;
 

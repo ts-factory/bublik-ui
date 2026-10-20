@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
@@ -21,8 +21,8 @@ import {
 	queryToHistorySearchState
 } from './history-slice.utils';
 import {
+	getCombinedForm,
 	selectGlobalFilter,
-	selectHistoryForm,
 	selectSearchState
 } from './history-slice.selectors';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
@@ -69,9 +69,14 @@ export const useSyncHistoryQueryToState = () => {
 
 export const useHistoryFormSearchState = () => {
 	const actions = useHistoryActions();
-	const form = useSelector(selectHistoryForm);
 	const state = useSelector(selectSearchState);
 	const globalFilter = useSelector(selectGlobalFilter);
+	const { query } = useHistoryQuery();
+	const applied = useMemo(() => queryToHistorySearchState(query), [query]);
+	const form = useMemo(
+		() => getCombinedForm(state, globalFilter, applied),
+		[state, globalFilter, applied]
+	);
 	const dispatch = useDispatch();
 
 	const [searchParams] = useSearchParams();
@@ -99,7 +104,8 @@ export const useHistoryFormSearchState = () => {
 
 	const handleGlobalSearchSubmit = useCallback(
 		(form: HistoryGlobalSearchFormValues) => {
-			const params = historySearchStateToQuery(formToSearchState(form));
+			const searchState = formToSearchState(form);
+			const params = historySearchStateToQuery(searchState);
 			const newSearchParams = new URLSearchParams(params);
 
 			newSearchParams.set('mode', mode);
@@ -122,7 +128,14 @@ export const useHistoryFormSearchState = () => {
 				},
 				{ replace: true }
 			);
-			actions.resetGlobalFilter();
+			// The badge selection starts as what the URL now applies, so that
+			// deselecting a badge later drops it from the search
+			actions.updateLinearGlobalFilter({
+				parameters: searchState.parameters,
+				tags: searchState.runData,
+				verdicts: searchState.verdict,
+				...getResultTypeState(searchState.results, searchState.resultProperties)
+			});
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
 		[actions, dispatch, mode, pageSize, searchParams, navigateWithProject]
@@ -131,6 +144,7 @@ export const useHistoryFormSearchState = () => {
 	return {
 		form,
 		state,
+		applied,
 		updateSearchParams,
 		handleFormChange,
 		handleGlobalSearchSubmit,

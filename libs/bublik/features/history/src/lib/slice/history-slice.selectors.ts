@@ -10,8 +10,8 @@ import {
 } from './history-slice.types';
 import { RESULT_PROPERTIES } from '@/shared/types';
 import {
+	applyBadgeSelection,
 	arrayToBadgeItem,
-	badgeItemToArray,
 	historySearchStateToForm
 } from './history-slice.utils';
 import { HistoryGlobalSearchFormValues } from '../history-global-search-form';
@@ -61,43 +61,35 @@ export const selectAggregationGlobalFilter = createSelector(
 	})
 );
 
-export const selectHistoryForm = createSelector(
-	selectSearchState,
-	selectGlobalFilter,
-	(searchState, globalFilter) => getCombinedForm(searchState, globalFilter)
-);
-
-const getCombinedForm = (
+/**
+ * The search form as Edit Search shows it: the form state with the table's
+ * badge selection applied on top of what the URL applied.
+ */
+export const getCombinedForm = (
 	searchState: HistorySearchFormState,
-	globalFilter: HistoryGlobalFilter
+	globalFilter: HistoryGlobalFilter,
+	applied: HistorySearchFormState
 ): HistoryGlobalSearchFormValues => {
 	const formFromSearchState = historySearchStateToForm(searchState);
 
 	const parameters = arrayToBadgeItem(
-		Array.from(
-			new Set([
-				...badgeItemToArray(formFromSearchState.parameters),
-				...globalFilter.parameters
-			])
+		applyBadgeSelection(
+			searchState.parameters,
+			applied.parameters,
+			globalFilter.parameters
 		)
 	);
 
 	const verdict = arrayToBadgeItem(
-		Array.from(
-			new Set([
-				...badgeItemToArray(formFromSearchState.verdict),
-				...globalFilter.verdicts
-			])
+		applyBadgeSelection(
+			searchState.verdict,
+			applied.verdict,
+			globalFilter.verdicts
 		)
 	);
 
 	const runData = arrayToBadgeItem(
-		Array.from(
-			new Set([
-				...badgeItemToArray(formFromSearchState.runData),
-				...globalFilter.tags
-			])
-		)
+		applyBadgeSelection(searchState.runData, applied.runData, globalFilter.tags)
 	);
 
 	const results = globalFilter.resultType

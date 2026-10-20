@@ -15,8 +15,15 @@ import {
 	DEFAULT_RESULT_TYPES
 } from '@/bublik/config';
 
-import { HistoryGlobalFilter, useHistoryFormSearchState } from '../slice';
 import {
+	HistoryGlobalFilter,
+	HistorySearchFormState,
+	useHistoryActions,
+	useHistoryFormSearchState
+} from '../slice';
+import {
+	applyBadgeSelection,
+	arrayToString,
 	copyHistorySearchParam,
 	historySearchStateToQuery
 } from '../slice/history-slice.utils';
@@ -27,10 +34,11 @@ import {
 
 const globalFilterToQueryAdapter = (
 	globalFilter: HistoryGlobalFilter,
-	query: HistoryAPIQuery
+	state: HistorySearchFormState,
+	applied: HistorySearchFormState
 ): HistoryAPIQuery => {
-	const { verdicts, isNotExpected, parameters, resultType, tags } =
-		globalFilter;
+	const { isNotExpected, resultType } = globalFilter;
+	const query = historySearchStateToQuery(state);
 
 	const getResultProperties = (): RESULT_PROPERTIES[] => {
 		if (resultType != null || isNotExpected != null) {
@@ -61,27 +69,44 @@ const globalFilterToQueryAdapter = (
 		return DEFAULT_RESULT_TYPES;
 	};
 
-	const mergeWithPriority = (
-		globalFilterValue: string[],
-		queryValue: string | undefined
-	) => {
-		if (globalFilterValue.length) return globalFilterValue.join(';');
-		if (queryValue?.length) return queryValue;
-		return '';
-	};
+	const { tags, parameters, verdicts } = getSubmittedBadges(
+		globalFilter,
+		state,
+		applied
+	);
 
 	return {
 		...query,
 		results: getResultType().join(';'),
 		resultProperties: getResultProperties().join(';'),
-		runData: mergeWithPriority(tags, query.runData),
-		parameters: mergeWithPriority(parameters, query.parameters),
-		verdict: mergeWithPriority(verdicts, query.verdict),
+		runData: arrayToString(tags) ?? '',
+		parameters: arrayToString(parameters) ?? '',
+		verdict: arrayToString(verdicts) ?? '',
 		page: '1'
 	};
 };
+
+const getSubmittedBadges = (
+	globalFilter: HistoryGlobalFilter,
+	state: HistorySearchFormState,
+	applied: HistorySearchFormState
+): Pick<HistoryGlobalFilter, 'tags' | 'parameters' | 'verdicts'> => ({
+	tags: applyBadgeSelection(state.runData, applied.runData, globalFilter.tags),
+	parameters: applyBadgeSelection(
+		state.parameters,
+		applied.parameters,
+		globalFilter.parameters
+	),
+	verdicts: applyBadgeSelection(
+		state.verdict,
+		applied.verdict,
+		globalFilter.verdicts
+	)
+});
+
 export const useHistoryRefresh = () => {
-	const { state } = useHistoryFormSearchState();
+	const { state, applied } = useHistoryFormSearchState();
+	const actions = useHistoryActions();
 	const [searchParams] = useSearchParams();
 	const mode = searchParams.get('mode') ?? 'linear';
 	const pageSize = searchParams.get('pageSize') ?? 25;
@@ -90,10 +115,7 @@ export const useHistoryRefresh = () => {
 
 	return useCallback(
 		(globalFilter: HistoryGlobalFilter) => {
-			const newQuery = globalFilterToQueryAdapter(
-				globalFilter,
-				historySearchStateToQuery(state)
-			);
+			const newQuery = globalFilterToQueryAdapter(globalFilter, state, applied);
 
 			const params = new URLSearchParams(newQuery);
 			for (const [key, value] of searchParams) {
@@ -115,8 +137,22 @@ export const useHistoryRefresh = () => {
 				},
 				{ replace: true }
 			);
+			// Badges submitted from the form are now applied, so select them too
+			actions.updateLinearGlobalFilter({
+				...globalFilter,
+				...getSubmittedBadges(globalFilter, state, applied)
+			});
 			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.HistoryData]));
 		},
-		[dispatch, mode, pageSize, searchParams, navigateWithProject, state]
+		[
+			actions,
+			applied,
+			dispatch,
+			mode,
+			pageSize,
+			searchParams,
+			navigateWithProject,
+			state
+		]
 	);
 };

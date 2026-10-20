@@ -7,6 +7,7 @@ import { HistoryAPIQuery, VERDICT_TYPE } from '@/shared/types';
 
 import { HistorySearchFormState } from './history-slice.types';
 import {
+	applyBadgeSelection,
 	copyHistorySearchParam,
 	historySearchStateToQuery,
 	queryToHistorySearchState,
@@ -234,5 +235,43 @@ describe('the history query round trip', () => {
 		);
 
 		expect(restored).toEqual(state);
+	});
+});
+
+describe('applyBadgeSelection', () => {
+	it('drops a value the URL applied and the table deselected', () => {
+		expect(
+			applyBadgeSelection(
+				['medford', 'x86_64'],
+				['medford', 'x86_64'],
+				['x86_64']
+			)
+		).toEqual(['x86_64']);
+	});
+
+	it('drops every applied value once the selection is empty', () => {
+		expect(applyBadgeSelection(['medford'], ['medford'], [])).toEqual([]);
+	});
+
+	it('adds a value selected in the table', () => {
+		expect(
+			applyBadgeSelection(['medford'], ['medford'], ['medford', 'arm'])
+		).toEqual(['medford', 'arm']);
+	});
+
+	it('keeps a value added in the form but not applied yet', () => {
+		expect(applyBadgeSelection(['medford', 'arm'], ['medford'], [])).toEqual([
+			'arm'
+		]);
+	});
+
+	it('returns the form list when nothing was applied or selected', () => {
+		expect(applyBadgeSelection(['medford'], [], [])).toEqual(['medford']);
+	});
+
+	it('lists a value both in the form and selected once', () => {
+		expect(applyBadgeSelection(['medford'], [], ['medford'])).toEqual([
+			'medford'
+		]);
 	});
 });
