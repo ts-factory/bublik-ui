@@ -75,7 +75,8 @@ const RUN_ISSUES_URL_PARAMS = {
 		codec: '`;`-joined',
 		values: 'category slugs',
 		whenAbsent: 'every category',
-		writtenBy: 'the Category filter and the category badges of a row'
+		writtenBy:
+			'the Category filter, the category badges of a row and the Actionable / Triaged presets'
 	}
 } as const;
 
@@ -92,7 +93,8 @@ class RunIssuesPage {
 			noun: 'issue',
 			searchPlaceholder: 'Search title or key',
 			resetTestId: 'run-issues-reset-filters',
-			tableTestId: 'run-issues-table'
+			tableTestId: 'run-issues-table',
+			presetTestIdPrefix: 'run-issues'
 		});
 		this.url = urlParams(page);
 	}

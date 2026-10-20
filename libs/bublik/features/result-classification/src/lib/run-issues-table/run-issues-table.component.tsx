@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
+import { useMemo } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import type { Row, Table } from '@tanstack/react-table';
 
@@ -29,6 +30,7 @@ import {
 } from '../classification/classification-badges.component';
 import type { RunIssueEffect } from '../classification/classification.types';
 import { withFacetBadges } from '../classification/facet-badges.component';
+import { CategoryPresetButtons } from '../classification-table/category-preset-buttons.component';
 import { ClassificationColumnsPicker } from '../classification-table/columns-picker.component';
 import { facetControls } from '../classification-table/classification-table.utils';
 import type { FacetOption } from '../classification-table/classification-table.utils';
@@ -94,6 +96,12 @@ export function RunIssuesTableView({
 	renderSubRow
 }: RunIssuesTableViewProps) {
 	const facets = facetControls(table);
+	// Every loaded issue's categories, not narrowed by the other filters: a
+	// preset is disabled only when no issue of the run falls in its half.
+	const availableCategories = useMemo(
+		() => categoryOptions.map((option) => option.value),
+		[categoryOptions]
+	);
 
 	const { pagination } = table.getState();
 	const rows = table.getRowModel().rows;
@@ -159,6 +167,13 @@ export function RunIssuesTableView({
 					value={facets.values(COLUMN_ID.CATEGORIES)}
 					onChange={(values) => facets.set(COLUMN_ID.CATEGORIES, values)}
 					disabled={!categoryOptions.length}
+				/>
+				<ClassificationToolbarSeparator />
+				<CategoryPresetButtons
+					value={facets.values(COLUMN_ID.CATEGORIES)}
+					onChange={(next) => facets.set(COLUMN_ID.CATEGORIES, next)}
+					testIdPrefix="run-issues"
+					availableCategories={availableCategories}
 				/>
 				<ClassificationToolbarSeparator />
 				<Tooltip

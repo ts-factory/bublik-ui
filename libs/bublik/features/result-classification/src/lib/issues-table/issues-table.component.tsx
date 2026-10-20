@@ -33,6 +33,7 @@ import {
 } from '../classification/classification-badges.component';
 import type { IssueRulesState } from '../classification/classification.types';
 import { withFacetBadges } from '../classification/facet-badges.component';
+import { CategoryPresetButtons } from '../classification-table/category-preset-buttons.component';
 import { ClassificationColumnsPicker } from '../classification-table/columns-picker.component';
 import { ProjectGroupHeader } from '../classification-table/project-group-header.component';
 import { NewIssueButton } from '../issue-form/issue-drawer.container';
@@ -176,6 +177,12 @@ export function IssuesTableView({
 					value={facets.values(COLUMN_ID.RULES)}
 					onChange={(values) => facets.set(COLUMN_ID.RULES, values)}
 					disabled={!rulesOptions.length}
+				/>
+				<ClassificationToolbarSeparator />
+				<CategoryPresetButtons
+					value={facets.values(COLUMN_ID.CATEGORIES)}
+					onChange={(next) => facets.set(COLUMN_ID.CATEGORIES, next)}
+					testIdPrefix="issues"
 				/>
 				<ClassificationToolbarSeparator />
 				<Tooltip

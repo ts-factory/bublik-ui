@@ -70,7 +70,8 @@ const ISSUES_URL_PARAMS = {
 		codec: '`;`-joined',
 		values: 'category slugs',
 		whenAbsent: 'every category',
-		writtenBy: 'the Category filter and the category badges of a row'
+		writtenBy:
+			'the Category filter, the category badges of a row and the Actionable / Triaged presets'
 	},
 	rules: {
 		codec: '`;`-joined',
@@ -107,7 +108,8 @@ class IssuesPage {
 			noun: 'issue',
 			searchPlaceholder: 'Search title, description or key',
 			resetTestId: 'issues-reset-filters',
-			tableTestId: 'issues-table'
+			tableTestId: 'issues-table',
+			presetTestIdPrefix: 'issues'
 		});
 		this.url = urlParams(page);
 	}

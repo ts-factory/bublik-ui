@@ -16,6 +16,16 @@ export {
 	createPageSizeParam
 } from './lib/classification-table/classification-table.params';
 export { buildFacetOptions } from './lib/classification-table/classification-table.utils';
+export { CategoryPresetButtons } from './lib/classification-table/category-preset-buttons.component';
+export {
+	CATEGORY_PRESETS,
+	isPresetActive,
+	isPresetAvailable
+} from './lib/classification/category-presets';
+export type {
+	CategoryPreset,
+	CategoryPresetId
+} from './lib/classification/category-presets';
 export type { FacetOption } from './lib/classification-table/classification-table.utils';
 
 export { IssuesTable } from './lib/issues-table';

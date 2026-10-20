@@ -133,6 +133,14 @@ Feature: Issues
     Then the ascending sort is written to the URL
     And I delete that issue
 
+  @issues @url-params
+  Scenario: The Actionable preset sets the Category filter and is written to the URL
+    Given I open the issues page for the fixture project
+    When I click the Actionable preset
+    Then its categories are written to the URL and the preset is pressed
+    When I click the Actionable preset again
+    Then the categories are cleared from the URL and the preset is released
+
   @issues @issues-write @url-params
   Scenario: The rows-per-page choice is written to the URL
     Given I open the issues page for the fixture project with issues listed

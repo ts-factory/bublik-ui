@@ -53,6 +53,10 @@ Feature: Run issues
     Then no matching issues are shown
     When I reset the filters
     Then the search and effect are cleared from the URL
+    When I click the Triaged preset
+    Then its categories are written to the URL and the issue is still listed
+    When I click the Triaged preset again
+    Then the categories are cleared from the URL
     And I delete the issue from the run issues page
 
   @issues @issues-write @needs-nok

@@ -13,7 +13,11 @@ interface ClassificationTableOptions {
 	searchPlaceholder: string;
 	resetTestId: string;
 	tableTestId: string;
+	/** Prefix of the category preset buttons' test ids: `<prefix>-preset-<id>`. */
+	presetTestIdPrefix?: string;
 }
+
+type CategoryPresetId = 'attention' | 'explained';
 
 /**
  * The toolbar, grid and footer the issues, rules and run-issues tables share
@@ -223,6 +227,27 @@ class ClassificationTable {
 
 	async sortBy(label: string): Promise<void> {
 		await this.columnHeader(label).getByText(label, { exact: true }).click();
+	}
+
+	/** One of the toolbar's category presets: Actionable or Triaged. */
+	preset(id: CategoryPresetId): Locator {
+		return this.root.getByTestId(
+			`${this.options.presetTestIdPrefix}-preset-${id}`
+		);
+	}
+
+	async togglePreset(id: CategoryPresetId): Promise<void> {
+		await this.preset(id).click();
+	}
+
+	async expectPresetPressed(
+		id: CategoryPresetId,
+		pressed: boolean
+	): Promise<void> {
+		await expect(this.preset(id)).toHaveAttribute(
+			'aria-pressed',
+			String(pressed)
+		);
 	}
 
 	async collapseGroup(projectId: number | string): Promise<void> {

@@ -270,6 +270,27 @@ test.describe('Run Issues Page', () => {
 			await then('the search and effect are cleared from the URL', () =>
 				runIssuesPage.expectParams({ q: null, effect: null })
 			);
+			// The issue was classified as Known, which the Triaged preset covers.
+			await when('I click the Triaged preset', () =>
+				runIssuesPage.table.togglePreset('explained')
+			);
+			await then(
+				'its categories are written to the URL and the issue is still listed',
+				async () => {
+					await runIssuesPage.expectParams({
+						categories: 'env;flaky;known-issue'
+					});
+					await runIssuesPage.table.expectPresetPressed('explained', true);
+					await runIssuesPage.expectIssueListed(classified.title);
+				}
+			);
+			await when('I click the Triaged preset again', () =>
+				runIssuesPage.table.togglePreset('explained')
+			);
+			await then('the categories are cleared from the URL', async () => {
+				await runIssuesPage.expectParams({ categories: null });
+				await runIssuesPage.table.expectPresetPressed('explained', false);
+			});
 			await and('I delete the issue from the run issues page', () =>
 				removeIssue(runIssuesPage, classified)
 			);

@@ -552,6 +552,44 @@ test.describe('Issues Page', () => {
 	);
 
 	test(
+		'The Actionable preset sets the Category filter and is written to the URL',
+		{ tag: ['@issues', '@url-params'] },
+		async ({ page, request }) => {
+			let issuesPage!: IssuesPage;
+
+			await given(
+				'I open the issues page for the fixture project',
+				async () => {
+					({ issuesPage } = await openForProject(page, request));
+				}
+			);
+			await when('I click the Actionable preset', () =>
+				issuesPage.table.togglePreset('attention')
+			);
+			await then(
+				'its categories are written to the URL and the preset is pressed',
+				async () => {
+					await issuesPage.expectParams({
+						categories: 'to-investigate;product-defect;test-bug'
+					});
+					await issuesPage.table.expectPresetPressed('attention', true);
+					await issuesPage.table.expectPresetPressed('explained', false);
+				}
+			);
+			await when('I click the Actionable preset again', () =>
+				issuesPage.table.togglePreset('attention')
+			);
+			await then(
+				'the categories are cleared from the URL and the preset is released',
+				async () => {
+					await issuesPage.expectParams({ categories: null });
+					await issuesPage.table.expectPresetPressed('attention', false);
+				}
+			);
+		}
+	);
+
+	test(
 		'The rows-per-page choice is written to the URL',
 		{ tag: ['@issues', '@issues-write', '@url-params'] },
 		async ({ page, request }) => {
