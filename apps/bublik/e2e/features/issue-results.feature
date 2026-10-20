@@ -56,6 +56,7 @@ Feature: Issue results
   Scenario: The Rules link and the Results button lead between an issue's rules and its results
     Given a seeded issue with rules and results
     When I open the issue's results page
+    Then the sidebar's Issue submenu counts its rules and its results
     When I follow the Rules link in the header
     Then the issue's page is open on its rules
     When I follow the Results button

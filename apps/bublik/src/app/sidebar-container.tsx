@@ -33,10 +33,10 @@ export function SidebarContainer() {
 			<DashboardSidebarNav />
 			<RunsSidebarNav />
 			<RunSidebarNav />
-			<IssuesSidebarNav />
-			<IssueSidebarNav />
 			<LogSidebarNav />
 			<HistorySidebarNav />
+			<IssuesSidebarNav />
+			<IssueSidebarNav />
 			<MeasurementsSidebarNav />
 			<ChatSidebarNav />
 		</Sidebar>

@@ -29,7 +29,9 @@ const SIDEBAR_ALIASES = {
 	issuesLastRules: 'isr',
 	issuesMode: 'ism',
 	runLastIssues: 'ri',
-	issueLast: 'iu'
+	issueLast: 'iu',
+	issueLastResults: 'iru',
+	issueMode: 'im'
 } as const;
 
 const SIDEBAR_ALIAS_PATHNAMES: Record<string, string> = {

@@ -151,11 +151,15 @@ class Sidebar {
 		await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
 	}
 
-	/** The Issue item: a link once an issue page was visited, a plain label before. */
+	/**
+	 * The Issue item: a link once an issue page was visited, a plain label
+	 * before. Its name trails the issue's key badge, which sits inside the
+	 * link; the lookahead keeps the Issues item out.
+	 */
 	issueLink(): Locator {
 		return this.page
 			.getByRole('navigation')
-			.getByRole('link', { name: 'Issue', exact: true });
+			.getByRole('link', { name: /^Issue(?!s)/ });
 	}
 
 	async expectIssueLinkDisabled(): Promise<void> {

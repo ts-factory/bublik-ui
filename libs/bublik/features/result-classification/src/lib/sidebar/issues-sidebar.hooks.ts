@@ -4,7 +4,10 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { useGetIssuesQuery } from '@/services/bublik-api';
+import {
+	useGetIssueRulesQuery,
+	useGetIssuesQuery
+} from '@/services/bublik-api';
 import {
 	ISSUES_MODE_DEFAULT,
 	ISSUES_SIDEBAR_KEYS,
@@ -30,6 +33,9 @@ export interface UseIssuesSidebarStateReturn {
 	/** Open issues of the picked project, or of every project. */
 	openIssueCount: number;
 	isOpenIssueCountLoading: boolean;
+	/** Every rule, active or not, in the same scope. */
+	ruleCount: number;
+	isRuleCountLoading: boolean;
 
 	setLastVisited: (mode: IssuesMode, url: string) => void;
 }
@@ -50,6 +56,12 @@ export function useIssuesSidebarState(): UseIssuesSidebarStateReturn {
 			pageSize: 1
 		});
 	const openIssueCount = openIssues?.pagination.count ?? 0;
+
+	// The total the rules page's footer reports, read the same way: one row,
+	// for the count alone.
+	const { data: allRules, isLoading: isRuleCountLoading } =
+		useGetIssueRulesQuery({ projectId: projectIds[0], page: 1, pageSize: 1 });
+	const ruleCount = allRules?.pagination.count ?? 0;
 
 	const lastListUrl = useMemo(
 		() => getSidebarStateString(searchParams, ISSUES_SIDEBAR_KEYS.LAST_LIST),
@@ -114,6 +126,8 @@ export function useIssuesSidebarState(): UseIssuesSidebarStateReturn {
 		mainLinkUrl,
 		openIssueCount,
 		isOpenIssueCountLoading,
+		ruleCount,
+		isRuleCountLoading,
 		setLastVisited
 	};
 }

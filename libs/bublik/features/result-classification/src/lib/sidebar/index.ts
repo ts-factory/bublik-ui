@@ -5,3 +5,5 @@ export * from './issue-sidebar-nav.component';
 export * from './issues-sidebar.hooks';
 export * from './issue-sidebar.hooks';
 export * from './open-issue-count-badge.component';
+export * from './sidebar-count-badge.component';
+export * from './issue-key-badge.component';

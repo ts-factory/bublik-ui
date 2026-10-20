@@ -15,6 +15,7 @@ import {
 	HISTORY_MODE_DEFAULT,
 	ISSUES_MODE_DEFAULT,
 	ISSUES_SIDEBAR_KEYS,
+	ISSUE_MODE_DEFAULT,
 	ISSUE_SIDEBAR_KEYS,
 	HISTORY_SIDEBAR_KEYS,
 	LOG_MODE_DEFAULT,
@@ -111,6 +112,10 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 	// `isIssuesAvailable` uses to decide the item stays disabled.
 	{ key: RUN_SIDEBAR_KEYS.LAST_ISSUES, alias: 'ri', isUrl: true },
 	{ key: ISSUE_SIDEBAR_KEYS.LAST_ISSUE, alias: 'iu', isUrl: true },
+	// Like the run's issues URL: no `getCompactDefault`, since a results URL
+	// re-materialized from the issue id alone would read as "visited" and
+	// enable the Results item for an issue with nothing stamped under it.
+	{ key: ISSUE_SIDEBAR_KEYS.LAST_RESULTS, alias: 'iru', isUrl: true },
 	{ key: LOG_SIDEBAR_KEYS.LAST_LOG, alias: 'll', isUrl: true },
 	{ key: RUN_SIDEBAR_KEYS.LAST_REPORT, alias: 'rr', isUrl: true },
 	{ key: RUN_SIDEBAR_KEYS.LAST_DETAILS, alias: 'rd', isUrl: true },
@@ -162,6 +167,11 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 		key: ISSUES_SIDEBAR_KEYS.LAST_MODE,
 		alias: 'ism',
 		defaultValue: ISSUES_MODE_DEFAULT
+	},
+	{
+		key: ISSUE_SIDEBAR_KEYS.LAST_MODE,
+		alias: 'im',
+		defaultValue: ISSUE_MODE_DEFAULT
 	},
 	{ key: RUNS_SIDEBAR_KEYS.SELECTED, alias: 'rs' },
 	{ key: SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID, alias: 'cr' }
@@ -631,6 +641,11 @@ export function extractIdFromUrl(url: string, pattern: RegExp): string | null {
 /**
  * Extracts runId from a run URL like /runs/86793 or /runs/86793/report
  */
+/** The issue id of an issue page or issue results URL; null for `/issues` and `/issues/rules`. */
+export function extractIssueIdFromUrl(url: string): string | null {
+	return extractIdFromUrl(url, /\/issues\/(\d+)(?:[/?#]|$)/);
+}
+
 export function extractRunIdFromUrl(url: string): string | null {
 	return extractIdFromUrl(url, /\/runs\/(\d+)/);
 }

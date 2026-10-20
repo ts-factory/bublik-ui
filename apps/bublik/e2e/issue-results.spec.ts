@@ -387,6 +387,15 @@ test.describe('Issue Results Page', () => {
 			await when("I open the issue's results page", async () => {
 				resultsPage = await openResults(page, stamped.issue);
 			});
+			await then(
+				"the sidebar's Issue submenu counts its rules and its results",
+				async () => {
+					await resultsPage.expectSidebarRuleCount(stamped.issue.rules.length);
+					await resultsPage.expectSidebarResultCountAtLeast(
+						stamped.results.length
+					);
+				}
+			);
 			await when('I follow the Rules link in the header', () =>
 				resultsPage.openRules()
 			);

@@ -119,6 +119,16 @@ class IssueResultsPage {
 		});
 	}
 
+	/** The sidebar's count of the issue's rules, on its Issue › Rules item. */
+	get sidebarRuleCount(): Locator {
+		return this.page.getByTestId('issue-sidebar-rule-count');
+	}
+
+	/** The sidebar's count of the issue's results, on its Issue › Results item. */
+	get sidebarResultCount(): Locator {
+		return this.page.getByTestId('issue-sidebar-result-count');
+	}
+
 	/** The faceted filter titled `title`; its name grows with the selection. */
 	facet(title: string): Locator {
 		return this.root
@@ -479,6 +489,21 @@ class IssueResultsPage {
 
 	async expectInvalidId(): Promise<void> {
 		await expect(this.invalidId).toBeVisible({ timeout: 30_000 });
+	}
+
+	async expectSidebarRuleCount(count: number): Promise<void> {
+		await expect(this.sidebarRuleCount).toHaveText(String(count), {
+			timeout: 30_000
+		});
+	}
+
+	async expectSidebarResultCountAtLeast(count: number): Promise<void> {
+		await expect
+			.poll(
+				async () => Number((await this.sidebarResultCount.innerText()).trim()),
+				{ timeout: 30_000, message: 'results counted in the sidebar' }
+			)
+			.toBeGreaterThanOrEqual(count);
 	}
 
 	async expectParams(expected: Record<string, string | null>): Promise<void> {

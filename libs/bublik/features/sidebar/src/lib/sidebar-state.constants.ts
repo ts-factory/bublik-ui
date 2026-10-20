@@ -58,8 +58,22 @@ export const ISSUES_MODE_DEFAULT: IssuesMode = 'issues';
  * "re-materialize from a shared id" hazard that `CURRENT_RUN_ID` carries.
  */
 export const ISSUE_SIDEBAR_KEYS = {
-	LAST_ISSUE: `${SIDEBAR_PREFIX}.issue.lastIssue`
+	/** The issue page itself: its facts and rules. */
+	LAST_ISSUE: `${SIDEBAR_PREFIX}.issue.lastIssue`,
+	/** The results stamped under the issue, across runs. */
+	LAST_RESULTS: `${SIDEBAR_PREFIX}.issue.lastResults`,
+	LAST_MODE: `${SIDEBAR_PREFIX}.issue.lastMode`
 } as const;
+
+export type IssueMode = 'rules' | 'results';
+
+export const ISSUE_MODE_DEFAULT: IssueMode = 'rules';
+
+export const getIssueDefaultUrl = (issueId: string): string =>
+	`/issues/${issueId}`;
+
+export const getIssueResultsDefaultUrl = (issueId: string): string =>
+	`/issues/${issueId}/results`;
 
 export const MEASUREMENTS_SIDEBAR_KEYS = {
 	LAST_MEASUREMENTS: `${SIDEBAR_PREFIX}.measurements.lastMeasurements`,
