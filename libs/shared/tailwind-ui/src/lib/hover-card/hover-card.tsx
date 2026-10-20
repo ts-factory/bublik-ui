@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 import * as RadixHoverCard from '@radix-ui/react-hover-card';
 
 import { cva } from '../utils';
@@ -28,6 +28,13 @@ export interface HoverCardProps extends RadixHoverCard.HoverCardProps {
 	container?: RadixHoverCard.HoverCardPortalProps['container'];
 	disabled?: boolean;
 	align?: RadixHoverCard.HoverCardContentProps['align'];
+	alignOffset?: RadixHoverCard.HoverCardContentProps['alignOffset'];
+	/**
+	 * Keeps the card up when its trigger is pressed. Radix counts that press
+	 * as one outside the card and dismisses it, then the trigger's focus opens
+	 * it again, so a clickable trigger makes the card blink.
+	 */
+	keepOpenOnTriggerPress?: boolean;
 }
 
 export const HoverCard = (props: HoverCardProps) => {
@@ -41,12 +48,17 @@ export const HoverCard = (props: HoverCardProps) => {
 		disabled,
 		open,
 		align,
+		alignOffset,
+		keepOpenOnTriggerPress,
 		...restProps
 	} = props;
+	const triggerRef = useRef<HTMLAnchorElement>(null);
 
 	return (
 		<RadixHoverCard.Root open={disabled ? false : open} {...restProps}>
-			<RadixHoverCard.Trigger asChild>{children}</RadixHoverCard.Trigger>
+			<RadixHoverCard.Trigger asChild ref={triggerRef}>
+				{children}
+			</RadixHoverCard.Trigger>
 
 			<RadixHoverCard.Portal container={container}>
 				<RadixHoverCard.Content
@@ -54,7 +66,17 @@ export const HoverCard = (props: HoverCardProps) => {
 					side={side}
 					sideOffset={sideOffset}
 					align={align}
+					alignOffset={alignOffset}
 					collisionPadding={8}
+					onPointerDownOutside={(event) => {
+						if (
+							keepOpenOnTriggerPress &&
+							event.target instanceof Node &&
+							triggerRef.current?.contains(event.target)
+						) {
+							event.preventDefault();
+						}
+					}}
 				>
 					{content}
 					{arrow && <RadixHoverCard.Arrow className="fill-white" />}

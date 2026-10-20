@@ -11,6 +11,7 @@ import type { To } from 'react-router-dom';
 
 import {
 	cn,
+	HoverCard,
 	sidebarPaddingTransition,
 	Tooltip,
 	useSidebar
@@ -56,6 +57,13 @@ type SidebarAccordionLinkLocalProps = {
 	children: ReactNode;
 	isActive: boolean;
 	disabled?: boolean;
+	/**
+	 * Shown to the right on hover while the sidebar is collapsed, in place of
+	 * the label tooltip.
+	 */
+	collapsedHoverContent?: ReactNode;
+	/** Shifts the hover card along the row, e.g. to line an item up with it. */
+	collapsedHoverAlignOffset?: number;
 } & (
 	| {
 			to: To;
@@ -72,7 +80,13 @@ type SidebarAccordionLinkLocalProps = {
 );
 
 export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
-	const { children, isActive, disabled } = props;
+	const {
+		children,
+		isActive,
+		disabled,
+		collapsedHoverContent,
+		collapsedHoverAlignOffset
+	} = props;
 
 	const { isSidebarOpen: isSidebarOpenRaw } = useSidebar();
 	const isSidebarOpen = !!isSidebarOpenRaw;
@@ -81,68 +95,83 @@ export const SidebarAccordionLink = (props: SidebarAccordionLinkLocalProps) => {
 	const style = sidebarPaddingTransition;
 
 	const labelText = getLabelTextFromChildren(children);
-	const tooltipProps = {
-		content: labelText,
-		side: 'right' as const,
-		delayDuration: isSidebarOpen ? 1400 : 700,
-		sideOffset: 15,
-		disabled: isSidebarOpen
-	};
+
+	// The wrapper must not depend on `isSidebarOpen`: swapping it remounts the
+	// row, and a fresh row has no padding to transition from, so it jumps.
+	const withHint = (node: ReactNode) =>
+		collapsedHoverContent ? (
+			<HoverCard
+				content={collapsedHoverContent}
+				side="right"
+				align="start"
+				alignOffset={collapsedHoverAlignOffset}
+				sideOffset={10}
+				openDelay={200}
+				closeDelay={100}
+				arrow
+				keepOpenOnTriggerPress
+				disabled={isSidebarOpen}
+			>
+				{node}
+			</HoverCard>
+		) : (
+			<Tooltip
+				content={labelText}
+				side="right"
+				delayDuration={isSidebarOpen ? 1400 : 700}
+				sideOffset={15}
+				disabled={isSidebarOpen}
+			>
+				{node}
+			</Tooltip>
+		);
 
 	if (disabled) {
-		return (
-			<Tooltip {...tooltipProps}>
-				<div className={cn(className, 'group')} style={style}>
-					{children}
-				</div>
-			</Tooltip>
+		return withHint(
+			<div className={cn(className, 'group')} style={style}>
+				{children}
+			</div>
 		);
 	}
 
 	if ('href' in props) {
-		return (
-			<Tooltip {...tooltipProps}>
-				<a
-					href={props.href}
-					target="_blank"
-					rel="noopener noreferrer"
-					className={cn(className, 'group')}
-					style={style}
-				>
-					{children}
-				</a>
-			</Tooltip>
+		return withHint(
+			<a
+				href={props.href}
+				target="_blank"
+				rel="noopener noreferrer"
+				className={cn(className, 'group')}
+				style={style}
+			>
+				{children}
+			</a>
 		);
 	}
 
 	const LinkComponent = props.linkComponent;
 
 	if (LinkComponent) {
-		return (
-			<Tooltip {...tooltipProps}>
-				<LinkComponent
-					to={props.to}
-					className={cn(className, 'group')}
-					style={style}
-					onClick={props.onClick}
-				>
-					{children}
-				</LinkComponent>
-			</Tooltip>
-		);
-	}
-
-	return (
-		<Tooltip {...tooltipProps}>
-			<a
-				href={toString(props.to)}
+		return withHint(
+			<LinkComponent
+				to={props.to}
 				className={cn(className, 'group')}
 				style={style}
 				onClick={props.onClick}
 			>
 				{children}
-			</a>
-		</Tooltip>
+			</LinkComponent>
+		);
+	}
+
+	return withHint(
+		<a
+			href={toString(props.to)}
+			className={cn(className, 'group')}
+			style={style}
+			onClick={props.onClick}
+		>
+			{children}
+		</a>
 	);
 };
 

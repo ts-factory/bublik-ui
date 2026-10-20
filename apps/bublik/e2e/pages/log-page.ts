@@ -29,7 +29,7 @@ const LOG_URL_PARAMS = {
 		whenAbsent:
 			'neither the tree nor the info panel — the page has no fallback, so an unknown value renders the log on its own',
 		writtenBy:
-			'the sidebar layout links; appended by the /log/:runId/:old redirect'
+			"the layout icons on the sidebar's Run › Log row; appended by the /log/:runId/:old redirect"
 	},
 	page: {
 		codec: 'raw',

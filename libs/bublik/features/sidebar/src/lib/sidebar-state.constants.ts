@@ -32,7 +32,11 @@ export const RUN_SIDEBAR_KEYS = {
 	LAST_MODE: `${SIDEBAR_PREFIX}.run.lastMode`
 } as const;
 
-export type RunMode = 'details' | 'report' | 'issues';
+/** The run's pages; `log` is written by the log page, the rest by their own. */
+export type RunMode = 'details' | 'report' | 'issues' | 'log';
+
+/** The run pages that remember their URL under a run key of their own. */
+export type RunPageMode = Exclude<RunMode, 'log'>;
 
 export const RUN_MODE_DEFAULT: RunMode = 'details';
 

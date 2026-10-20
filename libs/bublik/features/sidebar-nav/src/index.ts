@@ -35,7 +35,8 @@ export {
 
 export {
 	SidebarNavSubmenuItem,
-	SidebarNavSubmenuItemContainer
+	SidebarNavSubmenuItemContainer,
+	type SidebarNavSubmenuModeSwitchItem
 } from './lib/sidebar-nav-submenu-item.component';
 
 export { SidebarAccordionLabel } from './lib/sidebar-nav-accordion.component';

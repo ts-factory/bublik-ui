@@ -55,11 +55,16 @@ export const accordionLinkStyles = cva({
 	base: ['flex h-9 items-center gap-1 rounded-[10px] py-1.5 group'],
 	variants: {
 		isSidebarOpen: {
-			true: 'ml-11 pl-3 pr-4',
+			// A row with a mode switch at its end gives up a step of its right
+			// padding: once the sidebar grows a scrollbar the tray's icons would
+			// otherwise take the row's name down to an ellipsis.
+			true: 'ml-11 pl-3 pr-4 has-[[data-mode-switch]]:pr-3',
 			false: 'px-[9px]'
 		},
 		isActive: {
-			true: 'bg-[#ecf1ff] text-[#385bf9]',
+			// The open submenu is already washed with primary, so the active row
+			// needs a deeper tint than the wash to stand out from it.
+			true: 'bg-primary/20 text-[#385bf9]',
 			false: 'text-text-menu hover:text-primary'
 		},
 		disabled: { true: 'cursor-not-allowed hover:text-text-menu' }

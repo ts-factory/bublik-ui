@@ -6,7 +6,9 @@ import {
 	useState,
 	forwardRef,
 	createContext,
-	useContext
+	useContext,
+	type MouseEvent,
+	type PointerEvent
 } from 'react';
 
 import {
@@ -17,7 +19,10 @@ import {
 	sidebarPaddingTransition,
 	Dialog,
 	DialogPortal,
-	ModalContent,
+	DialogContent,
+	DialogOverlay,
+	dialogContentStyles,
+	dialogOverlayStyles,
 	type IconProps
 } from '@/shared/tailwind-ui';
 
@@ -60,12 +65,17 @@ function SidebarNavInternalLinkIcon(props: Omit<IconProps, 'ref'>) {
 	);
 }
 
+/**
+ * The entry's name. It never gives up width: when the row runs short, as it
+ * does once the sidebar grows a scrollbar, a key badge after it truncates
+ * before the name does.
+ */
 function SidebarNavInternalLinkLabel({ children }: { children: ReactNode }) {
 	const { disabled } = useSidebarNavInternalLink();
 	return (
 		<span
 			className={cn(
-				'text-[1.125rem] truncate',
+				'text-[1.125rem] truncate shrink-0',
 				disabled && 'cursor-not-allowed opacity-50 pointer-events-none'
 			)}
 		>
@@ -171,42 +181,70 @@ export const SidebarNavExternalLink = ({
 
 interface SidebarNavInfoButtonProps {
 	disabled?: boolean;
+	/** Placement, when the entry has to keep the button out of the flow. */
+	className?: string;
 }
 
+/**
+ * The entry's help dialog, behind a `?` that shows on hover (always, when the
+ * entry is disabled and the dialog is all it has to offer). It may render
+ * inside the entry's link, next to a key badge, so its clicks, and those in
+ * the dialog it opens, never reach the link: the dialog portal still bubbles
+ * React events to the link.
+ */
 export const SidebarNavInfoButton = (
 	props: PropsWithChildren<SidebarNavInfoButtonProps>
 ) => {
-	const { children, disabled } = props;
+	const { children, disabled, className } = props;
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const { isSidebarOpen } = useSidebar();
 
 	if (!children || !isSidebarOpen) return null;
 
+	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		setIsDialogOpen(true);
+	};
+
+	const stopDialogEventPropagation = (
+		event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>
+	) => {
+		event.stopPropagation();
+	};
+
 	return (
 		<>
 			<button
-				onClick={() => setIsDialogOpen(true)}
-				className={[
+				type="button"
+				onClick={handleClick}
+				data-info-button
+				className={cn(
 					'rounded ml-auto p-0.5 hover:bg-primary-wash hover:text-primary',
 					disabled
 						? 'text-primary visible pointer-events-auto'
 						: 'opacity-0 invisible group-hover:visible group-hover:opacity-100',
 					'transition-opacity duration-300 delay-0',
-					'group-hover:pointer-events-auto'
-				].join(' ')}
+					'group-hover:pointer-events-auto',
+					className
+				)}
 			>
 				<Icon name="InformationCircleQuestionMark" size={20} />
 			</button>
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 				<DialogPortal>
-					<ModalContent>
-						{children || (
-							<div className="bg-white p-6 rounded-lg">
-								<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-								<p>This section is not available yet.</p>
-							</div>
-						)}
-					</ModalContent>
+					<DialogOverlay
+						className={dialogOverlayStyles()}
+						onClick={stopDialogEventPropagation}
+					>
+						<DialogContent
+							className={dialogContentStyles()}
+							onClick={stopDialogEventPropagation}
+							onPointerDown={stopDialogEventPropagation}
+						>
+							{children}
+						</DialogContent>
+					</DialogOverlay>
 				</DialogPortal>
 			</Dialog>
 		</>

@@ -85,7 +85,16 @@ vi.mock('@/bublik/features/sidebar', () => ({
 		url.match(/\/log\/(\d+)/)?.[1] ?? null,
 	RUN_MODE_DEFAULT: 'details',
 	getRunDetailsDefaultUrl: (runId: string) => `/runs/${runId}`,
-	getRunIssuesDefaultUrl: (runId: string) => `/runs/${runId}/issues`
+	getRunIssuesDefaultUrl: (runId: string) => `/runs/${runId}/issues`,
+	LOG_SIDEBAR_KEYS: {
+		LAST_LOG: 'sidebar.log.lastLog',
+		LAST_MODE: 'sidebar.log.lastMode'
+	},
+	LOG_MODE_DEFAULT: 'treeAndinfoAndlog',
+	getLogDefaultUrl: (runId: string) => `/log/${runId}`,
+	getBaseUrl: (url: string) => url.replace(/[?&]mode=[^&]*/, ''),
+	addModeToUrl: (url: string, mode: string) =>
+		`${url}${url.includes('?') ? '&' : '?'}mode=${mode}`
 }));
 
 function HookRunner() {
@@ -152,6 +161,26 @@ function renderUrls() {
 	render(<UrlsRunner />);
 
 	return urls;
+}
+
+function renderLog() {
+	let log = {
+		logUrl: '',
+		mainLinkUrl: '',
+		isLogAvailable: false,
+		getLogModeUrl: (() => '') as (mode: string) => string
+	};
+
+	function LogRunner() {
+		const { logUrl, mainLinkUrl, isLogAvailable, getLogModeUrl } =
+			useRunSidebarState();
+		log = { logUrl, mainLinkUrl, isLogAvailable, getLogModeUrl };
+		return null;
+	}
+
+	render(<LogRunner />);
+
+	return log;
 }
 
 describe('useRunSidebarState', () => {
@@ -316,5 +345,50 @@ describe('useRunSidebarState', () => {
 		render(<MainLinkRunner />);
 
 		expect(mainLinkUrl).toBe('/runs/42');
+	});
+	it('builds the log links from the run when nothing is remembered', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+
+		const log = renderLog();
+
+		expect(log.isLogAvailable).toBe(true);
+		expect(log.logUrl).toBe('/log/42?mode=treeAndinfoAndlog');
+		// A bare log URL already is the log-only layout.
+		expect(log.getLogModeUrl('log')).toBe('/log/42');
+		expect(log.getLogModeUrl('treeAndlog')).toBe('/log/42?mode=treeAndlog');
+	});
+
+	it('opens the remembered log page in the remembered layout', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		sidebarStateValues['sidebar.log.lastLog'] = '/log/42?focusId=7&mode=log';
+		sidebarStateValues['sidebar.log.lastMode'] = 'infoAndlog';
+
+		const log = renderLog();
+
+		expect(log.logUrl).toBe('/log/42?focusId=7&mode=infoAndlog');
+		expect(log.getLogModeUrl('log')).toBe('/log/42?focusId=7&mode=log');
+	});
+
+	it('ignores a remembered log page left behind by another run', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '200';
+		sidebarStateValues['sidebar.log.lastLog'] = '/log/100?focusId=7';
+
+		expect(renderLog().logUrl).toBe('/log/200?mode=treeAndinfoAndlog');
+	});
+
+	it('has no log to link without a run', () => {
+		const log = renderLog();
+
+		expect(log.isLogAvailable).toBe(false);
+		expect(log.logUrl).toBe('/log');
+	});
+
+	it('points the Run link at the log once the log was the last page', () => {
+		sidebarStateValues['sidebar.currentRunId'] = '42';
+		sidebarStateValues['sidebar.run.lastMode'] = 'log';
+		sidebarStateValues['sidebar.log.lastLog'] = '/log/42?mode=treeAndlog';
+		sidebarStateValues['sidebar.log.lastMode'] = 'treeAndlog';
+
+		expect(renderLog().mainLinkUrl).toBe('/log/42?mode=treeAndlog');
 	});
 });

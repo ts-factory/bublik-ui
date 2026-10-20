@@ -9,7 +9,6 @@ import {
 	IssuesSidebarNav,
 	IssueSidebarNav
 } from '@/bublik/features/result-classification';
-import { LogSidebarNav } from '@/bublik/features/log';
 import { HistorySidebarNav } from '@/bublik/features/history';
 import { MeasurementsSidebarNav } from '@/bublik/features/measurements';
 import { ChatSidebarNav } from '@/bublik/features/chat';
@@ -33,7 +32,6 @@ export function SidebarContainer() {
 			<DashboardSidebarNav />
 			<RunsSidebarNav />
 			<RunSidebarNav />
-			<LogSidebarNav />
 			<HistorySidebarNav />
 			<IssuesSidebarNav />
 			<IssueSidebarNav />

@@ -4,17 +4,29 @@ import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
 import { Icon } from '@/shared/tailwind-ui';
-import { LinkWithProject } from '@/bublik/features/projects';
-import { OpenIssueCountBadge } from '@/bublik/features/result-classification';
+import {
+	LinkWithProject,
+	useNavigateWithProject
+} from '@/bublik/features/projects';
+import {
+	getModeFromSearch,
+	type LogSidebarMode
+} from '@/bublik/features/sidebar';
+import {
+	OpenIssueCountBadge,
+	SidebarKeyBadge,
+	runKeyTooltip
+} from '@/bublik/features/result-classification';
 import {
 	SidebarNavLinkWrapper,
 	SidebarNavInternalLink,
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
-	SidebarNavSubmenuItemContainer
+	SidebarNavSubmenuItemContainer,
+	type SidebarNavSubmenuModeSwitchItem
 } from '@/bublik/features/sidebar-nav';
-import { useRunSidebarState } from './use-run-sidebar-state';
+import { LOG_MODES, useRunSidebarState } from './use-run-sidebar-state';
 
 import {
 	RunDetailsDialog,
@@ -23,10 +35,28 @@ import {
 	RunMainDialog
 } from './run-dialogs';
 
+/** Just left of the run's number, centered on it, taking no room of its own. */
+const INFO_BUTTON_PLACEMENT =
+	'absolute right-full top-1/2 mr-0.5 -translate-y-1/2';
+
 const RUN_SIDEBAR_PATTERNS = [
 	{ path: '/runs/:runId' },
 	{ path: '/runs/:runId/report' },
-	{ path: '/runs/:runId/issues' }
+	{ path: '/runs/:runId/issues' },
+	{ path: '/log/:runId' }
+];
+
+const LOG_MODE_ITEMS: ReadonlyArray<
+	SidebarNavSubmenuModeSwitchItem<LogSidebarMode>
+> = [
+	{
+		value: 'treeAndinfoAndlog',
+		icon: 'LayoutLogHeaderSidebar',
+		label: 'Tree + info + log'
+	},
+	{ value: 'treeAndlog', icon: 'LayoutLogSidebar', label: 'Tree + log' },
+	{ value: 'infoAndlog', icon: 'LayoutLogHeader', label: 'Info + log' },
+	{ value: 'log', icon: 'LayoutLogSingle', label: 'Log' }
 ];
 
 function runOpenIssuesTooltip(openCount: number, totalCount: number): string {
@@ -39,15 +69,21 @@ function runOpenIssuesTooltip(openCount: number, totalCount: number): string {
 
 export function RunSidebarNav() {
 	const location = useLocation();
+	const navigate = useNavigateWithProject();
 	const {
 		isDetailsAvailable,
 		isReportAvailable,
 		isIssuesAvailable,
+		isLogAvailable,
 		isMainLinkAvailable,
 		detailsUrl,
 		reportUrl,
 		issuesUrl,
+		logUrl,
+		getLogModeUrl,
 		mainLinkUrl,
+		activeRunId,
+		activeRunName,
 		isReportLoading,
 		isIssuesLoading,
 		issueCount,
@@ -78,6 +114,11 @@ export function RunSidebarNav() {
 		);
 	}, [location.pathname, location.search, setLastVisited]);
 
+	// A bare log URL is the log-only layout, so that icon lights on it.
+	const activeLogMode = matchPath('/log/:runId', location.pathname)
+		? getModeFromSearch(location.search, LOG_MODES, 'log')
+		: null;
+
 	return (
 		<SidebarNavCollapsibleContainer patterns={RUN_SIDEBAR_PATTERNS}>
 			<SidebarNavCollapsibleContainer.Item>
@@ -89,11 +130,30 @@ export function RunSidebarNav() {
 					>
 						<SidebarNavInternalLink.Icon name="PieChart" />
 						<SidebarNavInternalLink.Label>Run</SidebarNavInternalLink.Label>
+						{/*
+						 * The help button sits inside the link, ahead of the run's
+						 * number: the badge keeps the edge by the chevron, and the `?`
+						 * fades in just left of it, out of the flow. In the flow it would
+						 * hold its width while hidden, and once the sidebar grows a
+						 * scrollbar that width is what the number needs.
+						 */}
+						<span className="relative ml-auto flex min-w-0 items-center">
+							<SidebarNavInfoButton
+								disabled={!isMainLinkAvailable}
+								className={INFO_BUTTON_PLACEMENT}
+							>
+								<RunMainDialog />
+							</SidebarNavInfoButton>
+							{activeRunId ? (
+								<SidebarKeyBadge
+									label={`#${activeRunId}`}
+									tooltip={runKeyTooltip(activeRunId, activeRunName)}
+									testId="run-sidebar-key"
+								/>
+							) : null}
+						</span>
 					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
-				<SidebarNavInfoButton disabled={!isMainLinkAvailable}>
-					<RunMainDialog />
-				</SidebarNavInfoButton>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
@@ -114,6 +174,24 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.InfoButton>
 						<RunDetailsDialog />
 					</SidebarNavSubmenuItemContainer.InfoButton>
+				</SidebarNavSubmenuItemContainer>
+				<SidebarNavSubmenuItemContainer
+					to={logUrl}
+					pattern={{ path: '/log/:runId' }}
+					disabled={!isLogAvailable}
+					linkComponent={LinkWithProject}
+				>
+					<SidebarNavSubmenuItemContainer.Icon name="PaperText" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Log
+					</SidebarNavSubmenuItemContainer.Label>
+					<SidebarNavSubmenuItemContainer.ModeSwitch
+						aria-label="Log layout"
+						items={LOG_MODE_ITEMS}
+						value={activeLogMode}
+						onSelect={(mode) => navigate(getLogModeUrl(mode))}
+						testId="run-sidebar-log-mode"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={reportUrl ?? '/runs'}

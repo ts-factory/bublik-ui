@@ -6,10 +6,17 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
+	LOG_MODE_DEFAULT,
+	LOG_SIDEBAR_KEYS,
+	LogSidebarMode,
 	RUN_MODE_DEFAULT,
 	RUN_SIDEBAR_KEYS,
 	RunMode,
+	RunPageMode,
 	SHARED_SIDEBAR_KEYS,
+	addModeToUrl,
+	getBaseUrl,
+	getLogDefaultUrl,
 	getRunDetailsDefaultUrl,
 	getRunIssuesDefaultUrl,
 	getSidebarStateString,
@@ -25,36 +32,57 @@ import {
 	useGetRunReportConfigsQuery
 } from '@/services/bublik-api';
 
-const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues'];
+const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues', 'log'];
 
-const RUN_URL_KEY_BY_MODE: Record<RunMode, string> = {
+export const LOG_MODES: readonly LogSidebarMode[] = [
+	'treeAndinfoAndlog',
+	'treeAndlog',
+	'infoAndlog',
+	'log'
+];
+
+const RUN_URL_KEY_BY_MODE: Record<RunPageMode, string> = {
 	details: RUN_SIDEBAR_KEYS.LAST_DETAILS,
 	report: RUN_SIDEBAR_KEYS.LAST_REPORT,
 	issues: RUN_SIDEBAR_KEYS.LAST_ISSUES
 };
 
-const RUN_URL_KEYS = Object.values(RUN_URL_KEY_BY_MODE);
+/** The URLs that belong to one run and go stale the moment another is opened. */
+const RUN_URL_KEYS = [
+	...Object.values(RUN_URL_KEY_BY_MODE),
+	LOG_SIDEBAR_KEYS.LAST_LOG
+];
 
 export interface UseRunSidebarStateReturn {
 	/** Remembered URLs, but only while they belong to `activeRunId`. */
 	lastDetailsUrl: string | null;
 	lastReportUrl: string | null;
 	lastIssuesUrl: string | null;
+	lastLogUrl: string | null;
 	lastMode: RunMode | null;
+	/** The log layout last used, on any run; omitted from `_s` at the default. */
+	lastLogMode: LogSidebarMode | null;
 
 	// Current run context from shared state
 	currentRunId: string | null;
 	/** The run every link and the issue count describe. */
 	activeRunId: string | null;
+	/** Its main package, once the details have loaded; empty until then. */
+	activeRunName: string;
 
 	detailsUrl: string;
 	reportUrl: string | null;
 	issuesUrl: string;
+	/** The log in its remembered layout. */
+	logUrl: string;
+	/** The log in the given layout, on the remembered page of it when there is one. */
+	getLogModeUrl: (mode: LogSidebarMode) => string;
 	mainLinkUrl: string;
 
 	isDetailsAvailable: boolean;
 	isReportAvailable: boolean;
 	isIssuesAvailable: boolean;
+	isLogAvailable: boolean;
 	isMainLinkAvailable: boolean;
 
 	isReportLoading: boolean;
@@ -64,7 +92,11 @@ export interface UseRunSidebarStateReturn {
 	/** The open ones among them, which the sidebar badge counts. */
 	openIssueCount: number;
 
-	setLastVisited: (mode: RunMode, url: string, runId?: string) => void;
+	/**
+	 * Records a run page. The log page records itself through the log hook,
+	 * which writes the same `lastMode` in the same commit.
+	 */
+	setLastVisited: (mode: RunPageMode, url: string, runId?: string) => void;
 }
 
 /**
@@ -110,10 +142,10 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 	);
 
 	const scopeToActiveRun = useCallback(
-		(url: string | null) =>
-			url && activeRunId && extractRunIdFromUrl(url) === activeRunId
-				? url
-				: null,
+		(
+			url: string | null,
+			extractRunId: (url: string) => string | null = extractRunIdFromUrl
+		) => (url && activeRunId && extractRunId(url) === activeRunId ? url : null),
 		[activeRunId]
 	);
 
@@ -138,6 +170,27 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 			),
 		[searchParams, scopeToActiveRun]
 	);
+	const lastLogUrl = useMemo(
+		() =>
+			scopeToActiveRun(
+				getSidebarStateString(searchParams, LOG_SIDEBAR_KEYS.LAST_LOG),
+				extractRunIdFromLogUrl
+			),
+		[searchParams, scopeToActiveRun]
+	);
+
+	const lastLogMode = useMemo<LogSidebarMode | null>(() => {
+		const mode = getSidebarStateString(
+			searchParams,
+			LOG_SIDEBAR_KEYS.LAST_MODE
+		);
+
+		if (mode && LOG_MODES.includes(mode as LogSidebarMode)) {
+			return mode as LogSidebarMode;
+		}
+
+		return null;
+	}, [searchParams]);
 
 	const { data: reportConfigsData, isLoading: isReportLoading } =
 		useGetRunReportConfigsQuery(activeRunId ? activeRunId : skipToken);
@@ -179,6 +232,8 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		(isIssuesLoading || projectId === undefined
 			? !!lastIssuesUrl || isOnIssuesPage
 			: issueCount > 0);
+	// Every run has a log, so the row needs nothing beyond knowing the run.
+	const isLogAvailable = !!activeRunId;
 	const isMainLinkAvailable =
 		isDetailsAvailable || isReportAvailable || !!activeRunId;
 
@@ -205,6 +260,27 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		return '/runs';
 	}, [lastIssuesUrl, activeRunId]);
 
+	const getLogModeUrl = useCallback(
+		(mode: LogSidebarMode): string => {
+			if (lastLogUrl) {
+				return addModeToUrl(getBaseUrl(lastLogUrl), mode);
+			}
+			if (activeRunId) {
+				const baseUrl = getLogDefaultUrl(activeRunId);
+				// A bare log URL already means the log-only layout.
+				return mode === 'log' ? baseUrl : `${baseUrl}?mode=${mode}`;
+			}
+			return '/log';
+		},
+		[lastLogUrl, activeRunId]
+	);
+
+	const logUrl = useMemo(
+		() =>
+			activeRunId ? getLogModeUrl(lastLogMode ?? LOG_MODE_DEFAULT) : '/log',
+		[activeRunId, lastLogMode, getLogModeUrl]
+	);
+
 	const mainLinkUrl = useMemo(() => {
 		// `lastMode` is omitted from `_s` when it equals the shared default.
 		switch (lastMode ?? RUN_MODE_DEFAULT) {
@@ -229,18 +305,21 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 					lastIssuesUrl ||
 					(activeRunId ? getRunIssuesDefaultUrl(activeRunId) : '/runs')
 				);
+			case 'log':
+				return activeRunId ? logUrl : '/runs';
 		}
 	}, [
 		lastMode,
 		lastDetailsUrl,
 		lastReportUrl,
 		lastIssuesUrl,
+		logUrl,
 		activeRunId,
 		isIssuesAvailable
 	]);
 
 	const setLastVisited = useCallback(
-		(mode: RunMode, url: string, runId?: string) => {
+		(mode: RunPageMode, url: string, runId?: string) => {
 			const cleanedUrl = stripSidebarParamsFromUrl(url);
 			const extractedRunId = runId || extractRunIdFromUrl(cleanedUrl);
 
@@ -281,16 +360,22 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		lastDetailsUrl,
 		lastReportUrl,
 		lastIssuesUrl,
+		lastLogUrl,
 		lastMode,
+		lastLogMode,
 		currentRunId,
 		activeRunId,
+		activeRunName: runDetails?.main_package ?? '',
 		detailsUrl,
 		reportUrl,
 		issuesUrl,
+		logUrl,
+		getLogModeUrl,
 		mainLinkUrl,
 		isDetailsAvailable,
 		isReportAvailable,
 		isIssuesAvailable,
+		isLogAvailable,
 		isMainLinkAvailable,
 		isReportLoading,
 		isIssuesLoading,

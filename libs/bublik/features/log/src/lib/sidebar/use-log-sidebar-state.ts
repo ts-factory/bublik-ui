@@ -1,103 +1,39 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 
-import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback } from 'react';
 
 import {
-	LOG_MODE_DEFAULT,
 	LOG_SIDEBAR_KEYS,
 	LogSidebarMode,
+	RUN_SIDEBAR_KEYS,
 	SHARED_SIDEBAR_KEYS,
-	getLogDefaultUrl,
-	getSidebarStateString,
 	setSidebarStateValue,
 	stripSidebarParamsFromUrl,
 	useSidebarStateWriter,
-	getBaseUrl,
-	addModeToUrl,
 	extractRunIdFromLogUrl
 } from '@/bublik/features/sidebar';
 
-const LOG_MODES: readonly LogSidebarMode[] = [
-	'log',
-	'infoAndlog',
-	'treeAndinfoAndlog',
-	'treeAndlog'
+/** The run URLs that go stale the moment another run is opened. */
+const RUN_URL_KEYS = [
+	RUN_SIDEBAR_KEYS.LAST_DETAILS,
+	RUN_SIDEBAR_KEYS.LAST_REPORT,
+	RUN_SIDEBAR_KEYS.LAST_ISSUES
 ];
 
 export interface UseLogSidebarStateReturn {
-	// Last visited log page URL
-	lastLogUrl: string | null;
-	lastMode: LogSidebarMode | null;
-
-	// Current run context from shared state
-	currentRunId: string | null;
-
-	// Whether log page is available (visited log OR has run context)
-	isAvailable: boolean;
-
-	// Get URL for a specific mode
-	getModeUrl: (mode: LogSidebarMode) => string;
-	mainLinkUrl: string;
-
-	// Update last visited state
+	/** Records the log page as the run's last page, in the given layout. */
 	setLastVisited: (mode: LogSidebarMode, url: string, runId?: string) => void;
 }
 
+/**
+ * The log page's writer. The sidebar reads the log keys through the Run
+ * entry's hook (`useRunSidebarState`), which scopes them to the run in view;
+ * this side only records. It also moves the Run link to the log in the same
+ * commit -- a second writer for that key would clobber this one's `_s`.
+ */
 export function useLogSidebarState(): UseLogSidebarStateReturn {
-	const [searchParams] = useSearchParams();
 	const writeSidebarState = useSidebarStateWriter();
-
-	const lastLogUrl = useMemo(
-		() => getSidebarStateString(searchParams, LOG_SIDEBAR_KEYS.LAST_LOG),
-		[searchParams]
-	);
-
-	const lastMode = useMemo<LogSidebarMode | null>(() => {
-		const mode = getSidebarStateString(
-			searchParams,
-			LOG_SIDEBAR_KEYS.LAST_MODE
-		);
-
-		if (mode && LOG_MODES.includes(mode as LogSidebarMode)) {
-			return mode as LogSidebarMode;
-		}
-
-		return null;
-	}, [searchParams]);
-
-	const currentRunId = useMemo(
-		() =>
-			getSidebarStateString(searchParams, SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID),
-		[searchParams]
-	);
-
-	// Available if we have a last log URL OR a current run context
-	const isAvailable = !!(lastLogUrl || currentRunId);
-
-	const getModeUrl = useCallback(
-		(mode: LogSidebarMode): string => {
-			if (lastLogUrl) {
-				const baseUrl = getBaseUrl(lastLogUrl);
-				return addModeToUrl(baseUrl, mode);
-			}
-			// If no last log URL but we have a current runId, construct URL
-			if (currentRunId) {
-				const baseUrl = getLogDefaultUrl(currentRunId);
-				return mode === 'log' ? baseUrl : `${baseUrl}?mode=${mode}`;
-			}
-			return '/log';
-		},
-		[lastLogUrl, currentRunId]
-	);
-
-	const mainLinkUrl = useMemo(() => {
-		if (lastLogUrl || currentRunId) {
-			return getModeUrl(lastMode ?? LOG_MODE_DEFAULT);
-		}
-		return '/log';
-	}, [lastLogUrl, currentRunId, lastMode, getModeUrl]);
 
 	const setLastVisited = useCallback(
 		(mode: LogSidebarMode, url: string, runId?: string) => {
@@ -106,31 +42,35 @@ export function useLogSidebarState(): UseLogSidebarStateReturn {
 
 			writeSidebarState((sidebarState) => {
 				setSidebarStateValue(sidebarState, LOG_SIDEBAR_KEYS.LAST_MODE, mode);
-				setSidebarStateValue(
-					sidebarState,
-					LOG_SIDEBAR_KEYS.LAST_LOG,
-					cleanedUrl
-				);
+				setSidebarStateValue(sidebarState, RUN_SIDEBAR_KEYS.LAST_MODE, 'log');
 
 				if (extractedRunId) {
+					// Same as the run pages: another run's remembered URLs only eat
+					// the `_s` budget, the read side scopes them away regardless.
+					if (
+						sidebarState[SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID] !== extractedRunId
+					) {
+						RUN_URL_KEYS.forEach((key) =>
+							setSidebarStateValue(sidebarState, key, null)
+						);
+					}
+
 					setSidebarStateValue(
 						sidebarState,
 						SHARED_SIDEBAR_KEYS.CURRENT_RUN_ID,
 						extractedRunId
 					);
 				}
+
+				setSidebarStateValue(
+					sidebarState,
+					LOG_SIDEBAR_KEYS.LAST_LOG,
+					cleanedUrl
+				);
 			});
 		},
 		[writeSidebarState]
 	);
 
-	return {
-		lastLogUrl,
-		lastMode,
-		currentRunId,
-		isAvailable,
-		getModeUrl,
-		mainLinkUrl,
-		setLastVisited
-	};
+	return { setLastVisited };
 }

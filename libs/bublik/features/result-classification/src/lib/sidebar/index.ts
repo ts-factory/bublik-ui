@@ -7,3 +7,4 @@ export * from './issue-sidebar.hooks';
 export * from './open-issue-count-badge.component';
 export * from './sidebar-count-badge.component';
 export * from './issue-key-badge.component';
+export * from './sidebar-key-badge.component';
