@@ -2,7 +2,14 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { CSSProperties, ReactNode } from 'react';
 
-import { cn, useSidebar } from '@/shared/tailwind-ui';
+import {
+	ScrollArea,
+	ScrollAreaScrollbar,
+	ScrollAreaThumb,
+	ScrollAreaViewport,
+	cn,
+	useSidebar
+} from '@/shared/tailwind-ui';
 import { useIsScrollbarVisible } from '@/shared/hooks';
 
 import { SidebarLogoButton } from './logo-button';
@@ -51,15 +58,31 @@ export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 			>
 				<SidebarLogoButton />
 			</div>
-			<div
-				className="h-full pt-12 pb-[7px] overflow-x-hidden overflow-y-auto px-[7px] styled-scrollbar"
-				ref={ref}
+			{/* A native scrollbar takes its width from the collapsed sidebar's
+			    42px column and squeezes the icons. The thumb floats over the
+			    right padding instead, and shows while hovering or scrolling. */}
+			<ScrollArea
+				type="hover"
+				className="relative h-full min-h-0 overflow-hidden"
 			>
-				<ul className="flex flex-col gap-3">
-					{headerSlot}
-					{children}
-				</ul>
-			</div>
+				<ScrollAreaViewport
+					ref={ref}
+					// Radix wraps the children in a `display: table` div that grows
+					// to the labels' max-content width; keep it to the column.
+					className="h-full w-full pt-12 pb-[7px] px-[7px] [&>div]:!block"
+				>
+					<ul className="flex flex-col gap-3">
+						{headerSlot}
+						{children}
+					</ul>
+				</ScrollAreaViewport>
+				<ScrollAreaScrollbar
+					orientation="vertical"
+					className="flex w-[5px] select-none touch-none py-1 pr-px bg-transparent"
+				>
+					<ScrollAreaThumb className="flex-1 rounded-full bg-text-menu/60 hover:bg-text-menu" />
+				</ScrollAreaScrollbar>
+			</ScrollArea>
 			<div
 				className={cn(
 					'mt-auto px-[7px] pt-[7px] border-t pb-6',
