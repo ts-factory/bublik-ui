@@ -27,7 +27,7 @@ export const MATCH_SCOPE_COPY = {
 		{ term: 'Parameters', text: MATCHER_HINTS.parameters },
 		{
 			term: 'Verdicts',
-			text: `${MATCHER_HINTS.verdicts} A card keeps every list its results failed with, for a rule each, or drops them all.`
+			text: `${MATCHER_HINTS.verdicts} A card keeps every list its results failed with, for a rule each, or drops them all. A result without verdicts gives a “No verdicts” list, whose rule matches only failures without any.`
 		},
 		{
 			term: 'Tags',
