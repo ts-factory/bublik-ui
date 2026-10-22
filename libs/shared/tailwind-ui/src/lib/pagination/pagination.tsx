@@ -20,12 +20,12 @@ const buttonStyles = cva({
 			primary: [
 				'flex items-center py-2 px-4 rounded-md text-[1rem]',
 				'hover:bg-primary hover:text-white',
-				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu'
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-bg-primary disabled:hover:text-text-menu'
 			],
 			bordered: [
 				'flex items-center py-2 px-4 rounded-md border text-[1rem]',
 				'hover:border-primary hover:bg-primary-wash hover:text-primary',
-				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu disabled:hover:border-border-primary'
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-bg-primary disabled:hover:text-text-menu disabled:hover:border-border-input'
 			],
 			log: [
 				'relative inline-flex items-center px-4 py-2 border text-sm font-medium first:rounded-l-lg last:rounded-r-lg'
@@ -42,7 +42,7 @@ const buttonStyles = cva({
 			compact: [
 				'flex items-center justify-center h-7 w-7 rounded border',
 				'hover:border-primary hover:bg-primary-wash hover:text-primary',
-				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-white disabled:hover:text-text-menu disabled:hover:border-border-primary'
+				'disabled:text-text-menu disabled:cursor-not-allowed disabled:bg-bg-primary disabled:hover:text-text-menu disabled:hover:border-border-input'
 			]
 		},
 		isActive: { true: '', false: '' }
@@ -56,12 +56,12 @@ const buttonStyles = cva({
 		{
 			variant: 'primary',
 			isActive: false,
-			className: 'text-text-primary bg-white'
+			className: 'text-text-primary bg-bg-primary'
 		},
 		{
 			variant: 'bordered',
 			isActive: false,
-			className: 'bg-white border-border-primary text-text-primary'
+			className: 'bg-bg-primary border-border-input text-text-primary'
 		},
 		{
 			variant: 'bordered',
@@ -72,7 +72,7 @@ const buttonStyles = cva({
 			variant: 'log',
 			isActive: false,
 			className:
-				'bg-white border-border-primary text-text-primary hover:bg-primary-wash hover:text-primary'
+				'bg-bg-primary border-border-input text-text-primary hover:bg-primary-wash hover:text-primary'
 		},
 		{
 			variant: 'log',
@@ -82,7 +82,7 @@ const buttonStyles = cva({
 		{
 			variant: 'compact',
 			isActive: false,
-			className: 'bg-white border-border-primary text-text-primary'
+			className: 'bg-bg-primary border-border-input text-text-primary'
 		},
 		{
 			variant: 'compact',

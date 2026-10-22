@@ -53,7 +53,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 	};
 
 	return (
-		<header className="flex flex-col bg-white rounded">
+		<header className="flex flex-col bg-bg-primary rounded">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
 					<RunModeToggle

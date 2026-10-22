@@ -88,7 +88,7 @@ function SelectionPopover(props: SelectionPopoverProps) {
 						transition={transition}
 						layout={layout}
 						className={cn(
-							'fixed right-4 bg-white rounded-lg shadow-popover min-w-[360px] max-h-[90vh] flex flex-col z-50',
+							'fixed right-4 bg-bg-elevated rounded-lg shadow-popover min-w-[360px] max-h-[90vh] flex flex-col z-50',
 							bottomOffsetClassName,
 							className
 						)}

@@ -3,18 +3,22 @@
 import React from 'react';
 import { Toaster as Sonner } from 'sonner';
 
+import { useTheme } from '@/shared/hooks';
+
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
+	const { resolvedTheme } = useTheme();
+
 	return (
 		<Sonner
-			theme="light"
+			theme={resolvedTheme}
 			className="toaster group"
 			position="top-right"
 			toastOptions={{
 				classNames: {
 					toast:
-						'group toast group-[.toaster]:bg-white group-[.toaster]:text-text-primary group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+						'group toast group-[.toaster]:bg-bg-elevated group-[.toaster]:text-text-primary group-[.toaster]:border-border-primary group-[.toaster]:shadow-lg',
 					description: 'group-[.toast]:text-text-menu',
 					actionButton:
 						'group-[.toast]:bg-primary group-[.toast]:text-white group-[.toast]:rounded-md',

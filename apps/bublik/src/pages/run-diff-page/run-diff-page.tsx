@@ -65,7 +65,7 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 	};
 
 	return (
-		<header className="flex flex-col mb-1 bg-white rounded min-h-[260px]">
+		<header className="flex flex-col mb-1 bg-bg-primary rounded min-h-[260px]">
 			<div className="flex justify-between border-b border-border-primary h-9">
 				<div className="flex items-center gap-4 px-4 border-r border-border-primary">
 					<ButtonTw size="xss" asChild variant="secondary">

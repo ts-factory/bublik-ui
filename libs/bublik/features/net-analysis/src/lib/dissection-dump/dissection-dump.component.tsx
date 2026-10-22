@@ -121,7 +121,7 @@ export const DissectionDump: React.FC<DissectionDumpProps> = ({
 	);
 
 	return (
-		<div className="flex-1 overflow-auto rounded-md p-2 bg-white min-w-0 h-full">
+		<div className="flex-1 overflow-auto rounded-md p-2 bg-bg-primary min-w-0 h-full">
 			<div className="flex font-mono text-xs whitespace-pre break-all">
 				<div className="select-none text-gray-500" style={{ minWidth: 60 }}>
 					{addrLines.join('\n')}

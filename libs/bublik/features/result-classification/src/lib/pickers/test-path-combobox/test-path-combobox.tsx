@@ -105,7 +105,7 @@ const inputStyles = cva({
 		'py-[7px]',
 		'outline-none',
 		'border',
-		'border-border-primary',
+		'border-border-input',
 		'rounded',
 		'text-text-secondary',
 		'transition-all',
@@ -113,7 +113,7 @@ const inputStyles = cva({
 		'disabled:text-text-menu',
 		'disabled:cursor-not-allowed',
 		'disabled:bg-bg-body',
-		'disabled:hover:border-border-primary',
+		'disabled:hover:border-border-input',
 		'focus:border-primary',
 		'focus:shadow-text-field',
 		'active:shadow-none',
@@ -485,7 +485,7 @@ export function TestPathCombobox(props: TestPathComboboxProps) {
 				<Combobox.Positioner sideOffset={4} className="outline-none z-50">
 					<Combobox.Popup
 						className={cn(
-							'bg-white rounded border border-border-primary shadow-popover',
+							'bg-bg-elevated rounded border border-border-primary shadow-popover',
 							'w-[var(--anchor-width)] max-w-[var(--available-width)]',
 							'max-h-[min(var(--available-height),15rem)] overflow-hidden',
 							'origin-[var(--transform-origin)]',

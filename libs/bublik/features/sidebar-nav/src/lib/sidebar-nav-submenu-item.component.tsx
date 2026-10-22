@@ -254,7 +254,7 @@ function SidebarNavSubmenuInfoButton({ children }: { children: ReactNode }) {
 							onPointerDown={stopDialogEventPropagation}
 						>
 							{children || (
-								<div className="bg-white p-6 rounded-lg">
+								<div className="bg-bg-primary p-6 rounded-lg">
 									<h2 className="text-lg font-semibold mb-4">Not Available</h2>
 									<p>This section is not available yet.</p>
 								</div>
@@ -338,10 +338,11 @@ function SidebarNavSubmenuModeSwitch<T extends string>({
 			data-mode-switch
 			// The tray is drawn whether or not one of its layouts is the page's,
 			// so the buttons read as one control on every page. On the active
-			// row's tint a primary tray would melt in, so it turns white there.
+			// row's tint a primary tray would melt in, so it takes the surface
+			// colour there.
 			className={cn(
 				'ml-auto flex shrink-0 items-center gap-0.5 rounded-md p-0.5',
-				isActive ? 'bg-white' : 'bg-primary/10'
+				isActive ? 'bg-bg-primary' : 'bg-primary/10'
 			)}
 		>
 			{items.map((item) => (
@@ -383,7 +384,7 @@ function SidebarNavSubmenuModePanel<T extends string>({
 			data-testid={testId ? `${testId}-panel` : undefined}
 			data-mode-switch-panel
 			// Sized to its longest layout name, not a fixed width.
-			className="flex w-max min-w-40 flex-col gap-0.5 rounded-lg bg-white p-1 shadow-popover"
+			className="flex w-max min-w-40 flex-col gap-0.5 rounded-lg bg-bg-elevated p-1 shadow-popover"
 		>
 			<span className="px-1.5 pb-0.5 pt-1 text-[0.625rem] font-semibold uppercase leading-3 tracking-[0.02em] text-text-menu">
 				{ariaLabel}

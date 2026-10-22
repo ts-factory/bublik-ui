@@ -202,11 +202,11 @@ export const MarkdownEditor = forwardRef<
 				) : null}
 				<div
 					className={cn(
-						'flex flex-col rounded border bg-white transition-all',
+						'flex flex-col rounded border bg-bg-primary transition-all',
 						fill && 'flex-1',
 						error
 							? 'border-bg-error focus-within:shadow-text-field-error'
-							: 'border-border-primary hover:border-primary focus-within:border-primary focus-within:shadow-text-field'
+							: 'border-border-input hover:border-primary focus-within:border-primary focus-within:shadow-text-field'
 					)}
 				>
 					<div className="flex items-stretch justify-between gap-2 pl-2 pr-1.5 border-b border-border-primary">

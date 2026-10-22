@@ -155,7 +155,7 @@ function RunHeaderCell({
 			colSpan={header.colSpan}
 			data-column-id={isLeaf ? header.column.id : undefined}
 			className={cn(
-				'group/header px-2 border-b bg-white',
+				'group/header px-2 border-b bg-bg-primary',
 				!isLast && 'border-r border-border-primary',
 				isOver && 'ring-2 ring-inset ring-primary',
 				header.column.columnDef.meta?.className
@@ -170,8 +170,8 @@ function RunHeaderCell({
 			{dragHandle ? (
 				<>
 					<div className="absolute right-0 top-0 z-10 flex h-full items-center opacity-0 transition-opacity group-hover/header:opacity-100 focus-within:opacity-100">
-						<div className="h-full w-6 bg-gradient-to-r from-transparent to-white" />
-						<div className="grid h-full w-6 place-items-center bg-white pr-2">
+						<div className="h-full w-6 bg-gradient-to-r from-transparent to-bg-primary" />
+						<div className="grid h-full w-6 place-items-center bg-bg-primary pr-2">
 							{dragHandle}
 						</div>
 					</div>

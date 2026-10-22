@@ -17,7 +17,7 @@ import parserJson from 'prettier/parser-babel';
 import * as monaco from 'monaco-editor';
 import { loader } from '@monaco-editor/react';
 
-import { useCopyToClipboard, useLocalStorage } from '@/shared/hooks';
+import { useCopyToClipboard, useLocalStorage, useTheme } from '@/shared/hooks';
 import {
 	ButtonTw,
 	CardHeader,
@@ -74,6 +74,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 		const [monaco, setMonaco] = useState<Monaco>();
 		const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 		const [fontSize, setFontSize] = useLocalStorage('editor-font-size', 14);
+		const isDark = useTheme().resolvedTheme === 'dark';
 		const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 		const [, copySchema] = useCopyToClipboard();
 		const schemaText = schema ? JSON.stringify(schema, null, 2) : '';
@@ -160,7 +161,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 							</Tooltip>
 							<DrawerContent
 								className={cn(
-									'bg-white shadow-popover overflow-hidden w-[80vw] max-w-[80vw]',
+									'bg-bg-elevated shadow-popover overflow-hidden w-[80vw] max-w-[80vw]',
 									'flex flex-col overflow-hidden max-w-7xl'
 								)}
 							>
@@ -180,7 +181,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 								<div className="flex-1 overflow-hidden">
 									<ShikiHighlighter
 										language="json"
-										theme="github-light"
+										theme={isDark ? 'github-dark' : 'github-light'}
 										showLineNumbers
 										addDefaultStyles={false}
 										className={cn([
@@ -243,6 +244,7 @@ const ConfigEditor = forwardRef<Monaco | undefined, ConfigEditorProps>(
 						path={DEFAULT_URI}
 						value={normalizedValue}
 						defaultValue={normalizedDefaultValue}
+						theme={isDark ? 'vs-dark' : 'light'}
 						beforeMount={handleEditorWillMount}
 						onMount={handleEditorDidMount}
 						options={{

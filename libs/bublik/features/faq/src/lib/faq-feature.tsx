@@ -34,11 +34,11 @@ export const FaqFeature = () => {
 	return (
 		<div className="flex flex-col h-screen gap-1 p-2">
 			<div className="flex flex-grow gap-1">
-				<div className="flex bg-white rounded-md flex-col gap-4">
+				<div className="flex bg-bg-primary rounded-md flex-col gap-4">
 					<CardHeader label="Page Help" />
 					<SidebarHelp />
 				</div>
-				<div className="bg-white rounded-md flex-1 flex flex-col">
+				<div className="bg-bg-primary rounded-md flex-1 flex flex-col">
 					<CardHeader label="FAQ" />
 					<div className="px-6 py-8 flex flex-col gap-4 flex-1">
 						<ul className="flex flex-col gap-6">

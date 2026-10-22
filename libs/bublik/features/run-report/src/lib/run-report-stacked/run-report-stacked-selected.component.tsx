@@ -80,7 +80,7 @@ function RunReportStackedSelected(props: RunReportStackedSelectedProps) {
 								<Tooltip content="Remove from stacked" disableHoverableContent>
 									<button
 										aria-label="Remove from stacked"
-										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
+										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-bg-fillError/60"
 										onClick={() => handleRemoveClick(item.id)}
 									>
 										<Icon

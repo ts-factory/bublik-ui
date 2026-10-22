@@ -35,7 +35,7 @@ export const AuthFormLayout = (
 				className="bg-bg-error bottom-[10%] right-[17%]"
 				style={{ animationDelay: '4s' }}
 			/>
-			<div className="w-full sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] z-10 relative">
+			<div className="w-full sm:max-w-md p-6 bg-bg-primary sm:rounded-lg md:shadow min-w-[420px] z-10 relative">
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="text-2xl font-bold leading-tight tracking-tight text-text-primary">
 						{props.label}

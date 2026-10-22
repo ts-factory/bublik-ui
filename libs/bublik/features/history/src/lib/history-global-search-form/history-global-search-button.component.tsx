@@ -45,7 +45,7 @@ export const HistoryGlobalSearchFormButton = (
 					variant="outline"
 					size="md"
 					rounded="lg"
-					className="border-border-primary bg-white hover:border-primary hover:bg-primary-wash"
+					className="border-border-input bg-bg-primary hover:border-primary hover:bg-primary-wash"
 				>
 					<div className="flex items-center gap-2">
 						<Icon name="GlobalSearch" className="grid place-items-center" />

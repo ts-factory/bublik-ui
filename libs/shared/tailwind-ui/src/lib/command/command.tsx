@@ -20,7 +20,7 @@ const Command = React.forwardRef<
 	<CommandPrimitive
 		ref={ref}
 		className={cn(
-			'flex h-full w-full flex-col bg-white rounded-md text-popover-foreground',
+			'flex h-full w-full flex-col bg-bg-primary rounded-md text-text-primary',
 			className
 		)}
 		{...props}
@@ -39,7 +39,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 					className={cn(
 						'[&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 ',
 						'[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2',
-						'[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
+						'[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-text-menu',
 						'[&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5',
 						dialogContentStyles(),
 						'max-w-2xl max-h-[350px]'
@@ -164,7 +164,7 @@ const CommandShortcut = ({
 	return (
 		<span
 			className={cn(
-				'ml-auto text-xs tracking-widest text-muted-foreground',
+				'ml-auto text-xs tracking-widest text-text-menu',
 				className
 			)}
 			{...props}

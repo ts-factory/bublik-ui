@@ -40,6 +40,7 @@ export * from './lib/use-physical-hotkeys';
 export * from './lib/use-page-container';
 export * from './lib/use-render-when-visible';
 export * from './lib/use-progressive-visible-count';
+export * from './lib/use-theme';
 
 /**
  * Whether the element the ref is attached to currently overflows vertically.

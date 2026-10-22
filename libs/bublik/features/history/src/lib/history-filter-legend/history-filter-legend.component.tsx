@@ -69,7 +69,7 @@ export const LegendItem = ({
 	iconSize
 }: LegendItemProps) => {
 	return (
-		<div className="flex items-center justify-center gap-2 px-2.5 py-1.5 rounded border border-border-primary">
+		<div className="flex items-center justify-center gap-2 px-2.5 py-1.5 rounded border border-border-input">
 			<div className="flex items-center gap-1.5 flex-shrink-0 text-text-menu ">
 				<Icon
 					name={iconName}

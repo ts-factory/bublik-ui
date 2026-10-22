@@ -44,7 +44,7 @@ function InstructionDialog({
 
 	return (
 		<>
-			<div className="bg-white p-6 rounded-lg max-w-[1366px] xl:max-w-[1536px] 2xl:max-w-[1920px]">
+			<div className="bg-bg-primary p-6 rounded-lg max-w-[1366px] xl:max-w-[1536px] 2xl:max-w-[1920px]">
 				<div className="">
 					<div className="flex flex-col gap-2">
 						<div className="flex justify-between items-center">

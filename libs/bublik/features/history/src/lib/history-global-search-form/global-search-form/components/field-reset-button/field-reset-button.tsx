@@ -11,7 +11,7 @@ export interface FieldResetButtonProps {
 }
 
 const FIELD_RESET_BUTTON_CLASS_NAME =
-	'!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-red-100';
+	'!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60';
 
 function FieldResetButton({
 	onClick,

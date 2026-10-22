@@ -337,7 +337,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 				// bottom of the sticky stack and casts the one shadow onto the rows.
 				<div
 					className={cn(
-						'toolbar-container sticky z-10 flex h-9 items-center gap-2 border-b border-border-primary bg-white pl-5 pr-4',
+						'toolbar-container sticky z-10 flex h-9 items-center gap-2 border-b border-border-primary bg-bg-primary pl-5 pr-4',
 						toolbarClassName
 					)}
 					style={{ top: stickyTop }}
@@ -393,7 +393,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 										style={{
 											top: headerTop,
 											boxShadow: isSticky
-												? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+												? `var(--shadow-color) ${idx === 0 ? 0 : 7}px 2px 10px`
 												: 'none'
 										}}
 										ref={(el) => {
@@ -591,7 +591,7 @@ function ResultRow(props: ResultRowProps) {
 						onMouseLeave={() => setHovered(false)}
 						className={cn(
 							// The top padding makes room for the corner marks' lower half.
-							'px-1 pt-3 pb-2 bg-white text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
+							'px-1 pt-3 pb-2 bg-bg-primary text-text-primary text-[0.75rem] leading-[1.125rem] font-medium',
 							'flex items-start whitespace-pre-wrap',
 							// The row's corner marks hang off its first and last cells.
 							(isFirstCell || holdsToggle) && 'relative',
@@ -707,7 +707,7 @@ function useIsBelowLine(
 // `w-max` and `whitespace-nowrap`: an absolute box is otherwise as wide as
 // its cell lets it be, and the first cell is narrow.
 const ROW_CORNER_CLASS =
-	'absolute -top-3 inline-flex h-[1.375rem] w-max items-center gap-1 whitespace-nowrap rounded border border-border-primary bg-white p-0.5';
+	'absolute -top-3 inline-flex h-[1.375rem] w-max items-center gap-1 whitespace-nowrap rounded border border-border-primary bg-bg-primary p-0.5';
 
 /** Above the header (`z-20`) while the row is below it, under it once not. */
 function rowCornerLayer(overHeader: boolean): string {
@@ -809,7 +809,7 @@ function useStickyHeader({ stickyTop }: StickyHeaderOptions) {
 				style: {
 					top: `${stickyTop}px`,
 					position: 'sticky',
-					boxShadow: isSticky ? '0 0 10px rgba(0, 0, 0, 0.1)' : 'none'
+					boxShadow: isSticky ? '0 0 10px var(--shadow-color)' : 'none'
 				} as CSSProperties
 			};
 		},

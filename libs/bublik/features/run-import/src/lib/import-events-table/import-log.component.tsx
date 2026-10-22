@@ -411,7 +411,9 @@ function getColumns({ textWrap }: GetColumnsConfig) {
 }
 
 const getRowClassName = (level: string) => {
-	const baseClasses = 'hover:bg-gray-600/20';
+	// The terminal is dark in both themes, so it keeps Tailwind's own greys
+	// rather than the theme's gray scale, which flips in dark
+	const baseClasses = 'hover:bg-[#4b5563]/20';
 
 	if (level === 'CRITICAL') {
 		return `${baseClasses} bg-red-950/30 text-red-100 hover:text-red-50 font-semibold`;
@@ -423,10 +425,10 @@ const getRowClassName = (level: string) => {
 		return `${baseClasses} bg-yellow-900/20 text-yellow-200 hover:text-yellow-100`;
 	}
 	if (level === 'DEBUG') {
-		return `${baseClasses} text-gray-400 hover:text-gray-300`;
+		return `${baseClasses} text-[#9ca3af] hover:text-[#d1d5db]`;
 	}
 
-	return `${baseClasses} text-gray-200 hover:text-gray-50`;
+	return `${baseClasses} text-[#e5e7eb] hover:text-[#f9fafb]`;
 };
 
 export interface ImportLogTableProps {
@@ -453,7 +455,7 @@ export const ImportLogTable = (props: ImportLogTableProps) => {
 								<th
 									key={header.id}
 									className={cn(
-										'px-1 py-2 text-left text-gray-400 font-semibold sticky top-0',
+										'px-1 py-2 text-left text-[#9ca3af] font-semibold sticky top-0',
 										BG_CLASS
 									)}
 								>

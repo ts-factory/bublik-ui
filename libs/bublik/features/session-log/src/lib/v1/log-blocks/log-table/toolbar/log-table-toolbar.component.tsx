@@ -310,10 +310,10 @@ function ToggleGroupFilter(props: ToggleGroupFilterProps) {
 					className={cn(
 						'inline-flex items-center justify-center border px-2.5 py-[7px] text-xs font-medium rounded-md w-full',
 						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
-						'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu',
+						'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu',
 						'transition-all appearance-none select-none',
 						'[&[data-state=on]]:border-bg-error [&[data-state=on]]:text-white [&[data-state=on]]:bg-bg-error',
-						'[&[data-state=off]]:border-border-primary [&[data-state=off]]:bg-transparent [&[data-state=off]]:hover:bg-gray-50 [&[data-state=off]]:text-text-primary'
+						'[&[data-state=off]]:border-border-input [&[data-state=off]]:bg-transparent [&[data-state=off]]:hover:bg-gray-50 [&[data-state=off]]:text-text-primary'
 					)}
 					onClick={() => handleToggle('error', filters)}
 					disabled={!levels.includes(ERROR_LEVEL_NAME)}
@@ -352,7 +352,7 @@ function ToggleGroupFilterItem(props: ToggleGroupFilterItemProps) {
 						'hover:bg-gray-50',
 						'text-xs font-medium text-text-primary',
 						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
-						'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu',
+						'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu',
 						'transition-all appearance-none select-none',
 						'[&[data-state=on]]:bg-primary [&[data-state=on]]:text-white',
 						className

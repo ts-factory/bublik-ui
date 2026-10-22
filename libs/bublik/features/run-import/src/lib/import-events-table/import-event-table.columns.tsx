@@ -278,7 +278,7 @@ export const columns = [
 			const value = cell.getValue();
 			if (!value) return null;
 			return (
-				<span className="whitespace-pre-wrap font-mono text-xs text-red-600">
+				<span className="whitespace-pre-wrap font-mono text-xs text-text-unexpected">
 					{value}
 				</span>
 			);

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ECElementEvent } from 'echarts';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
-import { BarChart, PieChart } from '@/shared/charts';
+import { BarChart, PieChart, useChartSurfaceColor } from '@/shared/charts';
 
 import {
 	COLOR_MAP,
@@ -19,6 +19,7 @@ interface TestsSectionProps {
 }
 
 export const TestsSection = ({ stats }: TestsSectionProps) => {
+	const surfaceColor = useChartSurfaceColor();
 	const barRef = useRef<ReactEChartsCore>(null);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,7 +62,7 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 							itemStyle: {
 								borderRadius: 4,
 								borderWidth: 2,
-								borderColor: '#fff',
+								borderColor: surfaceColor,
 								color: (params) =>
 									COLOR_MAP.get(params.name.toLowerCase()) ?? 'blue'
 							},

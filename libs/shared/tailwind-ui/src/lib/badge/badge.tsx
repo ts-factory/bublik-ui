@@ -52,7 +52,7 @@ export const badgeBaseStyles = cva({
 export const badgeVariantStyles = cva({
 	variants: {
 		variant: {
-			[BadgeVariants.Transparent]: 'bg-transparent border-border-primary',
+			[BadgeVariants.Transparent]: 'bg-transparent border-border-input',
 			[BadgeVariants.Primary]: 'bg-badge-0',
 			[BadgeVariants.PrimaryActive]: 'bg-badge-9',
 			[BadgeVariants.Expected]: 'text-text-expected bg-badge-3',

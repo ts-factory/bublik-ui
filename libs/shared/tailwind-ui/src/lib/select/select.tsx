@@ -48,17 +48,17 @@ export const SelectItem: FC<SelectPrimitive.SelectItemProps> = ({ value }) => {
 
 const selectTriggerStyles = cva({
 	base: [
-		'inline-flex items-center justify-center rounded-md bg-white px-4 text-[1rem] font-medium gap-1 outline-none transition-colors'
+		'inline-flex items-center justify-center rounded-md bg-bg-primary px-4 text-[1rem] font-medium gap-1 outline-none transition-colors'
 	],
 	variants: {
 		variant: {
 			primary: 'hover:text-primary',
 			bordered:
-				'border border-border-primary py-2 hover:border-primary hover:bg-primary-wash hover:text-primary',
+				'border border-border-input py-2 hover:border-primary hover:bg-primary-wash hover:text-primary',
 			// Sized to sit in a table footer next to `xss` toolbar controls, where
 			// the `px-4 text-[1rem]` base towers over everything around it.
 			compact:
-				'!px-2 !text-xs h-7 border border-border-primary hover:border-primary hover:bg-primary-wash hover:text-primary'
+				'!px-2 !text-xs h-7 border border-border-input hover:border-primary hover:bg-primary-wash hover:text-primary'
 		}
 	}
 });
@@ -86,8 +86,8 @@ export const RadixSelect: FC<PaginationSelectProps> = ({
 					<Icon name="ArrowShortTop" className="size-[20px] rotate-180" />
 				</SelectIcon>
 			</SelectTrigger>
-			<SelectContent className="hidden bg-white rounded-md shadow-popover">
-				<SelectScrollUpButton className="flex items-center justify-center h-[25px] bg-white hover:text-primary cursor-default text-text-primary">
+			<SelectContent className="hidden bg-bg-elevated rounded-md shadow-popover">
+				<SelectScrollUpButton className="flex items-center justify-center h-[25px] bg-bg-primary hover:text-primary cursor-default text-text-primary">
 					<ChevronUpIcon />
 				</SelectScrollUpButton>
 				<SelectViewport className="p-[5px]">
@@ -95,7 +95,7 @@ export const RadixSelect: FC<PaginationSelectProps> = ({
 						<SelectItem key={value} value={value} />
 					))}
 				</SelectViewport>
-				<SelectScrollDownButton className="flex items-center justify-center h-[25px] bg-white hover:text-primary cursor-default text-text-primary">
+				<SelectScrollDownButton className="flex items-center justify-center h-[25px] bg-bg-primary hover:text-primary cursor-default text-text-primary">
 					<ChevronDownIcon />
 				</SelectScrollDownButton>
 			</SelectContent>

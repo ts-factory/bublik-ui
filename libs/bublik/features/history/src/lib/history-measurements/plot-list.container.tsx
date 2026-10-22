@@ -216,8 +216,8 @@ export function PlotListContainerByResult() {
 	});
 
 	return (
-		<div className="bg-white rounded-md">
-			<div className="sticky top-0 z-10 bg-white rounded-md">
+		<div className="bg-bg-primary rounded-md">
+			<div className="sticky top-0 z-10 bg-bg-primary rounded-md">
 				<CardHeader
 					label={
 						<div className="flex items-center gap-4">

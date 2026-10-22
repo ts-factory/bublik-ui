@@ -72,7 +72,7 @@ function BadgeSuggestionList({
 
 	return (
 		<PopoverContent
-			className="z-[60] p-0 bg-white rounded-lg shadow-popover w-[var(--radix-popover-trigger-width)]"
+			className="z-[60] p-0 bg-bg-elevated rounded-lg shadow-popover w-[var(--radix-popover-trigger-width)]"
 			align="start"
 			sideOffset={4}
 			onOpenAutoFocus={(event) => event.preventDefault()}

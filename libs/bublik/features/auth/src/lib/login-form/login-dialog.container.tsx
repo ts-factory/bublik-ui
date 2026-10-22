@@ -112,7 +112,7 @@ export function LoginDialogContainer() {
 					onInteractOutside={
 						isPagePrompt ? (event) => event.preventDefault() : undefined
 					}
-					className="w-full sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] z-50 relative overflow-auto max-h-[85vh]"
+					className="w-full sm:max-w-md p-6 bg-bg-primary sm:rounded-lg md:shadow min-w-[420px] z-50 relative overflow-auto max-h-[85vh]"
 				>
 					{!isPagePrompt ? (
 						<DialogClose

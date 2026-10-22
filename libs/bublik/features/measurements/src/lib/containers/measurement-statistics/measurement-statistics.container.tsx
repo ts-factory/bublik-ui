@@ -35,7 +35,7 @@ export const MeasurementStatisticsLoading: FC<
 > = ({ runId, resultId, path }) => {
 	return (
 		<div
-			className="flex-shrink-0 w-full bg-white rounded-md"
+			className="flex-shrink-0 w-full bg-bg-primary rounded-md"
 			data-testid="measurement-statistics"
 		>
 			<CardHeader label="Test result">
@@ -64,7 +64,7 @@ export const MeasurementStatisticsError = ({
 	error = {}
 }: MeasurementStatisticsErrorProps) => {
 	return (
-		<div className="flex-shrink-0 w-full bg-white rounded-md">
+		<div className="flex-shrink-0 w-full bg-bg-primary rounded-md">
 			<CardHeader label="Test result">
 				<div className="flex items-center gap-3"></div>
 			</CardHeader>
@@ -131,7 +131,7 @@ export const MeasurementStatisticsContainer: FC = () => {
 
 	return (
 		<div
-			className="flex-shrink-0 w-full bg-white rounded-md"
+			className="flex-shrink-0 w-full bg-bg-primary rounded-md"
 			data-testid="measurement-statistics"
 		>
 			<CardHeader label="Test result">

@@ -16,7 +16,7 @@ export const ModePicker = (props: ModePickerProps) => {
 			<Tooltip content="Single day, one column">
 				<span>
 					<ToggleGroupItem
-						className="px-[0.625rem] border-y border-y-border-primary rounded-l-md border-l border-l-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+						className="px-[0.625rem] border-y border-y-border-input rounded-l-md border-l border-l-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
 						value={DASHBOARD_MODE.Rows}
 						aria-label="Mode rows"
 					>
@@ -27,7 +27,7 @@ export const ModePicker = (props: ModePickerProps) => {
 			<Tooltip content="Single day, two columns">
 				<span>
 					<ToggleGroupItem
-						className="px-[0.625rem] border-y border-y-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+						className="px-[0.625rem] border-y border-y-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
 						value={DASHBOARD_MODE.RowsLine}
 						aria-label="Mode rows line"
 					>
@@ -39,7 +39,7 @@ export const ModePicker = (props: ModePickerProps) => {
 			<Tooltip content="Two days, one column per day">
 				<span>
 					<ToggleGroupItem
-						className="px-[0.625rem] border-y border-y-border-primary rounded-r-md border-r border-r-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+						className="px-[0.625rem] border-y border-y-border-input rounded-r-md border-r border-r-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
 						value={DASHBOARD_MODE.Columns}
 						aria-label="Mode columns"
 					>

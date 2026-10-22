@@ -111,13 +111,13 @@ export function ScopeValuePicker({
 					</Tooltip>
 					{/* The History inputs' bin, on the border opposite the label. */}
 					{!disabled ? (
-						<div className="absolute -top-3 right-[9px] z-10 flex items-center bg-white px-1">
+						<div className="absolute -top-3 right-[9px] z-10 flex items-center bg-bg-primary px-1">
 							<IconButton
 								name="Bin"
 								size={14}
 								helpMessage={`Clear ${label.toLowerCase()}`}
 								onClick={() => onChange([])}
-								className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-red-100"
+								className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60"
 							/>
 						</div>
 					) : null}
@@ -228,7 +228,7 @@ export function ScopeValuePicker({
 
 			<PopoverPortal container={container?.current ?? undefined}>
 				<PopoverContent
-					className="z-[60] p-0 bg-white rounded-lg shadow-popover w-[var(--radix-popover-trigger-width)]"
+					className="z-[60] p-0 bg-bg-elevated rounded-lg shadow-popover w-[var(--radix-popover-trigger-width)]"
 					align="start"
 					sideOffset={4}
 					onOpenAutoFocus={(event) => event.preventDefault()}

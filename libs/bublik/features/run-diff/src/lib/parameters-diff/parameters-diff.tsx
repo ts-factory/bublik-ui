@@ -52,8 +52,8 @@ export const ParametersDiff: FC<ParameterDiffProps> = (props) => {
 								mode="pre"
 								className={cn(
 									'bg-badge-1',
-									change.added && 'bg-green-300 text-black',
-									change.removed && 'bg-red-300 text-black'
+									change.added && 'bg-bg-ok/50 text-text-primary',
+									change.removed && 'bg-bg-error/40 text-text-primary'
 								)}
 								displayDelimiter={config.keyValueDisplayDelimiter}
 								submitDelimiter={config.keyValueSubmitDelimiter}

@@ -37,7 +37,10 @@ import type {
 	XAXisComponentOption,
 	YAXisComponentOption
 } from 'echarts';
+import { useTheme } from '@/shared/hooks';
+
 import { twTheme } from './tw-theme';
+import { DARK_THEME_NAME, darkTheme } from './dark-theme';
 import { DatasetOption, TooltipOption } from 'echarts/types/dist/shared';
 
 // Register the required components
@@ -86,12 +89,26 @@ export type EChartsOption = ComposeOption<
 >;
 
 export const getInstanceByDom = echarts.getInstanceByDom;
+export { useChartSurfaceColor } from './dark-theme';
 
 echarts.registerTheme(twTheme.themeName, twTheme);
+echarts.registerTheme(DARK_THEME_NAME, darkTheme);
 
 export const ReactECharts = forwardRef<
 	ReactEChartsCore,
 	ComponentProps<typeof ReactEChartsCore>
 >((props, ref) => {
-	return <ReactEChartsCore echarts={echarts} {...props} ref={ref} />;
+	const { resolvedTheme } = useTheme();
+	const isDark = resolvedTheme === 'dark';
+
+	// ECharts applies a theme only on init, so a theme change remounts the chart
+	return (
+		<ReactEChartsCore
+			key={resolvedTheme}
+			echarts={echarts}
+			{...props}
+			theme={isDark ? DARK_THEME_NAME : props.theme}
+			ref={ref}
+		/>
+	);
 });

@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon } from 'lucide-react';
 import ShikiHighlighter from 'react-shiki';
 
 import { cn } from '@/shared/tailwind-ui';
-import { useCopyToClipboard } from '@/shared/hooks';
+import { useCopyToClipboard, useTheme } from '@/shared/hooks';
 
 interface CodeBlockProps {
 	code: string;
@@ -14,6 +14,7 @@ interface CodeBlockProps {
 }
 
 function CodeBlock({ code, language, className }: CodeBlockProps) {
+	const { resolvedTheme } = useTheme();
 	const [isCopied, setIsCopied] = useState(false);
 	const timeoutRef = useRef<number>(0);
 	const [, copy] = useCopyToClipboard();
@@ -39,7 +40,7 @@ function CodeBlock({ code, language, className }: CodeBlockProps) {
 				<span className="font-mono">{language}</span>
 				<button
 					onClick={handleCopy}
-					className="flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors hover:bg-muted"
+					className="flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors hover:bg-primary-wash"
 					type="button"
 				>
 					{isCopied ? (
@@ -54,7 +55,7 @@ function CodeBlock({ code, language, className }: CodeBlockProps) {
 			</div>
 			<ShikiHighlighter
 				language={language}
-				theme="github-light"
+				theme={resolvedTheme === 'dark' ? 'github-dark' : 'github-light'}
 				addDefaultStyles={false}
 				className="[&_pre]:m-0 [&_pre]:overflow-auto [&_pre]:p-3 [&_pre]:text-sm"
 			>

@@ -100,7 +100,7 @@ function RunCommentFormContainer(props: RunCommentFormContainerProps) {
 			<PopoverPortal container={document.body}>
 				<PopoverContent
 					className={cn(
-						'relative p-4 bg-white flex flex-col gap-4 rounded-md w-96 shadow-popover'
+						'relative p-4 bg-bg-elevated flex flex-col gap-4 rounded-md w-96 shadow-popover'
 					)}
 					align="start"
 					sideOffset={8}

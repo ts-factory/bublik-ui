@@ -38,10 +38,10 @@ function Router() {
 function Root() {
 	return (
 		<div className="flex h-full gap-1 p-2 overflow-y-hidden">
-			<aside className="w-96 bg-white rounded-md shrink-0">
+			<aside className="w-96 bg-bg-primary rounded-md shrink-0">
 				<TreeContainer />
 			</aside>
-			<main className="bg-white rounded-md flex-1 flex flex-col overflow-hidden">
+			<main className="bg-bg-primary rounded-md flex-1 flex flex-col overflow-hidden">
 				<CardHeader label="Log" />
 				<div className="flex-1 overflow-auto">
 					<LogContainer />

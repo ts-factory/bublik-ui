@@ -12,7 +12,7 @@ export const UsersModalLayout = (
 	props: PropsWithChildren<UsersModalLayoutProps>
 ) => {
 	return (
-		<ModalContent className="w-full sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] z-10 relative overflow-auto max-h-[85vh]">
+		<ModalContent className="w-full sm:max-w-md p-6 bg-bg-primary sm:rounded-lg md:shadow min-w-[420px] z-10 relative overflow-auto max-h-[85vh]">
 			<DialogClose
 				aria-label="Close"
 				className="absolute grid p-1 transition-colors rounded-md right-4 top-4 place-items-center text-text-menu hover:bg-primary-wash hover:text-primary"

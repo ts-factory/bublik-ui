@@ -27,11 +27,11 @@ const gridClassName = 'grid grid-cols-[0.5fr,1fr]';
 
 const classNames: TableClassNames<HistoryDataAggregation> = {
 	header: 'sticky top-0 z-10',
-	headerRow: `h-10 bg-white px-4 ${gridClassName} rounded-b`,
+	headerRow: `h-10 bg-bg-primary px-4 ${gridClassName} rounded-b`,
 	headerCell:
 		'text-[0.6875rem] font-semibold leading-[0.875rem] justify-start flex items-center',
 	body: 'space-y-1 [&>:first-of-type]:mt-1',
-	bodyRow: `bg-white py-2 px-3 rounded-md ${gridClassName} border border-transparent hover:border-primary transition-colors`,
+	bodyRow: `bg-bg-primary py-2 px-3 rounded-md ${gridClassName} border border-transparent hover:border-primary transition-colors`,
 	bodyCell: 'px-1'
 };
 

@@ -50,8 +50,14 @@ const getIcon = (entity: NodeEntityValue | NodeEntity) => {
 	}
 };
 
-const focused = { backgroundColor: '#f7faff', color: '#627efb' };
-const scrolled = { backgroundColor: 'white', borderColor: '#627efb' };
+const focused = {
+	backgroundColor: 'hsl(var(--colors-primary-wash))',
+	color: 'hsl(var(--colors-primary-ink))'
+};
+const scrolled = {
+	backgroundColor: 'hsl(var(--colors-bg-primary))',
+	borderColor: 'hsl(var(--colors-primary))'
+};
 
 export interface TreeItemProps extends ComponentPropsWithRef<'div'> {
 	entity: NodeEntityValue | NodeEntity;
@@ -107,9 +113,9 @@ export const TreeItem: FC<TreeItemProps> = memo((props) => {
 			<Tooltip content={tooltipPath} side="bottom" disabled={isDisabled}>
 				<div
 					className={cn(
-						'flex items-center justify-center w-full h-full min-w-0 mx-4 rounded cursor-pointer border border-transparent bg-[#d7dbe4c] hover:border-primary hover:bg-white active:bg-[#f8f8fa] active:text-primary',
+						'flex items-center justify-center w-full h-full min-w-0 mx-4 rounded cursor-pointer border border-transparent hover:border-primary hover:bg-bg-primary active:bg-primary-wash active:text-primary',
 						isFocus && 'text-primary bg-primary-wash',
-						isScroll && 'bg-white border-primary'
+						isScroll && 'bg-bg-primary border-primary'
 					)}
 					data-testid="log-tree-item"
 					data-log-tree-item-id={props.id}

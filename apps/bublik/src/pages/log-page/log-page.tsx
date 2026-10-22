@@ -29,7 +29,10 @@ const LogHeader = ({ runId }: LogHeaderProps) => {
 	};
 
 	return (
-		<div className="flex flex-col bg-white rounded-md" data-testid="log-info">
+		<div
+			className="flex flex-col bg-bg-primary rounded-md"
+			data-testid="log-info"
+		>
 			<CardHeader label="Info">
 				<div className="flex gap-2 items-center">
 					<RunModeToggle

@@ -20,7 +20,7 @@ export const ModeTables = () => {
 		<div className="p-2">
 			<div className="flex flex-col gap-1">
 				<MeasurementStatisticsContainer />
-				<div className="bg-white rounded-md">
+				<div className="bg-bg-primary rounded-md">
 					<TableHeader>
 						<ExportChartContainer resultId={resultId} />
 					</TableHeader>

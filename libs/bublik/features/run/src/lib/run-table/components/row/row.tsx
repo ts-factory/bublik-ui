@@ -72,7 +72,7 @@ export const RunRow = ({
 							cell.column.parent?.columns?.length ?? 0 - 1 === parentIndex;
 
 						const className = cn(
-							'px-2 py-0 bg-white z-10',
+							'px-2 py-0 bg-bg-primary z-10',
 							isLast && 'border-r',
 							cell.column.columnDef.meta?.className
 						);
@@ -100,7 +100,10 @@ export const RunRow = ({
 			</tr>
 			{row.getIsExpanded() && row.original?.type === NodeEntity.Test ? (
 				<tr role="row">
-					<td colSpan={row.getVisibleCells().length} className="p-0 bg-white">
+					<td
+						colSpan={row.getVisibleCells().length}
+						className="p-0 bg-bg-primary"
+					>
 						<div
 							data-testid="run-result-table"
 							data-test-name={row.original?.test_name}

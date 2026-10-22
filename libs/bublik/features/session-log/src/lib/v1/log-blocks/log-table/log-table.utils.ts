@@ -6,6 +6,9 @@ import { LogTableBlock, LogTableData } from '@/shared/types';
 import { flatten, getAllEntitiesMapWithUsers } from './log-table.hooks';
 import { LogTableFilterValue } from './log-table.types';
 
+// Hover deepens the row's tint: darker on a light page, lighter on a dark one
+const ROW_HOVER = 'hover:brightness-95 dark:hover:brightness-125';
+
 export const getRowColor = (row: LogTableBlock['data'][number]) => {
 	const BLUE_HIGHLIGHT = ['TAPI Jumps'];
 	const GREEN_HIGHLIGHT = ['StepPush', 'StepPop', 'Artifact', 'Verdict'];
@@ -14,15 +17,15 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 	const getColorByLevel = (level: LogTableData['level']) => {
 		switch (level) {
 			case 'ERROR':
-				return 'bg-red-200/80 hover:bg-red-300/70';
+				return `bg-log-row-error ${ROW_HOVER}`;
 			case 'WARN':
-				return 'bg-orange-200/60 hover:bg-orange-300/70';
+				return `bg-log-row-warn ${ROW_HOVER}`;
 			case 'INFO':
-				return 'bg-blue-200/60 hover:bg-blue-200';
+				return `bg-log-row-info ${ROW_HOVER}`;
 			case 'VERB':
-				return 'bg-indigo-200/80 hover:bg-indigo-300';
+				return `bg-log-row-verb ${ROW_HOVER}`;
 			case 'PACKET':
-				return 'bg-gray-200 hover:bg-gray-300/80';
+				return `bg-log-row-packet ${ROW_HOVER}`;
 			default:
 				return 'hover:bg-gray-50';
 		}
@@ -36,7 +39,7 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 	}
 
 	if (BLUE_HIGHLIGHT.includes(row.user_name) && !isErrorLevel(row.level)) {
-		return 'bg-blue-200/60 hover:bg-blue-200';
+		return `bg-log-row-info ${ROW_HOVER}`;
 	}
 
 	if (
@@ -44,7 +47,7 @@ export const getRowColor = (row: LogTableBlock['data'][number]) => {
 		row.level !== 'MI' &&
 		!isErrorLevel(row.level)
 	) {
-		return 'bg-green-200/70 hover:bg-green-300';
+		return `bg-log-row-step ${ROW_HOVER}`;
 	}
 
 	return getColorByLevel(row.level);

@@ -6,13 +6,13 @@ exports[`TextArea > should render default variant 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,hsl(var(--colors-bg-primary))_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area
     </label>
     <textarea
-      class="block w-full px-3.5 py-[7px] outline-none border rounded text-text-secondary transition-all resize-none disabled:text-text-menu disabled:cursor-not-allowed active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem] leading-[1.5rem] border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+      class="block w-full px-3.5 py-[7px] outline-none border rounded text-text-secondary transition-all resize-none disabled:text-text-menu disabled:cursor-not-allowed active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem] leading-[1.5rem] border-border-input focus:shadow-text-field focus:border-primary hover:border-primary"
       data-testid="textarea"
     />
   </div>
@@ -25,13 +25,13 @@ exports[`TextArea > should render primary variant 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,hsl(var(--colors-bg-primary))_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area
     </label>
     <textarea
-      class="block w-full px-3.5 py-[7px] outline-none border rounded text-text-secondary transition-all resize-none disabled:text-text-menu disabled:cursor-not-allowed active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem] leading-[1.5rem] border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary"
+      class="block w-full px-3.5 py-[7px] outline-none border rounded text-text-secondary transition-all resize-none disabled:text-text-menu disabled:cursor-not-allowed active:shadow-none focus:ring-transparent placeholder:text-text-menu placeholder:font-normal font-medium text-[0.875rem] leading-[1.5rem] border-border-input focus:shadow-text-field focus:border-primary hover:border-primary"
       data-testid="textarea"
     />
   </div>
@@ -44,7 +44,7 @@ exports[`TextArea > should render with error 1`] = `
     class="relative"
   >
     <label
-      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,white_12px,transparent_12px)]"
+      class="font-medium text-text-secondary text-[0.875rem] absolute top-[-11px] left-2 bg-[linear-gradient(to_bottom,hsl(var(--colors-bg-primary))_12px,transparent_12px)]"
       data-testid="input-label"
     >
       Text area

@@ -114,7 +114,7 @@ export const Chart = (props: ChartProps) => {
 	const { series, title, xAxis, yAxises, legends, errors } = props.config;
 
 	return (
-		<div className="bg-white py-4 rounded-md">
+		<div className="bg-bg-primary py-4 rounded-md">
 			<h2 className="font-bold text-center">{title}</h2>
 			<ReactECharts
 				option={{

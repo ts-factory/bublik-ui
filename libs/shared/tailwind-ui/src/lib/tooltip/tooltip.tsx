@@ -12,7 +12,7 @@ const tooltipContentStyles = cva({
 		'text-[0.6875rem]',
 		'font-medium',
 		'leading-[0.875rem]',
-		'bg-white',
+		'bg-bg-elevated',
 		'z-50',
 		'rdx-state-delayed-open:rdx-side-top:animate-slide-down-fade',
 		'rdx-state-delayed-open:rdx-side-right:animate-slide-left-fade',
@@ -61,7 +61,7 @@ export const Tooltip = (props: TooltipProps) => {
 					alignOffset={alignOffset}
 				>
 					{content}
-					<RadixTooltip.Arrow className="fill-white" />
+					<RadixTooltip.Arrow className="fill-bg-elevated" />
 				</RadixTooltip.Content>
 			</RadixTooltip.Portal>
 		</RadixTooltip.Root>

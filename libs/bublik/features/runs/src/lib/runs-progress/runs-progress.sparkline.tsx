@@ -235,7 +235,7 @@ function SparklineHoverChart({
 	const active = hoveredIndex !== null ? points[hoveredIndex] ?? null : null;
 
 	return (
-		<div className="w-[360px] rounded-md border border-border-primary bg-white p-2 shadow-popover">
+		<div className="w-[360px] rounded-md border border-border-primary bg-bg-elevated p-2 shadow-popover">
 			<div className="mb-1.5 flex min-h-[2.25rem] items-start justify-between gap-2 text-[0.6875rem] leading-tight">
 				{active ? (
 					<>

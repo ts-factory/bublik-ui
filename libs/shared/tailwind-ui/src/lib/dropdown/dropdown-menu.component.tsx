@@ -47,7 +47,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<DropdownMenuPrimitive.SubContent
 		className={cn(
-			'z-50 min-w-[8rem] overflow-hidden rounded-md bg-white p-1 text-popover-foreground shadow-popover',
+			'z-50 min-w-[8rem] overflow-hidden rounded-md bg-bg-elevated p-1 text-text-primary shadow-popover',
 			'rdx-state-open:rdx-side-top:animate-slide-down-fade',
 			'rdx-state-open:rdx-side-right:animate-slide-left-fade',
 			'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',
@@ -75,7 +75,7 @@ const DropdownMenuContent = React.forwardRef<
 			sideOffset={sideOffset}
 			collisionPadding={collisionPadding}
 			className={cn(
-				'z-50 min-w-[8rem] overflow-hidden p-1 rounded-lg bg-white shadow-popover',
+				'z-50 min-w-[8rem] overflow-hidden p-1 rounded-lg bg-bg-elevated shadow-popover',
 				'rdx-state-open:rdx-side-top:animate-slide-down-fade',
 				'rdx-state-open:rdx-side-right:animate-slide-left-fade',
 				'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',

@@ -208,7 +208,7 @@ function TestComments(props: TestCommentsProps) {
 					<PopoverPortal container={document.body}>
 						<PopoverContent
 							className={cn(
-								'relative p-4 bg-white rounded-md w-96 shadow-popover'
+								'relative p-4 bg-bg-elevated rounded-md w-96 shadow-popover'
 							)}
 							align="end"
 							sideOffset={8}
@@ -269,7 +269,7 @@ function TestComments(props: TestCommentsProps) {
 					<PopoverPortal>
 						<PopoverContent
 							className={cn(
-								'relative p-4 bg-white rounded-md w-96 shadow-popover'
+								'relative p-4 bg-bg-elevated rounded-md w-96 shadow-popover'
 							)}
 							sideOffset={8}
 							align="end"
@@ -287,7 +287,7 @@ function TestComments(props: TestCommentsProps) {
 				</Popover>
 				<PopoverPortal>
 					<PopoverContent
-						className="relative p-4 bg-white rounded-md w-96 shadow-popover"
+						className="relative p-4 bg-bg-elevated rounded-md w-96 shadow-popover"
 						sideOffset={8}
 						align="end"
 					>
@@ -396,7 +396,7 @@ function TestComments(props: TestCommentsProps) {
 									{editId ? (
 										<Tooltip content="Cancel">
 											<button
-												className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
+												className="inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-primary bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-border-primary px-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5 size-[30px]"
 												onClick={() => {
 													setEditId(null);
 													setInput('');

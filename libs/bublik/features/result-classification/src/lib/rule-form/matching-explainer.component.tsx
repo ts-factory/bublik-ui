@@ -38,7 +38,7 @@ export function MatchingExplainer({
 			</PopoverTrigger>
 			<PopoverPortal container={container?.current ?? undefined}>
 				<PopoverContent
-					className="z-[60] w-[36rem] max-w-[calc(100vw-2rem)] rounded-lg bg-white p-5 text-[0.8125rem] leading-5 shadow-popover"
+					className="z-[60] w-[36rem] max-w-[calc(100vw-2rem)] rounded-lg bg-bg-elevated p-5 text-[0.8125rem] leading-5 shadow-popover"
 					align="start"
 					sideOffset={4}
 				>

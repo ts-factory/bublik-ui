@@ -36,7 +36,7 @@ export const RangeCalendar = (props: RangeCalendarProps) => {
 			<div className="flex items-center justify-between w-full pb-4">
 				<div className="w-10 flex justify-center">
 					<Button
-						className="transition-colors text-text-menu hover:text-primary border border-border-primary rounded-md size-7 grid place-items-center"
+						className="transition-colors text-text-menu hover:text-primary border border-border-input rounded-md size-7 grid place-items-center"
 						{...prevButtonProps}
 					>
 						<Icon name="ArrowShortTop" size={18} className="-rotate-90" />
@@ -48,7 +48,7 @@ export const RangeCalendar = (props: RangeCalendarProps) => {
 				</div>
 				<div className="w-10 flex justify-center">
 					<Button
-						className="transition-colors text-text-menu hover:text-primary border border-border-primary rounded-md size-7 grid place-items-center"
+						className="transition-colors text-text-menu hover:text-primary border border-border-input rounded-md size-7 grid place-items-center"
 						{...nextButtonProps}
 					>
 						<Icon name="ArrowShortTop" size={18} className="rotate-90" />

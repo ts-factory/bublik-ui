@@ -364,7 +364,7 @@ export function IssueResultsCard({
 	}
 
 	return (
-		<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+		<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 			<ClassificationToolbar breakpoint="lg">
 				<span className="text-[0.75rem] font-semibold leading-[0.875rem] text-text-primary">
 					Results

@@ -81,7 +81,7 @@ export const DatePicker = forwardRef<
 		<Popover open={state.isOpen}>
 			<PopoverAnchor
 				className={cn(
-					'relative flex gap-1 border rounded w-fit border-border-primary px-3.5 h-10 focus-within:border-primary focus-within:shadow-text-field transition-all',
+					'relative flex gap-1 border rounded w-fit border-border-input px-3.5 h-10 focus-within:border-primary focus-within:shadow-text-field transition-all',
 					state.isOpen && 'border-primary shadow-text-field'
 				)}
 			>
@@ -91,7 +91,7 @@ export const DatePicker = forwardRef<
 
 				<label
 					{...labelProps}
-					className="absolute top-[-11px] left-2 font-medium text-[0.875rem] text-text-secondary bg-white"
+					className="absolute top-[-11px] left-2 font-medium text-[0.875rem] text-text-secondary bg-bg-primary"
 				>
 					{props.label}
 				</label>
@@ -116,7 +116,7 @@ export const DatePicker = forwardRef<
 			</PopoverAnchor>
 
 			<PopoverContent
-				className="px-8 py-6 bg-white rounded-xl shadow-popover"
+				className="px-8 py-6 bg-bg-elevated rounded-xl shadow-popover"
 				onInteractOutside={state.close}
 				onEscapeKeyDown={state.close}
 				sideOffset={8}

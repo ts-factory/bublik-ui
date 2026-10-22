@@ -27,7 +27,7 @@ export const RunsListModal = ({ ids, open, onOpenChange }: RunsListModal) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<ModalContent className="bg-white rounded-lg p-4 overflow-auto relative max-w-2xl">
+			<ModalContent className="bg-bg-primary rounded-lg p-4 overflow-auto relative max-w-2xl">
 				<button
 					aria-label="Close modal"
 					className="rounded-md hover:bg-primary-wash p-1 absolute right-4 top-4 text-text-menu hover:text-primary"

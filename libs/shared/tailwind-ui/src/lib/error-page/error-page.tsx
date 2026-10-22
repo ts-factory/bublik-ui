@@ -22,7 +22,7 @@ export const ErrorPage = ({
 		<div className={cn('w-full h-screen p-2 overflow-auto')}>
 			<div
 				className={cn(
-					'flex flex-col items-center w-full h-full p-4 bg-white rounded-lg',
+					'flex flex-col items-center w-full h-full p-4 bg-bg-primary rounded-lg',
 					!error && 'justify-center'
 				)}
 			>

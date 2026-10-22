@@ -28,7 +28,7 @@ export const textAreaStyles = cva({
 	variants: {
 		variant: {
 			primary:
-				'border-border-primary focus:shadow-text-field focus:border-primary hover:border-primary',
+				'border-border-input focus:shadow-text-field focus:border-primary hover:border-primary',
 			error:
 				'border-bg-error focus:shadow-text-field-error focus:border-bg-error hover:border-bg-error'
 		}

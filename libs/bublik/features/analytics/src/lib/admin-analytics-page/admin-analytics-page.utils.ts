@@ -22,96 +22,29 @@ type AnalyticsColorScheme = {
 	};
 };
 
+// Badges are tinted from their chart colour against the theme's surface and
+// ink, so the same palette reads in light and dark
+const toBadgeStyle = (
+	chartColor: string
+): AnalyticsColorScheme['badgeStyle'] => ({
+	backgroundColor: `color-mix(in srgb, ${chartColor} 16%, hsl(var(--colors-bg-primary)))`,
+	borderColor: `color-mix(in srgb, ${chartColor} 45%, hsl(var(--colors-bg-primary)))`,
+	color: `color-mix(in srgb, ${chartColor} 55%, hsl(var(--colors-text-primary)))`
+});
+
 const ANALYTICS_COLOR_SCHEMES: AnalyticsColorScheme[] = [
-	{
-		chartColor: '#2563EB',
-		badgeStyle: {
-			backgroundColor: '#DBEAFE',
-			borderColor: '#93C5FD',
-			color: '#1E3A8A'
-		}
-	},
-	{
-		chartColor: '#0891B2',
-		badgeStyle: {
-			backgroundColor: '#CFFAFE',
-			borderColor: '#67E8F9',
-			color: '#164E63'
-		}
-	},
-	{
-		chartColor: '#16A34A',
-		badgeStyle: {
-			backgroundColor: '#DCFCE7',
-			borderColor: '#86EFAC',
-			color: '#14532D'
-		}
-	},
-	{
-		chartColor: '#65A30D',
-		badgeStyle: {
-			backgroundColor: '#ECFCCB',
-			borderColor: '#BEF264',
-			color: '#365314'
-		}
-	},
-	{
-		chartColor: '#CA8A04',
-		badgeStyle: {
-			backgroundColor: '#FEF9C3',
-			borderColor: '#FDE047',
-			color: '#713F12'
-		}
-	},
-	{
-		chartColor: '#EA580C',
-		badgeStyle: {
-			backgroundColor: '#FFEDD5',
-			borderColor: '#FDBA74',
-			color: '#7C2D12'
-		}
-	},
-	{
-		chartColor: '#DC2626',
-		badgeStyle: {
-			backgroundColor: '#FEE2E2',
-			borderColor: '#FCA5A5',
-			color: '#7F1D1D'
-		}
-	},
-	{
-		chartColor: '#DB2777',
-		badgeStyle: {
-			backgroundColor: '#FCE7F3',
-			borderColor: '#F9A8D4',
-			color: '#831843'
-		}
-	},
-	{
-		chartColor: '#9333EA',
-		badgeStyle: {
-			backgroundColor: '#F3E8FF',
-			borderColor: '#D8B4FE',
-			color: '#581C87'
-		}
-	},
-	{
-		chartColor: '#4F46E5',
-		badgeStyle: {
-			backgroundColor: '#E0E7FF',
-			borderColor: '#A5B4FC',
-			color: '#312E81'
-		}
-	},
-	{
-		chartColor: '#334155',
-		badgeStyle: {
-			backgroundColor: '#E2E8F0',
-			borderColor: '#94A3B8',
-			color: '#0F172A'
-		}
-	}
-];
+	'#2563EB',
+	'#0891B2',
+	'#16A34A',
+	'#65A30D',
+	'#CA8A04',
+	'#EA580C',
+	'#DC2626',
+	'#DB2777',
+	'#9333EA',
+	'#4F46E5',
+	'#334155'
+].map((chartColor) => ({ chartColor, badgeStyle: toBadgeStyle(chartColor) }));
 
 const DEFAULT_ANALYTICS_COLOR_SCHEME = ANALYTICS_COLOR_SCHEMES[0];
 

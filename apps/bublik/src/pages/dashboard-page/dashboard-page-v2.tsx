@@ -74,7 +74,7 @@ export const DashboardPageV2 = () => {
 
 	return (
 		<div className="flex flex-col h-full gap-1 p-2">
-			<header className="flex flex-col px-6 py-4 bg-white rounded-t-xl">
+			<header className="flex flex-col px-6 py-4 bg-bg-primary rounded-t-xl">
 				<div className="flex flex-wrap gap-4 justify-between">
 					<div className="flex flex-wrap items-stretch justify-center gap-4">
 						<SearchBarContainer />

@@ -31,7 +31,7 @@ export function Tool({
 		<Collapsible
 			defaultOpen={defaultOpen}
 			className={cn(
-				'rounded-md border border-border-primary bg-white/70',
+				'rounded-md border border-border-primary bg-bg-primary/70',
 				className
 			)}
 		>

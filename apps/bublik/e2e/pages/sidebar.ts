@@ -85,6 +85,44 @@ class Sidebar {
 		await expect(submenuToggles.first()).toBeVisible({ timeout: 15_000 });
 	}
 
+	/** A theme card of the settings dialog's Appearance section */
+	private themeCard(name: 'System' | 'Light' | 'Dark'): Locator {
+		return this.settingsDialog()
+			.getByRole('radiogroup', { name: 'Theme' })
+			.getByRole('radio', { name, exact: true });
+	}
+
+	/** Opens the settings dialog on Appearance, unless it is already open there */
+	async openAppearanceSettings(): Promise<void> {
+		if (await this.themeCard('Light').isVisible()) return;
+
+		await this.openAccountMenu();
+		await this.accountMenuItem('Appearance').click();
+		await expect(this.themeCard('Light')).toBeVisible({ timeout: 15_000 });
+	}
+
+	async pickTheme(name: 'System' | 'Light' | 'Dark'): Promise<void> {
+		await this.openAppearanceSettings();
+		await this.themeCard(name).click();
+		await this.expectActiveTheme(name);
+	}
+
+	async expectActiveTheme(name: 'System' | 'Light' | 'Dark'): Promise<void> {
+		await this.openAppearanceSettings();
+		await expect(this.themeCard(name)).toHaveAttribute('aria-checked', 'true');
+	}
+
+	/** The theme lands as a class on <html>, which every token reads */
+	async expectTheme(theme: 'light' | 'dark'): Promise<void> {
+		const html = this.page.locator('html');
+
+		if (theme === 'dark') {
+			await expect(html).toHaveClass(/(^|\s)dark(\s|$)/);
+		} else {
+			await expect(html).not.toHaveClass(/(^|\s)dark(\s|$)/);
+		}
+	}
+
 	/** The main Issues item; the submenu repeats the name, so take the first. */
 	private issuesLink(): Locator {
 		return this.page

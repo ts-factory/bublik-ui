@@ -146,8 +146,10 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 							<span
 								key={idx}
 								className={cn(
-									change.added && 'bg-green-300 text-black border-transparent',
-									change.removed && 'bg-red-300 text-black border-transparent'
+									change.added &&
+										'bg-bg-ok/50 text-text-primary border-transparent',
+									change.removed &&
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 							>
 								{formatDiffValue(change.value)}
@@ -166,8 +168,10 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 							<span
 								key={idx}
 								className={cn(
-									change.added && 'bg-green-300 text-black border-transparent',
-									change.removed && 'bg-red-300 text-black border-transparent'
+									change.added &&
+										'bg-bg-ok/50 text-text-primary border-transparent',
+									change.removed &&
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 							>
 								{formatDiffValue(change.value)}
@@ -191,8 +195,10 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 							<span
 								key={idx}
 								className={cn(
-									change.added && 'bg-green-300 text-black border-transparent',
-									change.removed && 'bg-red-300 text-black border-transparent'
+									change.added &&
+										'bg-bg-ok/50 text-text-primary border-transparent',
+									change.removed &&
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 							>
 								{formatDiffValue(change.value)}
@@ -211,8 +217,10 @@ const TagDiff = ({ left, right }: TagDiffProps) => {
 							<span
 								key={idx}
 								className={cn(
-									change.added && 'bg-green-300 text-black border-transparent',
-									change.removed && 'bg-red-300 text-black border-transparent'
+									change.added &&
+										'bg-bg-ok/50 text-text-primary border-transparent',
+									change.removed &&
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 							>
 								{formatDiffValue(change.value)}
@@ -243,9 +251,9 @@ const MultipleDiff = (props: MultipleDiffProps) => {
 									infoListItemStyles({ isLink: Boolean(meta.url) }),
 									meta.className ? meta.className : 'bg-badge-0',
 									props.change.added &&
-										'bg-green-300 text-black border-transparent',
+										'bg-bg-ok/50 text-text-primary border-transparent',
 									props.change.removed &&
-										'bg-red-300 text-black border-transparent'
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 								href={meta.url}
 								target="_blank"
@@ -263,9 +271,9 @@ const MultipleDiff = (props: MultipleDiffProps) => {
 								infoListItemStyles({ isLink: Boolean(meta.url) }),
 								meta.className ? meta.className : 'bg-badge-0',
 								props.change.added &&
-									'bg-green-300 text-black border-transparent',
+									'bg-bg-ok/50 text-text-primary border-transparent',
 								props.change.removed &&
-									'bg-red-300 text-black border-transparent'
+									'bg-bg-error/40 text-text-primary border-transparent'
 							)}
 						>
 							{formatDiffValue(meta.value)}

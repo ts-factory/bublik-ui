@@ -21,7 +21,7 @@ function ModeOverlay() {
 		<div className="p-2 h-full">
 			<div className="flex flex-col gap-1 h-full">
 				<MeasurementStatisticsContainer />
-				<div className="relative transition-all bg-white rounded-md h-[120vh]">
+				<div className="relative transition-all bg-bg-primary rounded-md h-[120vh]">
 					<CardHeader label="Charts" />
 					<div className="h-full p-4">
 						<OverlayContainer resultId={resultId} />

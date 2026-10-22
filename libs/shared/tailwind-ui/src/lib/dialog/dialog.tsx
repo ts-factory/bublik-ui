@@ -11,6 +11,7 @@ export const dialogOverlayStyles = cva({
 		'inset-0',
 		'bg-black',
 		'bg-opacity-15',
+		'dark:bg-opacity-50',
 		'backdrop-blur-sm',
 		'z-40',
 		'motion-safe:rdx-state-open:animate-fade-in',

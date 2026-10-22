@@ -70,7 +70,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 				<div className="flex items-center gap-2">
 					{compareIds.length >= 2 ? (
 						<LinkWithProject
-							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-ring-primary"
 							onClick={onMultipleClick}
 							to={{
 								pathname: '/multiple',
@@ -96,7 +96,7 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 					)}
 					{compareIds.length === 2 ? (
 						<LinkWithProject
-							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-[#94b0ff]"
+							className="w-full relative inline-flex items-center justify-center transition-all appearance-none select-none whitespace-nowrap text-white bg-primary py-1 px-3 text-[0.875rem] font-medium leading-[1.5rem] rounded-lg border-[3px] border-transparent gap-2 hover:border-ring-primary"
 							onClick={onCompareClick}
 							to={{
 								pathname: '/compare',
@@ -206,7 +206,7 @@ function SelectedResultItem(props: SelectedResultItemProps) {
 						<Tooltip content="Remove from compare" disableHoverableContent>
 							<button
 								aria-label="Remove from compare"
-								className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
+								className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-bg-fillError/60"
 								onClick={onRemoveClick}
 							>
 								<Icon name="CrossSimple" />

@@ -16,7 +16,7 @@ const CheckedIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
 				{...props}
 				ref={ref}
 			>
-				<rect width="12" height="12" fill="white" />
+				<rect width="12" height="12" className="fill-bg-primary" />
 				<circle
 					cx="6"
 					cy="6"
@@ -42,7 +42,7 @@ const UncheckedIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
 				{...props}
 				ref={ref}
 			>
-				<rect width="12" height="12" fill="white" />
+				<rect width="12" height="12" className="fill-bg-primary" />
 				<circle cx="6" cy="6" r="5.5" stroke="currentColor" />
 			</svg>
 		);
@@ -60,7 +60,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>((props, ref) => {
 		<div data-testid="radio-field" ref={ref}>
 			<label
 				className={cn(
-					'flex items-center w-full h-full gap-2 leading-[0.75rem] transition-all cursor-pointer text-[0.75rem] font-medium px-3 py-2 border border-border-primary rounded focus-within:shadow-[0_0_0_2px_rgba(98,126,251,0.1)]',
+					'flex items-center w-full h-full gap-2 leading-[0.75rem] transition-all cursor-pointer text-[0.75rem] font-medium px-3 py-2 border border-border-input rounded focus-within:shadow-text-field',
 					props.checked && 'border-primary'
 				)}
 				aria-checked={props.checked}

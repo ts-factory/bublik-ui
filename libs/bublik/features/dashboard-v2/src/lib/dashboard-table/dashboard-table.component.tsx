@@ -129,7 +129,7 @@ export const DashboardTable = (props: DashboardTableProps) => {
 	return (
 		<div role="table" className="flex flex-col w-full gap-1">
 			<div className="sticky top-0 z-40">
-				<div className="bg-white h-8.5 flex items-center justify-center">
+				<div className="bg-bg-primary h-8.5 flex items-center justify-center">
 					<SwitchDatePicker
 						label="Date"
 						value={fromDate(date, getLocalTimeZone())}

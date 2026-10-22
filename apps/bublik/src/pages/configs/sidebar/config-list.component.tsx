@@ -166,7 +166,7 @@ function ProjectCard(props: ProjectCardProps) {
 							<UpdateProjectModal projectId={id} projectName={name}>
 								<button
 									className={cn(
-										'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
+										'flex items-center justify-center transition-all appearance-none select-none text-primary hover:bg-primary-wash disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-border-primary text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md hover:shadow-[inset_0_0_0_2px_#94b0ff] p-1',
 										'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
 									)}
 									aria-label="Change project name"
@@ -175,7 +175,7 @@ function ProjectCard(props: ProjectCardProps) {
 								</button>
 							</UpdateProjectModal>
 							<button
-								className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-red-100 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
+								className="flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all appearance-none select-none text-text-unexpected hover:bg-bg-fillError/60 disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu p-1 text-[0.6875rem] font-semibold leading-[0.875rem] max-h-[26px] rounded-md"
 								onClick={deleteProject}
 								aria-label="Delete project"
 							>

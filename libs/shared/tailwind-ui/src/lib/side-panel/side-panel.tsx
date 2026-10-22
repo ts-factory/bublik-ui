@@ -24,7 +24,7 @@ export const PanelOverlay = ({ isOpen, ...props }: PanelOverlayProps) => {
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className="fixed inset-0 z-40 bg-black bg-opacity-5"
+						className="fixed inset-0 z-40 bg-black bg-opacity-5 dark:bg-opacity-40"
 					/>
 				</DialogPrimitive.Overlay>
 			)}
@@ -46,7 +46,7 @@ export const PanelContent = ({ isOpen, ...props }: PanelContentProps) => {
 						animate={{ x: '0%' }}
 						exit={{ x: '100%' }}
 						transition={{ type: 'tween' }}
-						className="fixed top-0 right-0 z-50 h-screen bg-white"
+						className="fixed top-0 right-0 z-50 h-screen bg-bg-primary"
 					>
 						{props.children}
 					</motion.div>

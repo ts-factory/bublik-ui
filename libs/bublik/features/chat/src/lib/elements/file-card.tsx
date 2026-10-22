@@ -160,7 +160,7 @@ export function FileCard({
 	return (
 		<div
 			className={cn(
-				'flex items-center gap-2 rounded-md border border-border-primary bg-white/70 px-2 py-1.5',
+				'flex items-center gap-2 rounded-md border border-border-primary bg-bg-primary/70 px-2 py-1.5',
 				className
 			)}
 		>
@@ -178,7 +178,7 @@ export function FileCard({
 				download={file.filename}
 				onClick={handleDownload}
 				aria-disabled={isDownloading}
-				className="flex items-center gap-1 rounded border border-border-primary px-2 py-1 text-[0.6875rem] font-medium text-text-primary hover:bg-primary-wash"
+				className="flex items-center gap-1 rounded border border-border-input px-2 py-1 text-[0.6875rem] font-medium text-text-primary hover:bg-primary-wash"
 			>
 				{isDownloading ? (
 					<LoaderCircleIcon className="size-3.5 animate-spin" />

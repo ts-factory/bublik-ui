@@ -34,7 +34,7 @@ const AlertDialogContent = React.forwardRef<
 		<AlertDialogPrimitive.Content
 			ref={ref}
 			className={cn(
-				'bg-white p-6 shadow-lg sm:rounded-lg md:w-full max-w-lg',
+				'bg-bg-elevated p-6 shadow-lg sm:rounded-lg md:w-full max-w-lg',
 				dialogContentStyles(),
 				className
 			)}
@@ -90,7 +90,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<AlertDialogPrimitive.Description
 		ref={ref}
-		className={cn('text-sm text-muted-foreground', className)}
+		className={cn('text-sm text-text-menu', className)}
 		{...props}
 	/>
 ));

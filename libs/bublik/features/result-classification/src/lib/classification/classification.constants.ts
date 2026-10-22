@@ -317,7 +317,8 @@ export const ORIGIN_META: Record<RuleResultOrigin, OriginMeta> = {
 	}
 };
 
-export const DESTRUCTIVE_FILL_CLASS = 'bg-red-100 hover:bg-red-200';
+export const DESTRUCTIVE_FILL_CLASS =
+	'bg-bg-fillError/60 hover:bg-bg-fillError';
 
 /**
  * A table row's icon-only Edit/Delete button: a larger icon than the `xss`

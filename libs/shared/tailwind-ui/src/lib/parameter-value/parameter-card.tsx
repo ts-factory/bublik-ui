@@ -23,7 +23,7 @@ const ParameterCard: FC<ParameterCardProps> = ({
 	const [, copy] = useCopyToClipboard();
 
 	return (
-		<div className="p-4 bg-white rounded-xl shadow-popover">
+		<div className="p-4 bg-bg-elevated rounded-xl shadow-popover">
 			<pre className="mb-2 text-xs whitespace-pre-wrap max-h-96 overflow-auto">
 				<code>{value}</code>
 			</pre>

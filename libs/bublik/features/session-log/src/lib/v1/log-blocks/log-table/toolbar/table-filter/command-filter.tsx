@@ -86,7 +86,7 @@ export function DataTableFacetedFilter({
 				</ButtonTw>
 			</PopoverTrigger>
 			<PopoverContent
-				className="p-0 bg-white rounded-lg shadow-popover"
+				className="p-0 bg-bg-elevated rounded-lg shadow-popover"
 				align="start"
 				sideOffset={4}
 			>

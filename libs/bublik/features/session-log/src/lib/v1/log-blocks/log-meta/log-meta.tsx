@@ -472,8 +472,8 @@ function CopyIcon(props: CopyIconProps) {
 
 	return (
 		<div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-			<div className="w-6 h-6 bg-gradient-to-r from-transparent to-white" />
-			<div className="w-6 h-6 bg-white grid place-items-center">
+			<div className="w-6 h-6 bg-gradient-to-r from-transparent to-bg-primary" />
+			<div className="w-6 h-6 bg-bg-primary grid place-items-center">
 				<Icon
 					name="PaperStack"
 					size={size}
@@ -647,7 +647,7 @@ function MetaAuthors({ authors }: MetaAuthorsProps) {
 									</span>
 								</div>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent className="bg-white rounded-md shadow-popover flex flex-col min-w-[160px]">
+							<DropdownMenuContent className="bg-bg-elevated rounded-md shadow-popover flex flex-col min-w-[160px]">
 								<DropdownMenuLabel className="text-xs">
 									Author
 								</DropdownMenuLabel>

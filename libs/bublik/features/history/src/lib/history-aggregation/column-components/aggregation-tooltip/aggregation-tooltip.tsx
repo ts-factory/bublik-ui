@@ -76,7 +76,7 @@ function AggregationTooltip(props: AggregationTooltipProps) {
 				<RadixHoverCard.Content
 					className={cn(
 						hoverCardContentStyles(),
-						'flex min-h-0 overflow-auto max-h-[var(--radix-hover-card-content-available-height)] border border-gray-100 max-w-[min(60vw,var(--radix-hover-card-content-available-width))] flex-col gap-3 rounded-xl bg-white shadow-lg',
+						'flex min-h-0 overflow-auto max-h-[var(--radix-hover-card-content-available-height)] border border-gray-100 max-w-[min(60vw,var(--radix-hover-card-content-available-width))] flex-col gap-3 rounded-xl bg-bg-primary shadow-lg',
 						allCount < MAX_TAG_COUNT_FOR_SMALL_CARD && 'w-96'
 					)}
 					collisionPadding={8}

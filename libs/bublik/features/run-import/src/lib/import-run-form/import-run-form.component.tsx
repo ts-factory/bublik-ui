@@ -349,7 +349,7 @@ const EditRow = ({ field, idx, formApi, remove }: EditRowProps) => {
 						<ButtonTw
 							variant="outline"
 							onClick={() => remove(idx)}
-							className="grid rounded size-10 text-text-unexpected hover:bg-red-100 place-items-center"
+							className="grid rounded size-10 text-text-unexpected hover:bg-bg-fillError/60 place-items-center"
 						>
 							<Icon name="CrossSimple" size={24} />
 						</ButtonTw>

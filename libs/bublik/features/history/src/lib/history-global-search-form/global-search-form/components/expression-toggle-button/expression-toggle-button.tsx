@@ -7,7 +7,7 @@ import { cn, cva, Icon, Tooltip } from '@/shared/tailwind-ui';
 const buttonStyles = cva({
 	base: [
 		'inline-flex h-10 w-10 shrink-0 items-center justify-center',
-		'rounded-md border border-border-primary',
+		'rounded-md border border-border-input',
 		'text-text-menu',
 		'transition-colors',
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20'

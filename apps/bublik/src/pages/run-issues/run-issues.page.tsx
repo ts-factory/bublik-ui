@@ -31,7 +31,7 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 	const [isFullMode, setIsFullMode] = useState(false);
 
 	return (
-		<header className="flex flex-col bg-white rounded shrink-0">
+		<header className="flex flex-col bg-bg-primary rounded shrink-0">
 			<CardHeader label="Info">
 				<div className="flex h-full gap-3">
 					<RunModeToggle
@@ -78,7 +78,7 @@ function RunIssuesPage() {
 			data-testid="run-issues-page"
 		>
 			<RunIssuesHeader runId={runId} />
-			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 				<ResultTableHost>
 					<RunIssuesTable
 						runId={runId}

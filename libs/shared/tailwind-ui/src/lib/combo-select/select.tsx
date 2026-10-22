@@ -87,7 +87,7 @@ export const SelectInput = forwardRef<HTMLButtonElement, SelectProps>(
 				<Select {...props}>
 					<SelectTrigger
 						className={cn(
-							'inline-flex items-center justify-between w-full rounded border border-border-primary px-3.5 outline-none text-[0.875rem] leading-[1.125rem] h-10 font-medium gap-1 bg-white',
+							'inline-flex items-center justify-between w-full rounded border border-border-input px-3.5 outline-none text-[0.875rem] leading-[1.125rem] h-10 font-medium gap-1 bg-bg-primary',
 							'focus:border-primary focus:shadow-text-field',
 							// `enabled:` rather than a bare `hover:`, so a disabled
 							// trigger stays put instead of answering the pointer it is
@@ -110,7 +110,7 @@ export const SelectInput = forwardRef<HTMLButtonElement, SelectProps>(
 						<SelectContent className="z-[60]">
 							<SelectViewport
 								className={cn(
-									'px-1.5 py-1 bg-white rounded-md shadow-popover',
+									'px-1.5 py-1 bg-bg-elevated rounded-md shadow-popover',
 									described &&
 										'grid grid-cols-[max-content_minmax(0,1fr)_auto] content-start'
 								)}

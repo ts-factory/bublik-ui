@@ -17,19 +17,19 @@ export function NetPacketAnalyzerPage() {
 	if (!result.success) {
 		return (
 			<div className="grid place-items-center h-full">
-				<div className="p-4 border border-red-300 bg-red-50 rounded-md">
-					<h2 className="text-red-800 font-semibold mb-2">
+				<div className="p-4 border border-bg-error/50 bg-bg-fillError/40 rounded-md">
+					<h2 className="text-text-unexpected font-semibold mb-2">
 						Invalid URL Parameters
 					</h2>
-					<p className="text-red-700 mb-3">
+					<p className="text-text-unexpected mb-3">
 						Required: fileUrl (valid URL), optional: runId and resultId
 						(numbers)
 					</p>
 					<details className="text-sm">
-						<summary className="cursor-pointer text-red-600 hover:text-red-800">
+						<summary className="cursor-pointer text-text-unexpected hover:underline">
 							Show validation errors
 						</summary>
-						<pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto">
+						<pre className="mt-2 p-2 bg-bg-fillError/60 rounded text-xs overflow-auto">
 							{JSON.stringify(result.error.format(), null, 2)}
 						</pre>
 					</details>

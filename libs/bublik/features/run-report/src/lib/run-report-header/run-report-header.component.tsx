@@ -36,7 +36,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 		<>
 			{/* -mb-1 cancels the column gap so the bar stays flush on the details card */}
 			<div className="sticky top-0 z-20 -mb-1">
-				<div className="bg-white rounded-t">
+				<div className="bg-bg-primary rounded-t">
 					<CardHeader
 						label={
 							<div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 					</CardHeader>
 				</div>
 			</div>
-			<div className="flex flex-col gap-2 bg-white rounded-b">
+			<div className="flex flex-col gap-2 bg-bg-primary rounded-b">
 				<RunDetails
 					isFullMode={isModeFull}
 					runId={runId}

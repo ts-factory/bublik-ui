@@ -45,7 +45,7 @@ export const CopyContent = forwardRef<CopyContentHandle, CopyContentProps>(
 				initial="hidden"
 				animate="visible"
 				onClick={handleCopyClick}
-				className="flex items-center gap-1 h-[30px] px-4 bg-white rounded shadow-tooltip hover:text-primary"
+				className="flex items-center gap-1 h-[30px] px-4 bg-bg-elevated rounded shadow-tooltip hover:text-primary"
 			>
 				<motion.span
 					className="justify-self-start flex-shrink-0 text-[0.6875rem] font-medium leading-[0.875rem]"

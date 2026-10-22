@@ -29,13 +29,13 @@ export const getColorFromContext = (
 	cellContext: CellContextValue | CELL_CONTEXT,
 	mode?: 'hex' | 'tailwind'
 ): string => {
-	const DEFAULT_HEX_COLOR = 'bg-[#f0f0f0]';
+	const DEFAULT_HEX_COLOR = 'bg-badge-0';
 	const DEFAULT_TAILWIND_COLOR = 'bg-badge-0';
 
 	const hexModeMap = {
-		[CELL_CONTEXT.Success]: 'bg-[#e8fadc]',
-		[CELL_CONTEXT.Warning]: 'bg-[#ffe8ca]',
-		[CELL_CONTEXT.Error]: 'bg-[#ff9ca8]'
+		[CELL_CONTEXT.Success]: 'bg-badge-3',
+		[CELL_CONTEXT.Warning]: 'bg-badge-14',
+		[CELL_CONTEXT.Error]: 'bg-badge-15'
 	} as const;
 
 	const tailwindModeMap = {

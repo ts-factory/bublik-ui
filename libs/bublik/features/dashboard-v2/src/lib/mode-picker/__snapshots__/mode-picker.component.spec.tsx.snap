@@ -16,7 +16,7 @@ exports[`ModePicker > matches snapshot 1`] = `
       <button
         aria-checked="false"
         aria-label="Mode rows"
-        class="px-[0.625rem] border-y border-y-border-primary rounded-l-md border-l border-l-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input rounded-l-md border-l border-l-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="off"
         role="radio"
@@ -74,7 +74,7 @@ exports[`ModePicker > matches snapshot 1`] = `
       <button
         aria-checked="false"
         aria-label="Mode rows line"
-        class="px-[0.625rem] border-y border-y-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="off"
         role="radio"
@@ -137,7 +137,7 @@ exports[`ModePicker > matches snapshot 1`] = `
       <button
         aria-checked="false"
         aria-label="Mode columns"
-        class="px-[0.625rem] border-y border-y-border-primary rounded-r-md border-r border-r-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input rounded-r-md border-r border-r-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="off"
         role="radio"
@@ -214,7 +214,7 @@ exports[`ModePicker > should highlight clicked item 1`] = `
       <button
         aria-checked="false"
         aria-label="Mode rows"
-        class="px-[0.625rem] border-y border-y-border-primary rounded-l-md border-l border-l-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input rounded-l-md border-l border-l-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="off"
         role="radio"
@@ -272,7 +272,7 @@ exports[`ModePicker > should highlight clicked item 1`] = `
       <button
         aria-checked="true"
         aria-label="Mode rows line"
-        class="px-[0.625rem] border-y border-y-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="on"
         role="radio"
@@ -335,7 +335,7 @@ exports[`ModePicker > should highlight clicked item 1`] = `
       <button
         aria-checked="false"
         aria-label="Mode columns"
-        class="px-[0.625rem] border-y border-y-border-primary rounded-r-md border-r border-r-border-primary text-border-primary flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
+        class="px-[0.625rem] border-y border-y-border-input rounded-r-md border-r border-r-border-input text-border-primary dark:text-text-menu flex items-center justify-center cursor-pointer hover:text-primary rdx-state-on:text-primary focus-visible:shadow-[0_0_0_2px_rgba(98_126_251_0.75)] py-[7px]"
         data-radix-collection-item=""
         data-state="off"
         role="radio"

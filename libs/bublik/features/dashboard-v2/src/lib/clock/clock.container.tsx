@@ -33,7 +33,7 @@ export const ClockContainer = () => {
 				<button
 					aria-label="Refresh dashboard"
 					className={cn(
-						'flex items-center justify-center border border-border-primary border-l rounded-r-md px-3 transition-colors',
+						'flex items-center justify-center border border-border-input border-l rounded-r-md px-3 transition-colors',
 						'hover:bg-primary-wash hover:border-primary'
 					)}
 					onClick={handleRefreshClick}

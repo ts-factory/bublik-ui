@@ -45,7 +45,7 @@ function ConfigVersions({
 			<PopoverContent
 				sideOffset={4}
 				align="start"
-				className="bg-white py-2 shadow-popover rounded-md flex flex-col max-w-80 text-xs max-h-96"
+				className="bg-bg-elevated py-2 shadow-popover rounded-md flex flex-col max-w-80 text-xs max-h-96"
 			>
 				<span className="pr-2 pl-4 py-1.5 text-sm font-semibold">Versions</span>
 				<Separator />

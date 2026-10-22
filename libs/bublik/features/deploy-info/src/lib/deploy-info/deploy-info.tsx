@@ -14,9 +14,9 @@ const wrapper = cva({
 	base: 'flex flex-col py-3 px-3.5 rounded-lg text-white min-w-[375px] min-h-[40px] h-full',
 	variants: {
 		state: {
-			loading: 'animate-pulse bg-[#FFDD86]',
+			loading: 'animate-pulse bg-badge-17',
 			error: 'bg-bg-fillError',
-			success: 'bg-[#FFDD86]'
+			success: 'bg-badge-17'
 		}
 	}
 });

@@ -22,11 +22,11 @@ function ModeDefault() {
 		<div className="p-2">
 			<div className="flex flex-col gap-1">
 				<MeasurementStatisticsContainer />
-				<div className={'relative transition-all bg-white rounded-md'}>
+				<div className={'relative transition-all bg-bg-primary rounded-md'}>
 					<CardHeader label="Charts" />
 					<ChartsContainer layout="mosaic" resultId={resultId} />
 				</div>
-				<div className="bg-white rounded-md">
+				<div className="bg-bg-primary rounded-md">
 					<TableHeader>
 						<ExportChartContainer resultId={resultId} />
 					</TableHeader>

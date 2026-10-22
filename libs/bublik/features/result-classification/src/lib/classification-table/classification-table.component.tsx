@@ -251,7 +251,7 @@ export function ClassificationTable<T>({
 			style={stickyStyle}
 			className={cn(
 				'h-8',
-				variant === 'nested' ? 'bg-primary-wash' : 'bg-white',
+				variant === 'nested' ? 'bg-primary-wash' : 'bg-bg-primary',
 				stickyClass
 			)}
 		/>
@@ -278,7 +278,7 @@ export function ClassificationTable<T>({
 									style={stickyStyle}
 									className={cn(
 										'flex items-center h-8 px-1.5',
-										variant === 'nested' ? 'bg-primary-wash' : 'bg-white',
+										variant === 'nested' ? 'bg-primary-wash' : 'bg-bg-primary',
 										variant === 'nested' && idx === 0 && 'rounded-l-md',
 										variant === 'nested' &&
 											idx === headers.length - 1 &&
@@ -434,7 +434,7 @@ function GroupHeaderRow<T>({
 				// icon of the rows beneath (a 24px track), and the name that follows
 				// starts where their first column does. `pr-1.5`, the cells' own
 				// inset, so the create button ends where the Actions column does.
-				'flex items-center gap-2 mt-1 pl-0.5 pr-1.5 py-1.5 min-h-[34px] rounded-md bg-white',
+				'flex items-center gap-2 mt-1 pl-0.5 pr-1.5 py-1.5 min-h-[34px] rounded-md bg-bg-primary',
 				'cursor-pointer select-none transition-colors hover:bg-primary-wash',
 				'text-[0.75rem] leading-[1.125rem] font-semibold text-text-primary',
 				// The top border is always there so nothing shifts when it shows;
@@ -541,7 +541,7 @@ function ClassificationRow<T>({
 			variant === 'nested'
 				? // The run's result table, cell for cell: pale rows on the
 				  'px-1 py-2 bg-primary-wash flex items-start whitespace-pre-wrap overflow-wrap-anywhere'
-				: 'px-1.5 py-1 min-h-[34px] flex items-center bg-white',
+				: 'px-1.5 py-1 min-h-[34px] flex items-center bg-bg-primary',
 			isFirst && 'rounded-l-md border-l border-l-transparent overflow-hidden',
 			isLast && 'rounded-r-md border-r border-r-transparent',
 			hovered && 'border-y-primary',
@@ -610,7 +610,7 @@ function ClassificationRow<T>({
 				<div
 					style={{ gridColumn: '1 / -1' }}
 					className={cn(
-						'bg-white rounded-b-md border border-t-0 border-transparent transition-colors',
+						'bg-bg-primary rounded-b-md border border-t-0 border-transparent transition-colors',
 						hovered && 'border-primary'
 					)}
 					onMouseEnter={() => setHovered(true)}
@@ -643,7 +643,7 @@ export function ClassificationToolbar({
 		<div
 			className={cn(
 				breakpoint === 'lg' ? 'toolbar-container' : 'toolbar-container-sm',
-				'flex flex-wrap items-center gap-2 px-4 py-[3px] min-h-9 bg-white rounded-t border-b border-border-primary shrink-0',
+				'flex flex-wrap items-center gap-2 px-4 py-[3px] min-h-9 bg-bg-primary rounded-t border-b border-border-primary shrink-0',
 				// Every button in the bar — the filters, Reset, Columns, New — is
 				// as tall as the search field beside them, not the 26px `xss`
 				// cap they are drawn at elsewhere. Not the buttons inside them:
@@ -669,7 +669,7 @@ export function ClassificationFooter({
 	return (
 		<div
 			className={cn(
-				'flex items-center gap-2 px-4 py-2 bg-white rounded-b shrink-0 z-10 transition-shadow',
+				'flex items-center gap-2 px-4 py-2 bg-bg-primary rounded-b shrink-0 z-10 transition-shadow',
 				isScrollable && 'shadow-sticky'
 			)}
 		>

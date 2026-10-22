@@ -152,6 +152,52 @@ test.describe('Navigation', () => {
 		);
 	});
 
+	test('The appearance settings apply and remember the chosen theme', async ({
+		page
+	}) => {
+		const dashboardPage = new DashboardPage(page);
+		const sidebar = new Sidebar(page);
+
+		await given(
+			'my system is set to light and I open the dashboard',
+			async () => {
+				await page.emulateMedia({ colorScheme: 'light' });
+				await dashboardPage.goto();
+			}
+		);
+		await when('I open the Appearance settings and pick Dark', () =>
+			sidebar.pickTheme('Dark')
+		);
+		await then('the page is dark', () => sidebar.expectTheme('dark'));
+		await when('I reload the page', () => page.reload());
+		await then('the page is still dark', () => sidebar.expectTheme('dark'));
+		await when('I pick System in the Appearance settings', () =>
+			sidebar.pickTheme('System')
+		);
+		await then('the page follows my light system setting', () =>
+			sidebar.expectTheme('light')
+		);
+	});
+
+	test('The theme starts light whatever the system setting', async ({
+		page
+	}) => {
+		const dashboardPage = new DashboardPage(page);
+		const sidebar = new Sidebar(page);
+
+		await given(
+			'my system is set to dark and I open the dashboard',
+			async () => {
+				await page.emulateMedia({ colorScheme: 'dark' });
+				await dashboardPage.goto();
+			}
+		);
+		await then('the page is light', () => sidebar.expectTheme('light'));
+		await and('the Appearance settings show Light as the active theme', () =>
+			sidebar.expectActiveTheme('Light')
+		);
+	});
+
 	test('An unknown address shows the not-found page', async ({ page }) => {
 		await when('I open an address that does not exist', () =>
 			page.goto('definitely-not-a-bublik-page')

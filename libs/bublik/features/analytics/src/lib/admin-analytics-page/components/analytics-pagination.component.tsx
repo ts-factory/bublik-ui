@@ -39,7 +39,7 @@ function AnalyticsPagination(props: AnalyticsPaginationProps) {
 							id="analytics-page-size"
 							value={`${pageSize}`}
 							onChange={(event) => onPageSizeChange(Number(event.target.value))}
-							className="inline-flex border-border-primary max-h-[26px] min-w-[64px] appearance-none items-center justify-center rounded-md py-1.5 pl-2 pr-6 text-[0.6875rem] font-semibold leading-[0.875rem] transition-all hover:border-primary"
+							className="inline-flex border-border-input max-h-[26px] min-w-[64px] appearance-none items-center justify-center rounded-md py-1.5 pl-2 pr-6 text-[0.6875rem] font-semibold leading-[0.875rem] transition-all hover:border-primary"
 						>
 							{pageSizeOptions.map((option) => (
 								<option key={option} value={option}>

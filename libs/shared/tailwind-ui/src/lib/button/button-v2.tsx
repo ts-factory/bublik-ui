@@ -8,43 +8,43 @@ import { VariantProps, cn, cva } from '../utils';
 export const twButtonStyles = cva({
 	base: [
 		'inline-flex items-center justify-center',
-		'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
+		'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg-primary focus:ring-primary',
 		'transition-all appearance-none select-none'
 	],
 	variants: {
 		variant: {
 			primary: [
 				'bg-primary text-white',
-				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			],
 			destruction: [
 				'bg-bg-error text-white',
-				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			],
 			'destruction-secondary': [
-				'text-text-unexpected hover:bg-red-100',
-				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary'
+				'text-text-unexpected hover:bg-bg-fillError/60',
+				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-border-primary'
 			],
 			secondary: [
-				'text-primary bg-primary-wash',
-				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-white disabled:hover:bg-white disabled:text-border-primary'
+				'text-primary bg-secondary-fill',
+				'disabled:shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-border-primary'
 			],
 			outline: [
-				'border border-border-primary text-text-primary hover:bg-gray-50',
-				'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'border border-border-input text-text-primary hover:bg-gray-50',
+				'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			],
 			'outline-secondary': [
-				'border border-border-primary text-text-primary hover:bg-gray-50',
-				'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'border border-border-input text-text-primary hover:bg-gray-50',
+				'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			],
 			ghost: [
 				'border border-transparent text-text-primary hover:bg-gray-50',
-				'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			],
 			link: [
 				'border border-transparent text-text-primary',
 				'hover:underline',
-				'disabled:bg-white disabled:hover:bg-white disabled:text-text-menu'
+				'disabled:bg-bg-primary disabled:hover:bg-bg-primary disabled:text-text-menu'
 			]
 		},
 		size: {
@@ -79,78 +79,92 @@ export const twButtonStyles = cva({
 		{
 			variant: ['destruction'],
 			size: 'xss',
-			className: 'hover:shadow-[inset_0_0_0_2px_#fca5b3] py-1.5'
+			className:
+				'hover:shadow-[inset_0_0_0_2px_hsl(var(--colors-ring-error))] py-1.5'
 		},
 		{
 			variant: ['destruction'],
 			size: 'xs',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[7px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-error))] py-[7px]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'xs/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[8px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-error))] py-[8px]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'sm',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[7px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-error))] py-[7px]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'sm/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-[9px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-error))] py-[9px]'
 		},
 		{
 			variant: ['destruction'],
 			size: 'md',
-			className: 'hover:shadow-[inset_0_0_0_3px_#fca5b3] py-2'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-error))] py-2'
 		},
 		{
 			variant: ['destruction'],
 			size: 'lg',
-			className: 'hover:shadow-[inset_0_0_0_4px_#fca5b3] py-[11px]'
+			className:
+				'hover:shadow-[inset_0_0_0_4px_hsl(var(--colors-ring-error))] py-[11px]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xss',
-			className: 'hover:shadow-[inset_0_0_0_2px_#94b0ff] py-1.5'
+			className:
+				'hover:shadow-[inset_0_0_0_2px_hsl(var(--colors-ring-primary))] py-1.5'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xs',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[7px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-primary))] py-[7px]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'xs/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-primary))] py-2'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'sm',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[7px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-primary))] py-[7px]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'sm/2',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-[9px]'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-primary))] py-[9px]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'md',
-			className: 'hover:shadow-[inset_0_0_0_3px_#94b0ff] py-2'
+			className:
+				'hover:shadow-[inset_0_0_0_3px_hsl(var(--colors-ring-primary))] py-2'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			size: 'lg',
-			className: 'hover:shadow-[inset_0_0_0_4px_#94b0ff] py-[11px]'
+			className:
+				'hover:shadow-[inset_0_0_0_4px_hsl(var(--colors-ring-primary))] py-[11px]'
 		},
 		{
 			variant: ['primary', 'secondary'],
 			state: 'disabled',
 			className:
-				'shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] bg-white hover:bg-white text-border-primary'
+				'shadow-[inset_0_0_0_1px_hsl(var(--colors-border-primary))] bg-bg-primary hover:bg-bg-primary text-border-primary'
 		},
 		// Active
 		{

@@ -34,9 +34,9 @@ export const MeasurementsTable = memo(({ data }: MeasurementsTableProps) => {
 	return (
 		<table
 			id={MeasurementConfig.tableId}
-			className="w-full bg-white border-collapse rounded border-spacing-0"
+			className="w-full bg-bg-primary border-collapse rounded border-spacing-0"
 		>
-			<thead className="sticky top-0 z-20 bg-white after:w-full after:h-px after:absolute after:bg-border-primary">
+			<thead className="sticky top-0 z-20 bg-bg-primary after:w-full after:h-px after:absolute after:bg-border-primary">
 				{instance.getHeaderGroups().map((headerGroup) => (
 					<tr key={headerGroup.id} className="h-8.5 bg-primary-wash">
 						{headerGroup.headers.map((header) => {
@@ -58,7 +58,7 @@ export const MeasurementsTable = memo(({ data }: MeasurementsTableProps) => {
 					</tr>
 				))}
 			</thead>
-			<tbody className="relative before:bg-[#ecf1ff] before:h-full before:w-1 before:left-0 before:top-0 before:z-10 before:absolute children-but-last:border-b children-but-last:border-b-border-primary">
+			<tbody className="relative before:bg-bg-selected before:h-full before:w-1 before:left-0 before:top-0 before:z-10 before:absolute children-but-last:border-b children-but-last:border-b-border-primary">
 				{instance.getRowModel().rows.map((row) => (
 					<tr key={row.id}>
 						{row.getVisibleCells().map((cell) => (

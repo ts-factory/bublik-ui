@@ -54,6 +54,20 @@ Feature: Navigation
     When I open my account menu and choose Appearance
     Then the settings dialog is open on the Appearance section
 
+  Scenario: The appearance settings apply and remember the chosen theme
+    Given my system is set to light and I open the dashboard
+    When I open the Appearance settings and pick Dark
+    Then the page is dark
+    When I reload the page
+    Then the page is still dark
+    When I pick System in the Appearance settings
+    Then the page follows my light system setting
+
+  Scenario: The theme starts light whatever the system setting
+    Given my system is set to dark and I open the dashboard
+    Then the page is light
+    And the Appearance settings show Light as the active theme
+
   Scenario: An unknown address shows the not-found page
     When I open an address that does not exist
     Then the not-found page is shown

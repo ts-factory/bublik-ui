@@ -147,7 +147,7 @@ export function useToolbarPosition(isIntersection?: boolean): ToolbarPosition {
 
 	const containerClassName = cn(
 		'flex justify-between gap-12 mb-2',
-		'bg-white rounded-b-lg',
+		'bg-bg-primary rounded-b-lg',
 		'transition-all',
 		isIntersection && isOpen && 'shadow-xl'
 	);

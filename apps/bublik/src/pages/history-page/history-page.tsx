@@ -25,7 +25,7 @@ export const HistoryPageV2 = () => {
 			data-testid="history-page"
 			data-history-mode={resolveHistoryMode(searchParams.get('mode'))}
 		>
-			<header className="flex flex-col gap-4 px-6 py-4 mb-1 bg-white rounded-t-xl">
+			<header className="flex flex-col gap-4 px-6 py-4 mb-1 bg-bg-primary rounded-t-xl">
 				<div className="flex flex-wrap justify-between gap-4">
 					<HistoryLegendCountContainer />
 					<div className="flex flex-wrap justify-start gap-4">

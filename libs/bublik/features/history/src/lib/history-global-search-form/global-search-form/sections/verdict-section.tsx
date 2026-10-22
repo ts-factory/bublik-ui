@@ -63,7 +63,7 @@ export const VerdictSection = (props: VerdictSectionProps) => {
 
 	const lookupButtons = (
 		<div
-			className="inline-flex items-center gap-0.5 rounded border border-border-primary bg-white p-0.5"
+			className="inline-flex items-center gap-0.5 rounded border border-border-input bg-bg-primary p-0.5"
 			role="radiogroup"
 			aria-label="Verdict lookup type"
 		>

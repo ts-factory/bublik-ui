@@ -98,7 +98,7 @@ export const CellNotesContainer = (props: CellNotesContainerProps) => {
 					<PopoverContent
 						sideOffset={4}
 						align="end"
-						className="bg-white py-2 px-3 shadow-popover rounded-md flex flex-col gap-1 max-w-xs"
+						className="bg-bg-elevated py-2 px-3 shadow-popover rounded-md flex flex-col gap-1 max-w-xs"
 					>
 						{compromised ? (
 							<CellNote

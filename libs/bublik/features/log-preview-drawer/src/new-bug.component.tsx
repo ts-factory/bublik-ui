@@ -522,7 +522,7 @@ function NewBugButton(props: NewBugButtonProps) {
 			<DialogOverlay className={dialogOverlayStyles()} />
 			<DrawerContent
 				className={cn(
-					'bg-white shadow-popover overflow-hidden min-w-[40vw] max-w-[80vw]',
+					'bg-bg-elevated shadow-popover overflow-hidden min-w-[40vw] max-w-[80vw]',
 					'flex flex-col overflow-hidden max-w-3xl'
 				)}
 			>
@@ -553,7 +553,7 @@ function NewBugButton(props: NewBugButtonProps) {
 						</div>
 					}
 					style={{
-						boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px',
+						boxShadow: 'var(--shadow-sticky)',
 						border: 'none'
 					}}
 				/>
@@ -569,7 +569,7 @@ function NewBugButton(props: NewBugButtonProps) {
 				</div>
 				<div
 					className="px-4 py-2 flex items-center mt-auto"
-					style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 15px 0px' }}
+					style={{ boxShadow: 'var(--shadow-sticky)' }}
 				>
 					<ButtonTw
 						variant="primary"

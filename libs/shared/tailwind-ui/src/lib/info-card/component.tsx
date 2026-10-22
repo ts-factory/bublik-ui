@@ -17,7 +17,7 @@ export const InfoCard = forwardRef<HTMLDivElement, InfoCardProps>(
 				data-testid="info-card"
 			>
 				<div
-					className="bg-white min-w-[600px] max-w-[768px] flex flex-col rounded-2xl shadow-2xl"
+					className="bg-bg-primary min-w-[600px] max-w-[768px] flex flex-col rounded-2xl shadow-2xl"
 					ref={ref}
 				>
 					<div className="p-4 border-b border-border-primary">

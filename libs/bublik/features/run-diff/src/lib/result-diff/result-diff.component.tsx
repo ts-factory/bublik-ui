@@ -59,7 +59,7 @@ const getBodyRowClassname = (row: Row<RunDataResultsWithDiff>) => {
 		'bg-primary-wash rounded-md',
 		isAdded && 'bg-diff-added',
 		isRemoved && 'bg-diff-removed',
-		isChanged && 'bg-yellow-50'
+		isChanged && 'bg-diff-changed-row'
 	);
 };
 
@@ -109,7 +109,7 @@ export const ResultDiff: FC<ResultDiffProps> = (props) => {
 	);
 
 	return (
-		<div className="p-2 bg-white">
+		<div className="p-2 bg-bg-primary">
 			<TwTable<RunDataResultsWithDiff>
 				data={rowsDiff}
 				columns={columns}

@@ -125,7 +125,7 @@ interface ModelControls {
 export function ChatFeature() {
 	return (
 		<div className="flex h-full gap-1 p-2">
-			<aside className="w-[300px] flex-shrink-0 overflow-hidden bg-white rounded-md">
+			<aside className="w-[300px] flex-shrink-0 overflow-hidden bg-bg-primary rounded-md">
 				<ChatThreadSidebar />
 			</aside>
 			<div className="flex flex-col flex-1 min-w-0 gap-1">
@@ -268,7 +268,7 @@ function ChatPanel() {
 
 	return (
 		<div className="flex flex-col flex-grow min-h-0">
-			<header className="flex items-center justify-between bg-white gap-2 py-1 px-4 h-9 border-b border-border-primary rounded-t-md">
+			<header className="flex items-center justify-between bg-bg-primary gap-2 py-1 px-4 h-9 border-b border-border-primary rounded-t-md">
 				<div className="flex items-center gap-2">
 					<h1 className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 						Chat
@@ -318,7 +318,7 @@ function ChatPanel() {
 				</div>
 			</header>
 			{isLoading ? (
-				<div className="flex items-center justify-center flex-grow bg-white rounded-b-xl text-[0.8125rem] text-text-secondary">
+				<div className="flex items-center justify-center flex-grow bg-bg-primary rounded-b-xl text-[0.8125rem] text-text-secondary">
 					Loading models…
 				</div>
 			) : error || flatModels.length === 0 ? (
@@ -351,7 +351,7 @@ function ChatPanel() {
 
 function NoModelsState() {
 	return (
-		<div className="flex flex-col items-center justify-center flex-grow gap-3 bg-white rounded-b-xl text-center px-6">
+		<div className="flex flex-col items-center justify-center flex-grow gap-3 bg-bg-primary rounded-b-xl text-center px-6">
 			<Icon name="Bulb" className="size-10 text-primary" />
 			<p className="text-[1rem] font-semibold text-text-primary">
 				No chat models configured
@@ -397,7 +397,7 @@ function ChatThread({
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center flex-grow bg-white rounded-b-xl text-[0.8125rem] text-text-secondary">
+			<div className="flex items-center justify-center flex-grow bg-bg-primary rounded-b-xl text-[0.8125rem] text-text-secondary">
 				Loading conversation…
 			</div>
 		);
@@ -449,7 +449,7 @@ function ThreadLoadError({ error }: { error: unknown }) {
 			: 'Unable to reach the server. Check your connection and try again.';
 
 	return (
-		<div className="flex flex-col items-center justify-center flex-grow gap-3 bg-white rounded-b-xl text-center px-6">
+		<div className="flex flex-col items-center justify-center flex-grow gap-3 bg-bg-primary rounded-b-xl text-center px-6">
 			<Icon name="Bulb" className="size-10 text-bg-error" />
 			<p className="text-[1rem] font-semibold text-text-primary">
 				Failed to load conversation
@@ -640,7 +640,7 @@ function ChatThreadConversation({
 	return (
 		// `relative` anchors the floating composer; the conversation scrolls the
 		// full panel height behind it.
-		<main className="relative flex flex-col flex-grow min-h-0 bg-white rounded-b-md">
+		<main className="relative flex flex-col flex-grow min-h-0 bg-bg-primary rounded-b-md">
 			<Conversation>
 				{/* Extra bottom padding keeps the last message clear of the composer. */}
 				<ConversationContent
@@ -717,8 +717,8 @@ function ChatThreadConversation({
 			    scrollClassName) so it stays visible; the gap sits over the
 			    content's px-6 padding, so no message text shows in it. */}
 			<div className="pointer-events-none absolute bottom-0 left-0 right-3">
-				<div className="h-8 bg-gradient-to-t from-white to-transparent" />
-				<div className="rounded-b-xl bg-white px-4 pb-4">
+				<div className="h-8 bg-gradient-to-t from-bg-primary to-transparent" />
+				<div className="rounded-b-xl bg-bg-primary px-4 pb-4">
 					{/* The composer keeps a fixed readable width; the layout toggle
 					    only affects the thread column. */}
 					<div className="pointer-events-auto mx-auto w-full max-w-4xl">
@@ -949,7 +949,7 @@ function MessagePartView({
 			return null; // result is surfaced via the matching tool-call's output
 		case 'structured-output':
 			return (
-				<pre className="my-1 overflow-x-auto rounded-md bg-white/60 p-2 text-[0.75rem]">
+				<pre className="my-1 overflow-x-auto rounded-md bg-bg-primary/60 p-2 text-[0.75rem]">
 					{JSON.stringify(part.data ?? part.partial ?? part.raw, null, 2)}
 				</pre>
 			);

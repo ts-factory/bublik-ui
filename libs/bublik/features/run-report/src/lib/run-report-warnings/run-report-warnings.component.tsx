@@ -19,7 +19,7 @@ function WarningsHoverCard({ warnings = [] }: WarningsHoverCardProps) {
 	return (
 		<HoverCard openDelay={100}>
 			<HoverCardTrigger asChild>
-				<div className="text-text-unexpected rounded-md hover:bg-red-100 p-0.5 grid place-items-center">
+				<div className="text-text-unexpected rounded-md hover:bg-bg-fillError/60 p-0.5 grid place-items-center">
 					<Icon name="TriangleExclamationMark" size={20} />
 				</div>
 			</HoverCardTrigger>
@@ -27,7 +27,7 @@ function WarningsHoverCard({ warnings = [] }: WarningsHoverCardProps) {
 				<HoverCardContent asChild sideOffset={4} side="right" align="start">
 					<ul
 						className={cn(
-							'flex flex-col gap-2 z-10 bg-white rounded-md shadow-popover px-4 py-2',
+							'flex flex-col gap-2 z-10 bg-bg-elevated rounded-md shadow-popover px-4 py-2',
 							popoverContentStyles
 						)}
 					>

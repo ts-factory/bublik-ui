@@ -77,7 +77,7 @@ export function ScopeChip({ chip, rule }: ScopeChipProps) {
 			sideOffset={4}
 			content={
 				<div
-					className="max-w-md p-3 bg-white border rounded-lg shadow-lg border-border-primary"
+					className="max-w-md p-3 bg-bg-primary border rounded-lg shadow-lg border-border-primary"
 					data-testid="scope-hover-card"
 				>
 					<div className="mb-1.5 text-[0.6875rem] font-semibold leading-[0.875rem] text-text-menu">

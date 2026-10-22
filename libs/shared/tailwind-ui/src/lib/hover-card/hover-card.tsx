@@ -79,7 +79,7 @@ export const HoverCard = (props: HoverCardProps) => {
 					}}
 				>
 					{content}
-					{arrow && <RadixHoverCard.Arrow className="fill-white" />}
+					{arrow && <RadixHoverCard.Arrow className="fill-bg-elevated" />}
 				</RadixHoverCard.Content>
 			</RadixHoverCard.Portal>
 		</RadixHoverCard.Root>

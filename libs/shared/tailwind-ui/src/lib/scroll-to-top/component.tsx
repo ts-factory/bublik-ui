@@ -38,7 +38,7 @@ export const ScrollToTop = forwardRef<HTMLButtonElement, ScrollToTopProps>(
 						className={cn('absolute z-40', className)}
 					>
 						<button
-							className="flex items-center gap-1 p-3 text-white rounded-full bg-primary transition-all text-[1rem] font-medium leading-[0.875rem] border-2 border-transparent hover:border-[#94b0ff]"
+							className="flex items-center gap-1 p-3 text-white rounded-full bg-primary transition-all text-[1rem] font-medium leading-[0.875rem] border-2 border-transparent hover:border-ring-primary"
 							onClick={scroll}
 							data-testid="scroll-to-top"
 							aria-label={isScrollingUp ? 'Scroll to bottom' : 'Scroll to top'}

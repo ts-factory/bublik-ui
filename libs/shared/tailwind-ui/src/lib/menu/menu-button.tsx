@@ -181,7 +181,7 @@ export const MenuButton = <T extends object>(props: MenuButtonProps<T>) => {
 				</button>
 			</PopoverTrigger>
 			<PopoverContent
-				className="bg-white rounded-lg shadow-popover p-2"
+				className="bg-bg-elevated rounded-lg shadow-popover p-2"
 				onEscapeKeyDown={() => state.setOpen(false)}
 			>
 				{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}

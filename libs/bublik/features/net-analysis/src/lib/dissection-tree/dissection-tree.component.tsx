@@ -83,7 +83,7 @@ function DissectionTree(props: DissectionTreeProps) {
 			className={cn(
 				root ? 'overflow-x-auto w-auto' : 'pl-2',
 				'font-mono h-full',
-				'overflow-auto rounded-md p-2 bg-white'
+				'overflow-auto rounded-md p-2 bg-bg-primary'
 			)}
 		>
 			{tree.map((node, i) => {
@@ -96,7 +96,9 @@ function DissectionTree(props: DissectionTreeProps) {
 							className={[
 								'flex items-center min-w-fit w-full',
 								node.length > 0 ? 'cursor-pointer' : 'cursor-default',
-								isSelected ? 'bg-gray-600 text-white' : 'text-gray-500'
+								isSelected
+									? 'bg-gray-600 text-white dark:bg-gray-300 dark:text-text-primary'
+									: 'text-gray-500'
 							].join(' ')}
 						>
 							{hasChildren ? (

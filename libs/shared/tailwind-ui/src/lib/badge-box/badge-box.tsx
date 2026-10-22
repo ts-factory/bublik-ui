@@ -344,7 +344,7 @@ export const TagsBoxInput = ({
 					event.preventDefault();
 					inputRef.current?.focus();
 				}}
-				className="w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg bg-white p-0 shadow-popover"
+				className="w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg bg-bg-elevated p-0 shadow-popover"
 			>
 				<Command loop>
 					<CommandInput

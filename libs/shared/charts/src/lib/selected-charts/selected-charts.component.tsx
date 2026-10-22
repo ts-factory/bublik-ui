@@ -72,7 +72,7 @@ function SelectedChartsPopover(props: SelectedChartsPopoverProps) {
 								>
 									<button
 										aria-label="Remove from compare"
-										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
+										className="grid transition-colors rounded place-items-center text-text-unexpected hover:bg-bg-fillError/60"
 										onClick={() => handleRemoveClick(plot)}
 									>
 										<Icon name="CrossSimple" />

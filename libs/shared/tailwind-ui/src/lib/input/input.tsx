@@ -17,7 +17,7 @@ const inputStyles = cva({
 		'py-[7px]',
 		'outline-none',
 		'border',
-		'border-border-primary',
+		'border-border-input',
 		'rounded',
 		'text-text-secondary',
 		'transition-all',

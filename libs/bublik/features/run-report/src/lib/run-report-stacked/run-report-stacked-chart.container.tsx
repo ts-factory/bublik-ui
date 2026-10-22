@@ -367,7 +367,7 @@ function RunReportStackedChartContainer() {
 			<DrawerContent
 				data-testid="run-report-stacked-drawer"
 				className={cn(
-					'bg-white shadow-popover flex flex-col overflow-hidden w-[80vw]'
+					'bg-bg-elevated shadow-popover flex flex-col overflow-hidden w-[80vw]'
 				)}
 			>
 				<CardHeader label="Stacked Chart" />

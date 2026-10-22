@@ -21,7 +21,7 @@ function FloatingExpandButton({
 			className={cn(
 				'rounded-b-xl flex absolute left-1/2 -translate-x-1/2 -bottom-6 shadow-xl items-center justify-center transition-all w-[250px] border-t',
 				isOpen
-					? 'bg-white text-primary hover:bg-primary-wash border-t-border-primary'
+					? 'bg-bg-primary text-primary hover:bg-primary-wash border-t-border-primary'
 					: 'bg-primary text-white border-t-transparent',
 				!isIntersection
 					? 'invisible opacity-0 pointer-events-none'

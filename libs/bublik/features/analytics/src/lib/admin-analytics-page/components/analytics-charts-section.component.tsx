@@ -80,7 +80,7 @@ function AnalyticsChartsSection(props: AnalyticsChartsSectionProps) {
 	);
 
 	return (
-		<div className="bg-white rounded-md overflow-hidden isolate">
+		<div className="bg-bg-primary rounded-md overflow-hidden isolate">
 			<CardHeader
 				label="Charts"
 				className={cn(!isChartsExposed && 'border-transparent')}
@@ -92,7 +92,7 @@ function AnalyticsChartsSection(props: AnalyticsChartsSectionProps) {
 			</CardHeader>
 			{isChartsExposed ? (
 				<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 p-2 min-h-[280px]">
-					<div className="bg-white border-r border-border-primary">
+					<div className="bg-bg-primary border-r border-border-primary">
 						{isChartsLoading ? (
 							<div className="h-[260px] grid place-items-center">
 								<Spinner className="h-12" />
@@ -132,7 +132,7 @@ function AnalyticsChartsSection(props: AnalyticsChartsSectionProps) {
 						)}
 					</div>
 
-					<div className="bg-white rounded-md">
+					<div className="bg-bg-primary rounded-md">
 						{isChartsLoading ? (
 							<div className="h-[220px] grid place-items-center">
 								<Spinner className="h-12" />

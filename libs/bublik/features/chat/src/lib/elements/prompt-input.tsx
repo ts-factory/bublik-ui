@@ -21,7 +21,7 @@ export function PromptInput({
 	return (
 		<form
 			className={cn(
-				'divide-y divide-border-primary rounded-xl border border-border-primary bg-white',
+				'divide-y divide-border-primary rounded-xl border border-border-primary bg-bg-primary',
 				className
 			)}
 			{...props}

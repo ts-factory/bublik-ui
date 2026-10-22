@@ -110,7 +110,7 @@ function ProjectPickerContainer() {
 						className={cn(
 							'flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group pl-8 pr-[18px] text-text-menu hover:text-primary group',
 							!projectIds?.length &&
-								'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
+								'bg-bg-selected text-text-selected focus:bg-bg-selected focus:text-text-selected'
 						)}
 					>
 						<div
@@ -136,7 +136,7 @@ function ProjectPickerContainer() {
 								className={cn(
 									'flex items-center rounded-[10px] py-1.5 h-full gap-3.5 group pl-8 pr-[18px] text-text-menu hover:text-primary group',
 									isSelected &&
-										'bg-[#ecf1ff] text-[#385bf9] focus:bg-[#ecf1ff] focus:text-[#385bf9]'
+										'bg-bg-selected text-text-selected focus:bg-bg-selected focus:text-text-selected'
 								)}
 							>
 								<div

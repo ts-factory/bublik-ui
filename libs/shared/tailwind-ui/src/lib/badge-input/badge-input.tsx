@@ -313,7 +313,7 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 		const field = (
 			<div
 				className={cn(
-					'relative flex items-center w-full bg-white border border-border-primary rounded-md hover:border-primary transition-all min-h-[40px]',
+					'relative flex items-center w-full bg-bg-primary border border-border-input rounded-md hover:border-primary transition-all min-h-[40px]',
 					isFocused && 'border-primary shadow-text-field',
 					disabled &&
 						'cursor-not-allowed border-border-primary shadow-none hover:border-border-primary bg-bg-body'
@@ -324,14 +324,14 @@ export const BadgeInput = forwardRef<HTMLDivElement, BadgeInputProps>(
 			>
 				{label ? (
 					<InputLabel
-						className="absolute h-3 bg-white -top-3 left-2"
+						className="absolute h-3 bg-bg-primary -top-3 left-2"
 						htmlFor={name}
 					>
 						{label}
 					</InputLabel>
 				) : null}
 				{labelTrailingContent ? (
-					<div className="absolute -top-3 right-2 flex items-center bg-white px-1">
+					<div className="absolute -top-3 right-2 flex items-center bg-bg-primary px-1">
 						{labelTrailingContent}
 					</div>
 				) : null}

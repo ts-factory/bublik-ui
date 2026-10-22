@@ -40,7 +40,7 @@ export function CreateProjectModal({ children }: CreateProjectModalProps) {
 				<DialogContent
 					className={cn(
 						dialogContentStyles(),
-						'sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
+						'sm:max-w-md p-6 bg-bg-primary sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
 					)}
 				>
 					<CreateProjectForm

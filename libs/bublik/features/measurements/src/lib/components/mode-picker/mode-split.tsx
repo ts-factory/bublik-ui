@@ -30,7 +30,7 @@ export const ModeSplit = () => {
 						maxWidth="70%"
 						minWidth={500}
 					>
-						<div className="flex flex-col flex-grow w-full h-full overflow-hidden bg-white rounded-md">
+						<div className="flex flex-col flex-grow w-full h-full overflow-hidden bg-bg-primary rounded-md">
 							<CardHeader label="Charts" />
 							<div className="overflow-x-hidden overflow-y-auto no-bg-scrollbar">
 								<ChartsContainer layout="row" resultId={resultId} />
@@ -38,7 +38,7 @@ export const ModeSplit = () => {
 						</div>
 					</Resizable>
 
-					<div className="flex flex-col flex-grow w-full h-full overflow-hidden bg-white rounded-md">
+					<div className="flex flex-col flex-grow w-full h-full overflow-hidden bg-bg-primary rounded-md">
 						<TableHeader>
 							<ExportChartContainer resultId={resultId} />
 						</TableHeader>

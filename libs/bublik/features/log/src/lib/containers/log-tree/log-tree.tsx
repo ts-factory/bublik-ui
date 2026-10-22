@@ -15,7 +15,7 @@ import { useLogPage } from '../../hooks';
 
 export const TreeLoading = () => {
 	return (
-		<div className="flex flex-col flex-grow bg-white rounded-md">
+		<div className="flex flex-col flex-grow bg-bg-primary rounded-md">
 			<CardHeader label="Tree">
 				<div className="flex items-stretch h-full gap-2">
 					<Skeleton className="w-[26px] h-full rounded-md max-w-[217px]" />
@@ -97,7 +97,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 
 	if (error) {
 		return (
-			<div className="flex flex-col flex-grow bg-white rounded-md">
+			<div className="flex flex-col flex-grow bg-bg-primary rounded-md">
 				<TreeHeader
 					hasErrors={treeWithOnlyErrors !== null}
 					isNokMode={showOnlyErrors}
@@ -115,7 +115,7 @@ export const TreeContainer: FC<TreeContainerProps> = ({ runId }) => {
 
 	return (
 		<div
-			className="flex flex-col flex-grow bg-white rounded-md"
+			className="flex flex-col flex-grow bg-bg-primary rounded-md"
 			data-testid="log-tree"
 		>
 			<TreeHeader

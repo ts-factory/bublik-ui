@@ -57,7 +57,7 @@ export function VerdictLists({
 			    brings its own box, and padding would bleed white past it. */}
 			<div
 				className={cn(
-					'absolute -top-3 right-[9px] z-10 flex items-center bg-white',
+					'absolute -top-3 right-[9px] z-10 flex items-center bg-bg-primary',
 					kept && 'px-1'
 				)}
 			>
@@ -67,13 +67,13 @@ export function VerdictLists({
 						size={14}
 						helpMessage="Clear verdicts"
 						onClick={() => onChange(false)}
-						className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-red-100"
+						className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60"
 					/>
 				) : (
 					// The History verdict input's STRING / REGEX toggles: a pill in a
 					// bordered box on the border, so the greyed field still shows
 					// where it is switched back on.
-					<div className="inline-flex items-center rounded border border-border-primary bg-white p-0.5">
+					<div className="inline-flex items-center rounded border border-border-input bg-bg-primary p-0.5">
 						<button
 							type="button"
 							aria-label="Restore verdicts"

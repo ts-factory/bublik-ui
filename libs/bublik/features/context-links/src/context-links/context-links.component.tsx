@@ -21,7 +21,7 @@ export const ContextLinks = ({
 	return (
 		<HoverCard
 			content={
-				<div className="flex flex-col gap-3 p-3 bg-white rounded-xl shadow-popover min-w-[200px]">
+				<div className="flex flex-col gap-3 p-3 bg-bg-elevated rounded-xl shadow-popover min-w-[200px]">
 					{sections.map((section) => (
 						<Section key={section.label} {...section} />
 					))}

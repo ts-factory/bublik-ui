@@ -130,7 +130,7 @@ function LogFeature(props: LogFeatureProps) {
 			)}
 			<div className="flex flex-col flex-grow h-full gap-1 overflow-hidden">
 				{children}
-				<main className="flex-grow bg-white rounded-md overflow-hidden">
+				<main className="flex-grow bg-bg-primary rounded-md overflow-hidden">
 					<CardHeader label="Log">
 						<div className="flex items-center gap-2">
 							<ButtonTw

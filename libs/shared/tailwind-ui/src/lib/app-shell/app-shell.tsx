@@ -19,7 +19,7 @@ const SidebarStory = () => {
 	return (
 		<div
 			className={cn(
-				'sticky top-0 z-20 h-screen bg-white',
+				'sticky top-0 z-20 h-screen bg-bg-primary',
 				isSidebarOpen ? 'w-[245px]' : 'w-[49px]'
 			)}
 		/>

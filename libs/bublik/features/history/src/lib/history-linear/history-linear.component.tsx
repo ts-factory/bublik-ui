@@ -105,7 +105,7 @@ export const HistoryLinearTable: FC<HistoryLinearTableProps> = ({
 									if (idx === 0) headerRef.current = el;
 								}}
 								className={cn(
-									'sticky top-0 z-10 h-10 flex items-center justify-start bg-white',
+									'sticky top-0 z-10 h-10 flex items-center justify-start bg-bg-primary',
 									'text-[0.6875rem] font-semibold leading-[0.875rem]',
 									idx === 0 && 'rounded-bl pl-4',
 									idx === headers.length - 1 && 'rounded-br'
@@ -117,7 +117,7 @@ export const HistoryLinearTable: FC<HistoryLinearTableProps> = ({
 									// it sideways makes each cell's shadow fall under its
 									// neighbour instead.
 									boxShadow: isSticky
-										? `rgba(0, 0, 0, 0.1) ${idx === 0 ? 0 : 7}px 2px 10px`
+										? `var(--shadow-color) ${idx === 0 ? 0 : 7}px 2px 10px`
 										: 'none'
 								}}
 							>
@@ -180,7 +180,7 @@ function HistoryLinearRow({ row }: HistoryLinearRowProps) {
 						onMouseEnter={() => setHovered(true)}
 						onMouseLeave={() => setHovered(false)}
 						className={cn(
-							'mt-1 bg-white px-1 py-2 border-y border-y-transparent transition-colors',
+							'mt-1 bg-bg-primary px-1 py-2 border-y border-y-transparent transition-colors',
 							isFirst && 'rounded-l-md border-l border-l-transparent',
 							isLast && 'rounded-r-md border-r border-r-transparent',
 							hovered && 'border-y-primary',

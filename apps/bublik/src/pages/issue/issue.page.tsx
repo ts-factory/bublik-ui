@@ -49,7 +49,7 @@ export const IssuePage = () => {
 
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issue-page">
-			<header className="flex flex-col bg-white rounded shrink-0">
+			<header className="flex flex-col bg-bg-primary rounded shrink-0">
 				<IssueHeaderBar
 					issueId={numericIssueId}
 					projectId={projectId}
@@ -60,7 +60,7 @@ export const IssuePage = () => {
 				</IssueHeaderBar>
 				<IssueDetailHeader issueId={numericIssueId} projectId={projectId} />
 			</header>
-			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 				<IssueRulesTable
 					issueId={numericIssueId}
 					projectId={projectId}

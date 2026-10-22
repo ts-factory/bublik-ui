@@ -26,7 +26,7 @@ import { cn } from '../utils';
 import { Pagination } from '../pagination';
 import { TableSort } from '../table-sort';
 
-const shadowStyle = { boxShadow: '0 0 15px 0 rgb(0 0 0 / 10%)' };
+const shadowStyle = { boxShadow: 'var(--shadow-sticky)' };
 
 export interface TwHeaderProps<T extends Record<string, unknown>>
 	extends Pick<

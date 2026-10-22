@@ -32,8 +32,8 @@ function TraceFlowDialog(props: TraceFlowDialogProps) {
 									key={index}
 									className={`whitespace-pre-wrap p-2 rounded ${
 										data.server
-											? 'bg-red-50 text-red-700'
-											: 'bg-blue-50 text-blue-700'
+											? 'bg-badge-5 text-text-unexpected'
+											: 'bg-badge-1 text-primary'
 									}`}
 								>
 									<div>{data.data}</div>

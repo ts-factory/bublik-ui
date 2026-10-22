@@ -44,7 +44,7 @@ export const GlobalSearchForm = (props: GlobalSearchFormProps) => {
 
 	return (
 		<div
-			className="h-full w-screen max-w-[48rem] overflow-auto bg-white styled-scrollbar"
+			className="h-full w-screen max-w-[48rem] overflow-auto bg-bg-primary styled-scrollbar"
 			ref={scrollableRef}
 		>
 			<FormProvider {...form.methods}>
@@ -109,7 +109,7 @@ const StickySubmit = (props: StickySubmitProps) => {
 	return (
 		<div
 			className={cn(
-				'sticky bottom-0 z-20 mt-auto -mx-4 bg-white px-4 py-4 backdrop-blur-sm md:-mx-6 md:px-6',
+				'sticky bottom-0 z-20 mt-auto -mx-4 bg-bg-primary px-4 py-4 backdrop-blur-sm md:-mx-6 md:px-6',
 				props.isScrollable && 'shadow-sticky'
 			)}
 		>

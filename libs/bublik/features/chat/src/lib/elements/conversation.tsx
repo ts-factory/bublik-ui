@@ -61,7 +61,7 @@ export function ConversationScrollButton({
 			aria-label="Scroll to bottom"
 			onClick={() => scrollToBottom()}
 			className={cn(
-				'absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border-primary bg-white p-2 text-text-primary transition-colors hover:bg-primary-wash hover:text-primary',
+				'absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border-input bg-bg-primary p-2 text-text-primary transition-colors hover:bg-primary-wash hover:text-primary',
 				className
 			)}
 		>

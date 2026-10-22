@@ -120,7 +120,7 @@ function DateRangePicker(
 							<span
 								{...labelProps}
 								className={cn(
-									'absolute top-[-11px] left-2 z-10 bg-white font-medium text-text-secondary text-[0.875rem]',
+									'absolute top-[-11px] left-2 z-10 bg-bg-primary font-medium text-text-secondary text-[0.875rem]',
 									props.hideLabel && 'sr-only'
 								)}
 							>
@@ -134,7 +134,7 @@ function DateRangePicker(
 						>
 							<div
 								className={cn(
-									'relative flex items-center w-full h-10 px-2 transition-all bg-white border rounded-md border-border-primary group-hover:border-primary group-focus-within:border-primary group-focus-within:shadow-text-field group-active:shadow-none',
+									'relative flex items-center w-full h-10 px-2 transition-all bg-bg-primary border rounded-md border-border-input group-hover:border-primary group-focus-within:border-primary group-focus-within:shadow-text-field group-active:shadow-none',
 									state.isOpen && 'border-primary shadow-text-field'
 								)}
 							>
@@ -197,7 +197,7 @@ function DateRangePicker(
 					</div>
 				</PopoverAnchor>
 				<PopoverContent
-					className="p-4 bg-white flex flex-col gap-4 rounded-lg shadow-popover"
+					className="p-4 bg-bg-elevated flex flex-col gap-4 rounded-lg shadow-popover"
 					alignOffset={8}
 					onInteractOutside={state.close}
 					onEscapeKeyDown={state.close}

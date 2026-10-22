@@ -55,7 +55,7 @@ function ImportRunFormModal(props: PropsWithChildren<ImportRunFormModalProps>) {
 			</DialogTrigger>
 
 			<ModalContent className="min-w-[1000px]">
-				<TwScrollArea className="bg-white max-h-[85vh] rounded-lg p-6">
+				<TwScrollArea className="bg-bg-primary max-h-[85vh] rounded-lg p-6">
 					<Tooltip content="Close">
 						<DialogClose asChild>
 							<ButtonTw

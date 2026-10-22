@@ -102,7 +102,7 @@ export function RuleDrawer({
 
 						<div
 							className={cn(
-								'sticky bottom-0 z-20 mt-auto -mx-6 bg-white px-6 py-4 backdrop-blur-sm',
+								'sticky bottom-0 z-20 mt-auto -mx-6 bg-bg-primary px-6 py-4 backdrop-blur-sm',
 								isScrollable && 'shadow-sticky'
 							)}
 						>

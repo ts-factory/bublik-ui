@@ -131,7 +131,7 @@ interface PlotListLoadingProps {
 export const PlotListLoading = (props: PlotListLoadingProps) => {
 	const { label } = props;
 	return (
-		<div className="bg-white rounded-md">
+		<div className="bg-bg-primary rounded-md">
 			<CardHeader label={label}>
 				<div className="flex items-stretch h-full gap-4">
 					<Skeleton className="w-[75px] h-full rounded" />
@@ -180,11 +180,11 @@ export function PlotList(props: PlotListProps) {
 	return (
 		<div
 			className={cn(
-				'bg-white rounded-md',
+				'bg-bg-primary rounded-md',
 				isFetching && 'pointer-events-none opacity-60'
 			)}
 		>
-			<div className="bg-white rounded-md">
+			<div className="bg-bg-primary rounded-md">
 				<CardHeader label={label}>
 					<div className="flex items-stretch gap-4">
 						<ExportChart plots={plots} />

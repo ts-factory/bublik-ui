@@ -15,7 +15,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 					className="absolute top-2 left-2.5 text-primary"
 				/>
 				<input
-					className="py-[7px] pr-1.5 pl-12 text-text-secondary text-[0.875rem] font-medium leading-[1.5rem] transition-all border border-border-primary shadow-none outline-none rounded-md focus:outline-none focus:ring-0 focus:border-primary focus:shadow-[0_0_0_3px_rgba(98,126,251,0.1)] hover:border-primary active:shadow-none placeholder:text-text-menu"
+					className="py-[7px] pr-1.5 pl-12 bg-bg-primary text-text-secondary text-[0.875rem] font-medium leading-[1.5rem] transition-all border border-border-input shadow-none outline-none rounded-md focus:outline-none focus:ring-0 focus:border-primary focus:shadow-text-field hover:border-primary active:shadow-none placeholder:text-text-menu"
 					autoComplete="off"
 					{...props}
 				/>

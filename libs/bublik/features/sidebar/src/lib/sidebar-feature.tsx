@@ -47,7 +47,7 @@ export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 
 	return (
 		<nav
-			className="flex flex-col h-full overflow-hidden bg-white no-bg-scrollbar"
+			className="flex flex-col h-full overflow-hidden bg-bg-primary no-bg-scrollbar"
 			style={getSidebarStyles(isSidebarOpen)}
 		>
 			<div

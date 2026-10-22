@@ -6,7 +6,7 @@ type Decorator = (Story: ComponentType) => JSX.Element;
 
 export const withBackground: Decorator = (Story) => {
 	return (
-		<div className="p-4 bg-white rounded-md">
+		<div className="p-4 bg-bg-primary rounded-md">
 			<Story />
 		</div>
 	);

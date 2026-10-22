@@ -35,7 +35,7 @@ export const ExportChartList: FC<ExportChartListProps> = ({
 	};
 
 	return (
-		<div className="p-2 bg-white rounded-lg shadow-popover">
+		<div className="p-2 bg-bg-elevated rounded-lg shadow-popover">
 			<ul className="flex flex-col gap-2 min-w-[140px]">
 				{extensions.map((extension) => (
 					<li className="w-full" key={extension}>

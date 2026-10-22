@@ -530,16 +530,16 @@ describe('runs progress utils', () => {
 	describe('getMetricToneClassName', () => {
 		it('scales red intensity with the magnitude of a regression', () => {
 			expect(getMetricToneClassName('lower-is-better', 1, 0, true)).toBe(
-				'bg-[rgba(249,92,120,0.08)]'
+				'bg-bg-error/[0.08]'
 			);
 			expect(getMetricToneClassName('lower-is-better', 2, 0, true)).toBe(
-				'bg-[rgba(249,92,120,0.14)]'
+				'bg-bg-error/[0.14]'
 			);
 			expect(getMetricToneClassName('lower-is-better', 5, 0, true)).toBe(
-				'bg-[rgba(249,92,120,0.22)]'
+				'bg-bg-error/[0.22]'
 			);
 			expect(getMetricToneClassName('lower-is-better', 10, 0, true)).toBe(
-				'bg-[rgba(249,92,120,0.32)]'
+				'bg-bg-error/[0.32]'
 			);
 		});
 

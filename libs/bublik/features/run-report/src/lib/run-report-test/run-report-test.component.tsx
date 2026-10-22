@@ -101,14 +101,14 @@ function RunReportTestBlock(props: RunReportTestBlockProps) {
 						{/* LEVEL 2 */}
 						<div
 							className={cn(
-								'border-y border-border-primary bg-white',
+								'border-y border-border-primary bg-bg-primary',
 								isEmpty && 'hidden'
 							)}
 							style={{ position: 'sticky', top: offsetTop, zIndex: 8 }}
 							ref={handleRef}
 						>
 							<CardHeader
-								className="bg-white"
+								className="bg-bg-primary"
 								style={{ zIndex: 8 }}
 								label={
 									<LinkWithProject
@@ -363,7 +363,7 @@ function MeasurementBlock(props: RunReportEntityBlockProps) {
 						</div>
 					}
 					ref={ref}
-					className="bg-white"
+					className="bg-bg-primary"
 					enableStickyShadow={true}
 					style={{
 						position: 'sticky',

@@ -112,7 +112,7 @@ function HistoryMeasurementsCombinedContainer() {
 					onOpenChange={setIsPointDialogOpen}
 				/>
 			)}
-			<div className="bg-white rounded-md">
+			<div className="bg-bg-primary rounded-md">
 				<CardHeader label="Charts" />
 				<div
 					className={cn(

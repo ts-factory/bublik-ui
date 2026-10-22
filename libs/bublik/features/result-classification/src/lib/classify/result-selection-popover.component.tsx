@@ -147,7 +147,7 @@ function SelectedResultItem({
 					<Tooltip content="Remove from selection" disableHoverableContent>
 						<button
 							aria-label="Remove from selection"
-							className="grid shrink-0 transition-colors rounded place-items-center text-text-unexpected hover:bg-red-100"
+							className="grid shrink-0 transition-colors rounded place-items-center text-text-unexpected hover:bg-bg-fillError/60"
 							onClick={onRemove}
 							data-testid="selected-result-remove"
 						>

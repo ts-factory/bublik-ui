@@ -133,7 +133,7 @@ function ImportEventTable(props: ImportEventTableProps) {
 									<div
 										key={header.id}
 										className={cn(
-											'tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-white',
+											'tracking-wider sticky top-0 z-10 mb-1 px-1 py-2 text-left text-[0.6875rem] font-semibold leading-[0.875rem] bg-bg-primary',
 											className
 										)}
 									>
@@ -163,7 +163,7 @@ function ImportEventTable(props: ImportEventTableProps) {
 			</div>
 
 			{shouldRenderPagination ? (
-				<div className="z-20 flex shrink-0 items-center rounded-b-xl justify-center bg-white px-4 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+				<div className="z-20 flex shrink-0 items-center rounded-b-xl justify-center bg-bg-primary px-4 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
 					<Pagination
 						variant="bordered"
 						totalCount={rowCount}
@@ -195,7 +195,7 @@ function EventRow({ row }: EventRowProps) {
 					<div
 						key={cell.id}
 						className={cn(
-							'px-1 py-2 bg-white text-text-primary whitespace-nowrap text-[0.75rem] leading-[1.125rem] font-medium',
+							'px-1 py-2 bg-bg-primary text-text-primary whitespace-nowrap text-[0.75rem] leading-[1.125rem] font-medium',
 							'flex items-center transition-colors',
 							'border-transparent',
 							cellIdx !== 0 && 'border-y',
@@ -280,14 +280,14 @@ function renderEventLogs(props: EventLogsOptions) {
 	const orderedEventLogs = eventLogs.slice().reverse();
 
 	return (
-		<div className="bg-white px-4 py-8 border-t border-border-primary mb-1">
+		<div className="bg-bg-primary px-4 py-8 border-t border-border-primary mb-1">
 			<div className="relative flex flex-col gap-8">
 				{/* Continuous vertical line */}
 				<div className="absolute left-10 top-12 bottom-16 w-0.5 bg-border-primary" />
 
 				<div className="border relative rounded-md border-border-primary p-4 hover:border-primary transition-colors">
 					{taskId ? (
-						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
+						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-bg-primary">
 							<span className="text-sm text-text-primary font-semibold">
 								Task: &nbsp;
 							</span>
@@ -320,7 +320,7 @@ function renderEventLogs(props: EventLogsOptions) {
 							</div>
 						</div>
 					) : (
-						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-white">
+						<div className="flex items-center absolute -top-[15px] px-2 left-[80px] bg-bg-primary">
 							<Badge variant="warning" className="ml-2">
 								No celery task available
 							</Badge>
@@ -416,7 +416,7 @@ function getEventLogBg(severity: string): string {
 		case Severity.ERROR:
 			return 'bg-bg-error';
 		case Severity.WARNING:
-			return 'bg-yellow-500';
+			return 'bg-bg-busy';
 		case Severity.DEBUG:
 			return 'bg-gray-500';
 		case Severity.INFO:
@@ -464,10 +464,10 @@ const facilityStyles = cva({
 	],
 	variants: {
 		variant: {
-			[Facility.ImportRuns]: ['bg-blue-100', 'text-blue-800'],
-			[Facility.MetaCaterigozation]: ['bg-purple-100', 'text-purple-800'],
-			[Facility.AddTags]: ['bg-green-100', 'text-green-800'],
-			[Facility.Celery]: ['bg-amber-100', 'text-amber-800']
+			[Facility.ImportRuns]: ['bg-badge-1', 'text-text-primary'],
+			[Facility.MetaCaterigozation]: ['bg-badge-2', 'text-text-triage'],
+			[Facility.AddTags]: ['bg-badge-3', 'text-text-expected'],
+			[Facility.Celery]: ['bg-badge-14', 'text-text-primary']
 		}
 	}
 });

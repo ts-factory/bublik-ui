@@ -138,7 +138,7 @@ function IssueDrawerForm({
 
 				{/* Shadowed whether or not the body scrolls: the description fills
 				    the drawer, so the footer always sits on the editor's edge. */}
-				<div className="sticky bottom-0 z-20 mt-auto -mx-6 flex gap-3 bg-white px-6 py-4 shadow-sticky">
+				<div className="sticky bottom-0 z-20 mt-auto -mx-6 flex gap-3 bg-bg-primary px-6 py-4 shadow-sticky">
 					<ButtonTw
 						type="button"
 						variant="secondary"

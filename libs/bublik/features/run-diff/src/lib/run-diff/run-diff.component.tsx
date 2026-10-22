@@ -80,7 +80,7 @@ const DiffToolbar = ({ table }: VisibilityProps) => {
 	};
 
 	return (
-		<div className="flex items-center justify-between px-4 py-1 mb-1 bg-white rounded">
+		<div className="flex items-center justify-between px-4 py-1 mb-1 bg-bg-primary rounded">
 			<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 				Toolbar
 			</span>
@@ -162,8 +162,8 @@ export const RunDiff: FC<RunDiffProps> = ({
 		<>
 			<DiffToolbar table={table} />
 			<TooltipProvider disableHoverableContent>
-				<table className="w-full bg-white border-separate rounded border-spacing-y-0">
-					<thead className="sticky top-0 z-20 bg-white">
+				<table className="w-full bg-bg-primary border-separate rounded border-spacing-y-0">
+					<thead className="sticky top-0 z-20 bg-bg-primary">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id} className="h-8.5">
 								{headerGroup.headers.map((header) => (
@@ -199,10 +199,10 @@ export const RunDiff: FC<RunDiffProps> = ({
 							const isChanged = diffType === DiffType.CHANGED;
 
 							const rowClassName = cn(
-								'h-8.5 bg-white',
+								'h-8.5 bg-bg-primary',
 								isAdded && 'bg-diff-added',
 								isRemoved && 'bg-diff-removed',
-								isChanged && 'bg-yellow-50',
+								isChanged && 'bg-diff-changed-row',
 								isExpanded && 'sticky top-[34px] z-20'
 							);
 

@@ -4,7 +4,7 @@ import { ECElementEvent } from 'echarts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 
-import { BarChart, PieChart } from '@/shared/charts';
+import { BarChart, PieChart, useChartSurfaceColor } from '@/shared/charts';
 import { getRunStatusInfo } from '@/shared/tailwind-ui';
 import { RUN_STATUS } from '@/shared/types';
 
@@ -20,6 +20,7 @@ export interface ConclusionSectionProps {
 }
 
 export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
+	const surfaceColor = useChartSurfaceColor();
 	const { grouped, statuses } = getRunStatus(stats);
 	const pieData = getPieChartDataByRunStatus(stats);
 	const pieRef = useRef<ReactEChartsCore>(null);
@@ -93,7 +94,7 @@ export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
 							itemStyle: {
 								borderRadius: 4,
 								borderWidth: 2,
-								borderColor: '#fff',
+								borderColor: surfaceColor,
 								color: (params) =>
 									getRunStatusInfo(
 										`run-${params.name.toLowerCase()}` as RUN_STATUS

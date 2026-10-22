@@ -69,7 +69,7 @@ export function ModelSelect({
 			</PopoverTrigger>
 			<PopoverContent
 				align="start"
-				className="min-w-64 rounded-lg p-0 bg-white shadow-popover"
+				className="min-w-64 rounded-lg p-0 bg-bg-elevated shadow-popover"
 				sideOffset={4}
 			>
 				<Command>

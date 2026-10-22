@@ -10,7 +10,7 @@ function AnalyticsOverviewCards(props: AnalyticsOverviewCardsProps) {
 	const { overview } = props;
 
 	return (
-		<div className="grid grid-cols-1 bg-white rounded-md md:grid-cols-3 gap-1">
+		<div className="grid grid-cols-1 bg-bg-primary rounded-md md:grid-cols-3 gap-1">
 			<div className="p-4">
 				<div className="text-xs text-text-secondary">Total Events</div>
 				<div className="text-2xl font-semibold">

@@ -9,6 +9,19 @@
 
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/x-icon" href="./src/public/favicon.ico" />
+		<meta name="color-scheme" content="light dark" />
+		<script>
+			// Apply the saved theme (see useTheme) before the app loads, so a dark
+			// page never flashes light
+			try {
+				var theme = JSON.parse(localStorage.getItem('theme') || '"light"');
+				var dark =
+					theme === 'dark' ||
+					(theme !== 'light' &&
+						matchMedia('(prefers-color-scheme: dark)').matches);
+				document.documentElement.classList.toggle('dark', dark);
+			} catch (e) {}
+		</script>
 	</head>
 	<body
 		class="overflow-hidden antialiased font-medium selection:text-white selection:bg-primary text-text-primary bg-bg-body"

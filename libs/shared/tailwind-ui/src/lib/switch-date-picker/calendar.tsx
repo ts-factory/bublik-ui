@@ -119,7 +119,7 @@ export const YearDropdown: FC<{
 			aria-label="Year"
 			onChange={onChange}
 			value={20}
-			className="block w-full py-2 pl-3 pr-10 text-base rounded-md border-border-primary focus:outline-none focus:shadow-text-field focus:border-primary focus:ring-transparent sm:text-sm"
+			className="block w-full py-2 pl-3 pr-10 text-base rounded-md border-border-input focus:outline-none focus:shadow-text-field focus:border-primary focus:ring-transparent sm:text-sm"
 		>
 			{years.map((year, i) => (
 				// use the index as the value so we can retrieve the full
@@ -166,7 +166,7 @@ export const MonthDropdown: FC<{
 			aria-label="Month"
 			onChange={onChange}
 			value={state.focusedDate.month}
-			className="block w-full py-2 pl-3 pr-10 text-base rounded-md border-border-primary focus:outline-none focus:shadow-text-field focus:border-primary focus:ring-transparent sm:text-sm"
+			className="block w-full py-2 pl-3 pr-10 text-base rounded-md border-border-input focus:outline-none focus:shadow-text-field focus:border-primary focus:ring-transparent sm:text-sm"
 		>
 			{months.map((month, i) => (
 				<option key={i} value={i + 1}>

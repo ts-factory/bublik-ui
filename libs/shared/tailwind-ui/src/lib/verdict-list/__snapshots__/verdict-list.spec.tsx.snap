@@ -7,7 +7,7 @@ exports[`VerdictList > should highlight selected verdicts 1`] = `
     data-testid="tw-verdict-list"
   >
     <div
-      class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary"
+      class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input"
       data-testid="tw-badge"
     >
       PASSED
@@ -23,13 +23,13 @@ exports[`VerdictList > should highlight selected verdicts 1`] = `
         verdict-1
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-2
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-3
@@ -55,19 +55,19 @@ exports[`VerdictList > should match snapshot 1`] = `
       class="flex flex-col flex-wrap gap-1"
     >
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-1
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-2
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-3
@@ -84,7 +84,7 @@ exports[`VerdictList > should render expected result (TRANSPARENT) 1`] = `
     data-testid="tw-verdict-list"
   >
     <div
-      class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary"
+      class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input"
       data-testid="tw-badge"
     >
       PASSED
@@ -93,19 +93,19 @@ exports[`VerdictList > should render expected result (TRANSPARENT) 1`] = `
       class="flex flex-col flex-wrap gap-1"
     >
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-1
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-2
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-3
@@ -131,19 +131,19 @@ exports[`VerdictList > should render not expected result (GREEN) 1`] = `
       class="flex flex-col flex-wrap gap-1"
     >
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-1
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-2
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-3
@@ -169,19 +169,19 @@ exports[`VerdictList > should render not expected result (RED) 1`] = `
       class="flex flex-col flex-wrap gap-1"
     >
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-1
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-2
       </div>
       <div
-        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-primary overflow-wrap-anywhere text-start"
+        class="inline-flex items-center w-fit py-0.5 px-2 rounded border text-[0.75rem] font-medium transition-colors bg-transparent border-border-input overflow-wrap-anywhere text-start"
         data-testid="tw-badge"
       >
         verdict-3

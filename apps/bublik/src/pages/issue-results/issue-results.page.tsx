@@ -32,7 +32,7 @@ function IssueResultsHeader({ issueId, projectId }: IssueResultsHeaderProps) {
 	const navigate = useNavigateWithProject();
 
 	return (
-		<header className="flex flex-col bg-white rounded shrink-0">
+		<header className="flex flex-col bg-bg-primary rounded shrink-0">
 			<IssueHeaderBar
 				issueId={issueId}
 				projectId={projectId}

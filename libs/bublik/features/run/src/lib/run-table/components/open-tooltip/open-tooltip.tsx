@@ -11,7 +11,7 @@ export const OpenTooltip: FC<OpenTooltipProps> = ({ children, ...props }) => {
 		<HoverCard
 			content={
 				<button
-					className="flex items-center gap-[22px] py-1.5 px-2.5 bg-white rounded shadow-popover hover:text-primary"
+					className="flex items-center gap-[22px] py-1.5 px-2.5 bg-bg-elevated rounded shadow-popover hover:text-primary"
 					{...props}
 				>
 					<span className="text-[0.625rem] font-semibold leading-[0.875rem]">

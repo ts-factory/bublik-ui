@@ -438,14 +438,14 @@ function PacketTable(props: PacketTableProps) {
 			<table className="min-w-full divide-y divide-border-primary h-full">
 				<thead
 					className="sticky top-0"
-					style={{ boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 10px' }}
+					style={{ boxShadow: 'var(--shadow-color) 0px 0px 10px' }}
 				>
 					<tr>
 						{columns.map((column) => (
 							<th
 								key={column.key}
 								className={cn(
-									'px-2 h-[34px] bg-white border-r last:border-none border-border-primary text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
+									'px-2 h-[34px] bg-bg-primary border-r last:border-none border-border-primary text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
 									'relative'
 								)}
 							>
@@ -454,7 +454,7 @@ function PacketTable(props: PacketTableProps) {
 						))}
 					</tr>
 				</thead>
-				<tbody className="bg-white divide-y divide-border-primary">
+				<tbody className="bg-bg-primary divide-y divide-border-primary">
 					{data.map((row, idx) => (
 						<tr
 							key={idx}
@@ -535,14 +535,14 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 								}}
 								className={cn(
 									'w-full px-2 py-[0px] outline-none font-mono tracking-tighter rounded text-text-secondary transition-all active:shadow-none',
-									'border border-border-primary hover:border-primary',
+									'border border-border-input hover:border-primary',
 									'disabled:text-text-menu disabled:cursor-not-allowed',
 									'focus:border-primary focus:shadow-text-field focus:ring-transparent'
 								)}
 							/>
 						</div>
 					}
-					className="bg-white rounded-t-md flex-shrink-0"
+					className="bg-bg-primary rounded-t-md flex-shrink-0"
 				>
 					<div className="flex items-center gap-2 pl-4">
 						{'runId' in props ? (
@@ -581,7 +581,7 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 					</div>
 				</CardHeader>
 
-				<div className="overflow-auto flex-1 bg-white">
+				<div className="overflow-auto flex-1 bg-bg-primary">
 					<PacketTable
 						data={data}
 						columns={columns}

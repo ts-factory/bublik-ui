@@ -4,6 +4,8 @@ const plugin = require('tailwindcss/plugin');
 
 /** @type {import("tailwindcss").Config} */
 module.exports = {
+	// `html.dark` is set from the user's System / Light / Dark choice
+	darkMode: 'selector',
 	theme: {
 		extend: {
 			height: { 8.5: '2.125rem' },
@@ -15,16 +17,30 @@ module.exports = {
 			},
 			colors: {
 				white: 'hsl(var(--colors-white) / <alpha-value>)',
+				gray: Object.fromEntries(
+					[50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((step) => [
+						step,
+						`hsl(var(--gray-${step}) / <alpha-value>)`
+					])
+				),
 				primary: 'hsl(var(--colors-primary) / <alpha-value>)',
 				'primary-wash': 'hsl(var(--colors-primary-wash) / <alpha-value>)',
+				// Carries its own alpha: dark mode tints whatever sits behind it.
+				'secondary-fill':
+					'hsl(var(--colors-secondary-fill) / var(--colors-secondary-fill-alpha))',
+				'ring-primary': 'hsl(var(--colors-ring-primary) / <alpha-value>)',
+				'ring-error': 'hsl(var(--colors-ring-error) / <alpha-value>)',
 				'text-primary': 'hsl(var(--colors-text-primary) / <alpha-value>)',
 				'text-secondary': 'hsl(var(--colors-text-secondary) / <alpha-value>)',
 				'text-expected': 'hsl(var(--colors-text-expected) / <alpha-value>)',
 				'text-unexpected': 'hsl(var(--colors-text-unexpected) / <alpha-value>)',
 				'text-menu': 'hsl(var(--colors-text-menu) / <alpha-value>)',
 				'text-triage': 'hsl(var(--colors-text-triage) / <alpha-value>)',
+				'text-selected': 'hsl(var(--colors-text-selected) / <alpha-value>)',
 				'accent-env': 'hsl(var(--colors-accent-env) / <alpha-value>)',
 				'bg-primary': 'hsl(var(--colors-bg-primary) / <alpha-value>)',
+				'bg-elevated': 'hsl(var(--colors-bg-elevated) / <alpha-value>)',
+				'bg-selected': 'hsl(var(--colors-bg-selected) / <alpha-value>)',
 				'bg-body': 'hsl(var(--colors-bg-body) / <alpha-value>)',
 				'bg-fillError': 'hsl(var(--colors-bg-fillError) / <alpha-value>)',
 				'bg-fillWarning': 'hsl(var(--colors-bg-fillWarning) / <alpha-value>)',
@@ -38,6 +54,7 @@ module.exports = {
 				'bg-busy': 'hsl(var(--colors-bg-busy) / <alpha-value>)',
 				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',
 				'border-primary': 'hsl(var(--colors-border-primary) / <alpha-value>)',
+				'border-input': 'hsl(var(--colors-border-input) / <alpha-value>)',
 				'badge-0': 'hsl(var(--colors-badge-0) / <alpha-value>)',
 				'badge-1': 'hsl(var(--colors-badge-1) / <alpha-value>)',
 				'badge-2': 'hsl(var(--colors-badge-2) / <alpha-value>)',
@@ -60,12 +77,26 @@ module.exports = {
 				'diff-added': 'hsl(var(--diff-added) / <alpha-value>)',
 				'diff-removed': 'hsl(var(--diff-removed) / <alpha-value>)',
 				'diff-changed': 'hsl(var(--diff-changed) / <alpha-value>)',
+				'diff-changed-row': 'hsl(var(--diff-changed-row) / <alpha-value>)',
 				'log-row-error': 'hsl(var(--log-row-error) / <alpha-value>)',
 				'log-row-warn': 'hsl(var(--log-row-warn) / <alpha-value>)',
 				'log-row-verb': 'hsl(var(--log-row-verb) / <alpha-value>)',
 				'log-row-info': 'hsl(var(--log-row-info) / <alpha-value>)',
-				'log-row-packet': 'hsl(var(--log-row-packet) / <alpha-value>)'
+				'log-row-packet': 'hsl(var(--log-row-packet) / <alpha-value>)',
+				'log-row-step': 'hsl(var(--log-row-step) / <alpha-value>)'
 			},
+			// Text, icon and caret colours of the tokens that double as solid fills
+			// read the ink variables: see INK in tailwind.css
+			...(() => {
+				const ink = {
+					primary: 'hsl(var(--colors-primary-ink) / <alpha-value>)',
+					'bg-error': 'hsl(var(--colors-error-ink) / <alpha-value>)',
+					'bg-warning': 'hsl(var(--colors-warning-ink) / <alpha-value>)',
+					'bg-ok': 'hsl(var(--colors-ok-ink) / <alpha-value>)',
+					'bg-running': 'hsl(var(--colors-running-ink) / <alpha-value>)'
+				};
+				return { textColor: ink, fill: ink, stroke: ink, caretColor: ink };
+			})(),
 			boxShadow: {
 				popover: 'var(--shadow-popover)',
 				tooltip: 'var(--shadow-tooltip)',
@@ -192,7 +223,7 @@ module.exports = {
 				},
 				'highlight-row': {
 					'0%': { color: 'initial' },
-					'100%': { color: 'hsl(var(--colors-primary))' }
+					'100%': { color: 'hsl(var(--colors-primary-ink))' }
 				},
 				'auth-blob': {
 					'0%': { transform: 'translate(0px, 0px) scale(1)' },
@@ -324,9 +355,11 @@ module.exports = {
 					display: 'grid',
 					gridAutoFlow: 'row',
 					gridTemplateColumns: 'repeat(2,minmax(600px,1fr))',
-					'& > *:not(:nth-of-type(2n))': { borderRight: '1px solid #dde3eb' },
+					'& > *:not(:nth-of-type(2n))': {
+						borderRight: '1px solid hsl(var(--colors-border-primary))'
+					},
 					'& > *:not(:nth-last-of-type(-n + 2))': {
-						borderBottom: '1px solid #dde3eb'
+						borderBottom: '1px solid hsl(var(--colors-border-primary))'
 					}
 				}
 			});

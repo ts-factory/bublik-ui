@@ -172,7 +172,7 @@ function SidebarAccountRow({
 						<DropdownMenuItem
 							className={cn(
 								menuItemStyles,
-								'text-text-unexpected focus:bg-red-50 focus:text-text-unexpected'
+								'text-text-unexpected focus:bg-bg-fillError/40 focus:text-text-unexpected'
 							)}
 							onSelect={onSignOut}
 						>

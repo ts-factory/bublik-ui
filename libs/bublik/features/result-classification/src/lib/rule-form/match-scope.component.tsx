@@ -215,7 +215,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 			>
 				<TestTitle test={test} />
 			</div>
-			<div className="absolute top-[-11px] right-[21px] z-10 flex items-center gap-1 bg-white px-1">
+			<div className="absolute top-[-11px] right-[21px] z-10 flex items-center gap-1 bg-bg-primary px-1">
 				<StandingBadge standing={standing} />
 				{rules > 1 ? (
 					<Badge
@@ -248,7 +248,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 					size={14}
 					helpMessage="Empty this test's pickers: match on its path alone"
 					onClick={() => setPicks(clearTestPicks(picks, test.test_id))}
-					className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-red-100"
+					className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60"
 				/>
 			</div>
 		</>

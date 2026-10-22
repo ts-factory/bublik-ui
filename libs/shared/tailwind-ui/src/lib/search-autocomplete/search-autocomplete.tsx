@@ -39,10 +39,11 @@ const inputWrapperStyles = cva({
 		'rounded-md',
 		'overflow-hidden',
 		'border',
+		'border-border-input',
 		'transition-all',
 		'hover:border-primary',
 		'active:shadow-none',
-		'bg-white',
+		'bg-bg-primary',
 		'flex-grow'
 	],
 	variants: {
@@ -180,7 +181,7 @@ export const SearchAutocomplete = <T extends Record<string, unknown>>(
 			{(tags.length || isEditing) && (
 				<label
 					{...labelProps}
-					className="absolute top-[-6px] left-[10px] bg-white z-10 text-[0.625rem] leading-[0.75rem] font-medium"
+					className="absolute top-[-6px] left-[10px] bg-bg-primary z-10 text-[0.625rem] leading-[0.75rem] font-medium"
 				>
 					{props.label}
 				</label>

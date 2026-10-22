@@ -106,7 +106,7 @@ function LogPreviewContainer(
 					<DrawerContent asChild>
 						<div
 							data-testid="log-preview-drawer"
-							className="bg-white flex flex-col h-[95vh] w-[80vw]"
+							className="bg-bg-primary flex flex-col h-[95vh] w-[80vw]"
 						>
 							{/* To fetch only on mount. Do not remove check */}
 							{_open ? (

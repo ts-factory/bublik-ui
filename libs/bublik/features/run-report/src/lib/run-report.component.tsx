@@ -169,7 +169,7 @@ function RunReportTableOfContents({ contents }: RunReportTableOfContentsProps) {
 		<div
 			id={RUN_REPORT_TABLE_OF_CONTENTS_ID}
 			data-testid="run-report-toc"
-			className="bg-white flex flex-col rounded"
+			className="bg-bg-primary flex flex-col rounded"
 			data-offset={RUN_REPORT_STICKY_HEADER_HEIGHT}
 		>
 			<CardHeader label="Table Of Contents" />
@@ -375,7 +375,7 @@ function ReportConfigurationFrame(props: ReportConfigurationFrameProps) {
 	const [searchParams] = useSearchParams();
 
 	return (
-		<div className="bg-white rounded-md flex flex-col">
+		<div className="bg-bg-primary rounded-md flex flex-col">
 			<CardHeader
 				label={
 					<div className="flex items-center gap-2">
@@ -534,7 +534,7 @@ function NotProcessedPointsTable({ points }: NotProcessedPointsTableProps) {
 	if (points.length === 0) return null;
 
 	return (
-		<div className="bg-white rounded-md">
+		<div className="bg-bg-primary rounded-md">
 			<CardHeader label="Not Processed Iterations" />
 			<div className="overflow-x-auto">
 				<div
@@ -687,12 +687,12 @@ function RunReportContentItem({
 			id={encodeURIComponent(block.id)}
 			data-testid="run-report-test-block"
 			data-report-item-id={block.id}
-			className="flex flex-col bg-white rounded pl-1"
+			className="flex flex-col bg-bg-primary rounded pl-1"
 			data-offset={RUN_REPORT_STICKY_HEADER_HEIGHT}
 		>
 			{/* LEVEL 1 */}
 			<CardHeader
-				className={cn('sticky bg-white z-[10]', !isSticky && 'rounded-t')}
+				className={cn('sticky bg-bg-primary z-[10]', !isSticky && 'rounded-t')}
 				style={{ top: RUN_REPORT_STICKY_HEADER_HEIGHT }}
 				label={
 					<LinkWithProject

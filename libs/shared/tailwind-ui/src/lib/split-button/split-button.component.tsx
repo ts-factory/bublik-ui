@@ -27,8 +27,9 @@ const SplitButtonRoot = React.forwardRef<
 			ref={ref}
 			className={cn(
 				'inline-flex group items-center',
-				variant === 'outline' && 'border rounded-md',
-				variant === 'secondary' && 'bg-primary-wash',
+				variant === 'outline' && 'border border-border-input rounded-md',
+				// The halves stay clear: a translucent fill would stack on this one.
+				variant === 'secondary' && 'bg-secondary-fill',
 				className
 			)}
 			{...props}
@@ -52,6 +53,7 @@ const SplitButtonButton = React.forwardRef<
 			ref={ref}
 			className={cn(
 				'rounded-r-none border-none',
+				context.variant === 'secondary' && 'bg-transparent',
 				isOutline && 'border-r-0',
 				className
 			)}
@@ -76,6 +78,7 @@ const SplitButtonTrigger = React.forwardRef<
 				ref={ref}
 				className={cn(
 					'rounded-l-none border-none',
+					context.variant === 'secondary' && 'bg-transparent',
 					isOutline && 'border-l-0',
 					'rdx-state-open:bg-primary rdx-state-open:text-white h-full',
 					className
@@ -97,7 +100,7 @@ const SplitButtonContent = React.forwardRef<
 		<DropdownMenu.Content
 			ref={ref}
 			className={cn(
-				'z-[100] min-w-[220px] bg-white rounded-lg p-1 shadow-popover',
+				'z-[100] min-w-[220px] bg-bg-elevated rounded-lg p-1 shadow-popover',
 				'rdx-state-open:rdx-side-top:animate-slide-down-fade',
 				'rdx-state-open:rdx-side-right:animate-slide-left-fade',
 				'rdx-state-open:rdx-side-bottom:animate-slide-up-fade',
@@ -144,7 +147,15 @@ const SplitButtonSeparator = React.forwardRef<
 	React.ElementRef<typeof Separator>,
 	React.ComponentPropsWithoutRef<typeof Separator>
 >(({ className, ...props }, ref) => (
-	<Separator ref={ref} {...props} className={className} />
+	<Separator
+		ref={ref}
+		{...props}
+		// Between the two halves it is part of the control's outline
+		className={cn(
+			props.orientation === 'vertical' && 'bg-border-input',
+			className
+		)}
+	/>
 ));
 
 const SplitButton = Object.assign(SplitButtonRoot, {

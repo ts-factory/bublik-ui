@@ -19,7 +19,7 @@ export const wrapperStyles = cva({
 			isActive: false,
 			isSubmenuOpen: true,
 			className:
-				'bg-[#ecf1ff] text-[#385bf9] hover:text-[#385bf9] hover:bg-[#ecf1ff]'
+				'bg-bg-selected text-text-selected hover:text-text-selected hover:bg-bg-selected'
 		}
 	]
 });
@@ -64,7 +64,7 @@ export const accordionLinkStyles = cva({
 		isActive: {
 			// The open submenu is already washed with primary, so the active row
 			// needs a deeper tint than the wash to stand out from it.
-			true: 'bg-primary/20 text-[#385bf9]',
+			true: 'bg-primary/20 text-text-selected',
 			false: 'text-text-menu hover:text-primary'
 		},
 		disabled: { true: 'cursor-not-allowed hover:text-text-menu' }

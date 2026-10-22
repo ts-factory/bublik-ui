@@ -94,7 +94,7 @@ export const SwitchDatePicker = forwardRef<
 			</PopoverAnchor>
 
 			<PopoverContent
-				className="px-8 py-6 bg-white rounded-xl shadow-popover"
+				className="px-8 py-6 bg-bg-elevated rounded-xl shadow-popover"
 				onInteractOutside={state.close}
 				onEscapeKeyDown={state.close}
 				{...dialogProps}

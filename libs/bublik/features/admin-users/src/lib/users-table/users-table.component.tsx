@@ -69,7 +69,7 @@ export const UsersTable = (props: UsersTableProps) => {
 	return (
 		<div className="overflow-x-auto">
 			<table className="min-w-full border-separate table-fixed border-spacing-y-1">
-				<thead className="bg-white">
+				<thead className="bg-bg-primary">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id} className="h-8.5">
 							{headerGroup.headers.map((header) => (
@@ -102,7 +102,7 @@ export const UsersTable = (props: UsersTableProps) => {
 						</tr>
 					))}
 				</thead>
-				<tbody className="bg-white">
+				<tbody className="bg-bg-primary">
 					{table.getRowModel().rows.map((row) => (
 						<tr key={row.id} className="group">
 							{row.getVisibleCells().map((cell) => (

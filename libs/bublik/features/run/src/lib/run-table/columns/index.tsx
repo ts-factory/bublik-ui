@@ -112,8 +112,8 @@ function getColumns({
 						<PopoverTrigger asChild>
 							<button className="max-w-[15vw] 2xl:max-w-[20vw] text-left w-full group relative block h-full hover:bg-primary-wash px-2">
 								<div className="absolute flex items-center right-0 top-1/2 -translate-y-1/2 z-10 h-full opacity-0 group-hover:opacity-100 transition-opacity">
-									<div className="w-6 h-full bg-gradient-to-r from-transparent to-white" />
-									<div className="grid place-items-center bg-white w-6 h-full pr-2">
+									<div className="w-6 h-full bg-gradient-to-r from-transparent to-bg-primary" />
+									<div className="grid place-items-center bg-bg-primary w-6 h-full pr-2">
 										<Icon
 											name="ChevronDown"
 											size={16}
@@ -131,7 +131,7 @@ function getColumns({
 								align="start"
 								sideOffset={0}
 								className={cn(
-									'outline-none bg-white shadow-popover p-1 rounded-lg z-50 -translate-y-[26px] -translate-x-[8px] transition-none',
+									'outline-none bg-bg-elevated shadow-popover p-1 rounded-lg z-50 -translate-y-[26px] -translate-x-[8px] transition-none',
 									'rdx-state-open:animate-fade-in rdx-state-closed:animate-fade-out'
 								)}
 								style={{ transform: 'translateY(-74px) translateX(-4px)' }}

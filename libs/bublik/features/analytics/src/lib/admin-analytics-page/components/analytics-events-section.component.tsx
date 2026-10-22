@@ -42,7 +42,7 @@ function AnalyticsEventsSection(props: AnalyticsEventsSectionProps) {
 	} = props;
 
 	return (
-		<div className="bg-white overflow-auto flex-1 min-h-0 isolate">
+		<div className="bg-bg-primary overflow-auto flex-1 min-h-0 isolate">
 			<CardHeader
 				label={
 					<div className="flex items-center gap-2 w-full">
@@ -59,7 +59,7 @@ function AnalyticsEventsSection(props: AnalyticsEventsSectionProps) {
 						/>
 					</div>
 				}
-				className="sticky top-0 z-20 bg-white"
+				className="sticky top-0 z-20 bg-bg-primary"
 				enableStickyShadow
 			>
 				<ButtonTw

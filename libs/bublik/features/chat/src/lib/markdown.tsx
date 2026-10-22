@@ -86,13 +86,13 @@ const components: Components = {
 		// breaks and indentation are not collapsed.
 		if (content.includes('\n')) {
 			return (
-				<pre className="my-1.5 overflow-x-auto rounded-md bg-white/60 p-3 font-mono text-[0.8125rem]">
+				<pre className="my-1.5 overflow-x-auto rounded-md bg-bg-primary/60 p-3 font-mono text-[0.8125rem]">
 					<code>{content.replace(/\n$/, '')}</code>
 				</pre>
 			);
 		}
 		return (
-			<code className="rounded bg-white/60 px-1 py-0.5 font-mono text-[0.8125rem]">
+			<code className="rounded bg-bg-primary/60 px-1 py-0.5 font-mono text-[0.8125rem]">
 				{children}
 			</code>
 		);

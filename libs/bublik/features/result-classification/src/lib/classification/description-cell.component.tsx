@@ -180,7 +180,7 @@ function DescriptionPopover({
 	// instead (see its `style`). No taller than the room Radix finds on its side,
 	// so the text scrolls rather than running off screen.
 	const className =
-		'flex flex-col bg-white shadow-popover rounded-lg p-1 max-h-[min(60vh,var(--radix-popover-content-available-height))] max-w-[min(56rem,90vw)] outline-none';
+		'flex flex-col bg-bg-elevated shadow-popover rounded-lg p-1 max-h-[min(60vh,var(--radix-popover-content-available-height))] max-w-[min(56rem,90vw)] outline-none';
 
 	if (!overlay) {
 		return (
@@ -376,7 +376,7 @@ function DescriptionBlock({ value, overlay, ...issue }: DescriptionCellProps) {
 			</Markdown>
 			{clipped ? (
 				// Fades the cut-off line out, into the hover wash when hovered.
-				<span className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-transparent to-white group-hover:to-primary-wash" />
+				<span className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-transparent to-bg-primary group-hover:to-primary-wash" />
 			) : null}
 		</DescriptionTextAnchor>
 	);

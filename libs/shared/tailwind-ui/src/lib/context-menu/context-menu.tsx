@@ -52,7 +52,7 @@ export const ContextMenuCheckboxItem = forwardRef<
 const contentStyles = cva({
 	base: [
 		'w-48 rounded-lg px-1.5 py-1 shadow-popover md:w-56',
-		'bg-white',
+		'bg-bg-elevated',
 		'motion-safe:rdx-state-open:animate-scale-in-content',
 		'motion-safe:rdx-state-closed:animate-scale-out-content origin-rdx-context-menu'
 	]

@@ -23,7 +23,7 @@ const FormSectionRoot = forwardRef<HTMLFieldSetElement, FormSectionProps>(
 			<fieldset
 				ref={ref}
 				className={cn(
-					'relative shrink-0 rounded-2xl border border-border-primary bg-white pl-5 pr-4 pt-5',
+					'relative shrink-0 rounded-2xl border border-border-primary bg-bg-primary pl-5 pr-4 pt-5',
 					'shadow-[0_1px_2px_rgba(34,60,80,0.06)]',
 					'transition-[border-color,box-shadow,transform] hover:border-primary/60 focus-within:border-primary focus-within:shadow-text-field motion-safe:animate-fade-in',
 					'md:pr-5 md:pl-7 md:py-3',
@@ -86,7 +86,7 @@ function FormSectionResetButton({
 			size={18}
 			helpMessage={helpMessage}
 			onClick={onClick}
-			className="hover:text-text-unexpected hover:bg-red-100"
+			className="hover:text-text-unexpected hover:bg-bg-fillError/60"
 		/>
 	);
 }

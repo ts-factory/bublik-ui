@@ -136,7 +136,7 @@ export function DataTableFacetedFilter({
 			</PopoverTrigger>
 			<PopoverPortal>
 				<PopoverContent
-					className="p-0 bg-white rounded-lg shadow-popover"
+					className="p-0 bg-bg-elevated rounded-lg shadow-popover"
 					align="start"
 					sideOffset={4}
 				>
@@ -205,7 +205,7 @@ export function DataTableFacetedFilter({
 												)}
 											>
 												{isSingle ? (
-													<span className="w-1.5 h-1.5 bg-white rounded-full" />
+													<span className="w-1.5 h-1.5 bg-bg-primary rounded-full" />
 												) : (
 													<CheckIcon className={cn('h-4 w-4')} />
 												)}

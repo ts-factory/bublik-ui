@@ -76,7 +76,8 @@ export const getRunStatusBgColorRaw = (runStatus: RUN_STATUS): string => {
 export const getRunStatusColor = (runStatus: RUN_STATUS): string => {
 	switch (runStatus) {
 		case RUN_STATUS.Busy:
-			return 'text-text-unexpected';
+			// Red on the dark busy gold stays under 3:1, so the icon turns white
+			return 'text-text-unexpected dark:text-white';
 		case RUN_STATUS.Stopped:
 			return 'text-text-unexpected';
 		default:

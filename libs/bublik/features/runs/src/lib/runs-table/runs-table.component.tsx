@@ -142,7 +142,7 @@ function RunsTable(props: RunsTableProps) {
 										<th
 											key={header.id}
 											className={cn(
-												'py-2 px-1 text-[0.6875rem] font-semibold leading-[0.875rem] text-left bg-white sticky top-0 z-10',
+												'py-2 px-1 text-[0.6875rem] font-semibold leading-[0.875rem] text-left bg-bg-primary sticky top-0 z-10',
 												headerClassName
 											)}
 										>
@@ -207,7 +207,7 @@ function RunsRow({ row, onRowClick }: RunsRowProps) {
 						key={cell.id}
 						data-column-id={cell.column.id}
 						className={cn(
-							`bg-white py-2 px-1 border-transparent transition-colors`,
+							`bg-bg-primary py-2 px-1 border-transparent transition-colors`,
 							cellIdx !== 0 && 'border-y',
 							cellIdx === cells.length - 1 && 'border-r rounded-r',
 							isHovered && 'border-primary',

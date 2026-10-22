@@ -56,7 +56,7 @@ export function SettingsModal() {
 				<DialogOverlay className={dialogOverlayStyles()} />
 				<DialogContent
 					className={cn(
-						'h-[560px] lg:h-[640px] xl:h-[720px] w-[92vw] z-50 bg-white rounded-xl max-w-[860px] overflow-hidden p-0 shadow-2xl',
+						'h-[560px] lg:h-[640px] xl:h-[720px] w-[92vw] z-50 bg-bg-primary rounded-xl max-w-[860px] overflow-hidden p-0 shadow-2xl',
 						dialogContentStyles()
 					)}
 				>
@@ -102,7 +102,7 @@ export function SettingsModal() {
 								<div className="p-2 border-t border-slate-3">
 									<button
 										onClick={handleLogout}
-										className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium text-text-unexpected rounded-md hover:bg-red-50 transition-colors"
+										className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium text-text-unexpected rounded-md hover:bg-bg-fillError/40 transition-colors"
 									>
 										<Icon name="BoxArrowRight" size={18} />
 										<span>Sign Out</span>
@@ -112,7 +112,7 @@ export function SettingsModal() {
 						</div>
 
 						{/* Content */}
-						<div className="flex flex-col overflow-hidden bg-white">
+						<div className="flex flex-col overflow-hidden bg-bg-primary">
 							{SettingsContent[activeTab] ?? null}
 						</div>
 					</div>

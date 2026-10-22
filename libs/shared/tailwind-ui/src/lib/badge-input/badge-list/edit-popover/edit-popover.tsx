@@ -21,7 +21,7 @@ const EditPopoverContent = (props: EditPopoverContentProps) => {
 	const { onDeleteClick, onEditClick, onCopyClick } = props;
 
 	return (
-		<div className="flex items-center [&>:not(:first-child)]:border-l border-l-border-primary rounded bg-white shadow-tooltip">
+		<div className="flex items-center [&>:not(:first-child)]:border-l border-l-border-primary rounded bg-bg-elevated shadow-tooltip">
 			<button
 				className={ACTION_BUTTON_CLASS_NAME}
 				onClick={onDeleteClick}

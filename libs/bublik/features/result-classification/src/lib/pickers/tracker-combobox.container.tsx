@@ -145,7 +145,7 @@ export function TrackerCombobox({
 				<Combobox.Positioner sideOffset={4} className="z-[60] outline-none">
 					<Combobox.Popup
 						className={cn(
-							'bg-white rounded shadow-popover',
+							'bg-bg-elevated rounded shadow-popover',
 							'w-[var(--anchor-width)] max-w-[var(--available-width)]',
 							'max-h-[min(var(--available-height),15rem)] overflow-hidden'
 						)}

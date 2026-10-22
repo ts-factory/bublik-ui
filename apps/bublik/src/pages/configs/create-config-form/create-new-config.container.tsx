@@ -263,7 +263,7 @@ function CreateNewConfigScreen() {
 				<DialogContent
 					className={cn(
 						dialogContentStyles(),
-						'sm:max-w-md p-6 bg-white sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
+						'sm:max-w-md p-6 bg-bg-primary sm:rounded-lg md:shadow min-w-[420px] overflow-auto max-h-[85vh]'
 					)}
 				>
 					<form
@@ -289,7 +289,7 @@ function CreateNewConfigScreen() {
 								control={form.control}
 								render={({ field }) => (
 									<div className="relative">
-										<InputLabel className="absolute top-[-11px] left-2 bg-white">
+										<InputLabel className="absolute top-[-11px] left-2 bg-bg-primary">
 											Project
 										</InputLabel>
 										<select

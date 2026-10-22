@@ -16,7 +16,7 @@ export const IssuesPage = () => {
 
 	return (
 		<div className="flex flex-col h-full gap-1 p-2" data-testid="issues-page">
-			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 				<IssuesTable
 					emptyActions={
 						<NewIssueButton

@@ -67,8 +67,10 @@ export const ObtainedResultDiff: FC<ObtainedResultDiffProps> = (props) => {
 								key={value}
 								variant={BadgeVariants.Transparent}
 								className={cn(
-									change.added && 'bg-green-300 text-black border-transparent',
-									change.removed && 'bg-red-300 text-black border-transparent'
+									change.added &&
+										'bg-bg-ok/50 text-text-primary border-transparent',
+									change.removed &&
+										'bg-bg-error/40 text-text-primary border-transparent'
 								)}
 							>
 								{value}

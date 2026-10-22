@@ -276,7 +276,7 @@ function AnalyticsEventsTable(props: AnalyticsEventsTableProps) {
 									<th
 										key={header.id}
 										className={cn(
-											'px-2 border-b border-border-primary bg-white sticky top-9 z-10',
+											'px-2 border-b border-border-primary bg-bg-primary sticky top-9 z-10',
 											className
 										)}
 									>
@@ -302,7 +302,10 @@ function AnalyticsEventsTable(props: AnalyticsEventsTableProps) {
 						<Fragment key={row.id}>
 							<tr className="border-b align-top">
 								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className="px-2 h-8 bg-white align-top">
+									<td
+										key={cell.id}
+										className="px-2 h-8 bg-bg-primary align-top"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
@@ -313,7 +316,7 @@ function AnalyticsEventsTable(props: AnalyticsEventsTableProps) {
 										colSpan={row.getVisibleCells().length}
 										className="px-2 py-2 bg-gray-50 border-border-primary"
 									>
-										<div className="rounded border border-border-primary bg-white p-2">
+										<div className="rounded border border-border-primary bg-bg-primary p-2">
 											<JsonViewer
 												src={getJsonViewerSource(row.original.payload)}
 											/>

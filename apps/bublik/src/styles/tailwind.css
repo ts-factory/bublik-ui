@@ -30,7 +30,10 @@ body,
 	height: 100%;
 }
 
-:root {
+/* `.theme-light` / `.theme-dark` pin a subtree to one theme whatever the
+   page's, as the Appearance settings previews do */
+:root,
+.theme-light {
 	/* SIDEBAR */
 	--sidebar-width-open: 252px;
 	--sidebar-padding-open: 24px 26px;
@@ -46,9 +49,23 @@ body,
 	--fonts-mono: Geist Mono, SFMono-Regular, Menlo, Monaco, Consolas,
 		Liberation Mono, Courier New monospace;
 
+	color-scheme: light;
+
 	--colors-primary: 229 95% 68%;
 	--colors-primary-wash: 218 100% 98%;
+	/* Secondary buttons and the result links. */
+	--colors-secondary-fill: var(--colors-primary-wash);
+	--colors-secondary-fill-alpha: 1;
+	/* Ink on solid colours (primary buttons, status stripes, checked switch
+	   thumbs). Stays white in both themes: surfaces use --colors-bg-primary. */
 	--colors-white: 0 0% 100%;
+	/* Selected row in pickers and the sidebar: a step stronger than
+	   primary-wash so it still reads while the row is also hovered. */
+	--colors-bg-selected: 225 100% 96%;
+	--colors-text-selected: 229 94% 60%;
+	/* Hover rings of the solid primary / destructive buttons */
+	--colors-ring-primary: 224 100% 79%;
+	--colors-ring-error: 350 94% 82%;
 
 	/* TEXT */
 	--colors-text-primary: 217 23% 19%;
@@ -70,6 +87,9 @@ body,
 
 	/* BACKGROUND */
 	--colors-bg-primary: 0 0% 100%;
+	/* Popovers, tooltips, menus, dialogs: the same as bg-primary in light,
+	   a step lighter in dark, where elevation shows as lightness. */
+	--colors-bg-elevated: 0 0% 100%;
 	--colors-bg-body: 0 0% 96%;
 	--colors-bg-fillError: 0 100% 88%;
 	--colors-bg-error: 349 93% 67%;
@@ -87,6 +107,19 @@ body,
 	--colors-bg-busy: 47 100% 64%;
 	--colors-bg-interrupted: 354 80% 75%;
 	--colors-border-primary: 214 26% 89%;
+	/* Boundary of form controls (inputs, selects, checkboxes); the same as
+	   border-primary in light, stronger in dark to keep 3:1 against the card */
+	--colors-border-input: var(--colors-border-primary);
+
+	/* INK: text-, fill- and stroke- utilities of the colours that are also
+	   solid fills. In light they are the fills themselves; dark needs a deeper
+	   fill for white text and a lighter ink for text on the card, and no one
+	   colour does both at 4.5:1. */
+	--colors-primary-ink: var(--colors-primary);
+	--colors-error-ink: var(--colors-bg-error);
+	--colors-warning-ink: var(--colors-bg-warning);
+	--colors-ok-ink: var(--colors-bg-ok);
+	--colors-running-ink: var(--colors-bg-running);
 
 	/* BADGES */
 	--colors-badge-0: 0 0% 94%;
@@ -118,15 +151,32 @@ body,
 	/* DIFF */
 	--diff-added: 134 100% 95%;
 	--diff-removed: 5 100% 96%;
-	--diff-changed: 48 97% 77;
+	--diff-changed: 48 97% 77%;
+	/* Opaque wash of a changed row: sticky rows cannot be see-through */
+	--diff-changed-row: 55 92% 95%;
 
-	/* LOG */
-	--log-gray-200: 220 13% 91%;
-	--log-row-error: 349 93% 67%;
-	--log-row-warn: 32 100% 55%;
-	--log-row-info: var(--log-gray-200);
-	--log-row-verb: 231 66% 67%;
-	--log-row-packet: var(--log-gray-200);
+	/* LOG: row tints of the session log, by level */
+	--log-row-error: 0 96% 89%;
+	--log-row-warn: 32 98% 83%;
+	--log-row-info: 214 95% 87%;
+	--log-row-verb: 228 96% 89%;
+	--log-row-packet: 220 13% 91%;
+	/* Steps, artifacts and verdicts */
+	--log-row-step: 141 79% 85%;
+
+	/* GRAY: Tailwind's gray scale, routed through variables so the gray-*
+	   utilities (and the forms plugin's gray-500 borders) flip in dark. */
+	--gray-50: 210 20% 98%;
+	--gray-100: 220 14% 96%;
+	--gray-200: 220 13% 91%;
+	--gray-300: 216 12% 84%;
+	--gray-400: 218 11% 65%;
+	--gray-500: 220 9% 46%;
+	--gray-600: 215 14% 34%;
+	--gray-700: 217 19% 27%;
+	--gray-800: 215 28% 17%;
+	--gray-900: 221 39% 11%;
+	--gray-950: 224 71% 4%;
 
 	/* SHADOWS */
 	--shadow-popover: 0px 5px 15px rgba(0, 0, 0, 0.2);
@@ -135,15 +185,168 @@ body,
 	--shadow-dialog-sheet: -15px 0px 15px 0px rgba(34, 60, 80, 0.05);
 	--shadow-text-field-error: 0 0 0 3px rgba(247, 29, 69, 0.1);
 	--shadow-sticky: 0 0 15px 0 rgb(0 0 0 / 10%);
+	/* Colour of the inline sticky-column shadows, whose offsets vary */
+	--shadow-color: rgb(0 0 0 / 10%);
+
+	/* SCROLLBAR */
+	--scrollbar-thumb: rgba(0, 0, 0, 0.2);
+	--scrollbar-thumb-active: rgba(0, 0, 0, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
+/* Dark theme: set by the inline script in index.html and by useApplyTheme,
+   from the user's System / Light / Dark choice. Neutrals follow shadcn/ui's
+   dark "neutral" theme (background 0.145, card and popover 0.205, muted
+   0.269 and muted-foreground 0.708 oklch, border white at 10%); the brand
+   blue and the status colours stay ours. Washes (badges, fills, diff
+   and log rows) keep their hue and drop to 16-26% lightness, so the ink on
+   them, which flips to light, keeps its contrast. */
+:root.dark,
+.theme-dark {
+	color-scheme: dark;
+
+	--colors-primary: 229 75% 60%;
+	--colors-primary-wash: 228 14% 13%;
+	/* Translucent so the button reads on the card and on primary-wash rows
+	   (result table, history, diff) alike. */
+	--colors-secondary-fill: var(--colors-primary);
+	--colors-secondary-fill-alpha: 0.16;
+	--colors-bg-selected: 229 35% 20%;
+	--colors-text-selected: 229 95% 78%;
+	--colors-ring-primary: 229 60% 45%;
+	--colors-ring-error: 349 50% 40%;
+
+	/* TEXT */
+	--colors-text-primary: 0 0% 98%;
+	--colors-text-secondary: 0 0% 83%;
+	--colors-text-expected: 150 50% 62%;
+	--colors-text-unexpected: 359 100% 76%;
+	--colors-text-menu: 0 0% 63%;
+	--colors-history-placeholder: 0 0% 58%;
+	--colors-text-triage: 258 80% 80%;
+	--colors-accent-env: 185 55% 52%;
+
+	/* BACKGROUND */
+	--colors-bg-primary: 0 0% 9%;
+	--colors-bg-elevated: 0 0% 9%;
+	--colors-bg-body: 0 0% 3.9%;
+	--colors-bg-fillError: 0 50% 22%;
+	--colors-bg-error: 349 70% 52%;
+	--colors-bg-warning: 30 90% 37%;
+	--colors-bg-fillWarning: 32 50% 17%;
+	--colors-bg-ok: 138 45% 35%;
+	--colors-bg-running: 231 50% 55%;
+	--colors-bg-compromised: 0 0% 45%;
+	--colors-bg-triage: 258 55% 58%;
+	--colors-bg-stopped: 0 45% 22%;
+	--colors-bg-busy: 45 70% 32%;
+	--colors-bg-interrupted: 354 50% 48%;
+	--colors-border-primary: 0 0% 18%;
+	--colors-border-input: 0 0% 42%;
+
+	/* INK */
+	--colors-primary-ink: 229 95% 78%;
+	--colors-error-ink: 349 90% 70%;
+	--colors-warning-ink: 32 95% 52%;
+	--colors-ok-ink: 138 55% 50%;
+	--colors-running-ink: 231 80% 74%;
+
+	/* BADGES */
+	--colors-badge-0: 0 0% 20%;
+	--colors-badge-1: 208 30% 22%;
+	--colors-badge-2: 256 30% 24%;
+	--colors-badge-3: 96 30% 20%;
+	--colors-badge-4: 34 30% 21%;
+	--colors-badge-5: 0 40% 23%;
+	--colors-badge-6: 234 35% 26%;
+	--colors-badge-7: 185 30% 18%;
+	--colors-badge-8: 135 30% 18%;
+	--colors-badge-9: 229 30% 18%;
+	--colors-badge-10: 196 20% 20%;
+	--colors-badge-11: 0 0% 18%;
+	--colors-badge-12: 349 70% 52%;
+	--colors-badge-13: 0 50% 22%;
+	--colors-badge-14: 34 45% 23%;
+	--colors-badge-15: 353 50% 35%;
+	--colors-badge-16: 120 18% 19%;
+	--colors-badge-17: 47 45% 21%;
+	--colors-badge-18: 185 35% 21%;
+
+	/* DIFF */
+	--diff-added: 134 35% 16%;
+	--diff-removed: 5 40% 18%;
+	--diff-changed: 48 50% 22%;
+	--diff-changed-row: 48 30% 13%;
+
+	/* LOG */
+	--log-row-error: 0 45% 24%;
+	--log-row-warn: 32 45% 22%;
+	--log-row-info: 214 35% 22%;
+	--log-row-verb: 228 35% 24%;
+	--log-row-packet: 0 0% 18%;
+	--log-row-step: 141 30% 20%;
+
+	/* GRAY: inverted, 50 is the darkest */
+	--gray-50: 0 0% 12%;
+	--gray-100: 0 0% 15%;
+	--gray-200: 0 0% 18%;
+	--gray-300: 0 0% 25%;
+	--gray-400: 0 0% 58%;
+	--gray-500: 0 0% 62%;
+	--gray-600: 0 0% 68%;
+	--gray-700: 0 0% 78%;
+	--gray-800: 0 0% 86%;
+	--gray-900: 0 0% 90%;
+	--gray-950: 0 0% 98%;
+
+	/* SHADOWS: black barely shows on a dark surface, so popovers get a
+	   hairline and focus rings a stronger tint */
+	--shadow-popover: 0 0 0 1px hsl(var(--colors-border-primary)),
+		0 8px 24px rgba(0, 0, 0, 0.5);
+	--shadow-tooltip: 0 0 0 1px hsl(var(--colors-border-primary)),
+		0 8px 24px rgba(0, 0, 0, 0.5);
+	--shadow-text-field: 0 0 0 3px rgba(98, 126, 251, 0.35);
+	--shadow-dialog-sheet: -15px 0px 15px 0px rgba(0, 0, 0, 0.4);
+	--shadow-text-field-error: 0 0 0 3px rgba(247, 29, 69, 0.35);
+	--shadow-sticky: 0 0 15px 0 rgb(0 0 0 / 50%);
+	--shadow-color: rgb(0 0 0 / 50%);
+
+	/* SCROLLBAR */
+	--scrollbar-thumb: rgba(255, 255, 255, 0.2);
+	--scrollbar-thumb-active: rgba(255, 255, 255, 0.35);
+}
+
+/* @tailwindcss/forms paints its controls #fff and draws the select chevron
+   from gray-500, which is now a variable a data URI cannot read */
+@layer base {
+	[type='text'],
+	input:where(:not([type])),
+	[type='email'],
+	[type='url'],
+	[type='password'],
+	[type='number'],
+	[type='date'],
+	[type='datetime-local'],
+	[type='month'],
+	[type='search'],
+	[type='tel'],
+	[type='time'],
+	[type='week'],
+	[multiple],
+	textarea,
+	select,
+	[type='checkbox'],
+	[type='radio'] {
+		background-color: hsl(var(--colors-bg-primary));
+		--tw-ring-offset-color: hsl(var(--colors-bg-primary));
+	}
+
+	select {
+		background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
 	}
 }
 
 html .no-bg-scrollbar {
-	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+	scrollbar-color: var(--scrollbar-thumb) transparent;
 	scrollbar-width: thin;
 }
 
@@ -156,7 +359,7 @@ html .no-bg-scrollbar:active::-webkit-scrollbar-thumb,
 html .no-bg-scrollbar:focus-within::-webkit-scrollbar-thumb,
 html .no-bg-scrollbar:focus::-webkit-scrollbar-thumb,
 html .no-bg-scrollbar:hover::-webkit-scrollbar-thumb {
-	background-color: rgba(0, 0, 0, 0.2);
+	background-color: var(--scrollbar-thumb);
 	border: 4px solid transparent;
 	background-clip: content-box;
 	border-radius: 10px;
@@ -164,7 +367,7 @@ html .no-bg-scrollbar:hover::-webkit-scrollbar-thumb {
 
 html .no-bg-scrollbar::-webkit-scrollbar-thumb:active,
 html .no-bg-scrollbar::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(0, 0, 0, 0.35) !important;
+	background-color: var(--scrollbar-thumb-active) !important;
 }
 
 /* FIREFOX */

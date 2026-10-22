@@ -149,7 +149,7 @@ function AnalyticsEventsSectionContainer(
 	};
 
 	return (
-		<div className="bg-white rounded-md overflow-hidden flex flex-col flex-1 min-h-0 isolate">
+		<div className="bg-bg-primary rounded-md overflow-hidden flex flex-col flex-1 min-h-0 isolate">
 			<AnalyticsEventsSection
 				facets={facets}
 				queryState={queryState}

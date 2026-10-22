@@ -14,7 +14,7 @@ export const ToggleSwitch = forwardRef<HTMLLabelElement, ToggleSwitchProps>(
 		return (
 			<label
 				htmlFor="toggle-switch"
-				className="flex items-center justify-center gap-3 cursor-pointer rounded-md px-3 text-[0.875rem] leading-[1.5rem] font-medium border border-border-primary py-[7px] hover:bg-gray-50 transition-colors select-none"
+				className="flex items-center justify-center gap-3 cursor-pointer rounded-md px-3 text-[0.875rem] leading-[1.5rem] font-medium border border-border-input py-[7px] hover:bg-gray-50 transition-colors select-none"
 				ref={ref}
 			>
 				<SwitchPrimitive.Root

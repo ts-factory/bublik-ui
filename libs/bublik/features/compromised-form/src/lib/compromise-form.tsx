@@ -98,7 +98,7 @@ export const CompromiseInfo = forwardRef<HTMLDivElement, DefineInfoProps>(
 	({ comment = '', bugId = '', bugUrl = '', onDeleteClick }, ref) => {
 		return (
 			<div
-				className="flex flex-col gap-4 p-3 w-[320px] bg-white rounded-md shadow-popover"
+				className="flex flex-col gap-4 p-3 w-[320px] bg-bg-elevated rounded-md shadow-popover"
 				ref={ref}
 			>
 				<div className="flex items-center justify-between">
@@ -165,7 +165,7 @@ export const CompromiseForm: FC<DefineCompromisedFormProps> = (props) => {
 	});
 
 	return (
-		<div className="min-w-[320px] p-4 bg-white rounded-md shadow-popover">
+		<div className="min-w-[320px] p-4 bg-bg-elevated rounded-md shadow-popover">
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<fieldset>
 					<div className="flex flex-col gap-5">

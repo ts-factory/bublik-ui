@@ -19,7 +19,7 @@ export const IssueRulesListPage = () => {
 			className="flex flex-col h-full gap-1 p-2"
 			data-testid="issue-rules-list-page"
 		>
-			<div className="flex flex-col flex-1 min-h-0 bg-white rounded">
+			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
 				<IssueRulesTable
 					projectId={projectIds[0]}
 					emptyActions={<NewRuleButton projectId={projectIds[0]} />}

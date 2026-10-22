@@ -31,7 +31,7 @@ export const ListBox = (props: ListBoxProps) => {
 	return (
 		<ul
 			{...listBoxProps}
-			className="w-full h-full overflow-y-scroll bg-white rounded-t-sm outline-none max-h-72 rounded-b-md shadow-popover"
+			className="w-full h-full overflow-y-scroll bg-bg-elevated rounded-t-sm outline-none max-h-72 rounded-b-md shadow-popover"
 			ref={listBoxRef}
 		>
 			{Array.from(state.collection).map((item) => {
@@ -85,8 +85,8 @@ const optionStyles = cva({
 		'text-text-primary'
 	],
 	variants: {
-		isFocused: { true: 'text-text-primary bg-[#ECF1FF]' },
-		isSelected: { true: 'bg-[#ECF1FF] text-text-primary' },
+		isFocused: { true: 'text-text-primary bg-bg-selected' },
+		isSelected: { true: 'bg-bg-selected text-text-primary' },
 		isDisabled: { true: '' }
 	}
 });

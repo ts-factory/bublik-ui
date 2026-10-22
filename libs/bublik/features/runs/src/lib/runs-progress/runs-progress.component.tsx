@@ -273,7 +273,7 @@ const COLUMN_BY_ID = new Map<RunsProgressColumnId, RunsProgressColumn>(
 function RunsProgressLoading() {
 	return (
 		<main
-			className="flex flex-col bg-white rounded-md"
+			className="flex flex-col bg-bg-primary rounded-md"
 			data-testid="runs-progress-loading"
 		>
 			<CardHeader label="Runs Progress" />
@@ -661,7 +661,7 @@ function RunsProgress(props: RunsProgressProps) {
 	return (
 		<HighlightContext.Provider value={store}>
 			<main
-				className={cn('bg-white rounded-md', isFetching && 'opacity-40')}
+				className={cn('bg-bg-primary rounded-md', isFetching && 'opacity-40')}
 				data-testid="runs-progress"
 			>
 				<CardHeader
@@ -761,11 +761,11 @@ function RunsProgress(props: RunsProgressProps) {
 						style={{ width: totalWidth, height: totalHeight }}
 					>
 						<div
-							className="sticky top-0 z-30 bg-white border-b border-border-primary text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
+							className="sticky top-0 z-30 bg-bg-primary border-b border-border-primary text-left text-[0.6875rem] font-semibold leading-[0.875rem]"
 							style={{ width: totalWidth, height: headerHeight }}
 						>
 							<div
-								className="sticky left-0 z-40 flex h-full bg-white"
+								className="sticky left-0 z-40 flex h-full bg-bg-primary"
 								style={{ width: leftColumnWidth }}
 							>
 								<div
@@ -1388,7 +1388,7 @@ const RunHeaderCell = memo(function RunHeaderCell({
 	const { icon, bg, color } = getRunStatusInfo(run.conclusion as RUN_STATUS);
 
 	return (
-		<div className="absolute top-0 bg-white" style={{ ...style, height }}>
+		<div className="absolute top-0 bg-bg-primary" style={{ ...style, height }}>
 			<div className="flex" style={{ height: height - HEADER_STRIP_HEIGHT }}>
 				<ConclusionHoverCard
 					conclusion={run.conclusion as RUN_STATUS}
@@ -1435,7 +1435,7 @@ const RunHeaderCell = memo(function RunHeaderCell({
 				</div>
 			</div>
 			<div
-				className="absolute bottom-0 left-0 right-0 grid border-y border-border-primary bg-white text-[0.6875rem] font-semibold uppercase leading-[0.875rem]"
+				className="absolute bottom-0 left-0 right-0 grid border-y border-border-primary bg-bg-primary text-[0.6875rem] font-semibold uppercase leading-[0.875rem]"
 				style={{
 					height: HEADER_STRIP_HEIGHT,
 					gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`
@@ -1493,8 +1493,8 @@ function RunHealthBar({ stats }: { stats: RunsData['stats'] }) {
 
 	return (
 		<div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-200">
-			<div className="h-full bg-[#65cd84]" style={{ width: `${goodPct}%` }} />
-			<div className="h-full bg-[#f95c78]" style={{ width: `${badPct}%` }} />
+			<div className="h-full bg-bg-ok" style={{ width: `${goodPct}%` }} />
+			<div className="h-full bg-bg-error" style={{ width: `${badPct}%` }} />
 		</div>
 	);
 }
@@ -1572,8 +1572,8 @@ function ObjectiveCell({
 				<PopoverTrigger asChild>
 					<button className="group relative flex h-full w-full items-center px-2 text-left hover:bg-primary-wash">
 						<div className="absolute right-0.5 top-1/2 z-10 flex h-full -translate-y-1/2 items-center opacity-0 transition-opacity group-hover:opacity-100">
-							<div className="h-full w-6 bg-gradient-to-r from-transparent to-white" />
-							<div className="grid h-full w-6 place-items-center bg-white pr-2">
+							<div className="h-full w-6 bg-gradient-to-r from-transparent to-bg-primary" />
+							<div className="grid h-full w-6 place-items-center bg-bg-primary pr-2">
 								<Icon name="ChevronDown" size={16} className="text-primary" />
 							</div>
 						</div>
@@ -1587,7 +1587,7 @@ function ObjectiveCell({
 						align="start"
 						sideOffset={0}
 						className={cn(
-							'z-50 rounded-lg bg-white p-1 shadow-popover outline-none transition-none',
+							'z-50 rounded-lg bg-bg-elevated p-1 shadow-popover outline-none transition-none',
 							'rdx-state-open:animate-fade-in rdx-state-closed:animate-fade-out'
 						)}
 						style={{ transform: 'translateY(-73.5px) translateX(-4px)' }}
@@ -1653,7 +1653,7 @@ const RowHeaderCell = memo(function RowHeaderCell({
 	return (
 		<div
 			className={cn(
-				'sticky left-0 z-20 flex h-full items-center border-b bg-white text-[0.75rem] font-medium text-text-primary',
+				'sticky left-0 z-20 flex h-full items-center border-b bg-bg-primary text-[0.75rem] font-medium text-text-primary',
 				highlightBottomBorder ? 'border-b-primary' : 'border-b-border-primary'
 			)}
 			style={{ width: leftColumnWidth }}
@@ -1780,7 +1780,7 @@ const ResultCell = memo(function ResultCell({
 	return (
 		<div
 			className={cn(
-				'absolute top-0 grid h-full items-center border-b bg-white text-[0.6875rem] font-medium',
+				'absolute top-0 grid h-full items-center border-b bg-bg-primary text-[0.6875rem] font-medium',
 				highlightBottomBorder ? 'border-b-primary' : 'border-b-border-primary'
 			)}
 			style={{
@@ -1880,8 +1880,8 @@ const ResultColumnValue = memo(function ResultColumnValue({
 	);
 	const selectionFallback = isSelected
 		? isClicked
-			? 'bg-[rgba(59,130,246,0.24)]'
-			: 'bg-[rgba(59,130,246,0.14)]'
+			? 'bg-primary/[0.24]'
+			: 'bg-primary/[0.14]'
 		: '';
 
 	return (
@@ -1914,7 +1914,7 @@ const ResultColumnValue = memo(function ResultColumnValue({
 					rel="noopener noreferrer"
 					onClick={(event) => event.stopPropagation()}
 					title={`Open ${column.label} in run ${runId}`}
-					className="absolute left-1.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center border border-border-primary hover:border-primary rounded bg-white text-primary transition-colors hover:bg-primary hover:text-white"
+					className="absolute left-1.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center border border-border-input hover:border-primary rounded bg-bg-primary text-primary transition-colors hover:bg-primary hover:text-white"
 				>
 					<Icon name="BoxArrowRight" size={16} />
 				</LinkWithProject>

@@ -15,7 +15,7 @@ function ConfigsPage() {
 
 	return (
 		<div className="p-2 h-full flex gap-1">
-			<div className="bg-white rounded-md h-full w-[320px] overflow-hidden">
+			<div className="bg-bg-primary rounded-md h-full w-[320px] overflow-hidden">
 				<ConfigsSidebarContainer
 					createProjectButton={
 						<Tooltip
@@ -32,7 +32,7 @@ function ConfigsPage() {
 					}
 				/>
 			</div>
-			<div className="bg-white rounded-md h-full overflow-hidden flex-1">
+			<div className="bg-bg-primary rounded-md h-full overflow-hidden flex-1">
 				{configId ? (
 					<ConfigsEditorContainer key={configId} configId={configId} />
 				) : (
