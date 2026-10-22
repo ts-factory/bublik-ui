@@ -24,8 +24,11 @@ import { ACTIVE_ORDER, type ActiveKey } from './issue-rules-table.constants';
 import type { IssueRuleRow } from './issue-rules-table.types';
 import {
 	formatMatcherValue,
+	normalizeVerdictsKey,
 	ruleParameterValues,
-	ruleTagValues
+	ruleTagValues,
+	ruleVerdictsKey,
+	verdictsKeyLabel
 } from './issue-rules-table.utils';
 
 const ISSUE_STATE_ORDER = [
@@ -34,12 +37,31 @@ const ISSUE_STATE_ORDER = [
 ] as const satisfies readonly IssueState[];
 
 /**
+ * The verdict-list counts keyed as the chips spell the lists. The server
+ * writes its JSON with a space after each comma; the chips, with none.
+ */
+function normalizeVerdictCounts(
+	counts: Record<string, number>
+): Record<string, number> {
+	const normalized: Record<string, number> = {};
+
+	for (const [key, count] of Object.entries(counts)) {
+		const spelled = normalizeVerdictsKey(key);
+
+		normalized[spelled] = (normalized[spelled] ?? 0) + count;
+	}
+
+	return normalized;
+}
+
+/**
  * Every facet counts from `/issue_rules/facets/` — the whole filtered set, each
  * dimension with its own filter lifted — with the page's rows standing in
  * until it answers, or for a server too old to count a dimension.
  *
  * Tag and parameter options carry the value as captured (`name=value`), the
- * spelling the filters send; only the label reads `name: value`.
+ * spelling the filters send; only the label reads `name: value`. Verdict
+ * options carry a rule's whole list as JSON, the one thing the filter takes.
  */
 export function useFacetOptions(
 	rules: IssueRuleRow[],
@@ -78,7 +100,10 @@ export function useFacetOptions(
 				formatMatcherValue
 			),
 			verdictOptions: countedOpenFacetOptions(
-				facets?.verdict ?? countBy(rules.flatMap((rule) => rule.verdicts ?? []))
+				facets?.verdicts
+					? normalizeVerdictCounts(facets.verdicts)
+					: countBy(rules.map((rule) => ruleVerdictsKey(rule.verdicts))),
+				verdictsKeyLabel
 			),
 			tagOptions: countedOpenFacetOptions(
 				facets?.tag ?? countBy(rules.flatMap(ruleTagValues)),

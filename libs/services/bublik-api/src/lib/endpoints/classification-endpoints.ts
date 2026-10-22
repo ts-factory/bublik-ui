@@ -59,6 +59,12 @@ export interface GetIssueRulesArgs extends ListArgs {
 	issueState?: string[];
 	/** Captured tags, as captured. */
 	tags?: string[];
+	/**
+	 * Captured verdict lists, each whole, as JSON: `["a","b"]`, `[]` for the
+	 * rules of the results without verdicts, `null` for those ignoring them.
+	 * A rule is kept when its list is exactly one of these, in the same order,
+	 * as the rule matches it.
+	 */
 	verdicts?: string[];
 	/** Captured parameters, as `name=value`. */
 	parameters?: string[];
@@ -102,8 +108,9 @@ function listValued(values?: string[]): string | undefined {
 
 /**
  * Params with each array value sent as its own `key=value` pair — the shape
- * the free-text filters (`tag`, `verdict`, `parameter`) take, since a verdict
- * may contain the `;` the other lists are joined with. `fetchBaseQuery` would
+ * the free-text filters (`tag`, `verdict`, `verdicts`, `parameter`) take,
+ * since a verdict may contain the `;` the other lists are joined with, and a
+ * rule's verdict list is sent whole, as JSON. `fetchBaseQuery` would
  * otherwise flatten an array to `a,b`.
  */
 export function toSearchParams(
@@ -236,7 +243,7 @@ export function issueRulesParams(args: GetIssueRulesArgs) {
 		expected: listValued(args.expected),
 		issue_state: listValued(args.issueState),
 		tag: repeated(args.tags),
-		verdict: repeated(args.verdicts),
+		verdicts: repeated(args.verdicts),
 		parameter: repeated(args.parameters)
 	};
 }

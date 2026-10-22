@@ -4,3 +4,4 @@ export * from './matcher-chip.component';
 export * from './matcher-values.component';
 export * from './rule-detail.component';
 export * from './scope-chip.component';
+export * from './verdicts-facet-badge.component';

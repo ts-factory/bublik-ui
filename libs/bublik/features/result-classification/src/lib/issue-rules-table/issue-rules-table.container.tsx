@@ -46,7 +46,7 @@ import {
 } from './issue-rules-table.constants';
 import { useFacetOptions } from './issue-rules-table.hooks';
 import type { IssueRulesTableProps } from './issue-rules-table.types';
-import { buildRows } from './issue-rules-table.utils';
+import { buildRows, normalizeVerdictsKey } from './issue-rules-table.utils';
 
 const NO_GROUPING: string[] = [];
 const GROUP_BY_PROJECT = [COLUMN_ID.PROJECT];
@@ -125,7 +125,9 @@ export function IssueRulesTable({
 		active: queryArgs.filters[COLUMN_ID.ACTIVE],
 		issueState: queryArgs.filters[COLUMN_ID.ISSUE_STATE],
 		tags: queryArgs.filters[COLUMN_ID.TAGS],
-		verdicts: queryArgs.filters[COLUMN_ID.VERDICTS],
+		// Whole lists as JSON; a bare verdict from an older URL stands for the
+		// list of just it.
+		verdicts: queryArgs.filters[COLUMN_ID.VERDICTS]?.map(normalizeVerdictsKey),
 		parameters: queryArgs.filters[COLUMN_ID.PARAMETERS]
 	};
 	const {

@@ -188,28 +188,29 @@ const FACET_CASES: Record<Facet, FacetCase> = {
 	Verdicts: {
 		column: 'Verdicts',
 		value: async (plan, rule) => {
-			const verdict = requireCapability(
-				plan.pin(rule.pin).verdicts[0],
+			const verdicts = plan.pin(rule.pin).verdicts;
+			const first = requireCapability(
+				verdicts[0],
 				`the pin of rule "${rule.planId}" has no verdict`
 			);
 
-			// The pin keeps the verdict as the log gave it, leading spaces and
-			// all, and the rule holds it the same way, so that is what the
-			// filter writes to the URL. The chip and the option render it with
-			// the spaces collapsed.
-			const shown = verdict.trim();
-
+			// The rule holds the pin's whole verdict list, as the log gave it,
+			// leading spaces and all, and the server matches it exactly, so the
+			// filter writes the list to the URL as JSON. The option is that list
+			// drawn as the column draws it, a chip per verdict with the spaces
+			// collapsed, which its name joins; the row's chips are those too.
 			return {
-				label: shown,
-				shown,
+				label: verdicts.map((verdict) => verdict.trim()).join(' '),
+				shown: first.trim(),
 				param: 'verdicts',
-				urlValue: verdict,
+				urlValue: JSON.stringify(verdicts),
 				repeated: true
 			};
 		},
 		lacks: (plan, rule, other) =>
 			!other.match.includes('verdicts') ||
-			!plan.pin(other.pin).verdicts.includes(plan.pin(rule.pin).verdicts[0])
+			JSON.stringify(plan.pin(other.pin).verdicts) !==
+				JSON.stringify(plan.pin(rule.pin).verdicts)
 	},
 	Tags: {
 		column: 'Tags',

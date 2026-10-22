@@ -36,7 +36,8 @@ import type { GetColumnsArgs, IssueRuleRow } from './issue-rules-table.types';
 import {
 	formatMatcherValue,
 	ruleParameterValues,
-	ruleTagValues
+	ruleTagValues,
+	ruleVerdictsKey
 } from './issue-rules-table.utils';
 
 const KEY_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
@@ -175,6 +176,8 @@ const VERDICTS_COLUMN: ColumnDef<IssueRuleRow, unknown> = {
 			values={row.original.verdicts ?? []}
 			// `[]` matches only a failure without a verdict; null ignores them.
 			none={row.original.verdicts ? NO_VERDICTS_TEXT : undefined}
+			// The list is matched whole, so a chip filters on all of it.
+			filterValue={ruleVerdictsKey(row.original.verdicts)}
 			columnId={COLUMN_ID.VERDICTS}
 			variant={BadgeVariants.Transparent}
 			facets={facetControls(table)}

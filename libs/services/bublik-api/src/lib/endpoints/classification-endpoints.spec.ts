@@ -79,12 +79,12 @@ describe('issueRulesParams', () => {
 			issueRulesParams({
 				...BASE,
 				tags: ['linux-mm=519'],
-				verdicts: ['expected a; got b', 'Checksum mismatch'],
+				verdicts: ['["expected a; got b","Checksum mismatch"]', 'null'],
 				parameters: ['payload_len=[0,1200]']
 			})
 		).toMatchObject({
 			tag: ['linux-mm=519'],
-			verdict: ['expected a; got b', 'Checksum mismatch'],
+			verdicts: ['["expected a; got b","Checksum mismatch"]', 'null'],
 			parameter: ['payload_len=[0,1200]']
 		});
 	});
@@ -93,7 +93,7 @@ describe('issueRulesParams', () => {
 		const params = issueRulesParams({ ...BASE, tags: [], verdicts: [] });
 
 		expect(params.tag).toBeUndefined();
-		expect(params.verdict).toBeUndefined();
+		expect(params.verdicts).toBeUndefined();
 	});
 });
 

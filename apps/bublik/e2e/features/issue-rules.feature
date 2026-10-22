@@ -55,9 +55,28 @@ Feature: Issue rules
     And I open the rules page for the fixture project and search for the rule's test
     When I turn the Verdicts column on
     And I click the rule's verdict chip
-    Then the verdict is written to the URL once per value
+    Then the rule's verdict list is written to the URL as JSON
     When I click the chip again
-    Then the verdict is cleared from the URL
+    Then the verdict list is cleared from the URL
+    And I delete the issue
+
+  @issues @issues-write @needs-nok @url-params
+  Scenario: The Verdicts filter narrows the rules to one whole verdict list
+    Given I record an issue with a rule matching a verdict
+    And I open the rules page for the fixture project and search for the rule's test
+    When I pick the rule's verdict list in the Verdicts filter
+    Then the verdict list is written to the URL as JSON and the rule is still listed
+    When I reset the filters
+    Then the verdict list is cleared from the URL
+    And I delete the issue
+
+  # The filter once took single verdicts; a shared link from then must keep
+  # narrowing the rules, so a bare value stands for the list of just it.
+  @issues @issues-write @needs-nok @url-params
+  Scenario: A bare verdict in the rules URL still narrows the rules
+    Given I record an issue with a rule matching a verdict
+    When I open the rules page with that verdict as a bare verdicts parameter and the rule's test searched
+    Then the rule is listed
     And I delete the issue
 
   @issues @url-params

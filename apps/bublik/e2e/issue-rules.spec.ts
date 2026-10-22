@@ -321,19 +321,106 @@ test.describe('Issue Rules Page', () => {
 			await and("I click the rule's verdict chip", () =>
 				rulesPage.matcherChip(row, verdict).click()
 			);
-			await then('the verdict is written to the URL once per value', () =>
-				rulesPage.expectRepeatedParam('verdicts', [verdict])
+			await then("the rule's verdict list is written to the URL as JSON", () =>
+				rulesPage.expectRepeatedParam('verdicts', [JSON.stringify([verdict])])
 			);
 			await when('I click the chip again', () =>
 				rulesPage.matcherChip(row, verdict).click()
 			);
-			await then('the verdict is cleared from the URL', () =>
+			await then('the verdict list is cleared from the URL', () =>
 				rulesPage.expectRepeatedParam('verdicts', [])
 			);
 			await and('I delete the issue', async () => {
 				await rulesPage.table.toggleColumn('Verdicts');
 				await removeIssue(page, issue);
 			});
+		}
+	);
+
+	test(
+		'The Verdicts filter narrows the rules to one whole verdict list',
+		RULES_WRITE_URL,
+		async ({ page, request }) => {
+			const failing = failingTest();
+			const verdict = String(failing.sample.verdicts[0]);
+			let issue!: RecordedIssue;
+			let rulesPage!: IssueRulesPage;
+			let row!: Locator;
+
+			await given(
+				'I record an issue with a rule matching a verdict',
+				async () => {
+					issue = await recordIssueWithRule(
+						page,
+						request,
+						'verdicts',
+						failing,
+						[verdict]
+					);
+				}
+			);
+			await and(
+				"I open the rules page for the fixture project and search for the rule's test",
+				async () => {
+					({ rulesPage, row } = await openRulesFor(page, issue, failing));
+				}
+			);
+			// The option is the list drawn as the column draws it: one chip here,
+			// so it is found by the verdict's text.
+			await when("I pick the rule's verdict list in the Verdicts filter", () =>
+				rulesPage.table.toggleFacet('Verdicts', verdict)
+			);
+			await then(
+				'the verdict list is written to the URL as JSON and the rule is still listed',
+				async () => {
+					await rulesPage.expectRepeatedParam('verdicts', [
+						JSON.stringify([verdict])
+					]);
+					await rulesPage.expectRuleListed(row);
+				}
+			);
+			await when('I reset the filters', () => rulesPage.table.reset());
+			await then('the verdict list is cleared from the URL', () =>
+				rulesPage.expectRepeatedParam('verdicts', [])
+			);
+			await and('I delete the issue', () => removeIssue(page, issue));
+		}
+	);
+
+	// The filter once took single verdicts; a shared link from then must keep
+	// narrowing the rules, so a bare value stands for the list of just it.
+	test(
+		'A bare verdict in the rules URL still narrows the rules',
+		RULES_WRITE_URL,
+		async ({ page, request }) => {
+			const failing = failingTest();
+			const verdict = String(failing.sample.verdicts[0]);
+			let issue!: RecordedIssue;
+			const rulesPage = new IssueRulesPage(page);
+
+			await given(
+				'I record an issue with a rule matching a verdict',
+				async () => {
+					issue = await recordIssueWithRule(page, request, 'bare', failing, [
+						verdict
+					]);
+				}
+			);
+			await when(
+				"I open the rules page with that verdict as a bare verdicts parameter and the rule's test searched",
+				async () => {
+					await rulesPage.goto({
+						project: String(issue.projectId),
+						q: failing.testName,
+						verdicts: verdict
+					});
+					await rulesPage.expectLoaded();
+				}
+			);
+			await then('the rule is listed', () =>
+				rulesPage.expectRuleListed(rulesPage.rowsByIssue(issue.title).first())
+			);
+			await and('I delete the issue', () => removeIssue(page, issue));
 		}
 	);
 

@@ -4,7 +4,6 @@ import type { ReactNode, RefObject } from 'react';
 import type { Row, Table } from '@tanstack/react-table';
 
 import {
-	BadgeVariants,
 	ButtonTw,
 	DataTableFacetedFilter,
 	Icon,
@@ -43,6 +42,7 @@ import { EXPECTED_BY_DISPOSITION } from '../shared/select-options';
 import { ClassificationColumnsPicker } from '../classification-table/columns-picker.component';
 import { ProjectGroupHeader } from '../classification-table/project-group-header.component';
 import { NewRuleButton } from '../rule-form/rule-drawer.container';
+import { VerdictsFacetBadge } from './components';
 import { COLUMN_ID, PINNED_COLUMNS } from './issue-rules-table.constants';
 import type { IssueRuleRow } from './issue-rules-table.types';
 import { formatMatcherValue } from './issue-rules-table.utils';
@@ -242,9 +242,10 @@ export function IssueRulesTableView({
 				<DataTableFacetedFilter
 					title="Verdicts"
 					size="xss"
-					options={withMatcherFacetBadges(verdictOptions, {
-						variant: BadgeVariants.Transparent
-					})}
+					// A whole list per option, as the server matches it.
+					options={withFacetBadges(verdictOptions, (value: string) => (
+						<VerdictsFacetBadge value={value} />
+					))}
 					value={facets.values(COLUMN_ID.VERDICTS)}
 					onChange={(values) => facets.set(COLUMN_ID.VERDICTS, values)}
 					disabled={!verdictOptions.length}

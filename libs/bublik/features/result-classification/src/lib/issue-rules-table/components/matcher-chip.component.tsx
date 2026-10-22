@@ -9,6 +9,11 @@ export interface MatcherChipProps {
 	value: string;
 	/** What the chip shows, when that differs from `value`. */
 	label?: string;
+	/**
+	 * What the chip filters on instead of `value`, when the values filter as
+	 * one: a verdict list, which the server matches whole.
+	 */
+	filterValue?: string;
 	columnId: string;
 	variant?: BadgeVariants;
 	className?: string;
@@ -18,12 +23,13 @@ export interface MatcherChipProps {
 export function MatcherChip({
 	value,
 	label = value,
+	filterValue = value,
 	columnId,
 	variant,
 	className,
 	facets
 }: MatcherChipProps) {
-	const isSelected = facets?.values(columnId).includes(value) ?? false;
+	const isSelected = facets?.values(columnId).includes(filterValue) ?? false;
 
 	return (
 		<Badge
@@ -34,7 +40,7 @@ export function MatcherChip({
 			{...(facets
 				? {
 						type: 'button' as const,
-						onClick: () => facets.toggle(columnId, value)
+						onClick: () => facets.toggle(columnId, filterValue)
 				  }
 				: null)}
 		>

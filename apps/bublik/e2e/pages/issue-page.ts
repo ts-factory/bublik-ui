@@ -79,8 +79,10 @@ const ISSUE_URL_PARAMS = {
 		writtenBy: 'the Tags filter and the tag chips of a row'
 	},
 	verdicts: {
-		codec: 'repeated',
-		values: 'verdict matcher values',
+		codec:
+			'repeated — each value a whole verdict list as JSON: ["a","b"], [] or null',
+		values:
+			'verdict lists as rules captured them; a bare verdict from an older URL stands for the list of just it',
 		whenAbsent: 'every rule',
 		writtenBy: 'the Verdicts filter and the verdict chips of a row'
 	},

@@ -28,7 +28,7 @@ export function withFacetBadges<V extends string>(
  * with no colour of its own would take it. The coloured variants carry
  * theirs; the plain chips are told to keep the body colour.
  */
-const FACET_CHIP_CLASS = 'text-text-primary';
+export const FACET_CHIP_CLASS = 'text-text-primary';
 
 export interface MatcherFacetBadgesArgs {
 	/** The chip's text for a value, when it is shown differently than it is filtered. */

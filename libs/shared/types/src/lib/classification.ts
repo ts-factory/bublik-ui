@@ -143,7 +143,12 @@ export interface IssueRuleFacets {
 	issue_state?: Record<string, number>;
 	/** Rules per captured tag, keyed as captured. */
 	tag?: Record<string, number>;
-	verdict?: Record<string, number>;
+	/**
+	 * Rules per captured verdict list, keyed by the whole list as JSON, the
+	 * form the `verdicts` filter takes: `null` for the rules ignoring the
+	 * verdicts, `[]` for those of the results without any.
+	 */
+	verdicts?: Record<string, number>;
 	/** Rules per captured parameter, keyed `name=value`. */
 	parameter?: Record<string, number>;
 }
