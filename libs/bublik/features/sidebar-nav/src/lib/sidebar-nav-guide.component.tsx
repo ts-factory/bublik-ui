@@ -2,12 +2,23 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { cn } from '@/shared/tailwind-ui';
 
+/**
+ * The tree is drawn in the pixels the rows take at the 16px root font size:
+ * a 36px row (`h-9`) under a 12px gap (`pt-3`), 7px up from the group's
+ * 14px margin. Those are rem values, so the drawing is sized in rem too and
+ * keeps pace with the rows when the browser's default font size is larger.
+ */
+const ROOT_FONT_SIZE = 16;
 const GUIDE_X = 30;
 const GUIDE_END_X = 53;
 const GUIDE_TOP = -7;
 const FIRST_ITEM_CENTER_Y = 18;
 const ITEM_STEP_Y = 48;
 const CORNER_RADIUS = 10;
+
+function toRem(px: number): string {
+	return `${px / ROOT_FONT_SIZE}rem`;
+}
 
 interface SidebarNavGuideProps {
 	itemCount: number;
@@ -75,7 +86,9 @@ function SidebarNavGuide({
 }: SidebarNavGuideProps) {
 	if (itemCount === 0) return null;
 
+	const width = GUIDE_END_X + 1;
 	const height = getItemCenterY(itemCount - 1) + FIRST_ITEM_CENTER_Y;
+	const top = -8;
 	const pathProps = {
 		fill: 'none',
 		strokeWidth: 2,
@@ -94,9 +107,8 @@ function SidebarNavGuide({
 			)}
 		>
 			<svg
-				width={GUIDE_END_X + 1}
-				height={height + 8}
-				viewBox={`0 -8 ${GUIDE_END_X + 1} ${height + 8}`}
+				viewBox={`0 ${top} ${width} ${height - top}`}
+				style={{ width: toRem(width), height: toRem(height - top) }}
 				className="block overflow-visible"
 			>
 				<path
