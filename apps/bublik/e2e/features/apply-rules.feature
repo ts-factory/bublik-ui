@@ -5,9 +5,12 @@
 #
 # Write scenarios. Each leases a classifiable fixture run of its own
 # (claimClassifiableTest()), records an issue only it uses, writes its rule
-# gated to that run's fixture_id tag so the rule never reaches another run,
+# gated to that run's fixture_id tag so the rule never reaches another run
+# (or, to show the gate at work, to the tag of a run nothing failed in),
 # applies the rules, and deletes the issue — rule and stamps with it — as its
-# last step. Other active rules of the project may stamp the run too, so the
+# last step. The last four scenarios put the matcher itself to the test:
+# verdicts are matched as an exact list, parameters as a subset with exact
+# values, tags against the run's own. Other active rules of the project may stamp the run too, so the
 # toast is read for its shape, except where the run's other rules were applied
 # first and the scenario's own rule is the only one left to apply.
 
@@ -75,4 +78,37 @@ Feature: Apply Rules
     And I apply the rules to the run from its page
     Then the toast reports exactly one stamp created
     And only that result carries a stamp of the issue
+    And I delete the issue from its page
+
+  @issues @issues-write @needs-nok @run
+  Scenario: A rule whose verdicts are not the result's exact list lays no stamp
+    Given I record an issue with a rule for a failing result of a run of my own, gated to that run, matching on its verdict and another verdict of its test
+    When I apply the rules to the run from its page
+    Then the toast reports what was applied
+    And no result of the test carries a stamp of the issue
+    And I delete the issue from its page
+
+  @issues @issues-write @needs-nok @run
+  Scenario: A rule keeping only some of the result's parameters still matches it
+    Given I record an issue with a rule for a failing result of a run of my own, gated to that run, keeping one of its several parameters
+    When I apply the rules to the run from its page
+    Then the toast reports what was applied
+    And that result and every failing result of the test carrying the kept parameter carry a stamp of the issue
+    And I delete the issue from its page
+
+  @issues @issues-write @needs-nok @run
+  Scenario: A rule with a parameter value the result does not carry lays no stamp
+    Given I record an issue with a rule for a failing result of a run of my own, gated to that run, with a parameter value only a sibling iteration carries
+    When I apply the rules to the run from its page
+    Then the toast reports what was applied
+    And that result carries no stamp of the issue while the sibling iteration does
+    And I delete the issue from its page
+
+  @issues @issues-write @needs-nok @run
+  Scenario: A rule gated to another run's tag never stamps this run
+    Given I record an issue with a rule for a failing test of a run of my own, gated to a run of the project nothing failed in
+    When I apply the rules to the run from its page
+    Then the toast reports what was applied
+    And no result of the test carries a stamp of the issue
+    And the run's issues page does not list the issue
     And I delete the issue from its page

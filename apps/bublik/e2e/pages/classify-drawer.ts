@@ -48,8 +48,9 @@ class ClassifyDrawer {
 		this.root = page.getByTestId('classify-drawer');
 	}
 
+	/** "Classify Failure" for one picked result, "Classify N Results" for several. */
 	get heading(): Locator {
-		return this.root.getByText('Classify Failure', { exact: true });
+		return this.root.getByText(/^Classify (Failure|\d+ Results)$/);
 	}
 
 	get modeField(): Locator {
@@ -263,6 +264,30 @@ class ClassifyDrawer {
 		await expect(chip).toHaveCount(1, { timeout: 15_000 });
 		await chip.locator('[data-chip-remove]').click();
 		await expect(chip).toHaveCount(0, { timeout: 15_000 });
+	}
+
+	/** The cards of the match scope, one per test of the picked results. */
+	testCards(): Locator {
+		return this.root.getByTestId('match-scope-test');
+	}
+
+	/** The card of the test named `testName`, by the path on its border. */
+	testCard(testName: string): Locator {
+		return this.testCards().filter({
+			has: this.page
+				.getByTestId('match-scope-test-path')
+				.filter({ hasText: testName })
+		});
+	}
+
+	/** The drawer shows a card per test in `testNames`, and no other. */
+	async expectTestCards(testNames: readonly string[]): Promise<void> {
+		await expect(this.testCards()).toHaveCount(testNames.length, {
+			timeout: 15_000
+		});
+		for (const testName of testNames) {
+			await expect(this.testCard(testName)).toHaveCount(1);
+		}
 	}
 
 	/** Empties every picker from the section's bin: the rules match on their paths alone. */

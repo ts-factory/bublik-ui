@@ -792,6 +792,26 @@ async function claimClassifiableTest(
 	return { run: results[0].run, results };
 }
 
+/**
+ * The fixture tag of a run of the project nothing unexpected happened in: a
+ * rule gated to it is accepted, the tag exists, and reaches that run for
+ * nothing, whichever scenario applies the project's rules meanwhile.
+ */
+function otherRunFixtureTag(run: ClassifiableRun): string {
+	const other = requireCapability(
+		readManifest().bundles.find(
+			(bundle) =>
+				bundle.runId &&
+				bundle.project === run.bundle.project &&
+				bundle.conclusionSpec === 'ok' &&
+				bundle.tags['fixture_id']
+		),
+		`Project "${run.bundle.project}" has no ok run with a fixture_id tag.`
+	);
+
+	return `fixture_id=${String(other.tags['fixture_id'])}`;
+}
+
 /** How long a scenario waits for a run another one is importing again. */
 const RUN_LEASE_WAIT_MS = 15 * 60_000;
 
@@ -1091,6 +1111,7 @@ export {
 	durationCoveringFixtures,
 	longLogCase,
 	mutableRun,
+	otherRunFixtureTag,
 	paginatedLogCase,
 	projectSpanningDays,
 	representativeNokRun,

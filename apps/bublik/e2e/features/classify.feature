@@ -83,3 +83,21 @@ Feature: Classify drawer
     Then the rules page shows the issue's rule matching on Path and Verdicts only
     And the rule is inactive, as a one-off
     And I delete the issue
+
+  @issues @issues-write @needs-nok
+  Scenario: Classifying results of several tests at once writes a rule per test with that test's own values
+    Given I pick a failing result of each of two tests of a run of my own
+    When I classify them under a new issue, keeping the match scope of each test
+    Then the rules page lists a rule of the issue per test, each matching on that test's path, parameters, verdicts and tags
+    And each picked result carries a single stamp of the issue
+    And I delete the issue
+
+  @issues @issues-write @needs-nok
+  Scenario: Classifying one result for future runs stamps it alone until the rules are applied
+    Given a run of my own, its other active rules already applied, has a test every result of which failed with the same verdicts
+    When I classify one of its results under a new issue for future runs, matching on the path, its verdicts and the run's tags
+    Then only that result carries a stamp of the issue, laid by hand
+    When I apply the rules to the run from its page
+    Then the toast reports exactly the test's other failing results stamped
+    And every result of the test carries a stamp of the issue
+    And I delete the issue

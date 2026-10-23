@@ -16,12 +16,18 @@ import { IssueCleanup } from './support/classification';
 import { projectIdByName } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
 import { loneResult } from './support/lone-result';
-import { claimClassifiableTest, resultsOfRun } from './support/sample-cases';
+import { requireManifest } from './support/manifest';
+import {
+	claimClassifiableTest,
+	otherRunFixtureTag,
+	resultsOfRun
+} from './support/sample-cases';
 import type {
 	ClassifiableResult,
 	ClassifiableRun,
 	RunTestResult
 } from './support/sample-cases';
+import { seededClassification } from './support/seeded-classification';
 
 const RUN = { tag: ['@issues', '@issues-write', '@needs-nok', '@run'] };
 
@@ -61,7 +67,8 @@ async function leaseRun(
 /**
  * Records an issue and, from its page, an expected Known rule for `target`'s
  * test, gated to its run's `fixture_id` tag so the rule never stamps another
- * run, and narrowed to `parameters` when given.
+ * run — or to `tags` when given — and narrowed to `parameters` and
+ * `verdicts` when given.
  */
 async function recordIssueWithRule(
 	page: Page,
@@ -71,8 +78,15 @@ async function recordIssueWithRule(
 	target: ClassifiableResult,
 	{
 		parameters = [],
+		verdicts = [],
+		tags,
 		active = true
-	}: { parameters?: string[]; active?: boolean } = {}
+	}: {
+		parameters?: string[];
+		verdicts?: string[];
+		tags?: string[];
+		active?: boolean;
+	} = {}
 ): Promise<Recorded> {
 	const projectId = requireCapability(
 		await projectIdByName(request, run.bundle.project),
@@ -97,8 +111,9 @@ async function recordIssueWithRule(
 
 	const drawer = await issuePage.openNewRule();
 	await drawer.pickTest(target.testName, target.pathStr);
-	await drawer.addTags([`fixture_id=${String(fixtureId)}`]);
+	await drawer.addTags(tags ?? [`fixture_id=${String(fixtureId)}`]);
 	if (parameters.length) await drawer.addParameters(parameters);
+	if (verdicts.length) await drawer.addVerdicts(verdicts);
 	await drawer.setCategory('Known');
 	await drawer.setDisposition('Expected');
 	if (!active) await drawer.setActive(false);
@@ -108,6 +123,35 @@ async function recordIssueWithRule(
 	await expectRuleActive(issuePage, active);
 
 	return { run, target, title, issueId, projectId };
+}
+
+/**
+ * Two failing iterations of one test that differ in a parameter's value: a
+ * rule carrying the sibling's value does not match the target. Smallest ids
+ * first, so the pair is the same on every run of the scenario.
+ */
+function siblingIteration(
+	results: readonly RunTestResult[]
+): { target: RunTestResult; sibling: RunTestResult; value: string } | null {
+	const failing = results
+		.filter((result) => result.hasError)
+		.sort((a, b) => a.resultId - b.resultId);
+	const nameOf = (parameter: string) => parameter.split('=')[0];
+
+	for (const target of failing) {
+		for (const sibling of failing) {
+			if (sibling === target || sibling.testPath !== target.testPath) continue;
+
+			const value = sibling.parameters.find(
+				(parameter) =>
+					!target.parameters.includes(parameter) &&
+					target.parameters.some((own) => nameOf(own) === nameOf(parameter))
+			);
+			if (value) return { target, sibling, value };
+		}
+	}
+
+	return null;
 }
 
 /** Opens the issue's page, where its single rule is listed. */
@@ -507,6 +551,224 @@ test.describe('Apply Rules', () => {
 					recorded.issueId
 				);
 			});
+			await and('I delete the issue from its page', () =>
+				deleteIssue(page, recorded)
+			);
+		}
+	);
+
+	test(
+		"A rule whose verdicts are not the result's exact list lays no stamp",
+		RUN,
+		async ({ page, request }) => {
+			let recorded!: Recorded;
+			let applied = '';
+
+			await given(
+				'I record an issue with a rule for a failing result of a run of my own, gated to that run, matching on its verdict and another verdict of its test',
+				async () => {
+					const { run } = await leaseRun(request, 'verdicts');
+					// The rule drawer takes only verdicts some result of the test
+					// fails with in the project; the seeded pin's is the one verdict
+					// a basic test ever fails with besides the usual one.
+					const pin = seededClassification(requireManifest()).pin(
+						'basic-latency'
+					);
+					const target = requireCapability(
+						(await resultsOfRun(request, run))
+							.filter(
+								(result) =>
+									result.hasError &&
+									result.testName === pin.test &&
+									result.verdicts.length > 0 &&
+									!result.verdicts.includes(pin.verdicts[0])
+							)
+							.sort((a, b) => a.resultId - b.resultId)[0],
+						`Run ${run.runId} has no failing ${pin.test} result with a verdict other than the pin's.`
+					);
+					recorded = await recordIssueWithRule(
+						page,
+						request,
+						'verdicts',
+						run,
+						target,
+						{ verdicts: [...target.verdicts, pin.verdicts[0]] }
+					);
+				}
+			);
+			await when('I apply the rules to the run from its page', async () => {
+				applied = await applyFromRunPage(page, recorded.run);
+			});
+			await then('the toast reports what was applied', () =>
+				expect(applied).toMatch(ANY_APPLIED)
+			);
+			await and('no result of the test carries a stamp of the issue', () =>
+				expectTestUnstamped(page, recorded)
+			);
+			await and('I delete the issue from its page', () =>
+				deleteIssue(page, recorded)
+			);
+		}
+	);
+
+	test(
+		"A rule keeping only some of the result's parameters still matches it",
+		RUN,
+		async ({ page, request }) => {
+			const stamps = new ResultStamps(page);
+			let recorded!: Recorded;
+			let matched: RunTestResult[] = [];
+			let applied = '';
+
+			await given(
+				'I record an issue with a rule for a failing result of a run of my own, gated to that run, keeping one of its several parameters',
+				async () => {
+					const { run } = await leaseRun(request, 'subset');
+					const results = await resultsOfRun(request, run);
+					const target = requireCapability(
+						results
+							.filter(
+								(result) => result.hasError && result.parameters.length >= 2
+							)
+							.sort((a, b) => a.resultId - b.resultId)[0],
+						`Run ${run.runId} has no failing result with several parameters.`
+					);
+					const [kept] = target.parameters;
+					// Read before the rule stamps them: a stamped result stops
+					// reading as failing, while the rule matches it all the same.
+					matched = results.filter(
+						(result) =>
+							result.testPath === target.testPath &&
+							result.hasError &&
+							result.parameters.includes(kept)
+					);
+					recorded = await recordIssueWithRule(
+						page,
+						request,
+						'subset',
+						run,
+						target,
+						{ parameters: [kept] }
+					);
+				}
+			);
+			await when('I apply the rules to the run from its page', async () => {
+				applied = await applyFromRunPage(page, recorded.run);
+			});
+			await then('the toast reports what was applied', () =>
+				expect(applied).toMatch(ANY_APPLIED)
+			);
+			await and(
+				'that result and every failing result of the test carrying the kept parameter carry a stamp of the issue',
+				async () => {
+					const table = await openTestResults(page, recorded);
+					await stamps.expectStampCount(
+						table,
+						recorded.issueId,
+						matched.length
+					);
+					for (const result of matched) {
+						await stamps.expectSingleStamp(
+							new RunPage(page).resultCellOf(table, result.resultId),
+							recorded.issueId
+						);
+					}
+				}
+			);
+			await and('I delete the issue from its page', () =>
+				deleteIssue(page, recorded)
+			);
+		}
+	);
+
+	test(
+		'A rule with a parameter value the result does not carry lays no stamp',
+		RUN,
+		async ({ page, request }) => {
+			const stamps = new ResultStamps(page);
+			let recorded!: Recorded;
+			let sibling!: RunTestResult;
+			let applied = '';
+
+			await given(
+				'I record an issue with a rule for a failing result of a run of my own, gated to that run, with a parameter value only a sibling iteration carries',
+				async () => {
+					const { run } = await leaseRun(request, 'value');
+					const pair = requireCapability(
+						siblingIteration(await resultsOfRun(request, run)),
+						`Run ${run.runId} has no two failing iterations of a test that differ in a parameter's value.`
+					);
+					sibling = pair.sibling;
+					recorded = await recordIssueWithRule(
+						page,
+						request,
+						'value',
+						run,
+						pair.target,
+						{ parameters: [pair.value] }
+					);
+				}
+			);
+			await when('I apply the rules to the run from its page', async () => {
+				applied = await applyFromRunPage(page, recorded.run);
+			});
+			await then('the toast reports what was applied', () =>
+				expect(applied).toMatch(ANY_APPLIED)
+			);
+			await and(
+				'that result carries no stamp of the issue while the sibling iteration does',
+				async () => {
+					const table = await openTestResults(page, recorded);
+					const runPage = new RunPage(page);
+					await stamps.expectSingleStamp(
+						runPage.resultCellOf(table, sibling.resultId),
+						recorded.issueId
+					);
+					await stamps.expectNotStamped(
+						runPage.resultCellOf(table, recorded.target.resultId),
+						recorded.issueId
+					);
+				}
+			);
+			await and('I delete the issue from its page', () =>
+				deleteIssue(page, recorded)
+			);
+		}
+	);
+
+	test(
+		"A rule gated to another run's tag never stamps this run",
+		RUN,
+		async ({ page, request }) => {
+			let recorded!: Recorded;
+			let applied = '';
+
+			await given(
+				'I record an issue with a rule for a failing test of a run of my own, gated to a run of the project nothing failed in',
+				async () => {
+					const { run, failing } = await leaseRun(request, 'other tag');
+					recorded = await recordIssueWithRule(
+						page,
+						request,
+						'other tag',
+						run,
+						failing[0],
+						{ tags: [otherRunFixtureTag(run)] }
+					);
+				}
+			);
+			await when('I apply the rules to the run from its page', async () => {
+				applied = await applyFromRunPage(page, recorded.run);
+			});
+			await then('the toast reports what was applied', () =>
+				expect(applied).toMatch(ANY_APPLIED)
+			);
+			await and('no result of the test carries a stamp of the issue', () =>
+				expectTestUnstamped(page, recorded)
+			);
+			await and("the run's issues page does not list the issue", () =>
+				expectNotOnRunIssues(page, recorded)
+			);
 			await and('I delete the issue from its page', () =>
 				deleteIssue(page, recorded)
 			);
