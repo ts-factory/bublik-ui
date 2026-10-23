@@ -38,10 +38,11 @@ async function lease<T>(
 	stackKey: string,
 	scenario: string,
 	what: string,
-	attempt: (book: LeaseBook) => T | null
+	attempt: (book: LeaseBook) => T | null,
+	waitMs = LEASE_WAIT_MS
 ): Promise<T> {
 	book ??= new LeaseBook(leaseDir(stackKey), scenario);
-	const deadline = Date.now() + LEASE_WAIT_MS;
+	const deadline = Date.now() + waitMs;
 
 	for (;;) {
 		const leased = attempt(book);
@@ -49,13 +50,33 @@ async function lease<T>(
 
 		if (Date.now() >= deadline) {
 			throw new Error(
-				`${scenario}: no ${what} came free within ${LEASE_WAIT_MS / 1000}s; ` +
-					'every classifiable result is leased by a running scenario.'
+				`${scenario}: no ${what} came free within ${waitMs / 1000}s; ` +
+					'it is leased by a running scenario.'
 			);
 		}
 
 		await new Promise((resolve) => setTimeout(resolve, LEASE_POLL_MS));
 	}
+}
+
+/**
+ * Leases the run `runId` whole, waiting up to `waitMs` for the scenario that
+ * holds it: a scenario that imports the run again holds it for the length
+ * of that import, minutes rather than seconds.
+ */
+function leaseRunId(
+	stackKey: string,
+	scenario: string,
+	runId: number,
+	waitMs: number
+): Promise<number> {
+	return lease(
+		stackKey,
+		scenario,
+		`run ${runId}`,
+		(held) => (held.tryRun(runId) ? runId : null),
+		waitMs
+	);
 }
 
 function leaseResult<T extends LeasableResult>(
@@ -84,4 +105,4 @@ function releaseLeases(): void {
 	book = undefined;
 }
 
-export { leaseResult, leaseTest, releaseLeases };
+export { leaseResult, leaseRunId, leaseTest, releaseLeases };

@@ -481,6 +481,21 @@ class RunPage {
 		await expect(option).toBeHidden({ timeout: 15_000 });
 	}
 
+	/**
+	 * Picks a result type in its facet, whose options read as the badges in the
+	 * cells do: EXPECTED, UNEXPECTED, NOT RUN.
+	 */
+	async toggleResultType(
+		table: Locator,
+		type: 'Expected' | 'Unexpected' | 'Not Run'
+	): Promise<void> {
+		await this.toggleResultFacetOption(
+			table,
+			'Result Type',
+			type.toUpperCase()
+		);
+	}
+
 	/** The run header's link to its issues page. */
 	get issuesHeaderLink(): Locator {
 		return this.page

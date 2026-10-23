@@ -3,9 +3,10 @@
 import { test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
 
+import { missingRunIdReason, requireCapability } from './capabilities';
 import { readManifest } from './manifest';
 import { latestRead } from './latest-read';
-import { leaseResult, leaseTest } from './leases';
+import { leaseResult, leaseRunId, leaseTest } from './leases';
 import type {
 	Bundle,
 	E2EManifest,
@@ -540,6 +541,7 @@ function classifiableRuns(manifest: E2EManifest): ClassifiableRun[] {
 interface ResultTreeNode {
 	id: number;
 	entity: string;
+	name?: string;
 	has_error?: boolean;
 	children?: number[];
 }
@@ -618,8 +620,74 @@ async function failingResultsOf(
 interface RunTestResult extends ClassifiableResult {
 	/** `name=value`. */
 	parameters: string[];
+	verdicts: string[];
+	/**
+	 * Unexpected and not suppressed by a stamp: a rule may match a result this
+	 * reads false for, once another rule suppressed it.
+	 */
 	hasError: boolean;
 	hasMeasurements: boolean;
+}
+
+/**
+ * The ids of `pinId`'s results in `bundle`'s run, in the order the manifest
+ * lists them. A pinned record names an iteration of its test by its
+ * parameters, so that is what finds the result.
+ */
+async function pinnedResultIds(
+	request: APIRequestContext,
+	bundle: Bundle,
+	pinId: string
+): Promise<number[]> {
+	const runId = requireCapability(bundle.runId, missingRunIdReason(bundle));
+	const pinned = (bundle.pinnedResults ?? []).filter(
+		(record) => record.pin === pinId
+	);
+	requireCapability(
+		pinned.length > 0,
+		`run "${bundle.id}" lists no pinned result of pin "${pinId}"`
+	);
+	const { tree } = await getJson<{ tree: Record<string, ResultTreeNode> }>(
+		request,
+		`/api/v2/tree/${runId}/`
+	);
+	const parents = Object.values(tree).filter((node) =>
+		(node.children ?? []).some((childId) => {
+			const child = tree[String(childId)];
+
+			return child?.entity === 'test' && child.name === pinned[0].test;
+		})
+	);
+	const entries = (
+		await Promise.all(
+			parents.map((parent) =>
+				getJson<{ results: ResultListEntry[] }>(
+					request,
+					`/api/v2/results/?parent_id=${parent.id}`
+				)
+			)
+		)
+	)
+		.flatMap((payload) => payload.results)
+		.filter((entry) => entry.path === pinned[0].pathStr);
+
+	return pinned.map((record) => {
+		const wanted = new Set(
+			Object.entries(record.params).map(
+				([name, value]) => `${name}=${String(value)}`
+			)
+		);
+		const found = entries.find(
+			(entry) =>
+				entry.parameters.length === wanted.size &&
+				entry.parameters.every((parameter) => wanted.has(parameter))
+		);
+
+		return requireCapability(
+			found?.result_id,
+			`run "${bundle.id}" lists no result of "${record.pathStr}" with the parameters of pin "${pinId}"`
+		);
+	});
 }
 
 /**
@@ -668,6 +736,7 @@ async function resultsOfRun(
 				testPath: entry.path,
 				iteration: entry.iteration_id,
 				parameters: entry.parameters,
+				verdicts: entry.obtained_result.verdicts,
 				hasError: entry.has_error,
 				hasMeasurements: entry.has_measurements
 			});
@@ -721,6 +790,18 @@ async function claimClassifiableTest(
 	);
 
 	return { run: results[0].run, results };
+}
+
+/** How long a scenario waits for a run another one is importing again. */
+const RUN_LEASE_WAIT_MS = 15 * 60_000;
+
+/**
+ * Leases the run `runId` whole for `scenario`, until the scenario ends, so
+ * that no two scenarios import it again at the same time. The run is not
+ * one of the classifiable pool: those are leased through their results.
+ */
+async function claimRun(runId: number, scenario: string): Promise<void> {
+	await leaseRunId(stackKey(), scenario, runId, RUN_LEASE_WAIT_MS);
 }
 
 /** A write scenario's name, which a lease records as its owner. */
@@ -993,6 +1074,8 @@ export {
 	artifactResultCase,
 	claimClassifiableTest,
 	claimFailingResult,
+	claimRun,
+	pinnedResultIds,
 	classifiableMeasurementSample,
 	classifiableRun,
 	classifiableTestPaths,

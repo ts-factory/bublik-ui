@@ -162,17 +162,50 @@ class ImportPage {
 
 	async scheduleImports(
 		importUrls: string[],
-		projectName?: string
+		projectName?: string,
+		options: { force?: boolean } = {}
 	): Promise<ScheduledImportTask[]> {
 		await this.goto();
 		await this.openImportForm();
 		if (projectName) await this.selectProject(projectName);
+		if (options.force) await this.enableForceImport();
 		await this.fillUrls(importUrls);
 		await this.submit(importUrls.length);
 
 		const tasks = await this.collectScheduledImportTasks();
 		await this.closeResultModal();
 		return tasks;
+	}
+
+	/**
+	 * Imports `importUrl` again, by force, as a run already on the instance,
+	 * and resolves with its run id once the import succeeded. Bublik keeps
+	 * the run's id and does the import in one transaction, so the run reads
+	 * whole throughout; the rules active by then stamp it anew, as they would
+	 * a run that did not exist when they were written.
+	 */
+	async reimportRun(importUrl: string): Promise<number> {
+		const [task] = await this.scheduleImports([importUrl], undefined, {
+			force: true
+		});
+		if (!task) {
+			throw new Error(`The force import of ${importUrl} scheduled no task.`);
+		}
+
+		const tasks = await this.waitForSuccessfulJob(task.jobId, [importUrl]);
+		const runId = tasks
+			.filter(
+				(row) => normalizeUrl(row.run_source_url) === normalizeUrl(importUrl)
+			)
+			.map(successfulImportedRunId)
+			.find((id): id is number => id !== null);
+		if (runId === undefined) {
+			throw new Error(
+				`The force import of ${importUrl} succeeded without a run id.`
+			);
+		}
+
+		return runId;
 	}
 
 	async collectScheduledImportTasks(): Promise<ScheduledImportTask[]> {

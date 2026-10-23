@@ -118,6 +118,16 @@ class LeaseBook {
 		return null;
 	}
 
+	/**
+	 * Leases the run `runId` whole, for a scenario that imports it again or
+	 * otherwise needs it to itself; false while another scenario holds it.
+	 * Meant for runs outside the classifiable pool, which no result lease
+	 * enters.
+	 */
+	tryRun(runId: number): boolean {
+		return this.take(runFile(runId));
+	}
+
 	/** Gives back every lease this book took. */
 	release(): void {
 		for (const file of this.files.splice(0)) this.unlink(file);

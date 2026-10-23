@@ -241,6 +241,67 @@ class ClassifyDrawer {
 		await this.expectMatch({ [field]: false });
 	}
 
+	/** The values a picker keeps, as its chips show them; `data-value` is the value. */
+	matchChips(field: PickedField): Locator {
+		return this.matchField(field).getByTestId('scope-value-chip');
+	}
+
+	/** The values a picker keeps, as the matcher will send them. */
+	async matchValues(field: PickedField): Promise<string[]> {
+		return (
+			await this.matchChips(field).evaluateAll((chips) =>
+				chips.map((chip) => chip.getAttribute('data-value'))
+			)
+		).filter((value): value is string => value !== null);
+	}
+
+	/** Removes one kept value from a picker: the rules stop matching on it. */
+	async removeMatchValue(field: PickedField, value: string): Promise<void> {
+		const chip = this.matchField(field).locator(
+			`[data-testid="scope-value-chip"][data-value="${value}"]`
+		);
+		await expect(chip).toHaveCount(1, { timeout: 15_000 });
+		await chip.locator('[data-chip-remove]').click();
+		await expect(chip).toHaveCount(0, { timeout: 15_000 });
+	}
+
+	/** Empties every picker from the section's bin: the rules match on their paths alone. */
+	async clearAllMatch(): Promise<void> {
+		await this.root
+			.getByRole('button', {
+				name: 'Empty every picker: match on the paths alone',
+				exact: true
+			})
+			.click();
+		await this.expectMatch({ parameters: false, verdicts: false, tags: false });
+	}
+
+	/**
+	 * Submits and resolves with the id of the issue the results went under,
+	 * read from the classify call's answer, once the stamp is acknowledged.
+	 */
+	async submitForIssueId(): Promise<number> {
+		const classified = this.page.waitForResponse(
+			(response) =>
+				response.request().method() === 'POST' &&
+				/\/results\/classify\/?(\?|$)/.test(response.url())
+		);
+		await this.submitButton.click();
+		const response = await classified;
+		if (!response.ok()) {
+			throw new Error(
+				`Classify answered ${response.status()}: ${await response.text()}`
+			);
+		}
+		const { issue_id: issueId } = (await response.json()) as {
+			issue_id: number;
+		};
+		await expectToast(this.page, /^Classified as /);
+		await this.expectClosed();
+
+		return issueId;
+	}
+
 	/** Restores the verdicts, every list the results failed with. */
 	async restoreVerdicts(): Promise<void> {
 		await this.matchField('verdicts')
