@@ -9,7 +9,6 @@ import {
 	useGetDashboardByDateQuery
 } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
-import { cn } from '@/shared/tailwind-ui';
 import { parseTimeApi } from '@/shared/utils';
 
 import {
@@ -142,11 +141,12 @@ export const LayoutHandlerContainer = () => {
 		const initialMainDate = effectiveTodayDate;
 		const initialSecondaryDate = addDays(effectiveTodayDate, -1);
 
+		// Both tables scroll with the page, so their sticky headers pin to the
+		// page scroller like in the other modes. An overflow box per table
+		// would become the sticky root and scroll away with the page.
 		return (
-			<div className="flex flex-grow gap-1 overflow-hidden h-full">
-				<div
-					className={cn('overflow-auto w-full relative styled-scrollbar pr-1')}
-				>
+			<div className="flex flex-grow gap-1">
+				<div className="w-full min-w-0 relative">
 					<DashboardTableContainer
 						id={DASHBOARD_TABLE_ID.Secondary}
 						mode={modeSettings.mode}
@@ -155,9 +155,7 @@ export const LayoutHandlerContainer = () => {
 						isPending={isSecondaryPending}
 					/>
 				</div>
-				<div
-					className={cn('overflow-auto w-full relative styled-scrollbar pr-1')}
-				>
+				<div className="w-full min-w-0 relative">
 					<DashboardTableContainer
 						id={DASHBOARD_TABLE_ID.Main}
 						mode={modeSettings.mode}

@@ -4,6 +4,7 @@ import { CSSProperties } from 'react';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 
 import { DashboardAPIResponse, DashboardData } from '@/shared/types';
+import { cn } from '@/shared/tailwind-ui';
 
 import {
 	CellList,
@@ -13,37 +14,72 @@ import {
 	CellText
 } from './components';
 import {
+	columnHasBadges,
 	createColorMap,
-	getColumnWidth
+	getColumnTracks,
+	isNumericColumn
 } from './dashboard-table.component.utils';
 
 import { ExpandButtonContainer } from '../expand-button';
 import { CellNotesContainer } from '../cell-notes';
 
+export type DashboardColumnAlign = 'left' | 'right';
+
+/** 24px icon plus the row's 1px left border, which the icon covers. */
+const STATUS_COLUMN_WIDTH = 25;
+const EXPAND_COLUMN_WIDTH = 32;
+
 declare module '@tanstack/react-table' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface ColumnMeta<TData extends RowData, TValue> {
+		/** Inline flex sizing, used by the legacy table only. */
 		style?: CSSProperties;
+		/** Track size for the table's `grid-template-columns`. */
+		width?: string;
+		/** Cells may shrink below their content and truncate. */
+		shrinks?: boolean;
+		align?: DashboardColumnAlign;
+		/**
+		 * The column has badge cells, whose text is inset by the badge padding.
+		 * In a left-aligned column the header and plain-text cells take the same
+		 * inset so the text lines up. Right-aligned badges keep their edge on the
+		 * header's edge instead, which reads better for numbers.
+		 */
+		hasBadges?: boolean;
+		/**
+		 * The previous column is right-aligned, so without extra room its
+		 * content would end where this column's text starts.
+		 */
+		gapBefore?: boolean;
+		/** Fixed icon track: no horizontal padding, cell is a positioning root. */
+		isIcon?: boolean;
 	}
+}
+
+export interface CreateColumnsOptions {
+	/** Render the trailing expand column. Off in TV mode, where nothing is clickable. */
+	showExpand?: boolean;
 }
 
 export const createColumns = (
 	headers: DashboardAPIResponse['header'],
 	rows: DashboardAPIResponse['rows'],
 	date: Date,
-	payload: DashboardAPIResponse['payload']
+	payload: DashboardAPIResponse['payload'],
+	{ showExpand = true }: CreateColumnsOptions = {}
 ): ColumnDef<DashboardData>[] => {
-	const map = createColorMap(rows);
+	const map = createColorMap(rows, headers);
+	const tracks = getColumnTracks(rows, headers);
+
+	const aligns = headers.map(
+		({ key }): DashboardColumnAlign =>
+			isNumericColumn(rows, key) ? 'right' : 'left'
+	);
 
 	const mainColumns = headers.map(({ name, key }, idx) => {
-		const style = {
-			flexGrow: getColumnWidth(rows, key, name),
-			flexShrink: 1,
-			flexBasis: '0%',
-			minWidth: 0,
-			paddingLeft: idx === 0 ? 4 : 1,
-			paddingRight: idx === 0 ? 4 : 1
-		} satisfies CSSProperties;
+		const align = aligns[idx];
+		const hasBadges = columnHasBadges(rows, key);
+		const gapBefore = align === 'left' && aligns[idx - 1] === 'right';
 
 		const column: ColumnDef<DashboardData> = {
 			id: key,
@@ -87,9 +123,20 @@ export const createColumns = (
 
 				if (!value) return null;
 
-				return <CellText value={value} />;
+				return (
+					<CellText
+						value={value}
+						className={cn(hasBadges && align === 'left' && 'px-2')}
+					/>
+				);
 			},
-			meta: { style }
+			meta: {
+				width: tracks.get(key)?.track,
+				shrinks: tracks.get(key)?.shrinks,
+				align,
+				hasBadges,
+				gapBefore
+			}
 		};
 
 		return column;
@@ -104,7 +151,7 @@ export const createColumns = (
 				conclusionReason={row.original.context.conclusion_reason}
 			/>
 		),
-		meta: { style: { width: 24, position: 'relative' } }
+		meta: { width: `${STATUS_COLUMN_WIDTH}px`, isIcon: true }
 	};
 
 	const expandColumn: ColumnDef<DashboardData> = {
@@ -119,8 +166,10 @@ export const createColumns = (
 				/>
 			);
 		},
-		meta: { style: { paddingLeft: 4, paddingRight: 4, width: 32 } }
+		meta: { width: `${EXPAND_COLUMN_WIDTH}px`, isIcon: true }
 	};
 
-	return [statusColumn, ...mainColumns, expandColumn];
+	return showExpand
+		? [statusColumn, ...mainColumns, expandColumn]
+		: [statusColumn, ...mainColumns];
 };

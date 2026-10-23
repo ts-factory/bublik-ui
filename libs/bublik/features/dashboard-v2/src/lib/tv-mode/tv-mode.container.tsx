@@ -48,9 +48,14 @@ export const TvModeContainer = () => {
 			</Tooltip>
 			<DialogContent
 				onOpenAutoFocus={(e) => e.preventDefault()}
-				className="fixed top-0 left-0 z-50 w-full h-full p-2 overflow-auto bg-bg-body focus:outline-none"
+				className="fixed top-0 left-0 z-50 w-full h-full overflow-auto bg-bg-body focus:outline-none"
 			>
-				<LayoutHandlerContainer />
+				{/* Padding goes on a child, not the scroll container: a padded
+				    scroller insets its sticky area and the table's sticky header
+				    would float 8px below the top with rows scrolling through. */}
+				<div className="p-2">
+					<LayoutHandlerContainer />
+				</div>
 			</DialogContent>
 		</Dialog>
 	);

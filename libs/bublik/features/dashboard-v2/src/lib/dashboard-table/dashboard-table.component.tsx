@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CSSProperties, Fragment, ReactNode, useMemo, useState } from 'react';
+import { CSSProperties, ReactNode, useMemo, useState } from 'react';
 import {
 	Cell,
 	ExpandedState,
@@ -12,7 +12,8 @@ import {
 	Header,
 	Row,
 	Table,
-	useReactTable
+	useReactTable,
+	ColumnMeta
 } from '@tanstack/react-table';
 import { fromDate, getLocalTimeZone } from '@internationalized/date';
 
@@ -26,12 +27,17 @@ import { createColumns } from './dashboard-table.component.columns';
 import { DashboardLayoutType } from './dashboard-table.types';
 import {
 	bodyCellStyles,
-	bodyRowStyles,
-	bodyRowWrapperStyles,
+	DATE_PICKER_HEIGHT,
+	datePickerStyles,
+	gridStyles,
 	headerCellStyles,
-	headerRowStyles
+	rowStyles,
+	subrowStyles
 } from './dashboard-table.component.styles';
-import { isRowError } from './dashboard-table.component.utils';
+import {
+	getGridTemplateColumns,
+	isRowError
+} from './dashboard-table.component.utils';
 
 const DEFAULT_ROWS: DashboardAPIResponse['rows'] = [];
 
@@ -80,6 +86,8 @@ export interface DashboardTableProps {
 	isLoading?: boolean;
 	globalFilter?: string;
 	error?: unknown;
+	/** Hide the expand column, e.g. in TV mode. */
+	showExpand?: boolean;
 }
 
 export const DashboardTable = (props: DashboardTableProps) => {
@@ -89,22 +97,29 @@ export const DashboardTable = (props: DashboardTableProps) => {
 		layout = 'row',
 		date = new Date(),
 		onDateChange,
-		isFetching,
+		isFetching = false,
 		isLoading = false,
 		globalFilter,
 		renderSubrow,
 		context,
-		error
+		error,
+		showExpand = true
 	} = props;
 	const [expanded, setExpanded] = useState<ExpandedState>({});
+
+	const columns = useMemo(
+		() => createColumns(headers, rows, date, context, { showExpand }),
+		[context, date, headers, rows, showExpand]
+	);
+	const gridTemplateColumns = useMemo(
+		() => getGridTemplateColumns(columns),
+		[columns]
+	);
 
 	const table = useReactTable({
 		state: { globalFilter, expanded },
 		data: useMemo(() => rows, [rows]),
-		columns: useMemo(
-			() => createColumns(headers, rows, date, context),
-			[context, date, headers, rows]
-		),
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
@@ -112,23 +127,25 @@ export const DashboardTable = (props: DashboardTableProps) => {
 		onExpandedChange: setExpanded
 	});
 
-	const state = {
-		loading: <DashboardTableLoading rowNumber={24} />,
-		empty: <DashboardTableEmpty />,
-		error: <DashboardTableError error={error} />,
-		data: (
-			<TableBody
-				table={table}
-				layout={layout}
-				isFetching={isFetching}
-				renderSubrow={renderSubrow}
-			/>
-		)
-	};
+	const state = error ? (
+		<DashboardTableError error={error} />
+	) : isLoading ? (
+		<DashboardTableLoading rowNumber={24} />
+	) : rows.length ? null : (
+		<DashboardTableEmpty />
+	);
+
+	const bodyRows = state ? [] : table.getRowModel().rows;
+	const gridProps = {
+		table,
+		gridTemplateColumns,
+		isFetching,
+		renderSubrow
+	} as const;
 
 	return (
-		<div role="table" className="flex flex-col w-full gap-1">
-			<div className="sticky top-0 z-40">
+		<div role="table" className="flex flex-col w-full">
+			<div className={datePickerStyles()}>
 				<div className="bg-bg-primary h-8.5 flex items-center justify-center">
 					<SwitchDatePicker
 						label="Date"
@@ -138,232 +155,206 @@ export const DashboardTable = (props: DashboardTableProps) => {
 						}
 					/>
 				</div>
-				<div className="h-1 bg-bg-body" />
-				<TableHeader table={table} layout={layout} />
 			</div>
-			{error
-				? state['error']
-				: isLoading
-				? state['loading']
-				: rows.length
-				? state['data']
-				: state['empty']}
+			{layout === 'row' ? (
+				<TableGrid {...gridProps} rows={bodyRows} />
+			) : (
+				<div className="flex gap-1">
+					{splitInHalf(bodyRows).map((half, idx) => (
+						<TableGrid
+							key={idx}
+							{...gridProps}
+							rows={half}
+							className="flex-1 min-w-0"
+						/>
+					))}
+				</div>
+			)}
+			{state ? <div className="mt-1">{state}</div> : null}
 		</div>
 	);
 };
 
-interface TableHeaderProps {
+interface TableGridProps {
 	table: Table<DashboardData>;
-	layout?: DashboardLayoutType;
+	rows: Row<DashboardData>[];
+	gridTemplateColumns: string;
+	isFetching: boolean;
+	renderSubrow: DashboardTableProps['renderSubrow'];
+	className?: string;
 }
 
-const TableHeader = (props: TableHeaderProps) => {
-	const { table, layout = 'row' } = props;
-
-	const sorting = {
-		asc: (
-			<SortArrow className="ml-1 size-3.5 shrink-0 translate-y-0.5 rotate-180" />
-		),
-		desc: <SortArrow className="ml-1 size-3.5 shrink-0 -translate-y-px" />
-	} as const;
-
-	const renderHeaderCells =
-		(id: string) => (header: Header<DashboardData, unknown>) => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			const style = header.column.columnDef.meta?.style as
-				| CSSProperties
-				| undefined;
-
-			return (
-				<div
-					role="columnheader"
-					key={`${id}_${header.id}`}
-					className={cn(
-						headerCellStyles(),
-						header.column.getCanSort() && 'cursor-pointer select-none'
-					)}
-					style={style}
-					onClick={header.column.getToggleSortingHandler()}
-				>
-					{header.isPlaceholder
-						? null
-						: flexRender(header.column.columnDef.header, header.getContext())}
-					{sorting[header.column.getIsSorted() as keyof typeof sorting] ?? null}
-				</div>
-			);
-		};
-
-	const headerGroups = table.getHeaderGroups();
-
-	if (layout === 'row') {
-		return (
-			<div role="rowheader">
-				{headerGroups.map((headerGroup) => (
-					<div
-						key={headerGroup.id}
-						role="row"
-						className={cn(headerRowStyles())}
-					>
-						{headerGroup.headers.map(renderHeaderCells('all'))}
-					</div>
-				))}
-			</div>
-		);
-	}
+/**
+ * One grid holding the header cells and every row's cells, so a track is
+ * sized by the content of the whole column. Rows are `display: contents`
+ * wrappers that keep the row-level test ids and the hover group.
+ */
+const TableGrid = (props: TableGridProps) => {
+	const {
+		table,
+		rows,
+		gridTemplateColumns,
+		isFetching,
+		renderSubrow,
+		className
+	} = props;
+	const style: CSSProperties = { gridTemplateColumns };
 
 	return (
-		<div className="flex gap-1" role="rowheader">
-			{headerGroups.map((headerGroup) => {
+		<div role="rowgroup" className={cn(gridStyles(), className)} style={style}>
+			{table.getHeaderGroups().map((headerGroup) => (
+				<div key={headerGroup.id} role="row" className={rowStyles()}>
+					{headerGroup.headers.map(renderHeaderCell)}
+				</div>
+			))}
+			{rows.map((row) => {
+				const cells = row.getVisibleCells();
+				const isExpanded = row.getIsExpanded();
+
 				return (
-					<Fragment key={headerGroup.id}>
-						<div
-							key={`left_${headerGroup.id}`}
-							className={cn(headerRowStyles(), 'flex-1')}
-						>
-							{headerGroup.headers.map(renderHeaderCells('left'))}
-						</div>
-						<div
-							key={`right_${headerGroup.id}`}
-							className={cn(headerRowStyles(), 'flex-1')}
-						>
-							{headerGroup.headers.map(renderHeaderCells('right'))}
-						</div>
-					</Fragment>
+					<div
+						key={row.id}
+						role="row"
+						className={rowStyles()}
+						data-testid="dashboard-row"
+						data-run-id={row.original.context.run_id}
+					>
+						{cells.map((cell, idx) =>
+							renderCell(cell, {
+								isRowError: isRowError(row),
+								isExpanded,
+								isFetching,
+								edge:
+									idx === 0
+										? 'first'
+										: idx === cells.length - 1
+										? 'last'
+										: 'middle'
+							})
+						)}
+						{isExpanded ? (
+							<div className={subrowStyles({ isFetching })}>
+								{renderSubrow?.(row)}
+							</div>
+						) : null}
+					</div>
 				);
 			})}
 		</div>
 	);
 };
 
-interface TableLayoutProps {
-	table: Table<DashboardData>;
-	layout?: DashboardLayoutType;
-	isFetching?: boolean;
-	renderSubrow: DashboardTableProps['renderSubrow'];
-}
+/**
+ * The sort arrow of a sortable header. It is laid out even while the column
+ * is unsorted, only hidden, so sorting does not move the header. It leads
+ * the label in a right-aligned header, so the label stays on the edge the
+ * numbers align to, and trails it otherwise. It is a flex item with no base
+ * width: when the track is at its minimum (a narrow row) it gives way
+ * instead of holding the track open, and the sorted header is then told
+ * apart by colour.
+ */
+const renderSortArrow = (
+	header: Header<DashboardData, unknown>,
+	side: 'leading' | 'trailing'
+) => {
+	if (!header.column.getCanSort()) return null;
 
-const TableBody = (props: TableLayoutProps) => {
-	const { table, layout = 'row', isFetching = false, renderSubrow } = props;
+	const direction = header.column.getIsSorted();
 
-	const rows = table.getRowModel().rows;
-	const [first, second] = splitInHalf(rows);
-
-	const renderCells = (cell: Cell<DashboardData, unknown>) => {
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		const style = cell.column.columnDef.meta?.style as
-			| CSSProperties
-			| undefined;
-
-		return (
-			<div
-				key={cell.id}
-				role="cell"
-				className={cn(bodyCellStyles())}
-				style={style}
-			>
-				{flexRender(cell.column.columnDef.cell, cell.getContext())}
-			</div>
-		);
-	};
-
-	if (layout === 'row') {
-		return (
-			<div
-				role="rowgroup"
+	return (
+		<span
+			className={cn(
+				'w-0 min-w-0 max-w-3.5 flex-1 overflow-hidden flex',
+				side === 'leading' ? 'mr-1 justify-end' : 'ml-1',
+				!direction && 'invisible'
+			)}
+		>
+			<SortArrow
 				className={cn(
-					'flex flex-col gap-1',
-					isFetching && 'pointer-events-none opacity-40'
+					// Scales down with its box instead of being clipped.
+					'h-3.5 w-full',
+					direction === 'asc' && 'translate-y-0.5 rotate-180',
+					direction === 'desc' && '-translate-y-px'
 				)}
-			>
-				{rows.map((row) => {
-					return (
-						<div
-							key={row.id}
-							className={bodyRowWrapperStyles({
-								isExpanded: row.getIsExpanded()
-							})}
-							data-testid="dashboard-row"
-							data-run-id={row.original.context.run_id}
-						>
-							<div
-								className={cn(
-									bodyRowStyles({
-										isRowError: isRowError(row),
-										isExpanded: row.getIsExpanded()
-									})
-								)}
-							>
-								{row.getVisibleCells().map(renderCells)}
-							</div>
-							{row.getIsExpanded() ? renderSubrow?.(row) : null}
-						</div>
-					);
-				})}
-			</div>
-		);
-	}
+			/>
+		</span>
+	);
+};
+
+const headerCellStyle: CSSProperties = { top: DATE_PICKER_HEIGHT };
+
+/**
+ * Left padding of a header cell: the cell padding, plus the badge's own
+ * padding when the column has badges so the label sits over the badge text,
+ * plus the gap after a right-aligned neighbour. Matches the body cells.
+ */
+const headerInset = (meta: ColumnMeta<DashboardData, unknown> | undefined) => {
+	const overBadges = meta?.hasBadges && meta.align !== 'right';
+
+	if (meta?.gapBefore) return overBadges ? 'pl-3.5' : 'pl-1.5';
+
+	return overBadges ? 'pl-2.5' : undefined;
+};
+
+const renderHeaderCell = (header: Header<DashboardData, unknown>) => {
+	const meta = header.column.columnDef.meta;
+	const isRightAligned = meta?.align === 'right';
 
 	return (
 		<div
+			role="columnheader"
+			key={header.id}
 			className={cn(
-				'flex gap-1',
-				isFetching && 'pointer-events-none opacity-40'
+				headerCellStyles({ align: meta?.align, padded: !meta?.isIcon }),
+				headerInset(meta),
+				header.column.getCanSort() && 'cursor-pointer select-none',
+				header.column.getIsSorted() && 'text-primary'
+			)}
+			style={headerCellStyle}
+			onClick={header.column.getToggleSortingHandler()}
+		>
+			{isRightAligned ? renderSortArrow(header, 'leading') : null}
+			{header.isPlaceholder
+				? null
+				: flexRender(header.column.columnDef.header, header.getContext())}
+			{isRightAligned ? null : renderSortArrow(header, 'trailing')}
+		</div>
+	);
+};
+
+interface RenderCellOptions {
+	isRowError: boolean;
+	isExpanded: boolean;
+	isFetching: boolean;
+	edge: 'first' | 'last' | 'middle';
+}
+
+const renderCell = (
+	cell: Cell<DashboardData, unknown>,
+	{ isRowError, isExpanded, isFetching, edge }: RenderCellOptions
+) => {
+	const meta = cell.column.columnDef.meta;
+
+	return (
+		<div
+			key={cell.id}
+			role="cell"
+			className={cn(
+				bodyCellStyles({
+					isRowError,
+					isExpanded,
+					isFetching,
+					edge,
+					align: meta?.align,
+					padded: !meta?.isIcon,
+					shrinks: meta?.shrinks
+				}),
+				// Room after a right-aligned neighbour; padding rather than margin
+				// so the cell keeps painting the row background across it.
+				meta?.gapBefore && 'pl-1.5'
 			)}
 		>
-			<div className="flex flex-col flex-1 gap-1">
-				{first.map((left) => {
-					return (
-						<div
-							key={left.id}
-							className={bodyRowWrapperStyles({
-								isExpanded: left.getIsExpanded()
-							})}
-							data-testid="dashboard-row"
-							data-run-id={left.original.context.run_id}
-						>
-							<div
-								className={cn(
-									bodyRowStyles({
-										isRowError: isRowError(left),
-										isExpanded: left.getIsExpanded()
-									})
-								)}
-							>
-								{left.getVisibleCells().map(renderCells)}
-							</div>
-							{left.getIsExpanded() ? renderSubrow?.(left) : null}
-						</div>
-					);
-				})}
-			</div>
-			<div className="flex flex-col flex-1 gap-1">
-				{second.map((right) => {
-					return (
-						<div
-							key={right.id}
-							className={bodyRowWrapperStyles({
-								isExpanded: right.getIsExpanded()
-							})}
-							data-testid="dashboard-row"
-							data-run-id={right.original.context.run_id}
-						>
-							<div
-								className={cn(
-									bodyRowStyles({
-										isRowError: isRowError(right),
-										isExpanded: right.getIsExpanded()
-									})
-								)}
-							>
-								{right.getVisibleCells().map(renderCells)}
-							</div>
-							{right.getIsExpanded() ? renderSubrow?.(right) : null}
-						</div>
-					);
-				})}
-			</div>
+			{flexRender(cell.column.columnDef.cell, cell.getContext())}
 		</div>
 	);
 };

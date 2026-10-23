@@ -9,17 +9,20 @@ import {
 	useGetDashboardByDateQuery
 } from '@/services/bublik-api';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
+import { useFeatureFlag } from '@/bublik/features/feature-flags';
 
 import { DashboardTable } from './dashboard-table.component';
+import { DashboardTableLegacy } from './legacy';
 import {
 	DASHBOARD_TABLE_ID,
 	DashboardTableId,
 	useDashboardDate,
 	useDashboardReload,
 	useDashboardSearchTerm,
+	useDashboardTvMode,
 	usePrefetchNextAndPreviousDay
 } from '../hooks';
-import { renderSubrow } from '../subrow';
+import { renderLegacySubrow, renderSubrow } from '../subrow';
 
 const modeToLayout = new Map<DASHBOARD_MODE | DashboardMode, 'row' | 'column'>([
 	[DASHBOARD_MODE.Rows, 'row'],
@@ -85,6 +88,8 @@ export const DashboardTableContainer = ({
 	const { date, setDate } = useDashboardDate(id);
 	const { isEnabled } = useDashboardReload();
 	const { term } = useDashboardSearchTerm();
+	const { isTvModeEnabled } = useDashboardTvMode();
+	const [isGridEnabled] = useFeatureFlag('dashboard-grid');
 	const requestedDate = date || initialDate;
 	const currentQueryKey = getDashboardQueryKey({ requestedDate, projectIds });
 	const query = useGetDashboardByDateQuery(
@@ -143,19 +148,32 @@ export const DashboardTableContainer = ({
 		});
 	};
 
+	const tableProps = {
+		date: finalDate,
+		headers: displayData?.header,
+		rows: displayData?.rows,
+		layout,
+		onDateChange: handleDateChange,
+		isFetching: query.isFetching || isPending,
+		isLoading: !tableError && query.isLoading && !displayData,
+		globalFilter: term || undefined,
+		context: displayData?.payload || {},
+		error: tableError
+	};
+
+	// The grid table is behind the `dashboard-grid` flag (Settings → Beta)
+	// until it graduates; the flex table stays the default.
+	if (!isGridEnabled) {
+		return (
+			<DashboardTableLegacy {...tableProps} renderSubrow={renderLegacySubrow} />
+		);
+	}
+
 	return (
 		<DashboardTable
-			date={finalDate}
-			headers={displayData?.header}
-			rows={displayData?.rows}
-			layout={layout}
-			onDateChange={handleDateChange}
+			{...tableProps}
 			renderSubrow={renderSubrow}
-			isFetching={query.isFetching || isPending}
-			isLoading={!tableError && query.isLoading && !displayData}
-			globalFilter={term || undefined}
-			context={displayData?.payload || {}}
-			error={tableError}
+			showExpand={!isTvModeEnabled}
 		/>
 	);
 };
