@@ -1,5 +1,6 @@
 import { cn } from '@/shared/tailwind-ui';
 import type { SettingsTabConfig } from '../types';
+import { BetaFeaturesBadge } from './beta-features-menu';
 
 export interface SettingsNavItemProps {
 	tab: SettingsTabConfig;
@@ -24,6 +25,7 @@ export function SettingsNavItem({
 		>
 			<span className="shrink-0">{tab.icon}</span>
 			<span>{tab.label}</span>
+			{tab.id === 'beta' ? <BetaFeaturesBadge /> : null}
 		</button>
 	);
 }

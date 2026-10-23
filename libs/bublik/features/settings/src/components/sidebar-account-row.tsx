@@ -21,6 +21,8 @@ import {
 import { SETTINGS_TABS } from '../constants';
 import type { SettingsTab } from '../types';
 import { getUserLabel } from '../user-label';
+import { AppearanceMenuItem } from './appearance-menu-item';
+import { BetaFeaturesSubmenu } from './beta-features-menu';
 
 interface SidebarAccountRowProps {
 	user: AuthenticatedUser | null;
@@ -154,18 +156,34 @@ function SidebarAccountRow({
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 
-					{SETTINGS_TABS.map((tab) => (
-						<DropdownMenuItem
-							key={tab.id}
-							className={menuItemStyles}
-							onSelect={() => onOpenSettings(tab.id)}
-						>
-							<span className="grid place-items-center size-[18px] shrink-0">
-								{tab.icon}
-							</span>
-							{tab.label}
-						</DropdownMenuItem>
-					))}
+					{SETTINGS_TABS.map((tab) =>
+						tab.id === 'beta' ? (
+							<BetaFeaturesSubmenu
+								key={tab.id}
+								tab={tab}
+								itemClassName={menuItemStyles}
+								onOpenSettings={() => onOpenSettings(tab.id)}
+							/>
+						) : tab.id === 'appearance' ? (
+							<AppearanceMenuItem
+								key={tab.id}
+								tab={tab}
+								itemClassName={menuItemStyles}
+								onOpenSettings={() => onOpenSettings(tab.id)}
+							/>
+						) : (
+							<DropdownMenuItem
+								key={tab.id}
+								className={menuItemStyles}
+								onSelect={() => onOpenSettings(tab.id)}
+							>
+								<span className="grid place-items-center size-[18px] shrink-0">
+									{tab.icon}
+								</span>
+								{tab.label}
+							</DropdownMenuItem>
+						)
+					)}
 
 					<DropdownMenuSeparator />
 					{user ? (

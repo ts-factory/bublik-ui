@@ -39,6 +39,9 @@
 			"@/bublik/features/deploy-info": [
 				"libs/bublik/features/deploy-info/src/index.ts"
 			],
+			"@/bublik/features/feature-flags": [
+				"libs/bublik/features/feature-flags/src/index.ts"
+			],
 			"@/bublik/features/faq": ["libs/bublik/features/faq/src/index.ts"],
 			"@/bublik/features/history": [
 				"libs/bublik/features/history/src/index.ts"
