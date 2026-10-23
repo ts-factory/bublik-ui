@@ -32,9 +32,19 @@ export const RunProgress = (props: RunProgressProps) => {
 	}
 
 	if (data) {
+		const chunks = getStatusAndBasis(data);
+
 		return (
-			<ul className="relative flex w-full min-w-0 flex-nowrap items-center gap-1 overflow-hidden">
-				{getStatusAndBasis(data).map(({ status, basis }, idx) => (
+			<ul
+				className="relative flex w-full min-w-0 flex-nowrap items-center overflow-hidden"
+				// 4px between pieces, but never more than 30% of the strip in
+				// all: a run with hundreds of pieces would otherwise spend the
+				// whole width on gaps and squeeze every piece to nothing.
+				style={{
+					columnGap: `min(0.25rem, ${30 / Math.max(chunks.length - 1, 1)}%)`
+				}}
+			>
+				{chunks.map(({ status, basis }, idx) => (
 					<li
 						key={idx}
 						className={`relative rounded-[10px] h-2 overflow-hidden opacity-70 ${
