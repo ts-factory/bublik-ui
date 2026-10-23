@@ -106,6 +106,33 @@ class ResultStamps {
 		});
 	}
 
+	/** `scope` carries exactly `count` stamps of `issueId`, one per result. */
+	async expectStampCount(
+		scope: Locator,
+		issueId: number,
+		count: number
+	): Promise<void> {
+		await expect(this.stampsOf(scope, issueId)).toHaveCount(count, {
+			timeout: 30_000
+		});
+	}
+
+	/**
+	 * `scope` carries stamps of `issueId`, none of which shows `category`: a
+	 * rule of that category did not stamp the results its sibling rules did.
+	 */
+	async expectStampWithoutCategory(
+		scope: Locator,
+		issueId: number,
+		category: IssueCategory
+	): Promise<void> {
+		const stamps = this.stampsOf(scope, issueId);
+		await expect(stamps.first()).toBeAttached({ timeout: 30_000 });
+		await expect(stamps.locator(`[data-category="${category}"]`)).toHaveCount(
+			0
+		);
+	}
+
 	/** `scope` — one result's line — carries exactly one stamp of `issueId`. */
 	async expectSingleStamp(scope: Locator, issueId: number): Promise<void> {
 		await expect(this.stampsOf(scope, issueId)).toHaveCount(1, {

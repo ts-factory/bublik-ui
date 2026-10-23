@@ -3,7 +3,7 @@
 /* eslint-disable playwright/expect-expect */
 import type { Locator, Page } from '@playwright/test';
 
-import { test } from './support/test';
+import { expect, test } from './support/test';
 
 import { IssuePage } from './pages/issue-page';
 import { IssuesPage } from './pages/issues-page';
@@ -47,7 +47,8 @@ interface TwinPin {
  * a closed issue — and only over a pin of unexpected results, the only ones a
  * rule stamps on import. A rule that matches on run tags captured its seeded
  * run's tags, `fixture_id` among them, which no other run carries, so it never
- * reaches a twin.
+ * reaches a twin: "A rule gated to the seeded run's tags does not reach a run
+ * with other tags" asserts that.
  */
 function stampsTwin(seeded: SeededClassification, rule: SeededRule): boolean {
 	return (
@@ -198,6 +199,173 @@ async function expectSilentIssues(page: Page, scenario: SilentCase) {
 			}
 		});
 	}
+}
+
+/** How many of the pin's results the twin lists: what a rule over it reaches. */
+function twinPinRowCount(pair: TwinPin): number {
+	return (pair.twin.pinnedResults ?? []).filter(
+		(result) => result.pin === pair.pin.planId
+	).length;
+}
+
+/** The rules of `issue` the seed wrote against `pin`. */
+function rulesOver(issue: SeededIssue, pin: SeededPin): SeededRule[] {
+	return issue.rules.filter((rule) => rule.pin === pin.planId);
+}
+
+/** The pairs of `cases`, grouped by run, each with what the case holds. */
+function casesByRun<T extends { pair: TwinPin }>(cases: readonly T[]): T[][] {
+	const runs = new Map<number, T[]>();
+	for (const entry of cases) {
+		runs.set(entry.pair.runId, [...(runs.get(entry.pair.runId) ?? []), entry]);
+	}
+
+	return [...runs.values()];
+}
+
+/**
+ * Opens the run the seed classified `rule`'s results in — the run the rule
+ * was written against — and the results of `pin`'s test there.
+ */
+async function openSeededTable(
+	page: Page,
+	rule: SeededRule,
+	pin: SeededPin
+): Promise<Locator> {
+	const bundle = rule.classifiedIn;
+	const pinned = requireCapability(
+		bundle.pinnedResults?.find((result) => result.pin === pin.planId),
+		`run "${bundle.id}" lists no pinned result of pin "${pin.planId}"`
+	);
+	const runPage = new RunPage(page);
+
+	await runPage.goto(
+		requireCapability(bundle.runId, missingRunIdReason(bundle))
+	);
+	await runPage.expectLoaded(bundle.expectedRuns[0].name);
+
+	return new ResultStamps(page).openTestResults(pinned.pathStr.split('/'));
+}
+
+/**
+ * A pin sharing its test with pins of other verdicts in the same twin, and
+ * the issues whose every rule over it keeps the verdicts, so their stamps
+ * there are the pin's rows and no other pin's.
+ */
+interface VerdictCase {
+	pair: TwinPin;
+	/** The other pins of the test, each with a verdict of its own. */
+	others: TwinPin[];
+	issues: SeededIssue[];
+}
+
+function verdictCases(seeded: SeededClassification): VerdictCase[] {
+	const pairs = twinPins(seeded);
+
+	return pairs.flatMap((pair) => {
+		const others = pairs.filter(
+			(other) =>
+				other !== pair &&
+				other.runId === pair.runId &&
+				other.path.join('/') === pair.path.join('/') &&
+				other.pin.verdicts[0] !== pair.pin.verdicts[0]
+		);
+		if (!others.length) return [];
+
+		const issues = issuesOf(
+			seeded,
+			pair.rules.filter((rule) => stampsTwin(seeded, rule))
+		).filter(
+			(issue) =>
+				rulesOver(issue, pair.pin).every(
+					(rule) => stampsTwin(seeded, rule) && rule.match.includes('verdicts')
+				) && others.every((other) => rulesOver(issue, other.pin).length === 0)
+		);
+
+		return issues.length ? [{ pair, others, issues }] : [];
+	});
+}
+
+/**
+ * A single-iteration pin and the issues whose every rule over it keeps the
+ * parameters and at least one keeps nothing else: the seed classified one
+ * result, so such a rule carries all of its parameters and matches that
+ * iteration alone.
+ */
+interface ParameterCase {
+	pair: TwinPin;
+	issues: SeededIssue[];
+}
+
+function parameterCases(seeded: SeededClassification): ParameterCase[] {
+	return twinPins(seeded).flatMap((pair) => {
+		if (pair.pin.iterations.length !== 1) return [];
+
+		const issues = issuesOf(
+			seeded,
+			pair.rules.filter((rule) => stampsTwin(seeded, rule))
+		).filter((issue) => {
+			const own = rulesOver(issue, pair.pin);
+
+			return (
+				own.every(
+					(rule) =>
+						stampsTwin(seeded, rule) && rule.match.includes('parameters')
+				) &&
+				own.some(
+					(rule) => rule.match.length === 1 && rule.match[0] === 'parameters'
+				)
+			);
+		});
+
+		return issues.length ? [{ pair, issues }] : [];
+	});
+}
+
+/**
+ * An active tags rule beside rules of its issue that do stamp the twin, of
+ * other categories than its own: the issue's stamp there tells the rules
+ * apart by their category badges.
+ */
+interface TagsCase {
+	pair: TwinPin;
+	rule: SeededRule;
+	issue: SeededIssue;
+	/** A sibling rule that stamps the twin, of another category. */
+	sibling: SeededRule;
+}
+
+function tagsCases(seeded: SeededClassification): TagsCase[] {
+	return twinPins(seeded).flatMap((pair) =>
+		pair.rules
+			.filter((rule) => rule.active && rule.match.includes('tags'))
+			.flatMap((rule) => {
+				const issue = seeded.issue(rule.issue);
+				const siblings = rulesOver(issue, pair.pin).filter((other) =>
+					stampsTwin(seeded, other)
+				);
+
+				return siblings.length &&
+					siblings.every((other) => other.category !== rule.category)
+					? [{ pair, rule, issue, sibling: siblings[0] }]
+					: [];
+			})
+	);
+}
+
+/** A pin that passes as expected, under rules that are live. */
+interface PassingCase {
+	pair: TwinPin;
+	rules: SeededRule[];
+}
+
+function passingCases(seeded: SeededClassification): PassingCase[] {
+	return twinPins(seeded).flatMap((pair) => {
+		if (pair.pin.unexpected) return [];
+		const rules = pair.rules.filter((rule) => rule.active);
+
+		return rules.length ? [{ pair, rules }] : [];
+	});
 }
 
 const issueCleanup = new IssueCleanup('stamps');
@@ -540,6 +708,270 @@ test.describe('Rules stamp runs imported after them', () => {
 				await issuePage.deleteIssue(title);
 				issueCleanup.forget(issueId);
 			});
+		}
+	);
+
+	test(
+		'A verdict rule stamps only the results that failed with its verdict list',
+		SEEDED,
+		async ({ page }) => {
+			// The test's unfiltered table lists every iteration of it, which for
+			// mtu_tcp runs past a hundred rows.
+			test.slow();
+			const runPage = new RunPage(page);
+			const stamps = new ResultStamps(page);
+			let runs: VerdictCase[][] = [];
+
+			await given(
+				'the seed wrote verdict rules over two pins of one test, each with its own verdict, in a run imported later',
+				() => {
+					const cases = verdictCases(seededClassification(requireManifest()));
+					runs = casesByRun(
+						requireCapability(
+							cases.length ? cases : null,
+							'no test of an applies-to run carries two pins with verdict rules of their own'
+						)
+					);
+				}
+			);
+			for (const cases of runs) {
+				let tables = new Map<TwinPin, Locator>();
+
+				for (const { pair, others, issues } of cases) {
+					await when(
+						"I open the test's results in that run filtered to one pin's verdict",
+						async () => {
+							if (!tables.size) {
+								tables = await openTwinTables(
+									page,
+									cases.map((entry) => entry.pair)
+								);
+							}
+							await runPage.toggleResultFacetOption(
+								tableOf(tables, pair),
+								'Verdicts',
+								pair.pin.verdicts[0]
+							);
+						}
+					);
+					await then(
+						"every listed result carries a stamp of each of that pin's issues",
+						async () => {
+							const table = tableOf(tables, pair);
+							const rows = twinPinRowCount(pair);
+							await expect
+								.poll(() => runPage.resultRowCount(table), { timeout: 30_000 })
+								.toBe(rows);
+							for (const issue of issues) {
+								await stamps.expectStampCount(table, issue.issueId, rows);
+							}
+						}
+					);
+					for (const other of others) {
+						await when(
+							"I filter them to the other pin's verdict instead",
+							async () => {
+								await runPage.resetResultFilters(tableOf(tables, pair));
+								await runPage.toggleResultFacetOption(
+									tableOf(tables, pair),
+									'Verdicts',
+									other.pin.verdicts[0]
+								);
+							}
+						);
+						await then(
+							'none of them carries a stamp of those issues',
+							async () => {
+								const table = tableOf(tables, pair);
+								await expect
+									.poll(() => runPage.resultRowCount(table), {
+										timeout: 30_000
+									})
+									.toBe(twinPinRowCount(other));
+								for (const issue of issues) {
+									await stamps.expectNotStamped(table, issue.issueId);
+								}
+							}
+						);
+					}
+					await runPage.resetResultFilters(tableOf(tables, pair));
+				}
+			}
+		}
+	);
+
+	test(
+		'A parameters rule stamps only the iteration whose parameters it kept',
+		SEEDED,
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const stamps = new ResultStamps(page);
+			let runs: ParameterCase[][] = [];
+
+			await given(
+				'the seed wrote parameters rules over single-iteration pins of a run imported later',
+				() => {
+					const cases = parameterCases(seededClassification(requireManifest()));
+					runs = casesByRun(
+						requireCapability(
+							cases.length ? cases : null,
+							'no single-iteration pin of an applies-to run sits under a parameters-only rule'
+						)
+					);
+				}
+			);
+			for (const cases of runs) {
+				let tables = new Map<TwinPin, Locator>();
+
+				await when("I open each pin's test results in that run", async () => {
+					tables = await openTwinTables(
+						page,
+						cases.map((entry) => entry.pair)
+					);
+				});
+				await then('the test lists more results than the pin has', async () => {
+					for (const { pair } of cases) {
+						await expect
+							.poll(() => runPage.resultRowCount(tableOf(tables, pair)), {
+								timeout: 30_000
+							})
+							.toBeGreaterThan(twinPinRowCount(pair));
+					}
+				});
+				await and(
+					"each of those rules' issues stamps exactly the pin's results",
+					async () => {
+						for (const { pair, issues } of cases) {
+							for (const issue of issues) {
+								await stamps.expectStampCount(
+									tableOf(tables, pair),
+									issue.issueId,
+									twinPinRowCount(pair)
+								);
+							}
+						}
+					}
+				);
+			}
+		}
+	);
+
+	test(
+		'A rule gated to the seeded run’s tags does not reach a run with other tags',
+		SEEDED,
+		async ({ page }) => {
+			test.slow();
+			const stamps = new ResultStamps(page);
+			let runs: TagsCase[][] = [];
+
+			await given(
+				'the seed wrote a tags rule beside other rules of its issue over a pin of a run imported later',
+				() => {
+					const cases = tagsCases(seededClassification(requireManifest()));
+					runs = casesByRun(
+						requireCapability(
+							cases.length ? cases : null,
+							'no active tags rule shares its pin with a sibling rule of another category that stamps an applies-to run'
+						)
+					);
+				}
+			);
+			for (const cases of runs) {
+				let tables = new Map<TwinPin, Locator>();
+
+				await when("I open the pin's test results in that run", async () => {
+					tables = await openTwinTables(
+						page,
+						cases.map((entry) => entry.pair)
+					);
+				});
+				await then(
+					"the issue's stamp shows the other rules' categories but not the tags rule's",
+					async () => {
+						for (const { pair, rule, issue, sibling } of cases) {
+							const table = tableOf(tables, pair);
+							await stamps.expectStamped(
+								table,
+								issue.issueId,
+								sibling.category
+							);
+							await stamps.expectStampWithoutCategory(
+								table,
+								issue.issueId,
+								rule.category
+							);
+						}
+					}
+				);
+				await and(
+					'in the run the rule was written against the stamp shows it',
+					async () => {
+						for (const { pair, rule, issue } of cases) {
+							const table = await openSeededTable(page, rule, pair.pin);
+							await stamps.expectStamped(table, issue.issueId, rule.category);
+						}
+					}
+				);
+			}
+		}
+	);
+
+	test(
+		'A rule over a result that passed as expected does not stamp it in the run imported after it',
+		SEEDED,
+		async ({ page }) => {
+			const stamps = new ResultStamps(page);
+			let seeded!: SeededClassification;
+			let runs: PassingCase[][] = [];
+
+			await given(
+				'the seed wrote a rule over a pin that passes as expected in a run imported later',
+				() => {
+					seeded = seededClassification(requireManifest());
+					const cases = passingCases(seeded);
+					runs = casesByRun(
+						requireCapability(
+							cases.length ? cases : null,
+							'no expected-pass pin of an applies-to run sits under an active rule'
+						)
+					);
+				}
+			);
+			for (const cases of runs) {
+				let tables = new Map<TwinPin, Locator>();
+
+				await when("I open the pin's test results in that run", async () => {
+					tables = await openTwinTables(
+						page,
+						cases.map((entry) => entry.pair)
+					);
+				});
+				await then("the rule's issue stamps none of them", async () => {
+					for (const { pair, rules } of cases) {
+						for (const rule of rules) {
+							await stamps.expectNotStamped(
+								tableOf(tables, pair),
+								seeded.issue(rule.issue).issueId
+							);
+						}
+					}
+				});
+				await and(
+					"in the run the rule was written against it stamps the pin's result",
+					async () => {
+						for (const { pair, rules } of cases) {
+							for (const rule of rules) {
+								const table = await openSeededTable(page, rule, pair.pin);
+								await stamps.expectStamped(
+									table,
+									seeded.issue(rule.issue).issueId,
+									rule.category
+								);
+							}
+						}
+					}
+				);
+			}
 		}
 	);
 });

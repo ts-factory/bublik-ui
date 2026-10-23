@@ -63,6 +63,39 @@ Feature: Rules stamp runs imported after them
     Then a result carries exactly one stamp of each of those issues
     And each stamp shows the category of every one of its issue's rules over the pin
 
+  # Matching discriminates: the seed's rules leave the twin's other results
+  # alone. Each scenario below reads the twin, and where it helps, the run the
+  # rule was written against, to show the contrast.
+
+  @run @issues @needs-classification
+  Scenario: A verdict rule stamps only the results that failed with its verdict list
+    Given the seed wrote verdict rules over two pins of one test, each with its own verdict, in a run imported later
+    When I open the test's results in that run filtered to one pin's verdict
+    Then every listed result carries a stamp of each of that pin's issues
+    When I filter them to the other pin's verdict instead
+    Then none of them carries a stamp of those issues
+
+  @run @issues @needs-classification
+  Scenario: A parameters rule stamps only the iteration whose parameters it kept
+    Given the seed wrote parameters rules over single-iteration pins of a run imported later
+    When I open each pin's test results in that run
+    Then the test lists more results than the pin has
+    And each of those rules' issues stamps exactly the pin's results
+
+  @run @issues @needs-classification
+  Scenario: A rule gated to the seeded run’s tags does not reach a run with other tags
+    Given the seed wrote a tags rule beside other rules of its issue over a pin of a run imported later
+    When I open the pin's test results in that run
+    Then the issue's stamp shows the other rules' categories but not the tags rule's
+    And in the run the rule was written against the stamp shows it
+
+  @run @issues @needs-classification
+  Scenario: A rule over a result that passed as expected does not stamp it in the run imported after it
+    Given the seed wrote a rule over a pin that passes as expected in a run imported later
+    When I open the pin's test results in that run
+    Then the rule's issue stamps none of them
+    And in the run the rule was written against it stamps the pin's result
+
   @run @issues @issues-write @needs-nok
   Scenario: A result stamped by one issue's rules of different origins says so in its tooltip
     Given I record an issue for the fixture project
