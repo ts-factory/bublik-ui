@@ -100,7 +100,7 @@ export const DashboardTableContainer = ({
 			  }
 			: { projects: projectIds },
 		{
-			pollingInterval: isEnabled ? 30000 : undefined,
+			pollingInterval: isEnabled || isTvModeEnabled ? 30000 : undefined,
 			refetchOnMountOrArgChange: true,
 			refetchOnFocus: true
 		}

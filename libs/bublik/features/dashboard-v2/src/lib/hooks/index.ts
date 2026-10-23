@@ -22,6 +22,7 @@ import { useProjectSearch } from '@/bublik/features/projects';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DASHBOARD_MODE } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
+import { useLocalStorage } from '@/shared/hooks';
 
 export const useDashboardTvMode = () => {
 	const [isTvModeEnabled, setIsTvModeEnabled] = useQueryParam(
@@ -60,11 +61,23 @@ export const useDashboardSearchTerm = () => {
 	return { term, setTerm } as const;
 };
 
+const AUTO_RELOAD_KEY = 'dashboard-auto-reload';
+
+/**
+ * Auto reload is remembered in localStorage so it survives reloads and
+ * redeploys. A `reload` param in the URL wins, so shared links keep turning
+ * it on or off; toggling writes both.
+ */
 export const useDashboardReload = () => {
-	const [isEnabled, setIsEnabled] = useQueryParam(
-		'reload',
-		withDefault(BooleanParam, false)
-	);
+	const [urlValue, setUrlValue] = useQueryParam('reload', BooleanParam);
+	const [stored, setStored] = useLocalStorage(AUTO_RELOAD_KEY, false);
+
+	const isEnabled = urlValue ?? stored === true;
+
+	const setIsEnabled = (enabled: boolean) => {
+		setStored(enabled);
+		setUrlValue(enabled);
+	};
 
 	return { isEnabled, setIsEnabled } as const;
 };

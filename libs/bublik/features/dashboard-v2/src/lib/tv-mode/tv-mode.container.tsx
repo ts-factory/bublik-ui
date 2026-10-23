@@ -11,11 +11,10 @@ import {
 } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 
-import { useDashboardReload, useDashboardTvMode } from '../hooks';
+import { useDashboardTvMode } from '../hooks';
 import { LayoutHandlerContainer } from '../layout-handler';
 
 export const TvModeContainer = () => {
-	const { setIsEnabled } = useDashboardReload();
 	const { setIsTvModeEnabled, isTvModeEnabled } = useDashboardTvMode();
 
 	const handleOpenChange = (open: boolean) => {
@@ -24,13 +23,10 @@ export const TvModeContainer = () => {
 		});
 
 		if (open) {
-			setIsEnabled(true);
 			toast.info('To leave TV mode press ESC', {
 				position: 'top-center',
 				className: 'pointer-events-none'
 			});
-		} else {
-			setIsEnabled(false);
 		}
 
 		setIsTvModeEnabled(open);

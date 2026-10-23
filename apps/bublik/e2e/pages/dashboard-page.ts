@@ -46,8 +46,8 @@ const DASHBOARD_URL_PARAMS = {
 	reload: {
 		codec: 'BooleanParam',
 		values: '1 | 0',
-		whenAbsent: 'auto reload is off',
-		writtenBy: 'the Auto reload switch and entering/leaving TV mode'
+		whenAbsent: 'the Auto reload switch as last set in this browser',
+		writtenBy: 'the Auto reload switch'
 	},
 	tv: {
 		codec: 'BooleanParam',
@@ -343,11 +343,15 @@ class DashboardPage {
 		await this.expectAutoReload(enabled);
 	}
 
-	async expectAutoReload(enabled: boolean): Promise<void> {
+	async expectAutoReloadSwitch(enabled: boolean): Promise<void> {
 		await expect(this.autoReloadToggle()).toHaveAttribute(
 			'aria-checked',
 			String(enabled)
 		);
+	}
+
+	async expectAutoReload(enabled: boolean): Promise<void> {
+		await this.expectAutoReloadSwitch(enabled);
 		await expect(this.page).toHaveURL(new RegExp(`reload=${enabled ? 1 : 0}`), {
 			timeout: 15_000
 		});
@@ -382,7 +386,6 @@ class DashboardPage {
 	async expectTvModeOpen(): Promise<void> {
 		await expect(this.tvScreen()).toBeVisible({ timeout: 15_000 });
 		await expect(this.page).toHaveURL(/tv=1/, { timeout: 15_000 });
-		await expect(this.page).toHaveURL(/reload=1/, { timeout: 15_000 });
 		await expect(
 			this.tvScreen().getByRole('button', { name: 'Today' })
 		).toHaveCount(0);
@@ -391,7 +394,6 @@ class DashboardPage {
 	async expectTvModeClosed(): Promise<void> {
 		await expect(this.tvScreen()).toHaveCount(0);
 		await expect(this.page).toHaveURL(/tv=0/, { timeout: 15_000 });
-		await expect(this.page).toHaveURL(/reload=0/, { timeout: 15_000 });
 		await expect(this.todayButton()).toBeVisible();
 	}
 

@@ -418,6 +418,30 @@ test.describe('Dashboard', () => {
 		}
 	);
 
+	test(
+		'Auto reload stays on when the dashboard is opened again',
+		{ tag: ['@dashboard'] },
+		async ({ page }) => {
+			const dashboard = new DashboardPage(page);
+			const { expectedRun, runId } = anyRun();
+
+			await given('a run was imported for a day', () =>
+				expect(expectedRun.dashboardDate).toBeTruthy()
+			);
+			await when('I open the dashboard for that day', async () => {
+				await dashboard.goto(expectedRun.dashboardDate, { mode: 'rows' });
+				await dashboard.expectRunIdVisible(runId);
+			});
+			await and('I turn on Auto reload', () => dashboard.setAutoReload(true));
+			await and('I open the dashboard again without any link parameters', () =>
+				dashboard.gotoWithParams({})
+			);
+			await then('Auto reload is still on', () =>
+				dashboard.expectAutoReloadSwitch(true)
+			);
+		}
+	);
+
 	// eslint-disable-next-line playwright/expect-expect
 	test(
 		'TV mode shows the dashboard full screen until Escape',

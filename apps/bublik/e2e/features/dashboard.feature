@@ -117,6 +117,16 @@ Feature: Dashboard
     When I turn off Auto reload
     Then Auto reload is off
 
+  # The switch is remembered in the browser, so a redeploy, a bookmark or the
+  # sidebar link brings the dashboard back with it still on.
+  @dashboard
+  Scenario: Auto reload stays on when the dashboard is opened again
+    Given a run was imported for a day
+    When I open the dashboard for that day
+    And I turn on Auto reload
+    And I open the dashboard again without any link parameters
+    Then Auto reload is still on
+
   @dashboard
   Scenario: TV mode shows the dashboard full screen until Escape
     Given a run was imported for a day
@@ -206,8 +216,8 @@ Feature: Dashboard
     And the URL no longer carries the encoded dates parameter
     And the layout the link asked for is still selected
 
-  # Deep-linking TV mode is not the same path as pressing the button: the button
-  # forces auto reload on, a link leaves `reload` exactly as it found it.
+  # TV mode refreshes on a timer while it is open without touching `reload`, so
+  # a link that asks for TV mode leaves `reload` exactly as it found it.
   @dashboard @url-params
   Scenario: A TV mode link opens the dashboard full screen without forcing auto reload
     Given a link that pins a day and asks for TV mode
