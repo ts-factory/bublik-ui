@@ -27,7 +27,7 @@ export const RunsChartBucketSchema = z.object({
 		total: z.number(),
 		nok: z.number(),
 		ok: z.number(),
-		passrate: z.number()
+		passrate: z.number().nullable()
 	}),
 	runIdsByStatus: RunIdsByStatusSchema
 });
@@ -54,7 +54,8 @@ export const TestByWeekDaySchema = z.object({
 	total: z.number(),
 	ok: z.number(),
 	nok: z.number(),
-	passrate: z.number(),
+	// '-' is how ECharts spells a missing value: the line breaks there
+	passrate: z.union([z.number(), z.literal('-')]),
 	ids: z.string()
 });
 

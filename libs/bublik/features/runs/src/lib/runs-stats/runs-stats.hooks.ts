@@ -8,20 +8,17 @@ import {
 	RunsChartsAPIResponse
 } from '@/shared/types';
 import { useGetRunsChartsQuery } from '@/services/bublik-api';
+import { parseTimeApi } from '@/shared/utils';
 
 import { useRunsQuery } from '../hooks';
 import { RunIdsByStatus, RunsChartBucket } from './runs-stats.types';
-
-const makeEmptyRunIdsByStatus = (): RunIdsByStatus => ({
-	[RUN_STATUS.Busy]: [],
-	[RUN_STATUS.Compromised]: [],
-	[RUN_STATUS.Error]: [],
-	[RUN_STATUS.Interrupted]: [],
-	[RUN_STATUS.Ok]: [],
-	[RUN_STATUS.Running]: [],
-	[RUN_STATUS.Stopped]: [],
-	[RUN_STATUS.Warning]: []
-});
+import {
+	RunsChartPeriod,
+	fillBuckets,
+	getPassrate,
+	makeEmptyRunIdsByStatus,
+	parseBucketDate
+} from './runs-stats.utils';
 
 const toRunIdsByStatus = (
 	runIdsByStatus: Partial<Record<RUN_STATUS, number[]>>
@@ -39,10 +36,19 @@ const mapBuckets = (
 	buckets: RunsChartsAPIResponse['buckets']
 ): RunsChartBucket[] =>
 	buckets.map(({ date, tests, run_ids_by_status }) => ({
-		date: new Date(date),
-		tests,
+		date: parseBucketDate(date),
+		tests: { ...tests, passrate: getPassrate(tests.ok, tests.total) },
 		runIdsByStatus: toRunIdsByStatus(run_ids_by_status)
 	}));
+
+const parseRangeDate = (value?: string | null) =>
+	value ? parseTimeApi(value) : undefined;
+
+const toStats = (
+	data: RunsChartsAPIResponse | undefined,
+	period: RunsChartPeriod,
+	range: { start?: Date; end?: Date }
+) => (data ? fillBuckets(mapBuckets(data.buckets), period, range) : undefined);
 
 export const useRunsStats = () => {
 	const { query: searchQuery } = useRunsQuery();
@@ -64,20 +70,26 @@ export const useRunsStats = () => {
 		]
 	);
 
+	const range = useMemo(
+		() => ({
+			start: parseRangeDate(searchQuery.startDate),
+			end: parseRangeDate(searchQuery.finishDate)
+		}),
+		[searchQuery.finishDate, searchQuery.startDate]
+	);
+
 	const dayQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'day' });
 	const weekQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'week' });
 
-	const dayStats = useMemo(() => {
-		if (!dayQuery.data) return undefined;
+	const dayStats = useMemo(
+		() => toStats(dayQuery.data, 'day', range),
+		[dayQuery.data, range]
+	);
 
-		return mapBuckets(dayQuery.data.buckets);
-	}, [dayQuery.data]);
-
-	const weekStats = useMemo(() => {
-		if (!weekQuery.data) return undefined;
-
-		return mapBuckets(weekQuery.data.buckets);
-	}, [weekQuery.data]);
+	const weekStats = useMemo(
+		() => toStats(weekQuery.data, 'week', range),
+		[weekQuery.data, range]
+	);
 
 	return {
 		isLoading: dayQuery.isLoading || weekQuery.isLoading,

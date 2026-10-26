@@ -115,7 +115,7 @@ export const DaySection = ({ stats }: DaySectionProps) => {
 							type: 'line',
 							name: 'Pass Rate',
 							encode: { x: 'date', y: 'passrate' },
-							tooltip: { valueFormatter: (v) => `${v}%` }
+							tooltip: { valueFormatter: (v) => (v == null ? '–' : `${v}%`) }
 						}
 					]}
 					ref={barRef}
@@ -153,7 +153,7 @@ export const DaySection = ({ stats }: DaySectionProps) => {
 							type: 'line',
 							name: 'Pass Rate',
 							encode: { x: 'date', y: 'passrate' },
-							tooltip: { valueFormatter: (v) => `${v}%` }
+							tooltip: { valueFormatter: (v) => (v == null ? '–' : `${v}%`) }
 						}
 					]}
 					ref={lineRef}
