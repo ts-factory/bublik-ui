@@ -1,7 +1,7 @@
 {
-	"date": "2026.09.16",
-	"summary": "fix(runs): drop the redundant fragment wrapper",
-	"revision": "8958d7e6",
-	"branch": "release-2.18.1",
-	"latestTag": "v2.18.1"
+	"date": "2026.10.26",
+	"summary": "fix(dashboard): keep long run strips visible",
+	"revision": "5a9eb092",
+	"branch": "release-2.19.0",
+	"latestTag": "v2.19.0"
 }

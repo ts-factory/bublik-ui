@@ -1,5 +1,94 @@
 
 
+## [2.19.0](///compare/v2.18.1...v2.19.0) (2026-10-26)
+
+
+### 🚀 New Feature
+
+* **admin:** reactivate deactivated users 1ad296b
+* **admin:** show user status and joined date in the users table ce06766, closes ts-factory/bublik#384
+* **api:** accept search param on history endpoints 5d2e194, closes ts-factory/bublik#380
+* **api:** add issues, rules and classify endpoints 2de90e2
+* **api:** add the admin activate_user endpoint 904138f, closes ts-factory/bublik#384
+* **api:** prompt for login and retry on Not Authenticated 5d8e3cc
+* **auth:** gate protected routes in the router 8e762cd
+* **auth:** login dialog for missing or expired sessions c839cbe
+* **classification:** add Actionable and Triaged category presets 70f200e
+* **classification:** add issues pages, routes and sidebar ba6071c
+* **classification:** add issues, rules and results tables 616ba1f
+* **classification:** add lib with vocabulary and table shell 4820eee
+* **classification:** classify results and edit issues and rules 03559d6
+* **dashboard:** lay the table out as a grid behind the dashboard-grid flag 45be259
+* **history:** add classification filters and badges 348c2cd
+* **history:** run substring filter on the server via ?search= 92b34b7, closes ts-factory/bublik#282
+* **run:** require sign-in for notes and the compromised status 3b6b248
+* **run:** show classification in run, log and measurements 1a4fa96
+* **settings:** add feature flags with switches in the Beta tab d964c64
+* **sidebar:** add Rules and Results under the Issue entry 7490b83
+* **sidebar:** float a thin scrollbar over the navigation 53796f9
+* **sidebar:** fold the Log entry into the Run entry 10b57b5
+* **sidebar:** link the version label to its release notes 03013ea
+* **sidebar:** replace the settings item with an account menu 5ca7c72
+* **theme:** add a dark mode chosen in the Appearance settings 6e0f669
+* **types:** add user status and joined date b88da07, closes ts-factory/bublik#384
+* **ui:** add shared UI for classification cd511d2
+* **ui:** replace EnvBadge with ParameterValue 0f89380
+
+
+### 💅 Polish
+
+* **icons:** centre the Bulb glyph in its viewBox b1d0203
+* **log:** change icon for download attachment action a1ca1fa
+* **ui:** size avatars with size-* utilities 226c15f
+
+
+### 🐛 Bug Fix
+
+* **admin:** surface backend errors from user actions ba22a45
+* **auth:** keep the sidebar state and project when signing out 1483a91
+* **auth:** stay on public pages when signing out 5d1512b
+* **dashboard:** keep long run strips visible 5a9eb09
+* **dashboard:** remember the Auto reload toggle across reloads e41f628
+* **e2e:** wait for the import, compare and report pages to settle 40fadaf
+* **history:** drop a deselected result badge from the search c64f4b6
+* **history:** drop deselected badges from the submitted search 7296f3c, closes #393
+* **import:** stop countdown from re-rendering the events table ae5c181
+* **log:** route JSON log fetches through the dev proxy d1de35e
+* **measurements,report:** render preformatted parameters as badges 1b9e3cb
+* **rules:** filter by whole verdict lists as the server matches them c6daa2c
+* **run,history,run-diff:** render preformatted parameters as blocks 493f4c6
+* **run:** keep Objective and Notes after the tree by default dd894a0
+* **sidebar:** size the submenu guide in rem so it follows the rows 210ca76
+
+
+### ♻ Code Refactoring
+
+* **sidebar:** share the sidebar padding transition f7ea842
+* **utils:** extract parameter formatting into shared util ea3a93a
+
+
+### 📝 Documentation
+
+* **classify:** say what a result without verdicts gives in the matching explainer 8a48eae
+
+
+### ✅ Tests
+
+* **e2e,history:** right-click parameter badges to open context menu 4579009
+* **e2e:** add classification support helpers 2a40432
+* **e2e:** add page objects for issues, rules and classification 65a1345
+* **e2e:** add the classification keys to the manifest schema a20448a
+* **e2e:** check rule matcher semantics through Apply Rules ed20b2d
+* **e2e:** check that seeded rules discriminate on the run imported after them 3fb067e
+* **e2e:** check that the next import honours the classify match scope 68a514b
+* **e2e:** check the classification pages against seeded data 5a93302
+* **e2e:** check the run table column order against the Columns menu 5a6a59f
+* **e2e:** cover classifying results and editing issues and rules 4b0fac1
+* **e2e:** cover deselecting submitted history badges 52a93d9
+* **e2e:** cover server-side history search 879fe33
+* **e2e:** cover sign-in, protected pages and the account menu 9e010cf
+* **e2e:** cover the users table status and the self-deactivation guard db521a0
+
 ### [2.18.1](https://github.com/ts-factory/bublik-ui/compare/v2.17.1...v2.18.1) (2026-09-16)
 
 
