@@ -1613,8 +1613,8 @@ test.describe('Run Details Page', () => {
 			await when('I submit it without a title', () =>
 				drawer.submitButton.click()
 			);
-			await then('I am told a title and a bug key are required', () =>
-				drawer.expectValidation('Title is required', 'Bug key is required')
+			await then('I am told a title is required', () =>
+				drawer.expectValidation('Title is required')
 			);
 			await when('I switch to an existing issue and submit again', async () => {
 				await drawer.setMode('Existing issue');

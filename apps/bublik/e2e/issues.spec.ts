@@ -150,8 +150,8 @@ test.describe('Issues Page', () => {
 					return opened;
 				}
 			);
-			await then('I am told that a title and a bug key are required', () =>
-				drawer.expectValidation('Title is required', 'Bug key is required')
+			await then('I am told that a title is required', () =>
+				drawer.expectValidation('Title is required')
 			);
 			await when('I cancel the drawer', () => drawer.cancel());
 			await then('the drawer is closed', () => drawer.expectClosed());

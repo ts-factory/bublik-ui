@@ -50,10 +50,8 @@ describe('IssueFormSchema', () => {
 		expect(errorsFor(BASE)).toEqual({});
 	});
 
-	it('requires a bug key — an issue without one shows nothing to know it by', () => {
-		expect(errorsFor({ ...BASE, bugKey: '' })).toEqual({
-			bugKey: 'Bug key is required'
-		});
+	it('accepts an issue without a bug key — the backend stores it as null', () => {
+		expect(errorsFor({ ...BASE, bugKey: '' })).toEqual({});
 	});
 
 	it('requires a project — the server rejects a create without one', () => {
@@ -74,11 +72,8 @@ describe('IssueFormSchema', () => {
 		});
 	});
 
-	it('asks for the tracker and the key together when both are blank', () => {
-		expect(errorsFor({ ...BASE, tracker: '', bugKey: '' })).toEqual({
-			tracker: 'Choose a tracker',
-			bugKey: 'Bug key is required'
-		});
+	it('accepts an issue with neither a tracker nor a key', () => {
+		expect(errorsFor({ ...BASE, tracker: '', bugKey: '' })).toEqual({});
 	});
 
 	it('rejects a tracker containing a slash — `REF_CORE` forbids it', () => {

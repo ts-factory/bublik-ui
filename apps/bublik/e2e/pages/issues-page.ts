@@ -217,8 +217,8 @@ class IssuesPage {
 	/**
 	 * Records an issue through the drawer and reads its id back from the row the
 	 * search then shows. The page must be scoped to the issue's project or the
-	 * input must name one. A bug key is required, so one is made up unless the
-	 * input brings its own; the tracker pre-fills from the project's config.
+	 * input must name one. A unique bug key is made up unless the input brings
+	 * its own; the tracker pre-fills from the project's config.
 	 */
 	async createIssue(input: IssueInput & { title: string }): Promise<number> {
 		const drawer = await this.openNewIssue();

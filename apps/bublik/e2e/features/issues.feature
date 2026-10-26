@@ -36,7 +36,7 @@ Feature: Issues
   Scenario: The New Issue drawer refuses an empty form
     Given I open the issues page for the fixture project
     When I open the New Issue drawer and submit it empty
-    Then I am told that a title and a bug key are required
+    Then I am told that a title is required
     When I cancel the drawer
     Then the drawer is closed
 

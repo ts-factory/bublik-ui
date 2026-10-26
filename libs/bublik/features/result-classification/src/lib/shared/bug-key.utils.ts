@@ -70,23 +70,15 @@ export function refineBugKeyHalves(
 		});
 	}
 
-	// Both halves are required: an issue without a key shows nothing to
-	// recognise it by, and the backend stores the key only as
-	// ref://TRACKER/KEY. Report them together so one submit names every
-	// missing field, rather than asking for the tracker only after the key.
-	if (!tracker) {
+	// The key is optional: the backend stores an issue without one as
+	// bug_key null. A key needs a tracker to resolve against, since the backend
+	// stores it only as ref://TRACKER/KEY, while a tracker alone is just the
+	// pre-filled default and is dropped.
+	if (bugKey && !tracker) {
 		ctx.addIssue({
 			code: 'custom',
 			path: ['tracker'],
 			message: 'Choose a tracker'
-		});
-	}
-
-	if (!bugKey) {
-		ctx.addIssue({
-			code: 'custom',
-			path: ['bugKey'],
-			message: 'Bug key is required'
 		});
 	}
 }

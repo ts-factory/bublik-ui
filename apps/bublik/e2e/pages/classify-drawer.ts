@@ -124,8 +124,8 @@ class ClassifyDrawer {
 	}
 
 	/**
-	 * A bug key is required, so one is made up unless the input brings its own;
-	 * the tracker pre-fills from the project's config.
+	 * A unique bug key is made up unless the input brings its own; the tracker
+	 * pre-fills from the project's config.
 	 */
 	async fillNewIssue(input: {
 		title: string;

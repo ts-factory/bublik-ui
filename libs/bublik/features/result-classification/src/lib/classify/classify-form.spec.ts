@@ -37,17 +37,14 @@ describe('ClassifyFormSchema', () => {
 		expect(errorsFor({ ...BASE, categories: ['flaky', 'env'] })).toEqual({});
 	});
 
-	it('requires a bug key for a new issue', () => {
-		expect(errorsFor({ ...BASE, bugKey: '' })).toEqual({
-			bugKey: 'Bug key is required'
-		});
+	it('accepts a new issue without a bug key', () => {
+		expect(errorsFor({ ...BASE, bugKey: '' })).toEqual({});
+		expect(errorsFor({ ...BASE, tracker: '', bugKey: '' })).toEqual({});
 	});
 
-	it('asks for the tracker alongside the title and key on one submit', () => {
+	it('asks only for the title when the new-issue fields are blank', () => {
 		expect(errorsFor({ ...BASE, title: '', tracker: '', bugKey: '' })).toEqual({
-			title: 'Title is required',
-			tracker: 'Choose a tracker',
-			bugKey: 'Bug key is required'
+			title: 'Title is required'
 		});
 	});
 
