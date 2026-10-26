@@ -5,7 +5,7 @@ import { isDate } from 'date-fns';
 
 import { SingleMeasurementChart } from '@/services/bublik-api';
 
-import { Plot } from '../plot';
+import { chartStyles, Plot } from '../plot';
 import {
 	estimateLegendTopOffset,
 	getChartName,
@@ -126,7 +126,7 @@ function resolveOptions(
 		tooltip: {
 			trigger: 'axis',
 			textStyle: axisLabelStyles,
-			extraCssText: 'shadow-popover rounded-lg',
+			extraCssText: chartStyles.tooltip,
 			axisPointer: { type: 'line' }
 		},
 		dataset: { source: chart.dataset },
@@ -419,7 +419,7 @@ function resolveStackedOptions(
 		tooltip: {
 			trigger: 'axis',
 			textStyle: axisLabelStyles,
-			extraCssText: 'shadow-popover rounded-lg',
+			extraCssText: chartStyles.tooltip,
 			axisPointer: { type: 'cross' }
 		},
 		legend: {
