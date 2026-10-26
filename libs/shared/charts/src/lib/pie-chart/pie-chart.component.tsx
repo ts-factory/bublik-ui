@@ -29,7 +29,7 @@ export const PieChart = forwardRef<ReactEChartsCore, PieChartProps>(
 			},
 			tooltip: {
 				textStyle: chartStyles.text,
-				extraCssText: 'shadow-popover rounded-lg'
+				extraCssText: chartStyles.tooltip
 			},
 			dataset,
 			series

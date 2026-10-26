@@ -46,7 +46,7 @@ export const BarChart = forwardRef<ReactEChartsCore, BarChartProps>(
 				trigger: 'axis',
 				axisPointer: { type: 'line' },
 				textStyle: chartStyles.text,
-				extraCssText: 'shadow-popover rounded-lg',
+				extraCssText: chartStyles.tooltip,
 				...tooltip
 			},
 			dataset,
