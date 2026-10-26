@@ -797,6 +797,82 @@ test.describe('Runs Page', () => {
 		}
 	);
 
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'The runs charts keep the chosen period in the URL',
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+
+			await given('the runs charts show a fixture run', async () => {
+				await runsPage.gotoChartsWithTagExpr(fixtureTagExpr(bundle));
+				await runsPage.expectChartsPeriod('Week');
+				await runsPage.expectParamsAbsent(['period']);
+			});
+			await when('I group the charts by month', () =>
+				runsPage.pickChartsPeriod('Month')
+			);
+			await then('the URL records the month period', () =>
+				runsPage.expectParams({ period: 'month' })
+			);
+			await and(
+				'the charts are still grouped by month after a reload',
+				async () => {
+					await page.reload();
+					await runsPage.expectChartsPeriod('Month');
+				}
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Clicking a conclusion in the runs charts lists its runs in a drawer',
+		{ tag: ['@runs'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+
+			await given('the runs charts show a fixture run', () =>
+				runsPage.gotoChartsWithTagExpr(fixtureTagExpr(bundle))
+			);
+			await when('I click the most frequent conclusion', () =>
+				runsPage.clickTopConclusion()
+			);
+			await then('a drawer lists the fixture run across the whole range', () =>
+				runsPage.expectChartsDrawer(/Whole range · 1 run(?!s)/, [
+					importedRunId(bundle)
+				])
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"Clicking a period in the runs charts lists its runs under the period's dates",
+		{ tag: ['@runs'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+
+			await given('the runs charts show a fixture run', () =>
+				runsPage.gotoChartsWithTagExpr(fixtureTagExpr(bundle))
+			);
+			await when("I click the run's week in the test results", () =>
+				runsPage.clickOnlyTestsPeriod()
+			);
+			await then("a drawer lists the fixture run under that week's dates", () =>
+				// "Apr 20 – 26, 2026", "Apr 27 – May 3, 2026" or
+				// "Dec 28, 2026 – Jan 3, 2027"
+				runsPage.expectChartsDrawer(
+					/[A-Z][a-z]{2} \d{1,2}(, \d{4})? – ([A-Z][a-z]{2} )?\d{1,2}, \d{4} · 1 run(?!s)/,
+					[importedRunId(bundle)]
+				)
+			);
+		}
+	);
+
 	test.describe('The runs page renders every view mode', () => {
 		test.slow();
 
