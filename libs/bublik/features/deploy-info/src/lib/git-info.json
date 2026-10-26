@@ -1,7 +1,7 @@
 {
 	"date": "2026.10.26",
-	"summary": "fix(dashboard): keep long run strips visible",
-	"revision": "5a9eb092",
-	"branch": "release-2.19.0",
-	"latestTag": "v2.19.0"
+	"summary": "test(e2e): check the result selection does not follow into another run",
+	"revision": "c582ce15",
+	"branch": "release-2.19.1",
+	"latestTag": "v2.19.1"
 }

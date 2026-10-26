@@ -1,5 +1,19 @@
 
 
+### [2.19.1](///compare/v2.19.0...v2.19.1) (2026-10-26)
+
+
+### 🐛 Bug Fix
+
+* **classify:** keep the result selection to the run it was made in b728b82
+* **issues:** make the bug key optional for new issues 452a847
+
+
+### ✅ Tests
+
+* **e2e:** check the result selection does not follow into another run c582ce1
+* **e2e:** find the search form's close button by its label 6d9d5a7
+
 ## [2.19.0](///compare/v2.18.1...v2.19.0) (2026-10-26)
 
 
