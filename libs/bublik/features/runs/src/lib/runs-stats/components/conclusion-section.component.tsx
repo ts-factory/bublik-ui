@@ -1,139 +1,66 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ECElementEvent } from 'echarts';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
+import { useMemo } from 'react';
 
-import { BarChart, PieChart, useChartSurfaceColor } from '@/shared/charts';
-import { getRunStatusInfo } from '@/shared/tailwind-ui';
+import { Plot } from '@/shared/charts';
 import { RUN_STATUS } from '@/shared/types';
 
+import { useChartClick } from '../runs-stats.hooks';
 import {
-	getPieChartDataByRunStatus,
-	getRunStatus
-} from '../runs-stats.component.utils';
-import { GroupedStatsSchema, RunsChartBucket } from '../runs-stats.types';
-import { RunsListModal } from './runs-list.component';
+	getConclusionTimelineOption,
+	getConclusionTotalsOption,
+	getPresentStatuses
+} from '../runs-stats.options';
+import { RunsChartSelection } from '../runs-stats.component.utils';
+import { RunsChartBucket } from '../runs-stats.types';
+import { RunsChartPeriod } from '../runs-stats.utils';
+
+const TOTALS_ROW_HEIGHT = 30;
+const TIMELINE_HEIGHT = 320;
 
 export interface ConclusionSectionProps {
 	stats: RunsChartBucket[];
-	periodLabel: string;
+	period: RunsChartPeriod;
+	onSelect: (selection: RunsChartSelection) => void;
 }
 
-export const ConclusionSection = ({
-	stats,
-	periodLabel
-}: ConclusionSectionProps) => {
-	const surfaceColor = useChartSurfaceColor();
-	const { grouped, statuses } = getRunStatus(stats);
-	const pieData = getPieChartDataByRunStatus(stats);
-	const pieRef = useRef<ReactEChartsCore>(null);
-	const barRef = useRef<ReactEChartsCore>(null);
-
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [runIds, setRunIds] = useState<string[]>([]);
-
-	const handleOpenChange = (open: boolean) => {
-		if (!open) setRunIds([]);
-
-		setIsModalOpen(open);
-	};
-
-	const handlePieChartClick = useCallback(
-		(params: ECElementEvent) => {
-			const status = (params.data as { status?: RUN_STATUS } | undefined)
-				?.status;
-
-			if (!status) return;
-
-			setIsModalOpen(true);
-
-			setRunIds(stats.flatMap((bucket) => bucket.runIdsByStatus[status]));
-		},
-		[stats]
+export const ConclusionSection = (props: ConclusionSectionProps) => {
+	const { stats, period, onSelect } = props;
+	const statuses = useMemo(() => getPresentStatuses(stats), [stats]);
+	const totalsOption = useMemo(() => getConclusionTotalsOption(stats), [stats]);
+	const timelineOption = useMemo(
+		() => getConclusionTimelineOption(stats, period),
+		[stats, period]
 	);
 
-	const handleBarChartClick = useCallback(
-		(params: ECElementEvent) => {
-			if (!params.seriesName) return;
+	const totalsEvents = useChartClick(({ dataIndex }) => {
+		const status = statuses[dataIndex]?.status;
 
-			const clickedStatus =
-				`run-${params.seriesName.toLowerCase()}` as RUN_STATUS;
-			const { date } = GroupedStatsSchema.parse(params.data);
-			const bucket = stats.find(
-				(bucket) => bucket.date.getTime() === date.getTime()
-			);
+		if (status) onSelect({ status });
+	});
 
-			setIsModalOpen(true);
-			setRunIds(bucket?.runIdsByStatus[clickedStatus] ?? []);
-		},
-		[stats]
-	);
+	const timelineEvents = useChartClick(({ dataIndex, seriesId }) => {
+		const bucket = stats[dataIndex];
 
-	useEffect(() => {
-		pieRef.current?.getEchartsInstance()?.on('click', handlePieChartClick);
-	}, [handlePieChartClick]);
-
-	useEffect(() => {
-		barRef.current?.getEchartsInstance()?.on('click', handleBarChartClick);
-	}, [handleBarChartClick]);
+		if (bucket && seriesId)
+			onSelect({ status: seriesId as RUN_STATUS, bucket });
+	});
 
 	return (
-		<section className="flex items-center chart-mosaic">
-			<RunsListModal
-				ids={runIds}
-				open={isModalOpen}
-				onOpenChange={handleOpenChange}
-			/>
-			<div className="w-1/2 px-4 py-2">
-				<PieChart
-					title="Runs by conclusion"
-					label="Runs"
-					dataset={{ source: pieData }}
-					legend={{ orient: 'vertical', left: 0, top: 0 }}
-					series={[
-						{
-							type: 'pie',
-							label: { formatter: '{b} ({d}%)' },
-							itemStyle: {
-								borderRadius: 4,
-								borderWidth: 2,
-								borderColor: surfaceColor,
-								color: (params) =>
-									getRunStatusInfo(
-										`run-${params.name.toLowerCase()}` as RUN_STATUS
-									).bgRaw
-							},
-							encode: {
-								value: 'value',
-								tooltip: 'value',
-								itemName: 'name'
-							}
-						}
-					]}
-					ref={pieRef}
+		<section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+			<div className="flex items-center px-4 py-4 border-b xl:border-b-0 xl:border-r border-border-primary">
+				<Plot
+					options={totalsOption}
+					onEvents={totalsEvents}
+					className="w-full"
+					style={{ height: statuses.length * TOTALS_ROW_HEIGHT }}
 				/>
 			</div>
-			<div className="w-1/2 px-4 py-2">
-				<BarChart
-					title={`Run conclusions by ${periodLabel}`}
-					dataset={{ source: grouped }}
-					legend={{}}
-					xAxis={{ type: 'time', name: 'Date' }}
-					yAxis={{ type: 'value', name: 'Runs' }}
-					series={statuses.map((status) => {
-						const { label, bgRaw } = getRunStatusInfo(status);
-
-						return {
-							type: 'bar',
-							name: label.toUpperCase(),
-							color: bgRaw,
-							encode: { x: 'date', y: status },
-							stack: 'run',
-							emphasis: { focus: 'series' }
-						};
-					})}
-					ref={barRef}
+			<div className="px-4 py-3">
+				<Plot
+					options={timelineOption}
+					onEvents={timelineEvents}
+					style={{ height: TIMELINE_HEIGHT }}
 				/>
 			</div>
 		</section>

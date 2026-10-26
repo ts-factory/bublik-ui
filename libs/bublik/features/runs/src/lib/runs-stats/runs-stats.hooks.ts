@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import type { ECElementEvent } from 'echarts';
 import { useQueryParam } from 'use-query-params';
 
 import {
@@ -102,4 +103,21 @@ export const useRunsStats = () => {
 		period,
 		error: dayQuery.error
 	} as const;
+};
+
+/**
+ * Click events for a chart that stay the same object across renders: the
+ * chart is disposed and created anew whenever its `onEvents` change.
+ */
+export const useChartClick = (onClick: (params: ECElementEvent) => void) => {
+	const onClickRef = useRef(onClick);
+
+	useLayoutEffect(() => {
+		onClickRef.current = onClick;
+	});
+
+	return useMemo(
+		() => ({ click: (params: ECElementEvent) => onClickRef.current(params) }),
+		[]
+	);
 };
