@@ -44,9 +44,10 @@ class HistoryGlobalSearchForm {
 			.locator('[role="dialog"]')
 			.filter({ has: page.getByText('Global Search') });
 		this.heading = this.root.getByText('Global Search');
-		this.closeButton = this.heading.locator(
-			'xpath=ancestor::div[contains(@class,"flex-col")]/following-sibling::button[1]'
-		);
+		this.closeButton = this.root.getByRole('button', {
+			name: 'Close',
+			exact: true
+		});
 		this.applySearchButton = this.root.getByRole('button', {
 			name: 'Apply Search'
 		});
