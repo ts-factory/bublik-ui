@@ -55,7 +55,7 @@ export const getGroupedTests = (
 			total: bucket.tests.total,
 			ok: bucket.tests.ok,
 			nok: bucket.tests.nok,
-			passrate: bucket.tests.passrate,
+			passrate: bucket.tests.passrate ?? '-',
 			ids: getRunIdsFromStatuses(bucket.runIdsByStatus).join(',')
 		};
 	});

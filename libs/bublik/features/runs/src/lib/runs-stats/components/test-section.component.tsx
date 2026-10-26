@@ -89,7 +89,7 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 						{
 							yAxisId: 'passrate',
 							type: 'line',
-							tooltip: { valueFormatter: (v) => `${v}%` },
+							tooltip: { valueFormatter: (v) => (v == null ? '–' : `${v}%`) },
 							name: 'Pass rate',
 							encode: { x: 'date', y: 'passrate' },
 							emphasis: { focus: 'series' }
