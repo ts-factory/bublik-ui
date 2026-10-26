@@ -20,13 +20,13 @@ interface SummaryTileProps {
 
 function SummaryTile({ label, value, hint, valueClassName }: SummaryTileProps) {
 	return (
-		<div className="flex flex-col gap-1 px-4 py-3">
+		<div className="flex flex-col gap-0.5 px-4 py-2">
 			<span className="text-[0.6875rem] font-semibold leading-[0.875rem] uppercase text-text-menu">
 				{label}
 			</span>
 			<span
 				className={cn(
-					'text-2xl font-semibold leading-8 tabular-nums text-text-primary',
+					'text-xl font-semibold leading-7 tabular-nums text-text-primary',
 					valueClassName
 				)}
 			>

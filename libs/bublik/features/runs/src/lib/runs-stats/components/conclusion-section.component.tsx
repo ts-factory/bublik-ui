@@ -16,8 +16,7 @@ import { RunsChartSelection } from '../runs-stats.component.utils';
 import { RunsChartBucket } from '../runs-stats.types';
 import { RunsChartPeriod } from '../runs-stats.utils';
 
-const TOTALS_ROW_HEIGHT = 30;
-const TIMELINE_HEIGHT = 320;
+const TOTALS_ROW_HEIGHT = 24;
 
 export interface ConclusionSectionProps {
 	stats: RunsChartBucket[];
@@ -50,8 +49,11 @@ export const ConclusionSection = (props: ConclusionSectionProps) => {
 	}, onTimelineZoom);
 
 	return (
-		<section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-			<div className="flex items-center px-4 py-4 border-b xl:border-b-0 xl:border-r border-border-primary">
+		<section className="grid grid-cols-1 xl:grid-cols-[minmax(240px,1fr)_minmax(0,4fr)] xl:flex-1 xl:min-h-0">
+			<div
+				className="flex items-center px-4 py-3 overflow-auto border-b xl:border-b-0 xl:border-r border-border-primary"
+				data-testid="runs-stats-conclusion-totals"
+			>
 				<Plot
 					options={totalsOption}
 					onEvents={totalsEvents}
@@ -59,12 +61,12 @@ export const ConclusionSection = (props: ConclusionSectionProps) => {
 					style={{ height: statuses.length * TOTALS_ROW_HEIGHT }}
 				/>
 			</div>
-			<div className="px-4 py-3">
+			<div className="h-80 px-4 py-3 xl:h-auto xl:min-h-0">
 				<Plot
 					options={timelineOption}
 					onEvents={timelineEvents}
 					ref={timelineRef}
-					style={{ height: TIMELINE_HEIGHT }}
+					style={{ height: '100%' }}
 				/>
 			</div>
 		</section>

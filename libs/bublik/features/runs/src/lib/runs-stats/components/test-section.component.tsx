@@ -11,8 +11,6 @@ import { RunsChartSelection } from '../runs-stats.component.utils';
 import { RunsChartBucket } from '../runs-stats.types';
 import { RunsChartPeriod } from '../runs-stats.utils';
 
-const TIMELINE_HEIGHT = 320;
-
 interface TestsSectionProps {
 	stats: RunsChartBucket[];
 	period: RunsChartPeriod;
@@ -40,12 +38,15 @@ export const TestsSection = ({
 	}, onZoom);
 
 	return (
-		<section className="px-4 py-3">
+		<section
+			className="h-80 px-4 py-3 xl:h-auto xl:flex-1 xl:min-h-0"
+			data-testid="runs-stats-tests-timeline"
+		>
 			<Plot
 				options={option}
 				onEvents={events}
 				ref={chartRef}
-				style={{ height: TIMELINE_HEIGHT }}
+				style={{ height: '100%' }}
 			/>
 		</section>
 	);

@@ -133,7 +133,7 @@ function getConclusionTotalsOption(buckets: RunsChartBucket[]): EChartsOption {
 			{
 				type: 'bar',
 				id: 'conclusion-totals',
-				barMaxWidth: 18,
+				barMaxWidth: 12,
 				cursor: 'pointer',
 				data: statuses.map(({ status, count }) => ({
 					value: count,
