@@ -6,7 +6,7 @@ import ReactEChartsCore from 'echarts-for-react/lib/core';
 import { Plot } from '@/shared/charts';
 import { RUN_STATUS } from '@/shared/types';
 
-import { useChartEvents } from '../runs-stats.hooks';
+import { AxisPointerEvent, useChartEvents } from '../runs-stats.hooks';
 import {
 	getConclusionTimelineOption,
 	getConclusionTotalsOption,
@@ -24,10 +24,18 @@ export interface ConclusionSectionProps {
 	onSelect: (selection: RunsChartSelection) => void;
 	timelineRef?: Ref<ReactEChartsCore>;
 	onTimelineZoom?: () => void;
+	onTimelinePointer?: (params: AxisPointerEvent) => void;
 }
 
 export const ConclusionSection = (props: ConclusionSectionProps) => {
-	const { stats, period, onSelect, timelineRef, onTimelineZoom } = props;
+	const {
+		stats,
+		period,
+		onSelect,
+		timelineRef,
+		onTimelineZoom,
+		onTimelinePointer
+	} = props;
 	const statuses = useMemo(() => getPresentStatuses(stats), [stats]);
 	const totalsOption = useMemo(() => getConclusionTotalsOption(stats), [stats]);
 	const timelineOption = useMemo(
@@ -35,18 +43,25 @@ export const ConclusionSection = (props: ConclusionSectionProps) => {
 		[stats, period]
 	);
 
-	const totalsEvents = useChartEvents(({ dataIndex }) => {
-		const status = statuses[dataIndex]?.status;
+	const totalsEvents = useChartEvents({
+		onClick: ({ dataIndex }) => {
+			const status = statuses[dataIndex]?.status;
 
-		if (status) onSelect({ status });
+			if (status) onSelect({ status });
+		}
 	});
 
-	const timelineEvents = useChartEvents(({ dataIndex, seriesId }) => {
-		const bucket = stats[dataIndex];
+	const timelineEvents = useChartEvents({
+		onClick: ({ dataIndex, seriesId }) => {
+			const bucket = stats[dataIndex];
 
-		if (bucket && seriesId)
-			onSelect({ status: seriesId as RUN_STATUS, bucket });
-	}, onTimelineZoom);
+			if (bucket && seriesId) {
+				onSelect({ status: seriesId as RUN_STATUS, bucket });
+			}
+		},
+		onDataZoom: onTimelineZoom,
+		onAxisPointer: onTimelinePointer
+	});
 
 	return (
 		<section className="grid grid-cols-1 xl:grid-cols-[minmax(240px,1fr)_minmax(0,4fr)] xl:flex-1 xl:min-h-0">

@@ -5,7 +5,7 @@ import ReactEChartsCore from 'echarts-for-react/lib/core';
 
 import { Plot } from '@/shared/charts';
 
-import { useChartEvents } from '../runs-stats.hooks';
+import { AxisPointerEvent, useChartEvents } from '../runs-stats.hooks';
 import { getTestsTimelineOption } from '../runs-stats.options';
 import { RunsChartSelection } from '../runs-stats.component.utils';
 import { RunsChartBucket } from '../runs-stats.types';
@@ -17,6 +17,7 @@ interface TestsSectionProps {
 	onSelect: (selection: RunsChartSelection) => void;
 	chartRef?: Ref<ReactEChartsCore>;
 	onZoom?: () => void;
+	onPointer?: (params: AxisPointerEvent) => void;
 }
 
 export const TestsSection = ({
@@ -24,18 +25,23 @@ export const TestsSection = ({
 	period,
 	onSelect,
 	chartRef,
-	onZoom
+	onZoom,
+	onPointer
 }: TestsSectionProps) => {
 	const option = useMemo(
 		() => getTestsTimelineOption(stats, period),
 		[stats, period]
 	);
 
-	const events = useChartEvents(({ dataIndex }) => {
-		const bucket = stats[dataIndex];
+	const events = useChartEvents({
+		onClick: ({ dataIndex }) => {
+			const bucket = stats[dataIndex];
 
-		if (bucket) onSelect({ bucket });
-	}, onZoom);
+			if (bucket) onSelect({ bucket });
+		},
+		onDataZoom: onZoom,
+		onAxisPointer: onPointer
+	});
 
 	return (
 		<section

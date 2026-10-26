@@ -106,24 +106,34 @@ export const useRunsStats = () => {
 	} as const;
 };
 
+interface ChartEventHandlers {
+	onClick: (params: ECElementEvent) => void;
+	onDataZoom?: () => void;
+	onAxisPointer?: (params: AxisPointerEvent) => void;
+}
+
+/** What ECharts sends with `updateAxisPointer`; for a category axis the value is the index */
+export interface AxisPointerEvent {
+	axesInfo?: { axisDim: string; value: number }[];
+}
+
 /**
  * Chart events that stay the same object across renders: the chart is
  * disposed and created anew whenever its `onEvents` change.
  */
-export const useChartEvents = (
-	onClick: (params: ECElementEvent) => void,
-	onDataZoom?: () => void
-) => {
-	const handlersRef = useRef({ onClick, onDataZoom });
+export const useChartEvents = (handlers: ChartEventHandlers) => {
+	const handlersRef = useRef(handlers);
 
 	useLayoutEffect(() => {
-		handlersRef.current = { onClick, onDataZoom };
+		handlersRef.current = handlers;
 	});
 
 	return useMemo(
 		() => ({
 			click: (params: ECElementEvent) => handlersRef.current.onClick(params),
-			datazoom: () => handlersRef.current.onDataZoom?.()
+			datazoom: () => handlersRef.current.onDataZoom?.(),
+			updateAxisPointer: (params: AxisPointerEvent) =>
+				handlersRef.current.onAxisPointer?.(params)
 		}),
 		[]
 	);
@@ -135,14 +145,17 @@ interface DataZoomOption {
 }
 
 /**
- * Keeps the zoom of the timelines in step. ECharts' own `connect` would also
- * pass legend clicks between them by series name, and both have an OK series.
+ * Keeps the timelines in step: zooming one zooms the others, and hovering a
+ * period shows the same period's tooltip in each. ECharts' own `connect`
+ * would also pass legend clicks between them by series name, and both have
+ * an OK series.
  */
-export const useLinkedZoom = () => {
+export const useLinkedTimelines = () => {
 	const chartsRef = useRef(new Map<string, ReactEChartsCore | null>());
 	const refCallbacksRef = useRef(
 		new Map<string, (chart: ReactEChartsCore | null) => void>()
 	);
+	const hoveredRef = useRef<number | null>(null);
 	const isSyncingRef = useRef(false);
 
 	const register = useCallback((key: string) => {
@@ -156,36 +169,68 @@ export const useLinkedZoom = () => {
 		return callback;
 	}, []);
 
-	const syncFrom = useCallback((key: string) => {
-		// Zooming the other charts fires their own events: don't echo them back
-		if (isSyncingRef.current) return;
+	/** Runs actions on every other chart without echoing their events back */
+	const dispatchToOthers = useCallback(
+		(key: string, actions: (Record<string, unknown> & { type: string })[]) => {
+			if (isSyncingRef.current) return;
 
-		const source = chartsRef.current.get(key)?.getEchartsInstance();
-		const option = source?.getOption() as
-			| { dataZoom?: DataZoomOption[] }
-			| undefined;
-		const zoom = option?.dataZoom?.[0];
+			isSyncingRef.current = true;
 
-		if (!zoom) return;
+			try {
+				chartsRef.current.forEach((chart, other) => {
+					const instance = chart?.getEchartsInstance();
 
-		isSyncingRef.current = true;
+					if (other === key || !instance || instance.isDisposed()) return;
 
-		try {
-			chartsRef.current.forEach((chart, other) => {
-				const instance = chart?.getEchartsInstance();
-
-				if (other === key || !instance || instance.isDisposed()) return;
-
-				instance.dispatchAction({
-					type: 'dataZoom',
-					start: zoom.start,
-					end: zoom.end
+					actions.forEach((action) => instance.dispatchAction(action));
 				});
-			});
-		} finally {
-			isSyncingRef.current = false;
-		}
-	}, []);
+			} finally {
+				isSyncingRef.current = false;
+			}
+		},
+		[]
+	);
 
-	return { register, syncFrom };
+	const syncZoomFrom = useCallback(
+		(key: string) => {
+			const source = chartsRef.current.get(key)?.getEchartsInstance();
+			const option = source?.getOption() as
+				| { dataZoom?: DataZoomOption[] }
+				| undefined;
+			const zoom = option?.dataZoom?.[0];
+
+			if (!zoom) return;
+
+			dispatchToOthers(key, [
+				{ type: 'dataZoom', start: zoom.start, end: zoom.end }
+			]);
+		},
+		[dispatchToOthers]
+	);
+
+	const syncPointerFrom = useCallback(
+		(key: string, { axesInfo = [] }: AxisPointerEvent) => {
+			const index = axesInfo.find((info) => info.axisDim === 'x')?.value;
+			const hovered = typeof index === 'number' ? index : null;
+
+			if (isSyncingRef.current || hovered === hoveredRef.current) return;
+
+			hoveredRef.current = hovered;
+
+			dispatchToOthers(
+				key,
+				hovered === null
+					? // hideTip leaves the axis pointer and the highlighted bars behind
+					  [
+							{ type: 'hideTip' },
+							{ type: 'updateAxisPointer', currTrigger: 'leave' },
+							{ type: 'downplay' }
+					  ]
+					: [{ type: 'showTip', seriesIndex: 0, dataIndex: hovered }]
+			);
+		},
+		[dispatchToOthers]
+	);
+
+	return { register, syncZoomFrom, syncPointerFrom };
 };
