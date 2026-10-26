@@ -8,6 +8,7 @@ import { RunsChartBucket } from './runs-stats.types';
 import {
 	fillBuckets,
 	getPassrate,
+	groupBuckets,
 	makeEmptyRunIdsByStatus,
 	parseBucketDate
 } from './runs-stats.utils';
@@ -90,5 +91,41 @@ describe('fillBuckets', () => {
 
 	it('returns nothing for no buckets', () => {
 		expect(fillBuckets([], 'day', { start: new Date() })).toEqual([]);
+	});
+});
+
+describe('groupBuckets', () => {
+	const days = [
+		bucket(new Date(2026, 9, 19), { total: 10, ok: 10, nok: 0 }, ['1']),
+		bucket(new Date(2026, 9, 25), { total: 10, ok: 5, nok: 5 }, ['2']),
+		bucket(new Date(2026, 9, 26), { total: 20, ok: 20, nok: 0 }, ['3'])
+	];
+
+	it('sums days into Monday weeks', () => {
+		const weeks = groupBuckets(days, 'week');
+
+		expect(weeks.map((b) => b.date.getDate())).toEqual([19, 26]);
+		expect(weeks[0].tests).toEqual({
+			total: 20,
+			ok: 15,
+			nok: 5,
+			passrate: 75
+		});
+		expect(weeks[0].runIdsByStatus[RUN_STATUS.Ok]).toEqual(['1', '2']);
+	});
+
+	it('sums days into months', () => {
+		const [month] = groupBuckets(days, 'month');
+
+		expect(month.date).toEqual(new Date(2026, 9, 1));
+		expect(month.tests.total).toBe(40);
+		expect(month.runIdsByStatus[RUN_STATUS.Ok]).toEqual(['1', '2', '3']);
+	});
+
+	it('leaves the source buckets alone', () => {
+		groupBuckets(days, 'month');
+
+		expect(days[0].runIdsByStatus[RUN_STATUS.Ok]).toEqual(['1']);
+		expect(days[0].tests.total).toBe(10);
 	});
 });

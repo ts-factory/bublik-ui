@@ -17,9 +17,13 @@ import { RunsListModal } from './runs-list.component';
 
 export interface ConclusionSectionProps {
 	stats: RunsChartBucket[];
+	periodLabel: string;
 }
 
-export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
+export const ConclusionSection = ({
+	stats,
+	periodLabel
+}: ConclusionSectionProps) => {
 	const surfaceColor = useChartSurfaceColor();
 	const { grouped, statuses } = getRunStatus(stats);
 	const pieData = getPieChartDataByRunStatus(stats);
@@ -112,7 +116,7 @@ export const ConclusionSection = ({ stats }: ConclusionSectionProps) => {
 			</div>
 			<div className="w-1/2 px-4 py-2">
 				<BarChart
-					title="Run conclusions by week"
+					title={`Run conclusions by ${periodLabel}`}
 					dataset={{ source: grouped }}
 					legend={{}}
 					xAxis={{ type: 'time', name: 'Date' }}

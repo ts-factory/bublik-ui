@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { cn } from '@/shared/tailwind-ui';
 
-import { useRunsStats } from './runs-stats.hooks';
+import { useRunsChartPeriod, useRunsStats } from './runs-stats.hooks';
 import {
 	RunsStats,
 	RunsStatsEmpty,
@@ -11,19 +11,18 @@ import {
 } from './runs-stats.component';
 
 export const RunsStatsContainer = () => {
-	const { dayStats, weekStats, isLoading, error, isFetching } = useRunsStats();
+	const { stats, period, isLoading, error, isFetching } = useRunsStats();
+	const [, setPeriod] = useRunsChartPeriod();
 
 	if (error) return <RunsStatsError error={error} />;
 
 	if (isLoading) return <RunsStatsLoading />;
 
-	if (!dayStats || !weekStats || !dayStats.length || !weekStats.length) {
-		return <RunsStatsEmpty />;
-	}
+	if (!stats?.length) return <RunsStatsEmpty />;
 
 	return (
 		<div className={cn(isFetching && 'opacity-40 pointer-events-none')}>
-			<RunsStats dayStats={dayStats} weekStats={weekStats} />
+			<RunsStats stats={stats} period={period} onPeriodChange={setPeriod} />
 		</div>
 	);
 };

@@ -2,17 +2,21 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import {
 	addDays,
+	addMonths,
 	addWeeks,
 	isValid,
 	startOfDay,
-	startOfISOWeek
+	startOfISOWeek,
+	startOfMonth
 } from 'date-fns';
 
 import { RUN_STATUS } from '@/shared/types';
 
 import { RunIdsByStatus, RunsChartBucket } from './runs-stats.types';
 
-type RunsChartPeriod = 'day' | 'week';
+const RUNS_CHART_PERIODS = ['day', 'week', 'month'] as const;
+
+type RunsChartPeriod = (typeof RUNS_CHART_PERIODS)[number];
 
 const makeEmptyRunIdsByStatus = (): RunIdsByStatus => ({
 	[RUN_STATUS.Busy]: [],
@@ -44,11 +48,20 @@ function getPassrate(ok: number, total: number): number | null {
 }
 
 function getPeriodStart(date: Date, period: RunsChartPeriod): Date {
-	return period === 'week' ? startOfISOWeek(date) : startOfDay(date);
+	if (period === 'month') return startOfMonth(date);
+
+	// Weeks start on Monday, as they do in the API
+	if (period === 'week') return startOfISOWeek(date);
+
+	return startOfDay(date);
 }
 
 function addPeriod(date: Date, period: RunsChartPeriod): Date {
-	return period === 'week' ? addWeeks(date, 1) : addDays(date, 1);
+	if (period === 'month') return addMonths(date, 1);
+
+	if (period === 'week') return addWeeks(date, 1);
+
+	return addDays(date, 1);
 }
 
 function makeEmptyBucket(date: Date): RunsChartBucket {
@@ -57,6 +70,34 @@ function makeEmptyBucket(date: Date): RunsChartBucket {
 		tests: { total: 0, ok: 0, nok: 0, passrate: null },
 		runIdsByStatus: makeEmptyRunIdsByStatus()
 	};
+}
+
+/** Merges daily buckets into the periods that contain them */
+function groupBuckets(
+	buckets: RunsChartBucket[],
+	period: RunsChartPeriod
+): RunsChartBucket[] {
+	const byTime = new Map<number, RunsChartBucket>();
+
+	for (const bucket of buckets) {
+		const date = getPeriodStart(bucket.date, period);
+		const merged = byTime.get(date.getTime()) ?? makeEmptyBucket(date);
+
+		merged.tests.total += bucket.tests.total;
+		merged.tests.ok += bucket.tests.ok;
+		merged.tests.nok += bucket.tests.nok;
+		merged.tests.passrate = getPassrate(merged.tests.ok, merged.tests.total);
+
+		for (const status of Object.values(RUN_STATUS)) {
+			merged.runIdsByStatus[status].push(...bucket.runIdsByStatus[status]);
+		}
+
+		byTime.set(date.getTime(), merged);
+	}
+
+	return [...byTime.values()].sort(
+		(left, right) => left.date.getTime() - right.date.getTime()
+	);
 }
 
 interface FillBucketsRange {
@@ -109,8 +150,10 @@ function fillBuckets(
 }
 
 export {
+	RUNS_CHART_PERIODS,
 	type RunsChartPeriod,
 	fillBuckets,
+	groupBuckets,
 	getPassrate,
 	getPeriodStart,
 	makeEmptyRunIdsByStatus,

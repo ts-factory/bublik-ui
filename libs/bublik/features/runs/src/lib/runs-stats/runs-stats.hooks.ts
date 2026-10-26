@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
+import { useQueryParam } from 'use-query-params';
 
 import {
 	RUN_STATUS,
@@ -12,10 +13,12 @@ import { parseTimeApi } from '@/shared/utils';
 
 import { useRunsQuery } from '../hooks';
 import { RunIdsByStatus, RunsChartBucket } from './runs-stats.types';
+import { PeriodParam } from './runs-stats.params';
 import {
 	RunsChartPeriod,
 	fillBuckets,
 	getPassrate,
+	groupBuckets,
 	makeEmptyRunIdsByStatus,
 	parseBucketDate
 } from './runs-stats.utils';
@@ -48,7 +51,12 @@ const toStats = (
 	data: RunsChartsAPIResponse | undefined,
 	period: RunsChartPeriod,
 	range: { start?: Date; end?: Date }
-) => (data ? fillBuckets(mapBuckets(data.buckets), period, range) : undefined);
+) =>
+	data
+		? fillBuckets(groupBuckets(mapBuckets(data.buckets), period), period, range)
+		: undefined;
+
+export const useRunsChartPeriod = () => useQueryParam('period', PeriodParam);
 
 export const useRunsStats = () => {
 	const { query: searchQuery } = useRunsQuery();
@@ -78,24 +86,20 @@ export const useRunsStats = () => {
 		[searchQuery.finishDate, searchQuery.startDate]
 	);
 
+	const [period] = useRunsChartPeriod();
+	// Weeks and months are summed up from days, so one request serves them all
 	const dayQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'day' });
-	const weekQuery = useGetRunsChartsQuery({ ...chartsQuery, groupBy: 'week' });
 
-	const dayStats = useMemo(
-		() => toStats(dayQuery.data, 'day', range),
-		[dayQuery.data, range]
-	);
-
-	const weekStats = useMemo(
-		() => toStats(weekQuery.data, 'week', range),
-		[weekQuery.data, range]
+	const stats = useMemo(
+		() => toStats(dayQuery.data, period, range),
+		[dayQuery.data, period, range]
 	);
 
 	return {
-		isLoading: dayQuery.isLoading || weekQuery.isLoading,
-		isFetching: dayQuery.isFetching || weekQuery.isFetching,
-		dayStats,
-		weekStats,
-		error: dayQuery.error || weekQuery.error
+		isLoading: dayQuery.isLoading,
+		isFetching: dayQuery.isFetching,
+		stats,
+		period,
+		error: dayQuery.error
 	} as const;
 };
