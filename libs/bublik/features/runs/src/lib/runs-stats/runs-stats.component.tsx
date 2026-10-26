@@ -18,7 +18,7 @@ import {
 	getSelectionTitle,
 	getSummary
 } from './runs-stats.component.utils';
-import { useLinkedZoom } from './runs-stats.hooks';
+import { useLinkedTimelines } from './runs-stats.hooks';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -91,7 +91,7 @@ const SelectionDrawer = (props: SelectionDrawerProps) => {
 
 export const RunsStats = (props: RunsStatsProps) => {
 	const { stats, period, onPeriodChange, selection, onSelectionChange } = props;
-	const linkedZoom = useLinkedZoom();
+	const timelines = useLinkedTimelines();
 
 	return (
 		// From xl up the charts share the height under the page header, as the
@@ -118,8 +118,11 @@ export const RunsStats = (props: RunsStatsProps) => {
 					stats={stats}
 					period={period}
 					onSelect={onSelectionChange}
-					timelineRef={linkedZoom.register('conclusions')}
-					onTimelineZoom={() => linkedZoom.syncFrom('conclusions')}
+					timelineRef={timelines.register('conclusions')}
+					onTimelineZoom={() => timelines.syncZoomFrom('conclusions')}
+					onTimelinePointer={(params) =>
+						timelines.syncPointerFrom('conclusions', params)
+					}
 				/>
 			</div>
 			<div className="flex flex-col bg-bg-primary rounded-md xl:flex-1 xl:min-h-0">
@@ -128,8 +131,9 @@ export const RunsStats = (props: RunsStatsProps) => {
 					stats={stats}
 					period={period}
 					onSelect={onSelectionChange}
-					chartRef={linkedZoom.register('tests')}
-					onZoom={() => linkedZoom.syncFrom('tests')}
+					chartRef={timelines.register('tests')}
+					onZoom={() => timelines.syncZoomFrom('tests')}
+					onPointer={(params) => timelines.syncPointerFrom('tests', params)}
 				/>
 			</div>
 		</main>
