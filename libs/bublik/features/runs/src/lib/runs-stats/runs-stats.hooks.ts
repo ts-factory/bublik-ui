@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import type { ECElementEvent } from 'echarts';
+import type ReactEChartsCore from 'echarts-for-react/lib/core';
 import { useQueryParam } from 'use-query-params';
 
 import {
@@ -106,18 +107,85 @@ export const useRunsStats = () => {
 };
 
 /**
- * Click events for a chart that stay the same object across renders: the
- * chart is disposed and created anew whenever its `onEvents` change.
+ * Chart events that stay the same object across renders: the chart is
+ * disposed and created anew whenever its `onEvents` change.
  */
-export const useChartClick = (onClick: (params: ECElementEvent) => void) => {
-	const onClickRef = useRef(onClick);
+export const useChartEvents = (
+	onClick: (params: ECElementEvent) => void,
+	onDataZoom?: () => void
+) => {
+	const handlersRef = useRef({ onClick, onDataZoom });
 
 	useLayoutEffect(() => {
-		onClickRef.current = onClick;
+		handlersRef.current = { onClick, onDataZoom };
 	});
 
 	return useMemo(
-		() => ({ click: (params: ECElementEvent) => onClickRef.current(params) }),
+		() => ({
+			click: (params: ECElementEvent) => handlersRef.current.onClick(params),
+			datazoom: () => handlersRef.current.onDataZoom?.()
+		}),
 		[]
 	);
+};
+
+interface DataZoomOption {
+	start?: number;
+	end?: number;
+}
+
+/**
+ * Keeps the zoom of the timelines in step. ECharts' own `connect` would also
+ * pass legend clicks between them by series name, and both have an OK series.
+ */
+export const useLinkedZoom = () => {
+	const chartsRef = useRef(new Map<string, ReactEChartsCore | null>());
+	const refCallbacksRef = useRef(
+		new Map<string, (chart: ReactEChartsCore | null) => void>()
+	);
+	const isSyncingRef = useRef(false);
+
+	const register = useCallback((key: string) => {
+		let callback = refCallbacksRef.current.get(key);
+
+		if (!callback) {
+			callback = (chart) => chartsRef.current.set(key, chart);
+			refCallbacksRef.current.set(key, callback);
+		}
+
+		return callback;
+	}, []);
+
+	const syncFrom = useCallback((key: string) => {
+		// Zooming the other charts fires their own events: don't echo them back
+		if (isSyncingRef.current) return;
+
+		const source = chartsRef.current.get(key)?.getEchartsInstance();
+		const option = source?.getOption() as
+			| { dataZoom?: DataZoomOption[] }
+			| undefined;
+		const zoom = option?.dataZoom?.[0];
+
+		if (!zoom) return;
+
+		isSyncingRef.current = true;
+
+		try {
+			chartsRef.current.forEach((chart, other) => {
+				const instance = chart?.getEchartsInstance();
+
+				if (other === key || !instance || instance.isDisposed()) return;
+
+				instance.dispatchAction({
+					type: 'dataZoom',
+					start: zoom.start,
+					end: zoom.end
+				});
+			});
+		} finally {
+			isSyncingRef.current = false;
+		}
+	}, []);
+
+	return { register, syncFrom };
 };
