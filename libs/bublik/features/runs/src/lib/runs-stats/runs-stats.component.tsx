@@ -5,12 +5,18 @@ import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import {
 	ConclusionSection,
-	PERIOD_LABELS,
 	PeriodToggle,
+	RunsListModal,
+	SummaryTiles,
 	TestsSection
 } from './components';
 import { RunsChartBucket } from './runs-stats.types';
 import { RunsChartPeriod } from './runs-stats.utils';
+import {
+	RunsChartSelection,
+	getSelectionRunIds,
+	getSummary
+} from './runs-stats.component.utils';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -18,7 +24,7 @@ export const RunsStatsLoading = () => {
 			className="flex flex-col bg-bg-primary rounded-md"
 			data-testid="runs-stats-loading"
 		>
-			<CardHeader label="Runs Stats" />
+			<CardHeader label="Overview" />
 			<Skeleton className="h-screen" />
 		</main>
 	);
@@ -48,23 +54,43 @@ export interface RunsStatsProps {
 	stats: RunsChartBucket[];
 	period: RunsChartPeriod;
 	onPeriodChange: (period: RunsChartPeriod) => void;
+	selection: RunsChartSelection | null;
+	onSelectionChange: (selection: RunsChartSelection | null) => void;
 }
 
 export const RunsStats = (props: RunsStatsProps) => {
-	const { stats, period, onPeriodChange } = props;
-	const periodLabel = PERIOD_LABELS[period].toLowerCase();
+	const { stats, period, onPeriodChange, selection, onSelectionChange } = props;
 
 	return (
 		<main className="flex flex-col gap-1" data-testid="runs-stats">
+			<RunsListModal
+				ids={selection ? getSelectionRunIds(stats, selection) : []}
+				open={selection !== null}
+				onOpenChange={(open) => {
+					if (!open) onSelectionChange(null);
+				}}
+			/>
 			<div className="bg-bg-primary rounded-md">
-				<CardHeader label="Conclusion Stats">
+				<CardHeader label="Overview">
 					<PeriodToggle period={period} onPeriodChange={onPeriodChange} />
 				</CardHeader>
-				<ConclusionSection stats={stats} periodLabel={periodLabel} />
+				<SummaryTiles summary={getSummary(stats)} />
 			</div>
 			<div className="bg-bg-primary rounded-md">
-				<CardHeader label="Tests Stats" />
-				<TestsSection stats={stats} periodLabel={periodLabel} />
+				<CardHeader label="Runs by conclusion" />
+				<ConclusionSection
+					stats={stats}
+					period={period}
+					onSelect={onSelectionChange}
+				/>
+			</div>
+			<div className="bg-bg-primary rounded-md">
+				<CardHeader label="Test results" />
+				<TestsSection
+					stats={stats}
+					period={period}
+					onSelect={onSelectionChange}
+				/>
 			</div>
 		</main>
 	);

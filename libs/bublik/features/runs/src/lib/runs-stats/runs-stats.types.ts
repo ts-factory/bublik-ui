@@ -33,30 +33,3 @@ export const RunsChartBucketSchema = z.object({
 });
 
 export type RunsChartBucket = z.infer<typeof RunsChartBucketSchema>;
-
-export const GroupedStatsSchema = z.object({
-	date: z.date(),
-	[RUN_STATUS.Busy]: z.number(),
-	[RUN_STATUS.Compromised]: z.number(),
-	[RUN_STATUS.Error]: z.number(),
-	[RUN_STATUS.Interrupted]: z.number(),
-	[RUN_STATUS.Ok]: z.number(),
-	[RUN_STATUS.Running]: z.number(),
-	[RUN_STATUS.Stopped]: z.number(),
-	[RUN_STATUS.Warning]: z.number(),
-	ids: z.string()
-});
-
-export type GroupedStats = z.infer<typeof GroupedStatsSchema>;
-
-export const TestByWeekDaySchema = z.object({
-	date: z.date(),
-	total: z.number(),
-	ok: z.number(),
-	nok: z.number(),
-	// '-' is how ECharts spells a missing value: the line breaks there
-	passrate: z.union([z.number(), z.literal('-')]),
-	ids: z.string()
-});
-
-export type TestGroupedByDate = z.infer<typeof TestByWeekDaySchema>;

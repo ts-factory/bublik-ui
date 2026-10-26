@@ -1,120 +1,46 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ECElementEvent } from 'echarts';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
+import { useMemo } from 'react';
 
-import { BarChart, PieChart, useChartSurfaceColor } from '@/shared/charts';
+import { Plot } from '@/shared/charts';
 
-import {
-	COLOR_MAP,
-	getGroupedTests,
-	getPieChartDataForResults
-} from '../runs-stats.component.utils';
-import { RunsChartBucket, TestByWeekDaySchema } from '../runs-stats.types';
-import { RunsListModal } from './runs-list.component';
+import { useChartClick } from '../runs-stats.hooks';
+import { getTestsTimelineOption } from '../runs-stats.options';
+import { RunsChartSelection } from '../runs-stats.component.utils';
+import { RunsChartBucket } from '../runs-stats.types';
+import { RunsChartPeriod } from '../runs-stats.utils';
+
+const TIMELINE_HEIGHT = 320;
 
 interface TestsSectionProps {
 	stats: RunsChartBucket[];
-	periodLabel: string;
+	period: RunsChartPeriod;
+	onSelect: (selection: RunsChartSelection) => void;
 }
 
-export const TestsSection = ({ stats, periodLabel }: TestsSectionProps) => {
-	const surfaceColor = useChartSurfaceColor();
-	const barRef = useRef<ReactEChartsCore>(null);
+export const TestsSection = ({
+	stats,
+	period,
+	onSelect
+}: TestsSectionProps) => {
+	const option = useMemo(
+		() => getTestsTimelineOption(stats, period),
+		[stats, period]
+	);
 
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [runIds, setRunIds] = useState<string[]>([]);
+	const events = useChartClick(({ dataIndex }) => {
+		const bucket = stats[dataIndex];
 
-	const handleOpenChange = (open: boolean) => {
-		if (!open) setRunIds([]);
-
-		setIsModalOpen(open);
-	};
-
-	const handleBarChartClick = useCallback((params: ECElementEvent) => {
-		const { ids } = TestByWeekDaySchema.parse(params.data ?? params.value);
-
-		setRunIds(ids.split(','));
-		setIsModalOpen(true);
-	}, []);
-
-	useEffect(() => {
-		barRef.current?.getEchartsInstance()?.on('click', handleBarChartClick);
-	}, [handleBarChartClick]);
+		if (bucket) onSelect({ bucket });
+	});
 
 	return (
-		<section className="flex items-center chart-mosaic">
-			<RunsListModal
-				ids={runIds}
-				open={isModalOpen}
-				onOpenChange={handleOpenChange}
+		<section className="px-4 py-3">
+			<Plot
+				options={option}
+				onEvents={events}
+				style={{ height: TIMELINE_HEIGHT }}
 			/>
-			<div className="w-1/2 px-4 py-2">
-				<PieChart
-					title="Tests by result"
-					label="Results"
-					dataset={{ source: getPieChartDataForResults(stats) }}
-					legend={{ orient: 'vertical', left: 0, top: 0 }}
-					series={[
-						{
-							type: 'pie',
-							label: { formatter: '{b} ({d}%)' },
-							itemStyle: {
-								borderRadius: 4,
-								borderWidth: 2,
-								borderColor: surfaceColor,
-								color: (params) =>
-									COLOR_MAP.get(params.name.toLowerCase()) ?? 'blue'
-							},
-							encode: {
-								itemName: 'name',
-								value: 'value',
-								tooltip: 'value'
-							}
-						}
-					]}
-				/>
-			</div>
-			<div className="w-1/2 px-4 py-2">
-				<BarChart
-					title={`Tests by ${periodLabel}`}
-					dataset={{ source: getGroupedTests(stats) }}
-					legend={{}}
-					xAxis={{ type: 'time', name: 'Date' }}
-					yAxis={[
-						{ type: 'value', name: 'Results' },
-						{ id: 'passrate', type: 'value', name: 'Pass rate' }
-					]}
-					series={[
-						{
-							yAxisId: 'passrate',
-							type: 'line',
-							tooltip: { valueFormatter: (v) => (v == null ? '–' : `${v}%`) },
-							name: 'Pass rate',
-							encode: { x: 'date', y: 'passrate' },
-							emphasis: { focus: 'series' }
-						},
-						{
-							type: 'bar',
-							name: 'OK',
-							color: COLOR_MAP.get('ok'),
-							encode: { x: 'date', y: 'ok' },
-							stack: 'results',
-							emphasis: { focus: 'series' }
-						},
-						{
-							type: 'bar',
-							name: 'NOK',
-							color: COLOR_MAP.get('nok'),
-							encode: { x: 'date', y: 'nok' },
-							stack: 'results',
-							emphasis: { focus: 'series' }
-						}
-					]}
-					ref={barRef}
-				/>
-			</div>
 		</section>
 	);
 };

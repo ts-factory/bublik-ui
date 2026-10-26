@@ -4,3 +4,4 @@ export * from './conclusion-section.component';
 export * from './test-section.component';
 export * from './runs-list.component';
 export * from './period-toggle.component';
+export * from './summary-tiles.component';
