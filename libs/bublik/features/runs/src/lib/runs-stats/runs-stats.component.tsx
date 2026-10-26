@@ -3,8 +3,14 @@
 import { CardHeader, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
-import { ConclusionSection, DaySection, TestsSection } from './components';
+import {
+	ConclusionSection,
+	PERIOD_LABELS,
+	PeriodToggle,
+	TestsSection
+} from './components';
 import { RunsChartBucket } from './runs-stats.types';
+import { RunsChartPeriod } from './runs-stats.utils';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -39,24 +45,26 @@ export const RunsStatsError = (props: RunsStatsErrorProps) => {
 };
 
 export interface RunsStatsProps {
-	dayStats: RunsChartBucket[];
-	weekStats: RunsChartBucket[];
+	stats: RunsChartBucket[];
+	period: RunsChartPeriod;
+	onPeriodChange: (period: RunsChartPeriod) => void;
 }
 
-export const RunsStats = ({ dayStats, weekStats }: RunsStatsProps) => {
+export const RunsStats = (props: RunsStatsProps) => {
+	const { stats, period, onPeriodChange } = props;
+	const periodLabel = PERIOD_LABELS[period].toLowerCase();
+
 	return (
 		<main className="flex flex-col gap-1" data-testid="runs-stats">
 			<div className="bg-bg-primary rounded-md">
-				<CardHeader label="Conclusion Stats" />
-				<ConclusionSection stats={weekStats} />
+				<CardHeader label="Conclusion Stats">
+					<PeriodToggle period={period} onPeriodChange={onPeriodChange} />
+				</CardHeader>
+				<ConclusionSection stats={stats} periodLabel={periodLabel} />
 			</div>
 			<div className="bg-bg-primary rounded-md">
 				<CardHeader label="Tests Stats" />
-				<TestsSection stats={weekStats} />
-			</div>
-			<div className="bg-bg-primary rounded-md">
-				<CardHeader label="Day Stats" />
-				<DaySection stats={dayStats} />
+				<TestsSection stats={stats} periodLabel={periodLabel} />
 			</div>
 		</main>
 	);

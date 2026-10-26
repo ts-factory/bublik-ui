@@ -16,9 +16,10 @@ import { RunsListModal } from './runs-list.component';
 
 interface TestsSectionProps {
 	stats: RunsChartBucket[];
+	periodLabel: string;
 }
 
-export const TestsSection = ({ stats }: TestsSectionProps) => {
+export const TestsSection = ({ stats, periodLabel }: TestsSectionProps) => {
 	const surfaceColor = useChartSurfaceColor();
 	const barRef = useRef<ReactEChartsCore>(null);
 
@@ -77,7 +78,7 @@ export const TestsSection = ({ stats }: TestsSectionProps) => {
 			</div>
 			<div className="w-1/2 px-4 py-2">
 				<BarChart
-					title="Tests by week"
+					title={`Tests by ${periodLabel}`}
 					dataset={{ source: getGroupedTests(stats) }}
 					legend={{}}
 					xAxis={{ type: 'time', name: 'Date' }}
