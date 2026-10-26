@@ -7,7 +7,9 @@ import { RUN_STATUS } from '@/shared/types';
 import { RunsChartBucket } from './runs-stats.types';
 import {
 	fillBuckets,
+	formatPeriodRange,
 	getPassrate,
+	getPeriodEnd,
 	groupBuckets,
 	makeEmptyRunIdsByStatus,
 	parseBucketDate
@@ -127,5 +129,39 @@ describe('groupBuckets', () => {
 
 		expect(days[0].runIdsByStatus[RUN_STATUS.Ok]).toEqual(['1']);
 		expect(days[0].tests.total).toBe(10);
+	});
+});
+
+describe('getPeriodEnd', () => {
+	it('ends a week on Sunday and a month on its last day', () => {
+		expect(getPeriodEnd(new Date(2026, 9, 19), 'week')).toEqual(
+			new Date(2026, 9, 25)
+		);
+		expect(getPeriodEnd(new Date(2026, 1, 1), 'month')).toEqual(
+			new Date(2026, 1, 28)
+		);
+		expect(getPeriodEnd(new Date(2026, 9, 19), 'day')).toEqual(
+			new Date(2026, 9, 19)
+		);
+	});
+});
+
+describe('formatPeriodRange', () => {
+	it('names the days a period covers', () => {
+		expect(formatPeriodRange(new Date(2026, 3, 20), 'week')).toBe(
+			'Apr 20 – 26, 2026'
+		);
+		expect(formatPeriodRange(new Date(2026, 3, 27), 'week')).toBe(
+			'Apr 27 – May 3, 2026'
+		);
+		expect(formatPeriodRange(new Date(2026, 11, 28), 'week')).toBe(
+			'Dec 28, 2026 – Jan 3, 2027'
+		);
+		expect(formatPeriodRange(new Date(2026, 3, 1), 'month')).toBe(
+			'Apr 1 – 30, 2026'
+		);
+		expect(formatPeriodRange(new Date(2026, 3, 20), 'day')).toBe(
+			'Mon, Apr 20, 2026'
+		);
 	});
 });

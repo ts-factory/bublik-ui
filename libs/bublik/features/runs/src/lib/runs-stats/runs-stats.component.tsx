@@ -6,15 +6,16 @@ import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import {
 	ConclusionSection,
 	PeriodToggle,
-	RunsListModal,
+	RunsListDrawer,
 	SummaryTiles,
 	TestsSection
 } from './components';
 import { RunsChartBucket } from './runs-stats.types';
-import { RunsChartPeriod } from './runs-stats.utils';
+import { RunsChartPeriod, formatPeriodRange } from './runs-stats.utils';
 import {
 	RunsChartSelection,
 	getSelectionRunIds,
+	getSelectionTitle,
 	getSummary
 } from './runs-stats.component.utils';
 
@@ -58,17 +59,45 @@ export interface RunsStatsProps {
 	onSelectionChange: (selection: RunsChartSelection | null) => void;
 }
 
+interface SelectionDrawerProps {
+	stats: RunsChartBucket[];
+	period: RunsChartPeriod;
+	selection: RunsChartSelection | null;
+	onSelectionChange: (selection: RunsChartSelection | null) => void;
+}
+
+const SelectionDrawer = (props: SelectionDrawerProps) => {
+	const { stats, period, selection, onSelectionChange } = props;
+	const ids = selection ? getSelectionRunIds(stats, selection) : [];
+	const scope = selection?.bucket
+		? formatPeriodRange(selection.bucket.date, period)
+		: 'Whole range';
+
+	return (
+		<RunsListDrawer
+			open={selection !== null}
+			onOpenChange={(open) => {
+				if (!open) onSelectionChange(null);
+			}}
+			title={selection ? getSelectionTitle(selection) : ''}
+			description={`${scope} · ${ids.length} ${
+				ids.length === 1 ? 'run' : 'runs'
+			}`}
+			ids={ids}
+		/>
+	);
+};
+
 export const RunsStats = (props: RunsStatsProps) => {
 	const { stats, period, onPeriodChange, selection, onSelectionChange } = props;
 
 	return (
 		<main className="flex flex-col gap-1" data-testid="runs-stats">
-			<RunsListModal
-				ids={selection ? getSelectionRunIds(stats, selection) : []}
-				open={selection !== null}
-				onOpenChange={(open) => {
-					if (!open) onSelectionChange(null);
-				}}
+			<SelectionDrawer
+				stats={stats}
+				period={period}
+				selection={selection}
+				onSelectionChange={onSelectionChange}
 			/>
 			<div className="bg-bg-primary rounded-md">
 				<CardHeader label="Overview">

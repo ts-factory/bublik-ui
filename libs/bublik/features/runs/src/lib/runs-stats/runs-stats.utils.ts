@@ -4,7 +4,11 @@ import {
 	addDays,
 	addMonths,
 	addWeeks,
+	format,
+	isSameMonth,
+	isSameYear,
 	isValid,
+	subDays,
 	startOfDay,
 	startOfISOWeek,
 	startOfMonth
@@ -62,6 +66,29 @@ function addPeriod(date: Date, period: RunsChartPeriod): Date {
 	if (period === 'week') return addWeeks(date, 1);
 
 	return addDays(date, 1);
+}
+
+/** The last day of the period that starts on the given date */
+function getPeriodEnd(start: Date, period: RunsChartPeriod): Date {
+	return subDays(addPeriod(start, period), 1);
+}
+
+/**
+ * The days a period covers: "Apr 20 – 26, 2026", "Apr 27 – May 3, 2026",
+ * "Dec 28, 2026 – Jan 3, 2027", or the one day itself.
+ */
+function formatPeriodRange(start: Date, period: RunsChartPeriod): string {
+	const end = getPeriodEnd(start, period);
+
+	if (period === 'day') return format(start, 'EEE, MMM d, yyyy');
+
+	if (!isSameYear(start, end)) {
+		return `${format(start, 'MMM d, yyyy')} – ${format(end, 'MMM d, yyyy')}`;
+	}
+
+	const endFormat = isSameMonth(start, end) ? 'd, yyyy' : 'MMM d, yyyy';
+
+	return `${format(start, 'MMM d')} – ${format(end, endFormat)}`;
 }
 
 function makeEmptyBucket(date: Date): RunsChartBucket {
@@ -153,8 +180,10 @@ export {
 	RUNS_CHART_PERIODS,
 	type RunsChartPeriod,
 	fillBuckets,
+	formatPeriodRange,
 	groupBuckets,
 	getPassrate,
+	getPeriodEnd,
 	getPeriodStart,
 	makeEmptyRunIdsByStatus,
 	parseBucketDate
