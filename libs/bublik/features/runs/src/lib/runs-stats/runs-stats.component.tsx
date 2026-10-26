@@ -19,6 +19,7 @@ import {
 	getSummary
 } from './runs-stats.component.utils';
 import { useLinkedTimelines } from './runs-stats.hooks';
+import { getPresentStatuses } from './runs-stats.options';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -110,7 +111,11 @@ export const RunsStats = (props: RunsStatsProps) => {
 				<CardHeader label="Overview">
 					<PeriodToggle period={period} onPeriodChange={onPeriodChange} />
 				</CardHeader>
-				<SummaryTiles summary={getSummary(stats)} />
+				<SummaryTiles
+					summary={getSummary(stats)}
+					conclusions={getPresentStatuses(stats)}
+					onSelectConclusion={(status) => onSelectionChange({ status })}
+				/>
 			</div>
 			<div className="flex flex-col bg-bg-primary rounded-md xl:flex-1 xl:min-h-0">
 				<CardHeader label="Runs by conclusion" />
