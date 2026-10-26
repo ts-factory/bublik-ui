@@ -18,7 +18,7 @@ export const ConclusionBadge = ({ status }: ConclusionProps) => {
 			className={`flex items-center w-fit gap-1 rounded py-0.5 px-1.5 ${bg} ${color}`}
 		>
 			{icon}
-			<span className="text-[0.625rem] font-medium leading-[0.75rem]">
+			<span className="text-[0.625rem] font-medium leading-[0.75rem] uppercase">
 				{label}
 			</span>
 		</div>
