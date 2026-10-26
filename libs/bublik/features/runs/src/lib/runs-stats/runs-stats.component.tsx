@@ -18,6 +18,7 @@ import {
 	getSelectionTitle,
 	getSummary
 } from './runs-stats.component.utils';
+import { useLinkedZoom } from './runs-stats.hooks';
 
 export const RunsStatsLoading = () => {
 	return (
@@ -90,6 +91,7 @@ const SelectionDrawer = (props: SelectionDrawerProps) => {
 
 export const RunsStats = (props: RunsStatsProps) => {
 	const { stats, period, onPeriodChange, selection, onSelectionChange } = props;
+	const linkedZoom = useLinkedZoom();
 
 	return (
 		<main className="flex flex-col gap-1" data-testid="runs-stats">
@@ -111,6 +113,8 @@ export const RunsStats = (props: RunsStatsProps) => {
 					stats={stats}
 					period={period}
 					onSelect={onSelectionChange}
+					timelineRef={linkedZoom.register('conclusions')}
+					onTimelineZoom={() => linkedZoom.syncFrom('conclusions')}
 				/>
 			</div>
 			<div className="bg-bg-primary rounded-md">
@@ -119,6 +123,8 @@ export const RunsStats = (props: RunsStatsProps) => {
 					stats={stats}
 					period={period}
 					onSelect={onSelectionChange}
+					chartRef={linkedZoom.register('tests')}
+					onZoom={() => linkedZoom.syncFrom('tests')}
 				/>
 			</div>
 		</main>

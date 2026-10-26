@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo } from 'react';
+import { Ref, useMemo } from 'react';
+import ReactEChartsCore from 'echarts-for-react/lib/core';
 
 import { Plot } from '@/shared/charts';
 import { RUN_STATUS } from '@/shared/types';
 
-import { useChartClick } from '../runs-stats.hooks';
+import { useChartEvents } from '../runs-stats.hooks';
 import {
 	getConclusionTimelineOption,
 	getConclusionTotalsOption,
@@ -22,10 +23,12 @@ export interface ConclusionSectionProps {
 	stats: RunsChartBucket[];
 	period: RunsChartPeriod;
 	onSelect: (selection: RunsChartSelection) => void;
+	timelineRef?: Ref<ReactEChartsCore>;
+	onTimelineZoom?: () => void;
 }
 
 export const ConclusionSection = (props: ConclusionSectionProps) => {
-	const { stats, period, onSelect } = props;
+	const { stats, period, onSelect, timelineRef, onTimelineZoom } = props;
 	const statuses = useMemo(() => getPresentStatuses(stats), [stats]);
 	const totalsOption = useMemo(() => getConclusionTotalsOption(stats), [stats]);
 	const timelineOption = useMemo(
@@ -33,18 +36,18 @@ export const ConclusionSection = (props: ConclusionSectionProps) => {
 		[stats, period]
 	);
 
-	const totalsEvents = useChartClick(({ dataIndex }) => {
+	const totalsEvents = useChartEvents(({ dataIndex }) => {
 		const status = statuses[dataIndex]?.status;
 
 		if (status) onSelect({ status });
 	});
 
-	const timelineEvents = useChartClick(({ dataIndex, seriesId }) => {
+	const timelineEvents = useChartEvents(({ dataIndex, seriesId }) => {
 		const bucket = stats[dataIndex];
 
 		if (bucket && seriesId)
 			onSelect({ status: seriesId as RUN_STATUS, bucket });
-	});
+	}, onTimelineZoom);
 
 	return (
 		<section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
@@ -60,6 +63,7 @@ export const ConclusionSection = (props: ConclusionSectionProps) => {
 				<Plot
 					options={timelineOption}
 					onEvents={timelineEvents}
+					ref={timelineRef}
 					style={{ height: TIMELINE_HEIGHT }}
 				/>
 			</div>
