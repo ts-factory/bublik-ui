@@ -8,18 +8,12 @@ import { RUN_STATUS } from '@/shared/types';
 
 import { COLOR_MAP } from './runs-stats.component.utils';
 import { RunsChartBucket } from './runs-stats.types';
-import { RunsChartPeriod } from './runs-stats.utils';
+import { RunsChartPeriod, formatPeriodRange } from './runs-stats.utils';
 
 const AXIS_LABEL_FORMAT: Record<RunsChartPeriod, string> = {
 	day: 'MMM d',
 	week: 'MMM d',
 	month: 'MMM yyyy'
-};
-
-const TOOLTIP_TITLE_FORMAT: Record<RunsChartPeriod, string> = {
-	day: 'EEE, MMM d, yyyy',
-	week: "'Week of' MMM d, yyyy",
-	month: 'MMMM yyyy'
 };
 
 /** Past this many periods the timelines get a zoom slider */
@@ -45,10 +39,6 @@ function getPresentStatuses(buckets: RunsChartBucket[]) {
 		.map((status) => ({ status, count: getStatusCount(buckets, status) }))
 		.filter(({ count }) => count > 0)
 		.sort((left, right) => right.count - left.count);
-}
-
-function formatBucketTitle(date: Date, period: RunsChartPeriod): string {
-	return format(date, TOOLTIP_TITLE_FORMAT[period]);
 }
 
 interface TooltipRow {
@@ -197,7 +187,7 @@ function getConclusionTimelineOption(
 				}
 
 				return renderTooltip(
-					formatBucketTitle(bucket.date, period),
+					formatPeriodRange(bucket.date, period),
 					rows,
 					'No runs'
 				);
@@ -237,7 +227,7 @@ function getTestsTimelineOption(
 				const { ok, nok, total, passrate } = bucket.tests;
 
 				return renderTooltip(
-					formatBucketTitle(bucket.date, period),
+					formatPeriodRange(bucket.date, period),
 					total
 						? [
 								{

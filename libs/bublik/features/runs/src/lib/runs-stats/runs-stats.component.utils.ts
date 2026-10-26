@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { getRunStatusInfo } from '@/shared/tailwind-ui';
 import { RUN_STATUS } from '@/shared/types';
 
 import { RunIdsByStatus, RunsChartBucket } from './runs-stats.types';
@@ -32,6 +33,9 @@ export const getSelectionRunIds = (
 			: getRunIdsFromStatuses(item.runIdsByStatus)
 	);
 };
+
+export const getSelectionTitle = ({ status }: RunsChartSelection): string =>
+	status ? `${getRunStatusInfo(status).label.toUpperCase()} runs` : 'Runs';
 
 export interface RunsChartSummary {
 	runs: number;

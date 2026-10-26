@@ -1,14 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { ComponentProps } from 'react';
-
 import { useGetRunDetailsQuery } from '@/services/bublik-api';
 import {
 	cn,
-	Dialog,
+	DrawerContent,
+	DrawerFormHeader,
+	DrawerRoot,
 	getRunStatusInfo,
-	Icon,
-	ModalContent,
 	Skeleton
 } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
@@ -16,47 +14,48 @@ import { parseDetailDate } from '@/shared/utils';
 
 import { RunLinks } from '../../runs-table/columns';
 
-interface RunsListModal {
-	open: ComponentProps<typeof Dialog>['open'];
-	onOpenChange: ComponentProps<typeof Dialog>['onOpenChange'];
+interface RunsListDrawerProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	title: string;
+	description: string;
 	ids: string[];
 }
 
-export const RunsListModal = ({ ids, open, onOpenChange }: RunsListModal) => {
-	if (!ids.length) return null;
+export const RunsListDrawer = (props: RunsListDrawerProps) => {
+	const { ids, open, onOpenChange, title, description } = props;
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<ModalContent className="bg-bg-primary rounded-lg p-4 overflow-auto relative max-w-2xl">
-				<button
-					aria-label="Close modal"
-					className="rounded-md hover:bg-primary-wash p-1 absolute right-4 top-4 text-text-menu hover:text-primary"
-					onClick={() => onOpenChange?.(false)}
-				>
-					<Icon name="Cross" size={14} />
-				</button>
-				<h2 className="text-2xl font-bold leading-tight tracking-tight text-text-primary mb-2.5">
-					Run List
-				</h2>
-				<ul className="flex flex-col gap-4">
+		<DrawerRoot open={open} onOpenChange={onOpenChange}>
+			<DrawerContent
+				portal
+				className="w-screen max-w-2xl flex flex-col"
+				data-testid="runs-stats-drawer"
+			>
+				<div className="px-6 py-4 border-b border-border-primary shrink-0">
+					<DrawerFormHeader
+						name={title}
+						description={description}
+						onClose={() => onOpenChange(false)}
+					/>
+				</div>
+				<ul className="flex flex-col gap-2 p-6 overflow-auto">
 					{ids.map((id) => (
 						<li key={id}>
-							<RunsListModalItemContainer runId={id} />
+							<RunsListItemContainer runId={id} />
 						</li>
 					))}
 				</ul>
-			</ModalContent>
-		</Dialog>
+			</DrawerContent>
+		</DrawerRoot>
 	);
 };
 
-export interface RunsListModalItemContainerProps {
+export interface RunsListItemContainerProps {
 	runId: string;
 }
 
-const RunsListModalItemContainer = ({
-	runId
-}: RunsListModalItemContainerProps) => {
+const RunsListItemContainer = ({ runId }: RunsListItemContainerProps) => {
 	const query = useGetRunDetailsQuery(runId);
 
 	if (query.error) {
