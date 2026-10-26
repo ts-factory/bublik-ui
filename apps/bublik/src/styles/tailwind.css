@@ -110,6 +110,9 @@ body,
 	/* Boundary of form controls (inputs, selects, checkboxes); the same as
 	   border-primary in light, stronger in dark to keep 3:1 against the card */
 	--colors-border-input: var(--colors-border-primary);
+	/* A short rule between figures on a tinted cell, where border-primary
+	   all but vanishes: 3:1 on primary-wash, as border-input is in dark */
+	--colors-border-separator: 214 15% 57%;
 
 	/* INK: text-, fill- and stroke- utilities of the colours that are also
 	   solid fills. In light they are the fills themselves; dark needs a deeper
@@ -242,6 +245,7 @@ body,
 	--colors-bg-interrupted: 354 50% 48%;
 	--colors-border-primary: 0 0% 18%;
 	--colors-border-input: 0 0% 42%;
+	--colors-border-separator: var(--colors-border-input);
 
 	/* INK */
 	--colors-primary-ink: 229 95% 78%;

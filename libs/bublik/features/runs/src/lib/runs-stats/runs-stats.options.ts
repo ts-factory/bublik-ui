@@ -19,6 +19,9 @@ const AXIS_LABEL_FORMAT: Record<RunsChartPeriod, string> = {
 /** Past this many periods the timelines get a zoom slider */
 const SLIDER_MIN_BUCKETS = 24;
 
+/** Room beside the plot for the axis labels, the same in both timelines */
+const PLOT_MARGIN = 48;
+
 const compactNumber = new Intl.NumberFormat('en', { notation: 'compact' });
 const fullNumber = new Intl.NumberFormat('en');
 
@@ -84,18 +87,20 @@ function getTimelineBase(
 		legend: {
 			type: 'scroll',
 			top: 0,
-			left: 0,
+			// Starts where the plot does, over the y axis line
+			left: PLOT_MARGIN,
 			icon: 'roundRect',
 			itemWidth: 10,
 			itemHeight: 10,
 			textStyle: chartStyles.text
 		},
+		// Fixed margins rather than containLabel, so the two stacked timelines
+		// plot over the same width whatever their axis labels measure
 		grid: {
 			top: 40,
-			left: 8,
-			right: 8,
-			bottom: withSlider ? 44 : 8,
-			containLabel: true
+			left: PLOT_MARGIN,
+			right: PLOT_MARGIN,
+			bottom: withSlider ? 52 : 24
 		},
 		dataZoom: withSlider
 			? [
@@ -114,53 +119,11 @@ function getTimelineBase(
 	};
 }
 
-function getConclusionTotalsOption(buckets: RunsChartBucket[]): EChartsOption {
-	const statuses = getPresentStatuses(buckets);
-	const total = statuses.reduce((sum, { count }) => sum + count, 0);
-
-	return {
-		tooltip: { show: false },
-		grid: { top: 0, left: 8, right: 72, bottom: 0, containLabel: true },
-		xAxis: { type: 'value', show: false },
-		yAxis: {
-			type: 'category',
-			inverse: true,
-			data: statuses.map(({ status }) => getStatusLabel(status)),
-			axisLine: { show: false },
-			axisTick: { show: false }
-		},
-		series: [
-			{
-				type: 'bar',
-				id: 'conclusion-totals',
-				barMaxWidth: 12,
-				cursor: 'pointer',
-				data: statuses.map(({ status, count }) => ({
-					value: count,
-					itemStyle: {
-						color: getRunStatusInfo(status).bgRaw,
-						borderRadius: 3
-					}
-				})),
-				label: {
-					show: true,
-					position: 'right',
-					...chartStyles.text,
-					// The default halo smears the text on the dark surface
-					textBorderWidth: 0,
-					formatter: ({ value }) =>
-						`${value} · ${Math.round((Number(value) * 100) / total)}%`
-				}
-			}
-		]
-	};
-}
-
 function getConclusionTimelineOption(
 	buckets: RunsChartBucket[],
 	period: RunsChartPeriod
 ): EChartsOption {
-	// Least frequent on top of the stack, in the order of the totals chart
+	// Least frequent on top of the stack, in the order of the overview
 	const statuses = getPresentStatuses(buckets);
 
 	return {
@@ -308,7 +271,6 @@ function getTestsTimelineOption(
 
 export {
 	getConclusionTimelineOption,
-	getConclusionTotalsOption,
 	getPresentStatuses,
 	getTestsTimelineOption
 };
