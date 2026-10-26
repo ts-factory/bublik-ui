@@ -94,20 +94,25 @@ export const RunsStats = (props: RunsStatsProps) => {
 	const linkedZoom = useLinkedZoom();
 
 	return (
-		<main className="flex flex-col gap-1" data-testid="runs-stats">
+		// From xl up the charts share the height under the page header, as the
+		// log page fills the viewport; narrower, they stack at a fixed height
+		<main
+			className="flex flex-col gap-1 xl:h-[calc(100svh-92px)] xl:min-h-[640px]"
+			data-testid="runs-stats"
+		>
 			<SelectionDrawer
 				stats={stats}
 				period={period}
 				selection={selection}
 				onSelectionChange={onSelectionChange}
 			/>
-			<div className="bg-bg-primary rounded-md">
+			<div className="bg-bg-primary rounded-md shrink-0">
 				<CardHeader label="Overview">
 					<PeriodToggle period={period} onPeriodChange={onPeriodChange} />
 				</CardHeader>
 				<SummaryTiles summary={getSummary(stats)} />
 			</div>
-			<div className="bg-bg-primary rounded-md">
+			<div className="flex flex-col bg-bg-primary rounded-md xl:flex-1 xl:min-h-0">
 				<CardHeader label="Runs by conclusion" />
 				<ConclusionSection
 					stats={stats}
@@ -117,7 +122,7 @@ export const RunsStats = (props: RunsStatsProps) => {
 					onTimelineZoom={() => linkedZoom.syncFrom('conclusions')}
 				/>
 			</div>
-			<div className="bg-bg-primary rounded-md">
+			<div className="flex flex-col bg-bg-primary rounded-md xl:flex-1 xl:min-h-0">
 				<CardHeader label="Test results" />
 				<TestsSection
 					stats={stats}
