@@ -83,7 +83,7 @@ export const IssueResultsPage = () => {
 			data-testid="issue-results-page"
 		>
 			<IssueResultsHeader issueId={numericIssueId} projectId={projectId} />
-			<ResultTableHost>
+			<ResultTableHost selectionScope={`issue:${numericIssueId}`}>
 				<IssueResultsCard issueId={numericIssueId} projectId={projectId} />
 			</ResultTableHost>
 		</div>

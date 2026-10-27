@@ -48,6 +48,8 @@ const NO_RESULTS: RunDataResults[] = [];
 
 export interface ResultTableHostProps {
 	children: ReactNode;
+	/** What the selection belongs to; see `ResultSelectionProviderProps.scope`. */
+	selectionScope: string;
 }
 
 /**
@@ -57,7 +59,10 @@ export interface ResultTableHostProps {
  * in bulk, with its bar. All live for the page, as they do on the run page;
  * the filters themselves are in the URL.
  */
-export function ResultTableHost({ children }: ResultTableHostProps) {
+export function ResultTableHost({
+	children,
+	selectionScope
+}: ResultTableHostProps) {
 	const rowStateContext = useState<RunRowState>({}) as RowStateContextType;
 
 	return (
@@ -65,7 +70,9 @@ export function ResultTableHost({ children }: ResultTableHostProps) {
 			<RunRowStateContextProvider value={rowStateContext}>
 				{/* Raised over the footer that pages the results, which the run
 				    page's tables do not have. */}
-				<ResultSelectionProvider raised>{children}</ResultSelectionProvider>
+				<ResultSelectionProvider scope={selectionScope} raised>
+					{children}
+				</ResultSelectionProvider>
 			</RunRowStateContextProvider>
 		</GlobalRequirementsProvider>
 	);

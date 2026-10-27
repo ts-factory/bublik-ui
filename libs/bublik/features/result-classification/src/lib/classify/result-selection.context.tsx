@@ -59,6 +59,8 @@ export function useResultSelection(): ResultSelection | null {
 
 /** What is kept between pages: the picks, and the row compared against. */
 interface StoredSelection {
+	/** The run or issue the picks were made on; see `scope`. */
+	scope?: string;
 	results: SelectedResult[];
 	referenceResultId: number | null;
 }
@@ -68,6 +70,12 @@ const EMPTY: StoredSelection = { results: [], referenceResultId: null };
 
 export interface ResultSelectionProviderProps {
 	children: ReactNode;
+	/**
+	 * What the selection belongs to, such as `run:42`. A selection made under
+	 * one scope does not show under another: Classify takes the results of one
+	 * run, so picks made in one run have nothing to do in the next.
+	 */
+	scope: string;
 	/**
 	 * Lift the floating pill and the popover clear of a bar pinned to the
 	 * page's bottom edge — the footer the issue pages page their results
@@ -86,16 +94,33 @@ export interface ResultSelectionProviderProps {
  *
  * The selection is kept in local storage rather than in state, so leaving
  * the page — to a result's log, say — and coming back does not lose it;
- * nor does a reload. It is one selection for the browser, whichever page
- * holds the tables, until Clear or a classification empties it.
+ * nor does a reload. It is one selection for the browser, kept for the
+ * `scope` it was made under: another scope starts empty, and its first pick
+ * replaces it.
  */
 export function ResultSelectionProvider({
 	children,
+	scope,
 	raised = false
 }: ResultSelectionProviderProps) {
-	const [stored, setStored] = useLocalStorage<StoredSelection>(
+	const [storedAny, setStoredAny] = useLocalStorage<StoredSelection>(
 		STORAGE_KEY,
 		EMPTY
+	);
+	const stored = storedAny.scope === scope ? storedAny : EMPTY;
+
+	// Updates read the selection of this scope and write it back stamped with
+	// it; one that changes nothing leaves another scope's selection alone.
+	const setStored = useCallback(
+		(update: (prev: StoredSelection) => StoredSelection) => {
+			setStoredAny((prevAny) => {
+				const prev = prevAny.scope === scope ? prevAny : EMPTY;
+				const next = update(prev);
+
+				return next === prev ? prevAny : { ...next, scope };
+			});
+		},
+		[scope, setStoredAny]
 	);
 
 	// A selection stored before plain passes were refused can still hold them.
@@ -186,7 +211,7 @@ export function ResultSelectionProvider({
 		[setStored]
 	);
 
-	const clear = useCallback(() => setStored(EMPTY), [setStored]);
+	const clear = useCallback(() => setStored(() => EMPTY), [setStored]);
 
 	const targets = useMemo(() => classifyTargets(selected), [selected]);
 

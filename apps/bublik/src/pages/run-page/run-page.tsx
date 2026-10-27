@@ -104,8 +104,9 @@ export const RunPage = () => {
 			<RunHeader runId={runId} />
 			<GlobalRequirementsProvider>
 				{/* One selection across every open result table, so results of
-				    several tests go into one bulk classification. */}
-				<ResultSelectionProvider>
+				    several tests go into one bulk classification; it is the
+				    run's own, as the run issues page's is. */}
+				<ResultSelectionProvider scope={`run:${runId}`}>
 					<RunTableContainer runId={runId} />
 				</ResultSelectionProvider>
 			</GlobalRequirementsProvider>

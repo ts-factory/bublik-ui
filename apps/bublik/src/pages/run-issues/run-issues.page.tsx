@@ -79,7 +79,8 @@ function RunIssuesPage() {
 		>
 			<RunIssuesHeader runId={runId} />
 			<div className="flex flex-col flex-1 min-h-0 bg-bg-primary rounded">
-				<ResultTableHost>
+				{/* The run page's selection, as the results are the run's. */}
+				<ResultTableHost selectionScope={`run:${runId}`}>
 					<RunIssuesTable
 						runId={runId}
 						projectId={projectId}
