@@ -33,6 +33,14 @@ Feature: Classify drawer
     And the bug key keeps only the key
     And I close the drawer without classifying
 
+  @issues @needs-nok
+  Scenario: Results picked in one run are not selected in another run
+    Given I pick a failing result of the fixture run
+    When I open another run
+    Then no results are selected there
+    When I go back to the first run
+    Then the result I picked is still selected
+
   @issues @issues-write @needs-nok
   Scenario Outline: Classifying with a category shows it on the new issue
     Given I open the Classify drawer on a failing result of the fixture run

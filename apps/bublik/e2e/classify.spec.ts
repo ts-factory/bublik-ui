@@ -22,6 +22,7 @@ import {
 import type { IssueCategory } from './support/classification';
 import { projectIdByName } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
+import { requireManifest } from './support/manifest';
 import {
 	claimClassifiableTest,
 	claimFailingResult,
@@ -255,6 +256,61 @@ test.describe('Classify drawer', () => {
 			await and('I close the drawer without classifying', () =>
 				opened.drawer.close()
 			);
+		}
+	);
+
+	test(
+		'Results picked in one run are not selected in another run',
+		{ tag: ['@issues', '@needs-nok'] },
+		async ({ page, request }) => {
+			const runPage = new RunPage(page);
+			const stamps = new ResultStamps(page);
+			const toggle = page.getByTestId('results-selection-toggle');
+			let failing!: ClassifiableResult;
+
+			await given('I pick a failing result of the fixture run', async () => {
+				failing = await claimFailingResult(
+					request,
+					`classify ${test.info().title}`
+				);
+				await runPage.goto(failing.run.runId);
+				await runPage.expectLoaded(failing.run.expectedRun.name);
+				const table = await stamps.openTestResults(failing.path);
+				await runPage.selectResultCell(
+					runPage.resultCellOf(table, failing.resultId)
+				);
+				await expect(toggle).toHaveAttribute('data-count', '1');
+			});
+			await when('I open another run', async () => {
+				const other = requireCapability(
+					requireManifest().bundles.find(
+						(bundle) =>
+							bundle.runId &&
+							bundle.runId !== failing.runId &&
+							bundle.expectedRuns[0]
+					),
+					'The fixture manifest has no run besides the classifiable one.'
+				);
+				await runPage.goto(Number(other.runId));
+				await runPage.expectLoaded(other.expectedRuns[0].name);
+			});
+			await then('no results are selected there', async () => {
+				await expect(toggle).toHaveCount(0);
+				await expect(page.getByTestId('results-selection-popover')).toHaveCount(
+					0
+				);
+			});
+			await when('I go back to the first run', async () => {
+				await runPage.goto(failing.run.runId);
+				await runPage.expectLoaded(failing.run.expectedRun.name);
+			});
+			await then('the result I picked is still selected', async () => {
+				await expect(toggle).toHaveAttribute('data-count', '1');
+				const table = await stamps.openTestResults(failing.path);
+				await expect(
+					runPage.resultCellOf(table, failing.resultId)
+				).toHaveAttribute('data-selected', '');
+			});
 		}
 	);
 
