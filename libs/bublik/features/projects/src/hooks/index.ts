@@ -15,6 +15,10 @@ import {
 	mergeParamsWithSidebarState,
 	mergeStringUrlWithSidebarState
 } from '../lib/sidebar-params.utils';
+import {
+	forgetLastProjectId,
+	writeLastProjectIds
+} from '../lib/last-project.utils';
 
 function useProjectSearch() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -31,6 +35,7 @@ function useProjectSearch() {
 		params.delete(PROJECT_KEY);
 		projectIds.forEach((id) => params.append(PROJECT_KEY, id.toString()));
 
+		writeLastProjectIds(projectIds);
 		setSearchParams(params);
 	}
 
@@ -124,6 +129,7 @@ function useDeleteProject({ id }: UseProjectParams) {
 		});
 
 		await promise;
+		forgetLastProjectId(id);
 	}
 
 	return { deleteProject };

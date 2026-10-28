@@ -5,7 +5,10 @@ import { useSearchParams } from 'react-router-dom';
 
 import { usePageLayout } from '@/shared/hooks';
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
-import { HIDE_SIDEBAR_QUERY_KEY } from '@/bublik/features/projects';
+import {
+	HIDE_SIDEBAR_QUERY_KEY,
+	RestoreLastProjectContainer
+} from '@/bublik/features/projects';
 import { SidebarContainer } from './sidebar-container';
 
 const parseHideSidebarQuery = (value: string | null) => {
@@ -27,16 +30,18 @@ export const Layout = (props: PropsWithChildren) => {
 	const { layout } = usePageLayout();
 
 	return (
-		<AppShell
-			sidebar={<SidebarContainer />}
-			hideSidebar={hideSidebar}
-			layout={layout}
-		>
-			<ErrorBoundary>
-				<Suspense fallback={<Spinner className="h-screen" />}>
-					{props.children}
-				</Suspense>
-			</ErrorBoundary>
-		</AppShell>
+		<RestoreLastProjectContainer>
+			<AppShell
+				sidebar={<SidebarContainer />}
+				hideSidebar={hideSidebar}
+				layout={layout}
+			>
+				<ErrorBoundary>
+					<Suspense fallback={<Spinner className="h-screen" />}>
+						{props.children}
+					</Suspense>
+				</ErrorBoundary>
+			</AppShell>
+		</RestoreLastProjectContainer>
 	);
 };
