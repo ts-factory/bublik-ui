@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import {
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -10,16 +9,22 @@ import {
 } from '@tanstack/react-table';
 
 import { User } from '@/shared/types';
-import { cn, Pagination, Skeleton, TableSort } from '@/shared/tailwind-ui';
+import { useIsScrollbarVisible } from '@/shared/hooks';
+import { Pagination, Skeleton } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
+import {
+	ClassificationFooter,
+	ClassificationRange,
+	ClassificationTable
+} from '@/bublik/features/result-classification';
 
-import { columns } from './users-table.columns';
+import { columns, PINNED_LAST_COLUMNS } from './users-table.columns';
 
 export const UsersTableLoading = () => {
 	return (
-		<div className="flex flex-col gap-1 mt-1">
+		<div className="flex flex-col gap-1 p-2">
 			{Array.from({ length: 25 }, () => 0).map((_, idx) => (
-				<Skeleton key={idx} className="h-10 rounded-md" />
+				<Skeleton key={idx} className="h-[34px] rounded-md" />
 			))}
 		</div>
 	);
@@ -32,7 +37,7 @@ interface UsersTableErrorProps {
 export const UsersTableError = (props: UsersTableErrorProps) => {
 	const { error = {} } = props;
 
-	return <BublikErrorState error={error} className="h-[calc(100vh-256px)]" />;
+	return <BublikErrorState error={error} className="flex-1" />;
 };
 
 export const UsersTableEmpty = () => {
@@ -40,7 +45,7 @@ export const UsersTableEmpty = () => {
 		<BublikEmptyState
 			title="No results"
 			description="No results found"
-			className="h-[calc(100vh-256px)]"
+			className="flex-1"
 			iconClassName="text-text-unexpected"
 		/>
 	);
@@ -52,6 +57,7 @@ interface UsersTableProps {
 
 export const UsersTable = (props: UsersTableProps) => {
 	const { users } = props;
+	const [scrollRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 
 	const table = useReactTable<User>({
 		initialState: {
@@ -66,66 +72,47 @@ export const UsersTable = (props: UsersTableProps) => {
 		getPaginationRowModel: getPaginationRowModel()
 	});
 
+	const { pagination } = table.getState();
+
+	function scrollToTop() {
+		scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
 	return (
-		<div className="overflow-x-auto">
-			<table className="min-w-full border-separate table-fixed border-spacing-y-1">
-				<thead className="bg-bg-primary">
-					{table.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id} className="h-8.5">
-							{headerGroup.headers.map((header) => (
-								<th key={header.id} colSpan={header.colSpan}>
-									{header.isPlaceholder ? null : (
-										<div
-											className={cn(
-												'flex items-center gap-1 px-4 py-2 font-bold text-[0.6875rem] leading-[0.875rem] tracking-wider text-left uppercase transition-colors select-none',
-												header.column.getIsSorted() && 'bg-primary-wash',
-												header.column.getCanSort() &&
-													'hover:bg-primary-wash cursor-pointer rounded-md'
-											)}
-											{...(header.column.getCanSort() && {
-												onClick: header.column.getToggleSortingHandler()
-											})}
-										>
-											{flexRender(
-												header.column.columnDef.header,
-												header.getContext()
-											)}
-											{header.column.getCanSort() && (
-												<TableSort
-													sortDescription={header.column.getIsSorted()}
-												/>
-											)}
-										</div>
-									)}
-								</th>
-							))}
-						</tr>
-					))}
-				</thead>
-				<tbody className="bg-bg-primary">
-					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="group">
-							{row.getVisibleCells().map((cell) => (
-								<td
-									key={cell.id}
-									className="px-4 py-2 text-sm font-medium transition-colors border-t border-b border-transparent text-text-primary whitespace-nowrap first:border-l last:border-r first:rounded-l last:rounded-r group-hover:border-primary group-hover:first:border-primary group-hover:last:border-primary"
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</td>
-							))}
-						</tr>
-					))}
-				</tbody>
-			</table>
-			<div className="flex items-center justify-center">
-				<Pagination
-					totalCount={users.length}
-					pageSize={table.getState().pagination.pageSize}
-					onPageChange={(page) => table.setPageIndex(page - 1)}
-					onPageSizeChange={table.setPageSize}
-					currentPage={table.getState().pagination.pageIndex + 1}
+		<div className="flex flex-col flex-1 min-h-0">
+			<div ref={scrollRef} className="flex-1 min-h-0 overflow-auto bg-bg-body">
+				<ClassificationTable
+					table={table}
+					stickyHeader
+					endGutter
+					gutterBefore={PINNED_LAST_COLUMNS}
+					scrollRef={scrollRef}
+					testId="users-table"
 				/>
 			</div>
+			<ClassificationFooter isScrollable={isScrollable}>
+				<ClassificationRange
+					matchedCount={users.length}
+					pageIndex={pagination.pageIndex}
+					pageSize={pagination.pageSize}
+					noun="user"
+				/>
+				<Pagination
+					className="ml-auto"
+					variant="compact"
+					totalCount={users.length}
+					pageSize={pagination.pageSize}
+					currentPage={pagination.pageIndex + 1}
+					onPageChange={(page) => {
+						table.setPageIndex(page - 1);
+						scrollToTop();
+					}}
+					onPageSizeChange={(pageSize) => {
+						table.setPageSize(pageSize);
+						scrollToTop();
+					}}
+				/>
+			</ClassificationFooter>
 		</div>
 	);
 };

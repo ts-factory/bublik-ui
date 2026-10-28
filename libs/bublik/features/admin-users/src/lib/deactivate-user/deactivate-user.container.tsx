@@ -3,6 +3,7 @@
 import { useConfirm } from '@/shared/hooks';
 import { ConfirmDialog, Tooltip } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
+import { DESTRUCTIVE_FILL_CLASS } from '@/bublik/features/result-classification';
 
 import { ActionButton } from '../action-button';
 import { useAdminUsers } from '../users-table';
@@ -41,7 +42,8 @@ export const DeactivateUserContainer = ({
 				<ActionButton
 					aria-label="Deactivate user"
 					icon="CrossSimple"
-					className="text-text-unexpected hover:bg-bg-fillError/20"
+					variant="destruction-secondary"
+					className={DESTRUCTIVE_FILL_CLASS}
 					onClick={handleDeleteUserClick}
 				/>
 			</Tooltip>

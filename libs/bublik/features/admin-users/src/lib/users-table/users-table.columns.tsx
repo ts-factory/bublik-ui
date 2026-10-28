@@ -3,8 +3,13 @@
 import { createColumnHelper } from '@tanstack/react-table';
 
 import { AdminUpdateUserInputs, User } from '@/shared/types';
-import { Badge } from '@/shared/tailwind-ui';
-import { formatTimeToDot, upperCaseFirstLetter } from '@/shared/utils';
+import { Badge, Tooltip } from '@/shared/tailwind-ui';
+import { ISSUE_ACTIONS_COLUMN_META } from '@/bublik/features/result-classification';
+import {
+	formatTimeToDot,
+	formatTimestampToFull,
+	upperCaseFirstLetter
+} from '@/shared/utils';
 
 import { UpdateUserFormModalContainer } from '../update-user-form';
 import {
@@ -16,32 +21,14 @@ import { ActivateUserContainer } from '../activate-user';
 
 const helper = createColumnHelper<User>();
 
+/** Each column hugs its widest value; the table's gutter takes the rest. */
+const TEXT_COLUMN_META = { width: 'minmax(6rem, max-content)' } as const;
+const BADGE_COLUMN_META = { width: 'auto', badgeCell: true } as const;
+
 export const columns = [
-	helper.display({
-		header: 'Actions',
-		cell: (cell) => {
-			const user = cell.row.original;
-
-			const defaultUpdateValues: AdminUpdateUserInputs = {
-				email: user.email,
-				first_name: user.first_name,
-				last_name: user.last_name
-			};
-
-			return (
-				<div className="flex items-center gap-2">
-					<UpdateUserFormModalContainer defaultValues={defaultUpdateValues} />
-					{user.status === 'deactivated' ? (
-						<ActivateUserContainer email={user.email} />
-					) : (
-						<DeactivateUserContainer email={user.email} />
-					)}
-				</div>
-			);
-		}
-	}),
 	helper.accessor('roles', {
 		header: 'Role',
+		meta: BADGE_COLUMN_META,
 		cell: (cell) => {
 			return (
 				<Badge className={getBadgeColorByRole(cell.getValue<User['roles']>())}>
@@ -51,13 +38,16 @@ export const columns = [
 		}
 	}),
 	helper.accessor('first_name', {
-		header: 'First name'
+		header: 'First name',
+		meta: TEXT_COLUMN_META
 	}),
 	helper.accessor('last_name', {
-		header: 'Last name'
+		header: 'Last name',
+		meta: TEXT_COLUMN_META
 	}),
 	helper.accessor('status', {
 		header: 'Status',
+		meta: BADGE_COLUMN_META,
 		cell: (cell) => {
 			const status = cell.getValue<User['status']>();
 			const { variant, className } = getBadgeStyleByStatus(status);
@@ -71,10 +61,16 @@ export const columns = [
 	}),
 	helper.accessor('date_joined', {
 		header: 'Joined',
-		cell: (cell) => formatTimeToDot(cell.getValue<string>())
+		meta: { width: 'auto' },
+		cell: (cell) => (
+			<Tooltip content={`Joined ${formatTimestampToFull(cell.getValue())}`}>
+				<span className="tabular-nums">{formatTimeToDot(cell.getValue())}</span>
+			</Tooltip>
+		)
 	}),
 	helper.accessor('email', {
 		header: 'Email',
+		meta: { width: 'minmax(12rem, max-content)' },
 		cell: (cell) => {
 			return (
 				<a
@@ -85,5 +81,32 @@ export const columns = [
 				</a>
 			);
 		}
+	}),
+	helper.display({
+		id: 'actions',
+		header: 'Actions',
+		meta: ISSUE_ACTIONS_COLUMN_META,
+		cell: (cell) => {
+			const user = cell.row.original;
+
+			const defaultUpdateValues: AdminUpdateUserInputs = {
+				email: user.email,
+				first_name: user.first_name,
+				last_name: user.last_name
+			};
+
+			return (
+				<div className="flex items-center gap-1 w-fit">
+					<UpdateUserFormModalContainer defaultValues={defaultUpdateValues} />
+					{user.status === 'deactivated' ? (
+						<ActivateUserContainer email={user.email} />
+					) : (
+						<DeactivateUserContainer email={user.email} />
+					)}
+				</div>
+			);
+		}
 	})
 ];
+
+export const PINNED_LAST_COLUMNS = ['actions'] as const;
