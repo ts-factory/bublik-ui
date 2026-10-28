@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* eslint-disable playwright/expect-expect */
+import { APIRequestContext, Page } from '@playwright/test';
+
 import { expect, test } from './support/test';
 
 import { ConfigPage } from './pages/config-page';
@@ -15,9 +17,11 @@ import { RunsPage } from './pages/runs-page';
 import { RunPage } from './pages/run-page';
 import { Sidebar } from './pages/sidebar';
 import { LogPage } from './pages/log-page';
+import { ProjectPicker } from './pages/project-picker';
 import { requireManifest } from './support/manifest';
 import { projectIdByName, representativeImportedRun } from './support/e2e-data';
 import { requireCapability } from './support/capabilities';
+import { runPairOnDifferentProjects } from './support/sample-cases';
 import { IssueCleanup } from './support/classification';
 import { SIDEBAR_ALIASES, sidebarState } from './support/sidebar-state';
 import { urlParams } from './support/url-params';
@@ -25,6 +29,46 @@ import { and, given, then, when } from './support/gherkin';
 import { pressMod } from './support/hotkeys';
 
 const issueCleanup = new IssueCleanup('navigation');
+
+/** Two runs of one day, each in its own project, with the project ids resolved. */
+async function projectPair(request: APIRequestContext) {
+	const pair = requireCapability(
+		runPairOnDifferentProjects(requireManifest()),
+		'Fixture manifest contains no two projects with runs on the same day.'
+	);
+	const [picked, other] = await Promise.all(
+		pair.runs.map(async (run) => ({
+			...run,
+			projectId: requireCapability(
+				await projectIdByName(request, run.project),
+				`Project "${run.project}" is not registered.`
+			)
+		}))
+	);
+
+	return { date: pair.date, picked, other };
+}
+
+type ProjectPair = Awaited<ReturnType<typeof projectPair>>;
+
+async function pickProjectInSidebar(page: Page, pair: ProjectPair) {
+	await new DashboardPage(page).goto(pair.date, { mode: 'rows' });
+	await new ProjectPicker(page).select(pair.picked.projectId);
+}
+
+/** A tab in the same browser, so it shares the remembered project. */
+async function openDashboardInNewTab(
+	page: Page,
+	pair: ProjectPair,
+	projectId?: number
+) {
+	const tab = await page.context().newPage();
+	const dashboard = new DashboardPage(tab);
+
+	await dashboard.goto(pair.date, { mode: 'rows', projectId });
+
+	return { dashboard, picker: new ProjectPicker(tab) };
+}
 
 test.describe('Navigation', () => {
 	test.afterEach(async ({ request }, testInfo) => {
@@ -248,6 +292,101 @@ test.describe('Navigation', () => {
 			);
 			await then('each page is still scoped to that project', () =>
 				historyPage.expectParams({ project: projectId })
+			);
+		}
+	);
+
+	test(
+		'A new tab opens on the project I last picked in the sidebar',
+		{ tag: ['@url-params'] },
+		async ({ page, request }) => {
+			const pair = await given(
+				'two runs of different projects were imported for the same day',
+				() => projectPair(request)
+			);
+
+			await and("I pick the first run's project in the sidebar", () =>
+				pickProjectInSidebar(page, pair)
+			);
+			const tab = await when(
+				'I open the dashboard for that day in a new tab without a project',
+				() => openDashboardInNewTab(page, pair)
+			);
+			await then('the new tab is scoped to the project I picked', async () => {
+				await tab.dashboard.expectParams({
+					project: String(pair.picked.projectId)
+				});
+				await tab.picker.expectSelectedLabel(pair.picked.project);
+			});
+			await and("only that project's run is listed in it", async () => {
+				await tab.dashboard.expectRunIdVisible(pair.picked.runId);
+				await tab.dashboard.expectRunIdHidden(pair.other.runId);
+			});
+		}
+	);
+
+	test(
+		'A project in the address wins over the one I last picked',
+		{ tag: ['@url-params'] },
+		async ({ page, request }) => {
+			const pair = await given(
+				'two runs of different projects were imported for the same day',
+				() => projectPair(request)
+			);
+
+			await and("I pick the first run's project in the sidebar", () =>
+				pickProjectInSidebar(page, pair)
+			);
+			const scopedTab = await when(
+				'I open the dashboard for that day in a new tab scoped to the other project',
+				() => openDashboardInNewTab(page, pair, pair.other.projectId)
+			);
+			await then('the new tab stays scoped to the other project', async () => {
+				await scopedTab.dashboard.expectRunIdVisible(pair.other.runId);
+				await scopedTab.dashboard.expectRunIdHidden(pair.picked.runId);
+				await scopedTab.dashboard.expectParams({
+					project: String(pair.other.projectId)
+				});
+				await scopedTab.picker.expectSelectedLabel(pair.other.project);
+			});
+			const plainTab = await when(
+				'I open the dashboard for that day in another new tab without a project',
+				() => openDashboardInNewTab(page, pair)
+			);
+			await then('that tab is scoped to the project I picked', async () => {
+				await plainTab.dashboard.expectParams({
+					project: String(pair.picked.projectId)
+				});
+				await plainTab.picker.expectSelectedLabel(pair.picked.project);
+			});
+		}
+	);
+
+	test(
+		'Picking All in the sidebar is remembered for new tabs',
+		{ tag: ['@url-params'] },
+		async ({ page, request }) => {
+			const pair = await given(
+				'two runs of different projects were imported for the same day',
+				() => projectPair(request)
+			);
+
+			await and(
+				"I pick the first run's project in the sidebar and then All",
+				async () => {
+					await pickProjectInSidebar(page, pair);
+					await new ProjectPicker(page).selectAll();
+				}
+			);
+			const tab = await when(
+				'I open the dashboard for that day in a new tab without a project',
+				() => openDashboardInNewTab(page, pair)
+			);
+			await then('both runs are listed in it', () =>
+				tab.dashboard.expectRunIdsVisible([pair.picked.runId, pair.other.runId])
+			);
+			await and('the new tab is not scoped to any project', () =>
+				tab.dashboard.expectParams({ project: null })
 			);
 		}
 	);
