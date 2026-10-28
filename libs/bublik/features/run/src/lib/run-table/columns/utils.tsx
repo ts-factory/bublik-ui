@@ -31,6 +31,7 @@ export const createRunColumn = (
 					value={value}
 				/>
 			);
-		}
+		},
+		meta: { align: 'right' }
 	};
 };
