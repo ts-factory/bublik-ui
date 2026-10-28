@@ -246,7 +246,15 @@ function TableBadgeModel({
 
 	if (rowId === rootRowId && value) {
 		return (
-			<div className="flex items-center gap-1">
+			<div className="flex items-center justify-end gap-1">
+				<OpenTooltip onClick={handlePackageClick(true, 'open_tooltip')}>
+					<Icon
+						name="InformationCircleQuestionMark"
+						size={16}
+						className="text-primary"
+						aria-label="Expand results"
+					/>
+				</OpenTooltip>
 				<Badge
 					data-column-id={columnId}
 					data-selected={isActive}
@@ -257,19 +265,11 @@ function TableBadgeModel({
 				>
 					{value}
 				</Badge>
-				<OpenTooltip onClick={handlePackageClick(true, 'open_tooltip')}>
-					<Icon
-						name="InformationCircleQuestionMark"
-						size={16}
-						className="text-primary"
-						aria-label="Expand results"
-					/>
-				</OpenTooltip>
 			</div>
 		);
 	}
 
-	if (!value) return <span className="pl-2.5">{0}</span>;
+	if (!value) return <span className="pr-2.5">{0}</span>;
 
 	return (
 		<Badge
