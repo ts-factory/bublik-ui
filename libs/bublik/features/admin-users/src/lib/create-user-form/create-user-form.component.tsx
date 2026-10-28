@@ -13,6 +13,7 @@ import {
 	Dialog,
 	DialogTrigger,
 	FormAlertError,
+	Icon,
 	TextField
 } from '@/shared/tailwind-ui';
 
@@ -100,7 +101,14 @@ export const CreateUserModal = forwardRef<
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTrigger asChild>
-				<ButtonTw>Create User</ButtonTw>
+				<ButtonTw
+					variant={open ? 'primary' : 'secondary'}
+					size="xss"
+					className="justify-center whitespace-nowrap"
+				>
+					<Icon name="AddSymbol" className="mr-1 size-5" />
+					Create User
+				</ButtonTw>
 			</DialogTrigger>
 			<UsersModalLayout label="Create User">
 				<CreateUserForm {...props} ref={ref} />

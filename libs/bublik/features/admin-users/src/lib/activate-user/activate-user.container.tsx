@@ -41,7 +41,6 @@ export const ActivateUserContainer = ({
 				<ActionButton
 					aria-label="Reactivate user"
 					icon="Refresh"
-					className="text-text-expected hover:bg-badge-3"
 					onClick={handleActivateUserClick}
 				/>
 			</Tooltip>
