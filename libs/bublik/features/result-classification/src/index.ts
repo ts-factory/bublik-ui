@@ -6,10 +6,12 @@ export * from './lib/sidebar';
 export {
 	ClassificationFooter,
 	ClassificationRange,
+	ClassificationTable,
 	ClassificationToolbar,
 	ClassificationToolbarSeparator,
 	useSubRowPin
 } from './lib/classification-table/classification-table.component';
+export { ISSUE_ACTIONS_COLUMN_META } from './lib/issue-detail/issue-actions.constants';
 export type { SubRowPin } from './lib/classification-table/classification-table.component';
 export {
 	PageParam,
