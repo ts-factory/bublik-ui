@@ -87,6 +87,34 @@ Feature: Navigation
     When I move to the runs page and then to the history page
     Then each page is still scoped to that project
 
+  # The project picked in the sidebar is remembered in the browser, so a tab
+  # opened on an address without one starts on it. A project the address names
+  # always wins, so a shared link opens exactly as it was written.
+  @url-params
+  Scenario: A new tab opens on the project I last picked in the sidebar
+    Given two runs of different projects were imported for the same day
+    And I pick the first run's project in the sidebar
+    When I open the dashboard for that day in a new tab without a project
+    Then the new tab is scoped to the project I picked
+    And only that project's run is listed in it
+
+  @url-params
+  Scenario: A project in the address wins over the one I last picked
+    Given two runs of different projects were imported for the same day
+    And I pick the first run's project in the sidebar
+    When I open the dashboard for that day in a new tab scoped to the other project
+    Then the new tab stays scoped to the other project
+    When I open the dashboard for that day in another new tab without a project
+    Then that tab is scoped to the project I picked
+
+  @url-params
+  Scenario: Picking All in the sidebar is remembered for new tabs
+    Given two runs of different projects were imported for the same day
+    And I pick the first run's project in the sidebar and then All
+    When I open the dashboard for that day in a new tab without a project
+    Then both runs are listed in it
+    And the new tab is not scoped to any project
+
   @url-params
   Scenario: The compressed sidebar state remembers the run I was last looking at
     Given I open an imported run's page
