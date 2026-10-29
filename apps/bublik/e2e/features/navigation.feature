@@ -68,6 +68,15 @@ Feature: Navigation
     Then the page is light
     And the Appearance settings show Light as the active theme
 
+  Scenario: The account menu switches the page layout and remembers it
+    Given my screen is wide and I open the dashboard
+    When I pick Centered from the Layout row of my account menu
+    Then the page is capped and centered together with the sidebar
+    When I reload the page
+    Then the page is still centered together with the sidebar
+    When I pick Left sidebar from the Layout row of my account menu
+    Then the sidebar is at the left edge and the capped page is centered beside it
+
   Scenario: An unknown address shows the not-found page
     When I open an address that does not exist
     Then the not-found page is shown
