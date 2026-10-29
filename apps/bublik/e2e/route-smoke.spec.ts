@@ -25,6 +25,8 @@ import { and, given, then, when } from './support/gherkin';
 import { pressMod } from './support/hotkeys';
 
 const issueCleanup = new IssueCleanup('navigation');
+/** Wider than the capped page and the sidebar, so the layouts differ */
+const WIDE_SCREEN = { width: 2560, height: 1200 };
 
 test.describe('Navigation', () => {
 	test.afterEach(async ({ request }, testInfo) => {
@@ -195,6 +197,37 @@ test.describe('Navigation', () => {
 		await then('the page is light', () => sidebar.expectTheme('light'));
 		await and('the Appearance settings show Light as the active theme', () =>
 			sidebar.expectActiveTheme('Light')
+		);
+	});
+
+	test('The account menu switches the page layout and remembers it', async ({
+		page
+	}) => {
+		const dashboardPage = new DashboardPage(page);
+		const sidebar = new Sidebar(page);
+
+		await given('my screen is wide and I open the dashboard', async () => {
+			await page.setViewportSize(WIDE_SCREEN);
+			await dashboardPage.goto();
+		});
+		await when('I pick Centered from the Layout row of my account menu', () =>
+			sidebar.pickLayout('Centered')
+		);
+		await then(
+			'the page is capped and centered together with the sidebar',
+			() => sidebar.expectPageLayout('centered')
+		);
+		await when('I reload the page', () => page.reload());
+		await then('the page is still centered together with the sidebar', () =>
+			sidebar.expectPageLayout('centered')
+		);
+		await when(
+			'I pick Left sidebar from the Layout row of my account menu',
+			() => sidebar.pickLayout('Left sidebar')
+		);
+		await then(
+			'the sidebar is at the left edge and the capped page is centered beside it',
+			() => sidebar.expectPageLayout('sidebar-left')
 		);
 	});
 

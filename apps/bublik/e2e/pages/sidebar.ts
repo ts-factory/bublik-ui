@@ -4,6 +4,10 @@ import { expect, Locator, Page } from '@playwright/test';
 
 const HOVER_CARD_OPEN_TIMEOUT = 5_000;
 const RELEASE_TAG = /^v\d+\.\d+\.\d+/;
+/** `--page-max-width` in the app's stylesheet: the sidebar and page together */
+const PAGE_MAX_WIDTH = 1920;
+
+type PageLayoutName = 'Full width' | 'Left sidebar' | 'Centered';
 
 class Sidebar {
 	constructor(private readonly page: Page) {}
@@ -121,6 +125,69 @@ class Sidebar {
 		} else {
 			await expect(html).not.toHaveClass(/(^|\s)dark(\s|$)/);
 		}
+	}
+
+	/** Picks a layout from the tray on the account menu's Layout row */
+	async pickLayout(name: PageLayoutName): Promise<void> {
+		await this.openAccountMenu();
+		const option = this.page.getByRole('menuitemradio', {
+			name: `${name} layout`,
+			exact: true
+		});
+		await option.click();
+		await expect(option).toHaveAttribute('aria-checked', 'true');
+		await this.closeAccountMenu();
+	}
+
+	/**
+	 * Where the sidebar and the page sit on screen. Polled, as the centered
+	 * layout slides into place with the sidebar's own animation.
+	 */
+	async expectPageLayout(
+		layout: 'full' | 'sidebar-left' | 'centered'
+	): Promise<void> {
+		await expect
+			.poll(
+				() =>
+					this.page.evaluate(
+						([expected, maxWidth]) => {
+							const viewport = window.innerWidth;
+							const sidebar = document
+								.querySelector('#sidebar')
+								?.getBoundingClientRect();
+							const content = document
+								.querySelector('#page-content')
+								?.getBoundingClientRect();
+							if (!sidebar || !content) return 'no sidebar or page';
+
+							const near = (a: number, b: number) => Math.abs(a - b) <= 1;
+							const width = sidebar.width + content.width;
+							const capped = near(width, maxWidth);
+							const rightGutter = viewport - content.right;
+
+							if (expected === 'full') {
+								return near(content.left, sidebar.right) &&
+									near(content.right, viewport)
+									? 'ok'
+									: 'page does not fill the width';
+							}
+							if (!capped) return `sidebar and page are ${width}px wide`;
+							if (expected === 'sidebar-left') {
+								return near(sidebar.left, 0) &&
+									near(content.left - sidebar.right, rightGutter)
+									? 'ok'
+									: 'page is not centered beside the sidebar';
+							}
+							return near(sidebar.left, rightGutter) &&
+								near(content.left, sidebar.right)
+								? 'ok'
+								: 'sidebar and page are not centered together';
+						},
+						[layout, PAGE_MAX_WIDTH] as const
+					),
+				{ timeout: 5_000 }
+			)
+			.toBe('ok');
 	}
 
 	/** The main Issues item; the submenu repeats the name, so take the first. */
