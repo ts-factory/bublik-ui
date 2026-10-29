@@ -89,7 +89,7 @@ function resolveRunReportChartOptions(
 		tooltip: {
 			trigger: 'axis',
 			textStyle: chartStyles.text,
-			extraCssText: 'shadow-popover rounded-lg',
+			extraCssText: chartStyles.tooltip,
 			axisPointer: { type: 'line' }
 		},
 		legend: {

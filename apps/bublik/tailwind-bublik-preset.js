@@ -55,6 +55,8 @@ module.exports = {
 				'bg-interrupted': 'hsl(var(--colors-bg-interrupted) / <alpha-value>)',
 				'border-primary': 'hsl(var(--colors-border-primary) / <alpha-value>)',
 				'border-input': 'hsl(var(--colors-border-input) / <alpha-value>)',
+				'border-separator':
+					'hsl(var(--colors-border-separator) / <alpha-value>)',
 				'badge-0': 'hsl(var(--colors-badge-0) / <alpha-value>)',
 				'badge-1': 'hsl(var(--colors-badge-1) / <alpha-value>)',
 				'badge-2': 'hsl(var(--colors-badge-2) / <alpha-value>)',

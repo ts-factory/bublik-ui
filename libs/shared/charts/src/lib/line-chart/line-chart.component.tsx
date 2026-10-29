@@ -39,7 +39,7 @@ export const LineChart = forwardRef<ReactEChartsCore, LineChartProps>(
 			},
 			tooltip: {
 				textStyle: chartStyles.text,
-				extraCssText: 'shadow-popover rounded-lg',
+				extraCssText: chartStyles.tooltip,
 				...tooltip
 			},
 			legend,

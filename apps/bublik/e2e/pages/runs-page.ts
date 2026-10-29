@@ -9,6 +9,8 @@ import { UrlParams, urlParams } from '../support/url-params';
 
 type RunsMode = 'table' | 'charts' | 'progress';
 
+type RunsChartsPeriod = 'Day' | 'Week' | 'Month';
+
 type RunsBadgeColumn = 'important_tags' | 'Metadata' | 'Tags';
 
 interface DiscriminatingBadge {
@@ -75,6 +77,13 @@ const RUNS_URL_PARAMS = {
 		values: 'key=value list, deduped and localeCompare-sorted on write',
 		whenAbsent: 'no metas filter is applied',
 		writtenBy: 'a badge click and the Metas field; deleted when emptied'
+	},
+	period: {
+		codec: 'raw',
+		values: 'day | week | month',
+		whenAbsent: 'week',
+		writtenBy:
+			'the Day / Week / Month toggle of the charts mode; week is not written'
 	},
 	project: {
 		codec: 'raw, repeatable',
@@ -565,7 +574,89 @@ class RunsPage {
 	async expectNothingSelected(): Promise<void> {
 		await expect(this.selectionTrigger).toHaveCount(0, { timeout: 15_000 });
 	}
+
+	get charts(): Locator {
+		return this.page.getByTestId('runs-stats');
+	}
+
+	get chartsDrawer(): Locator {
+		return this.page.getByTestId('runs-stats-drawer');
+	}
+
+	async gotoChartsWithTagExpr(tagExpr: string): Promise<void> {
+		const params = new URLSearchParams({ tagExpr, mode: 'charts' });
+		await this.page.goto(`runs?${params.toString()}`);
+		await expect(this.charts).toBeVisible({ timeout: 60_000 });
+	}
+
+	chartsPeriodButton(period: RunsChartsPeriod): Locator {
+		return this.charts
+			.getByRole('group', { name: 'Group by' })
+			.getByRole('radio', { name: period });
+	}
+
+	async pickChartsPeriod(period: RunsChartsPeriod): Promise<void> {
+		await this.chartsPeriodButton(period).click();
+	}
+
+	async expectChartsPeriod(period: RunsChartsPeriod): Promise<void> {
+		await expect(this.chartsPeriodButton(period)).toHaveAttribute(
+			'aria-checked',
+			'true',
+			{ timeout: 30_000 }
+		);
+	}
+
+	get chartsConclusions(): Locator {
+		return this.charts.getByRole('list', { name: 'Runs by conclusion' });
+	}
+
+	/** The overview lists the conclusions most frequent first */
+	async clickTopConclusion(): Promise<void> {
+		await this.chartsConclusions.getByRole('button').first().click();
+	}
+
+	/** Clicks the bar of a timeline that has a single period */
+	async clickOnlyTestsPeriod(): Promise<void> {
+		const chart = this.charts
+			.getByTestId('runs-stats-tests-timeline')
+			.locator('canvas');
+
+		// The canvas takes clicks before the bars finish growing in, so the
+		// click repeats until it lands on a bar and opens the drawer
+		await expect(async () => {
+			const box = await chart.boundingBox();
+
+			if (!box) throw new Error('The test results chart is not laid out');
+
+			// The bar is centred and rises from the x axis, near the bottom
+			await chart.click({
+				position: { x: box.width / 2, y: box.height - 40 }
+			});
+			await expect(this.chartsDrawer).toBeVisible({ timeout: 2_000 });
+		}).toPass({ timeout: 30_000 });
+	}
+
+	async expectChartsDrawer(description: RegExp, runIds: number[]) {
+		await expect(this.chartsDrawer).toBeVisible({ timeout: 15_000 });
+		await expect(this.chartsDrawer).toContainText(description);
+		await expect(this.chartsDrawer.getByRole('listitem')).toHaveCount(
+			runIds.length
+		);
+
+		for (const runId of runIds) {
+			await expect(
+				this.chartsDrawer.locator(`a[href*="/runs/${runId}"]`)
+			).toBeVisible({ timeout: 30_000 });
+		}
+	}
 }
 
 export { RUNS_URL_PARAMS, RunsPage };
-export type { DiscriminatingBadge, RunsBadgeColumn, RunsMode, RunsUrlParam };
+export type {
+	RunsChartsPeriod,
+	DiscriminatingBadge,
+	RunsBadgeColumn,
+	RunsMode,
+	RunsUrlParam
+};

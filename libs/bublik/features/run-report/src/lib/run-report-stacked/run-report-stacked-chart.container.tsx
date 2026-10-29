@@ -12,6 +12,7 @@ import { ReportChart } from '@/shared/types';
 import {
 	EChartsOption,
 	Plot,
+	chartStyles,
 	estimateLegendTopOffset,
 	sanitizeLegendLabel
 } from '@/shared/charts';
@@ -258,7 +259,7 @@ function createStackedOptions(
 		},
 		tooltip: {
 			trigger: 'axis',
-			extraCssText: 'shadow-popover rounded-lg',
+			extraCssText: chartStyles.tooltip,
 			textStyle: axisLabelStyles,
 			axisPointer: { type: 'line' },
 			formatter: (rawParams: unknown) => {

@@ -6,5 +6,8 @@ export const chartStyles = {
 		fontSize: 10,
 		fontWeight: 500,
 		lineHeight: 18
-	}
+	},
+	// ECharts writes the tooltip's own shadow and radius inline, so classes
+	// cannot override them: this CSS is appended after them instead
+	tooltip: 'box-shadow: var(--shadow-popover); border-radius: 0.5rem;'
 };

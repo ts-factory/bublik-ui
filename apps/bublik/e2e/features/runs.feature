@@ -220,6 +220,25 @@ Feature: Runs
     Then the compressed sidebar state carries no selected runs
     And nothing reports a selection any more
 
+  @runs @url-params
+  Scenario: The runs charts keep the chosen period in the URL
+    Given the runs charts show a fixture run
+    When I group the charts by month
+    Then the URL records the month period
+    And the charts are still grouped by month after a reload
+
+  @runs
+  Scenario: Clicking a conclusion in the runs charts lists its runs in a drawer
+    Given the runs charts show a fixture run
+    When I click the most frequent conclusion
+    Then a drawer lists the fixture run across the whole range
+
+  @runs
+  Scenario: Clicking a period in the runs charts lists its runs under the period's dates
+    Given the runs charts show a fixture run
+    When I click the run's week in the test results
+    Then a drawer lists the fixture run under that week's dates
+
   Scenario Outline: The runs page renders every view mode
     When I open the runs page in the given mode
     Then the mode's own section is rendered
