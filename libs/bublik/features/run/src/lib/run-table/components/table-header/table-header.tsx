@@ -11,8 +11,8 @@ export const TableHeader: FC<HeaderWithIconProps> = ({ header, icon }) => {
 	if (icon) {
 		return (
 			<div className="flex items-center gap-2">
-				{header}
 				{icon}
+				{header}
 			</div>
 		);
 	}

@@ -133,11 +133,14 @@ function RunHeaderCell({
 	isDragging,
 	isOver
 }: HeaderCellProps) {
+	const isRightAligned = header.column.columnDef.meta?.align === 'right';
 	const content = header.isPlaceholder ? null : header.column.getCanSort() ? (
 		<div
 			onClick={header.column.getToggleSortingHandler()}
 			className={cn(
 				'flex gap-1 items-center cursor-pointer select-none hover:bg-primary-wash transition-colors rounded px-1 py-1',
+				// Sort arrow goes on the left so the label ends flush with the numbers
+				isRightAligned && 'flex-row-reverse',
 				header.column.getIsSorted() && 'bg-primary-wash'
 			)}
 		>
@@ -158,6 +161,7 @@ function RunHeaderCell({
 				'group/header px-2 border-b bg-bg-primary',
 				!isLast && 'border-r border-border-primary',
 				isOver && 'ring-2 ring-inset ring-primary',
+				isRightAligned && 'text-right',
 				header.column.columnDef.meta?.className
 			)}
 			style={{
@@ -169,9 +173,25 @@ function RunHeaderCell({
 		>
 			{dragHandle ? (
 				<>
-					<div className="absolute right-0 top-0 z-10 flex h-full items-center opacity-0 transition-opacity group-hover/header:opacity-100 focus-within:opacity-100">
-						<div className="h-full w-6 bg-gradient-to-r from-transparent to-bg-primary" />
-						<div className="grid h-full w-6 place-items-center bg-bg-primary pr-2">
+					<div
+						className={cn(
+							'absolute top-0 z-10 flex h-full items-center opacity-0 transition-opacity group-hover/header:opacity-100 focus-within:opacity-100',
+							// Keep the grip off the label, which hugs the right edge
+							isRightAligned ? 'left-0 flex-row-reverse' : 'right-0'
+						)}
+					>
+						<div
+							className={cn(
+								'h-full w-6 from-transparent to-bg-primary',
+								isRightAligned ? 'bg-gradient-to-l' : 'bg-gradient-to-r'
+							)}
+						/>
+						<div
+							className={cn(
+								'grid h-full w-6 place-items-center bg-bg-primary',
+								isRightAligned ? 'pl-2' : 'pr-2'
+							)}
+						>
 							{dragHandle}
 						</div>
 					</div>

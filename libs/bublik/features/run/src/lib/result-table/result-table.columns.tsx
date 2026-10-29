@@ -48,6 +48,7 @@ declare module '@tanstack/react-table' {
 		width?: string;
 		className?: string;
 		headerCellClassName?: string;
+		align?: 'left' | 'right';
 	}
 }
 

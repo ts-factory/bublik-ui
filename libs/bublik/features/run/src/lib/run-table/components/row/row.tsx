@@ -74,6 +74,8 @@ export const RunRow = ({
 						const className = cn(
 							'px-2 py-0 bg-bg-primary z-10',
 							isLast && 'border-r',
+							cell.column.columnDef.meta?.align === 'right' &&
+								'text-right tabular-nums',
 							cell.column.columnDef.meta?.className
 						);
 

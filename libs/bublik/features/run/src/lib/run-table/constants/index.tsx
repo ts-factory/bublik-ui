@@ -259,12 +259,12 @@ export const COLUMN_GROUPS: ColumnGroup[] = [
 		id: 'Expected Results (Passed/Failed)',
 		label: (
 			<div className="flex items-center justify-center gap-2">
-				<span>EXPECTED</span>
 				<Icon
 					name="InformationCircleCheckmark"
 					size={16}
 					className="text-text-expected"
 				/>
+				<span>EXPECTED</span>
 			</div>
 		),
 		columns: [
@@ -278,12 +278,12 @@ export const COLUMN_GROUPS: ColumnGroup[] = [
 		id: 'Unexpected Results (Passed/Failed)',
 		label: (
 			<div className="flex items-center justify-center gap-2">
-				<span>UNEXPECTED</span>
 				<Icon
 					name="InformationCircleExclamationMark"
 					size={16}
 					className="text-text-unexpected"
 				/>
+				<span>UNEXPECTED</span>
 			</div>
 		),
 		columns: [
