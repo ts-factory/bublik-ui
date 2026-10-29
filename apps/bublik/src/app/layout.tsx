@@ -3,6 +3,7 @@
 import { PropsWithChildren, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { usePageLayout } from '@/shared/hooks';
 import { AppShell, ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
 import { HIDE_SIDEBAR_QUERY_KEY } from '@/bublik/features/projects';
 import { SidebarContainer } from './sidebar-container';
@@ -23,9 +24,14 @@ export const Layout = (props: PropsWithChildren) => {
 	const queryValue = searchParams.get(HIDE_SIDEBAR_QUERY_KEY);
 	const parsedQueryValue = parseHideSidebarQuery(queryValue);
 	const hideSidebar = parsedQueryValue ?? false;
+	const { layout } = usePageLayout();
 
 	return (
-		<AppShell sidebar={<SidebarContainer />} hideSidebar={hideSidebar}>
+		<AppShell
+			sidebar={<SidebarContainer />}
+			hideSidebar={hideSidebar}
+			layout={layout}
+		>
 			<ErrorBoundary>
 				<Suspense fallback={<Spinner className="h-screen" />}>
 					{props.children}
