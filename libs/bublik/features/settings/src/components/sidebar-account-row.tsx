@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { LogIn } from 'lucide-react';
 
 import type { AuthenticatedUser } from '@/bublik/features/auth';
@@ -23,6 +23,7 @@ import type { SettingsTab } from '../types';
 import { getUserLabel } from '../user-label';
 import { AppearanceMenuItem } from './appearance-menu-item';
 import { BetaFeaturesSubmenu } from './beta-features-menu';
+import { LayoutMenuItem } from './layout-menu-item';
 
 interface SidebarAccountRowProps {
 	user: AuthenticatedUser | null;
@@ -165,12 +166,17 @@ function SidebarAccountRow({
 								onOpenSettings={() => onOpenSettings(tab.id)}
 							/>
 						) : tab.id === 'appearance' ? (
-							<AppearanceMenuItem
-								key={tab.id}
-								tab={tab}
-								itemClassName={menuItemStyles}
-								onOpenSettings={() => onOpenSettings(tab.id)}
-							/>
+							<Fragment key={tab.id}>
+								<AppearanceMenuItem
+									tab={tab}
+									itemClassName={menuItemStyles}
+									onOpenSettings={() => onOpenSettings(tab.id)}
+								/>
+								<LayoutMenuItem
+									itemClassName={menuItemStyles}
+									onOpenSettings={() => onOpenSettings(tab.id)}
+								/>
+							</Fragment>
 						) : (
 							<DropdownMenuItem
 								key={tab.id}
