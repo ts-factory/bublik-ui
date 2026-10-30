@@ -175,6 +175,12 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 						rounded="lg"
 						type="submit"
 						variant={hasPendingFilterMismatch ? 'primary' : 'outline'}
+						// Primary has no border; a clear one keeps it the outline's size.
+						className={
+							hasPendingFilterMismatch
+								? 'border border-transparent py-[7px]'
+								: undefined
+						}
 					>
 						<Icon name="Refresh" size={24} className="mr-1.5" />
 						<span>Submit</span>
