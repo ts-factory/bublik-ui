@@ -551,6 +551,143 @@ test.describe('Runs Page', () => {
 		return pair;
 	}
 
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Expression chips of the Metas field are joined with & in the link and read back as chips',
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+			const date = requireCapability(
+				bundle.expectedRuns[0]?.dashboardDate,
+				'Fixture manifest contains no run with a dashboard date.'
+			);
+			// The second chip names a tag no run carries, so its negation
+			// narrows nothing: the join alone decides what is listed.
+			const chips = [fixtureTagExpr(bundle), '!no-such-tag'];
+
+			await given(
+				'I open the runs page for a date covered by the fixtures',
+				async () => {
+					await runsPage.gotoForDate(date);
+					await runsPage.expectReady();
+				}
+			);
+			await when(
+				'I add two expression chips to the Metas field and submit the form',
+				async () => {
+					for (const chip of chips) await runsPage.fillTagExpr(chip);
+					await runsPage.submit();
+				}
+			);
+			await then('the URL carries the two expressions joined with &', () =>
+				runsPage.expectParams({ tagExpr: chips.join(' & ') })
+			);
+			await and('the runs table lists the run the expressions match', () =>
+				runsPage.expectRowVisible(importedRunId(bundle))
+			);
+			await when('I reload the page', () => page.reload());
+			await then('the Metas field shows the two expression chips again', () =>
+				runsPage.expectExpressionChips(chips)
+			);
+		}
+	);
+
+	test(
+		'A value chip and an expression chip are sent as run data and a tag expression',
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			let badge: DiscriminatingBadge;
+			const expression = '!no-such-tag';
+
+			await given(
+				'the runs table lists the runs imported on a fixture date',
+				async () => {
+					badge = await openWithDiscriminatingBadge(page, runsPage);
+				}
+			);
+
+			let sent: URLSearchParams | undefined;
+
+			await when(
+				'I select a meta and add an expression chip in the Metas field and submit the form',
+				async () => {
+					await runsPage.selectMeta(badge.payload, badge.text);
+					await runsPage.fillTagExpr(expression);
+
+					const runsRequest = runsPage.waitForRunsRequest();
+					await runsPage.submit();
+					sent = new URL((await runsRequest).url()).searchParams;
+				}
+			);
+			await then(
+				'the runs request carries the meta as run data and the expression as the tag expression',
+				async () => {
+					expect(sent?.get('run_metas')?.split(';')).toContain(badge.payload);
+					expect(sent?.get('tag_expr')).toBe(expression);
+					await runsPage.expectRunDataContains(badge.payload);
+					await runsPage.expectParams({ tagExpr: expression });
+				}
+			);
+			await and('only the runs carrying the meta are listed', () =>
+				runsPage.expectOnlyRunsListed(badge.withIt)
+			);
+		}
+	);
+
+	test(
+		'An expression over a label is sent as the label expression',
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+			const date = requireCapability(
+				bundle.expectedRuns[0]?.dashboardDate,
+				'Fixture manifest contains no run with a dashboard date.'
+			);
+			// Every fixture run carries its bundle id as the CFG label.
+			const expression = `CFG=${bundle.id}`;
+
+			await given(
+				'I open the runs page for a date covered by the fixtures',
+				async () => {
+					await runsPage.gotoForDate(date);
+					await runsPage.expectReady();
+				}
+			);
+
+			let sent: URLSearchParams | undefined;
+
+			await when(
+				'I add an expression chip naming the label of a fixture run and submit the form',
+				async () => {
+					await runsPage.fillTagExpr(expression);
+					await expect(
+						runsPage.metaChip('expression', expression)
+					).toHaveAttribute('data-expression-kind', 'label');
+
+					const runsRequest = runsPage.waitForRunsRequest();
+					await runsPage.submit();
+					sent = new URL((await runsRequest).url()).searchParams;
+				}
+			);
+			await then(
+				'the runs request carries it as the label expression and no tag expression',
+				() => {
+					expect(sent?.get('label_expr')).toBe(expression);
+					expect(sent?.get('tag_expr')).toBeNull();
+				}
+			);
+			await and('the URL carries it under labelExpr', () =>
+				runsPage.expectParams({ labelExpr: expression, tagExpr: null })
+			);
+			await and('the runs table lists that run', () =>
+				runsPage.expectRowVisible(importedRunId(bundle))
+			);
+		}
+	);
+
 	test(
 		'A runs link restores the date range, the tag expression and the page size',
 		{ tag: ['@runs', '@url-params'] },

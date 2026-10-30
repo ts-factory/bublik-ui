@@ -1,17 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { config } from '@/bublik/config';
 import { TestPathComboboxField } from '@/bublik/features/result-classification';
-import { TextField, BadgeField } from '@/shared/tailwind-ui';
-
 import {
-	ExpressionToggleButton,
-	FieldResetButton,
-	FormSection
-} from '../components';
+	TextField,
+	MetaFilterField,
+	MetaFilterSuggestionGroup
+} from '@/shared/tailwind-ui';
+
+import { FormSection } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
 import { useParameterSuggestions } from '../global-search-form.suggestions.hooks';
 import { HISTORY_FIELD_BADGE_CLASS } from '../global-search-form.constants';
@@ -21,13 +21,29 @@ export type TestSectionProps = {
 	onResetTestSectionDefaultClick: () => void;
 };
 
+const PARAMETER_HELP_EXAMPLES = [
+	'time_limit=30 & !ipv6',
+	'argument1!=5 & argument2>=10',
+	'(pkt_size>1500 | jumbo) & proto=udp'
+];
+
 export const TestSection = (props: TestSectionProps) => {
 	const portalRef = useRef<HTMLDivElement>(null);
-	const { control, watch, setValue } =
-		useFormContext<HistoryGlobalSearchFormValues>();
-	const [isParametersExpressionVisible, setIsParametersExpressionVisible] =
-		useState(() => Boolean(watch('testArgExpr')));
+	const { control, watch } = useFormContext<HistoryGlobalSearchFormValues>();
 	const parameterSuggestions = useParameterSuggestions(watch('testName'));
+	const parameterGroups = useMemo<MetaFilterSuggestionGroup[]>(
+		() =>
+			parameterSuggestions.suggestions.length
+				? [
+						{
+							label: 'Parameters',
+							items: parameterSuggestions.suggestions,
+							className: HISTORY_FIELD_BADGE_CLASS.parameters
+						}
+				  ]
+				: [],
+		[parameterSuggestions.suggestions]
+	);
 
 	return (
 		<FormSection className="flex flex-col">
@@ -59,49 +75,24 @@ export const TestSection = (props: TestSectionProps) => {
 						control={control}
 					/>
 				</div>
-				<div className="flex gap-2">
-					<div className="flex-1">
-						<BadgeField
-							name="parameters"
-							label="Parameters"
-							placeholder="time_limit:30"
-							control={control}
-							suggestions={parameterSuggestions.suggestions}
-							suggestionsLoading={parameterSuggestions.isLoading}
-							onSuggestionsRequest={parameterSuggestions.request}
-							badgeClassName={HISTORY_FIELD_BADGE_CLASS.parameters}
-							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
-							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
-							labelTrailingContent={
-								<FieldResetButton
-									helpMessage="Clear parameters"
-									onClick={(event) => {
-										event.stopPropagation();
-										setValue('parameters', [], {
-											shouldDirty: true,
-											shouldTouch: true
-										});
-									}}
-								/>
-							}
-						/>
-					</div>
-					<ExpressionToggleButton
-						label="parameter expression"
-						isOpen={isParametersExpressionVisible}
-						onClick={() =>
-							setIsParametersExpressionVisible((previous) => !previous)
-						}
-					/>
-				</div>
-				{isParametersExpressionVisible ? (
-					<TextField
-						name={'testArgExpr'}
-						label="Parameter Expression"
-						placeholder={'argument1 != 5 & argument2 >= 10'}
-						control={control}
-					/>
-				) : null}
+				<MetaFilterField
+					control={control}
+					valuesName="parameters"
+					expressionName="testArgExpr"
+					variant="form"
+					label="Parameters"
+					name="parameters"
+					placeholder="time_limit:30"
+					suggestions={parameterGroups}
+					suggestionsLoading={parameterSuggestions.isLoading}
+					allowCustomValues={false}
+					onSuggestionsRequest={parameterSuggestions.request}
+					chipClassName={() => HISTORY_FIELD_BADGE_CLASS.parameters}
+					helpNoun="parameter"
+					helpExamples={PARAMETER_HELP_EXAMPLES}
+					keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
+					keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
+				/>
 			</div>
 		</FormSection>
 	);

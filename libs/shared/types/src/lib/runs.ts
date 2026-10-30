@@ -17,6 +17,9 @@ export type RunsAPIQuery = {
 	finishDate?: string | null;
 	runData?: string | null;
 	tagExpr?: string | null;
+	labelExpr?: string | null;
+	branchExpr?: string | null;
+	revisionExpr?: string | null;
 	pageSize?: string | null;
 	projects?: number[];
 };
@@ -28,6 +31,9 @@ export const RunsChartsAPIQuerySchema = z.object({
 	finishDate: z.string().nullable().optional(),
 	runData: z.string().nullable().optional(),
 	tagExpr: z.string().nullable().optional(),
+	labelExpr: z.string().nullable().optional(),
+	branchExpr: z.string().nullable().optional(),
+	revisionExpr: z.string().nullable().optional(),
 	projects: z.array(z.number()).optional(),
 	groupBy: z.enum(['day', 'week']).optional()
 });

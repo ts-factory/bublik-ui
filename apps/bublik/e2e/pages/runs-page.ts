@@ -67,14 +67,37 @@ const RUNS_URL_PARAMS = {
 	tagExpr: {
 		codec: 'raw',
 		values: 'tag expression',
-		whenAbsent: 'no expression is applied',
-		writtenBy: 'the form; deleted when the field is emptied'
+		whenAbsent: 'no tag expression is applied',
+		writtenBy:
+			'the Metas field: its expression chips over tags, or over metas no list knows, joined with `&`; deleted when there are none'
+	},
+	labelExpr: {
+		codec: 'raw',
+		values: 'label expression',
+		whenAbsent: 'no label expression is applied',
+		writtenBy:
+			'the Metas field: its expression chips over labels joined with `&`; deleted when there are none'
+	},
+	branchExpr: {
+		codec: 'raw',
+		values: 'branch expression',
+		whenAbsent: 'no branch expression is applied',
+		writtenBy:
+			'the Metas field: its expression chips over branches joined with `&`; deleted when there are none'
+	},
+	revisionExpr: {
+		codec: 'raw',
+		values: 'revision expression',
+		whenAbsent: 'no revision expression is applied',
+		writtenBy:
+			'the Metas field: its expression chips over revisions joined with `&`; deleted when there are none'
 	},
 	runData: {
 		codec: 'raw, `;`-joined',
 		values: 'key=value list, deduped and localeCompare-sorted on write',
 		whenAbsent: 'no metas filter is applied',
-		writtenBy: 'a badge click and the Metas field; deleted when emptied'
+		writtenBy:
+			'a badge click and the Metas field: its value chips; deleted when emptied'
 	},
 	project: {
 		codec: 'raw, repeatable',
@@ -156,7 +179,9 @@ class RunsPage {
 	}
 
 	async expectReady(): Promise<void> {
-		await expect(this.tagExprInput).toBeVisible({ timeout: 30_000 });
+		// The idle field gives its chips the input's room, so the field is
+		// what shows, not the input.
+		await expect(this.metasField).toBeVisible({ timeout: 30_000 });
 		await expect(
 			this.page.getByRole('button', { name: 'Submit' })
 		).toBeVisible();
@@ -205,13 +230,41 @@ class RunsPage {
 		await this.table.getByText('Statistic Summary', { exact: true }).click();
 	}
 
-	get tagExprInput(): Locator {
-		return this.page.getByPlaceholder('Tag expression');
+	/** The one Metas field: value chips and expression chips alike. */
+	get metasInput(): Locator {
+		return this.page.getByRole('combobox', { name: 'Metas' });
 	}
 
+	get metasField(): Locator {
+		return this.page
+			.getByTestId('meta-filter-input')
+			.filter({ has: this.metasInput });
+	}
+
+	metaChip(kind: 'value' | 'expression', text: string): Locator {
+		return this.metasField.locator(
+			`[data-testid="meta-filter-chip"][data-kind="${kind}"][data-value="${text}"]`
+		);
+	}
+
+	/**
+	 * Adds `expr` as one expression chip. A bare name is a value until the
+	 * mode is switched, so the switch is clicked before Enter commits it. The
+	 * project's metas, which decide the chip's kind, load on the field's first
+	 * focus: Enter waits for them.
+	 */
 	async fillTagExpr(expr: string): Promise<void> {
-		await this.tagExprInput.fill(expr);
-		await expect(this.tagExprInput).toHaveValue(expr);
+		await this.clickMetasField();
+		await expect(
+			this.page.getByTestId('meta-filter-suggestions')
+		).toHaveAttribute('data-loading', 'false', { timeout: 15_000 });
+		await this.metasInput.fill(expr);
+		await this.metasField
+			.getByRole('radio', { name: 'Expression', exact: true })
+			.click();
+		await this.metasInput.press('Enter');
+		await expect(this.metaChip('expression', expr)).toBeVisible();
+		await expect(this.metasInput).toHaveValue('');
 	}
 
 	async submit(): Promise<void> {
@@ -413,18 +466,16 @@ class RunsPage {
 			.toEqual(expect.arrayContaining(runIds));
 	}
 
-	get metasTrigger(): Locator {
-		return this.page.getByRole('combobox').filter({ hasText: 'Metas' });
-	}
-
 	async openMetas(): Promise<void> {
-		await this.metasTrigger.click();
-		await expect(this.page.getByPlaceholder('Metas')).toBeVisible();
+		await this.clickMetasField();
+		await expect(
+			this.page.getByRole('listbox', { name: 'Metas suggestions' })
+		).toBeVisible({ timeout: 15_000 });
 	}
 
 	async selectMeta(payload: string, displayText: string): Promise<void> {
 		await this.openMetas();
-		await this.page.getByPlaceholder('Metas').fill(payload);
+		await this.metasInput.fill(payload);
 
 		const option = this.page
 			.getByRole('option')
@@ -433,13 +484,41 @@ class RunsPage {
 
 		await expect(option).toBeVisible({ timeout: 15_000 });
 		await option.click();
+		await expect(this.metaChip('value', payload)).toBeVisible();
 		await this.page.keyboard.press('Escape');
 	}
 
+	/**
+	 * Opens the field with a click on its left padding: idle, the chips may
+	 * leave the input no width.
+	 */
+	private async clickMetasField(): Promise<void> {
+		await this.metasField.click({ position: { x: 4, y: 20 } });
+		await expect(this.metasInput).toBeFocused();
+	}
+
+	/**
+	 * Idle, the field folds the chips that do not fit into `+N`; open, it
+	 * shows every one. Runs `check` on the open field, then folds it back so
+	 * the list covers nothing.
+	 */
+	private async withAllChips(check: () => Promise<void>): Promise<void> {
+		await this.clickMetasField();
+		try {
+			await check();
+		} finally {
+			await this.metasInput.blur();
+		}
+	}
+
 	async expectMetaSelected(displayText: string): Promise<void> {
-		await expect(this.metasTrigger).toContainText(displayText, {
-			timeout: 15_000
-		});
+		await this.withAllChips(() =>
+			expect(
+				this.metasField
+					.locator('[data-testid="meta-filter-chip"][data-kind="value"]')
+					.filter({ hasText: displayText })
+			).toBeVisible({ timeout: 15_000 })
+		);
 	}
 
 	async selectRow(runId: number): Promise<void> {
@@ -535,7 +614,33 @@ class RunsPage {
 	}
 
 	async expectTagExprInput(expr: string): Promise<void> {
-		await expect(this.tagExprInput).toHaveValue(expr, { timeout: 15_000 });
+		await this.withAllChips(() =>
+			expect(this.metaChip('expression', expr)).toBeVisible({
+				timeout: 15_000
+			})
+		);
+	}
+
+	/**
+	 * The expression chips the field holds, in order, by the `=` form they are
+	 * stored and sent in (the chip shows `name: value`).
+	 */
+	async expectExpressionChips(exprs: string[]): Promise<void> {
+		const chips = this.metasField.locator(
+			'[data-testid="meta-filter-chip"][data-kind="expression"]'
+		);
+
+		await this.withAllChips(() =>
+			expect
+				.poll(
+					() =>
+						chips.evaluateAll((nodes) =>
+							nodes.map((node) => node.getAttribute('data-value'))
+						),
+					{ timeout: 15_000, message: 'expression chips' }
+				)
+				.toEqual(exprs)
+		);
 	}
 
 	async expectCalendarMode(mode: 'default' | 'duration'): Promise<void> {

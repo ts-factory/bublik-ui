@@ -2,14 +2,9 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useCallback } from 'react';
 import { OnChangeFn } from '@tanstack/react-table';
-import { useDispatch } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 
-import {
-	BUBLIK_TAG,
-	bublikAPI,
-	useGetRunsTablePageQuery
-} from '@/services/bublik-api';
+import { useGetRunsTablePageQuery } from '@/services/bublik-api';
 import { useUserPreferences } from '@/bublik/features/user-preferences';
 
 import {
@@ -27,7 +22,6 @@ import {
 import { applyRunDataToSearchParams } from '../runs-form/runs-form.utils';
 
 export const RunsTableContainer = () => {
-	const dispatch = useDispatch();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const { userPreferences } = useUserPreferences();
 	const { pagination, handlePaginationChange } = useRunsPagination();
@@ -49,17 +43,17 @@ export const RunsTableContainer = () => {
 
 			if (!autoApplyBadgeFilters) return;
 
+			// The new run data fetch by themselves; invalidating too would first
+			// refetch the old ones, before the new URL is read.
 			setSearchParams(
 				applyRunDataToSearchParams(searchParams, nextGlobalFilter),
 				{
 					replace: true
 				}
 			);
-			dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 		},
 		[
 			autoApplyBadgeFilters,
-			dispatch,
 			handleGlobalFilterChange,
 			localGlobalFilter,
 			searchParams,
