@@ -2,12 +2,15 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
 
-import { HistoryMode, RunDataResults } from '@/shared/types';
+import { HistoryMode, LogPageMode, RunDataResults } from '@/shared/types';
 import { usePrefetch } from '@/services/bublik-api';
 import { routes } from '@/router';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
-import { useUserPreferences } from '@/bublik/features/user-preferences';
+import {
+	useDefaultLogMode,
+	useUserPreferences
+} from '@/bublik/features/user-preferences';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 
@@ -22,6 +25,8 @@ export interface ResultLinksProps {
 	resultId: number;
 	result: RunDataResults;
 	userPreferredHistoryMode?: HistoryMode;
+	/** The layout the Log link opens in; the user's default log layout. */
+	userPreferredLogMode?: LogPageMode;
 	hasMeasurements?: boolean;
 	onMeasurementLinkMouseEnter?: () => void;
 	onLogLinkMouseEnter?: () => void;
@@ -38,6 +43,7 @@ export const ResultLinks = (props: ResultLinksProps) => {
 		hasMeasurements,
 		result,
 		userPreferredHistoryMode = 'linear',
+		userPreferredLogMode,
 		onLogLinkMouseEnter,
 		onMeasurementLinkMouseEnter,
 		onLinkClick,
@@ -73,7 +79,11 @@ export const ResultLinks = (props: ResultLinksProps) => {
 							className="gap-1"
 							onMouseEnter={onLogLinkMouseEnter}
 							onClick={() => onLinkClick?.('log')}
-							to={routes.log({ runId, focusId: resultId })}
+							to={routes.log({
+								runId,
+								focusId: resultId,
+								mode: userPreferredLogMode
+							})}
 						>
 							<Icon name="BoxArrowRight" className="grid place-items-center" />
 							Log
@@ -148,6 +158,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 	const { runId, resultId, result, showLinkToRun = false, path } = props;
 	const { has_measurements: hasMeasurements } = result;
 	const { userPreferences } = useUserPreferences();
+	const logMode = useDefaultLogMode();
 
 	const prefetchLogURL = usePrefetch('getLogUrlByResultId');
 	const prefetchMeasurements = usePrefetch('getSingleMeasurement');
@@ -178,6 +189,7 @@ export const ResultLinksContainer = (props: ActionLinksProps) => {
 			runId={runId}
 			result={result}
 			userPreferredHistoryMode={userPreferences.history.defaultMode}
+			userPreferredLogMode={logMode}
 			hasMeasurements={hasMeasurements}
 			onLogLinkMouseEnter={handleLogLinkMouseEnter}
 			onMeasurementLinkMouseEnter={handleMeasurementLinkMouseEnter}

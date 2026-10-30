@@ -23,6 +23,7 @@ import {
 	LinkWithProject,
 	useTabTitleWithPrefix
 } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 export interface RunDiffHeaderProps {
 	leftRunId: string;
@@ -30,6 +31,7 @@ export interface RunDiffHeaderProps {
 }
 
 const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
+	const logMode = useDefaultLogMode();
 	const [selected, setSelected] = useState<'left' | 'right' | 'diff' | null>(
 		null
 	);
@@ -79,7 +81,7 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 					</ButtonTw>
 					<ButtonTw size="xss" asChild variant="secondary">
 						<LinkWithProject
-							to={routes.log({ runId: leftRunId })}
+							to={routes.log({ runId: leftRunId, mode: logMode })}
 							onClick={() => handleNavigationClick('log', 'left')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />
@@ -126,7 +128,7 @@ const RunDiffHeader = memo(({ leftRunId, rightRunId }: RunDiffHeaderProps) => {
 					</ButtonTw>
 					<ButtonTw variant="secondary" size="xss" asChild>
 						<LinkWithProject
-							to={routes.log({ runId: rightRunId })}
+							to={routes.log({ runId: rightRunId, mode: logMode })}
 							onClick={() => handleNavigationClick('log', 'right')}
 						>
 							<Icon name="BoxArrowRight" className="mr-1.5" />

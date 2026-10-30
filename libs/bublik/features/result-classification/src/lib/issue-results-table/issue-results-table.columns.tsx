@@ -6,6 +6,7 @@ import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
 import { ButtonTw, Icon, VerdictList } from '@/shared/tailwind-ui';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 import type {
 	RenderResultPreview,
@@ -24,6 +25,7 @@ interface ResultLinksProps {
 }
 
 function ResultLinks({ runId, row, renderPreview }: ResultLinksProps) {
+	const logMode = useDefaultLogMode();
 	const preview = renderPreview?.(row, runId);
 
 	return (
@@ -40,7 +42,9 @@ function ResultLinks({ runId, row, renderPreview }: ResultLinksProps) {
 			</li>
 			<li>
 				<ButtonTw asChild variant="secondary" size="xss">
-					<LinkWithProject to={routes.log({ runId, focusId: row.result_id })}>
+					<LinkWithProject
+						to={routes.log({ runId, focusId: row.result_id, mode: logMode })}
+					>
 						<Icon
 							name="BoxArrowRight"
 							size={20}

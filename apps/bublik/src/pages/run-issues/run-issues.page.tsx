@@ -26,8 +26,10 @@ import {
 	Separator
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 function RunIssuesHeader({ runId }: { runId: string }) {
+	const logMode = useDefaultLogMode();
 	const [isFullMode, setIsFullMode] = useState(false);
 
 	return (
@@ -46,7 +48,7 @@ function RunIssuesHeader({ runId }: { runId: string }) {
 						</LinkWithProject>
 					</ButtonTw>
 					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject to={routes.log({ runId })}>
+						<LinkWithProject to={routes.log({ runId, mode: logMode })}>
 							<Icon name="BoxArrowRight" className="mr-1.5 size-5" />
 							Log
 						</LinkWithProject>
