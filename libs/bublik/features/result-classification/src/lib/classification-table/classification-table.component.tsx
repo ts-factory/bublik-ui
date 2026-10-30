@@ -41,6 +41,13 @@ declare module '@tanstack/react-table' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		width?: string;
 		badgeCell?: boolean;
+		/**
+		 * `'right'` for numeric columns: the cell and its header sit flush
+		 * right, and the sort arrow moves before the label so the label's end
+		 * stays in line with the numbers under it. Typed exactly as dashboard-v2
+		 * declares it on the same interface — the two augmentations must agree.
+		 */
+		align?: 'left' | 'right';
 		className?: string;
 		headerClassName?: string;
 		cellClassName?: string;
@@ -269,6 +276,8 @@ export function ClassificationTable<T>({
 					<div className="contents" role="row">
 						{headerGroup.headers.flatMap((header, idx, headers) => {
 							const canSort = header.column.getCanSort();
+							const isRightAligned =
+								header.column.columnDef.meta?.align === 'right';
 
 							return [
 								...(idx === gutterAt ? [headerGutter] : []),
@@ -300,7 +309,9 @@ export function ClassificationTable<T>({
 											'rounded-tr-none',
 										'text-left text-[0.6875rem] font-semibold leading-[0.875rem]',
 										stickyClass,
-										header.column.columnDef.meta?.badgeCell && 'pl-3.5',
+										isRightAligned && 'justify-end text-right',
+										header.column.columnDef.meta?.badgeCell &&
+											(isRightAligned ? 'pr-3.5' : 'pl-3.5'),
 										header.column.columnDef.meta?.className,
 										header.column.columnDef.meta?.headerClassName
 									)}
@@ -309,7 +320,8 @@ export function ClassificationTable<T>({
 										<div
 											onClick={header.column.getToggleSortingHandler()}
 											className={cn(
-												'flex items-center gap-1 -ml-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-primary-wash',
+												'flex items-center gap-1 px-1 py-1 transition-colors rounded cursor-pointer select-none hover:bg-primary-wash',
+												isRightAligned ? '-mr-1 flex-row-reverse' : '-ml-1',
 												header.column.getIsSorted() && 'bg-primary-wash'
 											)}
 										>
@@ -595,6 +607,7 @@ function ClassificationRow<T>({
 							onMouseLeave={() => setHovered(false)}
 							className={cn(
 								cellClassName(isFirst, isLast),
+								cell.column.columnDef.meta?.align === 'right' && 'justify-end',
 								cell.column.columnDef.meta?.className,
 								cell.column.columnDef.meta?.cellClassName,
 								pinnedClassName
