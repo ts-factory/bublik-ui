@@ -29,6 +29,7 @@ import { IssuePage } from '../pages/issue';
 import { IssueResultsPage } from '../pages/issue-results';
 import { IssueRulesListPage } from '../pages/issue-rules-list';
 import { AdminUsersPage } from '../pages/admin-users/admin-users.page';
+import { AdminTokensPage } from '../pages/admin-tokens/admin-tokens.page';
 import { ConfigsPage } from '../pages/configs/configs.page';
 import { ChatPage } from '../pages/chat-page';
 import { DashboardPageV2 } from '../pages/dashboard-page/dashboard-page-v2';
@@ -360,6 +361,14 @@ const router = createBrowserRouter(
 											element: (
 												<LazyRoute>
 													<AdminUsersPage />
+												</LazyRoute>
+											)
+										},
+										{
+											path: 'tokens',
+											element: (
+												<LazyRoute>
+													<AdminTokensPage />
 												</LazyRoute>
 											)
 										},
