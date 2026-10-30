@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { formatISODuration, intervalToDuration, sub } from 'date-fns';
 
@@ -25,8 +25,9 @@ import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
 
 function RunsFormContainer() {
 	const dispatch = useDispatch();
-	const location = useLocation();
-	const [searchParams] = useSearchParams(location.search);
+	// No default init: it would put back the params of the first render
+	// that the URL no longer has, such as the dates a reset dropped.
+	const [searchParams] = useSearchParams();
 	const navigateWithProject = useNavigateWithProject();
 	const allTags = useSelector(selectAllTags);
 
