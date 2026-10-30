@@ -5,10 +5,9 @@ import { Row } from '@tanstack/react-table';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { MergedRun, RunData, RunDataResults } from '@/shared/types';
-import { useGetResultsTableQuery } from '@/services/bublik-api';
+import { cn } from '@/shared/tailwind-ui';
 
 import { useRunTableRowState } from '../hooks';
-import { ColumnId } from '../run-table/types';
 import {
 	ResultTable,
 	ResultTableEmpty,
@@ -17,21 +16,12 @@ import {
 } from './result-table.component';
 import { getRowValues } from '../run-table';
 import { RunHistoryLink } from './run-history-link';
-
-function getResultSelectors(row: Row<RunData | MergedRun>) {
-	return 'parent_ids' in row.original
-		? row.original.result_selectors
-		: [
-				{
-					parentId: row.original.parent_id ?? row.original.result_id,
-					startExecSeqno: row.original.exec_seqno
-				}
-		  ];
-}
-
-const DEFAULT_REQUEST = {
-	[ColumnId.Total]: { results: [], resultProperties: [] }
-};
+import {
+	ResultMatrixContainer,
+	ResultViewMode,
+	useResultView
+} from '../result-matrix';
+import { useRunResults } from './use-run-results';
 
 export interface ResultTableContainerProps {
 	runId: string | string[];
@@ -45,20 +35,23 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	const { id: rowId } = row;
 	const rowState = useRunTableRowState().rowState[rowId];
 	const { updateRowState } = useRunTableRowState();
-
-	const requests = rowState?.requests
-		? Object.keys(rowState.requests).length
-			? rowState.requests
-			: DEFAULT_REQUEST
-		: DEFAULT_REQUEST;
+	// The List / Matrix switch in the run-table row writes this.
+	const { view: requestedView } = useResultView(rowId);
 
 	const values = useMemo(() => getRowValues(row), [row]);
 
-	const { data, isFetching, isError, error } = useGetResultsTableQuery({
-		selectors: getResultSelectors(row),
-		testName: row.original.test_name,
-		requests
-	});
+	const {
+		requests,
+		data,
+		isFetching,
+		isError,
+		error,
+		iterations,
+		classification,
+		canShowMatrix
+	} = useRunResults(row);
+	const view: ResultViewMode =
+		requestedView === 'matrix' && canShowMatrix ? 'matrix' : 'list';
 
 	const skeletonCount = useMemo(() => {
 		return Math.max(
@@ -100,23 +93,43 @@ export function ResultTableContainer(props: ResultTableContainerProps) {
 	const path = row.original.path.join('/');
 
 	return (
-		<ResultTable
-			showLinkToRun={Array.isArray(runId)}
-			data={data}
-			rowId={rowId}
-			height={height}
-			// One run's results have one history to open; merged runs have none.
-			toolbarTrailing={
-				Array.isArray(runId) ? null : (
-					<RunHistoryLink runIds={[Number(runId)]} path={row.original.path} />
-				)
-			}
-			toolbarClassName="border-x border-border-primary"
-			targetIterationId={targetIterationId}
-			rowState={rowState}
-			onRowClick={onRowClick}
-			path={path}
-			isFetching={isFetching}
-		/>
+		// `w-0 min-w-full` keeps a wide matrix from stretching the run table:
+		// the matrix scrolls inside the expanded row instead.
+		<div className={cn('flex flex-col', view === 'matrix' && 'w-0 min-w-full')}>
+			{view === 'matrix' ? (
+				<ResultMatrixContainer
+					rowId={rowId}
+					data={data}
+					iterations={iterations}
+					classification={classification}
+					height={height}
+					showLinkToRun={Array.isArray(runId)}
+					path={path}
+				/>
+			) : (
+				<ResultTable
+					showLinkToRun={Array.isArray(runId)}
+					data={data}
+					rowId={rowId}
+					height={height}
+					indent={row.depth * 0.8}
+					// One run's results have one history to open; merged runs have none.
+					toolbarTrailing={
+						Array.isArray(runId) ? null : (
+							<RunHistoryLink
+								runIds={[Number(runId)]}
+								path={row.original.path}
+							/>
+						)
+					}
+					toolbarClassName="border-x border-border-primary"
+					targetIterationId={targetIterationId}
+					rowState={rowState}
+					onRowClick={onRowClick}
+					path={path}
+					isFetching={isFetching}
+				/>
+			)}
+		</div>
 	);
 }

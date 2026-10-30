@@ -87,7 +87,7 @@ import { useTargetIterationId } from '../run-table/run-table.hooks';
 import { RowState, useGlobalRequirements } from '../hooks';
 
 /** The run table's own sticky header, which this table's header pins under. */
-const HEADER_HEIGHT = 102;
+export const HEADER_HEIGHT = 102;
 /** Height of the filter row the table's header pins under. */
 export const TOOLBAR_HEIGHT = 36;
 const RESULT_PROPERTIES_LABEL: Record<RESULT_PROPERTIES, string> = {
@@ -198,6 +198,8 @@ export interface ResultTableProps {
 	 * `ResultTableToolbar` itself, beside its own heading.
 	 */
 	toolbar?: 'inline' | 'external';
+	/** Tree indent of the rows, in rem (the filter bar stays flush). */
+	indent?: number;
 	/**
 	 * Drawn at the end of the inline bar, after a separator: the run page's
 	 * History link.
@@ -246,6 +248,7 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		stickyTop = height + HEADER_HEIGHT,
 		scrollRef,
 		toolbar = 'inline',
+		indent = 0,
 		toolbarTrailing,
 		toolbarClassName,
 		pagination,
@@ -358,7 +361,10 @@ export const ResultTable = memo((props: ResultTableProps) => {
 					) : null}
 				</div>
 			) : null}
-			<div className="px-4 pb-2">
+			<div
+				className="px-4 pb-2"
+				style={{ paddingLeft: `calc(1rem + ${indent}rem)` }}
+			>
 				<div className="grid relative z-[5]" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
@@ -1306,6 +1312,8 @@ export function useDataTableFilters(
 		categoriesFilter,
 		classificationsFilter,
 		artifactsFilter,
+		/** The rows every filter lets through, for views that draw them otherwise. */
+		filteredData,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onRequirementsFilterChange: handleRequirementsFilterChange,
