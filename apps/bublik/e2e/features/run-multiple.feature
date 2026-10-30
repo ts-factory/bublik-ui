@@ -31,6 +31,29 @@ Feature: Multiple runs
     Then the tests with unexpected results are listed
 
   ####################################################################
+  # Classifying across the merged runs
+  ####################################################################
+
+  # Each scenario files an issue of its own and deletes it as its last step.
+
+  @issues @issues-write @needs-nok
+  Scenario: Results picked in one of the merged runs classify in bulk as on the run page
+    Given I pick a failing result of one run on the multiple page of two runs
+    When I classify the selection under a new issue
+    Then the picked result carries a single stamp of the issue
+    And I delete the issue
+
+  @issues @issues-write @needs-nok
+  Scenario: Results picked across the merged runs classify under one issue
+    Given I pick a failing result of each of two runs on the multiple page for both runs
+    Then the selection says it spans both runs
+    When I open Classify on the selection
+    Then the drawer says how many results and runs it classifies
+    When I classify them under a new issue
+    Then each picked result carries a single stamp of the issue
+    And I delete the issue
+
+  ####################################################################
   # URL parameters
   ####################################################################
 
