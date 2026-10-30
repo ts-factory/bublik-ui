@@ -383,6 +383,42 @@ test.describe('Log Page', () => {
 	);
 
 	test(
+		'The legacy redirect keeps its layout',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page, request }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const logPage = new LogPage(page);
+			const result = requireCapability(
+				await firstResultNode(request, runCase),
+				'Fixture tree contains no test result node.'
+			);
+			const focusId = String(result.node.id);
+
+			await given(
+				'an old-style link to a focused result in the info-and-log layout that also carries a mode of its own',
+				() => expect(result.node.id).toBeTruthy()
+			);
+			await when('I open that link', async () => {
+				await logPage.gotoLegacy(runCase.runId, 'infoAndlog', {
+					focusId,
+					mode: 'log'
+				});
+				await logPage.expectLoaded();
+			});
+			await then('the info panel is shown and the tree is not', () =>
+				logPage.expectModeLayout('infoAndlog')
+			);
+			await and(
+				'the URL carries the info-and-log layout as its only mode',
+				() => logPage.expectSingleMode('infoAndlog')
+			);
+			await and('the link still carries the focused result', () =>
+				logPage.expectParams({ focusId })
+			);
+		}
+	);
+
+	test(
 		'Turning on the legacy log records it in the URL and survives a reload',
 		{ tag: ['@log', '@url-params'] },
 		async ({ page }) => {

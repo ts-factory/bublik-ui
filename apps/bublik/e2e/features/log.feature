@@ -102,6 +102,18 @@ Feature: Log
     Then neither the tree nor the info panel is shown
     And the URL still carries the unknown layout
 
+  # `/log/:runId/:old` is the URL shape from before `mode`, and the backend
+  # still links to `/log/:id/treeAndinfoAndlog` and `/log/:id/infoAndlog`. The
+  # redirect makes the old segment the link's one `mode`; it used to append
+  # `treeAndinfoAndlog` as a second `mode`, which lost the info-and-log layout.
+  @log @url-params
+  Scenario: The legacy redirect keeps its layout
+    Given an old-style link to a focused result in the info-and-log layout that also carries a mode of its own
+    When I open that link
+    Then the info panel is shown and the tree is not
+    And the URL carries the info-and-log layout as its only mode
+    And the link still carries the focused result
+
   @log @url-params
   Scenario: Turning on the legacy log records it in the URL and survives a reload
     Given I open the log of an imported run
