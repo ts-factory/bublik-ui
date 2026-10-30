@@ -5,6 +5,7 @@ exports[`components/AppShell > should match snapshot 1`] = `
   <div
     class="relative flex h-full"
     data-testid="tw-app-shell"
+    style="--shell-sidebar-width: var(--sidebar-width-closed);"
   >
     <div
       class="sticky top-0 z-20 h-screen h-svh"
@@ -17,7 +18,12 @@ exports[`components/AppShell > should match snapshot 1`] = `
     <div
       class="flex-grow overflow-auto"
       id="page-container"
-    />
+    >
+      <div
+        class="h-full"
+        id="page-content"
+      />
+    </div>
   </div>
 </DocumentFragment>
 `;

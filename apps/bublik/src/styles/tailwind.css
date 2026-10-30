@@ -30,6 +30,11 @@ body,
 	height: 100%;
 }
 
+/* The widest a page gets when the Layout setting caps it */
+:root {
+	--page-max-width: 1920px;
+}
+
 /* `.theme-light` / `.theme-dark` pin a subtree to one theme whatever the
    page's, as the Appearance settings previews do */
 :root,
