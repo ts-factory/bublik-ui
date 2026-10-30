@@ -139,7 +139,7 @@ export function getColumns(): ColumnDef<IssueTableRow, unknown>[] {
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count,
 			header: 'Results',
-			meta: { width: 'auto', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true, align: 'right' },
 			// The same badge the run-issues table counts with; there it expands
 			// the results in place, here it opens them across every run.
 			cell: ({ row }) =>
