@@ -23,17 +23,12 @@ class HistoryGlobalSearchForm {
 	readonly testPathInput: Locator;
 	readonly hashInput: Locator;
 	readonly parametersInput: Locator;
-	readonly parameterExpressionInput: Locator;
 	readonly runIdInput: Locator;
 	readonly labelsInput: Locator;
-	readonly labelExpressionInput: Locator;
 	readonly branchesInput: Locator;
-	readonly branchExpressionInput: Locator;
 	readonly revisionsInput: Locator;
-	readonly revisionExpressionInput: Locator;
 	readonly tagsInput: Locator;
 	readonly tagsField: Locator;
-	readonly tagExpressionInput: Locator;
 	readonly verdictInput: Locator;
 	readonly verdictExpressionInput: Locator;
 	readonly verdictLookupGroup: Locator;
@@ -58,26 +53,19 @@ class HistoryGlobalSearchForm {
 		this.datesField = this.root.getByRole('group', { name: 'Dates' });
 		this.testPathInput = this.root.getByLabel('Test Path');
 		this.hashInput = this.root.getByLabel('Hash');
-		this.parametersInput = this.root.getByPlaceholder('time_limit:30');
-		this.parameterExpressionInput = this.root.getByLabel(
-			'Parameter Expression'
-		);
-		this.runIdInput = this.root.getByLabel('Run ID');
-		this.labelsInput = this.root.getByPlaceholder('label');
-		this.labelExpressionInput = this.root.getByLabel('Label Expression');
-		this.branchesInput = this.root.getByPlaceholder('master');
-		this.branchExpressionInput = this.root.getByLabel('Branch Expression');
-		this.revisionsInput = this.root.getByPlaceholder(
-			'8af383125f20cc5ecdb8393bf'
-		);
-		this.revisionExpressionInput = this.root.getByLabel('Revision Expression');
-		this.tagsInput = this.root.getByPlaceholder('medford');
-		this.tagsField = this.root
-			.getByTestId('tw-badge-input')
-			.filter({ has: page.getByPlaceholder('medford') });
-		this.tagExpressionInput = this.root.getByRole('textbox', {
-			name: 'Tag Expression'
+		// Labels, Branches, Revisions, Tags and Parameters are each one field
+		// that takes values and expressions alike, as chips.
+		this.parametersInput = this.root.getByRole('combobox', {
+			name: 'Parameters'
 		});
+		this.runIdInput = this.root.getByLabel('Run ID');
+		this.labelsInput = this.root.getByRole('combobox', { name: 'Labels' });
+		this.branchesInput = this.root.getByRole('combobox', { name: 'Branches' });
+		this.revisionsInput = this.root.getByRole('combobox', {
+			name: 'Revisions'
+		});
+		this.tagsInput = this.root.getByRole('combobox', { name: 'Tags' });
+		this.tagsField = this.metaField(this.tagsInput);
 		this.verdictInput = this.root.locator('input[name="verdict"]');
 		this.verdictExpressionInput = this.root.getByLabel('Verdict Expression');
 		this.verdictLookupGroup = this.root.getByRole('radiogroup', {
@@ -148,67 +136,54 @@ class HistoryGlobalSearchForm {
 	}
 
 	async addParameters(values: string[]): Promise<void> {
-		await this.addBadges(this.parametersInput, values);
+		await this.addValueChips(this.parametersInput, values);
 	}
 
 	async addLabels(values: string[]): Promise<void> {
-		await this.addBadges(this.labelsInput, values);
+		await this.addValueChips(this.labelsInput, values);
 	}
 
 	async addBranches(values: string[]): Promise<void> {
-		await this.addBadges(this.branchesInput, values);
+		await this.addValueChips(this.branchesInput, values);
 	}
 
 	async addRevisions(values: string[]): Promise<void> {
-		await this.addBadges(this.revisionsInput, values);
+		await this.addValueChips(this.revisionsInput, values);
 	}
 
 	async addTags(values: string[]): Promise<void> {
-		await this.addBadges(this.tagsInput, values);
+		await this.addValueChips(this.tagsInput, values);
 	}
 
 	async addVerdicts(values: string[]): Promise<void> {
 		await this.addBadges(this.verdictInput, values);
 	}
 
-	async fillParameterExpression(value: string): Promise<void> {
-		await this.ensureExpressionFieldVisible(
-			this.parameterExpressionInput,
-			this.parametersInput
-		);
-		await this.parameterExpressionInput.fill(value);
+	async addParameterExpression(value: string): Promise<void> {
+		await this.addExpressionChip(this.parametersInput, value);
 	}
 
-	async fillLabelExpression(value: string): Promise<void> {
-		await this.ensureExpressionFieldVisible(
-			this.labelExpressionInput,
-			this.labelsInput
-		);
-		await this.labelExpressionInput.fill(value);
+	async addLabelExpression(value: string): Promise<void> {
+		await this.addExpressionChip(this.labelsInput, value);
 	}
 
-	async fillBranchExpression(value: string): Promise<void> {
-		await this.ensureExpressionFieldVisible(
-			this.branchExpressionInput,
-			this.branchesInput
-		);
-		await this.branchExpressionInput.fill(value);
+	async addBranchExpression(value: string): Promise<void> {
+		await this.addExpressionChip(this.branchesInput, value);
 	}
 
-	async fillRevisionExpression(value: string): Promise<void> {
-		await this.ensureExpressionFieldVisible(
-			this.revisionExpressionInput,
-			this.revisionsInput
-		);
-		await this.revisionExpressionInput.fill(value);
+	async addRevisionExpression(value: string): Promise<void> {
+		await this.addExpressionChip(this.revisionsInput, value);
 	}
 
-	async fillTagExpression(value: string): Promise<void> {
-		await this.ensureExpressionFieldVisible(
-			this.tagExpressionInput,
-			this.tagsInput
+	async addTagExpression(value: string): Promise<void> {
+		await this.addExpressionChip(this.tagsInput, value);
+	}
+
+	/** The expression chip of a run or test field, by its exact text. */
+	expressionChip(input: Locator, text: string): Locator {
+		return this.metaField(input).locator(
+			`[data-testid="meta-filter-chip"][data-kind="expression"][data-value="${text}"]`
 		);
-		await this.tagExpressionInput.fill(value);
 	}
 
 	async fillVerdictExpression(value: string): Promise<void> {
@@ -233,6 +208,12 @@ class HistoryGlobalSearchForm {
 
 	async expectTagNotListed(text: string): Promise<void> {
 		await expect(this.tagsField).not.toContainText(text, { timeout: 15_000 });
+	}
+
+	async expectTagExpression(text: string): Promise<void> {
+		await expect(this.expressionChip(this.tagsInput, text)).toBeVisible({
+			timeout: 15_000
+		});
 	}
 
 	async expectVerdictFieldAcceptsInput(): Promise<void> {
@@ -289,6 +270,42 @@ class HistoryGlobalSearchForm {
 			await input.fill(value);
 			await input.press('Enter');
 		}
+	}
+
+	/** The combined fields take only listed values, so Enter waits for the list. */
+	private async addValueChips(input: Locator, values: string[]): Promise<void> {
+		for (const value of values) {
+			await input.fill(value);
+			await expect(this.page.getByRole('option').first()).toBeVisible();
+			await input.press('Enter');
+		}
+	}
+
+	/** The whole field around one of the combined inputs: its chips and its mode switch. */
+	private metaField(input: Locator): Locator {
+		// `filter({ has })` would query `input`, rooted at the dialog, inside
+		// the field and never match; the field is the input's ancestor.
+		return input.locator(
+			'xpath=ancestor::*[@data-testid="meta-filter-input"][1]'
+		);
+	}
+
+	/**
+	 * Adds `value` as one expression chip. A bare name is a value until the
+	 * mode is switched, so the switch is clicked before Enter commits it.
+	 */
+	private async addExpressionChip(
+		input: Locator,
+		value: string
+	): Promise<void> {
+		await input.click();
+		await input.fill(value);
+		await this.metaField(input)
+			.getByRole('radio', { name: 'Expression', exact: true })
+			.click();
+		await input.press('Enter');
+		await expect(this.expressionChip(input, value)).toBeVisible();
+		await expect(input).toHaveValue('');
 	}
 
 	private async ensureExpressionFieldVisible(
