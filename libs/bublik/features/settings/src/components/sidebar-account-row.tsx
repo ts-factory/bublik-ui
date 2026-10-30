@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useState } from 'react';
+import { CaretSortIcon } from '@radix-ui/react-icons';
 import { LogIn } from 'lucide-react';
 
 import type { AuthenticatedUser } from '@/bublik/features/auth';
@@ -106,7 +107,7 @@ function SidebarAccountRow({
 							aria-label={`${name} · Account menu`}
 							style={sidebarPaddingTransition}
 							className={cn(
-								'flex w-full min-w-0 h-[42px] items-center gap-3 rounded-[0.625rem] pr-2.5 text-left text-text-menu',
+								'flex w-full min-w-0 h-[42px] items-center gap-3 rounded-[0.625rem] pr-4 text-left text-text-menu',
 								'hover:bg-primary-wash focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 								isSidebarOpen ? 'pl-4' : 'pl-2',
 								// Not rdx-state-open: the tooltip trigger shares this button and
@@ -135,6 +136,13 @@ function SidebarAccountRow({
 										</span>
 									) : null}
 								</div>
+							) : null}
+							{!isLoading && isSidebarOpen ? (
+								// Says the row opens a menu; in the nav's 24px arrow box so
+								// it lines up with the submenu arrows above
+								<span className="grid size-6 shrink-0 place-items-center">
+									<CaretSortIcon aria-hidden="true" className="size-5" />
+								</span>
 							) : null}
 						</button>
 					</DropdownMenuTrigger>
