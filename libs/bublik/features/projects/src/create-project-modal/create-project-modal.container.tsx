@@ -7,7 +7,8 @@ import { z } from 'zod';
 import {
 	bublikAPI,
 	CreateProject,
-	CreateProjectSchema
+	CreateProjectSchema,
+	Project
 } from '@/services/bublik-api';
 import {
 	ButtonTw,
@@ -26,15 +27,29 @@ import {
 import { setErrorsOnForm } from '@/shared/utils';
 
 interface CreateProjectModalProps {
-	children: React.ReactNode;
+	/** The trigger; left out when the caller opens the modal itself. */
+	children?: React.ReactNode;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	onCreated?: (project: Project) => void;
 }
 
-export function CreateProjectModal({ children }: CreateProjectModalProps) {
-	const [isOpen, setIsOpen] = useState(false);
+export function CreateProjectModal({
+	children,
+	open,
+	onOpenChange,
+	onCreated
+}: CreateProjectModalProps) {
+	const [isOpenState, setIsOpenState] = useState(false);
+	const isOpen = open ?? isOpenState;
+	const setIsOpen = (next: boolean) => {
+		setIsOpenState(next);
+		onOpenChange?.(next);
+	};
 
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			{children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
 			<DialogPortal>
 				<DialogOverlay className={dialogOverlayStyles()} />
 				<DialogContent
@@ -44,7 +59,10 @@ export function CreateProjectModal({ children }: CreateProjectModalProps) {
 					)}
 				>
 					<CreateProjectForm
-						onSuccess={() => setIsOpen(false)}
+						onSuccess={(project) => {
+							setIsOpen(false);
+							onCreated?.(project);
+						}}
 						onCancel={() => setIsOpen(false)}
 					/>
 				</DialogContent>
@@ -54,7 +72,7 @@ export function CreateProjectModal({ children }: CreateProjectModalProps) {
 }
 
 interface CreateProjectFormProps {
-	onSuccess?: () => void;
+	onSuccess?: (project: Project) => void;
 	onCancel?: () => void;
 }
 
@@ -76,9 +94,9 @@ function CreateProjectForm({ onSuccess, onCancel }: CreateProjectFormProps) {
 		});
 
 		try {
-			await promise;
+			const project = await promise;
 			form.reset();
-			onSuccess?.();
+			onSuccess?.(project);
 		} catch (e) {
 			setErrorsOnForm(e, { handle: form });
 		}

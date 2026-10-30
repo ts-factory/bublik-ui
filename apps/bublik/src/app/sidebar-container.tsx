@@ -15,6 +15,7 @@ import { ChatSidebarNav } from '@/bublik/features/chat';
 import { AdminSidebarNav } from '@/bublik/features/admin-users';
 import { HelpSidebarNav } from '@/bublik/features/faq';
 import { Sidebar } from '@/bublik/features/sidebar';
+import { useAuth } from '@/bublik/features/auth';
 
 function FooterNav() {
 	return (
@@ -27,8 +28,13 @@ function FooterNav() {
 }
 
 export function SidebarContainer() {
+	const { isAdmin } = useAuth();
+
 	return (
-		<Sidebar headerSlot={<ProjectPickerContainer />} footerSlot={<FooterNav />}>
+		<Sidebar
+			headerSlot={<ProjectPickerContainer canManage={isAdmin} />}
+			footerSlot={<FooterNav />}
+		>
 			<DashboardSidebarNav />
 			<RunsSidebarNav />
 			<RunSidebarNav />

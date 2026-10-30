@@ -1,10 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { ComponentPropsWithoutRef, ReactNode, forwardRef } from 'react';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import {
+	CaretSortIcon,
+	CheckIcon,
+	GearIcon,
+	PlusIcon
+} from '@radix-ui/react-icons';
 
 import type { Project } from '@/services/bublik-api';
 import {
+	ButtonTw,
 	Command,
 	CommandEmpty,
 	CommandGroup,
@@ -21,6 +27,7 @@ import {
 	sidebarPaddingTransition
 } from '@/shared/tailwind-ui';
 
+import { LinkWithProject } from '../link-with-project';
 import { getProjectTileStyle } from './project-switcher.utils';
 
 const ALL_PROJECTS_LABEL = 'All projects';
@@ -199,6 +206,46 @@ const ProjectSwitcherTrigger = forwardRef<
 	);
 });
 
+const footerActionStyles = 'flex-1 basis-0 gap-1.5 rounded-lg';
+
+interface ProjectSwitcherFooterProps {
+	onCreateProject: () => void;
+	onManage: () => void;
+}
+
+function ProjectSwitcherFooter(props: ProjectSwitcherFooterProps) {
+	const { onCreateProject, onManage } = props;
+
+	return (
+		<div
+			className="flex gap-1.5 border-t border-border-primary bg-bg-elevated p-2"
+			data-testid="project-picker-actions"
+		>
+			<ButtonTw
+				type="button"
+				variant="secondary"
+				size="xs/2"
+				className={footerActionStyles}
+				onClick={onCreateProject}
+			>
+				<PlusIcon aria-hidden="true" className="size-4" />
+				New Project
+			</ButtonTw>
+			<ButtonTw
+				asChild
+				variant="secondary"
+				size="xs/2"
+				className={footerActionStyles}
+			>
+				<LinkWithProject to="/admin/config" onClick={onManage}>
+					<GearIcon aria-hidden="true" className="size-4" />
+					Manage
+				</LinkWithProject>
+			</ButtonTw>
+		</div>
+	);
+}
+
 interface ProjectSwitcherProps {
 	projects: readonly Project[];
 	currentProject?: Project;
@@ -209,6 +256,8 @@ interface ProjectSwitcherProps {
 	onSelect: (projectId: number | undefined) => void;
 	isSidebarOpen: boolean;
 	renderMeta: (projectId?: number) => ReactNode;
+	/** Only admins get the footer; left out, it is not rendered. */
+	actions?: ProjectSwitcherFooterProps;
 }
 
 function ProjectSwitcher(props: ProjectSwitcherProps) {
@@ -221,7 +270,8 @@ function ProjectSwitcher(props: ProjectSwitcherProps) {
 		onSearchChange,
 		onSelect,
 		isSidebarOpen,
-		renderMeta
+		renderMeta,
+		actions
 	} = props;
 	const isSearching = search.trim().length > 0;
 
@@ -304,6 +354,7 @@ function ProjectSwitcher(props: ProjectSwitcherProps) {
 						</CommandGroup>
 					</CommandList>
 				</Command>
+				{actions ? <ProjectSwitcherFooter {...actions} /> : null}
 			</PopoverContent>
 		</Popover>
 	);
