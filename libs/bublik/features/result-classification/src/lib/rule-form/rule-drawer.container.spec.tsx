@@ -143,4 +143,17 @@ describe('DuplicateRuleButton', () => {
 
 		expect(drawerField('rule-category')).toHaveTextContent('Flaky');
 	});
+
+	it('keeps the rule’s disposition rather than its category’s default', () => {
+		render(
+			<Harness rule={rule({ category: 'known-issue', expected: false })} />
+		);
+
+		openDuplicate();
+		expect(drawerField('rule-expected')).toHaveTextContent('Unexpected');
+
+		closeDrawer();
+		openDuplicate();
+		expect(drawerField('rule-expected')).toHaveTextContent('Unexpected');
+	});
 });
