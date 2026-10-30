@@ -132,6 +132,31 @@ describe('EditRuleButton', () => {
 	});
 });
 
+describe("the Edit drawer's match scope", () => {
+	function verdictsShown() {
+		const matcher = screen.getByTestId('rule-matcher-readonly');
+		const term = within(matcher).getByText('Verdicts');
+
+		return term.closest('dt')?.nextElementSibling;
+	}
+
+	it('says No verdicts for a rule matching a failure without any', () => {
+		render(<Harness rule={rule({ verdicts: [] })} />);
+
+		openEdit();
+
+		expect(verdictsShown()).toHaveTextContent('No verdicts');
+	});
+
+	it('says Not constrained for a rule ignoring the verdicts', () => {
+		render(<Harness rule={rule({ verdicts: null })} />);
+
+		openEdit();
+
+		expect(verdictsShown()).toHaveTextContent('Not constrained');
+	});
+});
+
 describe('DuplicateRuleButton', () => {
 	it('starts from the rule as it is now after the rule changes', () => {
 		const { rerender } = render(<Harness rule={rule()} />);
@@ -156,4 +181,21 @@ describe('DuplicateRuleButton', () => {
 		openDuplicate();
 		expect(drawerField('rule-expected')).toHaveTextContent('Unexpected');
 	});
+
+	it.each([
+		{ verdicts: [], checked: 'checked' },
+		{ verdicts: null, checked: 'unchecked' }
+	])(
+		'offers "without any verdict" $checked for verdicts $verdicts',
+		({ verdicts, checked }) => {
+			render(<Harness rule={rule({ verdicts })} />);
+
+			openDuplicate();
+
+			expect(screen.getByTestId('rule-no-verdicts')).toHaveAttribute(
+				'data-state',
+				checked
+			);
+		}
+	);
 });

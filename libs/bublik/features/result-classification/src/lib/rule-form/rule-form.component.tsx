@@ -5,13 +5,14 @@ import { Controller } from 'react-hook-form';
 
 import { bublikAPI } from '@/services/bublik-api';
 import {
+	Checkbox,
 	ErrorMessage,
 	FormAlertError,
 	FormSection,
 	FormSectionSubheader,
 	SelectInput
 } from '@/shared/tailwind-ui';
-import type { IssueCategory } from '@/shared/types';
+import type { IssueCategory, IssueRule } from '@/shared/types';
 
 import { defaultDispositionFor } from '../shared/category.constants';
 import {
@@ -37,6 +38,8 @@ export interface RuleFieldsProps {
 	lockIssue?: boolean;
 	testPath?: string | null;
 	container?: RefObject<HTMLElement>;
+	/** The rule being edited, whose matcher the edit shows as it is stored. */
+	rule?: IssueRule | null;
 }
 
 export function RuleFields({
@@ -44,7 +47,8 @@ export function RuleFields({
 	mode,
 	lockIssue = false,
 	testPath,
-	container
+	container,
+	rule
 }: RuleFieldsProps) {
 	const {
 		control,
@@ -55,6 +59,7 @@ export function RuleFields({
 	const isEdit = mode === 'edit';
 
 	const project = watch('project');
+	const verdictChips = watch('verdicts');
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 	const expectedTouched = Boolean(dirtyFields.expected);
 
@@ -227,9 +232,15 @@ export function RuleFields({
 				<FormSection.Header name="Match scope" className="mb-0" />
 				{isEdit ? (
 					<MatcherReadOnly
-						parameters={itemsToParameters(watch('parameters'))}
-						verdicts={itemsToVerdicts(watch('verdicts'))}
-						tags={itemsToList(watch('tags'))}
+						parameters={
+							rule?.parameters ?? itemsToParameters(watch('parameters'))
+						}
+						verdicts={
+							rule
+								? rule.verdicts
+								: itemsToVerdicts(verdictChips, watch('noVerdicts'))
+						}
+						tags={rule?.tags ?? itemsToList(watch('tags'))}
 					/>
 				) : (
 					<>
@@ -250,6 +261,24 @@ export function RuleFields({
 								placeholder="Press Enter to add a verdict"
 								testId="rule-verdicts"
 							/>
+							{verdictChips.length ? null : (
+								<Controller
+									control={control}
+									name="noVerdicts"
+									render={({ field }) => (
+										<Checkbox
+											id="rule-no-verdicts"
+											name={field.name}
+											label="Match only failures without any verdict"
+											checked={field.value}
+											onCheckedChange={(checked) =>
+												field.onChange(checked === true)
+											}
+											data-testid="rule-no-verdicts"
+										/>
+									)}
+								/>
+							)}
 							<MatcherField
 								control={control}
 								name="tags"
