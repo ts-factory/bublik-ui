@@ -19,6 +19,14 @@ import {
 	createRunsSearchParamsFiltersSnapshot,
 	getSelectedRunData
 } from './runs-form.utils';
+import { useRunsMetaSuggestions } from './runs-form.suggestions.hooks';
+import {
+	RUN_EXPRESSION_KINDS,
+	RUN_EXPRESSION_PARAM,
+	hasRunExpression,
+	readRunExpressions,
+	writeRunExpressions
+} from './runs-expressions';
 import { updateGlobalFilter } from '../runs-slice';
 import { selectAllTags } from '../runs-slice.selectors';
 import { normalizeRunDataList, normalizeRunDataValue } from '../runs-key-value';
@@ -30,6 +38,7 @@ function RunsFormContainer() {
 	const [searchParams] = useSearchParams();
 	const navigateWithProject = useNavigateWithProject();
 	const allTags = useSelector(selectAllTags);
+	const metaSuggestions = useRunsMetaSuggestions(allTags);
 
 	useMount(() => {
 		const initialGlobalFilter = normalizeRunDataList(
@@ -57,6 +66,9 @@ function RunsFormContainer() {
 			calendarMode: newForm.calendarMode,
 			hasDateRange: Boolean(newForm.dates?.start && newForm.dates?.end),
 			hasTagExpr: Boolean(newForm.tagExpr.trim()),
+			expressionKinds: RUN_EXPRESSION_KINDS.filter((kind) =>
+				newForm[RUN_EXPRESSION_PARAM[kind]].trim()
+			),
 			selectedRunDataCount: selectedRunData.length
 		});
 
@@ -88,6 +100,7 @@ function RunsFormContainer() {
 				Boolean(searchParams.get('startDate')) ||
 				Boolean(searchParams.get('finishDate')),
 			hadTagExpr: Boolean(searchParams.get('tagExpr')),
+			hadExpression: hasRunExpression(readRunExpressions(searchParams)),
 			hadSelectedRunData: Boolean(searchParams.get('runData'))
 		});
 
@@ -108,6 +121,9 @@ function RunsFormContainer() {
 		<RunsForm
 			defaultValues={defaultValues}
 			appliedFilters={appliedFilters}
+			metaSuggestions={metaSuggestions.groups}
+			metaSuggestionsLoading={metaSuggestions.isLoading}
+			onMetaSuggestionsRequest={metaSuggestions.request}
 			onRunsFormSubmit={handleFormSubmit}
 			onResetFormClick={handleResetFormClick}
 		/>
@@ -132,13 +148,12 @@ function searchParamsToForm(
 	const rawEnd = searchParams.get('finishDate');
 	const calendarMode = (searchParams.get('calendarMode') ??
 		'default') as RunsFormValues['calendarMode'];
-	const tagExpr = searchParams.get('tagExpr') ?? '';
 	const searchDuration = searchParams.get('duration');
 
 	const defaultValues: RunsFormValues = {
 		calendarMode,
 		runData: normalizedAllTags,
-		tagExpr,
+		...readRunExpressions(searchParams),
 		dates: null
 	};
 
@@ -172,7 +187,7 @@ function formToSearchParams(
 	initialSearchParams: URLSearchParams,
 	form: RunsFormValues
 ): URLSearchParams {
-	const { runData, tagExpr, dates, calendarMode } = form;
+	const { runData, dates, calendarMode } = form;
 	const params = new URLSearchParams(initialSearchParams);
 
 	params.set('calendarMode', calendarMode);
@@ -207,7 +222,7 @@ function formToSearchParams(
 
 	const selectedRunData = normalizeRunDataList(getSelectedRunData(runData));
 
-	tagExpr ? params.set('tagExpr', tagExpr) : params.delete('tagExpr');
+	writeRunExpressions(params, form);
 
 	return applyRunDataToSearchParams(params, selectedRunData);
 }

@@ -14,6 +14,7 @@ import {
 	RunsProgressTrend,
 	RunsProgressTrendDirection
 } from './runs-progress.types';
+import { RUN_EXPRESSION_PARAM } from '../runs-form/runs-expressions';
 
 const OTHER_GROUP_ID = '__other__';
 
@@ -559,7 +560,6 @@ function buildFilterSummary(
 ): RunsProgressFilterSummary[] {
 	const summary: RunsProgressFilterSummary[] = [];
 	const runData = searchParams.get('runData');
-	const tagExpr = searchParams.get('tagExpr');
 	const calendarMode = searchParams.get('calendarMode');
 	const duration = searchParams.get('duration');
 	const startDate = searchParams.get('startDate');
@@ -567,7 +567,15 @@ function buildFilterSummary(
 
 	if (runData)
 		summary.push({ label: 'Metas', value: runData.split(';').join(', ') });
-	if (tagExpr) summary.push({ label: 'Tag expression', value: tagExpr });
+	for (const [kind, param] of Object.entries(RUN_EXPRESSION_PARAM)) {
+		const expression = searchParams.get(param);
+		if (expression) {
+			summary.push({
+				label: `${kind.charAt(0).toUpperCase()}${kind.slice(1)} expression`,
+				value: expression
+			});
+		}
+	}
 	if (calendarMode === 'duration' && duration) {
 		summary.push({ label: 'Range', value: duration });
 	} else if (startDate || finishDate) {

@@ -36,6 +36,9 @@ function useRunsProgressRuns(): RunsProgressRunsResult {
 			finishDate: query.finishDate,
 			runData: query.runData,
 			tagExpr: query.tagExpr,
+			labelExpr: query.labelExpr,
+			branchExpr: query.branchExpr,
+			revisionExpr: query.revisionExpr,
 			projects: query.projects
 		}),
 		[
@@ -43,6 +46,9 @@ function useRunsProgressRuns(): RunsProgressRunsResult {
 			query.finishDate,
 			query.runData,
 			query.tagExpr,
+			query.labelExpr,
+			query.branchExpr,
+			query.revisionExpr,
 			query.projects
 		]
 	);

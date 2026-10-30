@@ -6,13 +6,18 @@ import { formatISODuration, intervalToDuration } from 'date-fns';
 import { formatTimeToAPI } from '@/shared/utils';
 
 import type { RunsFormValues } from './runs-form.component';
+import {
+	RUN_EXPRESSION_PARAMS,
+	RunExpressions,
+	pickRunExpressions,
+	readRunExpressions
+} from './runs-expressions';
 
-export interface RunsFormFiltersSnapshot {
+export interface RunsFormFiltersSnapshot extends RunExpressions {
 	calendarMode: RunsFormValues['calendarMode'];
 	startDate: string;
 	finishDate: string;
 	duration: string;
-	tagExpr: string;
 	runData: string[];
 }
 
@@ -71,7 +76,7 @@ export function createRunsFormFiltersSnapshot(
 		startDate,
 		finishDate,
 		duration,
-		tagExpr: form.tagExpr,
+		...pickRunExpressions(form),
 		runData: getSelectedRunData(form.runData)
 	};
 }
@@ -85,7 +90,7 @@ export function createRunsSearchParamsFiltersSnapshot(
 		startDate: normalizeFilterValue(searchParams.get('startDate')),
 		finishDate: normalizeFilterValue(searchParams.get('finishDate')),
 		duration: normalizeFilterValue(searchParams.get('duration')),
-		tagExpr: normalizeFilterValue(searchParams.get('tagExpr')),
+		...readRunExpressions(searchParams),
 		runData: normalizeRunData(
 			normalizeFilterValue(searchParams.get('runData'))
 				.split(';')
@@ -99,7 +104,9 @@ export function areRunsFiltersSnapshotsEqual(
 	right: RunsFormFiltersSnapshot
 ): boolean {
 	if (left.calendarMode !== right.calendarMode) return false;
-	if (left.tagExpr !== right.tagExpr) return false;
+	if (RUN_EXPRESSION_PARAMS.some((param) => left[param] !== right[param])) {
+		return false;
+	}
 	if (left.runData.length !== right.runData.length) return false;
 
 	const hasDifferentRunData = left.runData.some(

@@ -53,6 +53,9 @@ export const useRunsStats = () => {
 			finishDate: searchQuery.finishDate,
 			runData: searchQuery.runData,
 			tagExpr: searchQuery.tagExpr,
+			labelExpr: searchQuery.labelExpr,
+			branchExpr: searchQuery.branchExpr,
+			revisionExpr: searchQuery.revisionExpr,
 			projects: searchQuery.projects
 		}),
 		[
@@ -60,7 +63,10 @@ export const useRunsStats = () => {
 			searchQuery.projects,
 			searchQuery.runData,
 			searchQuery.startDate,
-			searchQuery.tagExpr
+			searchQuery.tagExpr,
+			searchQuery.labelExpr,
+			searchQuery.branchExpr,
+			searchQuery.revisionExpr
 		]
 	);
 

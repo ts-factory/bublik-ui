@@ -20,6 +20,7 @@ import {
 import { updateGlobalFilter } from './runs-slice';
 import { selectGlobalFilter } from './runs-slice.selectors';
 import { normalizeRunDataQuery } from './runs-key-value';
+import { queryRunExpressions } from './runs-form/runs-expressions';
 import { RUNS_SELECTION_POPOVER_STORAGE_KEY } from './selection-popover/selection-popover.constants';
 
 export const useRunsGlobalFilter = () => {
@@ -119,7 +120,7 @@ export const useRunsQuery = () => {
 			page: (pagination.pageIndex + 1).toString() || '1',
 			pageSize: pagination.pageSize.toString() || '25',
 			runData: normalizedRunData,
-			tagExpr: searchParams.get('tagExpr') || '',
+			...queryRunExpressions(searchParams),
 			projects: projectIds
 		};
 	}, [
