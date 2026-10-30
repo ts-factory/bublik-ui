@@ -107,7 +107,7 @@ class Sidebar {
 		await expect(this.themeCard('Light')).toBeVisible({ timeout: 15_000 });
 	}
 
-	/** A layout of the Default log layout choice in Settings › Preferences */
+	/** A layout card of the Default log layout choice in Settings › Preferences; its name is the card title */
 	private logLayoutOption(name: DefaultLogLayoutName): Locator {
 		return this.settingsDialog()
 			.getByRole('radiogroup', { name: 'Default log layout' })

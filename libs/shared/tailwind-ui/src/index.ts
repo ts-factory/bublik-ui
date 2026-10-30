@@ -37,6 +37,7 @@ export * from './lib/dialog';
 export * from './lib/connection-status';
 export * from './lib/resizable';
 export * from './lib/toggle-switch';
+export * from './lib/switch';
 export * from './lib/providers';
 export * from './lib/side-panel';
 export * from './lib/error-page';
