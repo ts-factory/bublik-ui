@@ -117,7 +117,7 @@ export function getColumns(
 			id: COLUMN_ID.RESULTS,
 			accessorFn: (row) => row.result_count,
 			header: 'Results',
-			meta: { width: 'auto', badgeCell: true },
+			meta: { width: 'auto', badgeCell: true, align: 'right' },
 			cell: ({ row }) => {
 				const isExpanded = row.getIsExpanded();
 
