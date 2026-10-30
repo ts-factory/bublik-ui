@@ -18,6 +18,11 @@ class ConfigPage {
 		await expect(this.newProjectButton).toBeVisible();
 	}
 
+	async expectOpen(): Promise<void> {
+		await expect(this.page).toHaveURL(/\/admin\/config(?:$|\?)/);
+		await expect(this.newProjectButton).toBeVisible();
+	}
+
 	async gotoConfig(configId: number): Promise<void> {
 		await this.page.goto(`admin/config?configId=${configId}`);
 		await expect(this.page).toHaveURL(new RegExp(`configId=${configId}`));
