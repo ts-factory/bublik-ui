@@ -29,7 +29,7 @@ const LOG_URL_PARAMS = {
 		whenAbsent:
 			'neither the tree nor the info panel — the page has no fallback, so an unknown value renders the log on its own',
 		writtenBy:
-			"the layout icons on the sidebar's Run › Log row; appended by the /log/:runId/:old redirect"
+			"the layout icons on the sidebar's Run › Log row; set by the /log/:runId/:old redirect from its old segment"
 	},
 	page: {
 		codec: 'raw',
@@ -101,6 +101,19 @@ class LogPage {
 				: searchParams?.toString() ?? '';
 		await this.page.goto(`log/${runId}${search ? `?${search}` : ''}`);
 		await expect(this.page).toHaveURL(new RegExp(`/log/${runId}`));
+	}
+
+	/** The pre-`mode` URL shape, `/log/:runId/:old`, which the app redirects. */
+	async gotoLegacy(
+		runId: number,
+		old: string,
+		searchParams?: Record<string, string>
+	): Promise<void> {
+		const search = new URLSearchParams(searchParams).toString();
+		await this.page.goto(`log/${runId}/${old}${search ? `?${search}` : ''}`);
+		await expect(this.page).toHaveURL(new RegExp(`/log/${runId}(\\?|$)`), {
+			timeout: 15_000
+		});
 	}
 
 	async expectLoaded(): Promise<void> {
@@ -197,6 +210,11 @@ class LogPage {
 		action: () => Promise<void>
 	): Promise<void> {
 		await this.url.expectUnchangedWhile(keys, action);
+	}
+
+	/** Exactly one `mode` in the URL, with this value. */
+	async expectSingleMode(mode: LogMode): Promise<void> {
+		await this.url.expectRepeated('mode', [mode]);
 	}
 
 	async expectRawMode(mode: string): Promise<void> {
