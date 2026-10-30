@@ -100,6 +100,18 @@ Feature: Issue rules
     Then the Disposition column, once shown, reads Unexpected
     And I delete the issue
 
+  # The Edit drawer stays mounted between opens; it must follow the rule the
+  # save refetched, not keep the values it was first opened with.
+  @issues @issues-write @needs-nok
+  Scenario: Editing a rule again shows the values it was saved with
+    Given I record an issue with an expected rule
+    And I open the rules page for the fixture project and search for the rule's test
+    When I edit the rule
+    And I make it a Flaky, unexpected, inactive rule and save it
+    And I edit the rule again
+    Then the drawer shows Flaky, Unexpected and Inactive
+    And I delete the issue
+
   @issues @issues-write @needs-nok
   Scenario: A narrow viewport folds a rule into an expander
     Given I record an issue with an expected rule
