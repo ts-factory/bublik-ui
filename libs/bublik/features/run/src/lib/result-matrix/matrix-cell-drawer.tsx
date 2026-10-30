@@ -70,7 +70,10 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 
 	return (
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
+			{/* The run table's root is `isolate`, so inline the overlay would only
+			    compete within the table and the app sidebar would stay on top. */}
 			<DrawerContent
+				portal
 				className="flex h-full w-screen max-w-[40rem] flex-col"
 				aria-label="Selected cell"
 			>
