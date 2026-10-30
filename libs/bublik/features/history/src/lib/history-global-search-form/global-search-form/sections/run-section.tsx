@@ -1,24 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useCallback, useState } from 'react';
+import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { config } from '@/bublik/config';
 import {
 	TextField,
-	BadgeField,
 	AriaDateRangeField,
-	CheckboxField
+	CheckboxField,
+	MetaFilterField,
+	MetaFilterSuggestionGroup
 } from '@/shared/tailwind-ui';
 import { RUN_PROPERTIES } from '@/shared/types';
 
-import {
-	ExpressionToggleButton,
-	FieldResetButton,
-	FormSection,
-	FormSectionSubheader,
-	FormError
-} from '../components';
+import { FormSection, FormSectionSubheader, FormError } from '../components';
 import { HistoryGlobalSearchFormValues } from '../global-search-form.types';
 import { HISTORY_FIELD_BADGE_CLASS } from '../global-search-form.constants';
 import { useMetaSuggestions } from '../global-search-form.suggestions.hooks';
@@ -28,31 +23,94 @@ export type RunSectionProps = {
 	onResetRunSectionDefaultClick: () => void;
 };
 
+const LABEL_HELP_EXAMPLES = [
+	'nightly & !weekly',
+	'release-1 | release-2',
+	'(nightly | weekly) & !broken'
+];
+const BRANCH_HELP_EXAMPLES = [
+	'master | release',
+	'!master',
+	'branch=main | branch=stable'
+];
+const REVISION_HELP_EXAMPLES = [
+	'rev=8af3831 | rev=c0ffee',
+	'rev!=8af3831',
+	'(rev=8af3831 | rev=c0ffee) & !dirty'
+];
+const TAG_HELP_EXAMPLES = [
+	'medford & !pci-15b3',
+	'pci-15b3 | pci-sub-15b3',
+	'(medford | ipv6) & arm64'
+];
+
+const KEY_VALUE_DELIMITERS = {
+	keyValueDisplayDelimiter: config.keyValueDisplayDelimiter,
+	keyValueSubmitDelimiter: config.keyValueSubmitDelimiter
+};
+
+function toGroup(
+	label: string,
+	items: readonly string[],
+	className: string
+): MetaFilterSuggestionGroup[] {
+	return items.length ? [{ label, items, className }] : [];
+}
+
 export const RunSection = (props: RunSectionProps) => {
-	const { control, formState, watch, setValue } =
+	const { control, formState, watch } =
 		useFormContext<HistoryGlobalSearchFormValues>();
-	const [isLabelExpressionVisible, setIsLabelExpressionVisible] = useState(() =>
-		Boolean(watch('labelExpr'))
-	);
-	const [isBranchExpressionVisible, setIsBranchExpressionVisible] = useState(
-		() => Boolean(watch('branchExpr'))
-	);
-	const [isRevisionExpressionVisible, setIsRevisionExpressionVisible] =
-		useState(() => Boolean(watch('revisionExpr')));
-	const [isTagExpressionVisible, setIsTagExpressionVisible] = useState(() =>
-		Boolean(watch('tagExpr'))
-	);
 	const metaSuggestions = useMetaSuggestions({
 		eager: watch('runData').length > 0
 	});
-	const { importantTags } = metaSuggestions;
-	const tagBadgeClassName = useCallback(
-		(tag: string) =>
-			importantTags.has(tag)
-				? HISTORY_FIELD_BADGE_CLASS.importantTags
-				: HISTORY_FIELD_BADGE_CLASS.tags,
-		[importantTags]
+	const { importantTags, tags } = metaSuggestions;
+
+	const labelGroups = useMemo(
+		() =>
+			toGroup(
+				'Labels',
+				metaSuggestions.labels,
+				HISTORY_FIELD_BADGE_CLASS.labels
+			),
+		[metaSuggestions.labels]
 	);
+	const branchGroups = useMemo(
+		() =>
+			toGroup(
+				'Branches',
+				metaSuggestions.branches,
+				HISTORY_FIELD_BADGE_CLASS.branches
+			),
+		[metaSuggestions.branches]
+	);
+	const revisionGroups = useMemo(
+		() =>
+			toGroup(
+				'Revisions',
+				metaSuggestions.revisions,
+				HISTORY_FIELD_BADGE_CLASS.revisions
+			),
+		[metaSuggestions.revisions]
+	);
+	const tagGroups = useMemo(
+		() => [
+			...toGroup(
+				'Important',
+				tags.filter((tag) => importantTags.has(tag)),
+				HISTORY_FIELD_BADGE_CLASS.importantTags
+			),
+			...toGroup(
+				'Tags',
+				tags.filter((tag) => !importantTags.has(tag)),
+				HISTORY_FIELD_BADGE_CLASS.tags
+			)
+		],
+		[importantTags, tags]
+	);
+	const tagChipClassName = (tag: string) =>
+		importantTags.has(tag)
+			? HISTORY_FIELD_BADGE_CLASS.importantTags
+			: HISTORY_FIELD_BADGE_CLASS.tags;
 
 	const runPropsError = formState.errors.runProperties?.message as
 		| string
@@ -74,186 +132,81 @@ export const RunSection = (props: RunSectionProps) => {
 			<div className="flex flex-col gap-4">
 				<div className="grid items-center gap-4 md:grid-cols-2">
 					<AriaDateRangeField label="Dates" name="dates" control={control} />
-					<div className="flex gap-2">
-						<div className="flex-1">
-							<TextField
-								name="runIds"
-								label="Run ID"
-								placeholder="1"
-								control={control}
-							/>
-						</div>
-						<div className="size-10" />
-					</div>
-				</div>
-				<div className="flex gap-2">
-					<div className="flex-1">
-						<BadgeField
-							name="labels"
-							suggestions={metaSuggestions.labels}
-							suggestionsLoading={metaSuggestions.isLoading}
-							onSuggestionsRequest={metaSuggestions.request}
-							badgeClassName={HISTORY_FIELD_BADGE_CLASS.labels}
-							label="Labels"
-							placeholder="label"
-							control={control}
-							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
-							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
-							labelTrailingContent={
-								<FieldResetButton
-									helpMessage="Clear labels"
-									onClick={(event) => {
-										event.stopPropagation();
-										setValue('labels', [], {
-											shouldDirty: true,
-											shouldTouch: true
-										});
-									}}
-								/>
-							}
-						/>
-					</div>
-					<ExpressionToggleButton
-						label="label expression"
-						isOpen={isLabelExpressionVisible}
-						onClick={() => setIsLabelExpressionVisible((previous) => !previous)}
-					/>
-				</div>
-				{isLabelExpressionVisible ? (
 					<TextField
-						name="labelExpr"
-						label="Label Expression"
-						placeholder={'label1 & label2'}
+						name="runIds"
+						label="Run ID"
+						placeholder="1"
 						control={control}
 					/>
-				) : null}
-				<div className="flex gap-2">
-					<div className="flex-1">
-						<BadgeField
-							name="branches"
-							suggestions={metaSuggestions.branches}
-							suggestionsLoading={metaSuggestions.isLoading}
-							onSuggestionsRequest={metaSuggestions.request}
-							badgeClassName={HISTORY_FIELD_BADGE_CLASS.branches}
-							label="Branches"
-							placeholder="master"
-							control={control}
-							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
-							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
-							labelTrailingContent={
-								<FieldResetButton
-									helpMessage="Clear branches"
-									onClick={(event) => {
-										event.stopPropagation();
-										setValue('branches', [], {
-											shouldDirty: true,
-											shouldTouch: true
-										});
-									}}
-								/>
-							}
-						/>
-					</div>
-					<ExpressionToggleButton
-						label="branch expression"
-						isOpen={isBranchExpressionVisible}
-						onClick={() =>
-							setIsBranchExpressionVisible((previous) => !previous)
-						}
-					/>
 				</div>
-				{isBranchExpressionVisible ? (
-					<TextField
-						name={'branchExpr'}
-						label="Branch Expression"
-						placeholder="branch1 | branch2"
-						control={control}
-					/>
-				) : null}
-				<div className="flex gap-2">
-					<div className="flex-1">
-						<BadgeField
-							name="revisions"
-							suggestions={metaSuggestions.revisions}
-							suggestionsLoading={metaSuggestions.isLoading}
-							onSuggestionsRequest={metaSuggestions.request}
-							badgeClassName={HISTORY_FIELD_BADGE_CLASS.revisions}
-							label="Revisions"
-							placeholder="8af383125f20cc5ecdb8393bf"
-							control={control}
-							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
-							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
-							labelTrailingContent={
-								<FieldResetButton
-									helpMessage="Clear revisions"
-									onClick={(event) => {
-										event.stopPropagation();
-										setValue('revisions', [], {
-											shouldDirty: true,
-											shouldTouch: true
-										});
-									}}
-								/>
-							}
-						/>
-					</div>
-					<ExpressionToggleButton
-						label="revision expression"
-						isOpen={isRevisionExpressionVisible}
-						onClick={() =>
-							setIsRevisionExpressionVisible((previous) => !previous)
-						}
-					/>
-				</div>
-				{isRevisionExpressionVisible ? (
-					<TextField
-						name={'revisionExpr'}
-						label="Revision Expression"
-						placeholder="meta_name1 & meta_name2=32"
-						control={control}
-					/>
-				) : null}
-				<div className="flex gap-2">
-					<div className="flex-1">
-						<BadgeField
-							label="Tags"
-							name="runData"
-							suggestions={metaSuggestions.tags}
-							suggestionsLoading={metaSuggestions.isLoading}
-							onSuggestionsRequest={metaSuggestions.request}
-							badgeClassName={tagBadgeClassName}
-							placeholder="medford"
-							control={control}
-							keyValueDisplayDelimiter={config.keyValueDisplayDelimiter}
-							keyValueSubmitDelimiter={config.keyValueSubmitDelimiter}
-							labelTrailingContent={
-								<FieldResetButton
-									helpMessage="Clear tags"
-									onClick={(event) => {
-										event.stopPropagation();
-										setValue('runData', [], {
-											shouldDirty: true,
-											shouldTouch: true
-										});
-									}}
-								/>
-							}
-						/>
-					</div>
-					<ExpressionToggleButton
-						label="tag expression"
-						isOpen={isTagExpressionVisible}
-						onClick={() => setIsTagExpressionVisible((previous) => !previous)}
-					/>
-				</div>
-				{isTagExpressionVisible ? (
-					<TextField
-						name="tagExpr"
-						label="Tag Expression"
-						placeholder="pci-15b3 | pci-sub-15b3"
-						control={control}
-					/>
-				) : null}
+				<MetaFilterField
+					control={control}
+					valuesName="labels"
+					expressionName="labelExpr"
+					variant="form"
+					label="Labels"
+					name="labels"
+					placeholder="label"
+					suggestions={labelGroups}
+					suggestionsLoading={metaSuggestions.isLoading}
+					allowCustomValues={false}
+					onSuggestionsRequest={metaSuggestions.request}
+					chipClassName={() => HISTORY_FIELD_BADGE_CLASS.labels}
+					helpNoun="label"
+					helpExamples={LABEL_HELP_EXAMPLES}
+					{...KEY_VALUE_DELIMITERS}
+				/>
+				<MetaFilterField
+					control={control}
+					valuesName="branches"
+					expressionName="branchExpr"
+					variant="form"
+					label="Branches"
+					name="branches"
+					placeholder="master"
+					suggestions={branchGroups}
+					suggestionsLoading={metaSuggestions.isLoading}
+					allowCustomValues={false}
+					onSuggestionsRequest={metaSuggestions.request}
+					chipClassName={() => HISTORY_FIELD_BADGE_CLASS.branches}
+					helpNoun="branch"
+					helpExamples={BRANCH_HELP_EXAMPLES}
+					{...KEY_VALUE_DELIMITERS}
+				/>
+				<MetaFilterField
+					control={control}
+					valuesName="revisions"
+					expressionName="revisionExpr"
+					variant="form"
+					label="Revisions"
+					name="revisions"
+					placeholder="8af383125f20cc5ecdb8393bf"
+					suggestions={revisionGroups}
+					suggestionsLoading={metaSuggestions.isLoading}
+					allowCustomValues={false}
+					onSuggestionsRequest={metaSuggestions.request}
+					chipClassName={() => HISTORY_FIELD_BADGE_CLASS.revisions}
+					helpNoun="revision"
+					helpExamples={REVISION_HELP_EXAMPLES}
+					{...KEY_VALUE_DELIMITERS}
+				/>
+				<MetaFilterField
+					control={control}
+					valuesName="runData"
+					expressionName="tagExpr"
+					variant="form"
+					label="Tags"
+					name="runData"
+					placeholder="medford"
+					suggestions={tagGroups}
+					suggestionsLoading={metaSuggestions.isLoading}
+					allowCustomValues={false}
+					onSuggestionsRequest={metaSuggestions.request}
+					chipClassName={tagChipClassName}
+					helpNoun="tag"
+					helpExamples={TAG_HELP_EXAMPLES}
+					{...KEY_VALUE_DELIMITERS}
+				/>
 			</div>
 			<div className="mt-4">
 				<FormSectionSubheader name="Compromise Status" />
