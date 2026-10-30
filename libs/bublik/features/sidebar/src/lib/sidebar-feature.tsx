@@ -57,6 +57,9 @@ export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 				)}
 			>
 				<SidebarLogoButton />
+				{/* Kept out of the scroll area: the project decides what every
+				    page below shows, so it stays in view however long the nav. */}
+				{headerSlot ? <div className="pt-6">{headerSlot}</div> : null}
 			</div>
 			{/* A native scrollbar takes its width from the collapsed sidebar's
 			    42px column and squeezes the icons. The thumb floats over the
@@ -69,12 +72,12 @@ export const Sidebar = ({ headerSlot, footerSlot, children }: SidebarProps) => {
 					ref={ref}
 					// Radix wraps the children in a `display: table` div that grows
 					// to the labels' max-content width; keep it to the column.
-					className="h-full w-full pt-12 pb-[7px] px-[7px] [&>div]:!block"
+					className={cn(
+						'h-full w-full pb-[7px] px-[7px] [&>div]:!block',
+						headerSlot ? 'pt-6' : 'pt-12'
+					)}
 				>
-					<ul className="flex flex-col gap-3">
-						{headerSlot}
-						{children}
-					</ul>
+					<ul className="flex flex-col gap-3">{children}</ul>
 				</ScrollAreaViewport>
 				<ScrollAreaScrollbar
 					orientation="vertical"
