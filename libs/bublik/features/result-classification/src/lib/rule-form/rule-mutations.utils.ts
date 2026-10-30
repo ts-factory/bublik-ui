@@ -51,7 +51,7 @@ export function buildRuleCreateBody(values: RuleFormValues) {
 		category: values.category as IssueCategory,
 		expected: keyToExpected(values.expected),
 		parameters: itemsToParameters(values.parameters),
-		verdicts: itemsToVerdicts(values.verdicts),
+		verdicts: itemsToVerdicts(values.verdicts, values.noVerdicts),
 		tags: itemsToList(values.tags)
 	};
 }

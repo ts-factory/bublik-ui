@@ -11,6 +11,11 @@ export const RuleFormShape = z.object({
 	active: z.enum(['active', 'inactive']),
 	parameters: z.array(z.object({ id: z.string(), value: z.string() })),
 	verdicts: z.array(z.object({ id: z.string(), value: z.string() })),
+	/**
+	 * With no verdict chips, match only a failure without any verdict (`[]`)
+	 * rather than leave the verdicts unmatched (`null`).
+	 */
+	noVerdicts: z.boolean(),
 	tags: z.array(z.object({ id: z.string(), value: z.string() }))
 });
 

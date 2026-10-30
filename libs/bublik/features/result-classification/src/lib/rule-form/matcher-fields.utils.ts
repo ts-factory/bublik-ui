@@ -54,15 +54,18 @@ export function itemsToList(items: BadgeItem[] | undefined): string[] {
 }
 
 /**
- * The verdicts a rule stores: null when the field is empty, since the server
- * takes `[]` as "a failure without any verdict", which the form cannot mean.
+ * The verdicts a rule stores. With no chips, `[]` when the rule is to match
+ * only a failure without any verdict, else null: the verdicts not matched on.
  */
 export function itemsToVerdicts(
-	items: BadgeItem[] | undefined
+	items: BadgeItem[] | undefined,
+	noVerdicts = false
 ): string[] | null {
 	const verdicts = itemsToList(items);
 
-	return verdicts.length ? verdicts : null;
+	if (verdicts.length) return verdicts;
+
+	return noVerdicts ? [] : null;
 }
 
 /** What a rule's verdicts say when there is no chip to show for them. */

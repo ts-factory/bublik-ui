@@ -37,6 +37,7 @@ export function ruleToFormValues({
 		active: rule?.active === false ? 'inactive' : 'active',
 		parameters: parametersToItems(rule?.parameters),
 		verdicts: listToItems(rule?.verdicts),
+		noVerdicts: rule?.verdicts?.length === 0,
 		tags: listToItems(rule?.tags)
 	};
 }

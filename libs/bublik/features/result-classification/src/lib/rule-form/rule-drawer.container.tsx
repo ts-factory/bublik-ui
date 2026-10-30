@@ -99,6 +99,7 @@ export function RuleDrawer({
 							lockIssue={lockIssue}
 							testPath={testPath}
 							container={scrollableRef}
+							rule={rule}
 						/>
 
 						<div

@@ -58,6 +58,11 @@ describe('lists <-> chips', () => {
 		expect(itemsToVerdicts(undefined)).toBeNull();
 	});
 
+	it('sends no verdict chips as [] for a failure without any verdict', () => {
+		expect(itemsToVerdicts([], true)).toEqual([]);
+		expect(itemsToVerdicts(items('timeout'), true)).toEqual(['timeout']);
+	});
+
 	it('drops blanks rather than sending an empty criterion value', () => {
 		expect(itemsToList(items('timeout', '   ', ''))).toEqual(['timeout']);
 	});
