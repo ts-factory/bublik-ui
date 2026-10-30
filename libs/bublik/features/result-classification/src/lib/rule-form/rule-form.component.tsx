@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, type RefObject } from 'react';
+import { type RefObject } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { bublikAPI } from '@/services/bublik-api';
@@ -55,15 +55,16 @@ export function RuleFields({
 	const isEdit = mode === 'edit';
 
 	const project = watch('project');
-	const category = watch('category') as IssueCategory;
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 	const expectedTouched = Boolean(dirtyFields.expected);
 
-	useEffect(() => {
-		if (isEdit || expectedTouched || !category) return;
+	// Only a category the user picks brings its default disposition: a form
+	// seeded from a rule (Duplicate) keeps the rule's own.
+	function applyDefaultDisposition(next: string) {
+		if (isEdit || expectedTouched || !next) return;
 
-		setValue('expected', defaultDispositionFor(category));
-	}, [category, isEdit, expectedTouched, setValue]);
+		setValue('expected', defaultDispositionFor(next as IssueCategory));
+	}
 
 	const projectOptions = (projects ?? []).map((item) => ({
 		value: String(item.id),
@@ -156,7 +157,10 @@ export function RuleFields({
 									<SelectInput
 										label="Category"
 										value={field.value}
-										onValueChange={field.onChange}
+										onValueChange={(next) => {
+											field.onChange(next);
+											applyDefaultDisposition(next);
+										}}
 										name={field.name}
 										options={CATEGORY_SELECT_OPTIONS}
 									/>
