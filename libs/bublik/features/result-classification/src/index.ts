@@ -61,6 +61,7 @@ export type {
 	ClassifyTargets,
 	ResultSelection,
 	ResultSelectionProviderProps,
+	RunResults,
 	SelectableResult,
 	SelectedResult
 } from './lib/classify';

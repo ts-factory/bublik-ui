@@ -22,8 +22,8 @@ export function ClassifyButton({
 	classified = false
 }: ClassifyButtonProps) {
 	const [open, setOpen] = useState(false);
-	const resultIds = useMemo(() => [resultId], [resultId]);
-	const { submit, canClassify } = useClassify(resultIds, projectId);
+	const runs = useMemo(() => [{ resultIds: [resultId] }], [resultId]);
+	const { submit, canClassify } = useClassify(runs, projectId);
 	const form = useClassifyForm();
 
 	return (
@@ -62,7 +62,7 @@ export function ClassifyButton({
 					if (!next) form.reset();
 				}}
 				form={form}
-				resultIds={resultIds}
+				runs={runs}
 				projectId={projectId}
 				submit={submit}
 				classified={classified}

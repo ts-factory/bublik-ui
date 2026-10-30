@@ -373,15 +373,33 @@ export const classificationEndpoints = {
 			}
 		),
 		/**
-		 * What a rule classifying these results may contain. A POST that reads:
-		 * the ids go in the body, as the list can be long.
+		 * What a rule classifying these results may contain, asked run by run:
+		 * one list of result ids per run, as the server reads the results of one
+		 * run per request, and one answer per list, in its order. A POST that
+		 * reads: the ids go in the body, as the list can be long.
 		 */
-		getClassifyOptions: build.query<ClassifyOptions, { resultIds: number[] }>({
-			query: ({ resultIds }) => ({
-				url: withApiV2('/results/classify/options'),
-				method: 'POST',
-				body: { result_ids: resultIds }
-			})
+		getClassifyOptionsByRun: build.query<
+			ClassifyOptions[],
+			{ runs: number[][] }
+		>({
+			async queryFn({ runs }, _api, _extraOptions, baseQuery) {
+				const answers = await Promise.all(
+					runs.map((resultIds) =>
+						baseQuery({
+							url: withApiV2('/results/classify/options'),
+							method: 'POST',
+							body: { result_ids: resultIds }
+						})
+					)
+				);
+				const failed = answers.find((answer) => answer.error);
+
+				if (failed?.error) return { error: failed.error };
+
+				return {
+					data: answers.map((answer) => answer.data as ClassifyOptions)
+				};
+			}
 		}),
 		classifyResult: build.mutation<ClassifyResponse, ClassifyRequest>({
 			// Sent as written, **not** through `prepareForSend`: every field is

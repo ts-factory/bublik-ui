@@ -68,7 +68,7 @@ describe('classifyTargets', () => {
 		).toEqual({
 			ok: true,
 			resultIds: [1, 2],
-			runId: 1,
+			runs: [{ runId: 1, resultIds: [1, 2] }],
 			projectId: 3
 		});
 	});
@@ -81,7 +81,7 @@ describe('classifyTargets', () => {
 		expect(targets).toEqual({
 			ok: true,
 			resultIds: [1],
-			runId: 1,
+			runs: [{ runId: 1, resultIds: [1] }],
 			projectId: undefined
 		});
 	});
@@ -96,25 +96,60 @@ describe('classifyTargets', () => {
 		});
 	});
 
-	it('refuses classifiable results of several runs', () => {
+	it('groups the results of several runs by run, runs in the order first picked', () => {
 		expect(
 			classifyTargets(
 				selection(
-					row({ result_id: 1, run_id: 7 }),
+					row({ result_id: 4, run_id: 8, project_id: 3 }),
+					row({ result_id: 1, run_id: 7, project_id: 3 }),
+					row({ result_id: 5, run_id: 8, project_id: 3 })
+				)
+			)
+		).toEqual({
+			ok: true,
+			resultIds: [4, 1, 5],
+			runs: [
+				{ runId: 8, resultIds: [4, 5] },
+				{ runId: 7, resultIds: [1] }
+			],
+			projectId: 3
+		});
+	});
+
+	it('refuses classifiable results of several projects', () => {
+		expect(
+			classifyTargets(
+				selection(
+					row({ result_id: 1, run_id: 7, project_id: 3 }),
+					row({ result_id: 2, run_id: 8, project_id: 4 })
+				)
+			)
+		).toEqual({ ok: false, reason: 'several-projects' });
+	});
+
+	it('does not let a result with no project named split the selection', () => {
+		expect(
+			classifyTargets(
+				selection(
+					row({ result_id: 1, run_id: 7, project_id: 3 }),
 					row({ result_id: 2, run_id: 8 })
 				)
 			)
-		).toEqual({ ok: false, reason: 'several-runs' });
+		).toMatchObject({ ok: true, projectId: 3 });
 	});
 
-	it('does not let a pass of another run block the classifiable ones', () => {
+	it('does not let a pass of another project block the classifiable ones', () => {
 		expect(
 			classifyTargets(
 				selection(
-					row({ result_id: 1, run_id: 7 }),
-					row({ result_id: 2, run_id: 8, has_error: false })
+					row({ result_id: 1, run_id: 7, project_id: 3 }),
+					row({ result_id: 2, run_id: 8, project_id: 4, has_error: false })
 				)
 			)
-		).toMatchObject({ ok: true, runId: 7, resultIds: [1] });
+		).toMatchObject({
+			ok: true,
+			runs: [{ runId: 7, resultIds: [1] }],
+			resultIds: [1]
+		});
 	});
 });

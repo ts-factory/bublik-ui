@@ -6,6 +6,7 @@ export * from './result-selection.context';
 export { BASELINE_TOGGLE, isClassifiable } from './result-selection.utils';
 export type {
 	ClassifyTargets,
+	RunResults,
 	SelectableResult,
 	SelectedResult
 } from './result-selection.utils';

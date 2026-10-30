@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-import type { RefObject } from 'react';
+import { useMemo, type RefObject } from 'react';
 import { useWatch } from 'react-hook-form';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useGetClassifyOptionsQuery } from '@/services/bublik-api';
+import { useGetClassifyOptionsByRunQuery } from '@/services/bublik-api';
 import type {
 	ClassifyMatcher,
 	ClassifyOptions,
@@ -22,6 +22,7 @@ import {
 } from '@/shared/tailwind-ui';
 
 import type { ClassifyForm } from '../classify/classify-form.types';
+import type { RunResults } from '../classify/result-selection.utils';
 import {
 	ScopeValuePicker,
 	type ScopeValueStyle
@@ -34,6 +35,7 @@ import {
 	matcherForTest,
 	parameterOptions,
 	parametersPicked,
+	mergeClassifyOptions,
 	resetTestPicks,
 	rulesForTest,
 	setTestPick,
@@ -280,8 +282,9 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 
 function Cards({
 	options,
+	severalRuns,
 	...rest
-}: { options: ClassifyOptions } & PicksProps) {
+}: { options: ClassifyOptions; severalRuns: boolean } & PicksProps) {
 	const { picks, setPicks, container } = rest;
 	const cards: TestCard[] = options.tests.map((test) => {
 		const matcher = matcherForTest(test, options, picks);
@@ -306,7 +309,9 @@ function Cards({
 					value={tagsPicked(options, picks)}
 					onChange={(next) => setPicks({ ...picks, tags: next })}
 					styleOf={tagStyle}
-					emptyText="none on this run"
+					emptyText={
+						severalRuns ? 'none shared by these runs' : 'none on this run'
+					}
 					container={container}
 					testId="match-scope-tags"
 				/>
@@ -338,6 +343,8 @@ function Cards({
  * with all of it, the tags with the run's important ones; the verdicts are
  * matched exactly, so the card keeps every list its results failed with, a
  * rule per list, or drops them. Emptying a field stops matching on it.
+ * Results of several runs are asked about run by run, and offered only what
+ * every run shares (`mergeClassifyOptions`).
  *
  * Results classified just this once get rules saved switched off, which
  * future runs never meet, so there is nothing to scope and the cards fold
@@ -345,23 +352,32 @@ function Cards({
  */
 export function MatchScope({
 	form,
-	resultIds,
+	runs,
 	container
 }: {
 	form: ClassifyForm;
-	resultIds: number[];
+	/** The results, by run; see `mergeClassifyOptions` for several runs. */
+	runs: RunResults[];
 	container?: RefObject<HTMLElement>;
 }) {
+	const count = runs.reduce((sum, run) => sum + run.resultIds.length, 0);
+	const severalRuns = runs.length > 1;
 	const {
-		data: options,
+		data: perRun,
 		isLoading,
 		isError
-	} = useGetClassifyOptionsQuery(resultIds.length ? { resultIds } : skipToken);
+	} = useGetClassifyOptionsByRunQuery(
+		count ? { runs: runs.map((run) => run.resultIds) } : skipToken
+	);
+	const options = useMemo(
+		() => (perRun ? mergeClassifyOptions(perRun) : undefined),
+		[perRun]
+	);
 	const [scope, picks] = useWatch({
 		control: form.control,
 		name: ['scope', 'picks']
 	});
-	const plural = resultIds.length > 1;
+	const plural = count > 1;
 
 	if (scope === 'oneoff') {
 		return (
@@ -376,7 +392,7 @@ export function MatchScope({
 		);
 	}
 
-	const loading = isLoading || (resultIds.length > 0 && !options && !isError);
+	const loading = isLoading || (count > 0 && !options && !isError);
 	const several = (options?.tests.length ?? 0) > 1;
 
 	return (
@@ -386,6 +402,7 @@ export function MatchScope({
 			<div className="flex flex-col pl-2 text-xs text-text-menu">
 				<p>{MATCH_SCOPE_COPY.sectionHint}</p>
 				{several ? <p>{MATCH_SCOPE_COPY.severalHint}</p> : null}
+				{severalRuns ? <p>{MATCH_SCOPE_COPY.severalRunsHint}</p> : null}
 			</div>
 
 			{isError ? (
@@ -402,6 +419,7 @@ export function MatchScope({
 			) : (
 				<Cards
 					options={options}
+					severalRuns={severalRuns}
 					picks={picks as ScopePicks}
 					setPicks={(next) =>
 						form.setValue('picks', next, { shouldDirty: true })

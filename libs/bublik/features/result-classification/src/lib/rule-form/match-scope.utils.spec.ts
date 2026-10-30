@@ -7,6 +7,8 @@ import {
 	chipsForRule,
 	clearTestPicks,
 	matcherForTest,
+	matchersForRun,
+	mergeClassifyOptions,
 	parameterOptions,
 	parametersPicked,
 	resetTestPicks,
@@ -303,5 +305,96 @@ describe('chipsForRule', () => {
 				tags: ['x=1']
 			})
 		).toEqual(['Path', 'Params', 'Verdicts', 'Tags']);
+	});
+});
+
+describe('mergeClassifyOptions', () => {
+	// The same test in a second run: one parameter differs, and it failed
+	// with a verdict list of its own besides the first run's.
+	const SAME_TEST_ELSEWHERE = {
+		...TEST,
+		result_ids: [9001],
+		parameters: { env: 'VAR.env.loopback', flag: 'DEDICATED' },
+		verdicts: [['Link down'], ['Generated unexpected result']]
+	};
+	const SECOND_RUN = {
+		run_id: 8,
+		tags: {
+			default: ['fixture=net-drv-ts', 'mix=ok'],
+			allowed: ['fixture=net-drv-ts', 'mix=ok', 'sfc']
+		},
+		tests: [SAME_TEST_ELSEWHERE, OTHER_TEST]
+	};
+
+	it('gives one run its own options untouched', () => {
+		expect(mergeClassifyOptions([MANY])).toBe(MANY);
+	});
+
+	it('merges the tests by test, each with the values every run shares', () => {
+		const merged = mergeClassifyOptions([OPTIONS, SECOND_RUN]);
+
+		expect(merged.tests).toEqual([
+			{
+				...TEST,
+				result_ids: [8357, 9001],
+				parameters: { flag: 'DEDICATED' },
+				verdicts: [['Generated unexpected result'], ['Link down']]
+			},
+			OTHER_TEST
+		]);
+	});
+
+	it('offers only the tags every run has, important where every run says so', () => {
+		expect(mergeClassifyOptions([OPTIONS, SECOND_RUN]).tags).toEqual({
+			default: ['fixture=net-drv-ts'],
+			allowed: ['fixture=net-drv-ts', 'sfc']
+		});
+	});
+});
+
+describe('matchersForRun', () => {
+	const SECOND_RUN = {
+		run_id: 8,
+		tags: { default: ['fixture=net-drv-ts'], allowed: ['fixture=net-drv-ts'] },
+		tests: [
+			{
+				...TEST,
+				result_ids: [9001],
+				parameters: { env: 'VAR.env.loopback', flag: 'DEDICATED' },
+				verdicts: [['Link down']]
+			}
+		]
+	};
+	const merged = mergeClassifyOptions([OPTIONS, SECOND_RUN]);
+
+	it("sends each run the merged picks, with the run's own verdict lists", () => {
+		expect(matchersForRun(OPTIONS, merged, DEFAULT_SCOPE_PICKS)).toEqual([
+			{
+				test_id: 21,
+				parameters: { flag: 'DEDICATED' },
+				verdicts: [['Generated unexpected result']],
+				tags: ['fixture=net-drv-ts']
+			}
+		]);
+		expect(matchersForRun(SECOND_RUN, merged, DEFAULT_SCOPE_PICKS)).toEqual([
+			{
+				test_id: 21,
+				parameters: { flag: 'DEDICATED' },
+				verdicts: [['Link down']],
+				tags: ['fixture=net-drv-ts']
+			}
+		]);
+	});
+
+	it('drops the verdicts for every run once the test drops them', () => {
+		const picks = setTestPick(DEFAULT_SCOPE_PICKS, 21, { verdicts: false });
+
+		expect(matchersForRun(SECOND_RUN, merged, picks)[0].verdicts).toBeNull();
+	});
+
+	it('matches what one run alone would send', () => {
+		expect(matchersForRun(MANY, MANY, DEFAULT_SCOPE_PICKS)).toEqual(
+			MANY.tests.map((test) => matcherForTest(test, MANY, DEFAULT_SCOPE_PICKS))
+		);
 	});
 });

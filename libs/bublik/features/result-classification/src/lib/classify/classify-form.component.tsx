@@ -32,16 +32,17 @@ import {
 	useTrackerOptions
 } from '../pickers/tracker-combobox.container';
 import { ClassifyForm } from './classify-form.types';
+import type { RunResults } from './result-selection.utils';
 
 export function ClassifyFields({
 	form,
 	projectId,
-	resultIds,
+	runs,
 	container
 }: {
 	form: ClassifyForm;
 	projectId?: number;
-	resultIds: number[];
+	runs: RunResults[];
 	container?: RefObject<HTMLElement>;
 }) {
 	const {
@@ -54,6 +55,7 @@ export function ClassifyFields({
 	const mode = watch('mode');
 	const categories = watch('categories') as IssueCategory[];
 	const expectedTouched = Boolean(dirtyFields.expected);
+	const several = runs.reduce((sum, run) => sum + run.resultIds.length, 0) > 1;
 
 	useEffect(() => {
 		if (expectedTouched) return;
@@ -267,10 +269,9 @@ export function ClassifyFields({
 										},
 										{
 											value: 'oneoff',
-											displayValue:
-												resultIds.length > 1
-													? 'Just these results'
-													: 'Just this result'
+											displayValue: several
+												? 'Just these results'
+												: 'Just this result'
 										}
 									]}
 								/>
@@ -285,7 +286,7 @@ export function ClassifyFields({
 					{/* Close over the hint that opens the block: it explains this
 					    heading, not the field above it. */}
 					<FormSectionSubheader name="Match scope" className="mb-1" />
-					<MatchScope form={form} resultIds={resultIds} container={container} />
+					<MatchScope form={form} runs={runs} container={container} />
 				</div>
 			</FormSection>
 		</>
