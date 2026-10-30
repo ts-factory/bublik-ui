@@ -496,26 +496,6 @@ class RunPage {
 		);
 	}
 
-	/** The run header's link to its log, built in the user's default layout. */
-	get logHeaderLink(): Locator {
-		return this.page
-			.getByRole('banner')
-			.getByRole('link', { name: 'Log', exact: true });
-	}
-
-	async openLogFromHeader(): Promise<void> {
-		await expect(this.logHeaderLink).toBeVisible({ timeout: 30_000 });
-		await this.logHeaderLink.click();
-		await expect(this.page).toHaveURL(/\/log\/\d+/, { timeout: 15_000 });
-	}
-
-	/** The run header's link to its issues page. */
-	get issuesHeaderLink(): Locator {
-		return this.page
-			.getByRole('banner')
-			.getByRole('link', { name: 'Issues', exact: true });
-	}
-
 	get applyRulesButton(): Locator {
 		return this.page.getByRole('banner').getByTestId('apply-rules-button');
 	}
@@ -953,10 +933,6 @@ class RunPage {
 		const form = this.page.locator('form').filter({ hasText: 'Compare Runs' });
 		await expect(form).toBeVisible({ timeout: 15_000 });
 		return form;
-	}
-
-	async openReports(): Promise<void> {
-		await this.page.getByRole('button', { name: 'Reports' }).click();
 	}
 
 	commentValue(): Locator {

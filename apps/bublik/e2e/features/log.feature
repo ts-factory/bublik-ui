@@ -57,6 +57,12 @@ Feature: Log
     And I follow the Result link
     Then the measurements page is open
 
+  @needs-report
+  Scenario: The sidebar offers the run's reports on the log page
+    Given I open the log of a run whose project has a report config
+    When I open the reports menu
+    Then the configured report is offered
+
   ####################################################################
   # URL parameters
   ####################################################################
@@ -233,9 +239,9 @@ Feature: Log
 
   @log @url-params
   Scenario: A log link opens in my default layout
-    Given I open the page of an imported run
+    Given the runs table lists an imported run
     And I choose Info + log as my default log layout
-    When I follow the Log link in the run header
+    When I follow the run's Log link in the runs table
     Then the info panel is shown and the tree is not
     And the URL carries the info-and-log layout as its only mode
 

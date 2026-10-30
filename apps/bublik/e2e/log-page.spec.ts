@@ -6,9 +6,9 @@ import { expect, test } from './support/test';
 import type { APIRequestContext } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
-import { RunPage } from './pages/run-page';
-import { Sidebar } from './pages/sidebar';
 import { RunIssuesPage } from './pages/run-issues-page';
+import { RunsPage } from './pages/runs-page';
+import { Sidebar } from './pages/sidebar';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
 import { IssueCleanup } from './support/classification';
@@ -19,6 +19,7 @@ import {
 	importedRunId,
 	longLogNode,
 	paginatedLogNode,
+	reportConfiguredImportedRun,
 	representativeImportedRun,
 	sampleResultNode
 } from './support/e2e-data';
@@ -248,6 +249,35 @@ test.describe('Log Page', () => {
 	);
 
 	test(
+		"The sidebar offers the run's reports on the log page",
+		{ tag: ['@needs-report'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const sidebar = new Sidebar(page);
+			const manifest = requireManifest();
+			const { runId } = reportConfiguredImportedRun(manifest);
+			const configName = requireCapability(
+				manifest.configs.find((config) => config.type === 'report')?.name,
+				'Fixture manifest contains no report config.'
+			);
+
+			await given(
+				'I open the log of a run whose project has a report config',
+				async () => {
+					await logPage.goto(runId);
+					await logPage.expectLoaded();
+				}
+			);
+			await when('I open the reports menu', () => sidebar.openRunReports());
+			await then('the configured report is offered', () =>
+				expect(sidebar.runReportMenuItem(configName)).toBeVisible({
+					timeout: 15_000
+				})
+			);
+		}
+	);
+
+	test(
 		'A log link restores the focused result and the layout',
 		{ tag: ['@log', '@url-params'] },
 		async ({ page, request }) => {
@@ -425,18 +455,19 @@ test.describe('Log Page', () => {
 		{ tag: ['@log', '@url-params'] },
 		async ({ page }) => {
 			const runCase = representativeImportedRun(requireManifest());
-			const runPage = new RunPage(page);
+			const runsPage = new RunsPage(page);
 			const sidebar = new Sidebar(page);
 			const logPage = new LogPage(page);
 
-			await given('I open the page of an imported run', () =>
-				runPage.goto(runCase.runId)
-			);
+			await given('the runs table lists an imported run', async () => {
+				await runsPage.gotoWithTagExpr(`fixture_id=${runCase.bundle.e2eRunId}`);
+				await runsPage.expectTableLoaded();
+			});
 			await and('I choose Info + log as my default log layout', () =>
 				sidebar.pickDefaultLogLayout('Info + log')
 			);
-			await when('I follow the Log link in the run header', () =>
-				runPage.openLogFromHeader()
+			await when("I follow the run's Log link in the runs table", () =>
+				runsPage.openLog(runCase.runId)
 			);
 			await then('the info panel is shown and the tree is not', () =>
 				logPage.expectModeLayout('infoAndlog')
