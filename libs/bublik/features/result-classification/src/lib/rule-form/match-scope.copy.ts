@@ -12,6 +12,8 @@ export const MATCH_SCOPE_COPY = {
 		'Future failures matching the path and every value kept below inherit this.',
 	severalHint:
 		'Each test gets its own rules, and a rule never takes another test’s values.',
+	severalRunsHint:
+		'The results span several runs: the pickers offer only what every run shares, so one rule covers each test in all of them.',
 	testHint: (count: number) =>
 		`${count} result${count > 1 ? 's' : ''} of this test ${
 			count > 1 ? 'are' : 'is'

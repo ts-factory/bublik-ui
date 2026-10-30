@@ -24,24 +24,25 @@ import {
 import { ClassifyDrawer } from './classify-drawer.component';
 import { useClassifyForm } from './classify-form.hooks';
 import { useClassify } from './classify.hooks';
+import { notClassifiedText } from './classify-runs.utils';
+import { ClassifyRequestError, resultsInRuns } from './classify.utils';
 import type { ResultSelection } from './result-selection.context';
 import {
 	BASELINE_TOGGLE,
 	CLASSIFY_TARGETS_HINT,
+	type RunResults,
 	type SelectedResult
 } from './result-selection.utils';
 
 /** The same key on every page, so the popover stays open or shut across them. */
 const OPEN_STATE_KEY = 'results-selection-popover-open';
 
-const NO_RESULTS: number[] = [];
-
-function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`;
-}
+const NO_RUNS: RunResults[] = [];
 
 interface SelectedResultItemProps {
 	result: SelectedResult;
+	/** The selection spans runs: the item says which one it is of. */
+	showRun: boolean;
 	isReference: boolean;
 	/** Makes this result the reference, or, while it is one, stops comparing. */
 	onToggleReference: () => void;
@@ -57,6 +58,7 @@ interface SelectedResultItemProps {
  */
 function SelectedResultItem({
 	result,
+	showRun,
 	isReference,
 	onToggleReference,
 	onRemove
@@ -116,6 +118,9 @@ function SelectedResultItem({
 					    not grow the row when it shows. */}
 					<div className="flex h-3.5 items-center gap-1.5 text-[0.6875rem] font-medium leading-[0.875rem] text-text-menu">
 						<span>#{result.resultId}</span>
+						{showRun ? (
+							<span data-testid="selected-result-run">Run {result.runId}</span>
+						) : null}
 						{isReference ? (
 							<Badge
 								variant={BadgeVariants.Primary}
@@ -177,26 +182,32 @@ export function ResultSelectionPopover({
 	selection,
 	raised = false
 }: ResultSelectionPopoverProps) {
-	const { count, targets, referenceResultId, setReference, remove, clear } =
-		selection;
+	const {
+		count,
+		targets,
+		referenceResultId,
+		setReference,
+		remove,
+		deselect,
+		clear
+	} = selection;
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const { open, onOpenChange, resetOpenState } =
 		useSelectionPopoverOpenState(OPEN_STATE_KEY);
-	const resultIds = useMemo(
-		() => (targets.ok ? targets.resultIds : NO_RESULTS),
-		[targets]
-	);
+	const runs = useMemo(() => (targets.ok ? targets.runs : NO_RUNS), [targets]);
 	const projectId = targets.ok ? targets.projectId : undefined;
-	const { submit, canClassify } = useClassify(resultIds, projectId);
+	const { submit, canClassify } = useClassify(runs, projectId);
 	const form = useClassifyForm();
 
 	const results = Array.from(selection.selected.values());
+	const runCount = new Set(results.map((result) => result.runId)).size;
+	const toClassify = targets.ok ? targets.resultIds.length : 0;
 
 	const classifyHint = !targets.ok
 		? CLASSIFY_TARGETS_HINT[targets.reason]
 		: !canClassify
 		? 'Select a project first'
-		: `Classify ${plural(resultIds.length, 'result')} under one issue`;
+		: `Classify ${resultsInRuns(toClassify, runs.length)} under one issue`;
 
 	function handleReset() {
 		resetOpenState();
@@ -220,11 +231,12 @@ export function ResultSelectionPopover({
 					className={raised ? 'bottom-28' : undefined}
 				>
 					<SelectionPopoverFloatingButton
-						label={`${plural(count, 'result')} selected`}
+						label={`${resultsInRuns(count, runCount)} selected`}
 						icon="ExpandSelection"
 						className={raised ? 'bottom-16' : undefined}
 						data-testid="results-selection-toggle"
 						data-count={count}
+						data-run-count={runCount}
 					/>
 					<SelectionPopoverBody data-testid="results-selection-popover">
 						<SelectionPopoverTitle className="mb-0">
@@ -238,6 +250,7 @@ export function ResultSelectionPopover({
 								<li key={result.resultId}>
 									<SelectedResultItem
 										result={result}
+										showRun={runCount > 1}
 										isReference={referenceResultId === result.resultId}
 										onToggleReference={() =>
 											setReference(
@@ -276,9 +289,7 @@ export function ResultSelectionPopover({
 											size={20}
 											className="mr-2"
 										/>
-										<span>
-											Classify{targets.ok ? ` ${resultIds.length}` : ''}
-										</span>
+										<span>Classify{targets.ok ? ` ${toClassify}` : ''}</span>
 									</ButtonTw>
 								</Tooltip>
 							</LoginRequired>
@@ -305,17 +316,45 @@ export function ResultSelectionPopover({
 					if (!next) form.reset();
 				}}
 				form={form}
-				resultIds={resultIds}
+				runs={runs}
 				projectId={projectId}
 				submit={async (input) => {
-					const result = await submit(input);
+					const outcome = await submit(input);
+
+					const { classified, failed, issueId } = outcome;
 
 					// Stamped: the rows will redraw with their stamps, and there is
 					// nothing left to do with the selection.
-					resetOpenState();
-					clear();
+					if (!failed.length) {
+						resetOpenState();
+						clear();
 
-					return result;
+						return outcome;
+					}
+
+					// Some runs failed: their results stay picked and the drawer
+					// stays open on them, with the issue the others went under
+					// picked, so trying again does not file a second one.
+					deselect(classified.flatMap((run) => run.resultIds));
+
+					if (issueId !== null) {
+						form.setValue('mode', 'existing');
+						form.setValue('issueId', issueId);
+					}
+
+					const done = classified.reduce(
+						(sum, run) => sum + run.resultIds.length,
+						0
+					);
+
+					throw new ClassifyRequestError(
+						`${resultsInRuns(
+							done,
+							classified.length
+						)} classified under issue #${issueId}, now picked above. These were not; try them again:\n${notClassifiedText(
+							failed
+						)}`
+					);
 				}}
 			/>
 		</>

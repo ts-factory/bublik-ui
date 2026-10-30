@@ -18,6 +18,20 @@ import type { ClassifyForm, ClassifyFormValues } from './classify-form.types';
 
 export { flattenMessages, type ServerFieldError };
 
+function plural(count: number, noun: string): string {
+	return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * How many results, and how many runs when they span several: "5 results in
+ * 2 runs", as the selection popover, the drawer and the toast say it.
+ */
+export function resultsInRuns(count: number, runCount: number): string {
+	const results = plural(count, 'result');
+
+	return runCount > 1 ? `${results} in ${plural(runCount, 'run')}` : results;
+}
+
 /**
  * The success toast's two lines. The first names the verdict as the drawer
  * showed it; the second says what it did to the counts, which is the one thing
@@ -29,6 +43,8 @@ export function classifiedToast(input: {
 	scope: ClassifyScope;
 	/** How many results were stamped; one unless given. */
 	count?: number;
+	/** How many runs they span, one request each; one unless given. */
+	runCount?: number;
 	/** How many tests they span, and so how many rules were written per category. */
 	testCount?: number;
 }): { title: string; description: string } {
@@ -53,7 +69,9 @@ export function classifiedToast(input: {
 			: 'This result only.';
 	const tests = input.testCount ?? 1;
 	const scale = several
-		? `${count} results${tests > 1 ? ` across ${tests} tests` : ''} stamped. `
+		? `${resultsInRuns(count, input.runCount ?? 1)}${
+				tests > 1 ? ` across ${tests} tests` : ''
+		  } stamped. `
 		: '';
 
 	const categories = input.categories

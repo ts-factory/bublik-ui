@@ -4,10 +4,12 @@ import {
 	createContext,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
 	type ReactNode
 } from 'react';
 
+import { useGetResultInfoQuery } from '@/services/bublik-api';
 import { useLocalStorage } from '@/shared/hooks';
 
 import { ResultSelectionPopover } from './result-selection-popover.component';
@@ -65,15 +67,41 @@ interface StoredSelection {
 	referenceResultId: number | null;
 }
 
+interface PickProjectLookupProps {
+	runId: number;
+	resultId: number;
+	onProject: (runId: number, projectId: number) => void;
+}
+
+/**
+ * Reads the project of a run's picks from one of its results, for picks that
+ * came without one, as History's grouped results do. Classify needs it to file
+ * the issue under, and to refuse picks that span projects.
+ */
+function PickProjectLookup({
+	runId,
+	resultId,
+	onProject
+}: PickProjectLookupProps) {
+	const { data } = useGetResultInfoQuery(resultId);
+	const projectId = data?.project_id;
+
+	useEffect(() => {
+		if (projectId !== undefined) onProject(runId, projectId);
+	}, [runId, projectId, onProject]);
+
+	return null;
+}
+
 const STORAGE_KEY = 'bublik.result-selection';
 const EMPTY: StoredSelection = { results: [], referenceResultId: null };
 
 export interface ResultSelectionProviderProps {
 	children: ReactNode;
 	/**
-	 * What the selection belongs to, such as `run:42`. A selection made under
-	 * one scope does not show under another: Classify takes the results of one
-	 * run, so picks made in one run have nothing to do in the next.
+	 * What the selection belongs to, such as `run:42`, or `runs:41,42` for the
+	 * merged runs page. A selection made under one scope does not show under
+	 * another: picks made in one run have nothing to do in the next.
 	 */
 	scope: string;
 	/**
@@ -213,6 +241,39 @@ export function ResultSelectionProvider({
 
 	const clear = useCallback(() => setStored(() => EMPTY), [setStored]);
 
+	const setRunProject = useCallback(
+		(runId: number, projectId: number) => {
+			setStored((prev) =>
+				prev.results.some(
+					(result) => result.runId === runId && result.projectId === undefined
+				)
+					? {
+							...prev,
+							results: prev.results.map((result) =>
+								result.runId === runId && result.projectId === undefined
+									? { ...result, projectId }
+									: result
+							)
+					  }
+					: prev
+			);
+		},
+		[setStored]
+	);
+
+	// One result of each run whose picks came without a project.
+	const runsWithoutProject = useMemo(() => {
+		const runs = new Map<number, number>();
+
+		for (const result of selected.values()) {
+			if (result.projectId === undefined && !runs.has(result.runId)) {
+				runs.set(result.runId, result.resultId);
+			}
+		}
+
+		return Array.from(runs);
+	}, [selected]);
+
 	const targets = useMemo(() => classifyTargets(selected), [selected]);
 
 	const value = useMemo<ResultSelection>(
@@ -246,6 +307,14 @@ export function ResultSelectionProvider({
 	return (
 		<ResultSelectionContext.Provider value={value}>
 			{children}
+			{runsWithoutProject.map(([runId, resultId]) => (
+				<PickProjectLookup
+					key={runId}
+					runId={runId}
+					resultId={resultId}
+					onProject={setRunProject}
+				/>
+			))}
 			<ResultSelectionPopover selection={value} raised={raised} />
 		</ResultSelectionContext.Provider>
 	);

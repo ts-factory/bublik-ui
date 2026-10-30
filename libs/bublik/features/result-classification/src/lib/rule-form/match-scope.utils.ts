@@ -225,6 +225,94 @@ export function matcherForTest(
 	};
 }
 
+function sharedBy<T>(lists: readonly (readonly T[])[]): T[] {
+	const [first = [], ...rest] = lists;
+
+	return first.filter((item) => rest.every((list) => list.includes(item)));
+}
+
+function sameVerdicts(left: readonly string[], right: readonly string[]) {
+	return (
+		left.length === right.length &&
+		left.every((verdict, index) => verdict === right[index])
+	);
+}
+
+/** One test's options across the runs it has results in. */
+function mergeTest(tests: readonly ClassifyOptionsTest[]): ClassifyOptionsTest {
+	const [first, ...rest] = tests;
+	const verdicts: string[][] = [];
+
+	for (const list of tests.flatMap((test) => test.verdicts)) {
+		if (!verdicts.some((kept) => sameVerdicts(kept, list))) verdicts.push(list);
+	}
+
+	return {
+		...first,
+		result_ids: tests.flatMap((test) => test.result_ids),
+		parameters: Object.fromEntries(
+			Object.entries(first.parameters).filter(([key, value]) =>
+				rest.every((test) => test.parameters[key] === value)
+			)
+		),
+		verdicts
+	};
+}
+
+/**
+ * The options of results of several runs, one per run, as one: what the
+ * match scope offers when the selection spans runs. A test keeps only the
+ * parameters its results share in every run, and the verdict lists of all
+ * of them; the tags are those every run has, important where every run
+ * says so. So what is picked is valid for each run's request, and the
+ * runs' rules for a test come out the same, one rule rather than one per
+ * run. One run's options are its own.
+ */
+export function mergeClassifyOptions(
+	perRun: readonly ClassifyOptions[]
+): ClassifyOptions {
+	if (perRun.length === 1) return perRun[0];
+
+	const byTest = new Map<number, ClassifyOptionsTest[]>();
+
+	for (const test of perRun.flatMap((options) => options.tests)) {
+		byTest.set(test.test_id, [...(byTest.get(test.test_id) ?? []), test]);
+	}
+
+	return {
+		run_id: perRun[0].run_id,
+		tags: {
+			default: sharedBy(perRun.map((options) => options.tags.default)),
+			allowed: sharedBy(perRun.map((options) => options.tags.allowed))
+		},
+		tests: Array.from(byTest.values(), mergeTest)
+	};
+}
+
+/**
+ * The matchers of one run's request, from what was picked in the merged
+ * options (`mergeClassifyOptions`): the same parameters and tags for every
+ * run, and, when a test keeps its verdicts, the verdict lists of this run's
+ * results, the only ones its request accepts.
+ */
+export function matchersForRun(
+	run: ClassifyOptions,
+	merged: ClassifyOptions,
+	picks: ScopePicks
+): ClassifyMatcher[] {
+	return run.tests.map((test) => {
+		const shown =
+			merged.tests.find((candidate) => candidate.test_id === test.test_id) ??
+			test;
+		const matcher = matcherForTest(shown, merged, picks);
+
+		return {
+			...matcher,
+			verdicts: matcher.verdicts === null ? null : test.verdicts
+		};
+	});
+}
+
 /**
  * Where one test's rules would match more than the reader may expect: the
  * dimensions they do not narrow, because the test's results share no

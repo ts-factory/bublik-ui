@@ -36,13 +36,13 @@ const OTHER = {
 	verdicts: [['Packet lost', 'Timeout'], []]
 };
 
-// What the mocked endpoint answers; a test may swap it for results of
-// several tests.
-const served = { options: OPTIONS };
+// What the mocked endpoint answers, one options per run; a test may swap it
+// for results of several tests or runs.
+const served: { perRun: ClassifyOptions[] } = { perRun: [OPTIONS] };
 
 vi.mock('@/services/bublik-api', () => ({
-	useGetClassifyOptionsQuery: () => ({
-		data: served.options,
+	useGetClassifyOptionsByRunQuery: () => ({
+		data: served.perRun,
 		isLoading: false,
 		isError: false
 	})
@@ -62,17 +62,21 @@ Element.prototype.scrollIntoView = vi.fn();
 const { MatchScope } = await import('./match-scope.component');
 const { useClassifyForm } = await import('../classify/classify-form.hooks');
 
-function renderScope(options: ClassifyOptions = OPTIONS) {
+function renderScope(...perRun: ClassifyOptions[]) {
 	const ref: { form?: ClassifyForm } = {};
 
-	served.options = options;
+	served.perRun = perRun.length ? perRun : [OPTIONS];
+	const runs = served.perRun.map((options) => ({
+		runId: options.run_id,
+		resultIds: options.tests.flatMap((test) => test.result_ids)
+	}));
 
 	function Harness() {
 		const form = useClassifyForm();
 
 		ref.form = form;
 
-		return <MatchScope form={form} resultIds={[1, 2]} />;
+		return <MatchScope form={form} runs={runs} />;
 	}
 
 	render(
@@ -86,7 +90,7 @@ function renderScope(options: ClassifyOptions = OPTIONS) {
 
 // Held for the whole test: a click re-renders, and the mock answers again.
 afterEach(() => {
-	served.options = OPTIONS;
+	served.perRun = [OPTIONS];
 });
 
 function cards() {
@@ -303,5 +307,30 @@ describe('MatchScope', () => {
 
 		expect(await screen.findByTestId('match-scope-test')).toBeInTheDocument();
 		expect(values(cards()[0], 'parameters')).toEqual(['flag=DEDICATED']);
+	});
+
+	it('offers results of several runs only what every run shares', () => {
+		renderScope(OPTIONS, {
+			run_id: 8,
+			tags: { default: [], allowed: ['fixture=net-drv-ts'] },
+			tests: [
+				{
+					...OPTIONS.tests[0],
+					result_ids: [5],
+					parameters: { env: 'HW', flag: 'DEDICATED' },
+					verdicts: [['Link down']]
+				}
+			]
+		});
+
+		const [only] = cards();
+
+		expect(cards()).toHaveLength(1);
+		expect(values(only, 'parameters')).toEqual(['flag=DEDICATED']);
+		expect(verdictLists(only)).toEqual([['Packet lost'], ['Link down']]);
+		expect(values(screen.getByTestId('match-scope'), 'tags')).toEqual([]);
+		expect(
+			screen.getByText(/The results span several runs/)
+		).toBeInTheDocument();
 	});
 });
