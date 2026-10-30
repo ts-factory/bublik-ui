@@ -510,6 +510,53 @@ test.describe('Issue Rules Page', () => {
 	);
 
 	test(
+		'Editing a rule again shows the values it was saved with',
+		RULES_WRITE,
+		async ({ page, request }) => {
+			const failing = failingTest();
+			let issue!: RecordedIssue;
+			let rulesPage!: IssueRulesPage;
+			let row!: Locator;
+
+			await given('I record an issue with an expected rule', async () => {
+				issue = await recordIssueWithRule(page, request, 'reopen', failing);
+			});
+			await and(
+				"I open the rules page for the fixture project and search for the rule's test",
+				async () => {
+					({ rulesPage, row } = await openRulesFor(page, issue, failing));
+				}
+			);
+			const first = await when('I edit the rule', () =>
+				rulesPage.editRule(row)
+			);
+			await and(
+				'I make it a Flaky, unexpected, inactive rule and save it',
+				async () => {
+					await first.setCategory('Flaky');
+					await first.setDisposition('Unexpected');
+					await first.setActive(false);
+					await first.submit();
+					await first.expectClosed();
+				}
+			);
+			const again = await and('I edit the rule again', () =>
+				rulesPage.editRule(row)
+			);
+			await then(
+				'the drawer shows Flaky, Unexpected and Inactive',
+				async () => {
+					await again.expectCategory('Flaky');
+					await again.expectDisposition('Unexpected');
+					await again.expectActive(false);
+					await again.close();
+				}
+			);
+			await and('I delete the issue', () => removeIssue(page, issue));
+		}
+	);
+
+	test(
 		'A narrow viewport folds a rule into an expander',
 		RULES_WRITE,
 		async ({ page, request }) => {
