@@ -114,31 +114,36 @@ const HISTORY_URL_PARAMS = {
 		sentAs: 'tag_expr',
 		values: 'tag expression',
 		whenAbsent: 'no tag expression is applied',
-		writtenBy: 'the global search form expression field'
+		writtenBy:
+			'the Tags field of the global search form: its expression chips joined with `&`'
 	},
 	branchExpr: {
 		sentAs: 'branch_expr',
 		values: 'branch expression',
 		whenAbsent: 'no branch expression is applied',
-		writtenBy: 'the global search form expression field'
+		writtenBy:
+			'the Branches field of the global search form: its expression chips joined with `&`'
 	},
 	labelExpr: {
 		sentAs: 'label_expr',
 		values: 'label expression',
 		whenAbsent: 'no label expression is applied',
-		writtenBy: 'the global search form expression field'
+		writtenBy:
+			'the Labels field of the global search form: its expression chips joined with `&`'
 	},
 	testArgExpr: {
 		sentAs: 'test_arg_expr',
 		values: 'parameter expression',
 		whenAbsent: 'no parameter expression is applied',
-		writtenBy: 'the global search form expression field'
+		writtenBy:
+			'the Parameters field of the global search form: its expression chips joined with `&`'
 	},
 	revisionExpr: {
 		sentAs: 'rev_expr',
 		values: 'revision expression',
 		whenAbsent: 'no revision expression is applied',
-		writtenBy: 'the global search form expression field'
+		writtenBy:
+			'the Revisions field of the global search form: its expression chips joined with `&`'
 	},
 	verdictExpr: {
 		sentAs: 'verdict_expr',
@@ -392,7 +397,15 @@ class HistoryPage {
 		await this.url.expectUnchangedWhile(keys, action, settleMs);
 	}
 
-	waitForHistoryRequest(testPath?: string): Promise<Request> {
+	/**
+	 * The next history request, of `testPath` if given, carrying each of
+	 * `params`. Applying the search also refetches the page with the test
+	 * name alone, so a wait for the applied search names a filter it sends.
+	 */
+	waitForHistoryRequest(
+		testPath?: string,
+		params: Record<string, string> = {}
+	): Promise<Request> {
 		return this.page.waitForRequest((request) => {
 			const url = new URL(request.url());
 			const isHistory =
@@ -401,7 +414,10 @@ class HistoryPage {
 
 			return (
 				isHistory &&
-				(!testPath || url.searchParams.get('test_name') === testPath)
+				(!testPath || url.searchParams.get('test_name') === testPath) &&
+				Object.entries(params).every(
+					([name, value]) => url.searchParams.get(name) === value
+				)
 			);
 		});
 	}

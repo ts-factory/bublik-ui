@@ -137,6 +137,38 @@ Feature: Runs
     When I type a tag expression and submit the form
     Then the URL carries both the tag expression and the run data
 
+  # The Metas field takes values and expressions alike, as chips, and the link
+  # keeps the two apart as it always has: the value chips are the run data, the
+  # expression chips are joined with `&` into the one tag expression. An old
+  # link with a joined expression splits back into the chips it was made of.
+  @runs @url-params
+  Scenario: Expression chips of the Metas field are joined with & in the link and read back as chips
+    Given I open the runs page for a date covered by the fixtures
+    When I add two expression chips to the Metas field and submit the form
+    Then the URL carries the two expressions joined with &
+    And the runs table lists the run the expressions match
+    When I reload the page
+    Then the Metas field shows the two expression chips again
+
+  @runs @url-params
+  Scenario: A value chip and an expression chip are sent as run data and a tag expression
+    Given the runs table lists the runs imported on a fixture date
+    When I select a meta and add an expression chip in the Metas field and submit the form
+    Then the runs request carries the meta as run data and the expression as the tag expression
+    And only the runs carrying the meta are listed
+
+  # The backend searches one meta type per expression parameter, so a chip
+  # goes under the parameter of the kind of the metas it names: tags to
+  # tagExpr, labels to labelExpr, branches to branchExpr, revisions to
+  # revisionExpr. The fixture runs carry their configuration as a label.
+  @runs @url-params
+  Scenario: An expression over a label is sent as the label expression
+    Given I open the runs page for a date covered by the fixtures
+    When I add an expression chip naming the label of a fixture run and submit the form
+    Then the runs request carries it as the label expression and no tag expression
+    And the URL carries it under labelExpr
+    And the runs table lists that run
+
   ####################################################################
   # URL parameters
   ####################################################################

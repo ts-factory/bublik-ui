@@ -2029,8 +2029,66 @@ test.describe('History Page', () => {
 						timeout: 15_000
 					});
 					await expect(form.hashInput).toHaveValue(link.hash);
-					await expect(form.tagExpressionInput).toHaveValue(link.tagExpr);
+					await form.expectTagExpression(link.tagExpr);
 				}
+			);
+		}
+	);
+
+	test(
+		'Expression chips of the run and test fields are applied as the expression filters',
+		HISTORY_URL,
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const form = historyPage.globalSearchForm;
+			const testPath = firstHistoryTestPath();
+			const expressions = {
+				tagExpr: 'medford | !medford',
+				labelExpr: '!nightly',
+				branchExpr: '!master',
+				revisionExpr: '!rev-none',
+				testArgExpr: 'pkt_size > 100'
+			};
+
+			await given(
+				'I open the history page for a fixture test and edit the search',
+				async () => {
+					await historyPage.gotoWithParams({ testName: testPath });
+					await historyPage.expectReady();
+					await historyPage.openGlobalSearchForm();
+				}
+			);
+
+			let sent: URLSearchParams | undefined;
+
+			await when(
+				'I add an expression chip to each of the Tags, Labels, Branches, Revisions and Parameters fields and apply the search',
+				async () => {
+					await form.addTagExpression(expressions.tagExpr);
+					await form.addLabelExpression(expressions.labelExpr);
+					await form.addBranchExpression(expressions.branchExpr);
+					await form.addRevisionExpression(expressions.revisionExpr);
+					await form.addParameterExpression(expressions.testArgExpr);
+
+					const historyRequest = historyPage.waitForHistoryRequest(testPath, {
+						tag_expr: expressions.tagExpr
+					});
+					await form.applySearch();
+					sent = new URL((await historyRequest).url()).searchParams;
+				}
+			);
+			await then(
+				'the history request carries each expression under its API name',
+				() => {
+					expect(sent?.get('tag_expr')).toBe(expressions.tagExpr);
+					expect(sent?.get('label_expr')).toBe(expressions.labelExpr);
+					expect(sent?.get('branch_expr')).toBe(expressions.branchExpr);
+					expect(sent?.get('rev_expr')).toBe(expressions.revisionExpr);
+					expect(sent?.get('test_arg_expr')).toBe(expressions.testArgExpr);
+				}
+			);
+			await and("the URL carries each expression under the form's name", () =>
+				historyPage.expectParams(expressions)
 			);
 		}
 	);

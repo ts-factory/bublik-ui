@@ -487,6 +487,17 @@ Feature: History
     When I open that link and edit the search
     Then the form shows the test path, the hash and the tag expression the link pinned
 
+  # Labels, Branches, Revisions, Tags and Parameters each take values and
+  # expressions in one field. An expression typed there is one chip, and
+  # applying the form sends it under the field's expression parameter, as the
+  # old separate expression inputs did.
+  @history @url-params
+  Scenario: Expression chips of the run and test fields are applied as the expression filters
+    Given I open the history page for a fixture test and edit the search
+    When I add an expression chip to each of the Tags, Labels, Branches, Revisions and Parameters fields and apply the search
+    Then the history request carries each expression under its API name
+    And the URL carries each expression under the form's name
+
 
   ####################################################################
   # Classification
