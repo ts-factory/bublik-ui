@@ -106,6 +106,12 @@ export const RunsForm = forwardRef<HTMLFormElement, RunsFormProps>(
 				tagExpr: ''
 			};
 
+			// `resetOptions.keepDirtyValues` holds for this reset too, so the
+			// unsubmitted edits would survive it: clear them by hand first.
+			setValue('dates', resettedForm.dates);
+			setValue('calendarMode', resettedForm.calendarMode);
+			setValue('runData', resettedForm.runData);
+			setValue('tagExpr', resettedForm.tagExpr);
 			reset(resettedForm);
 			onResetFormClick(resettedForm);
 		};
