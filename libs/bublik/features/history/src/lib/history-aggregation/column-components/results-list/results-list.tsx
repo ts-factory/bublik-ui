@@ -13,6 +13,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 import { AggregationTooltip } from '../aggregation-tooltip';
 import { HistoryContextMenuContainer } from '../../../history-context-menu';
@@ -22,12 +23,14 @@ export interface LinkListProps {
 }
 
 export const LinkList = ({ results }: LinkListProps) => {
+	const logMode = useDefaultLogMode();
 	return (
 		<div className="flex flex-wrap gap-1">
 			{results.map((resultData, idx) => {
 				const to = routes.log({
 					runId: resultData.run_id,
-					focusId: resultData.result_id
+					focusId: resultData.result_id,
+					mode: logMode
 				});
 
 				return (

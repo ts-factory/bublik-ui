@@ -4,6 +4,7 @@ import { routes } from '@/router';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { ButtonTw, Icon } from '@/shared/tailwind-ui';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 export interface LinkToLogProps {
 	runId: string;
@@ -11,10 +12,11 @@ export interface LinkToLogProps {
 }
 
 export const LinkToLog = ({ runId, resultId }: LinkToLogProps) => {
+	const logMode = useDefaultLogMode();
 	return (
 		<ButtonTw asChild variant="secondary" size="xss">
 			<LinkWithProject
-				to={routes.log({ runId, focusId: resultId })}
+				to={routes.log({ runId, focusId: resultId, mode: logMode })}
 				onClick={() => {
 					trackEvent(analyticsEventNames.measurementsLinkToLogClick, {
 						source: 'measurements_header'

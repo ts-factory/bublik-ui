@@ -19,7 +19,31 @@ describe('UserPreferencesSchema', () => {
 
 		expect(preferences.log).toEqual({
 			preferLegacyLog: true,
-			rememberAllPages: true
+			rememberAllPages: true,
+			defaultMode: 'treeAndinfoAndlog'
 		});
+	});
+
+	it('opens log links with the tree, info and log by default', () => {
+		expect(USER_PREFERENCES_DEFAULTS.log.defaultMode).toBe('treeAndinfoAndlog');
+	});
+
+	it('keeps a chosen log layout', () => {
+		const preferences = UserPreferencesSchema.parse({
+			log: { defaultMode: 'infoAndlog' }
+		});
+
+		expect(preferences.log.defaultMode).toBe('infoAndlog');
+	});
+
+	it('falls back to the default layout for an unknown stored one, keeping the rest', () => {
+		const preferences = UserPreferencesSchema.parse({
+			history: { defaultMode: 'aggregation' },
+			log: { preferLegacyLog: true, defaultMode: 'treeAndeverything' }
+		});
+
+		expect(preferences.log.defaultMode).toBe('treeAndinfoAndlog');
+		expect(preferences.log.preferLegacyLog).toBe(true);
+		expect(preferences.history.defaultMode).toBe('aggregation');
 	});
 });

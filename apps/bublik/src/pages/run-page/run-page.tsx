@@ -33,12 +33,14 @@ import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 export interface RunHeaderProps {
 	runId: string;
 }
 
 const RunHeader = ({ runId }: RunHeaderProps) => {
+	const logMode = useDefaultLogMode();
 	const [isModeFull, setIsModeFull] = useState(false);
 
 	const link = new URL(window.location.href);
@@ -66,7 +68,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					<LinkToSourceContainer runId={runId} />
 					<ButtonTw asChild variant="secondary" size="xss">
 						<LinkWithProject
-							to={routes.log({ runId })}
+							to={routes.log({ runId, mode: logMode })}
 							onClick={() => {
 								trackEvent(analyticsEventNames.runOpenLogClick, {
 									source: 'header'

@@ -19,6 +19,7 @@ import { config } from '@/bublik/config';
 import { RunDetails } from '@/bublik/features/run-details';
 import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 const IsOpenParam = withDefault(BooleanParam, true);
 
@@ -29,6 +30,7 @@ interface RunReportHeaderProps {
 }
 
 function RunReportHeader(props: RunReportHeaderProps) {
+	const logMode = useDefaultLogMode();
 	const { label, runId, details } = props;
 	const [isModeFull, setIsModeFull] = useQueryParam('isFullMode', IsOpenParam);
 
@@ -59,7 +61,7 @@ function RunReportHeader(props: RunReportHeaderProps) {
 								</LinkWithProject>
 							</ButtonTw>
 							<ButtonTw asChild variant="secondary" size="xss">
-								<LinkWithProject to={routes.log({ runId })}>
+								<LinkWithProject to={routes.log({ runId, mode: logMode })}>
 									<Icon name="BoxArrowRight" className="mr-1.5" />
 									Log
 								</LinkWithProject>

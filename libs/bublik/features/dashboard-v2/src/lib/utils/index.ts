@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { CELL_CONTEXT, CellContextValue } from '@/shared/types';
+import { CELL_CONTEXT, CellContextValue, LogPageMode } from '@/shared/types';
 
 import { DASHBOARD_TABLE_ID } from '../hooks';
 
@@ -16,9 +16,17 @@ export const getNextDates = (): GetNextDatesReturn => {
 	};
 };
 
-export const getUrl = (url: string, runId?: number | string) => {
+/**
+ * Where a dashboard cell links to. A `tree` cell opens the run's log in
+ * `logMode`, the user's default log layout.
+ */
+export const getUrl = (
+	url: string,
+	runId: number | string | undefined,
+	logMode: LogPageMode
+) => {
 	const map: Record<string, string> = {
-		tree: `/log/${runId}?mode=treeAndinfoAndlog`,
+		tree: `/log/${runId}?mode=${logMode}`,
 		runs: `/runs/${runId}`
 	};
 

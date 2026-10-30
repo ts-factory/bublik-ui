@@ -223,6 +223,37 @@ Feature: Log
     And the log parameters are unchanged
 
   ####################################################################
+  # Default layout
+  ####################################################################
+
+  # Settings › Preferences › Default log layout picks the layout of the log
+  # links the app builds. It is applied when a link is built, never when a URL
+  # is read: a link that carries `mode` opens in exactly that layout, and a bare
+  # log URL (backend short links, the sidebar's log-only link) stays log-only.
+
+  @log @url-params
+  Scenario: A log link opens in my default layout
+    Given I open the page of an imported run
+    And I choose Info + log as my default log layout
+    When I follow the Log link in the run header
+    Then the info panel is shown and the tree is not
+    And the URL carries the info-and-log layout as its only mode
+
+  @log @url-params
+  Scenario: An explicit mode overrides my default
+    Given my default log layout is log only
+    When I open a link to a run's log in the tree-and-log layout
+    Then the tree is shown and the info panel is not
+    And the URL carries the tree-and-log layout as its only mode
+
+  @log @url-params
+  Scenario: A bare log link opens the log on its own whatever my default
+    Given my default log layout is tree and info and log
+    When I open a link to a run's log that names no layout
+    Then neither the tree nor the info panel is shown
+    And the URL carries no layout
+
+  ####################################################################
   # Classification
   ####################################################################
 

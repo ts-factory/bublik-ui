@@ -10,6 +10,7 @@ import {
 	LinkWithProject,
 	useNavigateWithProject
 } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 import { getUrl } from '../../utils';
 
@@ -57,6 +58,7 @@ export function CellLink({
 }: CellLinkProps) {
 	const cellString = data.value ?? '';
 	const destination = getDestinationHint(hint);
+	const logMode = useDefaultLogMode();
 
 	if (!data.payload?.url) {
 		return (
@@ -83,7 +85,7 @@ export function CellLink({
 		);
 	}
 
-	const to = getUrl(data.payload.url, data.payload?.params);
+	const to = getUrl(data.payload.url, data.payload?.params, logMode);
 
 	// 2. Link to run with unexpected open on CTRL click
 	if (isLinkToRun) {
@@ -103,7 +105,7 @@ export function CellLink({
 		<LinkHintCard destination={destination}>
 			<LinkWithProject
 				{...cellAttributes(cellKey)}
-				to={getUrl(data.payload.url, data.payload?.params)}
+				to={to}
 				onClick={() => {
 					trackDashboardTableLinkClick({
 						cellKey,

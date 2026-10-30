@@ -29,7 +29,7 @@ const LOG_URL_PARAMS = {
 		whenAbsent:
 			'neither the tree nor the info panel — the page has no fallback, so an unknown value renders the log on its own',
 		writtenBy:
-			"the layout icons on the sidebar's Run › Log row; set by the /log/:runId/:old redirect from its old segment"
+			"the layout icons on the sidebar's Run › Log row; in-app links, in the user's default layout (Settings › Preferences) unless the link names its own (runs table, linear history); set by the /log/:runId/:old redirect from its old segment"
 	},
 	page: {
 		codec: 'raw',
@@ -101,6 +101,19 @@ class LogPage {
 				: searchParams?.toString() ?? '';
 		await this.page.goto(`log/${runId}${search ? `?${search}` : ''}`);
 		await expect(this.page).toHaveURL(new RegExp(`/log/${runId}`));
+	}
+
+	/**
+	 * Stores the default log layout preference before the page loads, as
+	 * Settings › Preferences would. It only changes the links the app builds.
+	 */
+	async useDefaultLayout(mode: LogMode): Promise<void> {
+		await this.page.addInitScript((defaultMode) => {
+			window.localStorage.setItem(
+				'user-preferences',
+				JSON.stringify({ log: { defaultMode } })
+			);
+		}, mode);
 	}
 
 	/** The pre-`mode` URL shape, `/log/:runId/:old`, which the app redirects. */

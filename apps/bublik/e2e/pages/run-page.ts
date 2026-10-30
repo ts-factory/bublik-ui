@@ -496,6 +496,19 @@ class RunPage {
 		);
 	}
 
+	/** The run header's link to its log, built in the user's default layout. */
+	get logHeaderLink(): Locator {
+		return this.page
+			.getByRole('banner')
+			.getByRole('link', { name: 'Log', exact: true });
+	}
+
+	async openLogFromHeader(): Promise<void> {
+		await expect(this.logHeaderLink).toBeVisible({ timeout: 30_000 });
+		await this.logHeaderLink.click();
+		await expect(this.page).toHaveURL(/\/log\/\d+/, { timeout: 15_000 });
+	}
+
 	/** The run header's link to its issues page. */
 	get issuesHeaderLink(): Locator {
 		return this.page

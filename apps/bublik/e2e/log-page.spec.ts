@@ -6,6 +6,8 @@ import { expect, test } from './support/test';
 import type { APIRequestContext } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
+import { RunPage } from './pages/run-page';
+import { Sidebar } from './pages/sidebar';
 import { RunIssuesPage } from './pages/run-issues-page';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
@@ -414,6 +416,87 @@ test.describe('Log Page', () => {
 			);
 			await and('the link still carries the focused result', () =>
 				logPage.expectParams({ focusId })
+			);
+		}
+	);
+
+	test(
+		'A log link opens in my default layout',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const runPage = new RunPage(page);
+			const sidebar = new Sidebar(page);
+			const logPage = new LogPage(page);
+
+			await given('I open the page of an imported run', () =>
+				runPage.goto(runCase.runId)
+			);
+			await and('I choose Info + log as my default log layout', () =>
+				sidebar.pickDefaultLogLayout('Info + log')
+			);
+			await when('I follow the Log link in the run header', () =>
+				runPage.openLogFromHeader()
+			);
+			await then('the info panel is shown and the tree is not', () =>
+				logPage.expectModeLayout('infoAndlog')
+			);
+			await and(
+				'the URL carries the info-and-log layout as its only mode',
+				() => logPage.expectSingleMode('infoAndlog')
+			);
+		}
+	);
+
+	test(
+		'An explicit mode overrides my default',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const logPage = new LogPage(page);
+
+			await given('my default log layout is log only', () =>
+				logPage.useDefaultLayout('log')
+			);
+			await when(
+				"I open a link to a run's log in the tree-and-log layout",
+				async () => {
+					await logPage.gotoWithParams(runCase.runId, { mode: 'treeAndlog' });
+					await logPage.expectLoaded();
+				}
+			);
+			await then('the tree is shown and the info panel is not', () =>
+				logPage.expectModeLayout('treeAndlog')
+			);
+			await and(
+				'the URL carries the tree-and-log layout as its only mode',
+				() => logPage.expectSingleMode('treeAndlog')
+			);
+		}
+	);
+
+	test(
+		'A bare log link opens the log on its own whatever my default',
+		{ tag: ['@log', '@url-params'] },
+		async ({ page }) => {
+			const runCase = representativeImportedRun(requireManifest());
+			const logPage = new LogPage(page);
+
+			await given('my default log layout is tree and info and log', () =>
+				logPage.useDefaultLayout('treeAndinfoAndlog')
+			);
+			await when(
+				"I open a link to a run's log that names no layout",
+				async () => {
+					await logPage.goto(runCase.runId);
+					await logPage.expectLoaded();
+				}
+			);
+			await then('neither the tree nor the info panel is shown', () =>
+				logPage.expectModeLayout('log')
+			);
+			await and('the URL carries no layout', () =>
+				logPage.expectParamsAbsent(['mode'])
 			);
 		}
 	);

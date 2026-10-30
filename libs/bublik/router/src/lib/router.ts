@@ -46,6 +46,10 @@ export const routes = {
 		}
 	}),
 	history: buildRoute<HistoryConfig>({ getPathname: () => `/history` }),
+	/**
+	 * In-app links pass the user's default layout as `mode` (see
+	 * `useDefaultLogMode`); the fallback below only serves callers that don't.
+	 */
 	log: buildRoute<LogConfig>({
 		getPathname: ({ runId }) => `/log/${runId}`,
 		getSearch: ({ mode = LogPageMode.TreeAndInfoAndLog, focusId }) => {

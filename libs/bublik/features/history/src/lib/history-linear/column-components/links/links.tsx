@@ -3,7 +3,6 @@
 import {
 	HistoryDataLinear,
 	HistorySearchParams,
-	LogPageMode,
 	RESULT_PROPERTIES,
 	VERDICT_TYPE
 } from '@/shared/types';
@@ -13,6 +12,7 @@ import { ButtonTw, Icon, SplitButton, Tooltip } from '@/shared/tailwind-ui';
 import { DEFAULT_RESULT_TYPES } from '@/bublik/config';
 import { LogPreviewContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 export interface LinksProps {
 	row: HistoryDataLinear;
@@ -21,6 +21,7 @@ export interface LinksProps {
 export const Links = ({ row }: LinksProps) => {
 	const [search] = useSearchState<HistorySearchParams>();
 	const shortcuts = getHistorySearch(row, search);
+	const logMode = useDefaultLogMode();
 
 	const handleLinkClick = (action: string) => {
 		trackEvent(analyticsEventNames.historyLinkClick, {
@@ -35,7 +36,7 @@ export const Links = ({ row }: LinksProps) => {
 					to={routes.log({
 						runId: row.run_id,
 						focusId: row.result_id,
-						mode: LogPageMode.InfoAndLog
+						mode: logMode
 					})}
 					onClick={() => handleLinkClick('log')}
 				>

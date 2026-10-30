@@ -24,6 +24,7 @@ import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 function useIsModeFull() {
 	const [isModeFull, setIsModeFull] = useQueryParam('isModeFull', BooleanParam);
@@ -134,6 +135,7 @@ interface RunHeaderDetailsProps {
 }
 
 function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
+	const logMode = useDefaultLogMode();
 	const { data } = useGetRunDetailsQuery(runId);
 	const [isModeFull, setIsModeFull] = useIsModeFull();
 
@@ -169,7 +171,7 @@ function RunHeaderDetails({ runId }: RunHeaderDetailsProps) {
 			</ButtonTw>
 			<ButtonTw asChild variant="secondary" size="xss">
 				<LinkWithProject
-					to={routes.log({ runId })}
+					to={routes.log({ runId, mode: logMode })}
 					onClick={() => {
 						trackEvent(analyticsEventNames.runMultipleNavigationClick, {
 							action: 'log'
