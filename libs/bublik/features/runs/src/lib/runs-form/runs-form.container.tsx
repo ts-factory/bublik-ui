@@ -62,11 +62,22 @@ function RunsFormContainer() {
 
 		const params = formToSearchParams(searchParams, newForm);
 		const searchString = params.toString();
+		const isRefresh = searchString === searchParams.toString();
 		navigateWithProject(
 			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
 			{ replace: true }
 		);
 		dispatch(updateGlobalFilter(selectedRunData));
+		refreshUnlessChanged(isRefresh);
+	}
+
+	/**
+	 * Submit with the filters unchanged refreshes the runs. Changed filters
+	 * fetch by themselves; invalidating too would first refetch the old ones,
+	 * before the new URL is read.
+	 */
+	function refreshUnlessChanged(isRefresh: boolean) {
+		if (!isRefresh) return;
 		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
 	}
 
@@ -80,17 +91,17 @@ function RunsFormContainer() {
 			hadSelectedRunData: Boolean(searchParams.get('runData'))
 		});
 
-		dispatch(updateGlobalFilter([]));
-		dispatch(bublikAPI.util.invalidateTags([BUBLIK_TAG.SessionList]));
-
 		const params = formToSearchParams(searchParams, resettedForm);
 		params.delete('duration');
 
 		const searchString = params.toString();
+		const isRefresh = searchString === searchParams.toString();
+		dispatch(updateGlobalFilter([]));
 		navigateWithProject(
 			{ pathname: '/runs', search: searchString ? `?${searchString}` : '' },
 			{ replace: true }
 		);
+		refreshUnlessChanged(isRefresh);
 	}
 
 	return (
