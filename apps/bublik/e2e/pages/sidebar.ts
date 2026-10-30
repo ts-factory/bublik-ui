@@ -37,9 +37,19 @@ class Sidebar {
 		await expect(this.page.getByRole('menu')).toBeVisible({ timeout: 15_000 });
 	}
 
+	/**
+	 * Escape closes the top layer only. After a tray button is clicked the
+	 * pointer still rests on it, and WebKit re-sends a mouse move once the
+	 * layout change settles, which reopens the button's tooltip: that tooltip
+	 * takes the first Escape and the menu the next, so press until it is gone.
+	 */
 	async closeAccountMenu(): Promise<void> {
-		await this.page.keyboard.press('Escape');
-		await expect(this.page.getByRole('menu')).toHaveCount(0);
+		const menu = this.page.getByRole('menu');
+
+		await expect(async () => {
+			await this.page.keyboard.press('Escape');
+			await expect(menu).toHaveCount(0, { timeout: 3_000 });
+		}).toPass({ timeout: 15_000 });
 	}
 
 	private sidebarToggle(): Locator {
