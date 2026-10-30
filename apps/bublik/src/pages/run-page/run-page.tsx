@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
-import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
 	GlobalRequirementsProvider,
 	RunTableContainer
@@ -13,25 +12,19 @@ import {
 import { RunDetailsContainer } from '@/bublik/features/run-details';
 import {
 	ApplyRulesButton,
-	ResultSelectionProvider,
-	RunIssuesButton
+	ResultSelectionProvider
 } from '@/bublik/features/result-classification';
 import { DiffFormContainer } from '@/bublik/features/run-diff';
 import { CopyShortUrlButtonContainer } from '@/bublik/features/copy-url';
-import { routes } from '@/router';
 import { usePrefetchLogPage } from '@/services/bublik-api';
 import {
-	ButtonTw,
 	CardHeader,
-	Icon,
 	RunModeToggle,
 	ScrollToTopPage,
 	Separator
 } from '@/shared/tailwind-ui';
 import { RunPageParams } from '@/shared/types';
-import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
-import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
 
 export interface RunHeaderProps {
@@ -62,25 +55,8 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					/>
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
-					<RunReportConfigsContainer runId={runId} />
-					<LinkToSourceContainer runId={runId} />
-					<ButtonTw asChild variant="secondary" size="xss">
-						<LinkWithProject
-							to={routes.log({ runId })}
-							onClick={() => {
-								trackEvent(analyticsEventNames.runOpenLogClick, {
-									source: 'header'
-								});
-							}}
-						>
-							<Icon name="BoxArrowRight" className="mr-1.5" />
-							Log
-						</LinkWithProject>
-					</ButtonTw>
-					<Separator orientation="vertical" className="h-5 self-center" />
 					<DefineCompromiseContainer runId={runId} />
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
-					<RunIssuesButton runId={runId} />
 					<ApplyRulesButton runId={runId} />
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<CopyShortUrlButtonContainer />

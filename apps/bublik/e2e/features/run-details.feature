@@ -70,9 +70,9 @@ Feature: Run details
     When I click a count badge of that test row
     Then that test's result table is expanded
 
-  Scenario: The run header opens the log of the whole run
+  Scenario: The sidebar opens the log of the run
     Given I open an imported run's page
-    When I follow the header's Log link
+    When I follow the sidebar's Log row
     Then the log page for that run is open
 
   Scenario: A result row links to the log of that result
@@ -90,6 +90,13 @@ Feature: Run details
     Given I open a run whose project has a report config
     When I open the reports menu
     Then the configured report is offered
+
+  @needs-report
+  Scenario: Picking a report in the sidebar opens that report
+    Given I open a run whose project has a report config
+    When I open the reports menu
+    And I pick the configured report
+    Then that report's page is open
 
   ###########################################
   #         Filtering the result table      #
@@ -355,12 +362,6 @@ Feature: Run details
     Then the result carries a stamp for that issue
     And the issues page counts one result under the issue
     And I delete the issue
-
-  @run @issues @needs-classification
-  Scenario: The run header links to the run's issues
-    Given I open the page of a run the seed classified
-    When I follow the Issues link in the header
-    Then the run's issues page is open
 
   # Runs without the shared signed-in storage state.
   @run @compromised @auth

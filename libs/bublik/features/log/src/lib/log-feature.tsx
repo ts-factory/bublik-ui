@@ -19,10 +19,8 @@ import {
 	useGetRunDetailsQuery,
 	useGetTreeByRunIdQuery
 } from '@/services/bublik-api';
-import { RunReportConfigsContainer } from '@/bublik/features/run-report';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
-import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
 	ApplyRulesButton,
 	ClassifyResultContainer
@@ -35,7 +33,6 @@ import {
 	TreeContainer
 } from './containers';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
-import { LinkToRun } from './components';
 import { useIsLogLegacy, useLogPage } from './hooks';
 import { useLogSidebarState } from './sidebar';
 import { LogSidebarMode } from '@/bublik/features/sidebar';
@@ -147,7 +144,6 @@ function LogFeature(props: LogFeatureProps) {
 								runId={Number(runId)}
 								focusId={focusId}
 							/>
-							<LinkToRun runId={runId} targetIterationId={focusId} />
 							<HistoryLinkContainer
 								runId={Number(runId)}
 								resultId={validResultId}
@@ -155,8 +151,6 @@ function LogFeature(props: LogFeatureProps) {
 								path={node?.path ?? undefined}
 							/>
 							<LinkToMeasurementsContainer focusId={focusId} />
-							<RunReportConfigsContainer runId={runId} />
-							<LinkToSourceContainer runId={runId} />
 							<Separator orientation="vertical" className="h-5 self-center" />
 							<NewBugContainer
 								key={`${runId}_${focusId}`}

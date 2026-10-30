@@ -69,6 +69,26 @@ class Sidebar {
 		await expect(this.page).toHaveURL(/\/admin\/users/);
 	}
 
+	/** Follows the Log row of the Run section. */
+	async openRunLog(): Promise<void> {
+		await this.openSidebar();
+		await this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: /^Log\b/ })
+			.click();
+	}
+
+	/** Opens the menu beside the Run section's Report row. */
+	async openRunReports(): Promise<void> {
+		await this.openSidebar();
+		await this.page.getByTestId('run-sidebar-reports').click();
+		await expect(this.page.getByRole('menu')).toBeVisible({ timeout: 15_000 });
+	}
+
+	runReportMenuItem(name: string): Locator {
+		return this.page.getByRole('menuitem', { name });
+	}
+
 	/**
 	 * Expands the sidebar when it is collapsed. The toggle's `data-state` is
 	 * its tooltip's, not the sidebar's; the submenu toggles only render while

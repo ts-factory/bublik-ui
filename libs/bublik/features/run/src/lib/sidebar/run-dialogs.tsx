@@ -4,7 +4,6 @@ import { InstructionDialog } from '@/shared/tailwind-ui';
 
 import multipleRuns1 from './images/run-link-session-list.webp';
 import runSidebar from './images/go-to-run-details.webp';
-import runReport from './images/report-link.webp';
 
 export function RunDetailsDialog() {
 	return (
@@ -31,7 +30,7 @@ export function RunReportDialog() {
 	return (
 		<InstructionDialog
 			dialogTitle="Report"
-			dialogDescription="Follow these steps to view run report."
+			dialogDescription="Follow these steps to view run report. It is available only for a run whose project has a report config."
 			steps={[
 				{
 					title: 'Go to the Run Details page',
@@ -39,9 +38,10 @@ export function RunReportDialog() {
 					image: runSidebar
 				},
 				{
-					title: 'Click on the "Report" button',
-					description: 'Click on the "Report" button to view the run report.',
-					image: runReport
+					title: 'Open a report from the sidebar',
+					description:
+						'Click on Report in the sidebar to open a report, or use the arrow next to it to pick another one.',
+					image: runSidebar
 				}
 			]}
 		/>

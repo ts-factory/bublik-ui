@@ -71,9 +71,6 @@ export type {
 export { ApplyRulesButton } from './lib/apply-rules';
 export type { ApplyRulesButtonProps } from './lib/apply-rules';
 
-export { RunIssuesButton } from './lib/run-issues-button';
-export type { RunIssuesButtonProps } from './lib/run-issues-button';
-
 export {
 	IssueDrawer,
 	NewIssueButton,

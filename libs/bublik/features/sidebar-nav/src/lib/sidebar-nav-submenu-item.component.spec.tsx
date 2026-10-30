@@ -34,14 +34,21 @@ const MODE_ITEMS = [
 	{ value: 'log', icon: 'LayoutLogSingle', label: 'Log' }
 ] as const;
 
+const LINK_ITEMS = [
+	{ id: '1', label: 'Older report', to: '/report?config=1' },
+	{ id: '2', label: 'Newer report', to: '/report?config=2' }
+];
+
 function renderSubmenuItem({
 	disabled = false,
 	isSidebarOpen = true,
-	withModeSwitch = false
+	withModeSwitch = false,
+	linkItems
 }: {
 	disabled?: boolean;
 	isSidebarOpen?: boolean;
 	withModeSwitch?: boolean;
+	linkItems?: typeof LINK_ITEMS;
 } = {}) {
 	const handleLinkClick = vi.fn();
 	const handleSelect = vi.fn();
@@ -64,7 +71,8 @@ function renderSubmenuItem({
 					href={String(to)}
 					onClick={(event) => {
 						event.preventDefault();
-						handleLinkClick();
+						props.onClick?.(event);
+						handleLinkClick(String(to));
 					}}
 				>
 					{children}
@@ -86,7 +94,14 @@ function renderSubmenuItem({
 						<SidebarNavSubmenuItemContainer.Label>
 							Details
 						</SidebarNavSubmenuItemContainer.Label>
-						{withModeSwitch ? (
+						{linkItems ? (
+							<SidebarNavSubmenuItemContainer.LinksMenu
+								aria-label="Reports"
+								items={linkItems}
+								linkComponent={TestLink}
+								testId="details-reports"
+							/>
+						) : withModeSwitch ? (
 							<SidebarNavSubmenuItemContainer.ModeSwitch
 								aria-label="Details layout"
 								items={MODE_ITEMS}
@@ -304,5 +319,74 @@ describe('SidebarNavSubmenuItemContainer', () => {
 		renderSubmenuItem({ withModeSwitch: true, disabled: true });
 
 		expect(screen.queryByRole('group', { name: 'Details layout' })).toBeNull();
+	});
+
+	it('opens the links menu without following the row', async () => {
+		const user = userEvent.setup();
+		const { handleLinkClick } = renderSubmenuItem({ linkItems: LINK_ITEMS });
+
+		await user.click(screen.getByRole('button', { name: 'Reports' }));
+
+		expect(
+			await screen.findByRole('menuitem', { name: 'Older report' })
+		).toBeTruthy();
+		expect(handleLinkClick).not.toHaveBeenCalled();
+	});
+
+	it('follows the chosen link and not the row it sits in', async () => {
+		const user = userEvent.setup();
+		const { handleLinkClick } = renderSubmenuItem({ linkItems: LINK_ITEMS });
+
+		await user.click(screen.getByRole('button', { name: 'Reports' }));
+		await user.click(
+			await screen.findByRole('menuitem', { name: 'Older report' })
+		);
+
+		expect(handleLinkClick.mock.calls).toEqual([['/report?config=1']]);
+	});
+
+	it('offers no links menu on a disabled item', () => {
+		renderSubmenuItem({ linkItems: LINK_ITEMS, disabled: true });
+
+		expect(screen.queryByRole('button', { name: 'Reports' })).toBeNull();
+	});
+
+	it('offers no links menu without links', () => {
+		renderSubmenuItem({ linkItems: [] });
+
+		expect(screen.queryByRole('button', { name: 'Reports' })).toBeNull();
+	});
+
+	it('offers the links in a hover card while the sidebar is collapsed', async () => {
+		const user = userEvent.setup();
+		const { handleLinkClick } = renderSubmenuItem({
+			linkItems: LINK_ITEMS,
+			isSidebarOpen: false
+		});
+
+		expect(screen.queryByRole('button', { name: 'Reports' })).toBeNull();
+
+		await user.hover(screen.getByRole('link'));
+
+		const panel = await screen.findByRole('group', { name: 'Reports' });
+
+		expect(panel.getAttribute('data-testid')).toBe('details-reports-panel');
+
+		await user.click(screen.getByRole('link', { name: 'Newer report' }));
+
+		expect(handleLinkClick.mock.calls).toEqual([['/report?config=2']]);
+	});
+
+	it('offers no links card on a disabled collapsed item', async () => {
+		const user = userEvent.setup();
+		renderSubmenuItem({
+			linkItems: LINK_ITEMS,
+			isSidebarOpen: false,
+			disabled: true
+		});
+
+		await user.hover(screen.getByText('Details'));
+
+		expect(screen.queryByRole('group', { name: 'Reports' })).toBeNull();
 	});
 });

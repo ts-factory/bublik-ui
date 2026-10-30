@@ -57,6 +57,12 @@ Feature: Log
     And I follow the Result link
     Then the measurements page is open
 
+  @needs-report
+  Scenario: The sidebar offers the run's reports on the log page
+    Given I open the log of a run whose project has a report config
+    When I open the reports menu
+    Then the configured report is offered
+
   ####################################################################
   # URL parameters
   ####################################################################

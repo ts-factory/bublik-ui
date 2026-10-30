@@ -34,10 +34,21 @@ const runIssuesResult: { data: unknown[] | undefined; isLoading: boolean } = {
 	isLoading: false
 };
 
+// Mutated per-test to simulate the report configs of the run.
+const reportConfigsResult: {
+	data:
+		| {
+				run_report_configs: { id: number; name: string; description: string }[];
+		  }
+		| undefined;
+	isLoading: boolean;
+} = { data: undefined, isLoading: false };
+
 vi.mock('@/services/bublik-api', () => ({
-	useGetRunReportConfigsQuery: () => ({ data: undefined, isLoading: false }),
+	useGetRunReportConfigsQuery: () => reportConfigsResult,
 	useGetRunDetailsQuery: () => ({ data: { project_id: 1 } }),
-	useGetRunIssuesQuery: () => runIssuesResult
+	useGetRunIssuesQuery: () => runIssuesResult,
+	useGetRunSourceQuery: () => ({ data: undefined, isLoading: false })
 }));
 
 vi.mock('@/bublik/features/sidebar', () => ({
@@ -183,6 +194,24 @@ function renderLog() {
 	return log;
 }
 
+function renderReport() {
+	let report: Pick<
+		ReturnType<typeof useRunSidebarState>,
+		'reportUrl' | 'reportMenuItems' | 'isReportAvailable'
+	> = { reportUrl: null, reportMenuItems: [], isReportAvailable: false };
+
+	function ReportRunner() {
+		const { reportUrl, reportMenuItems, isReportAvailable } =
+			useRunSidebarState();
+		report = { reportUrl, reportMenuItems, isReportAvailable };
+		return null;
+	}
+
+	render(<ReportRunner />);
+
+	return report;
+}
+
 describe('useRunSidebarState', () => {
 	beforeEach(() => {
 		currentPathname = '/';
@@ -192,6 +221,73 @@ describe('useRunSidebarState', () => {
 		}
 		runIssuesResult.data = undefined;
 		runIssuesResult.isLoading = false;
+		reportConfigsResult.data = undefined;
+		reportConfigsResult.isLoading = false;
+	});
+
+	describe('report', () => {
+		const CONFIGS = [
+			{ id: 3, name: 'Middle', description: 'The middle one' },
+			{ id: 9, name: 'Newest', description: 'The newest one' },
+			{ id: 1, name: 'Oldest', description: 'The oldest one' }
+		];
+
+		it('opens the config with the highest id by default', () => {
+			sidebarStateValues['sidebar.currentRunId'] = '42';
+			reportConfigsResult.data = { run_report_configs: CONFIGS };
+
+			expect(renderReport().reportUrl).toBe('/runs/42/report?config=9');
+		});
+
+		it('reopens the report last visited in this run', () => {
+			sidebarStateValues['sidebar.currentRunId'] = '42';
+			sidebarStateValues['sidebar.run.lastReport'] = '/runs/42/report?config=1';
+			reportConfigsResult.data = { run_report_configs: CONFIGS };
+
+			expect(renderReport().reportUrl).toBe('/runs/42/report?config=1');
+		});
+
+		it('offers every config in the order the server lists them', () => {
+			sidebarStateValues['sidebar.currentRunId'] = '42';
+			reportConfigsResult.data = { run_report_configs: CONFIGS };
+
+			expect(renderReport().reportMenuItems).toEqual([
+				{
+					id: '3',
+					label: 'Middle',
+					description: 'The middle one',
+					to: '/runs/42/report?config=3'
+				},
+				{
+					id: '9',
+					label: 'Newest',
+					description: 'The newest one',
+					to: '/runs/42/report?config=9'
+				},
+				{
+					id: '1',
+					label: 'Oldest',
+					description: 'The oldest one',
+					to: '/runs/42/report?config=1'
+				}
+			]);
+		});
+
+		it('offers nothing and stays disabled for a run with no configs', () => {
+			sidebarStateValues['sidebar.currentRunId'] = '42';
+			reportConfigsResult.data = { run_report_configs: [] };
+
+			const report = renderReport();
+
+			expect(report.reportMenuItems).toEqual([]);
+			expect(report.isReportAvailable).toBe(false);
+		});
+
+		it('offers nothing without a run', () => {
+			reportConfigsResult.data = { run_report_configs: CONFIGS };
+
+			expect(renderReport().reportMenuItems).toEqual([]);
+		});
 	});
 
 	it('preserves navigation state while updating sidebar params', async () => {

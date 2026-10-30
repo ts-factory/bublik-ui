@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
-import { Icon } from '@/shared/tailwind-ui';
+import { Icon, useSidebar } from '@/shared/tailwind-ui';
 import {
 	LinkWithProject,
 	useNavigateWithProject
@@ -23,6 +23,7 @@ import {
 	SidebarNavToggle,
 	SidebarNavCollapsibleContainer,
 	SidebarNavInfoButton,
+	SidebarNavSubmenuItem,
 	SidebarNavSubmenuItemContainer,
 	type SidebarNavSubmenuModeSwitchItem
 } from '@/bublik/features/sidebar-nav';
@@ -70,6 +71,7 @@ function runOpenIssuesTooltip(openCount: number, totalCount: number): string {
 export function RunSidebarNav() {
 	const location = useLocation();
 	const navigate = useNavigateWithProject();
+	const { isSidebarOpen } = useSidebar();
 	const {
 		isDetailsAvailable,
 		isReportAvailable,
@@ -78,14 +80,17 @@ export function RunSidebarNav() {
 		isMainLinkAvailable,
 		detailsUrl,
 		reportUrl,
+		reportMenuItems,
 		issuesUrl,
 		logUrl,
 		getLogModeUrl,
 		mainLinkUrl,
+		sourceUrl,
 		activeRunId,
 		activeRunName,
 		isReportLoading,
 		isIssuesLoading,
+		isSourceLoading,
 		issueCount,
 		openIssueCount,
 		setLastVisited
@@ -208,6 +213,13 @@ export function RunSidebarNav() {
 							name="InformationCircleProgress"
 							className="ml-auto size-5 animate-spin text-primary"
 						/>
+					) : reportMenuItems.length > 0 ? (
+						<SidebarNavSubmenuItemContainer.LinksMenu
+							aria-label="Reports"
+							items={reportMenuItems}
+							linkComponent={LinkWithProject}
+							testId="run-sidebar-reports"
+						/>
 					) : (
 						<SidebarNavSubmenuItemContainer.InfoButton>
 							<RunReportDialog />
@@ -251,6 +263,35 @@ export function RunSidebarNav() {
 						</SidebarNavSubmenuItemContainer.InfoButton>
 					)}
 				</SidebarNavSubmenuItemContainer>
+				{/* Last: the one row that leaves Bublik, in a new tab. */}
+				<SidebarNavSubmenuItem
+					href={sourceUrl ?? ''}
+					isActive={false}
+					disabled={!sourceUrl}
+				>
+					<SidebarNavSubmenuItemContainer.Icon name="BoxArrowRight" />
+					<SidebarNavSubmenuItemContainer.Label>
+						Source
+					</SidebarNavSubmenuItemContainer.Label>
+					{isSourceLoading ? (
+						<Icon
+							name="InformationCircleProgress"
+							className="ml-auto size-5 animate-spin text-primary"
+						/>
+					) : sourceUrl && isSidebarOpen ? (
+						// The collapsed sidebar has room for the row's icon only.
+						<Icon
+							name="ExternalLink"
+							size={18}
+							// As large as the Log row's layout icons and the Report row's
+							// arrow, and centred under them: this row pads its right side
+							// 4px more than the Log row, which the tray's 4px of padding
+							// takes back.
+							className="ml-auto shrink-0 text-text-menu"
+							data-testid="run-sidebar-source-external"
+						/>
+					) : null}
+				</SidebarNavSubmenuItem>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
 	);

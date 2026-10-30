@@ -496,13 +496,6 @@ class RunPage {
 		);
 	}
 
-	/** The run header's link to its issues page. */
-	get issuesHeaderLink(): Locator {
-		return this.page
-			.getByRole('banner')
-			.getByRole('link', { name: 'Issues', exact: true });
-	}
-
 	get applyRulesButton(): Locator {
 		return this.page.getByRole('banner').getByTestId('apply-rules-button');
 	}
@@ -912,10 +905,6 @@ class RunPage {
 		const form = this.page.locator('form').filter({ hasText: 'Compare Runs' });
 		await expect(form).toBeVisible({ timeout: 15_000 });
 		return form;
-	}
-
-	async openReports(): Promise<void> {
-		await this.page.getByRole('button', { name: 'Reports' }).click();
 	}
 
 	commentValue(): Locator {
