@@ -94,6 +94,17 @@ class RunMultiplePage {
 		});
 	}
 
+	/** The selection pill counts `results` picked results across `runs` runs. */
+	async expectSelectionSpans(results: number, runs: number): Promise<void> {
+		const pill = this.page.getByTestId('results-selection-toggle');
+
+		await expect(pill).toHaveAttribute('data-count', String(results), {
+			timeout: 15_000
+		});
+		await expect(pill).toHaveAttribute('data-run-count', String(runs));
+		await expect(pill).toContainText(`${results} results in ${runs} runs`);
+	}
+
 	async openSelectedLog(): Promise<void> {
 		const multiplePage = this.page.getByTestId('run-multiple-page');
 

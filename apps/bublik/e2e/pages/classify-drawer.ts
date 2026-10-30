@@ -370,6 +370,22 @@ class ClassifyDrawer {
 		await this.expectClosed();
 	}
 
+	/** The drawer classifies `results` results of `runs` runs, and says so. */
+	async expectRunSpan(results: number, runs: number): Promise<void> {
+		await expect(this.root).toHaveAttribute(
+			'data-result-count',
+			String(results)
+		);
+		await expect(this.root).toHaveAttribute('data-run-count', String(runs));
+		if (runs > 1) {
+			await expect(
+				this.root.getByText(`${results} results in ${runs} runs`, {
+					exact: false
+				})
+			).not.toHaveCount(0);
+		}
+	}
+
 	async expectOpen(): Promise<void> {
 		await expect(this.root).toBeVisible({ timeout: 15_000 });
 		await expect(this.heading).toBeVisible();

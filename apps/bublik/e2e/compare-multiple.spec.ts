@@ -1,20 +1,29 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 /* eslint-disable playwright/expect-expect */
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './support/test';
 
+import type { ClassifyDrawer } from './pages/classify-drawer';
+import { IssuesPage } from './pages/issues-page';
 import { LogPage } from './pages/log-page';
+import { ResultStamps } from './pages/result-stamps';
 import { RunDiffPage } from './pages/run-diff-page';
 import { RunMultiplePage } from './pages/run-multiple-page';
 import { RunPage } from './pages/run-page';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
-import { importedRunId } from './support/e2e-data';
+import { IssueCleanup } from './support/classification';
+import { importedRunId, projectIdByName } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
 import {
+	claimFailingResult,
+	claimFailingResultsInRuns,
 	representativeNokRun,
 	runPairOnSameDate
 } from './support/sample-cases';
+import type { ClassifiableResult } from './support/sample-cases';
 
 function comparableRunIds(): [number, number] {
 	const pair = requireCapability(
@@ -253,6 +262,199 @@ test.describe('Multiple Runs Page', () => {
 			);
 			await and('both run ids are still pinned', () =>
 				multiplePage.expectRunIdsPinned([firstRunId, secondRunId])
+			);
+		}
+	);
+});
+
+const CLASSIFY_WRITE = { tag: ['@issues', '@issues-write', '@needs-nok'] };
+
+const cleanup = new IssueCleanup('run-multiple');
+
+/** A run of the same project as `runId`, to merge with it: read, never written. */
+function otherRunOfProject(result: ClassifiableResult): number {
+	const other = requireCapability(
+		requireManifest().bundles.find(
+			(bundle) =>
+				bundle.runId &&
+				bundle.runId !== result.runId &&
+				bundle.project === result.run.bundle.project
+		),
+		`Project "${result.run.bundle.project}" has no second imported run.`
+	);
+
+	return Number(other.runId);
+}
+
+/** Opens each result's test in the merged tree and picks the result. */
+async function pickResults(
+	page: Page,
+	results: readonly ClassifiableResult[]
+): Promise<void> {
+	const runPage = new RunPage(page);
+	const stamps = new ResultStamps(page);
+	// Every table first: the selection popover the first pick opens sits
+	// over the tree's lower rows.
+	const tables = [];
+
+	for (const result of results) {
+		tables.push(await stamps.openTestResults(result.path));
+	}
+	for (const [index, result] of results.entries()) {
+		await runPage.selectResultCell(
+			runPage.resultCellOf(tables[index], result.resultId)
+		);
+	}
+}
+
+/** Opens the results' tests again and expects each result stamped once by the issue. */
+async function expectStamped(
+	page: Page,
+	runIds: readonly number[],
+	results: readonly ClassifiableResult[],
+	issueId: number
+): Promise<void> {
+	const multiplePage = new RunMultiplePage(page);
+	const runPage = new RunPage(page);
+	const stamps = new ResultStamps(page);
+
+	await multiplePage.goto([...runIds]);
+	await multiplePage.expectLoaded();
+	for (const result of results) {
+		const table = await stamps.openTestResults(result.path);
+		await stamps.expectSingleStamp(
+			runPage.resultCellOf(table, result.resultId),
+			issueId
+		);
+	}
+}
+
+async function deleteIssue(
+	page: Page,
+	projectId: number,
+	title: string,
+	issueId: number
+): Promise<void> {
+	const issuesPage = new IssuesPage(page);
+
+	await issuesPage.goto({ project: String(projectId) });
+	await issuesPage.expectLoaded();
+	await issuesPage.table.search(title);
+	await issuesPage.expectIssueListed(title);
+	await issuesPage.deleteIssue(title);
+	cleanup.forget(issueId);
+}
+
+test.describe('Multiple Runs Page: classifying', () => {
+	test.afterEach(async ({ request }, testInfo) => {
+		if (!testInfo.tags.includes('@issues-write')) return;
+
+		await cleanup.sweep(request);
+	});
+
+	test(
+		'Results picked in one of the merged runs classify in bulk as on the run page',
+		CLASSIFY_WRITE,
+		async ({ page, request }) => {
+			test.slow();
+			const multiplePage = new RunMultiplePage(page);
+			const runPage = new RunPage(page);
+			const title = cleanup.title('one run');
+			let picked!: ClassifiableResult;
+			let runIds: number[] = [];
+			let projectId = 0;
+			let issueId = 0;
+
+			await given(
+				'I pick a failing result of one run on the multiple page of two runs',
+				async () => {
+					picked = await claimFailingResult(
+						request,
+						`run-multiple ${test.info().title}`
+					);
+					projectId = requireCapability(
+						await projectIdByName(request, picked.run.bundle.project),
+						`Project "${picked.run.bundle.project}" is not registered.`
+					);
+					runIds = [picked.runId, otherRunOfProject(picked)];
+					await multiplePage.goto(runIds);
+					await multiplePage.expectLoaded();
+					await pickResults(page, [picked]);
+				}
+			);
+			await when('I classify the selection under a new issue', async () => {
+				const drawer = await runPage.classifySelection();
+				await drawer.expectRunSpan(1, 1);
+				await drawer.fillNewIssue({ title });
+				issueId = await drawer.submitForIssueId();
+				cleanup.register(issueId, projectId);
+			});
+			await then('the picked result carries a single stamp of the issue', () =>
+				expectStamped(page, runIds, [picked], issueId)
+			);
+			await and('I delete the issue', () =>
+				deleteIssue(page, projectId, title, issueId)
+			);
+		}
+	);
+
+	test(
+		'Results picked across the merged runs classify under one issue',
+		CLASSIFY_WRITE,
+		async ({ page, request }) => {
+			// Two runs' trees, a request per run, and the stamps read back: a
+			// minute is short for that under load.
+			test.slow();
+			const multiplePage = new RunMultiplePage(page);
+			const runPage = new RunPage(page);
+			const title = cleanup.title('two runs');
+			let picked: ClassifiableResult[] = [];
+			let runIds: number[] = [];
+			let projectId = 0;
+			let issueId = 0;
+			let drawer!: ClassifyDrawer;
+
+			await given(
+				'I pick a failing result of each of two runs on the multiple page for both runs',
+				async () => {
+					picked = requireCapability(
+						await claimFailingResultsInRuns(
+							request,
+							`run-multiple ${test.info().title}`,
+							2
+						),
+						'Fixture manifest has failing results in fewer than two classifiable runs.'
+					);
+					projectId = requireCapability(
+						await projectIdByName(request, picked[0].run.bundle.project),
+						`Project "${picked[0].run.bundle.project}" is not registered.`
+					);
+					runIds = picked.map((result) => result.runId);
+					await multiplePage.goto(runIds);
+					await multiplePage.expectLoaded();
+					await pickResults(page, picked);
+				}
+			);
+			await then('the selection says it spans both runs', () =>
+				multiplePage.expectSelectionSpans(2, 2)
+			);
+			await when('I open Classify on the selection', async () => {
+				drawer = await runPage.classifySelection();
+			});
+			await then(
+				'the drawer says how many results and runs it classifies',
+				() => drawer.expectRunSpan(2, 2)
+			);
+			await when('I classify them under a new issue', async () => {
+				await drawer.fillNewIssue({ title });
+				issueId = await drawer.submitForIssueId();
+				cleanup.register(issueId, projectId);
+			});
+			await then('each picked result carries a single stamp of the issue', () =>
+				expectStamped(page, runIds, picked, issueId)
+			);
+			await and('I delete the issue', () =>
+				deleteIssue(page, projectId, title, issueId)
 			);
 		}
 	);
