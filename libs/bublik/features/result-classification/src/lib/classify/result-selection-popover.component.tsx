@@ -226,14 +226,11 @@ export function ResultSelectionPopover({
 					open={open}
 					onOpenChange={onOpenChange}
 					layout="size"
-					// The popover sits a pill's height above the pill, so both
-					// move up together.
-					className={raised ? 'bottom-28' : undefined}
+					raised={raised}
 				>
 					<SelectionPopoverFloatingButton
 						label={`${resultsInRuns(count, runCount)} selected`}
 						icon="ExpandSelection"
-						className={raised ? 'bottom-16' : undefined}
 						data-testid="results-selection-toggle"
 						data-count={count}
 						data-run-count={runCount}

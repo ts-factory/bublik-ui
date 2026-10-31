@@ -36,6 +36,16 @@ Feature: Multiple runs
 
   # Each scenario files an issue of its own and deletes it as its last step.
 
+  @issues @needs-nok
+  Scenario: Results and runs selections stack in one dock
+    Given the multiple page for two runs, with both runs selected
+    When I pick a failing result of one of them
+    Then the results selection is stacked above the runs selection in the dock
+    When I open the runs selection
+    Then only the runs selection is open
+    When I open the results selection
+    Then only the results selection is open
+
   @issues @issues-write @needs-nok
   Scenario: Results picked in one of the merged runs classify in bulk as on the run page
     Given I pick a failing result of one run on the multiple page of two runs
