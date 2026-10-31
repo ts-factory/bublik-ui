@@ -16,6 +16,7 @@ import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
 import { ButtonTw, ButtonTwProps } from '../button';
 import { Icon, IconProps } from '../icon';
 import { cn } from '../utils';
+import { SelectionDockSlot, useSelectionDockExclusive } from './selection-dock';
 
 const variants: Variants = {
 	visible: { opacity: 1, y: '0%' },
@@ -39,13 +40,32 @@ interface SelectionPopoverProps {
 	open?: boolean;
 	defaultOpen?: boolean;
 	onOpenChange?: (open: boolean) => void;
+	/** The panel's classes. */
 	className?: string;
 	layout?: ComponentPropsWithoutRef<typeof motion.div>['layout'];
+	/** Lift the dock clear of a bar pinned to the page's bottom edge. */
+	raised?: boolean;
+	/** Where the pill sits in the dock's stack: higher is further down. */
+	dockOrder?: number;
 }
 
+/**
+ * A floating pill that opens a panel of what is selected. The pill goes into
+ * the page's selection dock (`SelectionDockProvider`), stacked with the
+ * other selections' pills, and the panel opens above the stack; opening it
+ * closes any other selection's panel.
+ */
 function SelectionPopover(props: SelectionPopoverProps) {
-	const { children, open, defaultOpen, onOpenChange, className, layout } =
-		props;
+	const {
+		children,
+		open,
+		defaultOpen,
+		onOpenChange,
+		className,
+		layout,
+		raised,
+		dockOrder
+	} = props;
 	const [uncontrolledOpen, setUncontrolledOpen] = useState(
 		defaultOpen ?? false
 	);
@@ -73,30 +93,33 @@ function SelectionPopover(props: SelectionPopoverProps) {
 
 	const value = useMemo(() => ({ isOpen, setOpen }), [isOpen, setOpen]);
 
-	const bottomOffsetClassName = hasFloatingButton ? 'bottom-16' : 'bottom-4';
+	useSelectionDockExclusive(isOpen, setOpen);
 
 	return (
 		<SelectionPopoverContext.Provider value={value}>
-			{floatingButtons}
-			<AnimatePresence>
-				{isOpen ? (
-					<motion.div
-						variants={variants}
-						initial="hidden"
-						animate="visible"
-						exit="exit"
-						transition={transition}
-						layout={layout}
-						className={cn(
-							'fixed right-4 bg-bg-elevated rounded-lg shadow-popover min-w-[360px] max-h-[90vh] flex flex-col z-50',
-							bottomOffsetClassName,
-							className
-						)}
-					>
-						{contentChildren}
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+			<SelectionDockSlot raised={raised} order={dockOrder}>
+				<AnimatePresence>
+					{isOpen ? (
+						<motion.div
+							variants={variants}
+							initial="hidden"
+							animate="visible"
+							exit="exit"
+							transition={transition}
+							layout={layout}
+							className={cn(
+								// Above the dock's stack of pills, its right edge on theirs.
+								'absolute right-0 z-10 w-max min-w-[360px] max-w-[min(40rem,calc(100vw-2rem))] max-h-[90vh] flex flex-col bg-bg-elevated rounded-lg shadow-popover',
+								hasFloatingButton ? 'bottom-full mb-2' : 'bottom-0',
+								className
+							)}
+						>
+							{contentChildren}
+						</motion.div>
+					) : null}
+				</AnimatePresence>
+				{floatingButtons}
+			</SelectionDockSlot>
 		</SelectionPopoverContext.Provider>
 	);
 }
@@ -189,7 +212,8 @@ function SelectionPopoverFloatingButton(
 			variant={variant}
 			size={size}
 			rounded={rounded}
-			className={cn('fixed bottom-4 right-4 z-40 gap-2 shadow-xl', className)}
+			// Placed by the selection dock; the full label always shows.
+			className={cn('gap-2 shrink-0 whitespace-nowrap shadow-xl', className)}
 			aria-expanded={isOpen}
 			data-state={isOpen ? 'open' : 'closed'}
 			disabled={disabled}

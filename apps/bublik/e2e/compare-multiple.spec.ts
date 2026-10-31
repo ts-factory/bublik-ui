@@ -353,6 +353,51 @@ test.describe('Multiple Runs Page: classifying', () => {
 	});
 
 	test(
+		'Results and runs selections stack in one dock',
+		{ tag: ['@issues', '@needs-nok'] },
+		async ({ page, request }) => {
+			const multiplePage = new RunMultiplePage(page);
+			let picked!: ClassifiableResult;
+
+			await given(
+				'the multiple page for two runs, with both runs selected',
+				async () => {
+					// Leased though nothing is written: no scenario classifying it
+					// meanwhile changes the row picked.
+					picked = await claimFailingResult(
+						request,
+						`run-multiple ${test.info().title}`
+					);
+					await multiplePage.gotoWithRunsSelected([
+						picked.runId,
+						otherRunOfProject(picked)
+					]);
+					await multiplePage.expectLoaded();
+				}
+			);
+			await when('I pick a failing result of one of them', () =>
+				pickResults(page, [picked])
+			);
+			await then(
+				'the results selection is stacked above the runs selection in the dock',
+				() => multiplePage.expectSelectionsStacked(2, 1)
+			);
+			await when('I open the runs selection', () =>
+				multiplePage.openSelectionPanel('runs')
+			);
+			await then('only the runs selection is open', () =>
+				multiplePage.expectOnlyPanelOpen('runs')
+			);
+			await when('I open the results selection', () =>
+				multiplePage.openSelectionPanel('results')
+			);
+			await then('only the results selection is open', () =>
+				multiplePage.expectOnlyPanelOpen('results')
+			);
+		}
+	);
+
+	test(
 		'Results picked in one of the merged runs classify in bulk as on the run page',
 		CLASSIFY_WRITE,
 		async ({ page, request }) => {
