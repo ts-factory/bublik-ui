@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 import { TooltipProvider } from '@/shared/tailwind-ui';
 import { RESULT_TYPE, type HistoryDataLinear } from '@/shared/types';
@@ -15,13 +16,24 @@ vi.mock('@/shared/hooks', async (importOriginal) => ({
 	useIsSticky: () => ({ isSticky: false })
 }));
 
+interface FakeSelection {
+	isSelected: (resultId: number) => boolean;
+	toggle: ReturnType<typeof vi.fn>;
+}
+
+let selection: FakeSelection | null = null;
+
 vi.mock('@/bublik/features/result-classification', () => ({
 	ClassificationVerdict: (props: { withClassify?: boolean }) => (
 		<span
 			data-testid="classification-verdict"
 			data-with-classify={String(props.withClassify ?? true)}
 		/>
-	)
+	),
+	// A failure, or a result with a stamp, as the lib's own rule has it.
+	isClassifiable: (row: HistoryDataLinear) =>
+		row.has_error || Boolean(row.issues?.length),
+	useResultSelection: () => selection
 }));
 
 vi.mock('./column-components', () => ({
@@ -30,9 +42,13 @@ vi.mock('./column-components', () => ({
 	RunTime: () => null
 }));
 
+// The filter menu is portaled out of the cell it wraps, as Radix does.
 vi.mock('../history-context-menu', () => ({
 	HistoryContextMenuContainer: ({ children }: { children: ReactNode }) => (
-		<>{children}</>
+		<div>
+			{children}
+			{createPortal(<div role="menuitem">Add to filter</div>, document.body)}
+		</div>
 	)
 }));
 
@@ -101,5 +117,96 @@ describe('HistoryLinearTable — classification', () => {
 			.filter(Boolean);
 
 		expect(ids).toEqual(['1', '2']);
+	});
+});
+
+describe('HistoryLinearTable — picking rows', () => {
+	beforeEach(() => {
+		selection = null;
+	});
+
+	function pick(picked: number[] = []): FakeSelection {
+		selection = {
+			isSelected: (resultId) => picked.includes(resultId),
+			toggle: vi.fn()
+		};
+
+		return selection;
+	}
+
+	function rowOf(resultId: number) {
+		return screen
+			.getAllByRole('row')
+			.find(
+				(element) => element.getAttribute('data-result-id') === String(resultId)
+			);
+	}
+
+	function clickRow(resultId: number) {
+		const cell = rowOf(resultId)?.querySelector('[role="cell"]');
+		if (!cell) throw new Error(`No row for result ${resultId}`);
+		fireEvent.click(cell);
+	}
+
+	it('picks a failing row into the selection', () => {
+		const { toggle } = pick();
+		const failing = row({ result_id: 7, run_id: 70 });
+		renderTable([failing]);
+
+		clickRow(7);
+
+		expect(toggle).toHaveBeenCalledWith(failing);
+		expect(rowOf(7)?.hasAttribute('data-selectable')).toBe(true);
+	});
+
+	it('leaves a plain pass unpicked', () => {
+		const { toggle } = pick();
+		renderTable([
+			row({
+				result_id: 8,
+				has_error: false,
+				obtained_result: { result_type: RESULT_TYPE.Passed, verdicts: [] }
+			})
+		]);
+
+		clickRow(8);
+
+		expect(toggle).not.toHaveBeenCalled();
+		expect(rowOf(8)?.hasAttribute('data-selectable')).toBe(false);
+	});
+
+	it('marks a picked row', () => {
+		pick([9]);
+		renderTable([row({ result_id: 9 }), row({ result_id: 10 })]);
+
+		expect(rowOf(9)?.hasAttribute('data-selected')).toBe(true);
+		expect(rowOf(10)?.hasAttribute('data-selected')).toBe(false);
+	});
+
+	it('leaves the row alone when a control in it is clicked', () => {
+		const { toggle } = pick();
+		renderTable([row({ result_id: 11 })]);
+
+		// The obtained result's verdict is a filter chip: a button of its own.
+		fireEvent.click(screen.getByRole('button', { name: 'boom' }));
+
+		expect(toggle).not.toHaveBeenCalled();
+	});
+
+	it('leaves the row alone when an item of its portaled filter menu is clicked', () => {
+		const { toggle } = pick();
+		renderTable([row({ result_id: 13 })]);
+
+		fireEvent.click(screen.getAllByRole('menuitem')[0]);
+
+		expect(toggle).not.toHaveBeenCalled();
+	});
+
+	it('picks nothing outside a selection', () => {
+		renderTable([row({ result_id: 12 })]);
+
+		clickRow(12);
+
+		expect(rowOf(12)?.hasAttribute('data-selectable')).toBe(false);
 	});
 });
