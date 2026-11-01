@@ -12,11 +12,14 @@ import { ClassifyButton } from './classify-button.container';
 export interface ClassifyResultContainerProps {
 	resultId?: number;
 	runId?: number;
+	/** When the drawer opens or closes; see `ClassifyButton`. */
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function ClassifyResultContainer({
 	resultId,
-	runId
+	runId,
+	onOpenChange
 }: ClassifyResultContainerProps) {
 	const { data: result } = useGetResultInfoQuery(resultId ?? skipToken);
 	const { data: details } = useGetRunDetailsQuery(runId ?? skipToken);
@@ -31,6 +34,7 @@ export function ClassifyResultContainer({
 		<ClassifyButton
 			resultId={resultId}
 			projectId={result.project_id ?? details?.project_id}
+			onOpenChange={onOpenChange}
 		/>
 	);
 }
