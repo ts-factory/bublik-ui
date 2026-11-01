@@ -528,6 +528,12 @@ export interface ClassificationVerdictProps {
 	withLeadingSeparator?: boolean;
 	/** Whether to show the SUPPRESSED / STALE chip beside the Classify button. */
 	withEffect?: boolean;
+	/**
+	 * Whether the result offers its own Classify button. A surface that
+	 * classifies through the result selection instead, as history does, turns
+	 * it off and keeps the chip; it then needs no `resultId`.
+	 */
+	withClassify?: boolean;
 }
 
 /**
@@ -552,15 +558,19 @@ export function ClassificationVerdict({
 	resultId,
 	projectId,
 	withLeadingSeparator = true,
-	withEffect = true
+	withEffect = true,
+	withClassify = true
 }: ClassificationVerdictProps) {
 	const meta = resultClassification({ issues, hasError, effectiveExpected });
 
 	if (!meta) return null;
 
-	if (resultId === undefined) return null;
+	// A surface that offers Classify but passed no result is read-only.
+	if (withClassify && resultId === undefined) return null;
 
 	const effect = withEffect && OUTCOME_CHANGING.has(meta.value) ? meta : null;
+
+	if (!withClassify && !effect) return null;
 
 	return (
 		<div className="flex items-center gap-1.5">
@@ -568,11 +578,13 @@ export function ClassificationVerdict({
 			{effect ? (
 				<ResultClassificationBadge classification={effect.value} />
 			) : null}
-			<ClassifyButton
-				resultId={resultId}
-				projectId={projectId}
-				classified={(issues?.length ?? 0) > 0}
-			/>
+			{withClassify && resultId !== undefined ? (
+				<ClassifyButton
+					resultId={resultId}
+					projectId={projectId}
+					classified={(issues?.length ?? 0) > 0}
+				/>
+			) : null}
 		</div>
 	);
 }
