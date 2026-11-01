@@ -47,6 +47,8 @@ interface SelectedResultItemProps {
 	isReference: boolean;
 	/** Makes this result the reference, or, while it is one, stops comparing. */
 	onToggleReference: () => void;
+	/** The page compares parameters against a reference: offer the toggle. */
+	baseline: boolean;
 	onRemove: () => void;
 }
 
@@ -62,6 +64,7 @@ function SelectedResultItem({
 	showRun,
 	isReference,
 	onToggleReference,
+	baseline: canCompare,
 	onRemove
 }: SelectedResultItemProps) {
 	const { data, isLoading, isError } = useGetResultInfoQuery(result.resultId);
@@ -133,23 +136,25 @@ function SelectedResultItem({
 					</div>
 				</div>
 				<div className="flex shrink-0 items-center gap-1">
-					<Tooltip content={baseline.hint} disableHoverableContent>
-						<button
-							aria-label={baseline.label}
-							aria-pressed={isReference}
-							className={cn(
-								'grid place-items-center rounded transition-colors',
-								isReference
-									? 'bg-primary text-white'
-									: 'text-text-menu hover:bg-primary-wash hover:text-primary'
-							)}
-							onClick={onToggleReference}
-							data-testid="selected-result-reference"
-							data-state={isReference ? 'on' : 'off'}
-						>
-							<Icon name="SwapArrows" size={20} className="rotate-90" />
-						</button>
-					</Tooltip>
+					{canCompare ? (
+						<Tooltip content={baseline.hint} disableHoverableContent>
+							<button
+								aria-label={baseline.label}
+								aria-pressed={isReference}
+								className={cn(
+									'grid place-items-center rounded transition-colors',
+									isReference
+										? 'bg-primary text-white'
+										: 'text-text-menu hover:bg-primary-wash hover:text-primary'
+								)}
+								onClick={onToggleReference}
+								data-testid="selected-result-reference"
+								data-state={isReference ? 'on' : 'off'}
+							>
+								<Icon name="SwapArrows" size={20} className="rotate-90" />
+							</button>
+						</Tooltip>
+					) : null}
 					<Tooltip content="Remove from selection" disableHoverableContent>
 						<button
 							aria-label="Remove from selection"
@@ -172,6 +177,8 @@ export interface ResultSelectionPopoverProps {
 	raised?: boolean;
 	/** See `ResultSelectionProviderProps.listed`. */
 	listed?: readonly SelectableResult[];
+	/** See `ResultSelectionProviderProps.baseline`. */
+	baseline?: boolean;
 }
 
 /**
@@ -185,7 +192,8 @@ export interface ResultSelectionPopoverProps {
 export function ResultSelectionPopover({
 	selection,
 	raised = false,
-	listed
+	listed,
+	baseline = true
 }: ResultSelectionPopoverProps) {
 	const { count, targets, referenceResultId, setReference, remove, clear } =
 		selection;
@@ -259,6 +267,7 @@ export function ResultSelectionPopover({
 													: result.resultId
 											)
 										}
+										baseline={baseline}
 										onRemove={() => handleRemove(result.resultId)}
 									/>
 								</li>

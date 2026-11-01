@@ -116,6 +116,11 @@ export interface ResultSelectionProviderProps {
 	 * each table's toolbar.
 	 */
 	listed?: readonly SelectableResult[];
+	/**
+	 * Offer each picked result as the baseline the parameter columns are
+	 * read against. History has no such columns, and leaves it off.
+	 */
+	baseline?: boolean;
 }
 
 /**
@@ -136,7 +141,8 @@ export function ResultSelectionProvider({
 	children,
 	scope,
 	raised = false,
-	listed
+	listed,
+	baseline = true
 }: ResultSelectionProviderProps) {
 	const [storedAny, setStoredAny] = useLocalStorage<StoredSelection>(
 		STORAGE_KEY,
@@ -326,6 +332,7 @@ export function ResultSelectionProvider({
 				selection={value}
 				raised={raised}
 				listed={listed}
+				baseline={baseline}
 			/>
 		</ResultSelectionContext.Provider>
 	);
