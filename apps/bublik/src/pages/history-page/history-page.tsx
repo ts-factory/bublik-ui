@@ -10,6 +10,7 @@ import {
 	HistoryPageModePickerContainer,
 	HistoryRefreshContainer,
 	HistoryResetGlobalFilterContainer,
+	HistorySelectionProvider,
 	HistorySubstringFilterContainer,
 	CombinedChartsProvider,
 	resolveHistoryMode
@@ -20,30 +21,34 @@ export const HistoryPageV2 = () => {
 	const [searchParams] = useSearchParams();
 
 	return (
-		<div
-			className="flex flex-col p-2"
-			data-testid="history-page"
-			data-history-mode={resolveHistoryMode(searchParams.get('mode'))}
-		>
-			<header className="flex flex-col gap-4 px-6 py-4 mb-1 bg-bg-primary rounded-t-xl">
-				<div className="flex flex-wrap justify-between gap-4">
-					<HistoryLegendCountContainer />
-					<div className="flex flex-wrap justify-start gap-4">
-						<HistorySubstringFilterContainer />
-						<HistoryGlobalSearchFormContainer />
-						<HistoryRefreshContainer />
-						<HistoryResetGlobalFilterContainer />
-						<CopyShortUrlButtonContainer variant="header" />
+		// One result selection for the page: the linear rows pick into it, and
+		// its popover classifies them.
+		<HistorySelectionProvider>
+			<div
+				className="flex flex-col p-2"
+				data-testid="history-page"
+				data-history-mode={resolveHistoryMode(searchParams.get('mode'))}
+			>
+				<header className="flex flex-col gap-4 px-6 py-4 mb-1 bg-bg-primary rounded-t-xl">
+					<div className="flex flex-wrap justify-between gap-4">
+						<HistoryLegendCountContainer />
+						<div className="flex flex-wrap justify-start gap-4">
+							<HistorySubstringFilterContainer />
+							<HistoryGlobalSearchFormContainer />
+							<HistoryRefreshContainer />
+							<HistoryResetGlobalFilterContainer />
+							<CopyShortUrlButtonContainer variant="header" />
+						</div>
 					</div>
-				</div>
-				<HistoryFilterLegendContainer />
-			</header>
-			<main>
-				<CombinedChartsProvider>
-					<HistoryPageModePickerContainer />
-				</CombinedChartsProvider>
-			</main>
-			<ScrollToTopPage offset={158} />
-		</div>
+					<HistoryFilterLegendContainer />
+				</header>
+				<main>
+					<CombinedChartsProvider>
+						<HistoryPageModePickerContainer />
+					</CombinedChartsProvider>
+				</main>
+				<ScrollToTopPage offset={158} />
+			</div>
+		</HistorySelectionProvider>
 	);
 };
