@@ -167,7 +167,11 @@ function HistoryLinearRow({ row }: HistoryLinearRowProps) {
 	const cells = row.getVisibleCells();
 
 	return (
-		<div className="contents" role="row">
+		<div
+			className="contents"
+			role="row"
+			data-result-id={row.original.result_id}
+		>
 			{cells.map((cell, idx) => {
 				const isFirst = idx === 0;
 				const isLast = idx === cells.length - 1;
