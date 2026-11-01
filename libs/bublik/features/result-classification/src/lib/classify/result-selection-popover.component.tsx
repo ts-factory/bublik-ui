@@ -30,8 +30,10 @@ import {
 	BASELINE_TOGGLE,
 	CLASSIFY_TARGETS_HINT,
 	type RunResults,
+	type SelectableResult,
 	type SelectedResult
 } from './result-selection.utils';
+import { SelectListedResults } from './select-listed-results.component';
 
 /** The same key on every page, so the popover stays open or shut across them. */
 const OPEN_STATE_KEY = 'results-selection-popover-open';
@@ -168,18 +170,22 @@ export interface ResultSelectionPopoverProps {
 	selection: ResultSelection;
 	/** See `ResultSelectionProviderProps.raised`. */
 	raised?: boolean;
+	/** See `ResultSelectionProviderProps.listed`. */
+	listed?: readonly SelectableResult[];
 }
 
 /**
  * The popover that follows a selection of results, laid out as the runs
  * page's selection popover: a floating pill with the count that opens a
  * list of the picked results, and a footer with what can be done with them.
- * Classify stamps them all under one issue; a row's own toggle makes it the
+ * Classify stamps them all under one issue; Select All, where the page
+ * lists its rows, picks them; a row's own toggle makes it the
  * reference the parameter columns are read against; Reset drops both.
  */
 export function ResultSelectionPopover({
 	selection,
-	raised = false
+	raised = false,
+	listed
 }: ResultSelectionPopoverProps) {
 	const { count, targets, referenceResultId, setReference, remove, clear } =
 		selection;
@@ -228,9 +234,14 @@ export function ResultSelectionPopover({
 						data-run-count={runCount}
 					/>
 					<SelectionPopoverBody data-testid="results-selection-popover">
-						<SelectionPopoverTitle className="mb-0">
-							Selected Results
-						</SelectionPopoverTitle>
+						<div className="flex items-center justify-between gap-2">
+							<SelectionPopoverTitle className="mb-0">
+								Selected Results
+							</SelectionPopoverTitle>
+							{listed ? (
+								<SelectListedResults selection={selection} listed={listed} />
+							) : null}
+						</div>
 						{/* A bulk pick can run to hundreds of rows: the list scrolls
 						    inside half the viewport, under a title and over buttons
 						    that stay put. */}

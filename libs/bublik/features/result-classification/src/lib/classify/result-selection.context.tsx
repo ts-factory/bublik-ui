@@ -110,6 +110,12 @@ export interface ResultSelectionProviderProps {
 	 * with. The run page has none, and keeps them at the edge.
 	 */
 	raised?: boolean;
+	/**
+	 * The rows the page lists, for a Select All in the popover that picks
+	 * them. Left out, the popover offers none: the run page has its own in
+	 * each table's toolbar.
+	 */
+	listed?: readonly SelectableResult[];
 }
 
 /**
@@ -129,7 +135,8 @@ export interface ResultSelectionProviderProps {
 export function ResultSelectionProvider({
 	children,
 	scope,
-	raised = false
+	raised = false,
+	listed
 }: ResultSelectionProviderProps) {
 	const [storedAny, setStoredAny] = useLocalStorage<StoredSelection>(
 		STORAGE_KEY,
@@ -315,7 +322,11 @@ export function ResultSelectionProvider({
 					onProject={setRunProject}
 				/>
 			))}
-			<ResultSelectionPopover selection={value} raised={raised} />
+			<ResultSelectionPopover
+				selection={value}
+				raised={raised}
+				listed={listed}
+			/>
 		</ResultSelectionContext.Provider>
 	);
 }
