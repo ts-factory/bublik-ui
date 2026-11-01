@@ -39,7 +39,7 @@ const VERDICTS_DROPPED = 'Not kept: not matched on';
 /**
  * The Classify Failure drawer (`classify-drawer.component.tsx`), opened from a
  * failing result's Classify button on the log and measurements pages, and
- * from the selection popover on the run page.
+ * from the selection popover on the run and history pages.
  */
 class ClassifyDrawer {
 	readonly root: Locator;
