@@ -527,6 +527,26 @@ Feature: History
     Then each picked row carries the issue’s stamp
     And I delete the issue from its page
 
+  # The selection panel's Select All picks the listed results; in Group of
+  # Results mode a click on a failing verdict group picks all of its results.
+
+  @history @issues @needs-nok
+  Scenario: Select All in the selection panel picks the failing rows listed in history
+    Given I open the history of a failing test narrowed to its run
+    When I pick a failing row
+    And I press the selection panel's Select All
+    Then every failed or classified row listed is picked
+    When I press it again
+    Then no row is picked
+
+  @history @issues @needs-nok
+  Scenario: A failing verdict group is picked whole in Group of Results mode
+    Given I open the grouped history of a failing test narrowed to its run
+    When I click its first failing verdict group
+    Then every result of the group is picked
+    When I click the group again
+    Then no result is picked
+
   # Runs without the shared signed-in storage state.
   @history @issues @auth @needs-nok
   Scenario: Classifying picked history rows while signed out asks me to sign in

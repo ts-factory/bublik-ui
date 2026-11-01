@@ -850,13 +850,60 @@ class HistoryPage {
 		await this.pickRow(Number(await row.getAttribute('data-result-id')));
 	}
 
-	/** `count` rows are picked, and the selection's pill says so. */
+	/** How many rows can be picked, once the first of them is listed. */
+	async countPickableRows(): Promise<number> {
+		await expect(this.pickableRows().first()).toBeAttached({
+			timeout: 30_000
+		});
+
+		return this.pickableRows().count();
+	}
+
+	/** `count` rows are picked, and the pill says so; none, and it is gone. */
 	async expectPicked(count: number): Promise<void> {
 		await expect(this.pickedRows()).toHaveCount(count, { timeout: 15_000 });
+		if (count === 0) {
+			await expect(this.selectionPill).toBeHidden();
+		} else {
+			await this.expectSelectionCount(count);
+		}
+	}
+
+	/** The selection's pill counts `count` picked results. */
+	async expectSelectionCount(count: number): Promise<void> {
 		await expect(this.selectionPill).toHaveAttribute(
 			'data-count',
-			String(count)
+			String(count),
+			{ timeout: 15_000 }
 		);
+	}
+
+	/** Select All in the selection panel, which picks the listed results. */
+	async pressPanelSelectAll(): Promise<void> {
+		await this.openSelectionPanel();
+		await this.page.getByTestId('results-selection-select-all').click();
+	}
+
+	/** The first verdict group of Group of Results mode a click can pick. */
+	firstPickableVerdictGroup(): Locator {
+		return this.root
+			.locator('[data-testid="history-verdict-group"][data-selectable]')
+			.first();
+	}
+
+	/**
+	 * Picks the first failing verdict group with a click clear of its badges
+	 * and links, and returns the ids of the results it holds.
+	 */
+	async pickFirstVerdictGroup(): Promise<number[]> {
+		const group = this.firstPickableVerdictGroup();
+
+		await expect(group).toBeVisible({ timeout: 30_000 });
+		const ids = (await group.getAttribute('data-result-ids')) ?? '';
+		await group.click({ position: { x: 2, y: 2 } });
+		await expect(group).toHaveAttribute('data-selected', '');
+
+		return ids.split(',').filter(Boolean).map(Number);
 	}
 
 	/** The selection's pill, at the bottom of the window. */

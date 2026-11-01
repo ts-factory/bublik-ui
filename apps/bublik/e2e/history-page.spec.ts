@@ -73,7 +73,10 @@ async function classifyFixtureResult(
  * Opens the linear history of a failing test, narrowed to one classifiable
  * run so its rows are on the first page. Reads only, so nothing is leased.
  */
-async function openFailingTestHistory(historyPage: HistoryPage): Promise<void> {
+async function openFailingTestHistory(
+	historyPage: HistoryPage,
+	mode: 'linear' | 'aggregation' = 'linear'
+): Promise<void> {
 	const run = requireCapability(
 		classifiableRun(requireManifest()),
 		'The fixture has no NOK run with a failing result to classify.'
@@ -86,9 +89,9 @@ async function openFailingTestHistory(historyPage: HistoryPage): Promise<void> {
 	await historyPage.gotoWithTestPath(testPath.pathStr, {
 		...dateRange(),
 		runIds: String(run.runId),
-		mode: 'linear'
+		mode
 	});
-	await historyPage.expectReady();
+	await historyPage.expectModeReady(mode);
 }
 
 const HISTORY = { tag: ['@history'] };
@@ -2225,6 +2228,68 @@ test.describe('History Page', () => {
 				await issuePage.deleteIssue(title);
 				issueCleanup.forget(issueId);
 			});
+		}
+	);
+});
+
+test.describe('History Page selection', () => {
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Select All in the selection panel picks the failing rows listed in history',
+		{ tag: ['@history', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			let pickable = 0;
+
+			await given(
+				'I open the history of a failing test narrowed to its run',
+				async () => {
+					// Read only: nothing is stamped, so no result is leased.
+					await openFailingTestHistory(historyPage);
+					pickable = await historyPage.countPickableRows();
+				}
+			);
+			await when('I pick a failing row', () =>
+				historyPage.pickFirstPickableRow()
+			);
+			await and("I press the selection panel's Select All", () =>
+				historyPage.pressPanelSelectAll()
+			);
+			await then('every failed or classified row listed is picked', () =>
+				historyPage.expectPicked(pickable)
+			);
+			await when('I press it again', () => historyPage.pressPanelSelectAll());
+			await then('no row is picked', () => historyPage.expectPicked(0));
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A failing verdict group is picked whole in Group of Results mode',
+		{ tag: ['@history', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			let resultIds: number[] = [];
+
+			await given(
+				'I open the grouped history of a failing test narrowed to its run',
+				// Read only: nothing is stamped, so no result is leased.
+				() => openFailingTestHistory(historyPage, 'aggregation')
+			);
+			await when('I click its first failing verdict group', async () => {
+				resultIds = await historyPage.pickFirstVerdictGroup();
+			});
+			await then('every result of the group is picked', () =>
+				historyPage.expectSelectionCount(resultIds.length)
+			);
+			await when('I click the group again', () =>
+				historyPage
+					.firstPickableVerdictGroup()
+					.click({ position: { x: 2, y: 2 } })
+			);
+			await then('no result is picked', () =>
+				expect(historyPage.selectionPill).toBeHidden()
+			);
 		}
 	);
 });
