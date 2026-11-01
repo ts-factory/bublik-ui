@@ -34,31 +34,27 @@ export const getObtainedResult = (
 	};
 };
 
-export const globalFilterFn: FilterFn<HistoryDataLinear> = (
-	row,
-	_columnId,
+/**
+ * Whether a linear row passes the table's client-side filter: every picked
+ * badge among its tags, metadata, parameters and verdicts, and the picked
+ * obtained result, if any.
+ */
+export function matchesLinearGlobalFilter(
+	data: HistoryDataLinear,
 	filterValue: HistoryLinearGlobalFilter
-) => {
+): boolean {
 	const filter = [
 		...filterValue.tags,
 		...filterValue.verdicts,
 		...filterValue.parameters
 	];
 
-	const relevantTags = row.original.relevant_tags;
-	const importantTags = row.original.important_tags;
-	const metadata = row.original.metadata;
-	const parameters = row.original.parameters;
-	const verdicts = row.original.obtained_result.verdicts;
-	const resultType = row.original.obtained_result.result_type;
-	const isNotExpected = row.original.has_error;
-
 	const allTags = [
-		...relevantTags,
-		...importantTags,
-		...metadata,
-		...parameters,
-		...verdicts
+		...data.relevant_tags,
+		...data.important_tags,
+		...data.metadata,
+		...data.parameters,
+		...data.obtained_result.verdicts
 	];
 
 	// 1. Badge filter
@@ -69,12 +65,18 @@ export const globalFilterFn: FilterFn<HistoryDataLinear> = (
 	// 2. Result type filter
 	const resultsMatch =
 		filterValue.resultType != null && filterValue.isNotExpected != null
-			? resultType === filterValue.resultType &&
-			  isNotExpected === filterValue.isNotExpected
+			? data.obtained_result.result_type === filterValue.resultType &&
+			  data.has_error === filterValue.isNotExpected
 			: true;
 
 	return containsAll && resultsMatch;
-};
+}
+
+export const globalFilterFn: FilterFn<HistoryDataLinear> = (
+	row,
+	_columnId,
+	filterValue: HistoryLinearGlobalFilter
+) => matchesLinearGlobalFilter(row.original, filterValue);
 
 export const onBadgeClick =
 	(cell: CellContext<HistoryDataLinear, unknown>, keyToUpdate: ArrayKeys) =>
