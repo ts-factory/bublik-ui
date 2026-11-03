@@ -3,4 +3,3 @@
 export * from './table-badge-model';
 export * from './header';
 export * from './row';
-export * from './help';

@@ -1,14 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import {
-	PropsWithChildren,
 	ReactNode,
-	useState,
 	forwardRef,
 	createContext,
 	useContext,
-	type MouseEvent,
-	type PointerEvent
+	type MouseEvent
 } from 'react';
 
 import {
@@ -17,12 +14,6 @@ import {
 	Tooltip,
 	useSidebar,
 	sidebarPaddingTransition,
-	Dialog,
-	DialogPortal,
-	DialogContent,
-	DialogOverlay,
-	dialogContentStyles,
-	dialogOverlayStyles,
 	type IconProps
 } from '@/shared/tailwind-ui';
 
@@ -179,75 +170,52 @@ export const SidebarNavExternalLink = ({
 	);
 };
 
-interface SidebarNavInfoButtonProps {
+export interface SidebarNavInfoButtonProps {
+	/** The docs section that explains the entry. */
+	href: string;
+	/** What those docs cover, for its accessible name. */
+	label: string;
 	disabled?: boolean;
 	/** Placement, when the entry has to keep the button out of the flow. */
 	className?: string;
 }
 
 /**
- * The entry's help dialog, behind a `?` that shows on hover (always, when the
- * entry is disabled and the dialog is all it has to offer). It may render
- * inside the entry's link, next to a key badge, so its clicks, and those in
- * the dialog it opens, never reach the link: the dialog portal still bubbles
- * React events to the link.
+ * Opens the entry's docs in a new tab, from a `?` that shows on hover (always,
+ * when the entry is disabled and its docs are all it has to offer). It renders
+ * inside the entry's link, so it is a button rather than a nested anchor, which
+ * HTML does not allow, and its clicks never reach that link.
  */
-export const SidebarNavInfoButton = (
-	props: PropsWithChildren<SidebarNavInfoButtonProps>
-) => {
-	const { children, disabled, className } = props;
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
+export const SidebarNavInfoButton = (props: SidebarNavInfoButtonProps) => {
+	const { href, label, disabled, className } = props;
 	const { isSidebarOpen } = useSidebar();
 
-	if (!children || !isSidebarOpen) return null;
+	if (!isSidebarOpen) return null;
 
 	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
 		event.stopPropagation();
-		setIsDialogOpen(true);
-	};
-
-	const stopDialogEventPropagation = (
-		event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>
-	) => {
-		event.stopPropagation();
+		window.open(href, '_blank', 'noopener,noreferrer');
 	};
 
 	return (
-		<>
-			<button
-				type="button"
-				onClick={handleClick}
-				data-info-button
-				className={cn(
-					'rounded ml-auto p-0.5 hover:bg-primary-wash hover:text-primary',
-					disabled
-						? 'text-primary visible pointer-events-auto'
-						: 'opacity-0 invisible group-hover:visible group-hover:opacity-100',
-					'transition-opacity duration-300 delay-0',
-					'group-hover:pointer-events-auto',
-					className
-				)}
-			>
-				<Icon name="InformationCircleQuestionMark" size={20} />
-			</button>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<DialogOverlay
-						className={dialogOverlayStyles()}
-						onClick={stopDialogEventPropagation}
-					>
-						<DialogContent
-							className={dialogContentStyles()}
-							onClick={stopDialogEventPropagation}
-							onPointerDown={stopDialogEventPropagation}
-						>
-							{children}
-						</DialogContent>
-					</DialogOverlay>
-				</DialogPortal>
-			</Dialog>
-		</>
+		<button
+			type="button"
+			onClick={handleClick}
+			data-info-button
+			aria-label={`Open ${label} docs`}
+			className={cn(
+				'rounded ml-auto p-0.5 hover:bg-primary-wash hover:text-primary',
+				disabled
+					? 'text-primary pointer-events-auto visible opacity-100'
+					: 'opacity-0 invisible group-hover:visible group-hover:opacity-100',
+				'transition-opacity duration-300 delay-0',
+				'group-hover:pointer-events-auto',
+				className
+			)}
+		>
+			<Icon name="InformationCircleQuestionMark" size={20} />
+		</button>
 	);
 };
 

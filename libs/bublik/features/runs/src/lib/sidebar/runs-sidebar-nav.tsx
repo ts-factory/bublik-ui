@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -13,13 +14,6 @@ import {
 } from '@/bublik/features/sidebar-nav';
 
 import { useRunsSidebarState } from './use-runs-sidebar-state';
-
-import {
-	RunsDialog,
-	RunsChartsDialog,
-	MultipleRunsDialog,
-	CompareRunsDialog
-} from './runs-dialogs';
 
 const RUNS_SIDEBAR_PATTERNS = [
 	{ path: '/runs' },
@@ -140,9 +134,10 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						List
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<RunsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runsList)}
+						label="Runs list"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={chartsUrl}
@@ -156,9 +151,10 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Charts
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<RunsChartsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runsCharts)}
+						label="Runs charts"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={progressUrl}
@@ -172,9 +168,10 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Table
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<RunsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runsTable)}
+						label="Runs table"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalMultipleUrl}
@@ -189,9 +186,10 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Multiple
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<MultipleRunsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runsMultiple)}
+						label="Multiple runs"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalCompareUrl}
@@ -206,9 +204,10 @@ export function RunsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Compare
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<CompareRunsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runsCompare)}
+						label="Compare runs"
+					/>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>

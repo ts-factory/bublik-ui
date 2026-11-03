@@ -11,9 +11,7 @@ export type SidebarNavLinkBaseProps = {
 	isActive?: boolean;
 	isSidebarOpen: boolean;
 	isSubmenuOpen?: boolean;
-	dialogContent?: ReactNode;
 	hasSubitems?: boolean;
-	onDialogOpen?: () => void;
 	disabled?: boolean;
 };
 

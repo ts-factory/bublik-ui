@@ -4,31 +4,18 @@ import type {
 	ComponentType,
 	MouseEvent,
 	MouseEventHandler,
-	PointerEvent,
 	ReactElement,
 	ReactNode
 } from 'react';
-import {
-	Children,
-	createContext,
-	isValidElement,
-	useContext,
-	useState
-} from 'react';
+import { Children, createContext, isValidElement, useContext } from 'react';
 import { useLocation, type To } from 'react-router-dom';
 
 import {
 	cn,
-	Dialog,
-	DialogPortal,
-	DialogContent,
-	DialogOverlay,
 	Icon,
 	Separator,
 	Tooltip,
 	useSidebar,
-	dialogContentStyles,
-	dialogOverlayStyles,
 	type IconProps
 } from '@/shared/tailwind-ui';
 
@@ -36,6 +23,10 @@ import {
 	SidebarAccordionLink,
 	SidebarAccordionLabel
 } from './sidebar-nav-accordion.component';
+import {
+	SidebarNavInfoButton,
+	type SidebarNavInfoButtonProps
+} from './sidebar-nav-link.component';
 import {
 	getSubmenuIsActive,
 	type SubmenuMatchPattern
@@ -206,65 +197,12 @@ export function SidebarNavSubmenuItemContainer({
 	);
 }
 
-function SidebarNavSubmenuInfoButton({ children }: { children: ReactNode }) {
+function SidebarNavSubmenuInfoButton(
+	props: Omit<SidebarNavInfoButtonProps, 'disabled' | 'className'>
+) {
 	const { disabled } = useSidebarNavSubmenuItem();
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const { isSidebarOpen } = useSidebar();
 
-	if (!children || !isSidebarOpen) return null;
-
-	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault();
-		event.stopPropagation();
-		setIsDialogOpen(true);
-	};
-
-	const stopDialogEventPropagation = (
-		event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>
-	) => {
-		event.stopPropagation();
-	};
-
-	return (
-		<>
-			<button
-				type="button"
-				onClick={handleClick}
-				data-info-button
-				className={cn(
-					'rounded ml-auto p-0.5 hover:bg-primary-wash hover:text-primary',
-					disabled
-						? 'text-primary pointer-events-auto visible opacity-100'
-						: 'opacity-0 invisible group-hover:visible group-hover:opacity-100',
-					'transition-opacity duration-300 delay-0',
-					'group-hover:pointer-events-auto'
-				)}
-			>
-				<Icon name="InformationCircleQuestionMark" size={20} />
-			</button>
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogPortal>
-					<DialogOverlay
-						className={dialogOverlayStyles()}
-						onClick={stopDialogEventPropagation}
-					>
-						<DialogContent
-							className={dialogContentStyles()}
-							onClick={stopDialogEventPropagation}
-							onPointerDown={stopDialogEventPropagation}
-						>
-							{children || (
-								<div className="bg-bg-primary p-6 rounded-lg">
-									<h2 className="text-lg font-semibold mb-4">Not Available</h2>
-									<p>This section is not available yet.</p>
-								</div>
-							)}
-						</DialogContent>
-					</DialogOverlay>
-				</DialogPortal>
-			</Dialog>
-		</>
-	);
+	return <SidebarNavInfoButton {...props} disabled={disabled} />;
 }
 
 export interface SidebarNavSubmenuModeSwitchItem<T extends string> {

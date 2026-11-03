@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { addModeToUrl, getBaseUrl } from '@/bublik/features/sidebar';
 import {
@@ -14,12 +15,6 @@ import {
 } from '@/bublik/features/sidebar-nav';
 import { useHistorySidebarState } from './use-history-sidebar-state';
 
-import {
-	HistoryHelpDialog,
-	HistoryHelpTrendChartsDialog,
-	HistoryHelpMeasurementSeriesDialog,
-	HistoryHelpStackedChartsDialog
-} from './history-dialogs';
 import { Icon } from '@/shared/tailwind-ui';
 
 const HISTORY_SIDEBAR_PATTERNS = [{ path: '/history' }];
@@ -99,9 +94,10 @@ export function HistorySidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						List Of Results
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<HistoryHelpDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.historyList)}
+						label="History list"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={finalAggregationUrl}
@@ -112,9 +108,10 @@ export function HistorySidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Groups Of Results
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<HistoryHelpDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.historyGroups)}
+						label="History groups"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={trendUrl}
@@ -132,9 +129,10 @@ export function HistorySidebarNav() {
 							className="ml-auto size-5 animate-spin text-primary"
 						/>
 					) : (
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<HistoryHelpTrendChartsDialog />
-						</SidebarNavSubmenuItemContainer.InfoButton>
+						<SidebarNavSubmenuItemContainer.InfoButton
+							href={docsUrl(USER_GUIDE.historyTrendCharts)}
+							label="Trend charts"
+						/>
 					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
@@ -153,9 +151,10 @@ export function HistorySidebarNav() {
 							className="ml-auto size-5 animate-spin text-primary"
 						/>
 					) : (
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<HistoryHelpMeasurementSeriesDialog />
-						</SidebarNavSubmenuItemContainer.InfoButton>
+						<SidebarNavSubmenuItemContainer.InfoButton
+							href={docsUrl(USER_GUIDE.historySeriesCharts)}
+							label="Series charts"
+						/>
 					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
@@ -168,9 +167,10 @@ export function HistorySidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Stacked Charts
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<HistoryHelpStackedChartsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.historyStackedCharts)}
+						label="Stacked charts"
+					/>
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>
 		</SidebarNavCollapsibleContainer>
