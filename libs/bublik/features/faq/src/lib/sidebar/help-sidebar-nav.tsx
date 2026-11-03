@@ -10,7 +10,7 @@ import {
 	SidebarNavSubmenuItemContainer,
 	SidebarNavToggle
 } from '@/bublik/features/sidebar-nav';
-import { config } from '@/bublik/config';
+import { docsUrl } from '@/bublik/config';
 
 const HELP_SIDEBAR_PATTERNS = [
 	{ path: '/help', end: false },
@@ -44,19 +44,13 @@ export function HelpSidebarNav() {
 						FAQ
 					</SidebarNavSubmenuItemContainer.Label>
 				</SidebarNavSubmenuItemContainer>
-				<SidebarNavSubmenuItem
-					href={`${config.oldBaseUrl}/docs`}
-					isActive={false}
-				>
+				<SidebarNavSubmenuItem href={docsUrl()} isActive={false}>
 					<Icon name="PaperText" />
 					<span className="truncate text-[0.875rem] leading-[1.5rem]">
 						Documentation
 					</span>
 				</SidebarNavSubmenuItem>
-				<SidebarNavSubmenuItem
-					href={`${config.oldBaseUrl}/docs/blog`}
-					isActive={false}
-				>
+				<SidebarNavSubmenuItem href={docsUrl('blog')} isActive={false}>
 					<Icon name="PaperChangelog" />
 					<span className="truncate text-[0.875rem] leading-[1.5rem]">
 						Changelog
