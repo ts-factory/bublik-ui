@@ -1,11 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { CardHeader } from '@/shared/tailwind-ui';
 
 import { Question, QuestionAnswer } from './questions-section';
 import { AskForHelp } from './ask-for-help';
-
-import helpImage from './images/sidebar-help.webp';
 
 const QUESTIONS: QuestionAnswer[] = [
 	{
@@ -34,7 +33,7 @@ export const FaqFeature = () => {
 	return (
 		<div className="flex flex-col h-screen gap-1 p-2">
 			<div className="flex flex-grow gap-1">
-				<div className="flex bg-bg-primary rounded-md flex-col gap-4">
+				<div className="flex w-80 flex-shrink-0 bg-bg-primary rounded-md flex-col gap-4">
 					<CardHeader label="Page Help" />
 					<SidebarHelp />
 				</div>
@@ -60,12 +59,23 @@ export const FaqFeature = () => {
 
 function SidebarHelp() {
 	return (
-		<div className="flex-grow px-4 py-2">
-			<img
-				src={helpImage}
-				className="w-full h-auto max-h-[60vh] object-contain rounded-lg"
-				alt="Sidebar Help"
-			/>
+		<div className="flex flex-col gap-4 px-6 py-2 text-[0.875rem] leading-[1.5rem]">
+			<p>
+				Hover over a page in the sidebar and click its question mark to open the
+				documentation for that page.
+			</p>
+			<p>
+				The{' '}
+				<a
+					href={docsUrl(USER_GUIDE.index)}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-primary hover:underline"
+				>
+					user guide
+				</a>{' '}
+				explains what each page is for and how to use it.
+			</p>
 		</div>
 	);
 }

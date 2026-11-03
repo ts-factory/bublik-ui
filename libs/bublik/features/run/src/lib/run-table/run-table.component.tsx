@@ -27,6 +27,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { MergedRun, RunData, RunStatsColumn } from '@/shared/types';
 import { useMount } from '@/shared/hooks';
 import { bublikAPI } from '@/services/bublik-api';
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import {
 	Badge,
@@ -41,7 +42,7 @@ import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
 import { globalFilterFn } from './filter';
 import { getRowCanExpand } from './utils';
-import { RunHeader, RunRow, RunTableInstructionDialog } from './components';
+import { RunHeader, RunRow } from './components';
 import { useExpandUnexpected } from './hooks';
 import { Toolbar } from './toolbar';
 import { getColumns } from './columns';
@@ -375,7 +376,15 @@ export const RunTable = (props: RunTableProps) => {
 						<span className="text-text-primary text-[0.75rem] font-semibold leading-[0.875rem]">
 							Toolbar
 						</span>
-						<RunTableInstructionDialog />
+						<a
+							href={docsUrl(USER_GUIDE.runTable)}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Open Run Table docs"
+							className="mr-auto text-primary hover:bg-primary-wash rounded-sm p-0.5"
+						>
+							<Icon name="InformationCircleQuestionMark" size={16} />
+						</a>
 					</div>
 					<GlobalRequirementsFilter runId={runId} />
 				</div>
