@@ -26,7 +26,9 @@ export const ImportTaskEventLogSchema = z.object({
 export type ImportTaskEventLog = z.infer<typeof ImportTaskEventLogSchema>;
 
 export const ImportTaskRowRawSchema = z.object({
-	status: z.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE']).or(z.string()),
+	status: z
+		.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE', 'REVOKED'])
+		.or(z.string()),
 	run_source_url: z.string(),
 	celery_task: z.string().optional().nullable(),
 	started_at: z.string().nullable(),
@@ -76,6 +78,15 @@ export const ImportRunsJobResponseSchema = z.object({
 
 export type ImportRunsJobResponse = z.infer<typeof ImportRunsJobResponseSchema>;
 
+export const ImportTaskRevokeResponseSchema = z.object({
+	task_id: z.string(),
+	status: z.string()
+});
+
+export type ImportTaskRevokeResponse = z.infer<
+	typeof ImportTaskRevokeResponseSchema
+>;
+
 const optionalNumberFilterSchema = z.preprocess((val) => {
 	if (val === '' || val == null) return undefined;
 
@@ -98,7 +109,7 @@ export const ImportTaskFiltersSchema = z.object({
 	status: z.preprocess(
 		(arg) => (arg ? arg : undefined),
 		z
-			.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE'])
+			.enum(['RECEIVED', 'RUNNING', 'SUCCESS', 'FAILURE', 'REVOKED'])
 			.or(z.string())
 			.optional()
 	),

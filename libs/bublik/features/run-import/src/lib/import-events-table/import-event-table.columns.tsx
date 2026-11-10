@@ -8,9 +8,20 @@ import { RocketIcon } from '@radix-ui/react-icons';
 import { ImportTaskRow } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { getErrorMessage, useImportRunsMutation } from '@/services/bublik-api';
-import { useCopyToClipboard } from '@/shared/hooks';
-import { ButtonTw, cn, Icon, toast, Tooltip } from '@/shared/tailwind-ui';
+import {
+	getErrorMessage,
+	useImportRunsMutation,
+	useRevokeImportTaskMutation
+} from '@/services/bublik-api';
+import { useConfirm, useCopyToClipboard } from '@/shared/hooks';
+import {
+	ButtonTw,
+	cn,
+	ConfirmDialog,
+	Icon,
+	toast,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
 import { routes } from '@/router';
 
@@ -22,24 +33,34 @@ export function getBgByStatus(status: string): string {
 		SUCCESS: 'bg-bg-ok',
 		FAILURE: 'bg-bg-error',
 		RUNNING: 'bg-bg-running',
-		RECEIVED: 'bg-gray-400'
+		RECEIVED: 'bg-gray-400',
+		REVOKED: 'bg-bg-stopped'
 	};
 
 	return statusMap[status] ?? '';
 }
 
-export function getIconByStatus(status: string) {
-	const statusMap: Record<
-		string,
-		ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>
-	> = {
+// The stopped fill is pale, so the icon takes the dashboard's stopped red
+function getIconColorByStatus(status: string): string {
+	return status === 'REVOKED' ? 'text-text-unexpected' : 'text-white';
+}
+
+type StatusIcon = ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>;
+
+const UnknownStatusIcon: StatusIcon = (props) => (
+	<Icon name="InformationCircleExclamationMark" {...props} />
+);
+
+export function getIconByStatus(status: string): StatusIcon {
+	const statusMap: Record<string, StatusIcon> = {
 		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
 		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />,
 		RUNNING: (props) => <Icon name="Play" {...props} />,
-		RECEIVED: (props) => <Icon name="Download" {...props} />
+		RECEIVED: (props) => <Icon name="Download" {...props} />,
+		REVOKED: (props) => <Icon name="InformationCircleForbidden" {...props} />
 	};
 
-	return statusMap[status];
+	return statusMap[status] ?? UnknownStatusIcon;
 }
 
 const columnHelper = createColumnHelper<ImportTaskRow>();
@@ -48,6 +69,64 @@ const IMPORT_RETRY_ERROR_FALLBACK = 'Failed to trigger re-import';
 
 export function getImportRetryErrorMessage(error: unknown): string {
 	return getErrorMessage(error).description || IMPORT_RETRY_ERROR_FALLBACK;
+}
+
+const IMPORT_REVOKE_ERROR_FALLBACK = 'Failed to revoke the import task';
+
+const REVOCABLE_STATUSES = new Set(['RECEIVED', 'RUNNING']);
+
+interface RevokeImportTaskButtonProps {
+	taskId: string;
+	status?: string;
+}
+
+function RevokeImportTaskButton(props: RevokeImportTaskButtonProps) {
+	const { taskId, status } = props;
+	const [revokeImportTask, { isLoading }] = useRevokeImportTaskMutation();
+	const { confirmation, isVisible, confirm, decline } = useConfirm();
+
+	const handleClick = async () => {
+		if (!(await confirmation())) return;
+
+		const promise = revokeImportTask(taskId).unwrap();
+
+		toast.promise(promise, {
+			success: 'Revoked the import task',
+			error: (error: unknown) =>
+				getErrorMessage(error).description || IMPORT_REVOKE_ERROR_FALLBACK
+		});
+
+		await promise.catch(() => undefined);
+	};
+
+	return (
+		<>
+			<ConfirmDialog
+				open={isVisible}
+				title="Revoke this import task?"
+				description={
+					status === 'RUNNING'
+						? 'The running import is terminated. If it already saved the run, the run is left without part of its post-processing (categorization, cache).'
+						: 'The queued import will not be started.'
+				}
+				confirmLabel="Revoke"
+				onCancelClick={decline}
+				onConfirmClick={confirm}
+			/>
+			<ButtonTw
+				variant="destruction-secondary"
+				size="xss"
+				// Filled at rest like the Delete buttons of the issues and rules tables
+				className="bg-bg-fillError/60 hover:bg-bg-fillError"
+				onClick={handleClick}
+				disabled={isLoading}
+			>
+				{/* The cross is narrow in its box, so a smaller margin evens the gap */}
+				<Icon name="CrossSimple" size={20} className="mr-1" />
+				<span>Revoke</span>
+			</ButtonTw>
+		</>
+	);
 }
 
 interface ActionCellProps {
@@ -191,7 +270,10 @@ export const columns = [
 							getBgByStatus(status)
 						)}
 					>
-						<Icon className="mt-3.5 text-white" size={18} />
+						<Icon
+							className={cn('mt-3.5', getIconColorByStatus(status))}
+							size={18}
+						/>
 					</div>
 				</Tooltip>
 			);
@@ -288,14 +370,15 @@ export const columns = [
 	columnHelper.display({
 		id: 'expand',
 		cell: ({ row }) => {
-			const isError = row.original.status === 'FAILURE';
+			const { status, celery_task: taskId } = row.original;
+			const canRetry = status === 'FAILURE' || status === 'REVOKED';
 
 			// eslint-disable-next-line react-hooks/rules-of-hooks
 			const [importRuns] = useImportRunsMutation();
 
 			return (
 				<div className="flex items-center gap-2 w-full justify-end">
-					{isError ? (
+					{canRetry ? (
 						<ButtonTw
 							variant="secondary"
 							size="xss"
@@ -319,6 +402,9 @@ export const columns = [
 							<Icon name="Refresh" size={20} className="mr-1.5" />
 							<span>Try Again</span>
 						</ButtonTw>
+					) : null}
+					{taskId && REVOCABLE_STATUSES.has(status) ? (
+						<RevokeImportTaskButton taskId={taskId} status={status} />
 					) : null}
 					<Tooltip content="Expand/Collapse">
 						<button
