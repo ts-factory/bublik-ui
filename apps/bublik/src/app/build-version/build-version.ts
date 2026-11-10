@@ -6,8 +6,13 @@ import { config } from '@/bublik/config';
 
 const VersionFileSchema = z.object({ buildId: z.string().min(1) });
 
-/** Holds the id of the deployed build this tab last reloaded for */
+/** Holds the last full page load this tab made to reach a deployed build */
 const RELOAD_STORAGE_KEY = 'bublik:build-reload';
+
+/** The shortest time between two such loads, whatever the server reports */
+const MIN_LOAD_GAP_MS = 60 * 1000;
+
+const LoadClaimSchema = z.object({ buildId: z.string(), at: z.number() });
 
 /**
  * Reads the id of the build the server currently serves from `version.json`,
@@ -48,20 +53,44 @@ function isNewBuild(
  * Takes the one full page load this tab may spend on moving to
  * `deployedBuildId`, and tells whether it was still available.
  *
- * If the tab runs the old build even after that load (the server keeps
- * handing out a stale `index.html`), more loads would not help and would only
- * loop. Without session storage a loop cannot be told, so nothing is granted.
+ * Two cases are refused, because more loads would not help and would only
+ * loop:
+ * - the tab has already loaded for this build and still runs the old one (the
+ *   server keeps handing out a stale `index.html`);
+ * - the tab made such a load less than a minute ago (servers that report
+ *   different builds in turn, as in the middle of a rolling update).
+ *
+ * Without session storage a loop cannot be told, so nothing is granted.
  */
 function claimLoadForBuild(deployedBuildId: string): boolean {
 	try {
 		const storage = window.sessionStorage;
-		if (storage.getItem(RELOAD_STORAGE_KEY) === deployedBuildId) return false;
+		const now = Date.now();
+		const last = readLoadClaim(storage.getItem(RELOAD_STORAGE_KEY));
 
-		storage.setItem(RELOAD_STORAGE_KEY, deployedBuildId);
+		if (last?.buildId === deployedBuildId) return false;
+		if (last && now - last.at < MIN_LOAD_GAP_MS) return false;
+
+		storage.setItem(
+			RELOAD_STORAGE_KEY,
+			JSON.stringify({ buildId: deployedBuildId, at: now })
+		);
 		return true;
 	} catch {
 		return false;
 	}
+}
+
+function readLoadClaim(
+	raw: string | null
+): z.infer<typeof LoadClaimSchema> | null {
+	if (raw === null) return null;
+
+	const parsed = LoadClaimSchema.safeParse(JSON.parse(raw));
+	// An unreadable record throws above or lands here: either way no load
+	if (!parsed.success) throw new Error('Unreadable load record');
+
+	return parsed.data;
 }
 
 /**
@@ -124,6 +153,7 @@ export {
 	fetchDeployedBuildId,
 	installChunkErrorReload,
 	isNewBuild,
+	MIN_LOAD_GAP_MS,
 	openInNewBuild,
 	reloadAfterChunkError,
 	reloadForNewBuild,
