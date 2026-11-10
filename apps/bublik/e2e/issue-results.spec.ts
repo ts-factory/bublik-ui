@@ -370,7 +370,7 @@ test.describe('Issue Results Page', () => {
 	);
 
 	test(
-		"The Rules link and the Results button lead between an issue's rules and its results",
+		"The Issue sidebar leads between an issue's rules and its results",
 		SEEDED,
 		async ({ page }) => {
 			const issuePage = new IssuePage(page);
@@ -396,14 +396,16 @@ test.describe('Issue Results Page', () => {
 					);
 				}
 			);
-			await when('I follow the Rules link in the header', () =>
+			await when('I follow the Rules row of the Issue sidebar', () =>
 				resultsPage.openRules()
 			);
 			await then("the issue's page is open on its rules", async () => {
 				await issuePage.expectLoaded(stamped.issue.title);
 				await issuePage.expectRulesReady();
 			});
-			await when('I follow the Results button', () => issuePage.openResults());
+			await when('I follow the Results row of the Issue sidebar', () =>
+				issuePage.openResults()
+			);
 			await then("the issue's results page is open again", async () => {
 				await resultsPage.expectOpen(stamped.issue.issueId);
 				await resultsPage.expectLoaded(stamped.issue.title);

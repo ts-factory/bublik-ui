@@ -5,6 +5,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { confirm, expectToast } from '../support/classification';
 import { exactText } from '../support/e2e-data';
 import { UrlParams, urlParams } from '../support/url-params';
+import { Sidebar } from './sidebar';
 
 /**
  * The results table on an issue's results page is the run page's result
@@ -71,11 +72,6 @@ class IssueResultsPage {
 	/** The facts block the issue page shows too: Key, Rules, Created, Updated. */
 	get header(): Locator {
 		return this.root.getByTestId('issue-detail-header');
-	}
-
-	/** The header bar's link to the issue's page, where its rules are. */
-	get rulesLink(): Locator {
-		return this.root.getByRole('link', { name: 'Rules', exact: true });
 	}
 
 	get deleteButton(): Locator {
@@ -461,7 +457,7 @@ class IssueResultsPage {
 	}
 
 	async openRules(): Promise<void> {
-		await this.rulesLink.click();
+		await new Sidebar(this.page).openIssueRow('Rules');
 		await expect(this.page).toHaveURL(/\/issues\/\d+(?:$|\?)/, {
 			timeout: 15_000
 		});

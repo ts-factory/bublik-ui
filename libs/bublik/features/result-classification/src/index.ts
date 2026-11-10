@@ -39,15 +39,10 @@ export { RunIssuesTable, RunIssuesTableLoading } from './lib/run-issues-table';
 export { IssueResults, RunIssueResults } from './lib/issue-results-table';
 export type { RenderResultPreview } from './lib/issue-results-table';
 
-export {
-	IssueDetailHeader,
-	IssueHeaderBar,
-	IssueResultsButton
-} from './lib/issue-detail';
+export { IssueDetailHeader, IssueHeaderBar } from './lib/issue-detail';
 export type {
 	IssueDetailHeaderProps,
-	IssueHeaderBarProps,
-	IssueResultsButtonProps
+	IssueHeaderBarProps
 } from './lib/issue-detail';
 
 export {
