@@ -61,6 +61,13 @@ export interface DataTableFacetedFilterProps {
 	 * callers and URL state are unchanged.
 	 */
 	selection?: 'multiple' | 'single';
+	/**
+	 * How the trigger shows what is picked. `chips` draws the picked values
+	 * after the title where there is room, and a count elsewhere; `count`
+	 * always puts the count in the plus's place, so picking never widens the
+	 * trigger — for a bar of many facets that must keep to one row.
+	 */
+	picks?: 'chips' | 'count';
 }
 
 export function DataTableFacetedFilter({
@@ -70,10 +77,13 @@ export function DataTableFacetedFilter({
 	onChange,
 	size = 'xs/2',
 	disabled = false,
-	selection = 'multiple'
+	selection = 'multiple',
+	picks = 'chips'
 }: DataTableFacetedFilterProps) {
 	const isSingle = selection === 'single';
 	const selectedValues = new Set(value);
+	const hasPicks = selectedValues.size > 0;
+	const countOnly = picks === 'count';
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState('');
 
@@ -86,24 +96,49 @@ export function DataTableFacetedFilter({
 					state={isOpen && 'active'}
 					disabled={disabled}
 				>
+					{/* With `picks="count"`, or in a narrow toolbar, a filter with
+					    picks shows their count in place of the plus, so picking never
+					    widens the trigger: the bar's facets fit or scroll the same
+					    either way. The count is left out of the name here; the one
+					    after the title says it. */}
 					<Icon
 						name="AddSymbol"
 						size={16}
 						className={cn(
-							'mr-2 border rounded-full border-text-primary',
-							disabled && 'border-text-menu'
+							// Closer to the title in a narrow toolbar, so a row of facets
+							// fits without scrolling.
+							'mr-2 toolbar-narrow:mr-1 border rounded-full border-text-primary',
+							disabled && 'border-text-menu',
+							hasPicks && (countOnly ? 'hidden' : 'toolbar-narrow:hidden')
 						)}
 					/>
+					{hasPicks && (
+						<span
+							aria-hidden="true"
+							className={cn(
+								'mr-2 toolbar-narrow:mr-1 h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.625rem] font-semibold leading-none text-white',
+								countOnly ? 'inline-flex' : 'hidden toolbar-narrow:inline-flex'
+							)}
+						>
+							{selectedValues.size}
+						</span>
+					)}
 					<span className="text-xs font-medium">{title}</span>
-					{selectedValues?.size > 0 && (
+					{hasPicks && countOnly && (
+						<div className="sr-only">{selectedValues.size}</div>
+					)}
+					{hasPicks && !countOnly && (
 						<>
-							<Separator orientation="vertical" className="h-4 mx-2" />
+							<Separator
+								orientation="vertical"
+								className="h-4 mx-2 toolbar-narrow:hidden"
+							/>
 							{/* The picked values are drawn as chips where there is room,
-							    and as a count on a small viewport or in a toolbar that has
-							    collapsed its buttons: a chip widens the trigger, and in a
-							    narrow bar that width is what sends the facets scrolling.
-							    Important, as the viewport rule comes later in the stylesheet. */}
-							<div className="px-1 font-normal rounded-sm lg:hidden toolbar-narrow:!block">
+							    and as a count on a small viewport. In a toolbar that has
+							    collapsed its buttons the count moves into the plus's place,
+							    and this one stays only for the accessible name. Important,
+							    as the viewport rule comes later in the stylesheet. */}
+							<div className="px-1 font-normal rounded-sm lg:hidden toolbar-narrow:!block toolbar-narrow:!sr-only">
 								{selectedValues.size}
 							</div>
 							<div className="hidden space-x-1 lg:flex toolbar-narrow:!hidden">
