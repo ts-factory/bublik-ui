@@ -22,24 +22,34 @@ export function getBgByStatus(status: string): string {
 		SUCCESS: 'bg-bg-ok',
 		FAILURE: 'bg-bg-error',
 		RUNNING: 'bg-bg-running',
-		RECEIVED: 'bg-gray-400'
+		RECEIVED: 'bg-gray-400',
+		REVOKED: 'bg-bg-stopped'
 	};
 
 	return statusMap[status] ?? '';
 }
 
-export function getIconByStatus(status: string) {
-	const statusMap: Record<
-		string,
-		ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>
-	> = {
+// The stopped fill is pale, so the icon takes the dashboard's stopped red
+function getIconColorByStatus(status: string): string {
+	return status === 'REVOKED' ? 'text-text-unexpected' : 'text-white';
+}
+
+type StatusIcon = ComponentType<Omit<ComponentProps<typeof Icon>, 'name'>>;
+
+const UnknownStatusIcon: StatusIcon = (props) => (
+	<Icon name="InformationCircleExclamationMark" {...props} />
+);
+
+export function getIconByStatus(status: string): StatusIcon {
+	const statusMap: Record<string, StatusIcon> = {
 		SUCCESS: (props) => <Icon name="InformationCircleCheckmark" {...props} />,
 		FAILURE: (props) => <Icon name="InformationCircleCrossMark" {...props} />,
 		RUNNING: (props) => <Icon name="Play" {...props} />,
-		RECEIVED: (props) => <Icon name="Download" {...props} />
+		RECEIVED: (props) => <Icon name="Download" {...props} />,
+		REVOKED: (props) => <Icon name="InformationCircleForbidden" {...props} />
 	};
 
-	return statusMap[status];
+	return statusMap[status] ?? UnknownStatusIcon;
 }
 
 const columnHelper = createColumnHelper<ImportTaskRow>();
@@ -191,7 +201,10 @@ export const columns = [
 							getBgByStatus(status)
 						)}
 					>
-						<Icon className="mt-3.5 text-white" size={18} />
+						<Icon
+							className={cn('mt-3.5', getIconColorByStatus(status))}
+							size={18}
+						/>
 					</div>
 				</Tooltip>
 			);
@@ -288,14 +301,15 @@ export const columns = [
 	columnHelper.display({
 		id: 'expand',
 		cell: ({ row }) => {
-			const isError = row.original.status === 'FAILURE';
+			const canRetry =
+				row.original.status === 'FAILURE' || row.original.status === 'REVOKED';
 
 			// eslint-disable-next-line react-hooks/rules-of-hooks
 			const [importRuns] = useImportRunsMutation();
 
 			return (
 				<div className="flex items-center gap-2 w-full justify-end">
-					{isError ? (
+					{canRetry ? (
 						<ButtonTw
 							variant="secondary"
 							size="xss"
