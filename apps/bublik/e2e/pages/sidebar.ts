@@ -69,6 +69,47 @@ class Sidebar {
 		await expect(this.page).toHaveURL(/\/admin\/users/);
 	}
 
+	/** Follows the Log row of the Run section. */
+	async openRunLog(): Promise<void> {
+		await this.openSidebar();
+		await this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: /^Log\b/ })
+			.click();
+	}
+
+	/**
+	 * Follows a row of the Issue section, the open issue's own submenu. Its
+	 * Rules row shares its name with the Issues section's, so the row is also
+	 * told apart by where it leads: the issue's page, not `/issues/rules`.
+	 */
+	async openIssueRow(item: 'Results' | 'Rules'): Promise<void> {
+		await this.openSidebar();
+		const link = this.page
+			.getByRole('navigation')
+			.getByRole('link', { name: new RegExp(`^${item}\\b`) })
+			.and(
+				this.page.locator(
+					item === 'Results'
+						? 'a[href*="/issues/"][href*="/results"]'
+						: 'a[href*="/issues/"]:not([href*="/results"]):not([href*="/issues/rules"])'
+				)
+			);
+		await expect(link).toBeVisible({ timeout: 15_000 });
+		await link.click();
+	}
+
+	/** Opens the menu beside the Run section's Report row. */
+	async openRunReports(): Promise<void> {
+		await this.openSidebar();
+		await this.page.getByTestId('run-sidebar-reports').click();
+		await expect(this.page.getByRole('menu')).toBeVisible({ timeout: 15_000 });
+	}
+
+	runReportMenuItem(name: string): Locator {
+		return this.page.getByRole('menuitem', { name });
+	}
+
 	/**
 	 * Expands the sidebar when it is collapsed. The toggle's `data-state` is
 	 * its tooltip's, not the sidebar's; the submenu toggles only render while

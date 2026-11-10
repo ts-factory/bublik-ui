@@ -36,6 +36,7 @@ export {
 export {
 	SidebarNavSubmenuItem,
 	SidebarNavSubmenuItemContainer,
+	type SidebarNavSubmenuLinksMenuItem,
 	type SidebarNavSubmenuModeSwitchItem
 } from './lib/sidebar-nav-submenu-item.component';
 

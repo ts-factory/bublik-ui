@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import type {
+	ComponentPropsWithoutRef,
 	ComponentType,
 	MouseEvent,
 	MouseEventHandler,
@@ -23,6 +24,12 @@ import {
 	DialogPortal,
 	DialogContent,
 	DialogOverlay,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 	Icon,
 	Separator,
 	Tooltip,
@@ -101,12 +108,12 @@ function SidebarNavSubmenuLabel({ children }: { children: ReactNode }) {
 }
 
 /**
- * Lifts the mode card so its first layout sits level with the row's icon:
- * the row is 36px tall, so its middle is 18px down, while the first layout's
+ * Lifts the hover card so its first entry sits level with the row's icon:
+ * the row is 36px tall, so its middle is 18px down, while the first entry's
  * middle is 44px into the card (4 padding + 18 caption + 2 gap + 5 separator
- * + 2 gap + 13 half a layout). Keep it in step with the card's classes.
+ * + 2 gap + 13 half an entry). Keep it in step with `SidebarNavSubmenuHoverPanel`.
  */
-const MODE_PANEL_ALIGN_OFFSET = 18 - 44;
+const HOVER_PANEL_ALIGN_OFFSET = 18 - 44;
 
 type SidebarNavSubmenuItemProps = {
 	children: ReactNode;
@@ -137,6 +144,13 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 	// The collapsed sidebar has no room for the mode tray, so the row offers
 	// its modes in a hover card instead.
 	const modeSwitch = disabled ? undefined : findModeSwitch(children);
+	const linksMenu = disabled ? undefined : findLinksMenu(children);
+
+	const collapsedHoverContent = modeSwitch ? (
+		<SidebarNavSubmenuModePanel {...modeSwitch.props} />
+	) : linksMenu?.props.items.length ? (
+		<SidebarNavSubmenuLinksPanel {...linksMenu.props} />
+	) : undefined;
 
 	return (
 		<li
@@ -155,12 +169,8 @@ function SidebarNavSubmenuItemComponent(props: SidebarNavSubmenuItemProps) {
 				<SidebarAccordionLink
 					isActive={isActive}
 					disabled={disabled}
-					collapsedHoverContent={
-						modeSwitch ? (
-							<SidebarNavSubmenuModePanel {...modeSwitch.props} />
-						) : undefined
-					}
-					collapsedHoverAlignOffset={MODE_PANEL_ALIGN_OFFSET}
+					collapsedHoverContent={collapsedHoverContent}
+					collapsedHoverAlignOffset={HOVER_PANEL_ALIGN_OFFSET}
 					{...linkProps}
 				>
 					{children}
@@ -365,10 +375,34 @@ function SidebarNavSubmenuModeSwitch<T extends string>({
 }
 
 /**
- * The mode switch as the collapsed sidebar shows it: a card beside the row,
- * each layout spelled out next to its icon since the card has the room. It
- * is dressed like the Column Visibility dropdown, with a small uppercase
- * caption instead of its roomier label.
+ * What the collapsed sidebar shows beside a row. It is dressed like the Column
+ * Visibility dropdown, with a small uppercase caption instead of its roomier
+ * label, and is sized to its longest entry, not a fixed width.
+ */
+function SidebarNavSubmenuHoverPanel({
+	label,
+	children,
+	...props
+}: ComponentPropsWithoutRef<'div'> & { label: string }) {
+	return (
+		<div
+			role="group"
+			aria-label={label}
+			className="flex w-max min-w-40 flex-col gap-0.5 rounded-lg bg-bg-elevated p-1 shadow-popover"
+			{...props}
+		>
+			<span className="px-1.5 pb-0.5 pt-1 text-[0.625rem] font-semibold uppercase leading-3 tracking-[0.02em] text-text-menu">
+				{label}
+			</span>
+			<Separator className="-mx-1 my-0.5 h-px" />
+			{children}
+		</div>
+	);
+}
+
+/**
+ * The mode switch as the collapsed sidebar shows it, each layout spelled out
+ * next to its icon since the card has the room.
  */
 function SidebarNavSubmenuModePanel<T extends string>({
 	items,
@@ -378,18 +412,11 @@ function SidebarNavSubmenuModePanel<T extends string>({
 	testId
 }: SidebarNavSubmenuModeSwitchProps<T>) {
 	return (
-		<div
-			role="group"
-			aria-label={ariaLabel}
+		<SidebarNavSubmenuHoverPanel
+			label={ariaLabel}
 			data-testid={testId ? `${testId}-panel` : undefined}
 			data-mode-switch-panel
-			// Sized to its longest layout name, not a fixed width.
-			className="flex w-max min-w-40 flex-col gap-0.5 rounded-lg bg-bg-elevated p-1 shadow-popover"
 		>
-			<span className="px-1.5 pb-0.5 pt-1 text-[0.625rem] font-semibold uppercase leading-3 tracking-[0.02em] text-text-menu">
-				{ariaLabel}
-			</span>
-			<Separator className="-mx-1 my-0.5 h-px" />
 			{items.map((item) => {
 				const buttonProps = getModeButtonProps(
 					item,
@@ -411,7 +438,132 @@ function SidebarNavSubmenuModePanel<T extends string>({
 					</button>
 				);
 			})}
-		</div>
+		</SidebarNavSubmenuHoverPanel>
+	);
+}
+
+export interface SidebarNavSubmenuLinksMenuItem {
+	id: string;
+	label: string;
+	description?: string;
+	to: string;
+}
+
+interface SidebarNavSubmenuLinksMenuProps {
+	items: ReadonlyArray<SidebarNavSubmenuLinksMenuItem>;
+	'aria-label': string;
+	linkComponent: NonNullable<
+		SidebarNavSubmenuItemContainerProps['linkComponent']
+	>;
+	testId?: string;
+}
+
+/**
+ * Stops a click in a portal at the portal. React bubbles it through the
+ * component tree into the row's link, which would then follow its own URL.
+ * It must not `preventDefault`: the link clicked on still has to navigate.
+ */
+function stopClickReachingRowLink(event: MouseEvent<HTMLElement>) {
+	event.stopPropagation();
+}
+
+/**
+ * An arrow at the row's right end, opening a menu of other pages the row could
+ * link to. Like the mode switch it sits inside the row's link and goes away on
+ * a disabled row, and the collapsed sidebar offers the same links in a hover
+ * card, see `SidebarNavSubmenuLinksPanel`.
+ */
+function SidebarNavSubmenuLinksMenu({
+	items,
+	'aria-label': ariaLabel,
+	linkComponent: LinkComponent,
+	testId
+}: SidebarNavSubmenuLinksMenuProps) {
+	const { disabled } = useSidebarNavSubmenuItem();
+	const { isSidebarOpen } = useSidebar();
+
+	if (disabled || !isSidebarOpen || !items.length) return null;
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button
+					type="button"
+					aria-label={ariaLabel}
+					data-testid={testId}
+					onClick={(event) => {
+						event.preventDefault();
+						event.stopPropagation();
+					}}
+					// A row with a mode tray pads its right side 4px less, so the
+					// arrow reaches 2px into the padding to sit under the tray's
+					// last icon, past the tray's own 2px of padding.
+					className={cn(
+						'ml-auto -mr-0.5 shrink-0 rounded p-0.5 transition-colors',
+						'text-text-menu hover:bg-primary-wash hover:text-primary',
+						'rdx-state-open:bg-primary-wash rdx-state-open:text-primary'
+					)}
+				>
+					<Icon name="ArrowShortTop" size={18} className="rotate-180" />
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				side="bottom"
+				align="start"
+				onClick={stopClickReachingRowLink}
+			>
+				<DropdownMenuLabel>{ariaLabel}</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				{items.map((item) => (
+					<Tooltip
+						key={item.id}
+						content={item.description ?? ''}
+						disabled={!item.description}
+						side="right"
+						sideOffset={8}
+					>
+						<DropdownMenuItem asChild className="gap-4 pl-2">
+							<LinkComponent to={item.to}>
+								{item.label}
+								<Icon
+									name="BoxArrowRight"
+									className="ml-auto size-4 text-primary"
+								/>
+							</LinkComponent>
+						</DropdownMenuItem>
+					</Tooltip>
+				))}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+/** The links menu as the collapsed sidebar shows it. */
+function SidebarNavSubmenuLinksPanel({
+	items,
+	'aria-label': ariaLabel,
+	linkComponent: LinkComponent,
+	testId
+}: SidebarNavSubmenuLinksMenuProps) {
+	return (
+		<SidebarNavSubmenuHoverPanel
+			label={ariaLabel}
+			data-testid={testId ? `${testId}-panel` : undefined}
+		>
+			{items.map((item) => (
+				<LinkComponent
+					key={item.id}
+					to={item.to}
+					className={cn(
+						// As tall as a mode button, which `HOVER_PANEL_ALIGN_OFFSET` counts on.
+						'flex min-h-[26px] items-center rounded py-1 pl-1 pr-2 text-xs transition-colors',
+						'text-text-menu hover:bg-primary-wash hover:text-primary'
+					)}
+				>
+					{item.label}
+				</LinkComponent>
+			))}
+		</SidebarNavSubmenuHoverPanel>
 	);
 }
 
@@ -454,10 +606,20 @@ function findModeSwitch(
 	);
 }
 
+function findLinksMenu(
+	children: ReactNode
+): ReactElement<SidebarNavSubmenuLinksMenuProps> | undefined {
+	return Children.toArray(children).find(
+		(child): child is ReactElement<SidebarNavSubmenuLinksMenuProps> =>
+			isValidElement(child) && child.type === SidebarNavSubmenuLinksMenu
+	);
+}
+
 SidebarNavSubmenuItemContainer.Icon = SidebarNavSubmenuIcon;
 SidebarNavSubmenuItemContainer.Label = SidebarNavSubmenuLabel;
 SidebarNavSubmenuItemContainer.InfoButton = SidebarNavSubmenuInfoButton;
 SidebarNavSubmenuItemContainer.ModeSwitch = SidebarNavSubmenuModeSwitch;
+SidebarNavSubmenuItemContainer.LinksMenu = SidebarNavSubmenuLinksMenu;
 SidebarNavSubmenuItemContainer.SidebarAccordionLabel = SidebarAccordionLabel;
 
 export const SidebarNavSubmenuItem = Object.assign(
@@ -467,6 +629,7 @@ export const SidebarNavSubmenuItem = Object.assign(
 		Label: SidebarNavSubmenuLabel,
 		InfoButton: SidebarNavSubmenuInfoButton,
 		ModeSwitch: SidebarNavSubmenuModeSwitch,
+		LinksMenu: SidebarNavSubmenuLinksMenu,
 		SidebarAccordionLabel: SidebarAccordionLabel
 	}
 );

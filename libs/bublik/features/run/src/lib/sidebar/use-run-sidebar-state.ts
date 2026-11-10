@@ -29,7 +29,8 @@ import {
 import {
 	useGetRunDetailsQuery,
 	useGetRunIssuesQuery,
-	useGetRunReportConfigsQuery
+	useGetRunReportConfigsQuery,
+	useGetRunSourceQuery
 } from '@/services/bublik-api';
 
 const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues', 'log'];
@@ -53,6 +54,17 @@ const RUN_URL_KEYS = [
 	LOG_SIDEBAR_KEYS.LAST_LOG
 ];
 
+function getRunReportUrl(runId: string, configId: number): string {
+	return `/runs/${runId}/report?config=${configId}`;
+}
+
+export interface RunReportMenuItem {
+	id: string;
+	label: string;
+	description: string;
+	to: string;
+}
+
 export interface UseRunSidebarStateReturn {
 	/** Remembered URLs, but only while they belong to `activeRunId`. */
 	lastDetailsUrl: string | null;
@@ -72,12 +84,16 @@ export interface UseRunSidebarStateReturn {
 
 	detailsUrl: string;
 	reportUrl: string | null;
+	/** Every report of the active run, in the order the server lists them. */
+	reportMenuItems: RunReportMenuItem[];
 	issuesUrl: string;
 	/** The log in its remembered layout. */
 	logUrl: string;
 	/** The log in the given layout, on the remembered page of it when there is one. */
 	getLogModeUrl: (mode: LogSidebarMode) => string;
 	mainLinkUrl: string;
+	/** Where the run's sources live, outside Bublik; null when it has none. */
+	sourceUrl: string | null;
 
 	isDetailsAvailable: boolean;
 	isReportAvailable: boolean;
@@ -87,6 +103,7 @@ export interface UseRunSidebarStateReturn {
 
 	isReportLoading: boolean;
 	isIssuesLoading: boolean;
+	isSourceLoading: boolean;
 	/** Issues classified in the active run; 0 means there is nothing to show. */
 	issueCount: number;
 	/** The open ones among them, which the sidebar badge counts. */
@@ -206,6 +223,10 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 			: skipToken
 	);
 	const issueCount = runIssues?.length ?? 0;
+	const { data: runSource, isLoading: isSourceLoading } = useGetRunSourceQuery(
+		activeRunId ? activeRunId : skipToken
+	);
+	const sourceUrl = runSource?.url || null;
 	const openIssueCount =
 		runIssues?.filter((issue) => issue.state === 'open').length ?? 0;
 
@@ -247,12 +268,23 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		if (lastReportUrl) return lastReportUrl;
 		if (activeRunId) {
 			if (newestReportConfig) {
-				return `/runs/${activeRunId}/report?config=${newestReportConfig.id}`;
+				return getRunReportUrl(activeRunId, newestReportConfig.id);
 			}
 			return `/runs/${activeRunId}/report`;
 		}
 		return null;
 	}, [lastReportUrl, activeRunId, newestReportConfig]);
+
+	const reportMenuItems = useMemo<RunReportMenuItem[]>(() => {
+		if (!activeRunId) return [];
+
+		return (reportConfigsData?.run_report_configs ?? []).map((config) => ({
+			id: String(config.id),
+			label: config.name,
+			description: config.description,
+			to: getRunReportUrl(activeRunId, config.id)
+		}));
+	}, [activeRunId, reportConfigsData]);
 
 	const issuesUrl = useMemo(() => {
 		if (lastIssuesUrl) return lastIssuesUrl;
@@ -368,10 +400,12 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		activeRunName: runDetails?.main_package ?? '',
 		detailsUrl,
 		reportUrl,
+		reportMenuItems,
 		issuesUrl,
 		logUrl,
 		getLogModeUrl,
 		mainLinkUrl,
+		sourceUrl,
 		isDetailsAvailable,
 		isReportAvailable,
 		isIssuesAvailable,
@@ -379,6 +413,7 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		isMainLinkAvailable,
 		isReportLoading,
 		isIssuesLoading,
+		isSourceLoading,
 		issueCount,
 		openIssueCount,
 		setLastVisited

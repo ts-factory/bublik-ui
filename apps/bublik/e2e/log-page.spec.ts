@@ -7,6 +7,7 @@ import type { APIRequestContext } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
 import { RunIssuesPage } from './pages/run-issues-page';
+import { Sidebar } from './pages/sidebar';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
 import { IssueCleanup } from './support/classification';
@@ -17,6 +18,7 @@ import {
 	importedRunId,
 	longLogNode,
 	paginatedLogNode,
+	reportConfiguredImportedRun,
 	representativeImportedRun,
 	sampleResultNode
 } from './support/e2e-data';
@@ -241,6 +243,35 @@ test.describe('Log Page', () => {
 			);
 			await then('the measurements page is open', () =>
 				expect(page).toHaveURL(/\/measurements(?:$|\?)/, { timeout: 15_000 })
+			);
+		}
+	);
+
+	test(
+		"The sidebar offers the run's reports on the log page",
+		{ tag: ['@needs-report'] },
+		async ({ page }) => {
+			const logPage = new LogPage(page);
+			const sidebar = new Sidebar(page);
+			const manifest = requireManifest();
+			const { runId } = reportConfiguredImportedRun(manifest);
+			const configName = requireCapability(
+				manifest.configs.find((config) => config.type === 'report')?.name,
+				'Fixture manifest contains no report config.'
+			);
+
+			await given(
+				'I open the log of a run whose project has a report config',
+				async () => {
+					await logPage.goto(runId);
+					await logPage.expectLoaded();
+				}
+			);
+			await when('I open the reports menu', () => sidebar.openRunReports());
+			await then('the configured report is offered', () =>
+				expect(sidebar.runReportMenuItem(configName)).toBeVisible({
+					timeout: 15_000
+				})
 			);
 		}
 	);
