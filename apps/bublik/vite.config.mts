@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 
-import { defineConfig, HttpProxy, loadEnv, ProxyOptions } from 'vite';
+import { randomUUID } from 'node:crypto';
+
+import { defineConfig, HttpProxy, loadEnv, Plugin, ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import svgr from 'vite-plugin-svgr';
@@ -18,6 +20,33 @@ const createRequestLogger =
 			console.log(`[${domain}] Response:`, proxyRes.statusCode, req.url);
 		});
 	};
+
+/**
+ * Gives every build an id, compiled into the bundle as `__BUILD_ID__` and
+ * written to `version.json` next to `index.html`, so that an open tab can
+ * tell when a newer build has been deployed.
+ */
+function buildVersion(): Plugin {
+	const buildId = randomUUID();
+
+	return {
+		name: 'bublik-build-version',
+		config(_config, { command }) {
+			return {
+				define: {
+					__BUILD_ID__: JSON.stringify(command === 'build' ? buildId : 'dev')
+				}
+			};
+		},
+		generateBundle() {
+			this.emitFile({
+				type: 'asset',
+				fileName: 'version.json',
+				source: `${JSON.stringify({ buildId })}\n`
+			});
+		}
+	};
+}
 
 export default defineConfig(({ mode }) => {
 	let env: Record<string, string> = {};
@@ -93,7 +122,12 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		optimizeDeps: { include: ['react/jsx-runtime'] },
-		plugins: [react(), nxViteTsPaths(), svgr({ svgrOptions: { ref: true } })],
+		plugins: [
+			react(),
+			nxViteTsPaths(),
+			svgr({ svgrOptions: { ref: true } }),
+			buildVersion()
+		],
 		publicDir: './src/public',
 
 		build: {
