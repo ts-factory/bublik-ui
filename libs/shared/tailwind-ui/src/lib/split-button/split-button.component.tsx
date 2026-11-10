@@ -29,7 +29,7 @@ const SplitButtonRoot = React.forwardRef<
 				'inline-flex group items-center',
 				variant === 'outline' && 'border border-border-input rounded-md',
 				// The halves stay clear: a translucent fill would stack on this one.
-				variant === 'secondary' && 'bg-secondary-fill',
+				variant === 'secondary' && 'bg-secondary-fill rounded-md',
 				className
 			)}
 			{...props}
