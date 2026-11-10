@@ -1,8 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useMemo, useState } from 'react';
-
-import { LoginRequired } from '@/bublik/features/auth';
 import { useGetResultInfoQuery } from '@/services/bublik-api';
 import {
 	Badge,
@@ -21,15 +18,12 @@ import {
 	useSelectionPopoverOpenState
 } from '@/shared/tailwind-ui';
 
-import { ClassifyDrawer } from './classify-drawer.component';
-import { useClassifyForm } from './classify-form.hooks';
-import { useClassify } from './classify.hooks';
+import { ClassifySelectionButton } from './classify-selection.component';
+import { useClassifySelection } from './classify-selection.hooks';
 import { resultsInRuns } from './classify.utils';
 import type { ResultSelection } from './result-selection.context';
 import {
 	BASELINE_TOGGLE,
-	CLASSIFY_TARGETS_HINT,
-	type RunResults,
 	type SelectableResult,
 	type SelectedResult
 } from './result-selection.utils';
@@ -37,8 +31,6 @@ import { SelectListedResults } from './select-listed-results.component';
 
 /** The same key on every page, so the popover stays open or shut across them. */
 const OPEN_STATE_KEY = 'results-selection-popover-open';
-
-const NO_RUNS: RunResults[] = [];
 
 interface SelectedResultItemProps {
 	result: SelectedResult;
@@ -195,25 +187,15 @@ export function ResultSelectionPopover({
 	listed,
 	baseline = true
 }: ResultSelectionPopoverProps) {
-	const { count, targets, referenceResultId, setReference, remove, clear } =
-		selection;
-	const [drawerOpen, setDrawerOpen] = useState(false);
+	const { count, referenceResultId, setReference, remove, clear } = selection;
 	const { open, onOpenChange, resetOpenState } =
 		useSelectionPopoverOpenState(OPEN_STATE_KEY);
-	const runs = useMemo(() => (targets.ok ? targets.runs : NO_RUNS), [targets]);
-	const projectId = targets.ok ? targets.projectId : undefined;
-	const { submit, canClassify } = useClassify(runs, projectId);
-	const form = useClassifyForm();
+	const classify = useClassifySelection(selection, {
+		onClassified: resetOpenState
+	});
 
 	const results = Array.from(selection.selected.values());
 	const runCount = new Set(results.map((result) => result.runId)).size;
-	const toClassify = targets.ok ? targets.resultIds.length : 0;
-
-	const classifyHint = !targets.ok
-		? CLASSIFY_TARGETS_HINT[targets.reason]
-		: !canClassify
-		? 'Select a project first'
-		: `Classify ${resultsInRuns(toClassify, runs.length)} under one issue`;
 
 	function handleReset() {
 		resetOpenState();
@@ -276,32 +258,7 @@ export function ResultSelectionPopover({
 					</SelectionPopoverBody>
 					<SelectionPopoverFooter>
 						<div className="grid grid-cols-2 gap-2">
-							{/* Half and half, whatever the labels' widths. Signed out,
-							    the inert wrapper has to stretch too, or the button shrinks
-							    to its label. */}
-							<LoginRequired
-								message="Log in to classify results"
-								className="w-full [&>span]:w-full"
-							>
-								<Tooltip content={classifyHint}>
-									<ButtonTw
-										variant="primary"
-										rounded="lg"
-										size="sm/2"
-										className="w-full justify-center"
-										disabled={!targets.ok || !canClassify}
-										onClick={() => setDrawerOpen(true)}
-										data-testid="bulk-classify-trigger"
-									>
-										<Icon
-											name="TriangleExclamationMark"
-											size={20}
-											className="mr-2"
-										/>
-										<span>Classify{targets.ok ? ` ${toClassify}` : ''}</span>
-									</ButtonTw>
-								</Tooltip>
-							</LoginRequired>
+							<ClassifySelectionButton trigger={classify.trigger} />
 							<ButtonTw
 								variant="outline"
 								rounded="lg"
@@ -317,27 +274,9 @@ export function ResultSelectionPopover({
 				</SelectionPopover>
 			) : null}
 
-			<ClassifyDrawer
-				open={drawerOpen}
-				onOpenChange={(next) => {
-					setDrawerOpen(next);
-
-					if (!next) form.reset();
-				}}
-				form={form}
-				runs={runs}
-				projectId={projectId}
-				submit={async (input) => {
-					const response = await submit(input);
-
-					// Stamped: the rows will redraw with their stamps, and there is
-					// nothing left to do with the selection.
-					resetOpenState();
-					clear();
-
-					return response;
-				}}
-			/>
+			{/* Outside the popover, which goes when classifying drops the
+			    selection. */}
+			{classify.drawer}
 		</>
 	);
 }
