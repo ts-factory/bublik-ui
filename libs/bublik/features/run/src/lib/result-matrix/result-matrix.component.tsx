@@ -1,327 +1,215 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useMemo, useState } from 'react';
+import { ReactNode } from 'react';
 
-import { RunDataResults } from '@/shared/types';
-import { cn } from '@/shared/tailwind-ui';
+import { config } from '@/bublik/config';
+import { Badge, Separator, cn } from '@/shared/tailwind-ui';
+import { joinKeyValue } from '@/shared/utils';
 
 import {
 	MatrixIteration,
-	MatrixSuggestion,
-	classifyParams,
+	ParamClassification,
 	combos,
-	suggestLayouts,
-	toIterations
+	facetTuples
 } from './matrix-analysis';
-import { CellMode, MatrixTable } from './matrix-table';
+import { MatrixLegend } from './matrix-legend';
+import { MatrixCellRef, MatrixTable } from './matrix-table';
+import { MatrixState } from './result-view.hooks';
 
-type Role = 'rows' | 'cols' | 'facets' | 'unused';
-
-interface MatrixState {
-	rows: string[];
-	cols: string[];
-	facets: string[];
-	mode: CellMode;
-	facetMode: 'filter' | 'trellis';
-	margins: boolean;
-	facetSel: Record<string, string>;
+export interface ResultMatrixBodyProps {
+	iterations: MatrixIteration[];
+	/** Iterations after the result-table filters (before facets). */
+	filtered: MatrixIteration[];
+	classification: ParamClassification;
+	state: MatrixState;
+	facetFilter: (it: MatrixIteration) => boolean;
+	selectedKey?: string;
+	onCellClick?: (cell: MatrixCellRef, facetKey?: string) => void;
+	/** Viewport offset of the content header's bottom edge when stuck. */
+	top: number;
+	/** Coverage summary shown next to the legend ("320 cells · 100% filled"). */
+	caption?: string | null;
 }
 
-const ALL = '__all__';
+/** Height of a small-multiple title row, on one line of badges. */
+const PANEL_TITLE_HEIGHT = 32;
+/** Narrowest a small multiple gets: room for a few columns of tiles. */
+const PANEL_MIN_WIDTH = 232;
 
-function Segmented<T extends string>(props: {
-	options: { value: T; label: string }[];
-	value: T;
-	onChange: (v: T) => void;
-}) {
-	return (
-		<div className="inline-flex rounded-md border border-border-primary overflow-hidden">
-			{props.options.map((o) => (
-				<button
-					key={o.value}
-					type="button"
-					aria-pressed={props.value === o.value}
-					onClick={() => props.onChange(o.value)}
-					className={cn(
-						'px-2.5 py-1 text-xs border-r border-border-primary last:border-r-0',
-						props.value === o.value
-							? 'bg-primary text-white'
-							: 'bg-white hover:bg-gray-50'
-					)}
-				>
-					{o.label}
-				</button>
-			))}
-		</div>
+/**
+ * Width a small multiple needs for its table without scrolling, estimated
+ * from the labels so every panel in the grid gets the same width up front.
+ */
+function panelWidth(
+	rows: string[],
+	cols: string[],
+	values: ParamClassification['values']
+): number {
+	const textWidth = (chars: number) => chars * 6 + 12;
+	const longest = (key: string) =>
+		Math.max(...values[key].map((value) => value.length));
+	// Each row-header column holds its values and, above them, "key ↓"; the
+	// column keys ("key →") sit across all of them.
+	const rowHeaders = rows.reduce(
+		(sum, key) => sum + textWidth(Math.max(longest(key), key.length + 2)),
+		0
+	);
+	const colLabels = textWidth(Math.max(...cols.map((key) => key.length + 2)));
+	const lastCol = cols[cols.length - 1];
+	const columns = combos(cols, values).length;
+	const tile = Math.max(36, textWidth(longest(lastCol)));
+	const gaps = 2 * (rows.length + columns + 1);
+	// The card's padding and border around the table.
+	const frame = 2 * 6 + 2;
+
+	return Math.max(
+		PANEL_MIN_WIDTH,
+		Math.ceil(Math.max(rowHeaders, colLabels) + columns * tile + gaps + frame)
 	);
 }
 
-function roleOf(state: MatrixState, param: string): Role {
-	if (state.rows.includes(param)) return 'rows';
-	if (state.cols.includes(param)) return 'cols';
-	if (state.facets.includes(param)) return 'facets';
-	return 'unused';
-}
-
-function assignRole(
-	state: MatrixState,
-	param: string,
-	role: Role
-): MatrixState {
-	const next: MatrixState = {
-		...state,
-		rows: state.rows.filter((p) => p !== param),
-		cols: state.cols.filter((p) => p !== param),
-		facets: state.facets.filter((p) => p !== param)
-	};
-	if (role !== 'unused') next[role] = [...next[role], param];
-	return next;
-}
-
-export interface ResultMatrixProps {
-	results: RunDataResults[];
-}
-
-export function ResultMatrix({ results }: ResultMatrixProps) {
-	const iterations = useMemo(() => toIterations(results), [results]);
-	const cls = useMemo(() => classifyParams(iterations), [iterations]);
-	const suggestions = useMemo(
-		() => suggestLayouts(iterations, cls),
-		[iterations, cls]
-	);
-
-	const [state, setState] = useState<MatrixState>(() => {
-		const first = suggestions[0];
-		const base: MatrixState = {
-			rows: first?.rows ?? cls.varying.slice(0, 1),
-			cols: first?.cols ?? cls.varying.slice(1, 2),
-			facets: first?.facets ?? cls.varying.slice(2),
-			mode: 'coverage',
-			facetMode: 'filter',
-			margins: false,
-			facetSel: Object.fromEntries(cls.varying.map((k) => [k, ALL]))
-		};
-		return base;
-	});
-
-	const applyLayout = (s: MatrixSuggestion) =>
-		setState((prev) => ({
-			...prev,
-			rows: [...s.rows],
-			cols: [...s.cols],
-			facets: [...s.facets],
-			facetSel: Object.fromEntries(cls.varying.map((k) => [k, ALL]))
-		}));
-
-	if (cls.varying.length < 2) {
-		return (
-			<div className="p-4 text-sm text-text-menu">
-				This test has fewer than two varying parameters — nothing to cross in a
-				matrix.
-			</div>
-		);
-	}
-
+/** The matrix itself: one full-width table, or one table per facet value. */
+export function ResultMatrixBody(props: ResultMatrixBodyProps) {
+	const {
+		iterations,
+		filtered,
+		classification,
+		state,
+		facetFilter,
+		selectedKey,
+		onCellClick,
+		top,
+		caption
+	} = props;
+	const { values } = classification;
 	const canRender = state.rows.length > 0 && state.cols.length > 0;
-	const facetFilter = (it: MatrixIteration) =>
-		state.facets.every(
-			(k) => state.facetSel[k] === ALL || it.params[k] === state.facetSel[k]
+	const isTrellis = state.facetMode === 'trellis' && state.facets.length > 0;
+
+	let matrix: ReactNode;
+	if (!canRender) {
+		matrix = (
+			<div className="m-4 rounded-md border border-dashed border-border-primary px-4 py-6 text-[0.75rem] leading-[1.125rem] text-text-menu">
+				Assign at least one parameter to Rows and one to Columns.
+			</div>
 		);
+	} else if (isTrellis) {
+		matrix = (
+			// One card per facet value, all as wide as the widest needs. The
+			// ground is a lighter grey than the one around the matrix card, so
+			// the card and its panels read as one block.
+			<div
+				className="grid items-start gap-2.5 bg-bg-body/50 p-2"
+				style={{
+					gridTemplateColumns: `repeat(auto-fill, minmax(${panelWidth(
+						state.rows,
+						state.cols,
+						values
+					)}px, 1fr))`
+				}}
+			>
+				{facetTuples(state.facets, values, iterations).map((ft) => {
+					const facetKey = ft.join('¦');
+					const inFacet = (it: MatrixIteration) =>
+						state.facets.every((k, i) => it.params[k] === ft[i]);
+					const visible = filtered.filter(inFacet);
+					// Only this panel's iterations say what exists in it: nothing
+					// filters a panel by the values of its neighbours.
+					const panelIterations = iterations.filter(inFacet);
+					const observed = panelIterations.length > 0;
 
-	return (
-		<div className="flex flex-col gap-3 p-2 text-sm">
-			<div className="flex flex-wrap items-start gap-4">
-				{/* Suggestions */}
-				<div className="flex flex-col gap-1.5 min-w-[240px]">
-					<span className="text-[10px] uppercase tracking-wide text-text-menu">
-						Suggested layouts
-					</span>
-					{suggestions.map((s) => (
-						<button
-							key={s.id}
-							type="button"
-							onClick={() => applyLayout(s)}
-							className="text-left rounded-md border border-border-primary bg-white px-2.5 py-1.5 hover:bg-gray-50"
+					return (
+						<div
+							key={facetKey}
+							className={cn(
+								'flex min-w-0 flex-col overflow-hidden rounded-lg border border-border-primary bg-bg-primary',
+								!observed && 'opacity-60'
+							)}
 						>
-							<span className="float-right text-[10px] text-primary">
-								{s.score}
-							</span>
-							<span className="block text-xs font-semibold">{s.label}</span>
-							<span className="block text-[10px] text-text-menu">
-								{s.rationale}
-							</span>
-						</button>
-					))}
-				</div>
-
-				{/* Structure */}
-				<div className="flex flex-col gap-1.5">
-					<span className="text-[10px] uppercase tracking-wide text-text-menu">
-						Structure
-					</span>
-					{cls.varying.map((k) => (
-						<div key={k} className="flex items-center gap-2">
-							<span className="w-32 truncate text-xs">
-								{k}
-								<span className="ml-1 text-primary">
-									×{cls.values[k].length}
-								</span>
-							</span>
-							<Segmented<Role>
-								value={roleOf(state, k)}
-								onChange={(role) => setState((p) => assignRole(p, k, role))}
-								options={[
-									{ value: 'rows', label: 'Rows' },
-									{ value: 'cols', label: 'Cols' },
-									{ value: 'facets', label: 'Facet' },
-									{ value: 'unused', label: '—' }
-								]}
-							/>
-						</div>
-					))}
-					{cls.fixed.length ? (
-						<span className="mt-1 text-[10px] text-text-menu">
-							Fixed ({cls.fixed.length}):{' '}
-							{cls.fixed.map((f) => `${f.name}=${f.value}`).join(', ')}
-						</span>
-					) : null}
-				</div>
-			</div>
-
-			{/* Toolbar */}
-			<div className="flex flex-wrap items-center gap-4">
-				<label className="flex items-center gap-2 text-xs">
-					<span className="text-text-menu">Cell</span>
-					<Segmented<CellMode>
-						value={state.mode}
-						onChange={(mode) => setState((p) => ({ ...p, mode }))}
-						options={[
-							{ value: 'coverage', label: 'Coverage' },
-							{ value: 'result', label: 'Result' }
-						]}
-					/>
-				</label>
-				<label className="flex items-center gap-2 text-xs">
-					<span className="text-text-menu">Facets</span>
-					<Segmented<'filter' | 'trellis'>
-						value={state.facetMode}
-						onChange={(facetMode) => setState((p) => ({ ...p, facetMode }))}
-						options={[
-							{ value: 'filter', label: 'Filter' },
-							{ value: 'trellis', label: 'Small multiples' }
-						]}
-					/>
-				</label>
-				<label className="flex items-center gap-1.5 text-xs">
-					<input
-						type="checkbox"
-						checked={state.margins}
-						onChange={(e) =>
-							setState((p) => ({ ...p, margins: e.target.checked }))
-						}
-					/>
-					margins
-				</label>
-			</div>
-
-			{/* Facet filters */}
-			{state.facetMode === 'filter' && state.facets.length ? (
-				<div className="flex flex-wrap items-center gap-3 text-xs">
-					<span className="text-text-menu">Facets</span>
-					{state.facets.map((k) => (
-						<label key={k} className="flex items-center gap-1">
-							{k}:
-							<select
-								className="border border-border-primary rounded px-1 py-0.5"
-								value={state.facetSel[k]}
-								onChange={(e) =>
-									setState((p) => ({
-										...p,
-										facetSel: { ...p.facetSel, [k]: e.target.value }
-									}))
-								}
-							>
-								<option value={ALL}>all</option>
-								{cls.values[k].map((v) => (
-									<option key={v} value={v}>
-										{v}
-									</option>
+							{/* The panel's facet values as parameter badges, matching the
+							    cell drawer header; they wrap rather than clip. */}
+							<div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border-primary px-2 py-1.5">
+								{state.facets.map((k, i) => (
+									<Badge key={k} className="bg-badge-1">
+										{joinKeyValue(k, ft[i], config.keyValueDisplayDelimiter)}
+									</Badge>
 								))}
-							</select>
-						</label>
-					))}
-				</div>
-			) : null}
-
-			{/* Matrix */}
-			{!canRender ? (
-				<div className="p-3 text-xs text-text-menu">
-					Assign at least one parameter to Rows and one to Columns.
-				</div>
-			) : state.facetMode === 'trellis' && state.facets.length ? (
-				<div className="flex flex-wrap gap-4">
-					{combos(state.facets, cls.values).map((ft) => {
-						const visible = iterations.filter((it) =>
-							state.facets.every((k, i) => it.params[k] === ft[i])
-						);
-						return (
-							<div
-								key={ft.join('¦')}
-								className="border border-border-primary rounded-md p-2"
-							>
-								<div className="mb-1.5 text-xs text-text-menu">
-									{state.facets.map((k, i) => `${k}=${ft[i]}`).join(' · ')}
-								</div>
+								{observed ? null : (
+									<span className="px-1 text-[0.6875rem] leading-4 text-text-menu">
+										not observed
+									</span>
+								)}
+							</div>
+							{/* Padded as the design canvas draws it, so the tiles keep off
+							    the card's edges. */}
+							<div className="px-1.5 pb-1.5 pt-1">
 								<MatrixTable
-									iterations={iterations}
+									iterations={panelIterations}
 									visible={visible}
 									rowKeys={state.rows}
 									colKeys={state.cols}
-									values={cls.values}
+									values={values}
 									mode={state.mode}
 									margins={state.margins}
+									selectedKey={
+										selectedKey?.startsWith(`${facetKey}|`)
+											? selectedKey.slice(facetKey.length + 1)
+											: undefined
+									}
+									onCellClick={
+										onCellClick
+											? (cell) => onCellClick(cell, facetKey)
+											: undefined
+									}
+									top={top + PANEL_TITLE_HEIGHT}
+									compact
 								/>
 							</div>
-						);
-					})}
-				</div>
-			) : (
-				<MatrixTable
-					iterations={iterations}
-					visible={iterations.filter(facetFilter)}
-					rowKeys={state.rows}
-					colKeys={state.cols}
-					values={cls.values}
-					mode={state.mode}
-					margins={state.margins}
-				/>
-			)}
-
-			<MatrixLegend mode={state.mode} />
-		</div>
-	);
-}
-
-function MatrixLegend({ mode }: { mode: CellMode }) {
-	if (mode === 'result') {
-		return (
-			<div className="flex flex-wrap items-center gap-2 text-[11px] text-text-menu">
-				<i className="inline-block w-4 h-3 bg-[#3f7d54]/90" /> pass
-				<i className="inline-block w-4 h-3 bg-[#d9d3c4]" /> skip
-				<i className="inline-block w-4 h-3 bg-[#b8501f]/90" /> NOK
-				<i className="inline-block w-4 h-3 bg-[#e9e2d2]" /> n/a
+						</div>
+					);
+				})}
 			</div>
 		);
+	} else {
+		matrix = (
+			<MatrixTable
+				iterations={iterations}
+				visible={filtered.filter(facetFilter)}
+				rowKeys={state.rows}
+				colKeys={state.cols}
+				values={values}
+				mode={state.mode}
+				margins={state.margins}
+				selectedKey={selectedKey}
+				onCellClick={onCellClick}
+				top={top}
+			/>
+		);
 	}
+
 	return (
-		<div className="flex flex-wrap items-center gap-2 text-[11px] text-text-menu">
-			<i className="inline-block w-4 h-3 bg-[#dfe7df]" />
-			<i className="inline-block w-4 h-3 bg-[#a9c7ba]" />
-			<i className="inline-block w-4 h-3 bg-[#5f9c8a]" />
-			<i className="inline-block w-4 h-3 bg-[#2f7361]" /> iterations →
-			<span className="ml-2">· untested (exists elsewhere)</span>
-			<i className="inline-block w-4 h-3 bg-[#e9e2d2] ml-2" /> n/a (not
-			observed)
+		<div className="flex min-h-0 flex-1 flex-col">
+			<div
+				className={cn(
+					'min-w-0 max-w-full overflow-x-auto',
+					// The single table's tiles keep off the card's edges.
+					!isTrellis && 'p-2'
+				)}
+			>
+				{matrix}
+			</div>
+			{/* Footer: coverage first, then the legend; in a narrow window the
+			    items wrap onto a second row rather than scrolling out of sight. */}
+			<div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border-primary px-4 py-2">
+				{caption ? (
+					<>
+						<span className="whitespace-nowrap text-[0.6875rem] font-semibold uppercase tracking-wide leading-[0.875rem] text-text-primary">
+							{caption}
+						</span>
+						<Separator orientation="vertical" className="h-4 shrink-0" />
+					</>
+				) : null}
+				<MatrixLegend mode={state.mode} />
+			</div>
 		</div>
 	);
 }

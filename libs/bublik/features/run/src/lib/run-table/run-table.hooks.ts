@@ -38,7 +38,7 @@ import {
 import { ColumnId } from './types';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
+export const CompressedJsonParam: QueryParamConfig<unknown, unknown> = {
 	encode: (value) => {
 		if (value === null || value === undefined) {
 			return value;

@@ -15,6 +15,8 @@ import {
 	Tooltip,
 	cn
 } from '@/shared/tailwind-ui';
+import type { ReactNode } from 'react';
+
 import type { RunDataResults } from '@/shared/types';
 
 import { COLUMN_ID } from './constants';
@@ -28,12 +30,14 @@ export interface ResultTableFiltersProps {
 	 * button is not drawn.
 	 */
 	selectable?: readonly RunDataResults[];
+	/** Drawn on the right, after Select All: the List / Matrix switch. */
+	actions?: ReactNode;
 	className?: string;
 }
 
 /**
  * The filter row every host of the result table shows above it:
- * `facets | Reset … Select All`. The facets scroll sideways on a narrow
+ * `facets | Reset … Select All | actions`. The facets scroll sideways on a narrow
  * window rather than wrap, so the row keeps one height for the header pinned
  * under it; Reset stays beside them, outside the scroll, so it is never
  * scrolled out of reach. State comes from `useDataTableFilters`.
@@ -41,6 +45,7 @@ export interface ResultTableFiltersProps {
 export function ResultTableFilters({
 	filters,
 	selectable,
+	actions,
 	className
 }: ResultTableFiltersProps) {
 	const {
@@ -72,10 +77,11 @@ export function ResultTableFilters({
 
 	return (
 		<div className={cn('flex items-center gap-2', className)}>
-			<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap [&>*]:shrink-0">
+			<div className="styled-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap toolbar-narrow:gap-1.5 [&>*]:shrink-0">
 				<DataTableFacetedFilter
 					title="Obtained Result"
 					size="xss"
+					picks="count"
 					options={results}
 					value={resultsFilter}
 					onChange={onResultsFilterChange}
@@ -84,6 +90,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Result Type"
 					size="xss"
+					picks="count"
 					options={resultProperties}
 					value={resultPropertiesFilter}
 					onChange={onResultPropertiesFilterChange}
@@ -92,6 +99,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Verdicts"
 					size="xss"
+					picks="count"
 					options={verdicts}
 					value={verdictsFilter}
 					onChange={onVerdictsFilterChange}
@@ -103,6 +111,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Category"
 					size="xss"
+					picks="count"
 					options={categories}
 					value={categoriesFilter}
 					onChange={onCategoriesFilterChange}
@@ -114,6 +123,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Classification"
 					size="xss"
+					picks="count"
 					options={classifications}
 					value={classificationsFilter}
 					onChange={onClassificationsFilterChange}
@@ -122,6 +132,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Artifacts"
 					size="xss"
+					picks="count"
 					options={artifacts}
 					value={artifactsFilter}
 					onChange={(values) => onFilterChange(COLUMN_ID.ARTIFACTS, values)}
@@ -130,6 +141,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Parameters"
 					size="xss"
+					picks="count"
 					options={parameters}
 					value={parametersFilter}
 					onChange={(values) => onFilterChange(COLUMN_ID.PARAMETERS, values)}
@@ -138,6 +150,7 @@ export function ResultTableFilters({
 				<DataTableFacetedFilter
 					title="Requirements"
 					size="xss"
+					picks="count"
 					options={requirements}
 					value={requirementsFilter}
 					onChange={onRequirementsFilterChange}
@@ -157,9 +170,12 @@ export function ResultTableFilters({
 					<span className={TOOLBAR_LABEL_CLASS}>Reset</span>
 				</ButtonTw>
 			</Tooltip>
-			{selectable ? (
+			{actions || selectable ? (
 				<div className="ml-auto flex shrink-0 items-center gap-2">
-					<SelectAllButton rows={selectable} />
+					{selectable ? (
+						<SelectAllButton rows={selectable} separated={Boolean(actions)} />
+					) : null}
+					{actions}
 				</div>
 			) : null}
 		</div>
@@ -168,6 +184,8 @@ export function ResultTableFilters({
 
 interface SelectAllButtonProps {
 	rows: readonly RunDataResults[];
+	/** Draw a separator after the button, from what follows it. */
+	separated?: boolean;
 }
 
 /**
@@ -176,7 +194,7 @@ interface SelectAllButtonProps {
  * alone, as Classify could not take them. Rows picked elsewhere stay
  * picked, as the selection spans tables.
  */
-function SelectAllButton({ rows }: SelectAllButtonProps) {
+function SelectAllButton({ rows, separated }: SelectAllButtonProps) {
 	const selection = useResultSelection();
 
 	if (!selection) return null;
@@ -186,7 +204,7 @@ function SelectAllButton({ rows }: SelectAllButtonProps) {
 		pickable.length > 0 &&
 		pickable.every((row) => selection.isSelected(row.result_id));
 
-	return (
+	const button = (
 		<Tooltip
 			content={
 				!pickable.length
@@ -221,5 +239,14 @@ function SelectAllButton({ rows }: SelectAllButtonProps) {
 				<span className={TOOLBAR_LABEL_CLASS}>Select All</span>
 			</ButtonTw>
 		</Tooltip>
+	);
+
+	return separated ? (
+		<>
+			{button}
+			<Separator orientation="vertical" className="h-5" />
+		</>
+	) : (
+		button
 	);
 }
