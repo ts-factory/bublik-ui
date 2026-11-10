@@ -72,10 +72,11 @@ function EventTableWithData({ data }: { data: ImportTaskRow[] }) {
 
 function createImportTaskRow(
 	runtime: number | null,
-	jobId: number
+	jobId: number,
+	status = 'SUCCESS'
 ): ImportTaskRow {
 	return {
-		status: 'SUCCESS',
+		status,
 		run_source_url: `https://example.com/run/${jobId}`,
 		celery_task: `task-${jobId}`,
 		started_at: null,
@@ -115,6 +116,17 @@ describe('ImportEventTableComponent', () => {
 		expect(screen.getByText('01:00:00.00')).toBeTruthy();
 		expect(screen.getByText('00:01:00.00')).toBeTruthy();
 		expect(screen.getAllByText('-')).toHaveLength(2);
+	});
+
+	it('should render a revoked task with a retry action', () => {
+		render(
+			<EventTableWithData data={[createImportTaskRow(5, 1, 'REVOKED')]} />
+		);
+
+		expect(screen.getByTestId('import-event-status').textContent).toBe(
+			'REVOKED'
+		);
+		expect(screen.getByText('Try Again')).toBeTruthy();
 	});
 
 	it('should render loading state', () => {

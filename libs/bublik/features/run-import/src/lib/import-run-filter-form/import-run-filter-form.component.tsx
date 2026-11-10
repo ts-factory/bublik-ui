@@ -20,7 +20,8 @@ const statusOptions = [
 	{ value: 'RECEIVED', displayValue: 'Received' },
 	{ value: 'RUNNING', displayValue: 'Running' },
 	{ value: 'SUCCESS', displayValue: 'Success' },
-	{ value: 'FAILURE', displayValue: 'Failure' }
+	{ value: 'FAILURE', displayValue: 'Failure' },
+	{ value: 'REVOKED', displayValue: 'Revoked' }
 ];
 
 export interface ImportRunFilterProps {

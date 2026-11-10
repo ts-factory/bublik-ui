@@ -521,6 +521,7 @@ export const statusBadgeStyles = cva({
 			FAILURE: ['bg-badge-12', 'text-white'],
 			RUNNING: ['bg-primary', 'text-white'],
 			RECEIVED: ['bg-badge-0', 'text-text-secondary'],
+			REVOKED: ['bg-bg-stopped', 'text-white'],
 			UNKNOWN: ['bg-badge-0', 'text-text-primary']
 		}
 	},
