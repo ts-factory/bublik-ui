@@ -102,6 +102,18 @@ Feature: Log
     Then neither the tree nor the info panel is shown
     And the URL still carries the unknown layout
 
+  # `/log/:runId/:old` is the URL shape from before `mode`, and the backend
+  # still links to `/log/:id/treeAndinfoAndlog` and `/log/:id/infoAndlog`. The
+  # redirect makes the old segment the link's one `mode`; it used to append
+  # `treeAndinfoAndlog` as a second `mode`, which lost the info-and-log layout.
+  @log @url-params
+  Scenario: The legacy redirect keeps its layout
+    Given an old-style link to a focused result in the info-and-log layout that also carries a mode of its own
+    When I open that link
+    Then the info panel is shown and the tree is not
+    And the URL carries the info-and-log layout as its only mode
+    And the link still carries the focused result
+
   @log @url-params
   Scenario: Turning on the legacy log records it in the URL and survives a reload
     Given I open the log of an imported run
@@ -209,6 +221,37 @@ Feature: Log
     When I turn on the NOK-only tree
     Then the tree lists fewer results
     And the log parameters are unchanged
+
+  ####################################################################
+  # Default layout
+  ####################################################################
+
+  # Settings › Preferences › Default log layout picks the layout of the log
+  # links the app builds. It is applied when a link is built, never when a URL
+  # is read: a link that carries `mode` opens in exactly that layout, and a bare
+  # log URL (backend short links, the sidebar's log-only link) stays log-only.
+
+  @log @url-params
+  Scenario: A log link opens in my default layout
+    Given I open the page of an imported run
+    And I choose Info + log as my default log layout
+    When I follow the Log link in the run header
+    Then the info panel is shown and the tree is not
+    And the URL carries the info-and-log layout as its only mode
+
+  @log @url-params
+  Scenario: An explicit mode overrides my default
+    Given my default log layout is log only
+    When I open a link to a run's log in the tree-and-log layout
+    Then the tree is shown and the info panel is not
+    And the URL carries the tree-and-log layout as its only mode
+
+  @log @url-params
+  Scenario: A bare log link opens the log on its own whatever my default
+    Given my default log layout is tree and info and log
+    When I open a link to a run's log that names no layout
+    Then neither the tree nor the info panel is shown
+    And the URL carries no layout
 
   ####################################################################
   # Classification

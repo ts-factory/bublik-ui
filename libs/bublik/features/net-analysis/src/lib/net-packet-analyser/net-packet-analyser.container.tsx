@@ -18,6 +18,7 @@ import {
 } from '@/shared/tailwind-ui';
 import { routes } from '@/router';
 import { BublikEmptyState } from '@/bublik/features/ui-state';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 import {
 	Data,
@@ -483,6 +484,7 @@ type NetPacketAnalyserContainerProps =
 	| { fileUrl: string; runId: number; resultId: number };
 
 function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
+	const logMode = useDefaultLogMode();
 	const { fileUrl } = props;
 	const {
 		filterInput,
@@ -551,7 +553,8 @@ function NetPacketAnalyserContainer(props: NetPacketAnalyserContainerProps) {
 									<LinkWithProject
 										to={routes.log({
 											runId: props.runId,
-											focusId: props.resultId
+											focusId: props.resultId,
+											mode: logMode
 										})}
 										onClick={() => {
 											trackEvent(analyticsEventNames.netPacketBacklinkClick, {

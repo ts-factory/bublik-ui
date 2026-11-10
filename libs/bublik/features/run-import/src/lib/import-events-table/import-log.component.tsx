@@ -48,6 +48,7 @@ import {
 	getCoreRowModel,
 	useReactTable
 } from '@tanstack/react-table';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
@@ -352,12 +353,16 @@ interface HeaderLinksProps {
 }
 
 function HeaderLinks({ runId }: HeaderLinksProps) {
+	const logMode = useDefaultLogMode();
 	if (!runId) return;
 
 	return (
 		<>
 			<ButtonTw asChild variant="secondary" size="xss">
-				<LinkWithProject to={routes.log({ runId })} target="_blank">
+				<LinkWithProject
+					to={routes.log({ runId, mode: logMode })}
+					target="_blank"
+				>
 					<Icon name="BoxArrowRight" className="mr-1.5" />
 					Log
 				</LinkWithProject>

@@ -45,6 +45,7 @@ import { RUN_STATUS } from '@/shared/types';
 import { LinkWithProject } from '@/bublik/features/projects';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 import { HistoryLinkContainer } from '@/bublik/features/history-link';
+import { useDefaultLogMode } from '@/bublik/features/user-preferences';
 
 import { NewBugContainer } from './log-preview-new-bug.container';
 
@@ -61,6 +62,7 @@ interface LogPreviewContainerProps {
 function LogPreviewContainer(
 	props: PropsWithChildren<LogPreviewContainerProps>
 ) {
+	const logMode = useDefaultLogMode();
 	const {
 		resultId,
 		runId,
@@ -122,7 +124,11 @@ function LogPreviewContainer(
 											{runId ? (
 												<ButtonTw asChild variant="secondary" size="xss">
 													<LinkWithProject
-														to={routes.log({ runId, focusId: resultId })}
+														to={routes.log({
+															runId,
+															focusId: resultId,
+															mode: logMode
+														})}
 														target="_blank"
 													>
 														<Icon name="BoxArrowRight" className="mr-1.5" />

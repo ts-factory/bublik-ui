@@ -3,6 +3,12 @@
 import { expect, Locator, Page } from '@playwright/test';
 
 const HOVER_CARD_OPEN_TIMEOUT = 5_000;
+
+type DefaultLogLayoutName =
+	| 'Tree + info + log'
+	| 'Tree + log'
+	| 'Info + log'
+	| 'Log only';
 const RELEASE_TAG = /^v\d+\.\d+\.\d+/;
 
 class Sidebar {
@@ -99,6 +105,29 @@ class Sidebar {
 		await this.openAccountMenu();
 		await this.accountMenuItem('Appearance').click();
 		await expect(this.themeCard('Light')).toBeVisible({ timeout: 15_000 });
+	}
+
+	/** A layout card of the Default log layout choice in Settings › Preferences; its name is the card title */
+	private logLayoutOption(name: DefaultLogLayoutName): Locator {
+		return this.settingsDialog()
+			.getByRole('radiogroup', { name: 'Default log layout' })
+			.getByRole('radio', { name, exact: true });
+	}
+
+	/** Chooses the layout in-app log links open in, then closes the settings */
+	async pickDefaultLogLayout(name: DefaultLogLayoutName): Promise<void> {
+		await this.openAccountMenu();
+		await this.accountMenuItem('Preferences').click();
+		await this.logLayoutOption(name).click();
+		await expect(this.logLayoutOption(name)).toHaveAttribute(
+			'aria-checked',
+			'true'
+		);
+		// A tooltip can take the first Escape on webkit, so press until it closes.
+		await expect(async () => {
+			await this.page.keyboard.press('Escape');
+			await expect(this.settingsDialog()).toBeHidden({ timeout: 1_000 });
+		}).toPass({ timeout: 15_000 });
 	}
 
 	async pickTheme(name: 'System' | 'Light' | 'Dark'): Promise<void> {
