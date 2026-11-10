@@ -6,10 +6,14 @@ import {
 	claimLoadForBuild,
 	fetchDeployedBuildId,
 	isNewBuild,
-	reloadAfterChunkError
+	openInNewBuild,
+	reloadAfterChunkError,
+	reloadForNewBuild
 } from './build-version';
 
 const reload = vi.fn();
+const assign = vi.fn();
+const replace = vi.fn();
 
 function stubFetch(response: Response | Error) {
 	const fetchMock = vi.fn(() =>
@@ -24,8 +28,8 @@ function stubFetch(response: Response | Error) {
 
 beforeEach(() => {
 	window.sessionStorage.clear();
-	reload.mockClear();
-	vi.stubGlobal('location', { ...window.location, reload });
+	vi.clearAllMocks();
+	vi.stubGlobal('location', { ...window.location, reload, assign, replace });
 });
 
 afterEach(() => {
@@ -136,5 +140,38 @@ describe('reloadAfterChunkError', () => {
 
 		expect(await reloadAfterChunkError('build-a')).toBe(false);
 		expect(reload).not.toHaveBeenCalled();
+	});
+});
+
+describe('reloadForNewBuild', () => {
+	it('reloads once per deployed build', () => {
+		expect(reloadForNewBuild('build-b')).toBe(true);
+		expect(reloadForNewBuild('build-b')).toBe(false);
+		expect(reload).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('openInNewBuild', () => {
+	it('opens the destination with a full page load', () => {
+		expect(openInNewBuild('build-b', '/v2/runs', { replace: false })).toBe(
+			true
+		);
+		expect(assign).toHaveBeenCalledWith('/v2/runs');
+	});
+
+	it('replaces the history entry for a replacing navigation', () => {
+		openInNewBuild('build-b', '/v2/runs', { replace: true });
+
+		expect(replace).toHaveBeenCalledWith('/v2/runs');
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it('leaves the navigation alone once the load for the build is spent', () => {
+		openInNewBuild('build-b', '/v2/runs', { replace: false });
+
+		expect(openInNewBuild('build-b', '/v2/history', { replace: false })).toBe(
+			false
+		);
+		expect(assign).toHaveBeenCalledTimes(1);
 	});
 });

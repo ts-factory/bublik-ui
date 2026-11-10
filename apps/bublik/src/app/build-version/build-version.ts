@@ -84,6 +84,34 @@ async function reloadAfterChunkError(
 	return true;
 }
 
+/**
+ * Moves this tab onto `deployedBuildId` by reloading the current page.
+ * Returns `false` when the tab has already spent its load for that build.
+ */
+function reloadForNewBuild(deployedBuildId: string): boolean {
+	if (!claimLoadForBuild(deployedBuildId)) return false;
+
+	window.location.reload();
+	return true;
+}
+
+/**
+ * Moves this tab onto `deployedBuildId` by opening `href` with a full page
+ * load, in place of the in-app navigation that was heading there.
+ * Returns `false` when the tab has already spent its load for that build.
+ */
+function openInNewBuild(
+	deployedBuildId: string,
+	href: string,
+	options: { replace: boolean }
+): boolean {
+	if (!claimLoadForBuild(deployedBuildId)) return false;
+
+	if (options.replace) window.location.replace(href);
+	else window.location.assign(href);
+	return true;
+}
+
 /** Vite dispatches `vite:preloadError` when a dynamic import fails to load. */
 function installChunkErrorReload(): void {
 	window.addEventListener('vite:preloadError', () => {
@@ -96,6 +124,8 @@ export {
 	fetchDeployedBuildId,
 	installChunkErrorReload,
 	isNewBuild,
+	openInNewBuild,
 	reloadAfterChunkError,
+	reloadForNewBuild,
 	RELOAD_STORAGE_KEY
 };
