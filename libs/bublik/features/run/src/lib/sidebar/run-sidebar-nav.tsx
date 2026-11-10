@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { Icon } from '@/shared/tailwind-ui';
 import {
 	LinkWithProject,
@@ -27,13 +28,6 @@ import {
 	type SidebarNavSubmenuModeSwitchItem
 } from '@/bublik/features/sidebar-nav';
 import { LOG_MODES, useRunSidebarState } from './use-run-sidebar-state';
-
-import {
-	RunDetailsDialog,
-	RunReportDialog,
-	RunIssuesDialog,
-	RunMainDialog
-} from './run-dialogs';
 
 /** Just left of the run's number, centered on it, taking no room of its own. */
 const INFO_BUTTON_PLACEMENT =
@@ -131,7 +125,7 @@ export function RunSidebarNav() {
 						<SidebarNavInternalLink.Icon name="PieChart" />
 						<SidebarNavInternalLink.Label>Run</SidebarNavInternalLink.Label>
 						{/*
-						 * The help button sits inside the link, ahead of the run's
+						 * The docs button sits inside the link, ahead of the run's
 						 * number: the badge keeps the edge by the chevron, and the `?`
 						 * fades in just left of it, out of the flow. In the flow it would
 						 * hold its width while hidden, and once the sidebar grows a
@@ -141,9 +135,9 @@ export function RunSidebarNav() {
 							<SidebarNavInfoButton
 								disabled={!isMainLinkAvailable}
 								className={INFO_BUTTON_PLACEMENT}
-							>
-								<RunMainDialog />
-							</SidebarNavInfoButton>
+								href={docsUrl(USER_GUIDE.run)}
+								label="Run"
+							/>
 							{activeRunId ? (
 								<SidebarKeyBadge
 									label={`#${activeRunId}`}
@@ -171,9 +165,10 @@ export function RunSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Details
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<RunDetailsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.runDetails)}
+						label="Run details"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={logUrl}
@@ -209,9 +204,10 @@ export function RunSidebarNav() {
 							className="ml-auto size-5 animate-spin text-primary"
 						/>
 					) : (
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<RunReportDialog />
-						</SidebarNavSubmenuItemContainer.InfoButton>
+						<SidebarNavSubmenuItemContainer.InfoButton
+							href={docsUrl(USER_GUIDE.runReport)}
+							label="Run report"
+						/>
 					)}
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
@@ -246,9 +242,10 @@ export function RunSidebarNav() {
 							/>
 						)
 					) : (
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<RunIssuesDialog />
-						</SidebarNavSubmenuItemContainer.InfoButton>
+						<SidebarNavSubmenuItemContainer.InfoButton
+							href={docsUrl(USER_GUIDE.runIssues)}
+							label="Run issues"
+						/>
 					)}
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>

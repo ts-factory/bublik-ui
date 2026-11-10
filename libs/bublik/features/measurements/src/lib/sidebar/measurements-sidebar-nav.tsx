@@ -8,6 +8,7 @@ import { useGetSingleMeasurementQuery } from '@/services/bublik-api';
 import { Icon } from '@/shared/tailwind-ui';
 import { MeasurementsRouterParams } from '@/shared/types';
 
+import { docsUrl, USER_GUIDE } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
 import {
 	SidebarNavLinkWrapper,
@@ -22,7 +23,6 @@ import {
 	MeasurementsSidebarMode
 } from '@/bublik/features/sidebar';
 
-import { ResultMeasurementsDialog } from './measurements-dialog';
 import { useMeasurementsSidebarState } from './use-measurements-sidebar-state';
 
 const MEASUREMENTS_SIDEBAR_MODES: readonly MeasurementsSidebarMode[] = [
@@ -78,9 +78,11 @@ export function MeasurementsSidebarNav() {
 						<SidebarNavInternalLink.Label>Result</SidebarNavInternalLink.Label>
 					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
-				<SidebarNavInfoButton disabled={!isAvailable}>
-					<ResultMeasurementsDialog />
-				</SidebarNavInfoButton>
+				<SidebarNavInfoButton
+					disabled={!isAvailable}
+					href={docsUrl(USER_GUIDE.result)}
+					label="Result"
+				/>
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
@@ -99,9 +101,10 @@ export function MeasurementsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Charts + Tables
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<ResultMeasurementsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.resultChartsTables)}
+						label="Charts and tables"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('split')}
@@ -116,9 +119,10 @@ export function MeasurementsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Charts || Tables
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<ResultMeasurementsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.resultSplit)}
+						label="Split charts and tables"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('tables')}
@@ -133,9 +137,10 @@ export function MeasurementsSidebarNav() {
 					<SidebarNavSubmenuItemContainer.Label>
 						Measurement Tables
 					</SidebarNavSubmenuItemContainer.Label>
-					<SidebarNavSubmenuItemContainer.InfoButton>
-						<ResultMeasurementsDialog />
-					</SidebarNavSubmenuItemContainer.InfoButton>
+					<SidebarNavSubmenuItemContainer.InfoButton
+						href={docsUrl(USER_GUIDE.resultTables)}
+						label="Measurement tables"
+					/>
 				</SidebarNavSubmenuItemContainer>
 				<SidebarNavSubmenuItemContainer
 					to={getModeUrl('overlay')}
@@ -156,9 +161,10 @@ export function MeasurementsSidebarNav() {
 							className="ml-auto size-5 animate-spin text-primary"
 						/>
 					) : (
-						<SidebarNavSubmenuItemContainer.InfoButton>
-							<ResultMeasurementsDialog />
-						</SidebarNavSubmenuItemContainer.InfoButton>
+						<SidebarNavSubmenuItemContainer.InfoButton
+							href={docsUrl(USER_GUIDE.resultStacked)}
+							label="Result stacked charts"
+						/>
 					)}
 				</SidebarNavSubmenuItemContainer>
 			</SidebarNavCollapsibleContainer.Submenu>

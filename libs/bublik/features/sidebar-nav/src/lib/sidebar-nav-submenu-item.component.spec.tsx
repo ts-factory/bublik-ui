@@ -12,11 +12,7 @@ import {
 import { MemoryRouter, type To } from 'react-router-dom';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import {
-	DialogClose,
-	SidebarProvider,
-	TooltipProvider
-} from '@/shared/tailwind-ui';
+import { SidebarProvider, TooltipProvider } from '@/shared/tailwind-ui';
 
 import { SidebarNavSubmenuItemContainer } from './sidebar-nav-submenu-item.component';
 
@@ -95,12 +91,10 @@ function renderSubmenuItem({
 								testId="details-mode-switch"
 							/>
 						) : (
-							<SidebarNavSubmenuItemContainer.InfoButton>
-								<div>
-									<span>Details help content</span>
-									<DialogClose>Close help</DialogClose>
-								</div>
-							</SidebarNavSubmenuItemContainer.InfoButton>
+							<SidebarNavSubmenuItemContainer.InfoButton
+								href="https://docs.test/details"
+								label="Details"
+							/>
 						)}
 					</SidebarNavSubmenuItemContainer>
 				</SidebarProvider>
@@ -151,24 +145,40 @@ describe('SidebarNavSubmenuItemContainer', () => {
 		);
 	});
 
-	it('keeps info button clicks from triggering link navigation', async () => {
+	it('opens the docs in a new tab without following the link', async () => {
 		const user = userEvent.setup();
-		const { container, handleLinkClick } = renderSubmenuItem();
+		const open = vi.spyOn(window, 'open').mockReturnValue(null);
+		const { handleLinkClick } = renderSubmenuItem();
 
 		await user.click(screen.getByText('Details'));
 		expect(handleLinkClick).toHaveBeenCalledTimes(1);
 
-		const infoButton = container.querySelector('[data-info-button]');
-		expect(infoButton).toBeInstanceOf(HTMLButtonElement);
+		await user.click(screen.getByRole('button', { name: 'Open Details docs' }));
 
-		await user.click(infoButton as HTMLButtonElement);
-
-		expect(await screen.findByText('Details help content')).toBeTruthy();
+		expect(open).toHaveBeenCalledWith(
+			'https://docs.test/details',
+			'_blank',
+			'noopener,noreferrer'
+		);
 		expect(handleLinkClick).toHaveBeenCalledTimes(1);
 
-		await user.click(screen.getByText('Close help'));
-		expect(handleLinkClick).toHaveBeenCalledTimes(1);
+		open.mockRestore();
 	});
+
+	it('keeps the docs button visible on a disabled item', () => {
+		const { container } = renderSubmenuItem({ disabled: true });
+
+		expect(container.querySelector('[data-info-button]')?.className).toContain(
+			'pointer-events-auto visible'
+		);
+	});
+
+	it('hides the docs button while the sidebar is collapsed', () => {
+		const { container } = renderSubmenuItem({ isSidebarOpen: false });
+
+		expect(container.querySelector('[data-info-button]')).toBeNull();
+	});
+
 	it('switches the mode from its icons without following the link', async () => {
 		const user = userEvent.setup();
 		const { handleLinkClick, handleSelect } = renderSubmenuItem({

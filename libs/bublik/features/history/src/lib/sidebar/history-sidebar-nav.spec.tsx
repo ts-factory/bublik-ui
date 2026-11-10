@@ -65,9 +65,7 @@ vi.mock('@/bublik/features/sidebar-nav', () => {
 		{
 			Icon: () => null,
 			Label: ({ children }: { children: ReactNode }) => <span>{children}</span>,
-			InfoButton: ({ children }: { children: ReactNode }) => (
-				<span>{children}</span>
-			)
+			InfoButton: () => null
 		}
 	);
 
@@ -85,13 +83,6 @@ vi.mock('@/bublik/features/sidebar-nav', () => {
 vi.mock('@/shared/tailwind-ui', () => ({
 	Icon: () => null,
 	cva: () => () => ''
-}));
-
-vi.mock('./history-dialogs', () => ({
-	HistoryHelpDialog: () => null,
-	HistoryHelpTrendChartsDialog: () => null,
-	HistoryHelpMeasurementSeriesDialog: () => null,
-	HistoryHelpStackedChartsDialog: () => null
 }));
 
 vi.mock('./use-history-sidebar-state', () => ({
