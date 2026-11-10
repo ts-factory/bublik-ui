@@ -7,8 +7,10 @@ import { ErrorBoundary, Spinner } from '@/shared/tailwind-ui';
 
 import { printDevInfoToConsole } from './dev-console';
 import { App } from './app/app';
+import { installChunkErrorReload } from './app/build-version/build-version';
 
 printDevInfoToConsole();
+installChunkErrorReload();
 
 const container = document.getElementById('root');
 
