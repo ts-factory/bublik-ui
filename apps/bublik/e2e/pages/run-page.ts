@@ -254,6 +254,12 @@ class RunPage {
 	}
 
 	async expandPackagePath(packageNames: string[]): Promise<void> {
+		// The probes below do not wait: before the tree has rendered they
+		// would find no row and leave every package collapsed.
+		await expect(this.page.getByTestId('run-row').first()).toBeVisible({
+			timeout: 30_000
+		});
+
 		for (const name of packageNames) {
 			const row = this.page
 				.locator(
