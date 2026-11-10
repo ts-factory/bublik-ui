@@ -3,3 +3,4 @@
 export * from './lib/import-events-table';
 export * from './lib/import-run-form';
 export { ImportLogProvider } from './lib/import-events-table/import-log.component';
+export * from './lib/import-activity';

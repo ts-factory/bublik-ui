@@ -23,6 +23,10 @@ vi.mock('@/bublik/features/projects', () => ({
 	)
 }));
 
+vi.mock('@/bublik/features/run-import', () => ({
+	ImportActivityIndicatorContainer: () => null
+}));
+
 vi.mock('@/bublik/features/sidebar-nav', () => {
 	const SidebarNavCollapsibleContainer = Object.assign(
 		({ children }: { children: ReactNode }) => <nav>{children}</nav>,

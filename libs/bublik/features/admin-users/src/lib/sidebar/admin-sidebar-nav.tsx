@@ -2,6 +2,7 @@
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { useAuth } from '@/bublik/features/auth';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { ImportActivityIndicatorContainer } from '@/bublik/features/run-import';
 import {
 	SidebarNavCollapsibleContainer,
 	SidebarNavInternalLink,
@@ -30,6 +31,7 @@ export function AdminSidebarNav() {
 						<SidebarNavInternalLink.Label>Admin</SidebarNavInternalLink.Label>
 					</SidebarNavInternalLink>
 				</SidebarNavLinkWrapper>
+				<ImportActivityIndicatorContainer />
 				<SidebarNavToggle />
 			</SidebarNavCollapsibleContainer.Item>
 
