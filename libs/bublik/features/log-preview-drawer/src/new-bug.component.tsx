@@ -3,6 +3,7 @@
 import { ComponentProps } from 'react';
 
 import {
+	DetailsItem,
 	getLogTimestampSeconds,
 	LogTableSchema,
 	RootBlock,
@@ -281,11 +282,13 @@ export function getFormattedMarkdown(
 			if (options.tags.configuration) {
 				configurations = [options.tags.configuration];
 			} else {
-				configurations = hasConfigurationKey
-					? options.tags.specialCategories['Configuration'] ||
-					  options.tags.specialCategories['configuration'] ||
-					  []
-					: Object.values(options.tags.specialCategories).flat();
+				configurations = (
+					hasConfigurationKey
+						? options.tags.specialCategories['Configuration'] ||
+						  options.tags.specialCategories['configuration'] ||
+						  []
+						: Object.values(options.tags.specialCategories).flat()
+				).map((item) => item.value);
 			}
 
 			const matches = findAllMatches(configurations, options.hashes ?? []);
@@ -370,7 +373,7 @@ export function getFormattedMarkdown(
 				([label, values]) => {
 					if (!values.length) return;
 					markdown += `## ${label}\n\n`;
-					markdown += values.join(', ');
+					markdown += values.map(formatSpecialCategoryValue).join(', ');
 				}
 			);
 		}
@@ -421,12 +424,19 @@ export function getFormattedMarkdown(
 
 const VERDICT_ENTTITY = 'Verdict';
 
+/** `name: url` for a link, `name: value` otherwise, without the name if none */
+function formatSpecialCategoryValue(item: DetailsItem): string {
+	const value = item.url ?? item.value;
+
+	return item.name ? `${item.name}: ${value}` : value;
+}
+
 export type BugTags = {
 	branches: string[];
 	important: string[];
 	revisions?: { name?: string; value: string; url?: string }[];
 	parameters?: { name: string; value: string }[];
-	specialCategories: Record<string, string[]>;
+	specialCategories: Record<string, DetailsItem[]>;
 	configuration?: string;
 };
 

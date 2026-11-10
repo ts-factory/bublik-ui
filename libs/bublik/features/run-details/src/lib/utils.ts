@@ -100,6 +100,29 @@ const createInfoListItem =
 		};
 	};
 
+export const prepareSpecialCategoryItems = (
+	items: DetailsItem[],
+	backgroundColor: string
+): InfoListItem[] => {
+	return items.map((item) => {
+		// A bare value: an older backend's raw label, or a value with no name
+		if (item.name === undefined && item.url === undefined) {
+			return createInfoListItem({
+				backgroundColor,
+				formatter: formatSeparator
+			})(item.value);
+		}
+
+		return {
+			name: item.name,
+			value: item.value,
+			url: item.url,
+			className: backgroundColor,
+			isImportant: false
+		};
+	});
+};
+
 export const prepareTags = (important: string[], relevant: string[]) => {
 	const importantConfig: InfoListItemConfig = {
 		isImportant: true,

@@ -2,7 +2,7 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 import { RunDetailsDiffProps } from './run-details-diff';
 
-import { RunDetailsAPIResponse } from '@/shared/types';
+import { DetailsItem, RunDetailsAPIResponse } from '@/shared/types';
 import { config } from '@/bublik/config';
 
 export const getDiffProps = ({
@@ -89,16 +89,24 @@ export const getDiffProps = ({
 	const projectMeta: RunDetailsDiffProps['projectMeta'] = allKeys.map(
 		(key) => ({
 			label: key,
-			left: (leftData.special_categories?.[key] || []).map((value) => ({
-				className: `bg-badge-4`,
-				value
-			})),
-			right: (rightData.special_categories?.[key] || []).map((value) => ({
-				className: `bg-badge-4`,
-				value
-			}))
+			left: (leftData.special_categories?.[key] || []).map(
+				toSpecialCategoryMeta
+			),
+			right: (rightData.special_categories?.[key] || []).map(
+				toSpecialCategoryMeta
+			)
 		})
 	);
 
 	return { sharedMeta, projectMeta };
 };
+
+function toSpecialCategoryMeta(item: DetailsItem) {
+	return {
+		className: 'bg-badge-4',
+		value: item.name
+			? `${item.name}${config.keyValueSubmitDelimiter}${item.value}`
+			: item.value,
+		url: item.url
+	};
+}

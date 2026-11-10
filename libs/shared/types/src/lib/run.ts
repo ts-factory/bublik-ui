@@ -371,6 +371,28 @@ export const DetailsItemSchema = z.object({
 
 export type DetailsItem = z.infer<typeof DetailsItemSchema>;
 
+/**
+ * A value of a special category. Older backends send the raw `NAME=value`
+ * label; newer ones send `{ name, value, url }`, where `value` is the short
+ * form of a URL in `url`. Both are read as a `DetailsItem`.
+ */
+export const SpecialCategoryValueSchema = z.union([
+	z.string().transform((value): DetailsItem => ({ value })),
+	z
+		.object({
+			name: z.string().nullish(),
+			value: z.string().nullish(),
+			url: z.string().nullish()
+		})
+		.transform(
+			(item): DetailsItem => ({
+				name: item.name ?? undefined,
+				value: item.value ?? '',
+				url: item.url ?? undefined
+			})
+		)
+]);
+
 export const CompromisedStatusDetailsSchema = z.object({
 	status: z.boolean().default(false),
 	comment: z.string().optional(),
@@ -397,7 +419,9 @@ export const RunDetailsAPIResponseSchema = z.object({
 	branches: z.array(z.string()).default([]),
 	labels: z.array(z.string()).default([]),
 	revisions: z.array(DetailsItemSchema).default([]),
-	special_categories: z.record(z.string(), z.array(z.string())).default({}),
+	special_categories: z
+		.record(z.string(), z.array(SpecialCategoryValueSchema))
+		.default({}),
 	configuration: z.string().optional(),
 	status: z.string().default(''),
 	status_by_nok: z.string().default(''),
