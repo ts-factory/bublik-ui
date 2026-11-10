@@ -1,18 +1,28 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
-import { useMemo, useRef } from 'react';
+import { MouseEvent, useMemo, useRef } from 'react';
 
 import { config } from '@/bublik/config';
-import { ResultIssueBadges } from '@/bublik/features/result-classification';
+import {
+	ClassifySelectionButton,
+	ResultIssueBadges,
+	ResultSelection,
+	isClassifiable,
+	useClassifySelection,
+	useResultSelection
+} from '@/bublik/features/result-classification';
 import { ResultLinksContainer } from '@/bublik/features/result-links';
 import {
 	Badge,
+	ButtonTw,
 	DialogClose,
 	DrawerContent,
 	DrawerRoot,
 	Icon,
 	Separator,
-	VerdictList
+	Tooltip,
+	VerdictList,
+	cn
 } from '@/shared/tailwind-ui';
 import { joinKeyValue } from '@/shared/utils';
 
@@ -36,8 +46,41 @@ export interface MatrixCellDrawerProps {
 }
 
 /**
+ * Classify and Reset for the page's result selection, at the foot of the
+ * drawer while anything is picked: the selection's pill sits behind the
+ * drawer, out of reach. The same action as the pill's popover, so picks
+ * from other tests and runs go in the same requests.
+ */
+function DrawerSelectionFooter({ selection }: { selection: ResultSelection }) {
+	const classify = useClassifySelection(selection);
+
+	return (
+		<>
+			{selection.count ? (
+				<div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border-primary px-4 py-3">
+					<ClassifySelectionButton trigger={classify.trigger} />
+					<ButtonTw
+						variant="outline"
+						rounded="lg"
+						size="sm/2"
+						className="w-full justify-center"
+						onClick={selection.clear}
+					>
+						Reset
+					</ButtonTw>
+				</div>
+			) : null}
+			{/* Mounted whatever is picked: classifying drops the selection. */}
+			{classify.drawer}
+		</>
+	);
+}
+
+/**
  * Side drawer with the iterations of one matrix cell: their links, results
- * and stamps, and the parameters that differ between them.
+ * and stamps. The failed or classified ones are picked by a click into the
+ * page's result selection, as rows of the result table are, and classified
+ * from the footer together with whatever else is picked.
  */
 export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 	const {
@@ -71,6 +114,32 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 
 	const delimiter = config.keyValueDisplayDelimiter;
 	const closeRef = useRef<HTMLButtonElement>(null);
+	// The page's result selection, the one the list's rows pick into; with
+	// none, as outside the run pages, the cards are not picked.
+	const selection = useResultSelection();
+	// What Classify can take: a failure, or a result already stamped.
+	const classifiable = useMemo(
+		() => iterations.filter((it) => isClassifiable(it.source)),
+		[iterations]
+	);
+	const isAllPicked =
+		classifiable.length > 0 &&
+		classifiable.every((it) => selection?.isSelected(it.resultId));
+
+	// A click anywhere on a pickable card toggles it, as a list row does,
+	// unless it lands on one of the card's own controls or links.
+	function handleCardClick(
+		event: MouseEvent<HTMLLIElement>,
+		iteration: MatrixIteration
+	) {
+		const target = event.target as HTMLElement;
+		// React bubbles through portals: a click in the card's log preview gets
+		// here too, though it is nowhere near the card.
+		if (!event.currentTarget.contains(target)) return;
+		if (target.closest('button, a, input, [role="button"]')) return;
+		selection?.toggle(iteration.source);
+	}
+
 	return (
 		<DrawerRoot open={open} onOpenChange={onOpenChange}>
 			{/* The run table's root is `isolate`, so inline the overlay would only
@@ -108,6 +177,37 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 						</span>
 					</div>
 					<div className="flex shrink-0 items-center gap-2">
+						{/* The result table's Select All, for the cell's iterations. */}
+						{selection && classifiable.length > 1 ? (
+							<Tooltip
+								content={
+									isAllPicked
+										? 'Drop the listed results from the selection'
+										: 'Select every listed failed or classified result to classify them at once'
+								}
+							>
+								<ButtonTw
+									variant={isAllPicked ? 'primary' : 'secondary'}
+									size="xss"
+									aria-pressed={isAllPicked}
+									onClick={() =>
+										isAllPicked
+											? selection.deselect(
+													classifiable.map((it) => it.resultId)
+											  )
+											: selection.select(classifiable.map((it) => it.source))
+									}
+								>
+									<Icon
+										name="BoxCheckmark"
+										size={20}
+										viewBox="1.94 1 14 14"
+										className="mr-1.5"
+									/>
+									Select All
+								</ButtonTw>
+							</Tooltip>
+						) : null}
 						<DialogClose asChild>
 							<button
 								ref={closeRef}
@@ -122,10 +222,26 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 				</div>
 				<ul className="styled-scrollbar flex flex-1 flex-col gap-2 overflow-auto p-4">
 					{iterations.map((it) => {
+						const isPickable = selection !== null && isClassifiable(it.source);
+						const isPicked =
+							isPickable && (selection?.isSelected(it.resultId) ?? false);
+
 						return (
 							<li
 								key={it.resultId}
-								className="flex items-start gap-4 rounded-md bg-primary-wash p-3"
+								onClick={
+									isPickable ? (event) => handleCardClick(event, it) : undefined
+								}
+								// Only a failed or a classified result can be picked, as in
+								// the list; a picked one is outlined and tinted, as its row.
+								data-selected={isPicked ? '' : undefined}
+								className={cn(
+									'flex items-start gap-4 rounded-md border bg-primary-wash p-3 transition-colors',
+									isPicked
+										? 'border-primary bg-primary/10'
+										: 'border-transparent',
+									isPickable && 'cursor-pointer hover:border-primary'
+								)}
 							>
 								{/* The links in a column on the left, as the list's Actions
 							    column has them. */}
@@ -162,6 +278,7 @@ export function MatrixCellDrawer(props: MatrixCellDrawerProps) {
 						);
 					})}
 				</ul>
+				{selection ? <DrawerSelectionFooter selection={selection} /> : null}
 			</DrawerContent>
 		</DrawerRoot>
 	);
