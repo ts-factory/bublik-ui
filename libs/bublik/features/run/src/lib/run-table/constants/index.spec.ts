@@ -37,27 +37,26 @@ describe('run table column defaults', () => {
 
 	it('preserves API default column order after the leading columns', () => {
 		expect(
-			createDefaultColumnOrder(['failed', 'passed', 'run']).slice(0, 6)
-		).toEqual([
-			ColumnId.Tree,
-			ColumnId.Objective,
-			ColumnId.Comments,
-			ColumnId.FailedExpected,
-			ColumnId.PassedExpected,
-			ColumnId.Run
-		]);
+			createDefaultColumnOrder(['failed', 'passed', 'run']).filter((id) =>
+				[
+					ColumnId.FailedExpected,
+					ColumnId.PassedExpected,
+					ColumnId.Run
+				].includes(id)
+			)
+		).toEqual([ColumnId.FailedExpected, ColumnId.PassedExpected, ColumnId.Run]);
 	});
 
-	it('appends missing configurable columns after API ordered columns', () => {
+	it('places unlisted columns beside their group, else at the end', () => {
 		expect(createDefaultColumnOrder(['failed', 'passed', 'run'])).toEqual([
 			ColumnId.Tree,
 			ColumnId.Objective,
 			ColumnId.Comments,
+			ColumnId.ExpectedTotal,
 			ColumnId.FailedExpected,
 			ColumnId.PassedExpected,
-			ColumnId.Run,
 			ColumnId.Total,
-			ColumnId.ExpectedTotal,
+			ColumnId.Run,
 			ColumnId.UnexpectedTotal,
 			ColumnId.PassedUnexpected,
 			ColumnId.FailedUnexpected,
@@ -67,7 +66,47 @@ describe('run table column defaults', () => {
 		]);
 	});
 
-	it('keeps Objective and Notes next to the tree for the backend default', () => {
+	it('places an unlisted column after the group mates it follows', () => {
+		expect(
+			createDefaultColumnOrder(['run', 'passed_unexpected', 'abnormal'])
+		).toEqual([
+			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
+			ColumnId.Total,
+			ColumnId.Run,
+			ColumnId.UnexpectedTotal,
+			ColumnId.PassedUnexpected,
+			ColumnId.FailedUnexpected,
+			ColumnId.Abnormal,
+			ColumnId.ExpectedTotal,
+			ColumnId.PassedExpected,
+			ColumnId.FailedExpected,
+			ColumnId.SkippedExpected,
+			ColumnId.SkippedUnexpected
+		]);
+	});
+
+	it('leads each group with its total in the static default', () => {
+		expect(DEFAULT_COLUMN_ORDER).toEqual([
+			ColumnId.Tree,
+			ColumnId.Objective,
+			ColumnId.Comments,
+			ColumnId.Total,
+			ColumnId.Run,
+			ColumnId.ExpectedTotal,
+			ColumnId.PassedExpected,
+			ColumnId.FailedExpected,
+			ColumnId.UnexpectedTotal,
+			ColumnId.PassedUnexpected,
+			ColumnId.FailedUnexpected,
+			ColumnId.SkippedExpected,
+			ColumnId.SkippedUnexpected,
+			ColumnId.Abnormal
+		]);
+	});
+
+	it('keeps Objective and Notes first and totals with their groups for the backend default', () => {
 		expect(
 			createDefaultColumnOrder([
 				'run',
@@ -83,25 +122,26 @@ describe('run table column defaults', () => {
 			ColumnId.Tree,
 			ColumnId.Objective,
 			ColumnId.Comments,
+			ColumnId.Total,
 			ColumnId.Run,
+			ColumnId.ExpectedTotal,
 			ColumnId.PassedExpected,
 			ColumnId.FailedExpected,
+			ColumnId.UnexpectedTotal,
 			ColumnId.PassedUnexpected,
 			ColumnId.FailedUnexpected,
 			ColumnId.SkippedExpected,
 			ColumnId.SkippedUnexpected,
-			ColumnId.Abnormal,
-			ColumnId.Total,
-			ColumnId.ExpectedTotal,
-			ColumnId.UnexpectedTotal
+			ColumnId.Abnormal
 		]);
 	});
 
 	it('keeps the configured position of Objective and Notes', () => {
 		expect(
-			createDefaultColumnOrder(['run', 'objective', 'comments']).slice(0, 4)
+			createDefaultColumnOrder(['run', 'objective', 'comments']).slice(0, 5)
 		).toEqual([
 			ColumnId.Tree,
+			ColumnId.Total,
 			ColumnId.Run,
 			ColumnId.Objective,
 			ColumnId.Comments
@@ -109,9 +149,10 @@ describe('run table column defaults', () => {
 	});
 
 	it('leads with only the unlisted one of Objective and Notes', () => {
-		expect(createDefaultColumnOrder(['run', 'objective']).slice(0, 4)).toEqual([
+		expect(createDefaultColumnOrder(['run', 'objective']).slice(0, 5)).toEqual([
 			ColumnId.Tree,
 			ColumnId.Comments,
+			ColumnId.Total,
 			ColumnId.Run,
 			ColumnId.Objective
 		]);
@@ -119,12 +160,14 @@ describe('run table column defaults', () => {
 
 	it('deduplicates repeated API default columns', () => {
 		expect(
-			createDefaultColumnOrder(['run', 'passed', 'run']).slice(0, 5)
+			createDefaultColumnOrder(['run', 'passed', 'run']).slice(0, 7)
 		).toEqual([
 			ColumnId.Tree,
 			ColumnId.Objective,
 			ColumnId.Comments,
+			ColumnId.Total,
 			ColumnId.Run,
+			ColumnId.ExpectedTotal,
 			ColumnId.PassedExpected
 		]);
 	});
