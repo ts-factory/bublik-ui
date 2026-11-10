@@ -100,6 +100,7 @@ export const {
 	useGetImportEventLogQuery,
 	useImportRunsMutation,
 	useGetImportLogQuery,
+	useRevokeImportTaskMutation,
 	// Log
 	useGetLogJsonQuery,
 	useGetTreeByRunIdQuery,

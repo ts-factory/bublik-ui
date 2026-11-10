@@ -129,6 +129,22 @@ describe('ImportEventTableComponent', () => {
 		expect(screen.getByText('Try Again')).toBeTruthy();
 	});
 
+	it('should offer revoking only unfinished tasks', () => {
+		render(
+			<EventTableWithData
+				data={[
+					createImportTaskRow(null, 1, 'RECEIVED'),
+					createImportTaskRow(null, 2, 'RUNNING'),
+					createImportTaskRow(1, 3, 'SUCCESS'),
+					createImportTaskRow(1, 4, 'FAILURE'),
+					createImportTaskRow(1, 5, 'REVOKED')
+				]}
+			/>
+		);
+
+		expect(screen.getAllByRole('button', { name: 'Revoke' })).toHaveLength(2);
+	});
+
 	it('should render loading state', () => {
 		const { asFragment } = render(<ImportEventTableLoading />);
 		expect(asFragment()).toMatchSnapshot();

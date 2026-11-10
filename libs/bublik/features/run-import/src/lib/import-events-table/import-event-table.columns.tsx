@@ -8,9 +8,20 @@ import { RocketIcon } from '@radix-ui/react-icons';
 import { ImportTaskRow } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
-import { getErrorMessage, useImportRunsMutation } from '@/services/bublik-api';
-import { useCopyToClipboard } from '@/shared/hooks';
-import { ButtonTw, cn, Icon, toast, Tooltip } from '@/shared/tailwind-ui';
+import {
+	getErrorMessage,
+	useImportRunsMutation,
+	useRevokeImportTaskMutation
+} from '@/services/bublik-api';
+import { useConfirm, useCopyToClipboard } from '@/shared/hooks';
+import {
+	ButtonTw,
+	cn,
+	ConfirmDialog,
+	Icon,
+	toast,
+	Tooltip
+} from '@/shared/tailwind-ui';
 import { parseDetailDate } from '@/shared/utils';
 import { routes } from '@/router';
 
@@ -53,6 +64,62 @@ const IMPORT_RETRY_ERROR_FALLBACK = 'Failed to trigger re-import';
 
 export function getImportRetryErrorMessage(error: unknown): string {
 	return getErrorMessage(error).description || IMPORT_RETRY_ERROR_FALLBACK;
+}
+
+const IMPORT_REVOKE_ERROR_FALLBACK = 'Failed to revoke the import task';
+
+const REVOCABLE_STATUSES = new Set(['RECEIVED', 'RUNNING']);
+
+interface RevokeImportTaskButtonProps {
+	taskId: string;
+	status?: string;
+}
+
+function RevokeImportTaskButton(props: RevokeImportTaskButtonProps) {
+	const { taskId, status } = props;
+	const [revokeImportTask, { isLoading }] = useRevokeImportTaskMutation();
+	const { confirmation, isVisible, confirm, decline } = useConfirm();
+
+	const handleClick = async () => {
+		if (!(await confirmation())) return;
+
+		const promise = revokeImportTask(taskId).unwrap();
+
+		toast.promise(promise, {
+			success: 'Revoked the import task',
+			error: (error: unknown) =>
+				getErrorMessage(error).description || IMPORT_REVOKE_ERROR_FALLBACK
+		});
+
+		await promise.catch(() => undefined);
+	};
+
+	return (
+		<>
+			<ConfirmDialog
+				open={isVisible}
+				title="Revoke this import task?"
+				description={
+					status === 'RUNNING'
+						? 'The running import is terminated. If it already saved the run, the run is left without part of its post-processing (categorization, cache).'
+						: 'The queued import will not be started.'
+				}
+				confirmLabel="Revoke"
+				onCancelClick={decline}
+				onConfirmClick={confirm}
+			/>
+			<ButtonTw
+				variant="destruction-secondary"
+				size="xss"
+				className="justify-start"
+				onClick={handleClick}
+				disabled={isLoading}
+			>
+				<Icon name="CrossSimple" size={20} className="mr-1.5" />
+				<span>Revoke</span>
+			</ButtonTw>
+		</>
+	);
 }
 
 interface ActionCellProps {
@@ -113,6 +180,9 @@ function ActionsCell(props: ActionCellProps) {
 					<span>Task</span>
 				</a>
 			</ButtonTw>
+			{status && REVOCABLE_STATUSES.has(status) ? (
+				<RevokeImportTaskButton taskId={taskId} status={status} />
+			) : null}
 		</div>
 	);
 }
