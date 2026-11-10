@@ -11,7 +11,9 @@ import {
 	ImportJsonLogResponseSchema,
 	ImportTaskListRawResponseSchema,
 	ImportTaskListResponseSchema,
-	ImportTaskFiltersSchema
+	ImportTaskFiltersSchema,
+	ImportTaskRevokeResponse,
+	ImportTaskRevokeResponseSchema
 } from '@/shared/types';
 import { formatTimeToAPI } from '@/shared/utils';
 
@@ -186,6 +188,15 @@ export const importLogEventsEndpoint = {
 				cache: 'no-cache'
 			}),
 			responseSchema: z.array(ImportJsonLogResponseSchema)
+		}),
+		revokeImportTask: build.mutation<ImportTaskRevokeResponse, string>({
+			query: (taskId) => ({
+				url: withApiV2('/importruns/revoke/', true),
+				method: 'POST',
+				body: { task_id: taskId }
+			}),
+			responseSchema: ImportTaskRevokeResponseSchema,
+			invalidatesTags: [BUBLIK_TAG.importEvents]
 		})
 	})
 };

@@ -78,6 +78,15 @@ export const ImportRunsJobResponseSchema = z.object({
 
 export type ImportRunsJobResponse = z.infer<typeof ImportRunsJobResponseSchema>;
 
+export const ImportTaskRevokeResponseSchema = z.object({
+	task_id: z.string(),
+	status: z.string()
+});
+
+export type ImportTaskRevokeResponse = z.infer<
+	typeof ImportTaskRevokeResponseSchema
+>;
+
 const optionalNumberFilterSchema = z.preprocess((val) => {
 	if (val === '' || val == null) return undefined;
 
