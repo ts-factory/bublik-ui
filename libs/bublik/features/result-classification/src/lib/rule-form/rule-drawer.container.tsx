@@ -18,6 +18,7 @@ import { LoginRequired } from '@/bublik/features/auth';
 
 import { RuleFields } from './rule-form.component';
 import { useRuleForm } from './rule-form.hooks';
+import { ruleToFormValues } from './rule-form.utils';
 import { type RuleForm, type RuleFormSeed } from './rule-form.types';
 import { useLazyDialog } from '../shared/lazy-dialog.hooks';
 import { buildRuleSubmitHandler } from './rule-mutations.utils';
@@ -98,6 +99,7 @@ export function RuleDrawer({
 							lockIssue={lockIssue}
 							testPath={testPath}
 							container={scrollableRef}
+							rule={rule}
 						/>
 
 						<div
@@ -167,7 +169,7 @@ export function NewRuleButton({
 
 	function handleOpenChange(next: boolean) {
 		setOpen(next);
-		if (!next) form.reset();
+		if (!next) form.reset(ruleToFormValues(seed));
 	}
 
 	return (
@@ -311,7 +313,9 @@ function LazyRuleDrawer({
 			open={open}
 			onOpenChange={(next) => {
 				onOpenChange(next);
-				if (!next) form.reset();
+				// Back to the rule as it is now, not as it was when first opened:
+				// the drawer stays mounted between opens.
+				if (!next) form.reset(ruleToFormValues(seed));
 			}}
 			form={form}
 			rule={rule}

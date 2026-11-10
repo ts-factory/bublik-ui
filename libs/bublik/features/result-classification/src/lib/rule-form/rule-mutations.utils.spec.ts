@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { IssueRule } from '@/shared/types';
 
 import type { RuleFormValues } from './rule-form.types';
+import { ruleToFormValues } from './rule-form.utils';
 import {
 	buildRuleCreateBody,
 	buildRuleUpdateBody,
@@ -39,6 +40,7 @@ function values(overrides: Partial<RuleFormValues> = {}): RuleFormValues {
 		active: 'active',
 		parameters: [{ id: 'env=ci', value: 'env=ci' }],
 		verdicts: [{ id: 'timeout', value: 'timeout' }],
+		noVerdicts: false,
 		tags: [],
 		...overrides
 	};
@@ -74,6 +76,37 @@ describe('buildRuleCreateBody', () => {
 		expect(
 			buildRuleCreateBody(values({ expected: 'none' })).expected
 		).toBeNull();
+	});
+});
+
+describe('a rule through the form and back (Duplicate)', () => {
+	function duplicated(verdicts: string[] | null) {
+		return buildRuleCreateBody(ruleToFormValues({ rule: rule({ verdicts }) }))
+			.verdicts;
+	}
+
+	it('keeps [], a failure without any verdict', () => {
+		expect(duplicated([])).toEqual([]);
+	});
+
+	it('keeps null, the verdicts not matched on', () => {
+		expect(duplicated(null)).toBeNull();
+	});
+
+	it('keeps a verdict list in its order', () => {
+		expect(duplicated(['timeout', 'reset failed'])).toEqual([
+			'timeout',
+			'reset failed'
+		]);
+	});
+
+	it('sends the verdict chips over "no verdicts" when there are any', () => {
+		expect(buildRuleCreateBody(values({ noVerdicts: true })).verdicts).toEqual([
+			'timeout'
+		]);
+		expect(
+			buildRuleCreateBody(values({ verdicts: [], noVerdicts: true })).verdicts
+		).toEqual([]);
 	});
 });
 

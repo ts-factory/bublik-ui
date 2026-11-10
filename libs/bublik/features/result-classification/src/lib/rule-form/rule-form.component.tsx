@@ -1,17 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { useEffect, type RefObject } from 'react';
+import { type RefObject } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { bublikAPI } from '@/services/bublik-api';
 import {
+	Checkbox,
 	ErrorMessage,
 	FormAlertError,
 	FormSection,
 	FormSectionSubheader,
 	SelectInput
 } from '@/shared/tailwind-ui';
-import type { IssueCategory } from '@/shared/types';
+import type { IssueCategory, IssueRule } from '@/shared/types';
 
 import { defaultDispositionFor } from '../shared/category.constants';
 import {
@@ -37,6 +38,8 @@ export interface RuleFieldsProps {
 	lockIssue?: boolean;
 	testPath?: string | null;
 	container?: RefObject<HTMLElement>;
+	/** The rule being edited, whose matcher the edit shows as it is stored. */
+	rule?: IssueRule | null;
 }
 
 export function RuleFields({
@@ -44,7 +47,8 @@ export function RuleFields({
 	mode,
 	lockIssue = false,
 	testPath,
-	container
+	container,
+	rule
 }: RuleFieldsProps) {
 	const {
 		control,
@@ -55,15 +59,17 @@ export function RuleFields({
 	const isEdit = mode === 'edit';
 
 	const project = watch('project');
-	const category = watch('category') as IssueCategory;
+	const verdictChips = watch('verdicts');
 	const { data: projects } = bublikAPI.useGetAllProjectsQuery();
 	const expectedTouched = Boolean(dirtyFields.expected);
 
-	useEffect(() => {
-		if (isEdit || expectedTouched || !category) return;
+	// Only a category the user picks brings its default disposition: a form
+	// seeded from a rule (Duplicate) keeps the rule's own.
+	function applyDefaultDisposition(next: string) {
+		if (isEdit || expectedTouched || !next) return;
 
-		setValue('expected', defaultDispositionFor(category));
-	}, [category, isEdit, expectedTouched, setValue]);
+		setValue('expected', defaultDispositionFor(next as IssueCategory));
+	}
 
 	const projectOptions = (projects ?? []).map((item) => ({
 		value: String(item.id),
@@ -156,7 +162,10 @@ export function RuleFields({
 									<SelectInput
 										label="Category"
 										value={field.value}
-										onValueChange={field.onChange}
+										onValueChange={(next) => {
+											field.onChange(next);
+											applyDefaultDisposition(next);
+										}}
 										name={field.name}
 										options={CATEGORY_SELECT_OPTIONS}
 									/>
@@ -223,9 +232,15 @@ export function RuleFields({
 				<FormSection.Header name="Match scope" className="mb-0" />
 				{isEdit ? (
 					<MatcherReadOnly
-						parameters={itemsToParameters(watch('parameters'))}
-						verdicts={itemsToVerdicts(watch('verdicts'))}
-						tags={itemsToList(watch('tags'))}
+						parameters={
+							rule?.parameters ?? itemsToParameters(watch('parameters'))
+						}
+						verdicts={
+							rule
+								? rule.verdicts
+								: itemsToVerdicts(verdictChips, watch('noVerdicts'))
+						}
+						tags={rule?.tags ?? itemsToList(watch('tags'))}
 					/>
 				) : (
 					<>
@@ -246,6 +261,24 @@ export function RuleFields({
 								placeholder="Press Enter to add a verdict"
 								testId="rule-verdicts"
 							/>
+							{verdictChips.length ? null : (
+								<Controller
+									control={control}
+									name="noVerdicts"
+									render={({ field }) => (
+										<Checkbox
+											id="rule-no-verdicts"
+											name={field.name}
+											label="Match only failures without any verdict"
+											checked={field.value}
+											onCheckedChange={(checked) =>
+												field.onChange(checked === true)
+											}
+											data-testid="rule-no-verdicts"
+										/>
+									)}
+								/>
+							)}
 							<MatcherField
 								control={control}
 								name="tags"
