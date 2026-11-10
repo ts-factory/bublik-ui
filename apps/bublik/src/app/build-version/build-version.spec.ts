@@ -6,9 +6,11 @@ import {
 	claimLoadForBuild,
 	fetchDeployedBuildId,
 	isNewBuild,
+	MIN_LOAD_GAP_MS,
 	openInNewBuild,
 	reloadAfterChunkError,
-	reloadForNewBuild
+	reloadForNewBuild,
+	RELOAD_STORAGE_KEY
 } from './build-version';
 
 const reload = vi.fn();
@@ -33,6 +35,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.useRealTimers();
 	vi.unstubAllGlobals();
 });
 
@@ -96,9 +99,35 @@ describe('isNewBuild', () => {
 
 describe('claimLoadForBuild', () => {
 	it('grants one load per deployed build', () => {
+		vi.useFakeTimers();
+
 		expect(claimLoadForBuild('build-b')).toBe(true);
 		expect(claimLoadForBuild('build-b')).toBe(false);
+
+		vi.advanceTimersByTime(MIN_LOAD_GAP_MS);
+		expect(claimLoadForBuild('build-b')).toBe(false);
 		expect(claimLoadForBuild('build-c')).toBe(true);
+	});
+
+	it('grants no second load within a minute, whatever the build', () => {
+		vi.useFakeTimers();
+
+		// Servers that report build-b and build-c in turn
+		expect(claimLoadForBuild('build-b')).toBe(true);
+		expect(claimLoadForBuild('build-c')).toBe(false);
+		expect(claimLoadForBuild('build-b')).toBe(false);
+
+		vi.advanceTimersByTime(MIN_LOAD_GAP_MS - 1);
+		expect(claimLoadForBuild('build-c')).toBe(false);
+
+		vi.advanceTimersByTime(1);
+		expect(claimLoadForBuild('build-c')).toBe(true);
+	});
+
+	it('grants nothing when the stored record cannot be read', () => {
+		window.sessionStorage.setItem(RELOAD_STORAGE_KEY, 'build-b');
+
+		expect(claimLoadForBuild('build-c')).toBe(false);
 	});
 
 	it('grants nothing without session storage', () => {
