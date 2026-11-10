@@ -94,13 +94,14 @@ const RUN_STATS_COLUMN_ID_MAP: Record<RunStatsColumn, ColumnId> = {
 	total_unexpected: ColumnId.UnexpectedTotal
 };
 
+/** In table order: each total leads the columns it totals. */
 const CONFIGURABLE_COLUMN_IDS = [
 	ColumnId.Total,
 	ColumnId.Run,
 	ColumnId.ExpectedTotal,
-	ColumnId.UnexpectedTotal,
 	ColumnId.PassedExpected,
 	ColumnId.FailedExpected,
+	ColumnId.UnexpectedTotal,
 	ColumnId.PassedUnexpected,
 	ColumnId.FailedUnexpected,
 	ColumnId.SkippedExpected,
@@ -158,8 +159,44 @@ export function createDefaultColumnOrder(
 	return [
 		ColumnId.Tree,
 		...leadingColumnIds,
-		...orderedColumnIds,
-		...restColumnIds
+		...restColumnIds.reduce(insertBesideGroup, orderedColumnIds)
+	];
+}
+
+/**
+ * Inserts a column the project config does not list next to its
+ * {@link COLUMN_GROUPS} mates: before the first mate that comes after it in
+ * {@link CONFIGURABLE_COLUMN_IDS}, else after the last mate. So Total lands
+ * before Run and Expected Total before the expected columns. A column with no
+ * mates in the order yet goes at the end.
+ */
+function insertBesideGroup(
+	columnIds: ColumnId[],
+	columnId: ColumnId
+): ColumnId[] {
+	const mates =
+		COLUMN_GROUPS.find((group) => group.columns.includes(columnId))?.columns ??
+		[];
+	const rank = CONFIGURABLE_COLUMN_IDS.indexOf(columnId);
+	const isMate = (id: ColumnId) => id !== columnId && mates.includes(id);
+	const nextMateIndex = columnIds.findIndex(
+		(id) => isMate(id) && CONFIGURABLE_COLUMN_IDS.indexOf(id) > rank
+	);
+	const lastMateIndex = columnIds.reduce(
+		(last, id, index) => (isMate(id) ? index : last),
+		-1
+	);
+	const insertAt =
+		nextMateIndex !== -1
+			? nextMateIndex
+			: lastMateIndex !== -1
+			? lastMateIndex + 1
+			: columnIds.length;
+
+	return [
+		...columnIds.slice(0, insertAt),
+		columnId,
+		...columnIds.slice(insertAt)
 	];
 }
 

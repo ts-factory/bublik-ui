@@ -879,6 +879,34 @@ class RunPage {
 			.toEqual(ids);
 	}
 
+	/** Reads the Columns menu that is already open. */
+	async expectColumnsMenuTotalsToLeadTheirColumns(): Promise<void> {
+		const totalled: Record<string, string[]> = {
+			TOTAL: ['RUN'],
+			EXPECTED_TOTAL: ['PASSED_EXPECTED', 'FAILED_EXPECTED'],
+			UNEXPECTED_TOTAL: ['PASSED_UNEXPECTED', 'FAILED_UNEXPECTED']
+		};
+		const followers = (ids: string[]) =>
+			Object.fromEntries(
+				Object.entries(totalled).map(([total, columns]) => {
+					const next = ids[ids.indexOf(total) + 1];
+
+					return [total, columns.includes(next) ? 'its column' : next ?? null];
+				})
+			);
+
+		await expect
+			.poll(async () => followers(await this.openColumnsMenuIds()), {
+				timeout: 15_000,
+				message: 'the column after each total in the Columns menu'
+			})
+			.toEqual({
+				TOTAL: 'its column',
+				EXPECTED_TOTAL: 'its column',
+				UNEXPECTED_TOTAL: 'its column'
+			});
+	}
+
 	async expectColumnsMenuOrder(ids: string[]): Promise<void> {
 		await expect
 			.poll(() => this.columnsMenuOrder(), { timeout: 15_000 })

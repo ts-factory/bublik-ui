@@ -321,6 +321,31 @@ test.describe('Run Details Page', () => {
 
 	// eslint-disable-next-line playwright/expect-expect
 	test(
+		'Each total leads the columns it totals in the Columns menu',
+		{ tag: ['@run'] },
+		async ({ page }) => {
+			const runPage = new RunPage(page);
+			const { expectedRun, runId } = representativeImportedRun(
+				requireManifest()
+			);
+
+			await given(
+				"I open an imported run's page without a saved column order",
+				async () => {
+					await runPage.goto(runId);
+					await runPage.expectLoaded(expectedRun.name);
+				}
+			);
+			await when('I open the Columns menu', () => runPage.openColumnsMenu());
+			await then(
+				'Total, Expected Total and Unexpected Total each come right before a column they total',
+				() => runPage.expectColumnsMenuTotalsToLeadTheirColumns()
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
 		'The table header lists columns in the Columns menu order',
 		{ tag: ['@run'] },
 		async ({ page }) => {

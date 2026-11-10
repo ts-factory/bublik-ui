@@ -37,6 +37,14 @@ Feature: Run details
     When I open the Columns menu
     Then Objective and Notes are listed first
 
+  # Nor do they list the totals, which still lead the columns they total
+  # instead of trailing the menu and the table header.
+  @run
+  Scenario: Each total leads the columns it totals in the Columns menu
+    Given I open an imported run's page without a saved column order
+    When I open the Columns menu
+    Then Total, Expected Total and Unexpected Total each come right before a column they total
+
   @run
   Scenario: The table header lists columns in the Columns menu order
     Given I open an imported run's page
