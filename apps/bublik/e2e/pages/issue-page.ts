@@ -8,6 +8,7 @@ import { UrlParams, urlParams } from '../support/url-params';
 import { ClassificationTable } from './classification-table';
 import { IssueDrawer } from './issue-drawer';
 import { RuleDrawer } from './rule-drawer';
+import { Sidebar } from './sidebar';
 
 /** The rules table on an issue's page writes the same params as the rules page, minus `issueState`. */
 const ISSUE_URL_PARAMS = {
@@ -153,11 +154,6 @@ class IssuePage {
 		return this.root.getByTestId('rule-create');
 	}
 
-	/** The header bar's way to the issue's results page. */
-	get resultsButton(): Locator {
-		return this.root.getByTestId('issue-results-button');
-	}
-
 	get noRulesYet(): Locator {
 		return this.root.getByText(
 			'This issue has no rules yet. Write one here, or classify a failing result against this issue.'
@@ -271,7 +267,7 @@ class IssuePage {
 	}
 
 	async openResults(): Promise<void> {
-		await this.resultsButton.click();
+		await new Sidebar(this.page).openIssueRow('Results');
 		await expect(this.page).toHaveURL(/\/issues\/\d+\/results(?:$|\?)/, {
 			timeout: 15_000
 		});

@@ -53,13 +53,13 @@ Feature: Issue results
     And the footer range starts at the first result
 
   @issues @needs-classification
-  Scenario: The Rules link and the Results button lead between an issue's rules and its results
+  Scenario: The Issue sidebar leads between an issue's rules and its results
     Given a seeded issue with rules and results
     When I open the issue's results page
     Then the sidebar's Issue submenu counts its rules and its results
-    When I follow the Rules link in the header
+    When I follow the Rules row of the Issue sidebar
     Then the issue's page is open on its rules
-    When I follow the Results button
+    When I follow the Results row of the Issue sidebar
     Then the issue's results page is open again
 
   @issues @needs-classification
