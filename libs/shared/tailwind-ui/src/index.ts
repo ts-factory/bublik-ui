@@ -16,6 +16,7 @@ export * from './lib/tooltip';
 export * from './lib/verdict-list';
 export * from './lib/badge-list';
 export * from './lib/copy-tooltip';
+export * from './lib/code-block';
 export * from './lib/error-boundary';
 export * from './lib/iframe-to-old';
 export * from './lib/badge-input';

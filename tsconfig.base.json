@@ -19,6 +19,9 @@
 		"paths": {
 			"@/bublik/+state": ["libs/bublik/+state/src/index.ts"],
 			"@/bublik/config": ["libs/bublik/config/src/index.ts"],
+			"@/bublik/features/access-tokens": [
+				"libs/bublik/features/access-tokens/src/index.ts"
+			],
 			"@/bublik/features/admin-users": [
 				"libs/bublik/features/admin-users/src/index.ts"
 			],

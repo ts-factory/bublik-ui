@@ -106,7 +106,12 @@ export const UsersTableContainer = () => {
 	if (!users || !users.length) return <UsersTableEmpty />;
 
 	return (
-		<div className={cn(isFetching && 'pointer-events-none opacity-40')}>
+		<div
+			className={cn(
+				'flex flex-col flex-1 min-h-0',
+				isFetching && 'pointer-events-none opacity-40'
+			)}
+		>
 			<UsersTable users={users} />
 		</div>
 	);
