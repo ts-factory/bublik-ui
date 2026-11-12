@@ -34,12 +34,14 @@ import {
 import {
 	clearTestPicks,
 	flatRules,
+	keepSharedTags,
 	parameterOptions,
 	parameterValue,
 	parametersPicked,
 	resetTestPicks,
 	setTestPick,
 	tagOptions,
+	tagsApart,
 	tagsPicked,
 	testStanding,
 	testsOf,
@@ -84,6 +86,16 @@ interface PicksProps {
 	picks: ScopePicks;
 	setPicks: (next: ScopePicks) => void;
 	container?: RefObject<HTMLElement>;
+}
+
+interface CardProps extends PicksProps {
+	card: TestCard;
+	/**
+	 * Whether the card lists its rules. The only rule of a form is not
+	 * listed: the pickers already hold all of it.
+	 */
+	listed: boolean;
+	importantTags: ReadonlySet<string>;
 }
 
 /** The test's path: package dimmed, the test itself in bold. */
@@ -213,6 +225,8 @@ function RuleLine({
 	values,
 	empty,
 	className,
+	classOf,
+	labelOf,
 	variant = BadgeVariants.Primary
 }: {
 	label: string;
@@ -220,6 +234,10 @@ function RuleLine({
 	/** What the line reads when the rule does not match on the dimension. */
 	empty: string;
 	className?: string;
+	/** A value's own chip colour, where the line's values differ in it. */
+	classOf?: (value: string) => string;
+	/** How a value reads, when not as it is. */
+	labelOf?: (value: string) => string;
 	variant?: BadgeVariants;
 }) {
 	return (
@@ -235,10 +253,10 @@ function RuleLine({
 							as="span"
 							isInteractive={false}
 							variant={variant}
-							className={cn('text-xs', className)}
+							className={cn('text-xs', className, classOf?.(value))}
 							overflowWrap
 						>
-							{value}
+							{labelOf ? labelOf(value) : value}
 						</Badge>
 					))
 				) : (
@@ -253,7 +271,14 @@ function RuleLine({
  * The rules a test gets, one after another, each with everything it matches
  * on: nothing to work out from the pickers above, which only narrow them.
  */
-function RuleList({ rules }: { rules: readonly FlatRule[] }) {
+function RuleList({
+	rules,
+	importantTags
+}: {
+	rules: readonly FlatRule[];
+	/** The runs' important tags, coloured as the Tags picker colours them. */
+	importantTags: ReadonlySet<string>;
+}) {
 	const [all, setAll] = useState(false);
 	const shown = all ? rules : rules.slice(0, RULES_SHOWN);
 	const folded = rules.length - shown.length;
@@ -263,7 +288,10 @@ function RuleList({ rules }: { rules: readonly FlatRule[] }) {
 			<p className={cn('pl-[2px]', RULE_LABEL_CLASS)}>
 				{MATCH_SCOPE_COPY.writtenLabel}
 			</p>
-			<ul className="mt-2 flex flex-col gap-4">
+			<ul
+				className="mt-2 flex flex-col gap-4"
+				aria-label={MATCH_SCOPE_COPY.writtenLabel}
+			>
 				{shown.map((rule, index) => (
 					<li
 						// The rows have no identity besides their place in the list.
@@ -315,9 +343,12 @@ function RuleList({ rules }: { rules: readonly FlatRule[] }) {
 						)}
 						<RuleLine
 							label="Tags"
-							values={rule.tags.map(displayKeyValue)}
+							values={rule.tags}
 							empty="any"
-							className="bg-badge-6"
+							labelOf={displayKeyValue}
+							classOf={(tag) =>
+								importantTags.has(tag) ? 'bg-badge-6' : 'bg-badge-0'
+							}
 						/>
 					</li>
 				))}
@@ -341,7 +372,7 @@ function RuleList({ rules }: { rules: readonly FlatRule[] }) {
  * counts and standing on the border's right end as the pickers' bins are,
  * then the warning where the eye lands, then a row per dimension.
  */
-function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
+function Card({ card, listed, importantTags, ...rest }: CardProps) {
 	const { test, standing, rules } = card;
 	const count = test.result_ids.length;
 	const { picks, setPicks } = rest;
@@ -358,7 +389,9 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 			</div>
 			<div className="absolute top-[-11px] right-[21px] z-10 flex items-center gap-1 bg-bg-primary px-1">
 				<StandingBadge standing={standing} />
-				{rules.length > 1 ? (
+				{/* Several results under one rule is worth saying too: it is what
+				    narrowing was for. */}
+				{rules.length > 1 || count > 1 ? (
 					<Badge
 						as="span"
 						isInteractive={false}
@@ -366,7 +399,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 						className={cn(SMALL_CHIP_CLASS, 'shrink-0')}
 						data-testid="match-scope-rules"
 					>
-						{rules.length} rules
+						{rules.length} rule{rules.length > 1 ? 's' : ''}
 					</Badge>
 				) : null}
 				<Badge
@@ -404,7 +437,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 				<ParametersPicker card={card} {...rest} />
 			</div>
 			<VerdictsField card={card} {...rest} />
-			<RuleList rules={rules} />
+			{listed ? <RuleList rules={rules} importantTags={importantTags} /> : null}
 		</div>
 	);
 
@@ -433,13 +466,19 @@ function Cards({
 	}));
 	const several = cards.length > 1;
 	const rules = cards.reduce((sum, card) => sum + card.rules.length, 0);
+	const offered = tagOptions(options);
+	const importantTags = new Set(
+		offered.filter((option) => option.important).map((option) => option.value)
+	);
+	const apart = tagsApart(options, picks).length;
+
 	return (
 		<>
-			<div className="mt-2">
+			<div className="mt-2 flex flex-col gap-1.5">
 				<ScopeValuePicker
 					label="Tags"
 					hint={MATCHER_HINTS.tags}
-					options={tagOptions(options)}
+					options={offered}
 					value={tagsPicked(options, picks)}
 					onChange={(next) => setPicks({ ...picks, tags: next })}
 					styleOf={tagStyle}
@@ -447,6 +486,24 @@ function Cards({
 					container={container}
 					testId="match-scope-tags"
 				/>
+				{/* The one step that most often turns a rule per run into one
+				    rule for them all. */}
+				{apart ? (
+					<p
+						className="pl-2 text-xs text-text-menu"
+						data-testid="match-scope-tags-apart"
+					>
+						{MATCH_SCOPE_COPY.tagsApart(apart)}{' '}
+						<button
+							type="button"
+							onClick={() => setPicks(keepSharedTags(options, picks))}
+							className="text-primary hover:underline"
+							data-testid="match-scope-keep-shared"
+						>
+							{MATCH_SCOPE_COPY.keepShared}
+						</button>
+					</p>
+				) : null}
 			</div>
 
 			{/* The label sits in the cards' own column: the first card's floating
@@ -460,7 +517,13 @@ function Cards({
 					</p>
 				) : null}
 				{cards.map((card) => (
-					<Card key={card.test.test_id} card={card} {...rest} />
+					<Card
+						key={card.test.test_id}
+						card={card}
+						listed={rules > 1}
+						importantTags={importantTags}
+						{...rest}
+					/>
 				))}
 			</div>
 		</>

@@ -12,6 +12,11 @@ export const MATCH_SCOPE_COPY = {
 	specificHint:
 		'Future failures matching a rule below inherit this. Remove a value to widen the rules.',
 	writtenLabel: 'Rules written',
+	tagsApart: (count: number) =>
+		`${count} kept tag${
+			count > 1 ? 's differ' : ' differs'
+		} from run to run, so the runs get rules of their own.`,
+	keepShared: 'Keep only the shared tags',
 	testHint: (count: number) =>
 		`${count} result${count > 1 ? 's' : ''} of this test ${
 			count > 1 ? 'are' : 'is'

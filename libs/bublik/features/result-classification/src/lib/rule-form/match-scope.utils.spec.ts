@@ -9,12 +9,14 @@ import {
 	chipsForRule,
 	clearTestPicks,
 	flatRules,
+	keepSharedTags,
 	matchersFor,
 	parameterOptions,
 	parametersPicked,
 	resetTestPicks,
 	setTestPick,
 	tagOptions,
+	tagsApart,
 	tagsPicked,
 	testStanding,
 	testsOf,
@@ -136,6 +138,43 @@ describe('tagOptions', () => {
 			['kernel-linux', false],
 			['sfc', false]
 		]);
+	});
+});
+
+describe('tags that differ from run to run', () => {
+	const RUNS: ClassifyOptions = [
+		{ ...RULE, tags: { default: ['mix=warn', 'fixture=a'], allowed: ['sfc'] } },
+		{
+			...RULE_HW,
+			tags: { default: ['mix=err', 'fixture=a'], allowed: ['sfc', 'zen'] }
+		}
+	];
+
+	it('offers the tags every run has first, the rest by name', () => {
+		expect(tagOptions(RUNS).map((option) => option.value)).toEqual([
+			'fixture=a',
+			'mix=err',
+			'mix=warn',
+			'sfc',
+			'zen'
+		]);
+	});
+
+	it('tells the kept tags that keep the rules apart', () => {
+		expect(tagsApart(RUNS, DEFAULT_SCOPE_PICKS)).toEqual([
+			'mix=err',
+			'mix=warn'
+		]);
+		expect(tagsApart(ONE, DEFAULT_SCOPE_PICKS)).toEqual([]);
+	});
+
+	it('keeps only the shared ones of the kept tags', () => {
+		const picks = { ...DEFAULT_SCOPE_PICKS, tags: ['mix=warn', 'sfc', 'zen'] };
+
+		expect(keepSharedTags(RUNS, DEFAULT_SCOPE_PICKS).tags).toEqual([
+			'fixture=a'
+		]);
+		expect(keepSharedTags(RUNS, picks).tags).toEqual(['sfc']);
 	});
 });
 
