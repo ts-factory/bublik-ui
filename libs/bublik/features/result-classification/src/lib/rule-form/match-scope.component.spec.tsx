@@ -167,7 +167,10 @@ describe('MatchScope', () => {
 		expect(within(card(22)).getByTestId('match-scope-rules')).toHaveTextContent(
 			'2 rules'
 		);
-		expect(within(card(21)).queryByTestId('match-scope-rules')).toBeNull();
+		// Two results under one rule: said, as it is what narrowing is for.
+		expect(within(card(21)).getByTestId('match-scope-rules')).toHaveTextContent(
+			'1 rule'
+		);
 		expect(screen.getByText('2 tests, 3 rules')).toBeInTheDocument();
 	});
 
@@ -368,9 +371,35 @@ describe('MatchScope', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Clear verdicts' }));
 
+		// The form's only rule is what the pickers hold: it is not listed again.
+		expect(within(only).getByTestId('match-scope-rules')).toHaveTextContent(
+			'1 rule'
+		);
+		expect(within(only).queryByTestId('match-scope-written')).toBeNull();
+	});
+
+	it('offers to keep only the tags every run has', () => {
+		renderScope(RULE, RULE_HW);
+
+		const scope = screen.getByTestId('match-scope');
+
+		expect(screen.getByTestId('match-scope-tags-apart')).toHaveTextContent(
+			'1 kept tag differs from run to run'
+		);
+
+		fireEvent.click(screen.getByTestId('match-scope-keep-shared'));
+
+		expect(values(scope, 'tags')).toEqual(['fixture=net-drv-ts']);
+		expect(screen.queryByTestId('match-scope-tags-apart')).toBeNull();
+	});
+
+	it('does not list the only rule of a single result', () => {
+		renderScope({ ...RULE, result_ids: [1] });
+
+		const [only] = cards();
+
 		expect(within(only).queryByTestId('match-scope-rules')).toBeNull();
-		expect(
-			within(only).getAllByTestId('match-scope-written-rule')
-		).toHaveLength(1);
+		expect(within(only).queryByTestId('match-scope-written')).toBeNull();
+		expect(screen.queryByTestId('match-scope-tags-apart')).toBeNull();
 	});
 });

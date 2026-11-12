@@ -147,16 +147,34 @@ export function parameterOptions(test: ScopeTest): ScopeOption[] {
 		.sort((left, right) => left.value.localeCompare(right.value));
 }
 
+/** The tags every rule's runs have: keeping one never splits the rules. */
+export function sharedTags(options: ClassifyOptions): Set<string> {
+	const [first, ...rest] = options.map(
+		(rule) => new Set([...rule.tags.default, ...rule.tags.allowed])
+	);
+
+	return new Set(
+		Array.from(first ?? []).filter((tag) => rest.every((tags) => tags.has(tag)))
+	);
+}
+
 /**
  * The tags the rules may take: the important ones first, then the relevant
- * ones, as the run page shows them.
+ * ones, as the run page shows them. Among each, the tags every rule's runs
+ * have come first and the rest follow by name, so the values of one tag that
+ * differs from run to run read together.
  */
 export function tagOptions(options: ClassifyOptions): ScopeOption[] {
 	const important = new Set(options.flatMap((rule) => rule.tags.default));
+	const shared = sharedTags(options);
 	const all = Array.from(
 		new Set(
 			options.flatMap((rule) => [...rule.tags.default, ...rule.tags.allowed])
 		)
+	).sort(
+		(left, right) =>
+			Number(shared.has(right)) - Number(shared.has(left)) ||
+			left.localeCompare(right)
 	);
 
 	return [
@@ -167,6 +185,29 @@ export function tagOptions(options: ClassifyOptions): ScopeOption[] {
 		label: displayKeyValue(tag),
 		important: important.has(tag)
 	}));
+}
+
+/**
+ * The kept tags only some of the rules' runs have: each keeps the rules of
+ * the runs with it apart from the others.
+ */
+export function tagsApart(options: ClassifyOptions, picks: ScopePicks) {
+	const shared = sharedTags(options);
+
+	return tagsPicked(options, picks).filter((tag) => !shared.has(tag));
+}
+
+/** The picks with only the tags every rule's runs have left kept. */
+export function keepSharedTags(
+	options: ClassifyOptions,
+	picks: ScopePicks
+): ScopePicks {
+	const shared = sharedTags(options);
+
+	return {
+		...picks,
+		tags: tagsPicked(options, picks).filter((tag) => shared.has(tag))
+	};
 }
 
 function picksOf(picks: ScopePicks, testId: number): TestPicks | null {
