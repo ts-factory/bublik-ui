@@ -54,7 +54,7 @@ export interface ScopeValuePickerProps {
  * A field of the match scope: the values a rule keeps show as chips, each
  * with its own remove button, and the list behind the field offers every
  * value the server would accept, so nothing is typed by hand and nothing the
- * results do not share can be picked.
+ * results do not have can be picked.
  */
 export function ScopeValuePicker({
 	label,
@@ -259,7 +259,7 @@ export function ScopeValuePicker({
 						/>
 						<CommandList className="max-h-72 overflow-y-auto">
 							<CommandEmpty className="py-4 text-xs text-center">
-								Not shared by the selected results.
+								Not on the selected results.
 							</CommandEmpty>
 							{/* The values take the popup's width and wrap, since a parameter
 							    can be long. */}

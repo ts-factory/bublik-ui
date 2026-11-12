@@ -8,32 +8,33 @@ import { MATCHER_HINTS } from './matcher-fields.utils';
  * field hints are `MATCHER_HINTS`, shared with the rule form.
  */
 export const MATCH_SCOPE_COPY = {
-	sectionHint:
-		'Future failures matching the path and every value kept below inherit this.',
-	severalHint:
-		'Each test gets its own rules, and a rule never takes another test’s values.',
-	severalRunsHint:
-		'The results span several runs: the pickers offer only what every run shares, so one rule covers each test in all of them.',
+	sectionHint: 'Future failures matching a rule below inherit this.',
+	specificHint:
+		'Future failures matching a rule below inherit this. Remove a value to widen the rules.',
+	writtenLabel: 'Rules written',
 	testHint: (count: number) =>
 		`${count} result${count > 1 ? 's' : ''} of this test ${
 			count > 1 ? 'are' : 'is'
-		} being classified. The pickers offer only what ${
-			count > 1 ? 'all of them carry' : 'it carries'
-		}, so the rules always match ${count > 1 ? 'them' : 'it'}.`,
-	verdictsHint: `${MATCHER_HINTS.verdicts} Each list below writes a rule of its own.`,
+		} being classified. Each rule keeps what its own results carry, so the rules always match ${
+			count > 1 ? 'them' : 'it'
+		}.`,
+	verdictsHint: `${MATCHER_HINTS.verdicts} A rule keeps one list: its results’ own.`,
 	explainer: [
 		{
 			term: 'Path',
-			text: 'Always matched. A rule is written for one test, so a card here is one rule, or one per verdict list.'
+			text: 'Always matched. A rule is written for one test. A card here is one test: its results that differ in parameters or run tags get rules of their own, all listed on the card.'
 		},
-		{ term: 'Parameters', text: MATCHER_HINTS.parameters },
+		{
+			term: 'Parameters',
+			text: `${MATCHER_HINTS.parameters} A parameter is kept or removed by name, for every rule of the test; each rule keeps its own value.`
+		},
 		{
 			term: 'Verdicts',
-			text: `${MATCHER_HINTS.verdicts} A card keeps every list its results failed with, for a rule each, or drops them all. A result without verdicts gives a “No verdicts” list, whose rule matches only failures without any.`
+			text: `${MATCHER_HINTS.verdicts} A card keeps every list its results failed with, each in the rules of the results that failed with it, or drops them all. A result without verdicts gives a “No verdicts” list, whose rule matches only failures without any.`
 		},
 		{
 			term: 'Tags',
-			text: `${MATCHER_HINTS.tags} Important tags are kept to start with; relevant ones may be added.`
+			text: `${MATCHER_HINTS.tags} Important tags are kept to start with; relevant ones may be added. The tags are picked once for the form, and a rule keeps those of them its own runs have.`
 		},
 		{
 			term: 'Emptied field',

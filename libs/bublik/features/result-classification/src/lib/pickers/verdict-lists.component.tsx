@@ -21,6 +21,12 @@ export interface VerdictListsProps {
 	lists: readonly (readonly string[])[];
 	kept: boolean;
 	onChange: (kept: boolean) => void;
+	/**
+	 * Whether a list is one rule, numbered as such. Not when the test's
+	 * results differ in more than their verdicts: a list is then kept by
+	 * every rule whose results failed with it.
+	 */
+	numbered?: boolean;
 	testId?: string;
 }
 
@@ -37,9 +43,10 @@ export function VerdictLists({
 	lists,
 	kept,
 	onChange,
+	numbered = true,
 	testId
 }: VerdictListsProps) {
-	const several = lists.length > 1;
+	const several = numbered && lists.length > 1;
 
 	return (
 		<div className="relative" data-testid={testId} data-kept={kept}>

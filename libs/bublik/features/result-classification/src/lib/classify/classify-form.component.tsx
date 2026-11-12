@@ -238,7 +238,7 @@ export function ClassifyFields({
 					    the fields' arrows do. */}
 					<div className="flex items-center gap-1 pr-[5px]">
 						<FormSection.ResetToDefaultButton
-							helpMessage="Back to what the results share"
+							helpMessage="Back to everything the results have"
 							onClick={() =>
 								setValue('picks', DEFAULT_SCOPE_PICKS, { shouldDirty: true })
 							}
