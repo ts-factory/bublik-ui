@@ -50,8 +50,8 @@ export function toSelected(row: SelectableResult): SelectedResult {
 }
 
 /**
- * The picked results of one run: the server classifies one run per request,
- * so a selection spanning runs goes out as one request per group. Where the
+ * The picked results of one run; a selection spanning runs is a list of
+ * these, sent in one request. Where the
  * caller does not know the run, as a row's own Classify button does not,
  * `runId` is left out.
  */

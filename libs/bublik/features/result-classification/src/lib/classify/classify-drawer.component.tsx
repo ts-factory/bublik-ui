@@ -24,7 +24,7 @@ export interface ClassifyDrawerProps {
 	/**
 	 * The results being classified, by run: one from a row's Classify button,
 	 * several from the bulk bar, of one run or several. The match scope reads
-	 * what they carry, and each run is classified with a request of its own.
+	 * what they carry, and all of them are classified in one request.
 	 */
 	runs: RunResults[];
 	submit: Parameters<typeof buildSubmitHandler>[0];
@@ -72,12 +72,10 @@ export function ClassifyDrawer({
 						name={several ? `Classify ${count} Results` : 'Classify Failure'}
 						description={
 							several
-								? runs.length > 1
-									? `Record why these ${resultsInRuns(
-											count,
-											runs.length
-									  )} failed under one issue, with a rule per test for future ones. Each run is classified in turn.`
-									: 'Record why these results failed under one issue, with a rule per test for future ones.'
+								? `Record why these ${resultsInRuns(
+										count,
+										runs.length
+								  )} failed, under one issue.`
 								: classified
 								? 'This result is already classified. Add another issue, or a verdict for this result only.'
 								: 'Record why this result failed, and decide which future results inherit the verdict.'

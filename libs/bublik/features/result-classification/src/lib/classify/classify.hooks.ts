@@ -2,15 +2,19 @@
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import {
 	useClassifyResultMutation,
-	useLazyGetClassifyOptionsByRunQuery
+	useLazyGetClassifyOptionsQuery
 } from '@/services/bublik-api';
 import { useProjectSearch } from '@/bublik/features/projects';
 import { toast } from '@/shared/tailwind-ui';
-import type { ClassifyNewIssue, ClassifyRequest } from '@/shared/types';
+import type {
+	ClassifyNewIssue,
+	ClassifyRequest,
+	ClassifyResponse
+} from '@/shared/types';
 
 import {
-	matchersForRun,
-	mergeClassifyOptions,
+	matchersFor,
+	testsOf,
 	type ScopePicks
 } from '../rule-form/match-scope.utils';
 
@@ -20,33 +24,45 @@ import {
 	classifyErrorText,
 	resultsInRuns
 } from './classify.utils';
-import {
-	classifyInTurn,
-	notClassifiedText,
-	type ClassifyInTurnOutcome
-} from './classify-runs.utils';
 import type { RunResults } from './result-selection.utils';
 
 /**
  * Classifies `runs` — one result from its Classify button, or a selection
- * from the bulk bar, grouped by run — under one issue. The server takes the
- * results of one run per request, so each run gets its own, one after
- * another; they have to be of one project, which the selection sees to.
+ * from the bulk bar, of one run or several — under one issue, in one
+ * request: all of the results are stamped, or none. They have to be of one
+ * project, which the selection sees to.
  */
+/** A 400 naming the matchers: the server no longer gives these rules. */
+function matchersRefused(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false;
+
+	const { status, data } = error as {
+		status?: unknown;
+		data?: { messages?: unknown } | null;
+	};
+	const messages = data?.messages;
+
+	return (
+		status === 400 &&
+		typeof messages === 'object' &&
+		messages !== null &&
+		'matchers' in messages
+	);
+}
+
 export function useClassify(runs: RunResults[], projectIdParam?: number) {
 	const { projectIds } = useProjectSearch();
 	const projectId = projectIdParam ?? projectIds[0];
 	const [classify, mutationState] = useClassifyResultMutation();
-	const [getOptions] = useLazyGetClassifyOptionsByRunQuery();
+	const [getOptions] = useLazyGetClassifyOptionsQuery();
 	const count = runs.reduce((sum, run) => sum + run.resultIds.length, 0);
 
 	const canClassify = projectId !== undefined && count > 0;
 
 	/**
-	 * A request per run, a rule per test and category. The matchers come from
-	 * what the options endpoint says each test's results share in every run,
-	 * cut down to what the match scope keeps. When some runs fail, the others
-	 * stay classified and the toast names the ones that did not.
+	 * The matchers come from the rules the options endpoint gives for the
+	 * results, each as specific as its own results, cut down to what the
+	 * match scope keeps.
 	 */
 	async function submit(
 		input: Omit<
@@ -56,7 +72,7 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 			issue: number | ClassifyNewIssue;
 			picks: ScopePicks;
 		}
-	): Promise<ClassifyInTurnOutcome> {
+	): Promise<ClassifyResponse> {
 		if (projectId === undefined) {
 			toast.error('Select a project first', { position: 'top-center' });
 
@@ -69,7 +85,7 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 			throw new ClassifyRequestError('Select a result first.');
 		}
 
-		// The server files a new issue under the result's own project; naming it
+		// The server files a new issue under the results' own project; naming it
 		// here only keeps the two in step for the reader.
 		const issue =
 			typeof input.issue === 'number'
@@ -85,69 +101,42 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 		);
 
 		const { picks, ...rest } = input;
-		let outcome: ClassifyInTurnOutcome;
-		let testCount: number;
+		const resultIds = runs.flatMap((run) => run.resultIds);
 
 		try {
-			// Every run's options before anything is sent: what is kept has to be
-			// valid for each of them, and a run that cannot say leaves the whole
-			// selection unwritten.
-			const perRun = await getOptions({
-				runs: runs.map((run) => run.resultIds)
+			// The form showed these; the cache answers unless they went stale.
+			const options = await getOptions({ resultIds }, true).unwrap();
+			const response = await classify({
+				resultIds,
+				projectId,
+				...rest,
+				issue,
+				matchers: matchersFor(options, picks)
 			}).unwrap();
-			const merged = mergeClassifyOptions(perRun);
 
-			testCount = merged.tests.length;
-			outcome = await classifyInTurn(runs, issue, (run, runIssue) =>
-				classify({
-					resultIds: run.resultIds,
-					projectId,
-					...rest,
-					issue: runIssue,
-					matchers: matchersForRun(perRun[runs.indexOf(run)], merged, picks)
-				}).unwrap()
-			);
+			const { title, description } = classifiedToast({
+				categories: input.categories,
+				expected: input.expected ?? null,
+				scope: input.scope,
+				count,
+				runCount: runs.length,
+				testCount: testsOf(options).length,
+				ruleCount: response.rule_ids.length
+			});
+
+			toast.success(title, { id, description });
+
+			return response;
 		} catch (error) {
 			toast.error(classifyErrorText(error), { id });
 
+			// Refused matchers mean the rules went stale under the form, as after
+			// a re-import: fetch them again, so the cards redraw and the next
+			// try sends what the server now expects.
+			if (matchersRefused(error)) void getOptions({ resultIds }, false);
+
 			throw error;
 		}
-
-		const { classified, failed } = outcome;
-
-		if (!classified.length) {
-			toast.error(
-				runs.length === 1
-					? classifyErrorText(failed[0].error)
-					: `Could not classify the results\n${notClassifiedText(failed)}`,
-				{ id }
-			);
-
-			// Thrown on, so the form shows what the server said of its fields.
-			throw failed[0].error;
-		}
-
-		const { title, description } = classifiedToast({
-			categories: input.categories,
-			expected: input.expected ?? null,
-			scope: input.scope,
-			count: classified.reduce((sum, run) => sum + run.resultIds.length, 0),
-			runCount: classified.length,
-			testCount
-		});
-
-		if (failed.length) {
-			toast.warning(title, {
-				id,
-				description: `${description}\nNot classified, still selected:\n${notClassifiedText(
-					failed
-				)}`
-			});
-		} else {
-			toast.success(title, { id, description });
-		}
-
-		return outcome;
 	}
 
 	return { submit, canClassify, isLoading: mutationState.isLoading };

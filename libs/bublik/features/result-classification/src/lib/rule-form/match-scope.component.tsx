@@ -1,14 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-import { useMemo, type RefObject } from 'react';
+import { useMemo, useState, type RefObject } from 'react';
 import { useWatch } from 'react-hook-form';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useGetClassifyOptionsByRunQuery } from '@/services/bublik-api';
-import type {
-	ClassifyMatcher,
-	ClassifyOptions,
-	ClassifyOptionsTest
-} from '@/shared/types';
+import { useGetClassifyOptionsQuery } from '@/services/bublik-api';
+import type { ClassifyOptions } from '@/shared/types';
 import {
 	Badge,
 	BadgeVariants,
@@ -16,6 +12,7 @@ import {
 	FormSectionError,
 	Icon,
 	IconButton,
+	InputLabel,
 	Skeleton,
 	Tooltip,
 	cn
@@ -29,22 +26,29 @@ import {
 } from '../pickers/scope-value-picker.component';
 import { VerdictLists } from '../pickers/verdict-lists.component';
 import { MATCH_SCOPE_COPY } from './match-scope.copy';
-import { MATCHER_HINTS } from './matcher-fields.utils';
+import {
+	MATCHER_HINTS,
+	NO_VERDICTS_TEXT,
+	displayKeyValue
+} from './matcher-fields.utils';
 import {
 	clearTestPicks,
-	matcherForTest,
+	flatRules,
 	parameterOptions,
+	parameterValue,
 	parametersPicked,
-	mergeClassifyOptions,
 	resetTestPicks,
-	rulesForTest,
 	setTestPick,
 	tagOptions,
 	tagsPicked,
 	testStanding,
+	testsOf,
+	verdictListsOf,
 	verdictsKept,
+	type FlatRule,
 	type ScopeOption,
 	type ScopePicks,
+	type ScopeTest,
 	type TestStanding
 } from './match-scope.utils';
 
@@ -54,7 +58,7 @@ const PARAMETER_STYLE: ScopeValueStyle = {
 	className: 'bg-badge-1'
 };
 
-/** The tags tell the run's important ones from its relevant ones. */
+/** The tags tell the runs' important ones from their relevant ones. */
 function tagStyle(option: ScopeOption): ScopeValueStyle {
 	return {
 		variant: BadgeVariants.Primary,
@@ -70,11 +74,10 @@ const SMALL_CHIP_CLASS =
 	'px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.02em] leading-[0.75rem]';
 
 interface TestCard {
-	test: ClassifyOptionsTest;
-	matcher: ClassifyMatcher;
+	test: ScopeTest;
 	standing: TestStanding;
-	/** How many rules the test gets per category. */
-	rules: number;
+	/** Every rule the test gets per category. */
+	rules: FlatRule[];
 }
 
 interface PicksProps {
@@ -84,7 +87,7 @@ interface PicksProps {
 }
 
 /** The test's path: package dimmed, the test itself in bold. */
-function TestTitle({ test }: { test: ClassifyOptionsTest }) {
+function TestTitle({ test }: { test: ScopeTest }) {
 	const slash = test.test_path.lastIndexOf('/');
 	const pkg = slash >= 0 ? test.test_path.slice(0, slash + 1) : '';
 
@@ -167,7 +170,7 @@ function ParametersPicker({
 			styleOf={() => PARAMETER_STYLE}
 			emptyText={
 				test.result_ids.length > 1
-					? 'none shared by its results'
+					? 'none on these results'
 					: 'none on this result'
 			}
 			container={container}
@@ -187,13 +190,149 @@ function VerdictsField({
 	return (
 		<VerdictLists
 			hint={MATCH_SCOPE_COPY.verdictsHint}
-			lists={test.verdicts}
+			lists={verdictListsOf(test)}
+			numbered={test.rules.length === 1}
 			kept={verdictsKept(test, picks)}
 			onChange={(kept) =>
 				setPicks(setTestPick(picks, test.test_id, { verdicts: kept }))
 			}
 			testId="match-scope-verdicts"
 		/>
+	);
+}
+
+/** How many of a test's rules show before the rest fold away. */
+const RULES_SHOWN = 4;
+
+const RULE_LABEL_CLASS =
+	'text-[0.6875rem] uppercase tracking-wider text-text-menu';
+
+/** One dimension of a listed rule: its name, then its values as chips. */
+function RuleLine({
+	label,
+	values,
+	empty,
+	className,
+	variant = BadgeVariants.Primary
+}: {
+	label: string;
+	values: readonly string[];
+	/** What the line reads when the rule does not match on the dimension. */
+	empty: string;
+	className?: string;
+	variant?: BadgeVariants;
+}) {
+	return (
+		<div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-2">
+			<span className={RULE_LABEL_CLASS}>{label}</span>
+			<div className="flex flex-wrap items-center gap-1">
+				{values.length ? (
+					values.map((value, index) => (
+						<Badge
+							// A verdict list is ordered and may repeat a verdict.
+							// eslint-disable-next-line react/no-array-index-key
+							key={`${index}:${value}`}
+							as="span"
+							isInteractive={false}
+							variant={variant}
+							className={cn('text-xs', className)}
+							overflowWrap
+						>
+							{value}
+						</Badge>
+					))
+				) : (
+					<span className="text-xs italic text-text-menu">{empty}</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
+/**
+ * The rules a test gets, one after another, each with everything it matches
+ * on: nothing to work out from the pickers above, which only narrow them.
+ */
+function RuleList({ rules }: { rules: readonly FlatRule[] }) {
+	const [all, setAll] = useState(false);
+	const shown = all ? rules : rules.slice(0, RULES_SHOWN);
+	const folded = rules.length - shown.length;
+
+	return (
+		<div className="flex flex-col gap-1.5" data-testid="match-scope-written">
+			<p className={cn('pl-[2px]', RULE_LABEL_CLASS)}>
+				{MATCH_SCOPE_COPY.writtenLabel}
+			</p>
+			<ul className="mt-2 flex flex-col gap-4">
+				{shown.map((rule, index) => (
+					<li
+						// The rows have no identity besides their place in the list.
+						// eslint-disable-next-line react/no-array-index-key
+						key={index}
+						className="relative flex flex-col gap-1 rounded-md border border-border-primary px-2 pb-2 pt-3.5"
+						data-testid="match-scope-written-rule"
+					>
+						{/* On the border, as the fields' labels and the card's badges. */}
+						<InputLabel
+							className={cn(
+								'absolute top-[-11px] left-2 z-10',
+								FLOATING_LABEL_BACKDROP_CLASS
+							)}
+						>
+							Rule {index + 1}
+						</InputLabel>
+						{rule.results !== null ? (
+							<div className="absolute top-[-11px] right-[9px] z-10 flex items-center bg-bg-primary px-1">
+								<Badge
+									as="span"
+									isInteractive={false}
+									variant={BadgeVariants.Info}
+									className={cn(SMALL_CHIP_CLASS, 'shrink-0')}
+								>
+									{rule.results} result{rule.results > 1 ? 's' : ''}
+								</Badge>
+							</div>
+						) : null}
+						<RuleLine
+							label="Parameters"
+							values={Object.entries(rule.parameters)
+								.sort(([left], [right]) => left.localeCompare(right))
+								.map(([name, value]) =>
+									displayKeyValue(parameterValue(name, value))
+								)}
+							empty="any"
+							className="bg-badge-1"
+						/>
+						{rule.verdicts?.length === 0 ? (
+							<RuleLine label="Verdicts" values={[]} empty={NO_VERDICTS_TEXT} />
+						) : (
+							<RuleLine
+								label="Verdicts"
+								values={rule.verdicts ?? []}
+								empty="any"
+								variant={BadgeVariants.Transparent}
+							/>
+						)}
+						<RuleLine
+							label="Tags"
+							values={rule.tags.map(displayKeyValue)}
+							empty="any"
+							className="bg-badge-6"
+						/>
+					</li>
+				))}
+			</ul>
+			{rules.length > RULES_SHOWN ? (
+				<button
+					type="button"
+					onClick={() => setAll(!all)}
+					className="self-start pl-[2px] text-xs text-primary hover:underline"
+					data-testid="match-scope-written-toggle"
+				>
+					{all ? 'Show fewer' : `Show ${folded} more`}
+				</button>
+			) : null}
+		</div>
 	);
 }
 
@@ -219,7 +358,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 			</div>
 			<div className="absolute top-[-11px] right-[21px] z-10 flex items-center gap-1 bg-bg-primary px-1">
 				<StandingBadge standing={standing} />
-				{rules > 1 ? (
+				{rules.length > 1 ? (
 					<Badge
 						as="span"
 						isInteractive={false}
@@ -227,7 +366,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 						className={cn(SMALL_CHIP_CLASS, 'shrink-0')}
 						data-testid="match-scope-rules"
 					>
-						{rules} rules
+						{rules.length} rules
 					</Badge>
 				) : null}
 				<Badge
@@ -241,7 +380,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 				<IconButton
 					name="Refresh"
 					size={16}
-					helpMessage="This test back to what its results share"
+					helpMessage="This test back to everything its results have"
 					onClick={() => setPicks(resetTestPicks(picks, test.test_id))}
 					className="!h-[22px] !w-[22px] -scale-x-100"
 				/>
@@ -265,6 +404,7 @@ function Card({ card, ...rest }: { card: TestCard } & PicksProps) {
 				<ParametersPicker card={card} {...rest} />
 			</div>
 			<VerdictsField card={card} {...rest} />
+			<RuleList rules={rules} />
 		</div>
 	);
 
@@ -286,19 +426,13 @@ function Cards({
 	...rest
 }: { options: ClassifyOptions; severalRuns: boolean } & PicksProps) {
 	const { picks, setPicks, container } = rest;
-	const cards: TestCard[] = options.tests.map((test) => {
-		const matcher = matcherForTest(test, options, picks);
-
-		return {
-			test,
-			matcher,
-			standing: testStanding(test, matcher),
-			rules: rulesForTest(test, picks)
-		};
-	});
+	const cards: TestCard[] = testsOf(options).map((test) => ({
+		test,
+		standing: testStanding(test, picks),
+		rules: flatRules(test, picks)
+	}));
 	const several = cards.length > 1;
-	const rules = cards.reduce((sum, card) => sum + card.rules, 0);
-
+	const rules = cards.reduce((sum, card) => sum + card.rules.length, 0);
 	return (
 		<>
 			<div className="mt-2">
@@ -309,9 +443,7 @@ function Cards({
 					value={tagsPicked(options, picks)}
 					onChange={(next) => setPicks({ ...picks, tags: next })}
 					styleOf={tagStyle}
-					emptyText={
-						severalRuns ? 'none shared by these runs' : 'none on this run'
-					}
+					emptyText={severalRuns ? 'none on these runs' : 'none on this run'}
 					container={container}
 					testId="match-scope-tags"
 				/>
@@ -336,15 +468,14 @@ function Cards({
 }
 
 /**
- * What the rules written for these results will match on: the run's tags,
- * shared by every rule, then a card per test holding the values its own
- * rules keep. The Parameters picker offers only what
- * `/results/classify/options/` says the test's results share, and starts
- * with all of it, the tags with the run's important ones; the verdicts are
- * matched exactly, so the card keeps every list its results failed with, a
- * rule per list, or drops them. Emptying a field stops matching on it.
- * Results of several runs are asked about run by run, and offered only what
- * every run shares (`mergeClassifyOptions`).
+ * What the rules written for these results will match on. The rules are as
+ * specific as the results: `/results/classify/options/` gives one for the
+ * results of a test with the same parameters in runs with the same important
+ * tags, and each starts with all of its parameters, verdicts and important
+ * tags kept. The pickers narrow all the rules of a test at once: a parameter
+ * is kept or left out by name, the verdicts whole, and the tags once for the
+ * form. Rules left matching on the same values become one. The card lists
+ * every rule its test gets, with all the rule matches on. Emptying a field stops matching on it.
  *
  * Results classified just this once get rules saved switched off, which
  * future runs never meet, so there is nothing to scope and the cards fold
@@ -356,23 +487,22 @@ export function MatchScope({
 	container
 }: {
 	form: ClassifyForm;
-	/** The results, by run; see `mergeClassifyOptions` for several runs. */
+	/** The results, by run. */
 	runs: RunResults[];
 	container?: RefObject<HTMLElement>;
 }) {
 	const count = runs.reduce((sum, run) => sum + run.resultIds.length, 0);
 	const severalRuns = runs.length > 1;
+	const resultIds = useMemo(() => runs.flatMap((run) => run.resultIds), [runs]);
 	const {
-		data: perRun,
+		data: options,
 		isLoading,
 		isError
-	} = useGetClassifyOptionsByRunQuery(
-		count ? { runs: runs.map((run) => run.resultIds) } : skipToken
-	);
-	const options = useMemo(
-		() => (perRun ? mergeClassifyOptions(perRun) : undefined),
-		[perRun]
-	);
+	} = useGetClassifyOptionsQuery(count ? { resultIds } : skipToken, {
+		// The rules follow the runs' tags, which a re-import may have changed
+		// since the form was last open on these results.
+		refetchOnMountOrArgChange: true
+	});
 	const [scope, picks] = useWatch({
 		control: form.control,
 		name: ['scope', 'picks']
@@ -393,23 +523,23 @@ export function MatchScope({
 	}
 
 	const loading = isLoading || (count > 0 && !options && !isError);
-	const several = (options?.tests.length ?? 0) > 1;
+	const specific = (options?.length ?? 0) > 1;
 
 	return (
 		// `pl-2`, as the section's headers and the fields' floating labels: the
 		// text starts on that one line.
 		<div className="flex flex-col gap-4" data-testid="match-scope">
-			<div className="flex flex-col pl-2 text-xs text-text-menu">
-				<p>{MATCH_SCOPE_COPY.sectionHint}</p>
-				{several ? <p>{MATCH_SCOPE_COPY.severalHint}</p> : null}
-				{severalRuns ? <p>{MATCH_SCOPE_COPY.severalRunsHint}</p> : null}
-			</div>
+			<p className="pl-2 text-xs text-text-menu">
+				{specific
+					? MATCH_SCOPE_COPY.specificHint
+					: MATCH_SCOPE_COPY.sectionHint}
+			</p>
 
 			{isError ? (
 				<p className="pl-2 text-xs text-text-unexpected">
 					Could not load what{' '}
-					{plural ? 'these results share' : 'this result carries'}; saving keeps
-					all of it.
+					{plural ? 'these results carry' : 'this result carries'}; saving tries
+					again.
 				</p>
 			) : loading || !options ? (
 				<div className="mt-2 flex flex-col gap-4">

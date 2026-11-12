@@ -24,8 +24,7 @@ import {
 import { ClassifyDrawer } from './classify-drawer.component';
 import { useClassifyForm } from './classify-form.hooks';
 import { useClassify } from './classify.hooks';
-import { notClassifiedText } from './classify-runs.utils';
-import { ClassifyRequestError, resultsInRuns } from './classify.utils';
+import { resultsInRuns } from './classify.utils';
 import type { ResultSelection } from './result-selection.context';
 import {
 	BASELINE_TOGGLE,
@@ -182,15 +181,8 @@ export function ResultSelectionPopover({
 	selection,
 	raised = false
 }: ResultSelectionPopoverProps) {
-	const {
-		count,
-		targets,
-		referenceResultId,
-		setReference,
-		remove,
-		deselect,
-		clear
-	} = selection;
+	const { count, targets, referenceResultId, setReference, remove, clear } =
+		selection;
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const { open, onOpenChange, resetOpenState } =
 		useSelectionPopoverOpenState(OPEN_STATE_KEY);
@@ -316,42 +308,14 @@ export function ResultSelectionPopover({
 				runs={runs}
 				projectId={projectId}
 				submit={async (input) => {
-					const outcome = await submit(input);
-
-					const { classified, failed, issueId } = outcome;
+					const response = await submit(input);
 
 					// Stamped: the rows will redraw with their stamps, and there is
 					// nothing left to do with the selection.
-					if (!failed.length) {
-						resetOpenState();
-						clear();
+					resetOpenState();
+					clear();
 
-						return outcome;
-					}
-
-					// Some runs failed: their results stay picked and the drawer
-					// stays open on them, with the issue the others went under
-					// picked, so trying again does not file a second one.
-					deselect(classified.flatMap((run) => run.resultIds));
-
-					if (issueId !== null) {
-						form.setValue('mode', 'existing');
-						form.setValue('issueId', issueId);
-					}
-
-					const done = classified.reduce(
-						(sum, run) => sum + run.resultIds.length,
-						0
-					);
-
-					throw new ClassifyRequestError(
-						`${resultsInRuns(
-							done,
-							classified.length
-						)} classified under issue #${issueId}, now picked above. These were not; try them again:\n${notClassifiedText(
-							failed
-						)}`
-					);
+					return response;
 				}}
 			/>
 		</>

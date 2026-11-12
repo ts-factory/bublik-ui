@@ -4,29 +4,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { TooltipProvider } from '@/shared/tailwind-ui';
-import type { ClassifyOptions } from '@/shared/types';
+import type { ClassifyOptions, ClassifyRuleOptions } from '@/shared/types';
 
 import type { ClassifyForm } from '../classify/classify-form.types';
 
-const OPTIONS: ClassifyOptions = {
-	run_id: 7,
+const RULE: ClassifyRuleOptions = {
+	test_id: 21,
+	test_name: 'ethtool_reset_nic',
+	test_path: 'net-drv-ts/basic/ethtool_reset_nic',
+	run_ids: [7],
+	result_ids: [1, 2],
+	parameters: { env: 'VM', flag: 'DEDICATED' },
+	verdicts: [['Packet lost']],
 	tags: {
 		default: ['fixture=net-drv-ts'],
 		allowed: ['fixture=net-drv-ts', 'sfc']
-	},
-	tests: [
-		{
-			test_id: 21,
-			test_name: 'ethtool_reset_nic',
-			test_path: 'net-drv-ts/basic/ethtool_reset_nic',
-			result_ids: [1, 2],
-			parameters: { env: 'VM', flag: 'DEDICATED' },
-			verdicts: [['Packet lost']]
-		}
-	]
+	}
 };
 
-const OTHER = {
+const OTHER: ClassifyRuleOptions = {
+	...RULE,
 	test_id: 22,
 	test_name: 'rx_fcs',
 	test_path: 'net-drv-ts/rx_path/rx_fcs',
@@ -36,13 +33,25 @@ const OTHER = {
 	verdicts: [['Packet lost', 'Timeout'], []]
 };
 
-// What the mocked endpoint answers, one options per run; a test may swap it
-// for results of several tests or runs.
-const served: { perRun: ClassifyOptions[] } = { perRun: [OPTIONS] };
+/** The first test again, with another `env`, in a run with one more tag. */
+const RULE_HW: ClassifyRuleOptions = {
+	...RULE,
+	run_ids: [8],
+	result_ids: [5],
+	parameters: { env: 'HW', flag: 'DEDICATED' },
+	verdicts: [['Link down']],
+	tags: {
+		default: ['fixture=net-drv-ts', 'kernel=6.2'],
+		allowed: ['fixture=net-drv-ts', 'kernel=6.2', 'sfc']
+	}
+};
+
+// What the mocked endpoint answers; a test may swap it for other results.
+const served: { options: ClassifyOptions } = { options: [RULE] };
 
 vi.mock('@/services/bublik-api', () => ({
-	useGetClassifyOptionsByRunQuery: () => ({
-		data: served.perRun,
+	useGetClassifyOptionsQuery: () => ({
+		data: served.options,
 		isLoading: false,
 		isError: false
 	})
@@ -62,14 +71,13 @@ Element.prototype.scrollIntoView = vi.fn();
 const { MatchScope } = await import('./match-scope.component');
 const { useClassifyForm } = await import('../classify/classify-form.hooks');
 
-function renderScope(...perRun: ClassifyOptions[]) {
+function renderScope(...options: ClassifyRuleOptions[]) {
 	const ref: { form?: ClassifyForm } = {};
 
-	served.perRun = perRun.length ? perRun : [OPTIONS];
-	const runs = served.perRun.map((options) => ({
-		runId: options.run_id,
-		resultIds: options.tests.flatMap((test) => test.result_ids)
-	}));
+	served.options = options.length ? options : [RULE];
+	const runs = [
+		{ resultIds: served.options.flatMap((rule) => rule.result_ids) }
+	];
 
 	function Harness() {
 		const form = useClassifyForm();
@@ -90,7 +98,7 @@ function renderScope(...perRun: ClassifyOptions[]) {
 
 // Held for the whole test: a click re-renders, and the mock answers again.
 afterEach(() => {
-	served.perRun = [OPTIONS];
+	served.options = [RULE];
 });
 
 function cards() {
@@ -135,12 +143,12 @@ function verdictsKept(scope: HTMLElement) {
 }
 
 describe('MatchScope', () => {
-	it('starts with every shared value and the important tags kept', () => {
+	it('starts with every parameter and the important tags kept', () => {
 		renderScope();
 
 		const [only] = cards();
 
-		expect(values(only, 'parameters')).toEqual(['env=VM', 'flag=DEDICATED']);
+		expect(values(only, 'parameters')).toEqual(['env', 'flag']);
 		expect(verdictLists(only)).toEqual([['Packet lost']]);
 		expect(values(screen.getByTestId('match-scope'), 'tags')).toEqual([
 			'fixture=net-drv-ts'
@@ -148,10 +156,14 @@ describe('MatchScope', () => {
 	});
 
 	it('keeps every verdict list of a test, a rule each, and counts the rules', () => {
-		renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+		renderScope(RULE, OTHER);
 
 		expect(verdictLists(card(22))).toEqual([['Packet lost', 'Timeout'], ['']]);
-		expect(within(card(22)).getByText('No verdicts')).toBeInTheDocument();
+		expect(
+			within(within(card(22)).getByTestId('match-scope-verdicts')).getByText(
+				'No verdicts'
+			)
+		).toBeInTheDocument();
 		expect(within(card(22)).getByTestId('match-scope-rules')).toHaveTextContent(
 			'2 rules'
 		);
@@ -160,7 +172,7 @@ describe('MatchScope', () => {
 	});
 
 	it('shows one card per test, titled with its path', () => {
-		renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+		renderScope(RULE, OTHER);
 
 		expect(cards()).toHaveLength(2);
 		expect(
@@ -169,26 +181,21 @@ describe('MatchScope', () => {
 	});
 
 	it('says one rule each when no test keeps several verdict lists', () => {
-		renderScope({
-			...OPTIONS,
-			tests: [...OPTIONS.tests, { ...OTHER, verdicts: [['Timeout']] }]
-		});
+		renderScope(RULE, { ...OTHER, verdicts: [['Timeout']] });
 
 		expect(screen.getByText('2 tests, one rule each')).toBeInTheDocument();
 	});
 
 	it('removes a chip from one test without touching the other', () => {
-		const ref = renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+		const ref = renderScope(RULE, OTHER);
 
 		fireEvent.click(
 			within(card(21)).getByRole('button', { name: 'Remove env: VM' })
 		);
 
-		expect(values(card(21), 'parameters')).toEqual(['flag=DEDICATED']);
-		expect(values(card(22), 'parameters')).toEqual(['mtu=1500']);
-		expect(ref.form?.getValues('picks.tests.21.parameters')).toEqual([
-			'flag=DEDICATED'
-		]);
+		expect(values(card(21), 'parameters')).toEqual(['flag']);
+		expect(values(card(22), 'parameters')).toEqual(['mtu']);
+		expect(ref.form?.getValues('picks.tests.21.parameters')).toEqual(['flag']);
 	});
 
 	it('empties a field from its bin', () => {
@@ -249,22 +256,19 @@ describe('MatchScope', () => {
 		);
 	});
 
-	it('says when a test shares no parameter', () => {
-		renderScope({
-			...OPTIONS,
-			tests: [...OPTIONS.tests, { ...OTHER, parameters: {} }]
-		});
+	it('says when the results of a test have no parameter', () => {
+		renderScope(RULE, { ...OTHER, parameters: {} });
 
 		expect(
 			within(card(22)).getByTestId('match-scope-unnarrowed')
 		).toHaveTextContent(
-			'Any parameters will match: the selected results share none.'
+			'Any parameters will match: the selected results have none.'
 		);
 		expect(within(card(21)).queryByTestId('match-scope-unnarrowed')).toBeNull();
 	});
 
 	it("empties and restores one test's pickers from the card's buttons", () => {
-		const ref = renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+		const ref = renderScope(RULE, OTHER);
 
 		fireEvent.click(
 			within(card(21)).getByRole('button', {
@@ -274,19 +278,16 @@ describe('MatchScope', () => {
 
 		expect(values(card(21), 'parameters')).toEqual([]);
 		expect(verdictsKept(card(21))).toBe(false);
-		expect(values(card(22), 'parameters')).toEqual(['mtu=1500']);
+		expect(values(card(22), 'parameters')).toEqual(['mtu']);
 		expect(verdictsKept(card(22))).toBe(true);
 
 		fireEvent.click(
 			within(card(21)).getByRole('button', {
-				name: 'This test back to what its results share'
+				name: 'This test back to everything its results have'
 			})
 		);
 
-		expect(values(card(21), 'parameters')).toEqual([
-			'env=VM',
-			'flag=DEDICATED'
-		]);
+		expect(values(card(21), 'parameters')).toEqual(['env', 'flag']);
 		expect(verdictsKept(card(21))).toBe(true);
 		expect(ref.form?.getValues('picks.tests.21')).toEqual({
 			parameters: null,
@@ -306,31 +307,70 @@ describe('MatchScope', () => {
 		ref.form?.setValue('scope', 'future');
 
 		expect(await screen.findByTestId('match-scope-test')).toBeInTheDocument();
-		expect(values(cards()[0], 'parameters')).toEqual(['flag=DEDICATED']);
+		expect(values(cards()[0], 'parameters')).toEqual(['flag']);
 	});
 
-	it('offers results of several runs only what every run shares', () => {
-		renderScope(OPTIONS, {
-			run_id: 8,
-			tags: { default: [], allowed: ['fixture=net-drv-ts'] },
-			tests: [
-				{
-					...OPTIONS.tests[0],
-					result_ids: [5],
-					parameters: { env: 'HW', flag: 'DEDICATED' },
-					verdicts: [['Link down']]
-				}
-			]
-		});
+	it('gives results that differ rules of their own, and lists them', () => {
+		renderScope(RULE, RULE_HW);
 
 		const [only] = cards();
 
 		expect(cards()).toHaveLength(1);
-		expect(values(only, 'parameters')).toEqual(['flag=DEDICATED']);
-		expect(verdictLists(only)).toEqual([['Packet lost'], ['Link down']]);
-		expect(values(screen.getByTestId('match-scope'), 'tags')).toEqual([]);
+		expect(values(only, 'parameters')).toEqual(['env', 'flag']);
 		expect(
-			screen.getByText(/The results span several runs/)
+			within(only).getByRole('button', { name: 'Remove env: 2 values' })
 		).toBeInTheDocument();
+		expect(verdictLists(only)).toEqual([['Packet lost'], ['Link down']]);
+		expect(values(screen.getByTestId('match-scope'), 'tags')).toEqual([
+			'fixture=net-drv-ts',
+			'kernel=6.2'
+		]);
+		expect(within(only).getByTestId('match-scope-rules')).toHaveTextContent(
+			'2 rules'
+		);
+		const rows = within(only).getAllByTestId('match-scope-written-rule');
+
+		// Every rule in full: its parameters, its verdicts and its tags.
+		expect(rows).toHaveLength(2);
+		expect(rows[0]).toHaveTextContent('Rule 1');
+		expect(rows[0]).toHaveTextContent('env: VM');
+		expect(rows[0]).toHaveTextContent('Packet lost');
+		expect(rows[0]).toHaveTextContent('fixture: net-drv-ts');
+		expect(rows[0]).not.toHaveTextContent('kernel: 6.2');
+		expect(rows[1]).toHaveTextContent('env: HW');
+		expect(rows[1]).toHaveTextContent('Link down');
+		expect(rows[1]).toHaveTextContent('kernel: 6.2');
+	});
+
+	it('merges the rules once nothing tells them apart', () => {
+		renderScope(RULE, RULE_HW);
+
+		const [only] = cards();
+
+		fireEvent.click(
+			within(only).getByRole('button', { name: 'Remove env: 2 values' })
+		);
+
+		// The second run's own important tag still does.
+		expect(
+			within(only).getAllByTestId('match-scope-written-rule')
+		).toHaveLength(2);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Remove kernel: 6.2' }));
+
+		// One rule per verdict list of the three results.
+		expect(
+			within(only).getAllByTestId('match-scope-written-rule')
+		).toHaveLength(2);
+		expect(within(only).getByTestId('match-scope-rules')).toHaveTextContent(
+			'2 rules'
+		);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear verdicts' }));
+
+		expect(within(only).queryByTestId('match-scope-rules')).toBeNull();
+		expect(
+			within(only).getAllByTestId('match-scope-written-rule')
+		).toHaveLength(1);
 	});
 });

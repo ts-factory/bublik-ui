@@ -43,10 +43,12 @@ export function classifiedToast(input: {
 	scope: ClassifyScope;
 	/** How many results were stamped; one unless given. */
 	count?: number;
-	/** How many runs they span, one request each; one unless given. */
+	/** How many runs they span; one unless given. */
 	runCount?: number;
-	/** How many tests they span, and so how many rules were written per category. */
+	/** How many tests they span. */
 	testCount?: number;
+	/** How many rules they were stamped with; said when more than one. */
+	ruleCount?: number;
 }): { title: string; description: string } {
 	const count = input.count ?? 1;
 	const several = count > 1;
@@ -68,10 +70,11 @@ export function classifiedToast(input: {
 			? 'These results only.'
 			: 'This result only.';
 	const tests = input.testCount ?? 1;
+	const rules = input.ruleCount ?? 1;
 	const scale = several
 		? `${resultsInRuns(count, input.runCount ?? 1)}${
 				tests > 1 ? ` across ${tests} tests` : ''
-		  } stamped. `
+		  } stamped${rules > 1 ? ` with ${rules} rules` : ''}. `
 		: '';
 
 	const categories = input.categories
