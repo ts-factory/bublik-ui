@@ -59,6 +59,7 @@ Feature: Multiple runs
     Then the selection says it spans both runs
     When I open Classify on the selection
     Then the drawer says how many results and runs it classifies
+    And it lists a rule of its own for each of the two results
     When I classify them under a new issue
     Then each picked result carries a single stamp of the issue
     And I delete the issue

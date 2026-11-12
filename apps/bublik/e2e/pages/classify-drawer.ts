@@ -247,7 +247,10 @@ class ClassifyDrawer {
 		return this.matchField(field).getByTestId('scope-value-chip');
 	}
 
-	/** The values a picker keeps, as the matcher will send them. */
+	/**
+	 * The values a picker keeps: a tag as the matcher will send it, a
+	 * parameter by its name.
+	 */
 	async matchValues(field: PickedField): Promise<string[]> {
 		return (
 			await this.matchChips(field).evaluateAll((chips) =>
@@ -368,6 +371,17 @@ class ClassifyDrawer {
 	async close(): Promise<void> {
 		await this.closeButton.click();
 		await this.expectClosed();
+	}
+
+	/**
+	 * The rules the drawer lists across its tests' cards, each in full. Two
+	 * results never share one while every value is kept, unless they are of
+	 * one test with the same parameters in runs with the same important tags.
+	 */
+	async expectRulesListed(count: number): Promise<void> {
+		await expect(this.root.getByTestId('match-scope-written-rule')).toHaveCount(
+			count
+		);
 	}
 
 	/** The drawer classifies `results` results of `runs` runs, and says so. */

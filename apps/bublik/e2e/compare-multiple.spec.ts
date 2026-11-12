@@ -447,7 +447,7 @@ test.describe('Multiple Runs Page: classifying', () => {
 		'Results picked across the merged runs classify under one issue',
 		CLASSIFY_WRITE,
 		async ({ page, request }) => {
-			// Two runs' trees, a request per run, and the stamps read back: a
+			// Two runs' trees, the classify request and the stamps read back: a
 			// minute is short for that under load.
 			test.slow();
 			const multiplePage = new RunMultiplePage(page);
@@ -489,6 +489,10 @@ test.describe('Multiple Runs Page: classifying', () => {
 			await then(
 				'the drawer says how many results and runs it classifies',
 				() => drawer.expectRunSpan(2, 2)
+			);
+			// The runs differ in an important tag at least, so nothing merges.
+			await and('it lists a rule of its own for each of the two results', () =>
+				drawer.expectRulesListed(2)
 			);
 			await when('I classify them under a new issue', async () => {
 				await drawer.fillNewIssue({ title });
