@@ -2,10 +2,11 @@ import { type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { refineBugKeyHalves } from '../shared/bug-key.utils';
 
-const TestPicksShape = z.object({
+const RulePicksShape = z.object({
 	parameters: z.array(z.string()).nullable(),
 	// Kept whole or dropped: the server matches verdicts exactly.
-	verdicts: z.boolean().nullable()
+	verdicts: z.boolean().nullable(),
+	tags: z.array(z.string()).nullable()
 });
 
 export const ClassifyFormShape = z.object({
@@ -19,12 +20,11 @@ export const ClassifyFormShape = z.object({
 		.min(1, { message: 'Select at least one category' }),
 	scope: z.enum(['future', 'oneoff']),
 	expected: z.enum(['expected', 'unexpected', 'none']),
-	// What the match scope keeps, per test; null leaves a dimension at its
+	// What the match scope keeps, per rule; null leaves a dimension at its
 	// default. See `ScopePicks` in match-scope.utils.ts.
 	picks: z.object({
-		tags: z.array(z.string()).nullable(),
-		tests: z.record(z.string(), TestPicksShape),
-		fallback: TestPicksShape.nullable()
+		rules: z.record(z.string(), RulePicksShape),
+		fallback: RulePicksShape.nullable()
 	})
 });
 

@@ -13,10 +13,8 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-	FLOATING_LABEL_BACKDROP_CLASS,
 	Icon,
 	IconButton,
-	InputLabel,
 	Popover,
 	PopoverAnchor,
 	PopoverContent,
@@ -27,7 +25,11 @@ import {
 } from '@/shared/tailwind-ui';
 
 import type { ScopeOption } from '../rule-form/match-scope.utils';
-import { comboboxInputStyles } from './pickers.styles';
+import {
+	SCOPE_ROW_CLASS,
+	SCOPE_ROW_EMPTY_CLASS,
+	SCOPE_ROW_LABEL_CLASS
+} from './pickers.styles';
 
 export interface ScopeValueStyle {
 	variant: BadgeVariants;
@@ -51,7 +53,7 @@ export interface ScopeValuePickerProps {
 }
 
 /**
- * A field of the match scope: the values a rule keeps show as chips, each
+ * A field of a rule in the match scope, as one row: the values the rule keeps show as chips, each
  * with its own remove button, and the list behind the field offers every
  * value the server would accept, so nothing is typed by hand and nothing the
  * results do not have can be picked.
@@ -97,34 +99,16 @@ export function ScopeValuePicker({
 	return (
 		<Popover open={open} onOpenChange={changeOpen}>
 			<PopoverAnchor asChild>
-				<div className="relative" data-testid={testId}>
+				<div className={SCOPE_ROW_CLASS} data-testid={testId}>
 					<Tooltip content={hint}>
-						<InputLabel
-							className={cn(
-								'absolute top-[-11px] left-2 z-10',
-								FLOATING_LABEL_BACKDROP_CLASS
-							)}
-							htmlFor={id}
-						>
+						<label htmlFor={id} className={SCOPE_ROW_LABEL_CLASS}>
 							{label}
-						</InputLabel>
+						</label>
 					</Tooltip>
-					{/* The History inputs' bin, on the border opposite the label. */}
-					{!disabled ? (
-						<div className="absolute -top-3 right-[9px] z-10 flex items-center bg-bg-primary px-1">
-							<IconButton
-								name="Bin"
-								size={14}
-								helpMessage={`Clear ${label.toLowerCase()}`}
-								onClick={() => onChange([])}
-								className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60"
-							/>
-						</div>
-					) : null}
-					{/* The whole field opens the list, around and between the chips
-					    too, not only the trigger in what is left of the last row;
-					    its own buttons keep their clicks. The keyboard has the
-					    trigger. */}
+					{/* The whole row of values opens the list, around and between
+					    the chips too, not only the trigger in what is left of the
+					    last line; its own buttons keep their clicks. The keyboard
+					    has the trigger. */}
 					{/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
 					<div
 						ref={fieldRef}
@@ -134,10 +118,8 @@ export function ScopeValuePicker({
 							changeOpen(true);
 						}}
 						className={cn(
-							comboboxInputStyles(),
-							'relative flex min-h-[40px] flex-wrap items-center gap-1.5 pr-10',
-							open && 'border-primary shadow-text-field',
-							disabled ? 'bg-bg-body' : 'group/field cursor-pointer'
+							'flex min-h-[26px] flex-wrap items-center gap-1',
+							!disabled && 'cursor-pointer'
 						)}
 					>
 						{loading ? (
@@ -187,7 +169,10 @@ export function ScopeValuePicker({
 								aria-controls={`${id}-list`}
 								aria-haspopup="listbox"
 								disabled={disabled}
-								className="min-w-[4rem] flex-1 self-stretch text-left text-[0.875rem] font-normal text-text-menu outline-none disabled:cursor-not-allowed"
+								className={cn(
+									'min-w-[2rem] flex-1 self-stretch text-left outline-none disabled:cursor-not-allowed',
+									SCOPE_ROW_EMPTY_CLASS
+								)}
 								data-testid="scope-value-trigger"
 							>
 								{!loading && !picked.length
@@ -197,32 +182,42 @@ export function ScopeValuePicker({
 									: null}
 							</button>
 						</PopoverTrigger>
-						{/* The Issue field's arrow: a button of its own, washed on hover,
-						    and on a hover anywhere in the field that a click would open
-						    the list from, so not over a chip's remove button. The field
-						    is the trigger for the keyboard, so this one is left out of
-						    the tab order. */}
-						<button
-							type="button"
-							tabIndex={-1}
-							disabled={disabled}
-							onClick={() => changeOpen(!open)}
-							aria-label={`Open ${label.toLowerCase()} list`}
-							className={cn(
-								'absolute grid p-1 -translate-y-1/2 rounded right-2.5 top-1/2 place-items-center text-text-menu hover:bg-primary-wash hover:text-primary disabled:pointer-events-none',
-								'group-[:hover:not(:has([data-chip-remove]:hover))]/field:bg-primary-wash group-[:hover:not(:has([data-chip-remove]:hover))]/field:text-primary'
-							)}
-							data-testid="scope-value-arrow"
-						>
-							<Icon
-								name="ArrowShortTop"
-								className={cn(
-									'size-[18px] transition-transform',
-									open ? 'rotate-0' : 'rotate-180'
-								)}
-							/>
-						</button>
 					</div>
+					{/* The row's buttons: the list, for adding a value back, and the
+					    bin. The values' row is the trigger for the keyboard, so the
+					    arrow is left out of the tab order. */}
+					{!disabled ? (
+						<div className="flex items-center gap-0.5">
+							<button
+								type="button"
+								tabIndex={-1}
+								onClick={() => changeOpen(!open)}
+								aria-label={`Open ${label.toLowerCase()} list`}
+								className={cn(
+									'grid h-[22px] w-[22px] place-items-center rounded text-text-menu hover:bg-primary-wash hover:text-primary',
+									open && 'bg-primary-wash text-primary'
+								)}
+								data-testid="scope-value-arrow"
+							>
+								<Icon
+									name="ArrowShortTop"
+									className={cn(
+										'size-[16px] transition-transform',
+										open ? 'rotate-0' : 'rotate-180'
+									)}
+								/>
+							</button>
+							<IconButton
+								name="Bin"
+								size={14}
+								helpMessage={`Clear ${label.toLowerCase()}`}
+								onClick={() => onChange([])}
+								className="!h-[22px] !w-[22px] hover:text-text-unexpected hover:bg-bg-fillError/60"
+							/>
+						</div>
+					) : (
+						<span />
+					)}
 				</div>
 			</PopoverAnchor>
 

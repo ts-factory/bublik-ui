@@ -14,7 +14,7 @@ import type {
 
 import {
 	matchersFor,
-	testsOf,
+	testCount,
 	type ScopePicks
 } from '../rule-form/match-scope.utils';
 
@@ -61,8 +61,7 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 
 	/**
 	 * The matchers come from the rules the options endpoint gives for the
-	 * results, each as specific as its own results, cut down to what the
-	 * match scope keeps.
+	 * results, each cut down to what the match scope keeps of it.
 	 */
 	async function submit(
 		input: Omit<
@@ -120,7 +119,7 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 				scope: input.scope,
 				count,
 				runCount: runs.length,
-				testCount: testsOf(options).length,
+				testCount: testCount(options),
 				ruleCount: response.rule_ids.length
 			});
 

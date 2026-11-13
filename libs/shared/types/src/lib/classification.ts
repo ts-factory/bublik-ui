@@ -260,8 +260,8 @@ export type ClassifyScope = 'future' | 'oneoff';
  */
 export interface ClassifyMatcher {
 	test_id: number;
-	/** The results of the rule, as the options give them. */
-	result_ids: number[];
+	/** The runs of the rule, as the options give them. */
+	run_ids: number[];
 	parameters: Record<string, string>;
 	verdicts: string[][] | null;
 	tags: string[];
@@ -269,18 +269,18 @@ export interface ClassifyMatcher {
 
 /**
  * One rule that will classify some of the results, from
- * `/results/classify/options/`, as specific as its results allow: the results
- * of one test with the same parameters, in runs with the same important tags.
+ * `/results/classify/options/`: the results of one test in runs whose
+ * important tags go together.
  */
 export interface ClassifyRuleOptions {
 	test_id: number;
 	test_name: string;
 	/** `/`-joined package path, including the test itself. */
 	test_path: string;
-	/** The runs of the results, all with the same important tags. */
+	/** The runs of the results; with the test, they tell the rule. */
 	run_ids: number[];
 	result_ids: number[];
-	/** The parameters of the results, the same for all of them. */
+	/** The parameters all the results have. */
 	parameters: Record<string, string>;
 	/**
 	 * The different verdict lists of the results, in the order they first
