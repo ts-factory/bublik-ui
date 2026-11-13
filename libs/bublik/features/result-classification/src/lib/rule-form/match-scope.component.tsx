@@ -125,8 +125,8 @@ function StandingBadge({ standing }: { standing: RuleStanding }) {
 
 /**
  * One rule: its test on the card's border as an input's label, what it
- * covers and its buttons on the border's right end, then a row per
- * dimension, each edited in place.
+ * covers and its buttons on the border's right end, then a field per
+ * dimension, as the rest of the form has its inputs.
  */
 function RuleCard({
 	rule,
@@ -145,7 +145,7 @@ function RuleCard({
 
 	return (
 		<section
-			className="relative mt-3 rounded-lg border border-border-primary px-3 pb-2.5 pt-4"
+			className="relative mt-3 rounded-lg border border-border-primary px-3 pb-3 pt-7"
 			data-testid="match-scope-test"
 			data-test-id={rule.test_id}
 			data-rule-key={ruleKey(rule)}
@@ -158,7 +158,7 @@ function RuleCard({
 			>
 				<TestTitle rule={rule} />
 			</div>
-			<div className="absolute top-[-11px] right-[9px] z-10 flex items-center gap-1 bg-bg-primary px-1">
+			<div className="absolute top-[-11px] right-[21px] z-10 flex items-center gap-1 bg-bg-primary px-1">
 				<StandingBadge standing={standing} />
 				{merged ? (
 					<Tooltip content="Matches on the same values as a rule above: the two are stored as one.">
@@ -211,7 +211,24 @@ function RuleCard({
 				/>
 			</div>
 
-			<div className="flex flex-col gap-1">
+			{/* The first field's floating label and bin sit above its border;
+			    the margin gives them room under the card's own border row. */}
+			<div className="mt-2 flex flex-col gap-5">
+				<ScopeValuePicker
+					label="Tags"
+					hint={MATCHER_HINTS.tags}
+					options={tagOptions(rule)}
+					value={tagsPicked(rule, picks)}
+					onChange={(next) =>
+						setPicks(setRulePick(picks, rule, { tags: next }))
+					}
+					styleOf={tagStyle}
+					emptyText={
+						rule.run_ids.length > 1 ? 'none on these runs' : 'none on this run'
+					}
+					container={container}
+					testId="match-scope-tags"
+				/>
 				<ScopeValuePicker
 					label="Parameters"
 					hint={MATCHER_HINTS.parameters}
@@ -235,21 +252,6 @@ function RuleCard({
 						setPicks(setRulePick(picks, rule, { verdicts: kept }))
 					}
 					testId="match-scope-verdicts"
-				/>
-				<ScopeValuePicker
-					label="Tags"
-					hint={MATCHER_HINTS.tags}
-					options={tagOptions(rule)}
-					value={tagsPicked(rule, picks)}
-					onChange={(next) =>
-						setPicks(setRulePick(picks, rule, { tags: next }))
-					}
-					styleOf={tagStyle}
-					emptyText={
-						rule.run_ids.length > 1 ? 'none on these runs' : 'none on this run'
-					}
-					container={container}
-					testId="match-scope-tags"
 				/>
 			</div>
 		</section>
