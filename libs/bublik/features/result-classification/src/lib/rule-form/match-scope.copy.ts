@@ -8,42 +8,37 @@ import { MATCHER_HINTS } from './matcher-fields.utils';
  * field hints are `MATCHER_HINTS`, shared with the rule form.
  */
 export const MATCH_SCOPE_COPY = {
-	sectionHint: 'Future failures matching a rule below inherit this.',
+	sectionHint: 'Future failures matching the rule below inherit this.',
 	specificHint:
-		'Future failures matching a rule below inherit this. Remove a value to widen the rules.',
-	writtenLabel: 'Rules written',
+		'Future failures matching a rule below inherit this. Each rule is narrowed on its own.',
 	tagsApart: (count: number) =>
-		`${count} kept tag${
-			count > 1 ? 's differ' : ' differs'
-		} from run to run, so the runs get rules of their own.`,
+		`${count} kept tag${count > 1 ? 's are' : ' is'} not on every rule.`,
 	keepShared: 'Keep only the shared tags',
-	testHint: (count: number) =>
-		`${count} result${count > 1 ? 's' : ''} of this test ${
-			count > 1 ? 'are' : 'is'
-		} being classified. Each rule keeps what its own results carry, so the rules always match ${
-			count > 1 ? 'them' : 'it'
-		}.`,
-	verdictsHint: `${MATCHER_HINTS.verdicts} A rule keeps one list: its results’ own.`,
+	testHint: (results: number, runs: number) =>
+		`The rule for ${results} result${results > 1 ? 's' : ''} of this test${
+			runs > 1 ? ` in ${runs} runs` : ''
+		}. It may keep what ${results > 1 ? 'they all carry' : 'it carries'}.`,
+	verdictsHint: `${MATCHER_HINTS.verdicts} Results that failed with different lists get a rule per list.`,
 	explainer: [
 		{
 			term: 'Path',
-			text: 'Always matched. A rule is written for one test. A card here is one test: its results that differ in parameters or run tags get rules of their own, all listed on the card.'
+			text: 'Always matched. A rule is written for one test; a test whose results come from runs with different important tags gets a rule for each such group of runs.'
 		},
 		{
 			term: 'Parameters',
-			text: `${MATCHER_HINTS.parameters} A parameter is kept or removed by name, for every rule of the test; each rule keeps its own value.`
+			text: `${MATCHER_HINTS.parameters} A rule may keep the parameters all its results have.`
 		},
 		{
 			term: 'Verdicts',
-			text: `${MATCHER_HINTS.verdicts} A card keeps every list its results failed with, each in the rules of the results that failed with it, or drops them all. A result without verdicts gives a “No verdicts” list, whose rule matches only failures without any.`
+			text: `${MATCHER_HINTS.verdicts} A rule keeps every list its results failed with, stored as a rule per list, or drops them all. A result without verdicts gives a “No verdicts” list, which matches only failures without any.`
 		},
 		{
 			term: 'Tags',
-			text: `${MATCHER_HINTS.tags} Important tags are kept to start with; relevant ones may be added. The tags are picked once for the form, and a rule keeps those of them its own runs have.`
+			text: `${MATCHER_HINTS.tags} Important tags are kept to start with; relevant ones may be added.`
 		},
 		{
 			term: 'Emptied field',
-			text: 'Not matched on at all. Empty everything and the rule matches every failure of the test.'
+			text: 'Not matched on at all. Empty everything and the rule matches every failure of the test. Rules left matching on the same values are stored as one.'
 		}
 	]
 } as const;

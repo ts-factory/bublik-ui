@@ -269,12 +269,12 @@ class ClassifyDrawer {
 		await expect(chip).toHaveCount(0, { timeout: 15_000 });
 	}
 
-	/** The cards of the match scope, one per test of the picked results. */
+	/** The cards of the match scope, one per rule the picked results get. */
 	testCards(): Locator {
 		return this.root.getByTestId('match-scope-test');
 	}
 
-	/** The card of the test named `testName`, by the path on its border. */
+	/** The card of the rule for the test named `testName`, by the path on its border. */
 	testCard(testName: string): Locator {
 		return this.testCards().filter({
 			has: this.page
@@ -374,14 +374,11 @@ class ClassifyDrawer {
 	}
 
 	/**
-	 * The rules the drawer lists across its tests' cards, each in full. Two
-	 * results never share one while every value is kept, unless they are of
-	 * one test with the same parameters in runs with the same important tags.
+	 * The rules the drawer lists, a card each. Results of one test share a
+	 * rule unless their runs differ in important tags.
 	 */
 	async expectRulesListed(count: number): Promise<void> {
-		await expect(this.root.getByTestId('match-scope-written-rule')).toHaveCount(
-			count
-		);
+		await expect(this.testCards()).toHaveCount(count);
 	}
 
 	/** The drawer classifies `results` results of `runs` runs, and says so. */
