@@ -11,6 +11,7 @@ import {
 	prepareRevisions,
 	prepareInfoListItems,
 	prepareDuration,
+	prepareSpecialCategoryItems,
 	prepareTags
 } from './utils';
 import { DetailItem } from './detail-item';
@@ -159,7 +160,7 @@ export interface RunDetailsProps {
 	branches: string[];
 	labels: string[];
 	revisions: DetailsItem[];
-	specialCategories: Record<string, string[]>;
+	specialCategories: Record<string, DetailsItem[]>;
 	runStatus: RUN_STATUS;
 	status: string;
 	statusByNok: string;
@@ -263,9 +264,7 @@ function RunDetails(props: RunDetailsProps) {
 								<InfoList
 									key={label}
 									label={label}
-									items={prepareInfoListItems({
-										backgroundColor: 'bg-badge-4'
-									})(items)}
+									items={prepareSpecialCategoryItems(items, 'bg-badge-4')}
 								/>
 							))}
 						</div>
