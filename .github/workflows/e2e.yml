@@ -108,6 +108,10 @@ env:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    # Backstop only: a passing run takes about an hour (max ~2 h), and the
+    # 6 h default let a broken suite hold a runner all afternoon. The
+    # Playwright step has its own, tighter limit below.
+    timeout-minutes: 180
     steps:
       - name: Resolve frontend/backend/docker/bublik-e2e revisions
         id: revisions
@@ -428,7 +432,11 @@ jobs:
 
       # BASE_URL and BUBLIK_E2E_RUN_OVERVIEW come from the task's environment,
       # so they are defined in exactly one place for CI and local runs alike.
+      # A step that runs out of time fails, so the log dump and artifact upload
+      # below still run; a job that runs out of time is cancelled and skips
+      # them. Passing runs spend at most ~90 min here.
       - name: Run e2e tests (Playwright)
+        timeout-minutes: 120
         working-directory: bublik-docker
         run: task e2e:test
 
