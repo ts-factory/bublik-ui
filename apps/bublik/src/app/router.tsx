@@ -15,6 +15,7 @@ import { config } from '@/bublik/config';
 import { ErrorBoundary } from '@/shared/tailwind-ui';
 
 import { AnalyticsRouteTracker } from './analytics-route-tracker.component';
+import { BuildVersionWatcher } from './build-version/build-version-watcher.component';
 import { Layout } from './layout';
 import {
 	RedirectToDashboard,
@@ -233,6 +234,7 @@ const router = createBrowserRouter(
 					<LoginDialogContainer />
 					<AnalyticsRouteTracker />
 					<IframeNavigationReporter />
+					<BuildVersionWatcher />
 					<Outlet />
 				</QueryParamProvider>
 			),
