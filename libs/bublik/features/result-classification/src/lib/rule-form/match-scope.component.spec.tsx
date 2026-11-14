@@ -4,29 +4,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { TooltipProvider } from '@/shared/tailwind-ui';
-import type { ClassifyOptions } from '@/shared/types';
+import type { ClassifyOptions, ClassifyRuleOptions } from '@/shared/types';
 
 import type { ClassifyForm } from '../classify/classify-form.types';
 
-const OPTIONS: ClassifyOptions = {
-	run_id: 7,
+const RULE: ClassifyRuleOptions = {
+	test_id: 21,
+	test_name: 'ethtool_reset_nic',
+	test_path: 'net-drv-ts/basic/ethtool_reset_nic',
+	run_ids: [7],
+	result_ids: [1, 2],
+	parameters: { env: 'VM', flag: 'DEDICATED' },
+	verdicts: [['Packet lost']],
 	tags: {
 		default: ['fixture=net-drv-ts'],
 		allowed: ['fixture=net-drv-ts', 'sfc']
-	},
-	tests: [
-		{
-			test_id: 21,
-			test_name: 'ethtool_reset_nic',
-			test_path: 'net-drv-ts/basic/ethtool_reset_nic',
-			result_ids: [1, 2],
-			parameters: { env: 'VM', flag: 'DEDICATED' },
-			verdicts: [['Packet lost']]
-		}
-	]
+	}
 };
 
-const OTHER = {
+const OTHER: ClassifyRuleOptions = {
+	...RULE,
 	test_id: 22,
 	test_name: 'rx_fcs',
 	test_path: 'net-drv-ts/rx_path/rx_fcs',
@@ -36,9 +33,19 @@ const OTHER = {
 	verdicts: [['Packet lost', 'Timeout'], []]
 };
 
-// What the mocked endpoint answers; a test may swap it for results of
-// several tests.
-const served = { options: OPTIONS };
+/** The first test again, in a run with one more important tag. */
+const RULE_HW: ClassifyRuleOptions = {
+	...RULE,
+	run_ids: [8],
+	result_ids: [5],
+	tags: {
+		default: ['fixture=net-drv-ts', 'kernel=6.2'],
+		allowed: ['fixture=net-drv-ts', 'kernel=6.2', 'sfc']
+	}
+};
+
+// What the mocked endpoint answers; a test may swap it for other results.
+const served: { options: ClassifyOptions } = { options: [RULE] };
 
 vi.mock('@/services/bublik-api', () => ({
 	useGetClassifyOptionsQuery: () => ({
@@ -62,17 +69,24 @@ Element.prototype.scrollIntoView = vi.fn();
 const { MatchScope } = await import('./match-scope.component');
 const { useClassifyForm } = await import('../classify/classify-form.hooks');
 
-function renderScope(options: ClassifyOptions = OPTIONS) {
+function renderScope(...options: ClassifyRuleOptions[]) {
 	const ref: { form?: ClassifyForm } = {};
 
-	served.options = options;
+	served.options = options.length ? options : [RULE];
+	// The results by run, as the selection gives them.
+	const byRun = new Map<number, number[]>();
+	for (const rule of served.options) {
+		const run = rule.run_ids[0];
+		byRun.set(run, [...(byRun.get(run) ?? []), ...rule.result_ids]);
+	}
+	const runs = [...byRun.values()].map((resultIds) => ({ resultIds }));
 
 	function Harness() {
 		const form = useClassifyForm();
 
 		ref.form = form;
 
-		return <MatchScope form={form} resultIds={[1, 2]} />;
+		return <MatchScope form={form} runs={runs} />;
 	}
 
 	render(
@@ -86,17 +100,22 @@ function renderScope(options: ClassifyOptions = OPTIONS) {
 
 // Held for the whole test: a click re-renders, and the mock answers again.
 afterEach(() => {
-	served.options = OPTIONS;
+	served.options = [RULE];
 });
 
 function cards() {
 	return screen.getAllByTestId('match-scope-test');
 }
 
-function card(testId: number) {
+function card(key: string) {
 	return cards().find(
-		(element) => element.getAttribute('data-test-id') === String(testId)
+		(element) => element.getAttribute('data-rule-key') === key
 	) as HTMLElement;
+}
+
+/** The card a rule is in: of its test path, or of its test in one run. */
+function pathCard(key: string) {
+	return card(key).closest('[data-testid="match-scope-path"]') as HTMLElement;
 }
 
 function chips(scope: HTMLElement, field: string) {
@@ -131,177 +150,265 @@ function verdictsKept(scope: HTMLElement) {
 }
 
 describe('MatchScope', () => {
-	it('starts with every shared value and the important tags kept', () => {
-		renderScope();
+	it('starts with every parameter, the verdicts and the important tags kept', () => {
+		renderScope(RULE, RULE_HW);
 
-		const [only] = cards();
-
-		expect(values(only, 'parameters')).toEqual(['env=VM', 'flag=DEDICATED']);
-		expect(verdictLists(only)).toEqual([['Packet lost']]);
-		expect(values(screen.getByTestId('match-scope'), 'tags')).toEqual([
-			'fixture=net-drv-ts'
-		]);
-	});
-
-	it('keeps every verdict list of a test, a rule each, and counts the rules', () => {
-		renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
-
-		expect(verdictLists(card(22))).toEqual([['Packet lost', 'Timeout'], ['']]);
-		expect(within(card(22)).getByText('No verdicts')).toBeInTheDocument();
-		expect(within(card(22)).getByTestId('match-scope-rules')).toHaveTextContent(
-			'2 rules'
-		);
-		expect(within(card(21)).queryByTestId('match-scope-rules')).toBeNull();
-		expect(screen.getByText('2 tests, 3 rules')).toBeInTheDocument();
-	});
-
-	it('shows one card per test, titled with its path', () => {
-		renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+		const only = card('21:8');
 
 		expect(cards()).toHaveLength(2);
+		expect(values(only, 'parameters')).toEqual(['env', 'flag']);
+		expect(verdictLists(only)).toEqual([['Packet lost']]);
+		expect(values(only, 'tags')).toEqual(['fixture=net-drv-ts', 'kernel=6.2']);
+		expect(within(only).queryByTestId('match-scope-standing')).toBeNull();
+	});
+
+	it('shows a card per test path, its rules stacked inside', () => {
+		renderScope(RULE, OTHER, RULE_HW);
+
+		const paths = screen.getAllByTestId('match-scope-path');
+
 		expect(
-			within(card(22)).getByTestId('match-scope-test-path')
-		).toHaveTextContent('net-drv-ts/rx_path/rx_fcs');
+			paths.map(
+				(path) => within(path).getByTestId('match-scope-test-path').textContent
+			)
+		).toEqual([
+			'net-drv-ts/basic/ethtool_reset_nic',
+			'net-drv-ts/rx_path/rx_fcs'
+		]);
+		expect(
+			within(paths[0])
+				.getAllByTestId('match-scope-test')
+				.map((rule) => rule.getAttribute('data-rule-key'))
+		).toEqual(['21:7', '21:8']);
+		expect(within(paths[0]).getByText('Rule 2')).toBeInTheDocument();
+		expect(
+			within(paths[0]).getByTestId('match-scope-path-rules')
+		).toHaveTextContent('2 rules');
+		expect(within(paths[1]).queryByTestId('match-scope-path-rules')).toBeNull();
+		expect(within(paths[1]).getByText('Rule')).toBeInTheDocument();
+		expect(
+			within(card('21:7')).getByTestId('match-scope-results')
+		).toHaveTextContent('2 results');
+		// A rule is stored per verdict list of the second test's rule.
+		expect(verdictLists(card('22:7'))).toEqual([
+			['Packet lost', 'Timeout'],
+			['']
+		]);
+		expect(
+			within(card('22:7')).getByTestId('match-scope-rules')
+		).toHaveTextContent('2 rules');
+		expect(screen.getByTestId('match-scope-summary')).toHaveTextContent(
+			'4 rules'
+		);
 	});
 
-	it('says one rule each when no test keeps several verdict lists', () => {
-		renderScope({
-			...OPTIONS,
-			tests: [...OPTIONS.tests, { ...OTHER, verdicts: [['Timeout']] }]
-		});
-
-		expect(screen.getByText('2 tests, one rule each')).toBeInTheDocument();
-	});
-
-	it('removes a chip from one test without touching the other', () => {
-		const ref = renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+	it('edits one rule without touching the others', () => {
+		renderScope(RULE, RULE_HW);
 
 		fireEvent.click(
-			within(card(21)).getByRole('button', { name: 'Remove env: VM' })
+			within(card('21:8')).getByRole('button', { name: 'Remove env: VM' })
+		);
+		fireEvent.click(
+			within(card('21:8')).getByRole('button', { name: 'Clear tags' })
 		);
 
-		expect(values(card(21), 'parameters')).toEqual(['flag=DEDICATED']);
-		expect(values(card(22), 'parameters')).toEqual(['mtu=1500']);
-		expect(ref.form?.getValues('picks.tests.21.parameters')).toEqual([
-			'flag=DEDICATED'
-		]);
+		expect(values(card('21:8'), 'parameters')).toEqual(['flag']);
+		expect(values(card('21:8'), 'tags')).toEqual([]);
+		expect(values(card('21:7'), 'parameters')).toEqual(['env', 'flag']);
+		expect(values(card('21:7'), 'tags')).toEqual(['fixture=net-drv-ts']);
 	});
 
-	it('empties a field from its bin', () => {
-		renderScope();
+	it('drops the verdicts from their bin and restores them', () => {
+		renderScope(RULE, RULE_HW);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Clear parameters' }));
+		const only = card('21:7');
 
-		expect(values(cards()[0], 'parameters')).toEqual([]);
-	});
-
-	it('drops the verdicts from their bin and restores them from the Restore pill', () => {
-		const ref = renderScope();
-
-		const only = cards()[0];
-
-		fireEvent.click(screen.getByRole('button', { name: 'Clear verdicts' }));
+		fireEvent.click(
+			within(only).getByRole('button', { name: 'Clear verdicts' })
+		);
 
 		expect(verdictsKept(only)).toBe(false);
-		expect(within(only).queryAllByTestId('match-scope-verdict-list')).toEqual(
-			[]
+		expect(within(only).getByTestId('match-scope-verdicts')).toHaveTextContent(
+			'Not kept: not matched on'
 		);
-		expect(
-			within(only).getByText('Not kept: not matched on')
-		).toBeInTheDocument();
-		expect(ref.form?.getValues('picks.tests.21.verdicts')).toBe(false);
-
-		fireEvent.click(screen.getByRole('button', { name: 'Restore verdicts' }));
-
-		expect(verdictsKept(only)).toBe(true);
-		expect(verdictLists(only)).toEqual([['Packet lost']]);
-	});
-
-	it('warns inside the card once a dimension is emptied, and when all are', () => {
-		renderScope();
-
-		const only = cards()[0];
-
-		fireEvent.click(screen.getByRole('button', { name: 'Clear verdicts' }));
-
-		expect(
-			within(only).getByTestId('match-scope-unnarrowed')
-		).toHaveTextContent('Any verdicts will match: they are not kept.');
 		expect(within(only).getByTestId('match-scope-standing')).toHaveTextContent(
 			'any verdicts'
 		);
 
-		for (const name of ['env: VM', 'flag: DEDICATED', 'fixture: net-drv-ts']) {
-			fireEvent.click(screen.getByRole('button', { name: `Remove ${name}` }));
-		}
+		fireEvent.click(
+			within(only).getByRole('button', { name: 'Restore verdicts' })
+		);
 
-		expect(
-			within(only).getByTestId('match-scope-unnarrowed')
-		).toHaveTextContent(
-			'Every failure of this test will match: nothing but the path is kept.'
-		);
-		expect(within(only).getByTestId('match-scope-standing')).toHaveTextContent(
-			'path only'
-		);
+		expect(verdictsKept(only)).toBe(true);
+		expect(within(only).queryByTestId('match-scope-standing')).toBeNull();
 	});
 
-	it('says when a test shares no parameter', () => {
-		renderScope({
-			...OPTIONS,
-			tests: [...OPTIONS.tests, { ...OTHER, parameters: {} }]
-		});
-
-		expect(
-			within(card(22)).getByTestId('match-scope-unnarrowed')
-		).toHaveTextContent(
-			'Any parameters will match: the selected results share none.'
-		);
-		expect(within(card(21)).queryByTestId('match-scope-unnarrowed')).toBeNull();
-	});
-
-	it("empties and restores one test's pickers from the card's buttons", () => {
-		const ref = renderScope({ ...OPTIONS, tests: [...OPTIONS.tests, OTHER] });
+	it("empties and restores one rule from the card's buttons", () => {
+		renderScope(RULE, { ...OTHER, run_ids: [9] });
 
 		fireEvent.click(
-			within(card(21)).getByRole('button', {
+			within(card('22:9')).getByRole('button', {
+				name: 'Empty this rule: match on its path alone'
+			})
+		);
+
+		expect(values(card('22:9'), 'parameters')).toEqual([]);
+		expect(values(card('22:9'), 'tags')).toEqual([]);
+		expect(verdictsKept(card('22:9'))).toBe(false);
+		expect(
+			within(card('22:9')).getByTestId('match-scope-standing')
+		).toHaveTextContent('path only');
+		expect(values(card('21:7'), 'parameters')).toEqual(['env', 'flag']);
+
+		fireEvent.click(
+			within(card('22:9')).getByRole('button', {
+				name: 'This rule back to everything its results have'
+			})
+		);
+
+		expect(values(card('22:9'), 'parameters')).toEqual(['mtu']);
+		expect(verdictsKept(card('22:9'))).toBe(true);
+	});
+
+	it('says when the results of a rule share no parameter', () => {
+		renderScope({ ...RULE, parameters: {} }, RULE_HW);
+
+		const only = card('21:7');
+
+		expect(
+			within(only).getByTestId('match-scope-parameters')
+		).toHaveTextContent('none shared by these results');
+		expect(within(only).getByTestId('match-scope-standing')).toHaveTextContent(
+			'any parameters'
+		);
+	});
+
+	it('says when a rule is left matching on what an earlier one does', () => {
+		renderScope(RULE, RULE_HW);
+
+		expect(screen.getByTestId('match-scope-summary')).toHaveTextContent(
+			'2 rules'
+		);
+
+		fireEvent.click(
+			within(card('21:8')).getByRole('button', { name: 'Remove kernel: 6.2' })
+		);
+
+		expect(screen.getByTestId('match-scope-summary')).toHaveTextContent(
+			'1 rule'
+		);
+		expect(
+			within(card('21:8')).getByTestId('match-scope-merged')
+		).toBeInTheDocument();
+		expect(within(card('21:7')).queryByTestId('match-scope-merged')).toBeNull();
+	});
+
+	it('still shows the rules of results classified just this once, not editable', async () => {
+		const ref = renderScope(RULE, RULE_HW);
+
+		fireEvent.click(
+			within(card('21:7')).getByRole('button', { name: 'Remove env: VM' })
+		);
+		ref.form?.setValue('scope', 'oneoff');
+
+		expect(await screen.findByTestId('match-scope-oneoff')).toHaveTextContent(
+			'The rules will be saved switched off'
+		);
+		expect(card('21:7').closest('[data-readonly]')).toHaveAttribute('inert');
+
+		ref.form?.setValue('scope', 'future');
+
+		expect(await screen.findAllByTestId('match-scope-test')).toHaveLength(2);
+		expect(values(card('21:7'), 'parameters')).toEqual(['flag']);
+	});
+});
+
+describe('MatchScope of results of one run', () => {
+	it("shows the run's tags once, then a card per test", () => {
+		renderScope(RULE, OTHER);
+
+		const scope = screen.getByTestId('match-scope');
+
+		expect(within(scope).getAllByTestId('match-scope-tags')).toHaveLength(1);
+		expect(values(scope, 'tags')).toEqual(['fixture=net-drv-ts']);
+		expect(
+			screen
+				.getAllByTestId('match-scope-path')
+				.map(
+					(path) =>
+						within(path).getByTestId('match-scope-test-path').textContent
+				)
+		).toEqual([
+			'net-drv-ts/basic/ethtool_reset_nic',
+			'net-drv-ts/rx_path/rx_fcs'
+		]);
+		expect(within(card('21:7')).queryByTestId('match-scope-tags')).toBeNull();
+		expect(values(card('21:7'), 'parameters')).toEqual(['env', 'flag']);
+		expect(verdictLists(card('21:7'))).toEqual([['Packet lost']]);
+		expect(screen.queryByText('Rule')).toBeNull();
+		expect(
+			within(pathCard('22:7')).getByTestId('match-scope-rules')
+		).toHaveTextContent('2 rules');
+		expect(screen.getByTestId('match-scope-summary')).toHaveTextContent(
+			'2 tests, 3 rules'
+		);
+		expect(
+			screen.getByText(
+				'Future failures matching the path and every value kept below inherit this.'
+			)
+		).toBeInTheDocument();
+	});
+
+	it("keeps the run's tags in every test's rule", () => {
+		const ref = renderScope(RULE, OTHER);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear tags' }));
+
+		const picks = ref.form?.getValues('picks');
+
+		expect(picks?.rules['21:7']?.tags).toEqual([]);
+		expect(picks?.rules['22:7']?.tags).toEqual([]);
+	});
+
+	it('warns in the card when a test matches more than it may seem', () => {
+		renderScope({ ...RULE, parameters: {} });
+
+		const only = pathCard('21:7');
+
+		expect(
+			within(only).getByTestId('match-scope-parameters')
+		).toHaveTextContent('none shared by its results');
+		expect(within(only).getByTestId('match-scope-standing')).toHaveTextContent(
+			'any parameters'
+		);
+		expect(
+			within(only).getByTestId('match-scope-unnarrowed')
+		).toHaveTextContent('Any parameters will match');
+	});
+
+	it("empties and restores one test from its card's buttons, keeping the tags", () => {
+		const ref = renderScope(RULE, OTHER);
+
+		fireEvent.click(
+			within(pathCard('22:7')).getByRole('button', {
 				name: "Empty this test's pickers: match on its path alone"
 			})
 		);
 
-		expect(values(card(21), 'parameters')).toEqual([]);
-		expect(verdictsKept(card(21))).toBe(false);
-		expect(values(card(22), 'parameters')).toEqual(['mtu=1500']);
-		expect(verdictsKept(card(22))).toBe(true);
+		expect(values(card('22:7'), 'parameters')).toEqual([]);
+		expect(verdictsKept(card('22:7'))).toBe(false);
+		expect(ref.form?.getValues('picks').rules['22:7']?.tags).toEqual([
+			'fixture=net-drv-ts'
+		]);
+		expect(values(card('21:7'), 'parameters')).toEqual(['env', 'flag']);
 
 		fireEvent.click(
-			within(card(21)).getByRole('button', {
+			within(pathCard('22:7')).getByRole('button', {
 				name: 'This test back to what its results share'
 			})
 		);
 
-		expect(values(card(21), 'parameters')).toEqual([
-			'env=VM',
-			'flag=DEDICATED'
-		]);
-		expect(verdictsKept(card(21))).toBe(true);
-		expect(ref.form?.getValues('picks.tests.21')).toEqual({
-			parameters: null,
-			verdicts: null
-		});
-	});
-
-	it('folds away for results classified just this once, keeping the picks', async () => {
-		const ref = renderScope();
-
-		fireEvent.click(screen.getByRole('button', { name: 'Remove env: VM' }));
-		ref.form?.setValue('scope', 'oneoff');
-
-		expect(await screen.findByTestId('match-scope-oneoff')).toBeInTheDocument();
-		expect(screen.queryByTestId('match-scope-test')).toBeNull();
-
-		ref.form?.setValue('scope', 'future');
-
-		expect(await screen.findByTestId('match-scope-test')).toBeInTheDocument();
-		expect(values(cards()[0], 'parameters')).toEqual(['flag=DEDICATED']);
+		expect(values(card('22:7'), 'parameters')).toEqual(['mtu']);
+		expect(verdictsKept(card('22:7'))).toBe(true);
 	});
 });

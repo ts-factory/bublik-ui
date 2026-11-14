@@ -12,7 +12,7 @@ const BASE = {
 	categories: ['known-issue'],
 	scope: 'future' as const,
 	expected: 'none' as const,
-	picks: { tags: null, tests: {}, fallback: null }
+	picks: { rules: {}, fallback: null }
 };
 
 function errorsFor(values: Record<string, unknown>) {

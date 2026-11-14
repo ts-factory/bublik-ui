@@ -1,262 +1,288 @@
 /* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2026 OKTET LTD */
 import { describe, expect, it } from 'vitest';
+
+import type { ClassifyOptions, ClassifyRuleOptions } from '@/shared/types';
 
 import {
 	CLEARED_SCOPE_PICKS,
 	DEFAULT_SCOPE_PICKS,
 	chipsForRule,
-	clearTestPicks,
-	matcherForTest,
+	clearRulePicks,
+	matchersFor,
 	parameterOptions,
 	parametersPicked,
-	resetTestPicks,
-	rulesForTest,
-	setTestPick,
+	resetRulePicks,
+	ruleKey,
+	ruleStanding,
+	rulesByPath,
+	rulesOf,
+	rulesWritten,
+	sameAsEarlier,
+	setRulePick,
 	tagOptions,
 	tagsPicked,
-	testStanding,
-	verdictsKept,
-	type ScopePicks
+	testCount,
+	verdictsKept
 } from './match-scope.utils';
-
-const TEST = {
-	test_id: 21,
-	test_name: 'ethtool_reset_nic',
-	test_path: 'net-drv-ts/basic/ethtool_reset_nic',
-	result_ids: [8357],
-	parameters: { env: 'VAR.env.peer2peer_ipv6', flag: 'DEDICATED' },
-	verdicts: [['Generated unexpected result']]
-};
 
 const TAGS = {
 	default: ['fixture=net-drv-ts', 'mix=warn'],
 	allowed: ['fixture=net-drv-ts', 'kernel-linux', 'mix=warn', 'sfc']
 };
 
-const OPTIONS = { run_id: 7, tags: TAGS, tests: [TEST] };
+/** One test's results in one run. */
+const RULE: ClassifyRuleOptions = {
+	test_id: 21,
+	test_name: 'ethtool_reset_nic',
+	test_path: 'net-drv-ts/basic/ethtool_reset_nic',
+	run_ids: [7],
+	result_ids: [8357],
+	parameters: { flag: 'DEDICATED', env: 'VAR.env.peer2peer_ipv6' },
+	verdicts: [['Generated unexpected result']],
+	tags: TAGS
+};
 
-const OTHER_TEST = {
+/** The same test in a run with another important tag. */
+const RULE_HW: ClassifyRuleOptions = {
+	...RULE,
+	run_ids: [8],
+	result_ids: [9001, 9002],
+	tags: {
+		default: ['fixture=net-drv-ts', 'mix=err'],
+		allowed: ['fixture=net-drv-ts', 'kernel-linux', 'mix=err']
+	}
+};
+
+/** Another test, whose results failed with two verdict lists and share nothing. */
+const OTHER: ClassifyRuleOptions = {
+	...RULE,
 	test_id: 22,
 	test_name: 'rx_fcs',
 	test_path: 'net-drv-ts/rx_path/rx_fcs',
-	result_ids: [8, 9],
-	parameters: { flag: 'DEDICATED', mtu: '1500' },
-	// One result failed with two verdicts, the other with none.
-	verdicts: [['Packets dropped', 'Timeout'], []]
+	result_ids: [3, 4],
+	parameters: {},
+	verdicts: [['Packet lost', 'Timeout'], []]
 };
 
-const MANY = { run_id: 7, tags: TAGS, tests: [TEST, OTHER_TEST] };
+const RUNS: ClassifyOptions = [RULE, RULE_HW];
+const MANY: ClassifyOptions = [RULE, RULE_HW, OTHER];
 
-describe('parameterOptions', () => {
-	it('offers the parameters as key: value, sending key=value', () => {
+describe('the rules of the options', () => {
+	it('tells a rule by its test and runs', () => {
+		expect(ruleKey(RULE)).toBe('21:7');
+		expect(ruleKey({ ...RULE, run_ids: [7, 9] })).toBe('21:7,9');
+		expect(testCount(MANY)).toBe(2);
+	});
+
+	it('groups the rules by test path, in the order the paths first appear', () => {
 		expect(
-			parameterOptions(TEST).map(({ value, label }) => ({ value, label }))
+			rulesByPath([RULE, OTHER, RULE_HW]).map((group) => [
+				group.path,
+				group.rules.map(({ rule, index }) => [ruleKey(rule), index])
+			])
 		).toEqual([
-			{
-				value: 'env=VAR.env.peer2peer_ipv6',
-				label: 'env: VAR.env.peer2peer_ipv6'
-			},
-			{ value: 'flag=DEDICATED', label: 'flag: DEDICATED' }
+			[
+				RULE.test_path,
+				[
+					[ruleKey(RULE), 0],
+					[ruleKey(RULE_HW), 2]
+				]
+			],
+			[OTHER.test_path, [[ruleKey(OTHER), 1]]]
+		]);
+	});
+
+	it('offers the parameters by name, in order', () => {
+		expect(
+			parameterOptions(RULE).map((option) => [option.value, option.label])
+		).toEqual([
+			['env', 'env: VAR.env.peer2peer_ipv6'],
+			['flag', 'flag: DEDICATED']
+		]);
+	});
+
+	it('offers the important tags first and marks them', () => {
+		expect(
+			tagOptions(RULE).map((option) => [option.value, option.important])
+		).toEqual([
+			['fixture=net-drv-ts', true],
+			['mix=warn', true],
+			['kernel-linux', false],
+			['sfc', false]
 		]);
 	});
 });
 
-describe('tagOptions', () => {
-	it('puts the important tags first and marks them', () => {
-		expect(
-			tagOptions(OPTIONS).map(({ value, important }) => ({ value, important }))
-		).toEqual([
-			{ value: 'fixture=net-drv-ts', important: true },
-			{ value: 'mix=warn', important: true },
-			{ value: 'kernel-linux', important: false },
-			{ value: 'sfc', important: false }
+describe('the picks of a rule', () => {
+	it('start with every parameter, the verdicts and the important tags', () => {
+		expect(parametersPicked(RULE, DEFAULT_SCOPE_PICKS)).toEqual([
+			'env',
+			'flag'
 		]);
-	});
-});
-
-describe('parametersPicked, verdictsKept and tagsPicked', () => {
-	it('keeps everything shared, the verdicts and the important tags until touched', () => {
-		expect(parametersPicked(TEST, DEFAULT_SCOPE_PICKS)).toEqual([
-			'env=VAR.env.peer2peer_ipv6',
-			'flag=DEDICATED'
-		]);
-		expect(verdictsKept(TEST, DEFAULT_SCOPE_PICKS)).toBe(true);
-		expect(tagsPicked(OPTIONS, DEFAULT_SCOPE_PICKS)).toEqual([
-			'fixture=net-drv-ts',
-			'mix=warn'
-		]);
+		expect(verdictsKept(RULE, DEFAULT_SCOPE_PICKS)).toBe(true);
+		expect(tagsPicked(RULE, DEFAULT_SCOPE_PICKS)).toEqual(TAGS.default);
 	});
 
-	it('keeps the picks of a touched test, in the offered order', () => {
-		const picks = setTestPick(DEFAULT_SCOPE_PICKS, 21, {
-			parameters: ['flag=DEDICATED']
-		});
-
-		expect(parametersPicked(TEST, picks)).toEqual(['flag=DEDICATED']);
-		expect(verdictsKept(TEST, picks)).toBe(true);
-	});
-
-	it('leaves the other tests alone', () => {
-		const picks = setTestPick(DEFAULT_SCOPE_PICKS, 21, {
-			parameters: [],
-			verdicts: false
-		});
-
-		expect(parametersPicked(OTHER_TEST, picks)).toEqual([
-			'flag=DEDICATED',
-			'mtu=1500'
-		]);
-		expect(verdictsKept(OTHER_TEST, picks)).toBe(true);
-	});
-
-	it('counts a rule per verdict list kept, else one', () => {
-		expect(rulesForTest(TEST, DEFAULT_SCOPE_PICKS)).toBe(1);
-		expect(rulesForTest(OTHER_TEST, DEFAULT_SCOPE_PICKS)).toBe(2);
-		expect(
-			rulesForTest(
-				OTHER_TEST,
-				setTestPick(DEFAULT_SCOPE_PICKS, 22, { verdicts: false })
-			)
-		).toBe(1);
-	});
-
-	it('drops picks the options no longer offer', () => {
-		const picks: ScopePicks = {
-			...DEFAULT_SCOPE_PICKS,
+	it('change one rule and leave the others alone', () => {
+		const picks = setRulePick(DEFAULT_SCOPE_PICKS, RULE, {
+			parameters: ['flag'],
 			tags: ['sfc', 'gone']
-		};
+		});
 
-		expect(tagsPicked(OPTIONS, picks)).toEqual(['sfc']);
+		expect(parametersPicked(RULE, picks)).toEqual(['flag']);
+		// A pick the options do not offer is dropped.
+		expect(tagsPicked(RULE, picks)).toEqual(['sfc']);
+		expect(verdictsKept(RULE, picks)).toBe(true);
+		expect(parametersPicked(RULE_HW, picks)).toEqual(['env', 'flag']);
+		expect(tagsPicked(RULE_HW, picks)).toEqual(RULE_HW.tags.default);
+	});
+
+	it('are all empty once the section was emptied, a rule coming back alone', () => {
+		expect(parametersPicked(RULE, CLEARED_SCOPE_PICKS)).toEqual([]);
+		expect(verdictsKept(RULE, CLEARED_SCOPE_PICKS)).toBe(false);
+		expect(tagsPicked(RULE, CLEARED_SCOPE_PICKS)).toEqual([]);
+
+		const picks = resetRulePicks(CLEARED_SCOPE_PICKS, RULE);
+
+		expect(parametersPicked(RULE, picks)).toEqual(['env', 'flag']);
+		expect(tagsPicked(RULE, picks)).toEqual(TAGS.default);
+		expect(parametersPicked(RULE_HW, picks)).toEqual([]);
+	});
+
+	it('empty one rule from its bin', () => {
+		const picks = clearRulePicks(DEFAULT_SCOPE_PICKS, RULE_HW);
+
+		expect(parametersPicked(RULE_HW, picks)).toEqual([]);
+		expect(verdictsKept(RULE_HW, picks)).toBe(false);
+		expect(tagsPicked(RULE_HW, picks)).toEqual([]);
+		expect(parametersPicked(RULE, picks)).toEqual(['env', 'flag']);
 	});
 });
 
-describe('clearing and resetting', () => {
-	it('an unlisted test reads the fallback the bin set', () => {
-		expect(parametersPicked(TEST, CLEARED_SCOPE_PICKS)).toEqual([]);
-		expect(verdictsKept(TEST, CLEARED_SCOPE_PICKS)).toBe(false);
-		expect(tagsPicked(OPTIONS, CLEARED_SCOPE_PICKS)).toEqual([]);
-	});
-
-	it('a test reset after the bin is back to its defaults', () => {
-		const picks = resetTestPicks(CLEARED_SCOPE_PICKS, 21);
-
-		expect(parametersPicked(TEST, picks)).toEqual([
-			'env=VAR.env.peer2peer_ipv6',
-			'flag=DEDICATED'
+describe('matchersFor', () => {
+	it('sends a matcher per rule, told by its test and runs', () => {
+		expect(matchersFor(RUNS, DEFAULT_SCOPE_PICKS)).toEqual([
+			{
+				test_id: 21,
+				run_ids: [7],
+				parameters: RULE.parameters,
+				verdicts: RULE.verdicts,
+				tags: TAGS.default
+			},
+			{
+				test_id: 21,
+				run_ids: [8],
+				parameters: RULE.parameters,
+				verdicts: RULE.verdicts,
+				tags: RULE_HW.tags.default
+			}
 		]);
-		expect(verdictsKept(TEST, picks)).toBe(true);
-		expect(parametersPicked(OTHER_TEST, picks)).toEqual([]);
 	});
 
-	it('a cleared test is emptied alone', () => {
-		const picks = clearTestPicks(DEFAULT_SCOPE_PICKS, 22);
-
-		expect(verdictsKept(OTHER_TEST, picks)).toBe(false);
-		expect(verdictsKept(TEST, picks)).toBe(true);
-	});
-});
-
-describe('matcherForTest', () => {
-	it('sends everything shared and the important tags by default', () => {
-		expect(matcherForTest(TEST, OPTIONS, DEFAULT_SCOPE_PICKS)).toEqual({
-			test_id: 21,
-			parameters: TEST.parameters,
-			verdicts: TEST.verdicts,
-			tags: ['fixture=net-drv-ts', 'mix=warn']
-		});
-	});
-
-	it('sends emptied parameters empty and dropped verdicts null', () => {
-		const picks = setTestPick(DEFAULT_SCOPE_PICKS, 21, {
-			parameters: [],
-			verdicts: false
-		});
-
-		expect(matcherForTest(TEST, OPTIONS, picks)).toMatchObject({
-			parameters: {},
-			verdicts: null
-		});
-	});
-
-	it('sends every verdict list of a test as the options gave them', () => {
-		expect(
-			matcherForTest(OTHER_TEST, MANY, DEFAULT_SCOPE_PICKS).verdicts
-		).toEqual([['Packets dropped', 'Timeout'], []]);
-	});
-
-	it('gives each test only its own picked values', () => {
-		const picks = setTestPick(
-			setTestPick(DEFAULT_SCOPE_PICKS, 21, { parameters: ['flag=DEDICATED'] }),
-			22,
-			{ parameters: ['mtu=1500'] }
+	it('cuts each matcher down to its own picks', () => {
+		const picks = setRulePick(
+			clearRulePicks(DEFAULT_SCOPE_PICKS, RULE_HW),
+			RULE,
+			{ parameters: ['env'] }
 		);
 
-		expect(matcherForTest(TEST, MANY, picks).parameters).toEqual({
-			flag: 'DEDICATED'
-		});
-		expect(matcherForTest(OTHER_TEST, MANY, picks).parameters).toEqual({
-			mtu: '1500'
-		});
+		expect(matchersFor(RUNS, picks)).toEqual([
+			{
+				test_id: 21,
+				run_ids: [7],
+				parameters: { env: 'VAR.env.peer2peer_ipv6' },
+				verdicts: RULE.verdicts,
+				tags: TAGS.default
+			},
+			{ test_id: 21, run_ids: [8], parameters: {}, verdicts: null, tags: [] }
+		]);
 	});
 });
 
-describe('testStanding', () => {
-	it('warns of nothing while the rule is narrowed', () => {
-		const matcher = matcherForTest(TEST, OPTIONS, DEFAULT_SCOPE_PICKS);
+describe('the rules stored', () => {
+	it('are one per verdict list kept, else one', () => {
+		expect(rulesOf(OTHER, DEFAULT_SCOPE_PICKS)).toBe(2);
+		expect(
+			rulesOf(
+				OTHER,
+				setRulePick(DEFAULT_SCOPE_PICKS, OTHER, { verdicts: false })
+			)
+		).toBe(1);
+		expect(rulesWritten(MANY, DEFAULT_SCOPE_PICKS)).toBe(4);
+	});
 
-		expect(testStanding(TEST, matcher)).toEqual({
+	it('are one for rules left matching on the same values', () => {
+		expect(sameAsEarlier(RUNS, 1, DEFAULT_SCOPE_PICKS)).toBe(false);
+
+		const picks = RUNS.reduce(
+			(next, rule) => setRulePick(next, rule, { tags: ['fixture=net-drv-ts'] }),
+			DEFAULT_SCOPE_PICKS
+		);
+
+		expect(sameAsEarlier(RUNS, 1, picks)).toBe(true);
+		expect(sameAsEarlier(RUNS, 0, picks)).toBe(false);
+		expect(rulesWritten(RUNS, picks)).toBe(1);
+	});
+
+	it('never merge the rules of different tests', () => {
+		const picks = [RULE, OTHER].reduce(clearRulePicks, DEFAULT_SCOPE_PICKS);
+
+		expect(sameAsEarlier([RULE, OTHER], 1, picks)).toBe(false);
+		expect(rulesWritten([RULE, OTHER], picks)).toBe(2);
+	});
+});
+
+describe('ruleStanding', () => {
+	it('has nothing to say of a narrowed rule', () => {
+		expect(ruleStanding(RULE, DEFAULT_SCOPE_PICKS)).toEqual({
 			pathOnly: false,
 			open: [],
 			warnings: []
 		});
 	});
 
-	it('says when the results share nothing of a dimension', () => {
-		const bare = { ...OTHER_TEST, parameters: {} };
-		const matcher = matcherForTest(bare, MANY, DEFAULT_SCOPE_PICKS);
-
-		expect(testStanding(bare, matcher)).toEqual({
-			pathOnly: false,
-			open: ['parameters'],
-			warnings: ['Any parameters will match: the selected results share none.']
+	it('warns of dropped verdicts and of removed parameters', () => {
+		const picks = setRulePick(DEFAULT_SCOPE_PICKS, RULE, {
+			parameters: [],
+			verdicts: null
 		});
-	});
 
-	it('says when every parameter was removed, and when the verdicts were dropped', () => {
-		const parameters = matcherForTest(
-			TEST,
-			OPTIONS,
-			setTestPick(DEFAULT_SCOPE_PICKS, 21, { parameters: [] })
-		);
-		const verdicts = matcherForTest(
-			TEST,
-			OPTIONS,
-			setTestPick(DEFAULT_SCOPE_PICKS, 21, { verdicts: false })
-		);
-
-		expect(testStanding(TEST, parameters).warnings).toEqual([
+		expect(ruleStanding(RULE, picks).warnings).toEqual([
 			'Any parameters will match: all were removed.'
 		]);
-		expect(testStanding(TEST, verdicts).warnings).toEqual([
-			'Any verdicts will match: they are not kept.'
+		expect(
+			ruleStanding(
+				RULE,
+				setRulePick(DEFAULT_SCOPE_PICKS, RULE, { verdicts: false })
+			)
+		).toMatchObject({
+			open: ['verdicts'],
+			warnings: ['Any verdicts will match: they are not kept.']
+		});
+	});
+
+	it('says when the results share no parameter', () => {
+		expect(ruleStanding(OTHER, DEFAULT_SCOPE_PICKS).warnings).toEqual([
+			'Any parameters will match: the selected results share none.'
 		]);
 	});
 
-	it('warns once of a rule left to the path, tags or not', () => {
-		const withTags = matcherForTest(TEST, OPTIONS, {
-			...DEFAULT_SCOPE_PICKS,
-			fallback: { parameters: [], verdicts: false }
+	it('tells a path-only rule with tags from one without', () => {
+		const tagged = setRulePick(DEFAULT_SCOPE_PICKS, RULE, {
+			parameters: [],
+			verdicts: false
 		});
-		const bare = matcherForTest(TEST, OPTIONS, CLEARED_SCOPE_PICKS);
 
-		expect(testStanding(TEST, withTags)).toEqual({
+		expect(ruleStanding(RULE, tagged)).toMatchObject({
 			pathOnly: true,
-			open: ['parameters', 'verdicts'],
 			warnings: [
 				'Every failure of this test in a run with the kept tags will match.'
 			]
 		});
-		expect(testStanding(TEST, bare).warnings).toEqual([
+		expect(
+			ruleStanding(RULE, clearRulePicks(DEFAULT_SCOPE_PICKS, RULE)).warnings
+		).toEqual([
 			'Every failure of this test will match: nothing but the path is kept.'
 		]);
 	});

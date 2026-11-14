@@ -13,6 +13,8 @@ import {
 import { ClassifyFields } from './classify-form.component';
 import { buildSubmitHandler } from './classify-form.hooks';
 import { type ClassifyForm } from './classify-form.types';
+import { resultsInRuns } from './classify.utils';
+import type { RunResults } from './result-selection.utils';
 
 export interface ClassifyDrawerProps {
 	open: boolean;
@@ -20,10 +22,11 @@ export interface ClassifyDrawerProps {
 	form: ClassifyForm;
 	projectId?: number;
 	/**
-	 * The results being classified, all of one run: one from a row's Classify
-	 * button, several from the bulk bar. The match scope reads what they carry.
+	 * The results being classified, by run: one from a row's Classify button,
+	 * several from the bulk bar, of one run or several. The match scope reads
+	 * what they carry, and all of them are classified in one request.
 	 */
-	resultIds: number[];
+	runs: RunResults[];
 	submit: Parameters<typeof buildSubmitHandler>[0];
 	/** See `ClassifyButtonProps.classified`. */
 	classified?: boolean;
@@ -34,12 +37,13 @@ export function ClassifyDrawer({
 	onOpenChange,
 	form,
 	projectId,
-	resultIds,
+	runs,
 	submit,
 	classified = false
 }: ClassifyDrawerProps) {
 	const onSubmit = buildSubmitHandler(submit, form, () => onOpenChange(false));
-	const several = resultIds.length > 1;
+	const count = runs.reduce((sum, run) => sum + run.resultIds.length, 0);
+	const several = count > 1;
 	const [scrollableRef, isScrollable] = useIsScrollbarVisible<HTMLDivElement>();
 	const isSubmitting = form.formState.isSubmitting;
 
@@ -60,18 +64,20 @@ export function ClassifyDrawer({
 				overlayClassName="z-[54]"
 				className="z-[55] w-screen max-w-3xl flex flex-col"
 				data-testid="classify-drawer"
-				data-result-count={resultIds.length}
+				data-result-count={count}
+				data-run-count={runs.length}
 			>
 				<div className="px-6 py-4 border-b border-border-primary shrink-0">
 					<DrawerFormHeader
-						name={
-							several
-								? `Classify ${resultIds.length} Results`
-								: 'Classify Failure'
-						}
+						name={several ? `Classify ${count} Results` : 'Classify Failure'}
 						description={
 							several
-								? 'Record why these results failed under one issue, with a rule per test for future ones.'
+								? runs.length === 1
+									? 'Record why these results failed under one issue, with a rule per test for future ones.'
+									: `Record why these ${resultsInRuns(
+											count,
+											runs.length
+									  )} failed, under one issue.`
 								: classified
 								? 'This result is already classified. Add another issue, or a verdict for this result only.'
 								: 'Record why this result failed, and decide which future results inherit the verdict.'
@@ -91,7 +97,7 @@ export function ClassifyDrawer({
 						<ClassifyFields
 							form={form}
 							projectId={projectId}
-							resultIds={resultIds}
+							runs={runs}
 							container={scrollableRef}
 						/>
 
@@ -127,7 +133,7 @@ export function ClassifyDrawer({
 									{isSubmitting
 										? 'Classifying…'
 										: several
-										? `Classify ${resultIds.length} results`
+										? `Classify ${resultsInRuns(count, runs.length)}`
 										: 'Classify'}
 								</span>
 							</ButtonTw>

@@ -373,8 +373,9 @@ export const classificationEndpoints = {
 			}
 		),
 		/**
-		 * What a rule classifying these results may contain. A POST that reads:
-		 * the ids go in the body, as the list can be long.
+		 * The rules that will classify these results, of one run or several,
+		 * each with what it may contain. A POST that reads: the ids go in the
+		 * body, as the list can be long.
 		 */
 		getClassifyOptions: build.query<ClassifyOptions, { resultIds: number[] }>({
 			query: ({ resultIds }) => ({
