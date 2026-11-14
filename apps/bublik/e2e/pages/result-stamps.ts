@@ -156,16 +156,32 @@ class ResultStamps {
 		return this.run.classifySelection();
 	}
 
-	/** Hovers the stamp's key and expects its tooltip to read `text`. */
+	/**
+	 * Focuses the stamp's key and expects its tooltip to read `text`.
+	 *
+	 * Radix opens a tooltip as soon as its trigger takes focus, but on hover
+	 * only after its 700 ms delay and only if the pointer move arrives. WebKit
+	 * on Linux sometimes loses that move when the table shifts under it, and
+	 * on a slow runner the delay alone ran past each retry of the hover, so
+	 * hovering again never caught it. Focus needs neither.
+	 */
 	async expectStampTooltip(
 		stamp: Locator,
 		text: string | RegExp
 	): Promise<void> {
-		await stamp.getByTestId('issue-key-link').hover();
-		await expect(
-			this.page.getByRole('tooltip').filter({ hasText: text }).first()
-		).toBeVisible({ timeout: 15_000 });
+		const key = stamp.getByTestId('issue-key-link');
+		const tooltip = this.page
+			.getByRole('tooltip')
+			.filter({ hasText: text })
+			.first();
+		// A pointer resting on another key would hold that key's tooltip open.
 		await this.page.mouse.move(0, 0);
+		await expect(async () => {
+			await key.blur();
+			await key.focus();
+			await expect(tooltip).toBeVisible({ timeout: 10_000 });
+		}).toPass({ timeout: 30_000 });
+		await key.blur();
 	}
 
 	async expectOrigin(
