@@ -11,13 +11,14 @@ export const MATCH_SCOPE_COPY = {
 	sectionHint: 'Future failures matching the rule below inherit this.',
 	specificHint:
 		'Future failures matching a rule below inherit this. Each rule is narrowed on its own.',
-	tagsApart: (count: number) =>
-		`${count} kept tag${count > 1 ? 's are' : ' is'} not on every rule.`,
-	keepShared: 'Keep only the shared tags',
+	oneoffHint: (rules: boolean, results: boolean) =>
+		`${rules ? 'The rules' : 'The rule'} will be saved switched off: only ${
+			results ? 'these results' : 'this result'
+		} will be classified, and future runs will be left alone.`,
 	testHint: (results: number, runs: number) =>
-		`The rule for ${results} result${results > 1 ? 's' : ''} of this test${
+		`${results} result${results > 1 ? 's' : ''} of this test${
 			runs > 1 ? ` in ${runs} runs` : ''
-		}. It may keep what ${results > 1 ? 'they all carry' : 'it carries'}.`,
+		}. Each rule below may keep what its results carry.`,
 	verdictsHint: `${MATCHER_HINTS.verdicts} Results that failed with different lists get a rule per list.`,
 	explainer: [
 		{

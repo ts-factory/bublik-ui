@@ -67,6 +67,29 @@ export function testCount(options: ClassifyOptions): number {
 	return new Set(options.map((rule) => rule.test_id)).size;
 }
 
+/** The rules of one test path, each with its place among the options. */
+export interface PathRules {
+	path: string;
+	rules: { rule: ClassifyRuleOptions; index: number }[];
+}
+
+/** The options' rules by test path, in the order the paths first appear. */
+export function rulesByPath(options: ClassifyOptions): PathRules[] {
+	const groups = new Map<string, PathRules>();
+
+	options.forEach((rule, index) => {
+		const group = groups.get(rule.test_path) ?? {
+			path: rule.test_path,
+			rules: []
+		};
+
+		group.rules.push({ rule, index });
+		groups.set(rule.test_path, group);
+	});
+
+	return Array.from(groups.values());
+}
+
 /** A parameter as a rule's matcher spells it, `key=value`. */
 export function parameterValue(key: string, value: string): string {
 	return `${key}${config.keyValueSubmitDelimiter}${value}`;
@@ -256,42 +279,6 @@ export function sameAsEarlier(
 	return options
 		.slice(0, index)
 		.some((rule) => storedKeys(matcherOfRule(rule, picks)).join('\n') === own);
-}
-
-/** The tags every rule may take: keeping one never tells the rules apart. */
-export function sharedTags(options: ClassifyOptions): Set<string> {
-	const [first, ...rest] = options.map(
-		(rule) => new Set([...rule.tags.default, ...rule.tags.allowed])
-	);
-
-	return new Set(
-		Array.from(first ?? []).filter((tag) => rest.every((tags) => tags.has(tag)))
-	);
-}
-
-/** The kept tags only some of the rules may take, each once. */
-export function tagsApart(options: ClassifyOptions, picks: ScopePicks) {
-	const shared = sharedTags(options);
-
-	return Array.from(
-		new Set(options.flatMap((rule) => tagsPicked(rule, picks)))
-	).filter((tag) => !shared.has(tag));
-}
-
-/** The picks with every rule keeping only the tags all of them may take. */
-export function keepSharedTags(
-	options: ClassifyOptions,
-	picks: ScopePicks
-): ScopePicks {
-	const shared = sharedTags(options);
-
-	return options.reduce(
-		(next, rule) =>
-			setRulePick(next, rule, {
-				tags: tagsPicked(rule, picks).filter((tag) => shared.has(tag))
-			}),
-		picks
-	);
 }
 
 /**

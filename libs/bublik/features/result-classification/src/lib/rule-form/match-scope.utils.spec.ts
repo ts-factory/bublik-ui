@@ -9,19 +9,18 @@ import {
 	DEFAULT_SCOPE_PICKS,
 	chipsForRule,
 	clearRulePicks,
-	keepSharedTags,
 	matchersFor,
 	parameterOptions,
 	parametersPicked,
 	resetRulePicks,
 	ruleKey,
 	ruleStanding,
+	rulesByPath,
 	rulesOf,
 	rulesWritten,
 	sameAsEarlier,
 	setRulePick,
 	tagOptions,
-	tagsApart,
 	tagsPicked,
 	testCount,
 	verdictsKept
@@ -66,7 +65,6 @@ const OTHER: ClassifyRuleOptions = {
 	verdicts: [['Packet lost', 'Timeout'], []]
 };
 
-const ONE: ClassifyOptions = [RULE];
 const RUNS: ClassifyOptions = [RULE, RULE_HW];
 const MANY: ClassifyOptions = [RULE, RULE_HW, OTHER];
 
@@ -75,6 +73,24 @@ describe('the rules of the options', () => {
 		expect(ruleKey(RULE)).toBe('21:7');
 		expect(ruleKey({ ...RULE, run_ids: [7, 9] })).toBe('21:7,9');
 		expect(testCount(MANY)).toBe(2);
+	});
+
+	it('groups the rules by test path, in the order the paths first appear', () => {
+		expect(
+			rulesByPath([RULE, OTHER, RULE_HW]).map((group) => [
+				group.path,
+				group.rules.map(({ rule, index }) => [ruleKey(rule), index])
+			])
+		).toEqual([
+			[
+				RULE.test_path,
+				[
+					[ruleKey(RULE), 0],
+					[ruleKey(RULE_HW), 2]
+				]
+			],
+			[OTHER.test_path, [[ruleKey(OTHER), 1]]]
+		]);
 	});
 
 	it('offers the parameters by name, in order', () => {
@@ -199,10 +215,11 @@ describe('the rules stored', () => {
 	it('are one for rules left matching on the same values', () => {
 		expect(sameAsEarlier(RUNS, 1, DEFAULT_SCOPE_PICKS)).toBe(false);
 
-		const picks = keepSharedTags(RUNS, DEFAULT_SCOPE_PICKS);
+		const picks = RUNS.reduce(
+			(next, rule) => setRulePick(next, rule, { tags: ['fixture=net-drv-ts'] }),
+			DEFAULT_SCOPE_PICKS
+		);
 
-		expect(tagsPicked(RULE, picks)).toEqual(['fixture=net-drv-ts']);
-		expect(tagsPicked(RULE_HW, picks)).toEqual(['fixture=net-drv-ts']);
 		expect(sameAsEarlier(RUNS, 1, picks)).toBe(true);
 		expect(sameAsEarlier(RUNS, 0, picks)).toBe(false);
 		expect(rulesWritten(RUNS, picks)).toBe(1);
@@ -213,29 +230,6 @@ describe('the rules stored', () => {
 
 		expect(sameAsEarlier([RULE, OTHER], 1, picks)).toBe(false);
 		expect(rulesWritten([RULE, OTHER], picks)).toBe(2);
-	});
-});
-
-describe('tags not every rule may take', () => {
-	it('are counted once each among the kept ones', () => {
-		expect(tagsApart(RUNS, DEFAULT_SCOPE_PICKS)).toEqual([
-			'mix=warn',
-			'mix=err'
-		]);
-		expect(tagsApart(ONE, DEFAULT_SCOPE_PICKS)).toEqual([]);
-		expect(tagsApart(RUNS, keepSharedTags(RUNS, DEFAULT_SCOPE_PICKS))).toEqual(
-			[]
-		);
-	});
-
-	it('leave a relevant tag every rule may take kept', () => {
-		const picks = setRulePick(DEFAULT_SCOPE_PICKS, RULE, {
-			tags: ['kernel-linux', 'sfc', 'mix=warn']
-		});
-
-		expect(tagsPicked(RULE, keepSharedTags(RUNS, picks))).toEqual([
-			'kernel-linux'
-		]);
 	});
 });
 
