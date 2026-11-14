@@ -232,13 +232,22 @@ export function ClassifyFields({
 				<FormSection.Bar className="bg-bg-interrupted" />
 				<FormSection.Header
 					name="Scope"
-					beside={<MatchingExplainer container={container} />}
+					beside={
+						<MatchingExplainer
+							container={container}
+							oneRun={runs.length === 1}
+						/>
+					}
 				>
 					{/* The header pads its buttons 5px; 5 more end the icons where
 					    the fields' arrows do. */}
 					<div className="flex items-center gap-1 pr-[5px]">
 						<FormSection.ResetToDefaultButton
-							helpMessage="Back to everything the results have"
+							helpMessage={
+								runs.length === 1
+									? 'Back to what the results share'
+									: 'Back to everything the results have'
+							}
 							onClick={() =>
 								setValue('picks', DEFAULT_SCOPE_PICKS, { shouldDirty: true })
 							}

@@ -120,7 +120,9 @@ export function useClassify(runs: RunResults[], projectIdParam?: number) {
 				count,
 				runCount: runs.length,
 				testCount: testCount(options),
-				ruleCount: response.rule_ids.length
+				// Results of one run get a rule per test, as the toast says
+				// already.
+				ruleCount: runs.length > 1 ? response.rule_ids.length : undefined
 			});
 
 			toast.success(title, { id, description });
