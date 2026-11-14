@@ -2,7 +2,7 @@
 import type {
 	ClassifyMatcher,
 	ClassifyOptions,
-	ClassifyOptionsTest
+	ClassifyRuleOptions
 } from '@/shared/types';
 import { config } from '@/bublik/config';
 
@@ -11,93 +11,111 @@ import { displayKeyValue } from './matcher-fields.utils';
 /** The dimensions of a rule the classify form lets the reader narrow. */
 export type ScopeField = 'parameters' | 'verdicts' | 'tags';
 
-/** The dimensions a test's own results decide, unlike the run's tags. */
-export type TestScopeField = Exclude<ScopeField, 'tags'>;
-
 /**
- * What the reader kept of one test's dimensions. The parameters as the
- * matcher sends them, `key=value`; null until the reader changes the field,
- * since its default is only known once the options arrive: every value the
- * test's results share. The verdicts are kept whole or not at all, as the
- * server matches them exactly: true keeps every verdict list of the test's
- * results, false ignores them, null is the default, kept.
+ * What the reader kept of one rule. Each field is null until the reader
+ * changes it, since its default is only known once the options arrive:
+ * every parameter, the verdicts, and the important tags. The parameters are
+ * kept by name. The verdicts are kept whole or not at all, as the server
+ * matches them exactly.
  */
-export interface TestPicks {
+export interface RulePicks {
 	parameters: string[] | null;
 	verdicts: boolean | null;
+	tags: string[] | null;
 }
 
 /**
- * What the reader kept, per test: each test gets its own rule, and a rule
- * never takes another test's values. The tags are the run's, shared by every
- * rule; null keeps the run's important ones.
+ * What the reader kept, rule by rule: the options give the rules, and each
+ * is narrowed on its own.
  */
 export interface ScopePicks {
-	tags: string[] | null;
-	/** By test id; a test not listed reads `fallback`. */
-	tests: Record<string, TestPicks>;
+	/** By `ruleKey`; a rule not listed reads `fallback`. */
+	rules: Record<string, RulePicks>;
 	/**
-	 * What an unlisted test's pickers hold: null for their defaults, empty
-	 * lists once the section's bin emptied every picker, which happens
-	 * outside the match scope, before it may know the tests.
+	 * What an unlisted rule's fields hold: null for their defaults, empty
+	 * once the section's bin emptied every field, which happens outside the
+	 * match scope, before it may know the rules.
 	 */
-	fallback: TestPicks | null;
+	fallback: RulePicks | null;
 }
 
-export const DEFAULT_SCOPE_PICKS: ScopePicks = {
-	tags: null,
-	tests: {},
-	fallback: null
-};
+export const DEFAULT_SCOPE_PICKS: ScopePicks = { rules: {}, fallback: null };
 
-/** Every picker emptied: the rules match on their paths alone. */
+/** Every field emptied: the rules match on their paths alone. */
 export const CLEARED_SCOPE_PICKS: ScopePicks = {
-	tags: [],
-	tests: {},
-	fallback: { parameters: [], verdicts: false }
+	rules: {},
+	fallback: { parameters: [], verdicts: false, tags: [] }
 };
 
-/** One value a dimension's picker offers. */
+const UNTOUCHED: RulePicks = { parameters: null, verdicts: null, tags: null };
+
+/** One value a field's list offers. */
 export interface ScopeOption {
 	value: string;
 	label: string;
-	/** One of the run's important tags, kept by default. */
+	/** An important tag of the runs, kept by default. */
 	important: boolean;
 }
 
-function parameterValue(key: string, value: string): string {
+/** What tells a rule of the options from the others: its test and runs. */
+export function ruleKey(rule: ClassifyRuleOptions): string {
+	return `${rule.test_id}:${rule.run_ids.join(',')}`;
+}
+
+/** How many tests the options' rules are of. */
+export function testCount(options: ClassifyOptions): number {
+	return new Set(options.map((rule) => rule.test_id)).size;
+}
+
+/** The rules of one test path, each with its place among the options. */
+export interface PathRules {
+	path: string;
+	rules: { rule: ClassifyRuleOptions; index: number }[];
+}
+
+/** The options' rules by test path, in the order the paths first appear. */
+export function rulesByPath(options: ClassifyOptions): PathRules[] {
+	const groups = new Map<string, PathRules>();
+
+	options.forEach((rule, index) => {
+		const group = groups.get(rule.test_path) ?? {
+			path: rule.test_path,
+			rules: []
+		};
+
+		group.rules.push({ rule, index });
+		groups.set(rule.test_path, group);
+	});
+
+	return Array.from(groups.values());
+}
+
+/** A parameter as a rule's matcher spells it, `key=value`. */
+export function parameterValue(key: string, value: string): string {
 	return `${key}${config.keyValueSubmitDelimiter}${value}`;
 }
 
-/**
- * What one test's Parameters picker offers: only what
- * `/results/classify/options/` says all of the test's results carry, so its
- * rules always match them.
- */
-export function parameterOptions(test: ClassifyOptionsTest): ScopeOption[] {
-	return Object.entries(test.parameters)
-		.map(([key, value]) => parameterValue(key, value))
-		.map((value) => ({
-			value,
-			label: displayKeyValue(value),
+/** What a rule's Parameters field offers: the parameters its results share. */
+export function parameterOptions(rule: ClassifyRuleOptions): ScopeOption[] {
+	return Object.entries(rule.parameters)
+		.sort(([left], [right]) => left.localeCompare(right))
+		.map(([name, value]) => ({
+			value: name,
+			label: displayKeyValue(parameterValue(name, value)),
 			important: false
-		}))
-		.sort((left, right) => left.label.localeCompare(right.label));
+		}));
 }
 
 /**
- * The tags a rule may take: the run's important ones first, then the
- * relevant ones, as the run page shows them.
+ * The tags a rule may take: the important ones first, then the relevant
+ * ones, as the run page shows them.
  */
-export function tagOptions(options: ClassifyOptions): ScopeOption[] {
-	const important = new Set(options.tags.default);
-	const all = Array.from(
-		new Set([...options.tags.default, ...options.tags.allowed])
-	);
+export function tagOptions(rule: ClassifyRuleOptions): ScopeOption[] {
+	const important = new Set(rule.tags.default);
 
 	return [
-		...all.filter((tag) => important.has(tag)),
-		...all.filter((tag) => !important.has(tag))
+		...rule.tags.default,
+		...rule.tags.allowed.filter((tag) => !important.has(tag))
 	].map((tag) => ({
 		value: tag,
 		label: displayKeyValue(tag),
@@ -105,21 +123,20 @@ export function tagOptions(options: ClassifyOptions): ScopeOption[] {
 	}));
 }
 
-function picksOf(picks: ScopePicks, testId: number): TestPicks | null {
-	return picks.tests[String(testId)] ?? picks.fallback;
+function picksOf(picks: ScopePicks, rule: ClassifyRuleOptions): RulePicks {
+	return picks.rules[ruleKey(rule)] ?? picks.fallback ?? UNTOUCHED;
 }
 
 /**
- * The parameters one test's rules keep: the reader's picks once they made
- * any, else everything the test's results share. Picks the options no
- * longer offer are dropped.
+ * The parameter names a rule keeps: the reader's picks once they made any,
+ * else every name. Picks the options no longer offer are dropped.
  */
 export function parametersPicked(
-	test: ClassifyOptionsTest,
+	rule: ClassifyRuleOptions,
 	picks: ScopePicks
 ): string[] {
-	const offered = parameterOptions(test).map((option) => option.value);
-	const picked = picksOf(picks, test.test_id)?.parameters ?? null;
+	const offered = parameterOptions(rule).map((option) => option.value);
+	const picked = picksOf(picks, rule).parameters;
 
 	if (picked === null) return offered;
 
@@ -128,123 +145,185 @@ export function parametersPicked(
 	return offered.filter((value) => kept.has(value));
 }
 
-/** Whether one test's rules keep its verdict lists; they do until dropped. */
-export function verdictsKept(test: ClassifyOptionsTest, picks: ScopePicks) {
-	return picksOf(picks, test.test_id)?.verdicts ?? true;
+/** Whether a rule keeps its verdict lists; it does until they are dropped. */
+export function verdictsKept(rule: ClassifyRuleOptions, picks: ScopePicks) {
+	return picksOf(picks, rule).verdicts ?? true;
 }
 
-/**
- * How many rules one test gets per category: one per verdict list kept, as
- * the verdicts are matched exactly, else one for all of its results.
- */
-export function rulesForTest(test: ClassifyOptionsTest, picks: ScopePicks) {
-	return verdictsKept(test, picks) ? Math.max(test.verdicts.length, 1) : 1;
-}
-
-/** The tags every rule keeps: the reader's picks, else the important ones. */
+/** The tags a rule keeps: the reader's picks, else its important ones. */
 export function tagsPicked(
-	options: ClassifyOptions,
+	rule: ClassifyRuleOptions,
 	picks: ScopePicks
 ): string[] {
-	const offered = tagOptions(options);
+	const picked = picksOf(picks, rule).tags;
 
-	if (picks.tags === null) {
-		return offered
-			.filter((option) => option.important)
-			.map((option) => option.value);
-	}
+	if (picked === null) return rule.tags.default;
 
-	const kept = new Set(picks.tags);
+	const kept = new Set(picked);
 
-	return offered
+	return tagOptions(rule)
 		.filter((option) => kept.has(option.value))
 		.map((option) => option.value);
 }
 
-export function setTestPick(
+export function setRulePick(
 	picks: ScopePicks,
-	testId: number,
-	next: Partial<TestPicks>
+	rule: ClassifyRuleOptions,
+	next: Partial<RulePicks>
 ): ScopePicks {
-	const current = picksOf(picks, testId) ?? {
-		parameters: null,
-		verdicts: null
-	};
-
 	return {
 		...picks,
-		tests: { ...picks.tests, [String(testId)]: { ...current, ...next } }
-	};
-}
-
-/** One test's pickers back to their defaults, whatever the bin did to all. */
-export function resetTestPicks(picks: ScopePicks, testId: number): ScopePicks {
-	return {
-		...picks,
-		tests: {
-			...picks.tests,
-			[String(testId)]: { parameters: null, verdicts: null }
-		}
-	};
-}
-
-/** One test's pickers emptied: its rule matches on the path and the tags. */
-export function clearTestPicks(picks: ScopePicks, testId: number): ScopePicks {
-	return {
-		...picks,
-		tests: {
-			...picks.tests,
-			[String(testId)]: { parameters: [], verdicts: false }
+		rules: {
+			...picks.rules,
+			[ruleKey(rule)]: { ...picksOf(picks, rule), ...next }
 		}
 	};
 }
 
 /**
- * The matcher of one test's rules: what `/results/classify/options/` says the
- * test's results share, cut down to the reader's picks. Emptied parameters
- * or tags are sent empty, and dropped verdicts null, which the endpoint reads
- * as "do not match on it"; kept verdicts are every list the options gave,
- * the only thing it accepts besides null.
+ * Whether the options' rules are those of one run: a rule per test, all with
+ * the run's tags. Their form shows the tags once, for every rule.
  */
-export function matcherForTest(
-	test: ClassifyOptionsTest,
+export function ofOneRun(options: ClassifyOptions): boolean {
+	const runs = new Set(options.flatMap((rule) => rule.run_ids));
+
+	return runs.size <= 1 && testCount(options) === options.length;
+}
+
+/** The same tags kept by every rule, as the one Tags field of a run's form does. */
+export function setTagsOfAll(
+	picks: ScopePicks,
 	options: ClassifyOptions,
+	tags: string[]
+): ScopePicks {
+	return options.reduce(
+		(next, rule) => setRulePick(next, rule, { tags }),
+		picks
+	);
+}
+
+/** One rule back to its defaults, whatever the section's bin did to all. */
+export function resetRulePicks(
+	picks: ScopePicks,
+	rule: ClassifyRuleOptions
+): ScopePicks {
+	return setRulePick(picks, rule, UNTOUCHED);
+}
+
+/** One rule emptied: it matches on its test's path alone. */
+export function clearRulePicks(
+	picks: ScopePicks,
+	rule: ClassifyRuleOptions
+): ScopePicks {
+	return setRulePick(picks, rule, {
+		parameters: [],
+		verdicts: false,
+		tags: []
+	});
+}
+
+/**
+ * The matcher of one of the options' rules: what the rule may contain, cut
+ * down to the reader's picks. Emptied parameters or tags are sent empty, and
+ * dropped verdicts null, which the endpoint reads as "do not match on it";
+ * kept verdicts are every list the options gave, the only thing it accepts
+ * besides null.
+ */
+export function matcherOfRule(
+	rule: ClassifyRuleOptions,
 	picks: ScopePicks
 ): ClassifyMatcher {
-	const parameters = new Set(parametersPicked(test, picks));
+	const names = new Set(parametersPicked(rule, picks));
 
 	return {
-		test_id: test.test_id,
+		test_id: rule.test_id,
+		run_ids: rule.run_ids,
 		parameters: Object.fromEntries(
-			Object.entries(test.parameters).filter(([key, value]) =>
-				parameters.has(parameterValue(key, value))
-			)
+			Object.entries(rule.parameters).filter(([name]) => names.has(name))
 		),
-		verdicts: verdictsKept(test, picks) ? test.verdicts : null,
-		tags: tagsPicked(options, picks)
+		verdicts: verdictsKept(rule, picks) ? rule.verdicts : null,
+		tags: tagsPicked(rule, picks)
 	};
 }
 
+/** The matchers of a classify request: one per rule of the options. */
+export function matchersFor(
+	options: ClassifyOptions,
+	picks: ScopePicks
+): ClassifyMatcher[] {
+	return options.map((rule) => matcherOfRule(rule, picks));
+}
+
+/** What a stored rule matches on, as a key: equal keys are one rule. */
+function storedKeys(matcher: ClassifyMatcher): string[] {
+	const base = [
+		matcher.test_id,
+		Object.entries(matcher.parameters).sort(([left], [right]) =>
+			left.localeCompare(right)
+		),
+		[...matcher.tags].sort()
+	];
+
+	return (matcher.verdicts ?? [null]).map((verdicts) =>
+		JSON.stringify([...base, verdicts])
+	);
+}
+
 /**
- * Where one test's rules would match more than the reader may expect: the
- * dimensions they do not narrow, because the test's results share no
- * parameter, every parameter was dropped or the verdicts were, each with a
- * sentence saying which.
+ * How many rules the server writes per category: a matcher gives one per
+ * verdict list kept, else one, and those that come out the same are one.
  */
-export interface TestStanding {
+export function rulesWritten(
+	options: ClassifyOptions,
+	picks: ScopePicks
+): number {
+	return new Set(
+		options.flatMap((rule) => storedKeys(matcherOfRule(rule, picks)))
+	).size;
+}
+
+/** How many rules one of the options' rules gives: one per verdict list kept. */
+export function rulesOf(rule: ClassifyRuleOptions, picks: ScopePicks): number {
+	return verdictsKept(rule, picks) ? Math.max(rule.verdicts.length, 1) : 1;
+}
+
+/**
+ * Whether a rule now matches on exactly what an earlier one of the options
+ * does: the server writes one rule for the two.
+ */
+export function sameAsEarlier(
+	options: ClassifyOptions,
+	index: number,
+	picks: ScopePicks
+): boolean {
+	const own = storedKeys(matcherOfRule(options[index], picks)).join('\n');
+
+	return options
+		.slice(0, index)
+		.some((rule) => storedKeys(matcherOfRule(rule, picks)).join('\n') === own);
+}
+
+/**
+ * Where a rule would match more than the reader may expect: the dimensions
+ * it does not narrow, because the results share no parameter, every
+ * parameter was dropped or the verdicts were, each with a sentence saying
+ * which.
+ */
+export interface RuleStanding {
 	/** Nothing but the path, and the tags if any, is kept. */
 	pathOnly: boolean;
-	/** The dimensions the rules do not narrow. */
-	open: TestScopeField[];
+	/** The dimensions the rule does not narrow. */
+	open: Exclude<ScopeField, 'tags'>[];
 	/** One sentence per thing the reader may not expect; none when narrowed. */
 	warnings: string[];
 }
 
-export function testStanding(
-	test: ClassifyOptionsTest,
-	matcher: ClassifyMatcher
-): TestStanding {
-	const open: TestScopeField[] = [];
+export function ruleStanding(
+	rule: ClassifyRuleOptions,
+	picks: ScopePicks
+): RuleStanding {
+	const matcher = matcherOfRule(rule, picks);
+	const open: RuleStanding['open'] = [];
 
 	if (!Object.keys(matcher.parameters).length) open.push('parameters');
 	if (matcher.verdicts === null) open.push('verdicts');
@@ -271,9 +350,9 @@ export function testStanding(
 				return 'Any verdicts will match: they are not kept.';
 			}
 
-			return Object.keys(test.parameters).length === 0
-				? 'Any parameters will match: the selected results share none.'
-				: 'Any parameters will match: all were removed.';
+			return Object.keys(rule.parameters).length
+				? 'Any parameters will match: all were removed.'
+				: 'Any parameters will match: the selected results share none.';
 		})
 	};
 }

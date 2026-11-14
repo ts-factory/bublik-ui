@@ -8,7 +8,8 @@ import {
 	applyClassifyErrors,
 	classifiedToast,
 	classifyErrorText,
-	flattenMessages
+	flattenMessages,
+	resultsInRuns
 } from './classify.utils';
 import type { ClassifyForm, ClassifyFormValues } from './classify-form.types';
 
@@ -281,5 +282,28 @@ describe('classifiedToast', () => {
 		).toBe(
 			'Marked only: still counts as unexpected. Future matching results inherit it.'
 		);
+	});
+
+	it('says how many runs the stamped results span', () => {
+		expect(
+			classifiedToast({
+				categories: ['to-investigate'],
+				expected: null,
+				scope: 'oneoff',
+				count: 5,
+				runCount: 2,
+				testCount: 3
+			}).description
+		).toBe(
+			'5 results in 2 runs across 3 tests stamped. Marked only: they still count as unexpected. These results only.'
+		);
+	});
+});
+
+describe('resultsInRuns', () => {
+	it('names the runs only when there are several', () => {
+		expect(resultsInRuns(1, 1)).toBe('1 result');
+		expect(resultsInRuns(4, 1)).toBe('4 results');
+		expect(resultsInRuns(5, 2)).toBe('5 results in 2 runs');
 	});
 });

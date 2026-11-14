@@ -18,6 +18,9 @@ import { and, given, then, when } from './support/gherkin';
 import { requireManifest } from './support/manifest';
 import {
 	claimFailingResult,
+	claimFailingResultsOfOneTestInRuns,
+	classifiableRun,
+	classifiableTestPaths,
 	firstHistoryTestPath,
 	historyBadgeCase,
 	historyDateRange,
@@ -64,6 +67,31 @@ async function classifyFixtureResult(
 	issueCleanup.register(issueId);
 
 	return { failing, issueId };
+}
+
+/**
+ * Opens the linear history of a failing test, narrowed to one classifiable
+ * run so its rows are on the first page. Reads only, so nothing is leased.
+ */
+async function openFailingTestHistory(
+	historyPage: HistoryPage,
+	mode: 'linear' | 'aggregation' = 'linear'
+): Promise<void> {
+	const run = requireCapability(
+		classifiableRun(requireManifest()),
+		'The fixture has no NOK run with a failing result to classify.'
+	);
+	const testPath = requireCapability(
+		classifiableTestPaths(run)[0],
+		`Run ${run.runId} has no failing test with a verdict.`
+	);
+
+	await historyPage.gotoWithTestPath(testPath.pathStr, {
+		...dateRange(),
+		runIds: String(run.runId),
+		mode
+	});
+	await historyPage.expectModeReady(mode);
 }
 
 const HISTORY = { tag: ['@history'] };
@@ -2116,9 +2144,6 @@ test.describe('History Page', () => {
 			await and('the legend names the issue', () =>
 				historyPage.expectLegendIssue(issueId, title)
 			);
-			await and('no Classify button is offered in the table', () =>
-				historyPage.expectNoClassifyButton()
-			);
 			await when("I click the stamp's Known badge", () =>
 				historyPage
 					.stampCategoryBadge(
@@ -2137,6 +2162,178 @@ test.describe('History Page', () => {
 				await issuePage.expectLoaded(title);
 				await issuePage.deleteIssue(title);
 				issueCleanup.forget(issueId);
+			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'History rows picked across runs are classified in one go',
+		{ tag: ['@history', '@issues', '@issues-write', '@needs-nok'] },
+		async ({ page, request }) => {
+			// The classify request, and the history read back with the stamps.
+			test.slow();
+			const historyPage = new HistoryPage(page);
+			const title = issueCleanup.title('picked');
+			let picked: ClassifiableResult[] = [];
+			let issueId = 0;
+
+			await given(
+				'I open the history of a test that fails in two runs, narrowed to them',
+				async () => {
+					picked = requireCapability(
+						await claimFailingResultsOfOneTestInRuns(
+							request,
+							'history picked',
+							2
+						),
+						'The fixture has no test failing in two classifiable runs.'
+					);
+					// Narrowed to the two runs, so both rows are on the first page.
+					await historyPage.gotoWithTestPath(picked[0].pathStr, {
+						...dateRange(),
+						runIds: picked.map((result) => result.runId).join(';'),
+						mode: 'linear'
+					});
+					await historyPage.expectReady();
+				}
+			);
+			await when('I pick its failing row in each run', async () => {
+				for (const result of picked) {
+					await historyPage.pickRow(result.resultId);
+				}
+			});
+			await then('the selection says it spans both runs', () =>
+				historyPage.expectSelectionSpans(2, 2)
+			);
+			await and('no row offers a Classify button of its own', () =>
+				historyPage.expectNoClassifyButton()
+			);
+			await when('I classify the selection under a new issue', async () => {
+				const drawer = await historyPage.classifySelection();
+				await drawer.expectRunSpan(2, 2);
+				await drawer.fillNewIssue({ title });
+				issueId = await drawer.submitForIssueId();
+				issueCleanup.register(issueId);
+			});
+			await then('each picked row carries the issue’s stamp', async () => {
+				for (const result of picked) {
+					await historyPage.expectRowStamp(result.resultId, issueId);
+				}
+			});
+			await and('I delete the issue from its page', async () => {
+				const issuePage = new IssuePage(page);
+				await issuePage.goto(issueId);
+				await issuePage.expectLoaded(title);
+				await issuePage.deleteIssue(title);
+				issueCleanup.forget(issueId);
+			});
+		}
+	);
+});
+
+test.describe('History Page selection', () => {
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'Select All in the selection panel picks the failing rows listed in history',
+		{ tag: ['@history', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			let pickable = 0;
+
+			await given(
+				'I open the history of a failing test narrowed to its run',
+				async () => {
+					// Read only: nothing is stamped, so no result is leased.
+					await openFailingTestHistory(historyPage);
+					pickable = await historyPage.countPickableRows();
+				}
+			);
+			await when('I pick a failing row', () =>
+				historyPage.pickFirstPickableRow()
+			);
+			await and("I press the selection panel's Select All", () =>
+				historyPage.pressPanelSelectAll()
+			);
+			await then('every failed or classified row listed is picked', () =>
+				historyPage.expectPicked(pickable)
+			);
+			await when('I press it again', () => historyPage.pressPanelSelectAll());
+			await then('no row is picked', () => historyPage.expectPicked(0));
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A failing verdict group is picked whole in Group of Results mode',
+		{ tag: ['@history', '@issues', '@needs-nok'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			let resultIds: number[] = [];
+
+			await given(
+				'I open the grouped history of a failing test narrowed to its run',
+				// Read only: nothing is stamped, so no result is leased.
+				() => openFailingTestHistory(historyPage, 'aggregation')
+			);
+			await when('I click its first failing verdict group', async () => {
+				resultIds = await historyPage.pickFirstVerdictGroup();
+			});
+			await then('every result of the group is picked', () =>
+				historyPage.expectSelectionCount(resultIds.length)
+			);
+			await when('I click the group again', () =>
+				historyPage
+					.firstPickableVerdictGroup()
+					.click({ position: { x: 2, y: 2 } })
+			);
+			await then('no result is picked', () =>
+				expect(historyPage.selectionPill).toBeHidden()
+			);
+		}
+	);
+});
+
+test.describe('History Page (signed out)', () => {
+	test.use({ storageState: { cookies: [], origins: [] } });
+
+	test(
+		'Classifying picked history rows while signed out asks me to sign in',
+		{ tag: ['@history', '@issues', '@auth', '@needs-nok'] },
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const dialog = page.getByTestId('login-dialog');
+			const sessionChecked = page.waitForResponse(
+				(response) =>
+					response.url().includes('/auth/profile/info/') &&
+					response.status() === 403
+			);
+
+			await given(
+				'I am signed out and open the history of a failing test',
+				async () => {
+					// Read only: nothing is stamped, so no result is leased.
+					await openFailingTestHistory(historyPage);
+					await sessionChecked;
+				}
+			);
+			await when('I pick a failing row', () =>
+				historyPage.pickFirstPickableRow()
+			);
+			await then("the selection's Classify asks me to log in", async () => {
+				await historyPage.openSelectionPanel();
+				await historyPage.expectClassifyNeedsLogin();
+			});
+			await when('I click it anyway', () =>
+				historyPage.classifyLoginPrompt().click()
+			);
+			await then('I am asked to sign in to classify results', async () => {
+				await expect(
+					dialog.getByText('Log in to classify results.')
+				).toBeVisible({ timeout: 15_000 });
+				await expect(
+					dialog.getByRole('button', { name: 'Sign in' })
+				).toBeVisible();
 			});
 		}
 	);

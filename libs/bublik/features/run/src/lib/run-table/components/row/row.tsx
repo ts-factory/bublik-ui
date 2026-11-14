@@ -107,7 +107,6 @@ export const RunRow = ({
 						<div
 							data-testid="run-result-table"
 							data-test-name={row.original?.test_name}
-							style={{ paddingLeft: `${row.depth * 0.8}rem` }}
 						>
 							<ResultTableContainer
 								runId={runId}

@@ -254,6 +254,12 @@ class RunPage {
 	}
 
 	async expandPackagePath(packageNames: string[]): Promise<void> {
+		// The probes below do not wait: before the tree has rendered they
+		// would find no row and leave every package collapsed.
+		await expect(this.page.getByTestId('run-row').first()).toBeVisible({
+			timeout: 30_000
+		});
+
 		for (const name of packageNames) {
 			const row = this.page
 				.locator(
@@ -678,14 +684,32 @@ class RunPage {
 		return this.selectableResultCells(table).count();
 	}
 
+	/**
+	 * The facet reports `label` as picked. Where the toolbar has room its
+	 * trigger shows the picked values; a narrow toolbar shows only their
+	 * count there, and the facet's list ticks the picked options.
+	 */
 	async expectFacetedFilterReports(
 		table: Locator,
 		title: ResultFilterTitle,
 		label: string
 	): Promise<void> {
-		await expect(this.facetedFilter(table, title)).toContainText(label, {
-			timeout: 15_000
-		});
+		const trigger = this.facetedFilter(table, title);
+
+		// Something is picked once the trigger says more than its title.
+		await expect(trigger).not.toHaveText(title, { timeout: 15_000 });
+		if ((await trigger.innerText()).includes(label)) return;
+
+		await trigger.click();
+		const picked = this.page
+			.locator('[cmdk-item][aria-checked="true"]')
+			.filter({ hasText: label });
+		await expect(picked).toHaveCount(1, { timeout: 15_000 });
+		// A tooltip under the pointer may take the first Escape on webkit.
+		await expect(async () => {
+			await this.page.keyboard.press('Escape');
+			await expect(picked).toBeHidden({ timeout: 1_000 });
+		}).toPass({ timeout: 15_000 });
 	}
 
 	async expectNoFacetedFilterSelection(table: Locator): Promise<void> {

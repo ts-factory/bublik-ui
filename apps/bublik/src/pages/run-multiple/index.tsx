@@ -10,6 +10,7 @@ import {
 	GlobalRequirementsProvider
 } from '@/bublik/features/run';
 import { RunDetailsContainer } from '@/bublik/features/run-details';
+import { ResultSelectionProvider } from '@/bublik/features/result-classification';
 import {
 	ButtonTw,
 	CardHeader,
@@ -51,6 +52,19 @@ function useRunStatsMultipleParams() {
 	return { runIds, selectedRunId, isModeFull, getSearchParams };
 }
 
+/**
+ * What the page's result selection belongs to: these runs, whatever order
+ * the link lists them in. Kept apart from each run's own page, whose
+ * selection is `run:<id>`.
+ */
+function selectionScopeOf(runIds: readonly string[]): string {
+	const sorted = [...runIds].sort(
+		(left, right) => Number(left) - Number(right)
+	);
+
+	return `runs:${sorted.join(',')}`;
+}
+
 function RunMultiplePage() {
 	const { runIds, selectedRunId, isModeFull } = useRunStatsMultipleParams();
 
@@ -79,7 +93,12 @@ function RunMultiplePage() {
 				)}
 			</div>
 			<GlobalRequirementsProvider>
-				<RunTableContainer runId={runIds} />
+				{/* One selection across every open result table of the merged
+				    runs, as on the run page, so their results are classified in
+				    one go. */}
+				<ResultSelectionProvider scope={selectionScopeOf(runIds)}>
+					<RunTableContainer runId={runIds} />
+				</ResultSelectionProvider>
 			</GlobalRequirementsProvider>
 		</div>
 	);

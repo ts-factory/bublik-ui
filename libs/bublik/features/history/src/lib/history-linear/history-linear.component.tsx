@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { FC, useMemo, useRef, useState } from 'react';
+import {
+	FC,
+	MouseEvent as ReactMouseEvent,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
 import {
 	OnChangeFn,
 	PaginationState,
@@ -16,6 +22,10 @@ import {
 import { HistoryDataLinear } from '@/shared/types';
 import { useIsSticky } from '@/shared/hooks';
 import { Pagination, Skeleton, cn } from '@/shared/tailwind-ui';
+import {
+	isClassifiable,
+	useResultSelection
+} from '@/bublik/features/result-classification';
 
 import { HistoryLinearGlobalFilter } from './history-linear.types';
 import { globalFilterFn } from './history-linear.utils';
@@ -156,18 +166,50 @@ interface HistoryLinearRowProps {
 	row: Row<HistoryDataLinear>;
 }
 
+/** What a click lands on that is a control of its own, not the row. */
+const INTERACTIVE_SELECTOR =
+	'button, a, input, select, textarea, [role="button"], [data-stop-row-click="true"]';
+
 /**
  * A row's cells, emitted straight into the table's grid: the row element is
  * `display: contents`, so it carries the role but no box. The card look and
  * the hover outline are rebuilt per cell: the ends round and close the border,
  * and hover is state rather than a CSS `hover:`.
+ *
+ * Under a result selection, as on the run pages, a click on the row picks it
+ * to be classified with the others; a plain pass, which Classify could not
+ * take, is not picked. The rows span runs, and the selection groups them by
+ * run when it classifies.
  */
 function HistoryLinearRow({ row }: HistoryLinearRowProps) {
 	const [hovered, setHovered] = useState(false);
 	const cells = row.getVisibleCells();
+	const selection = useResultSelection();
+	const isSelected = selection?.isSelected(row.original.result_id) ?? false;
+	// One picked before a rule kept it out can still be dropped.
+	const isPickable =
+		selection !== null && (isSelected || isClassifiable(row.original));
+	const isOutlined = isSelected || (hovered && (!selection || isPickable));
+
+	function handleClick(event: ReactMouseEvent<HTMLDivElement>) {
+		const target = event.target as HTMLElement;
+
+		// React bubbles clicks out of portals too: an item of a cell's filter
+		// menu, say, is not a click on the row.
+		if (!event.currentTarget.contains(target)) return;
+		if (target.closest(INTERACTIVE_SELECTOR)) return;
+		if (isPickable) selection?.toggle(row.original);
+	}
 
 	return (
-		<div className="contents" role="row">
+		<div
+			className="contents"
+			role="row"
+			data-result-id={row.original.result_id}
+			data-run-id={row.original.run_id}
+			data-selected={isSelected ? '' : undefined}
+			data-selectable={isPickable ? '' : undefined}
+		>
 			{cells.map((cell, idx) => {
 				const isFirst = idx === 0;
 				const isLast = idx === cells.length - 1;
@@ -179,13 +221,15 @@ function HistoryLinearRow({ row }: HistoryLinearRowProps) {
 						data-column-id={cell.column.id}
 						onMouseEnter={() => setHovered(true)}
 						onMouseLeave={() => setHovered(false)}
+						onClick={handleClick}
 						className={cn(
 							'mt-1 bg-bg-primary px-1 py-2 border-y border-y-transparent transition-colors',
 							isFirst && 'rounded-l-md border-l border-l-transparent',
 							isLast && 'rounded-r-md border-r border-r-transparent',
-							hovered && 'border-y-primary',
-							hovered && isFirst && 'border-l-primary',
-							hovered && isLast && 'border-r-primary'
+							isOutlined && 'border-y-primary',
+							isOutlined && isFirst && 'border-l-primary',
+							isOutlined && isLast && 'border-r-primary',
+							isPickable && 'cursor-pointer'
 						)}
 					>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}

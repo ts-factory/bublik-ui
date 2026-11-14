@@ -494,7 +494,7 @@ Feature: History
 
   # The Classification section of the search form writes four params the
   # backend filters on. The issue it narrows to is one this scenario stamps
-  # from the run page first; history itself offers no Classify button.
+  # from the run page first.
 
   @history @issues @url-params
   Scenario: Classification filters are written to the history URL and shown in the legend
@@ -509,7 +509,49 @@ Feature: History
     When I open the history of that test narrowed to the issue
     Then the results carry the issue’s stamp
     And the legend names the issue
-    And no Classify button is offered in the table
     When I click the stamp's Known badge
     Then the category is written to the URL and the page is the first
     And I delete the issue from its page
+
+  # History classifies as the run pages do: rows are picked by a click, and
+  # the selection panel classifies them under one issue, in one request.
+  # A row offers no Classify button of its own.
+
+  @history @issues @issues-write @needs-nok
+  Scenario: History rows picked across runs are classified in one go
+    Given I open the history of a test that fails in two runs, narrowed to them
+    When I pick its failing row in each run
+    Then the selection says it spans both runs
+    And no row offers a Classify button of its own
+    When I classify the selection under a new issue
+    Then each picked row carries the issue’s stamp
+    And I delete the issue from its page
+
+  # The selection panel's Select All picks the listed results; in Group of
+  # Results mode a click on a failing verdict group picks all of its results.
+
+  @history @issues @needs-nok
+  Scenario: Select All in the selection panel picks the failing rows listed in history
+    Given I open the history of a failing test narrowed to its run
+    When I pick a failing row
+    And I press the selection panel's Select All
+    Then every failed or classified row listed is picked
+    When I press it again
+    Then no row is picked
+
+  @history @issues @needs-nok
+  Scenario: A failing verdict group is picked whole in Group of Results mode
+    Given I open the grouped history of a failing test narrowed to its run
+    When I click its first failing verdict group
+    Then every result of the group is picked
+    When I click the group again
+    Then no result is picked
+
+  # Runs without the shared signed-in storage state.
+  @history @issues @auth @needs-nok
+  Scenario: Classifying picked history rows while signed out asks me to sign in
+    Given I am signed out and open the history of a failing test
+    When I pick a failing row
+    Then the selection's Classify asks me to log in
+    When I click it anyway
+    Then I am asked to sign in to classify results

@@ -46,6 +46,7 @@ export * from './lib/switch-date-picker';
 export * from './lib/hover-card';
 export * from './lib/table-tree-node';
 export * from './lib/toggle-group';
+export * from './lib/segmented-tabs';
 export * from './lib/context-menu';
 export * from './lib/styles';
 export * from './lib/text-area';

@@ -54,16 +54,21 @@ export {
 	BASELINE_TOGGLE,
 	ClassifyButton,
 	ClassifyResultContainer,
+	ClassifySelectionButton,
 	ResultSelectionProvider,
 	isClassifiable,
+	useClassifySelection,
 	useResultSelection
 } from './lib/classify';
 export type {
 	ClassifyButtonProps,
 	ClassifyResultContainerProps,
+	ClassifySelectionButtonProps,
+	ClassifySelectionTrigger,
 	ClassifyTargets,
 	ResultSelection,
 	ResultSelectionProviderProps,
+	RunResults,
 	SelectableResult,
 	SelectedResult
 } from './lib/classify';

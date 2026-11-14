@@ -39,7 +39,7 @@ const VERDICTS_DROPPED = 'Not kept: not matched on';
 /**
  * The Classify Failure drawer (`classify-drawer.component.tsx`), opened from a
  * failing result's Classify button on the log and measurements pages, and
- * from the selection popover on the run page.
+ * from the selection popover on the run and history pages.
  */
 class ClassifyDrawer {
 	readonly root: Locator;
@@ -247,7 +247,10 @@ class ClassifyDrawer {
 		return this.matchField(field).getByTestId('scope-value-chip');
 	}
 
-	/** The values a picker keeps, as the matcher will send them. */
+	/**
+	 * The values a picker keeps: a tag as the matcher will send it, a
+	 * parameter by its name.
+	 */
 	async matchValues(field: PickedField): Promise<string[]> {
 		return (
 			await this.matchChips(field).evaluateAll((chips) =>
@@ -266,9 +269,9 @@ class ClassifyDrawer {
 		await expect(chip).toHaveCount(0, { timeout: 15_000 });
 	}
 
-	/** The cards of the match scope, one per test of the picked results. */
+	/** The cards of the match scope, one per test path, its rules inside. */
 	testCards(): Locator {
-		return this.root.getByTestId('match-scope-test');
+		return this.root.getByTestId('match-scope-path');
 	}
 
 	/** The card of the test named `testName`, by the path on its border. */
@@ -368,6 +371,32 @@ class ClassifyDrawer {
 	async close(): Promise<void> {
 		await this.closeButton.click();
 		await this.expectClosed();
+	}
+
+	/**
+	 * The rules the drawer lists, inside the cards of their test paths: a path
+	 * holds several when its results' runs differ in important tags.
+	 */
+	async expectRulesListed(count: number): Promise<void> {
+		await expect(this.root.getByTestId('match-scope-test')).toHaveCount(count, {
+			timeout: 15_000
+		});
+	}
+
+	/** The drawer classifies `results` results of `runs` runs, and says so. */
+	async expectRunSpan(results: number, runs: number): Promise<void> {
+		await expect(this.root).toHaveAttribute(
+			'data-result-count',
+			String(results)
+		);
+		await expect(this.root).toHaveAttribute('data-run-count', String(runs));
+		if (runs > 1) {
+			await expect(
+				this.root.getByText(`${results} results in ${runs} runs`, {
+					exact: false
+				})
+			).not.toHaveCount(0);
+		}
 	}
 
 	async expectOpen(): Promise<void> {

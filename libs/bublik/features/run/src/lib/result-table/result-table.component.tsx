@@ -87,7 +87,7 @@ import { useTargetIterationId } from '../run-table/run-table.hooks';
 import { RowState, useGlobalRequirements } from '../hooks';
 
 /** The run table's own sticky header, which this table's header pins under. */
-const HEADER_HEIGHT = 102;
+export const HEADER_HEIGHT = 102;
 /** Height of the filter row the table's header pins under. */
 export const TOOLBAR_HEIGHT = 36;
 const RESULT_PROPERTIES_LABEL: Record<RESULT_PROPERTIES, string> = {
@@ -198,6 +198,10 @@ export interface ResultTableProps {
 	 * `ResultTableToolbar` itself, beside its own heading.
 	 */
 	toolbar?: 'inline' | 'external';
+	/** Tree indent of the rows, in rem (the filter bar stays flush). */
+	indent?: number;
+	/** Drawn on the right of the inline bar, after Select All. */
+	toolbarActions?: ReactNode;
 	/**
 	 * Drawn at the end of the inline bar, after a separator: the run page's
 	 * History link.
@@ -246,6 +250,8 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		stickyTop = height + HEADER_HEIGHT,
 		scrollRef,
 		toolbar = 'inline',
+		indent = 0,
+		toolbarActions,
 		toolbarTrailing,
 		toolbarClassName,
 		pagination,
@@ -333,32 +339,19 @@ export const ResultTable = memo((props: ResultTableProps) => {
 	return (
 		<div className={cn(isFetching && 'opacity-40 pointer-events-none')}>
 			{hasBar ? (
-				// Bordered, not shadowed: the header pinned right under it is the
-				// bottom of the sticky stack and casts the one shadow onto the rows.
-				<div
-					className={cn(
-						'toolbar-container sticky z-10 flex h-9 items-center gap-2 border-b border-border-primary bg-bg-primary pl-5 pr-4',
-						toolbarClassName
-					)}
-					style={{ top: stickyTop }}
-					data-testid="result-table-toolbar"
-				>
-					<ResultTableFilters
-						filters={filters}
-						selectable={selectable}
-						className="min-w-0 flex-1"
-					/>
-					{toolbarTrailing ? (
-						<>
-							<Separator orientation="vertical" className="h-5" />
-							<div className="flex shrink-0 items-center gap-2">
-								{toolbarTrailing}
-							</div>
-						</>
-					) : null}
-				</div>
+				<ResultTableBar
+					filters={filters}
+					selectable={selectable}
+					top={stickyTop}
+					actions={toolbarActions}
+					trailing={toolbarTrailing}
+					className={toolbarClassName}
+				/>
 			) : null}
-			<div className="px-4 pb-2">
+			<div
+				className="px-4 pb-2"
+				style={{ paddingLeft: `calc(1rem + ${indent}rem)` }}
+			>
 				<div className="grid relative z-[5]" style={{ gridTemplateColumns }}>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<Fragment key={headerGroup.id}>
@@ -432,6 +425,53 @@ export const ResultTable = memo((props: ResultTableProps) => {
 		</div>
 	);
 });
+
+export interface ResultTableBarProps {
+	filters: ReturnType<typeof useDataTableFilters>;
+	/** The rows on screen, for Select All; left out, it is not drawn. */
+	selectable?: readonly RunDataResults[];
+	/** Where the bar pins, in px from the top of the scroller. */
+	top: number;
+	/** Drawn on the right, after Select All. */
+	actions?: ReactNode;
+	/** Drawn at the end of the bar, after a separator. */
+	trailing?: ReactNode;
+	className?: string;
+}
+
+/**
+ * The filter bar pinned above a test's iterations, the same in the list and
+ * the matrix: `facets | Reset … Select All | actions | trailing`.
+ */
+export function ResultTableBar(props: ResultTableBarProps) {
+	const { filters, selectable, top, actions, trailing, className } = props;
+
+	return (
+		// Bordered, not shadowed: the header pinned right under it is the
+		// bottom of the sticky stack and casts the one shadow onto the rows.
+		<div
+			className={cn(
+				'toolbar-container sticky z-10 flex h-9 items-center gap-2 border-b border-border-primary bg-bg-primary pl-5 pr-4',
+				className
+			)}
+			style={{ top }}
+			data-testid="result-table-toolbar"
+		>
+			<ResultTableFilters
+				filters={filters}
+				selectable={selectable}
+				actions={actions}
+				className="min-w-0 flex-1"
+			/>
+			{trailing ? (
+				<>
+					<Separator orientation="vertical" className="h-5" />
+					<div className="flex shrink-0 items-center gap-2">{trailing}</div>
+				</>
+			) : null}
+		</div>
+	);
+}
 
 export interface ResultTableToolbarProps {
 	/** The same key the table was given: the filters are stored under it. */
@@ -1306,6 +1346,8 @@ export function useDataTableFilters(
 		categoriesFilter,
 		classificationsFilter,
 		artifactsFilter,
+		/** The rows every filter lets through, for views that draw them otherwise. */
+		filteredData,
 		onClearFilters: handleClearFilters,
 		onFilterChange: handleFilterChange,
 		onRequirementsFilterChange: handleRequirementsFilterChange,

@@ -775,6 +775,81 @@ async function claimFailingResult(
 }
 
 /**
+ * Leases a failing result for `scenario` in each of `count` different runs,
+ * of one project as every classifiable run is, to classify them across runs.
+ * Null when the pool has fewer runs than that.
+ */
+async function claimFailingResultsInRuns(
+	request: APIRequestContext,
+	scenario: string,
+	count: number
+): Promise<ClassifiableResult[] | null> {
+	const pool = await classifiableResults(request);
+
+	if (new Set(pool.map((entry) => entry.runId)).size < count) return null;
+
+	const leased: ClassifiableResult[] = [];
+
+	while (leased.length < count) {
+		const taken = new Set(leased.map((entry) => entry.runId));
+
+		leased.push(
+			await leaseResult(
+				stackKey(),
+				scenario,
+				pool.filter((entry) => !taken.has(entry.runId))
+			)
+		);
+	}
+
+	return leased;
+}
+
+/**
+ * Leases a failing result of one test in each of `count` different runs, to
+ * classify them across runs from the test's history. The test is the first,
+ * by path, that fails in that many classifiable runs. Null when none does.
+ */
+async function claimFailingResultsOfOneTestInRuns(
+	request: APIRequestContext,
+	scenario: string,
+	count: number
+): Promise<ClassifiableResult[] | null> {
+	const pool = await classifiableResults(request);
+	const runsByTest = new Map<string, Set<number>>();
+
+	for (const entry of pool) {
+		const runs = runsByTest.get(entry.pathStr) ?? new Set<number>();
+		runs.add(entry.runId);
+		runsByTest.set(entry.pathStr, runs);
+	}
+
+	const testPath = Array.from(runsByTest)
+		.filter(([, runs]) => runs.size >= count)
+		.map(([pathStr]) => pathStr)
+		.sort()[0];
+
+	if (testPath === undefined) return null;
+
+	const ofTest = pool.filter((entry) => entry.pathStr === testPath);
+	const leased: ClassifiableResult[] = [];
+
+	while (leased.length < count) {
+		const taken = new Set(leased.map((entry) => entry.runId));
+
+		leased.push(
+			await leaseResult(
+				stackKey(),
+				scenario,
+				ofTest.filter((entry) => !taken.has(entry.runId))
+			)
+		);
+	}
+
+	return leased;
+}
+
+/**
  * Leases a whole run for `scenario` to write a rule for and apply rules to,
  * and returns every result of one failing test in it. While the scenario
  * holds the run, no other write scenario classifies a result in it.
@@ -1094,6 +1169,8 @@ export {
 	artifactResultCase,
 	claimClassifiableTest,
 	claimFailingResult,
+	claimFailingResultsInRuns,
+	claimFailingResultsOfOneTestInRuns,
 	claimRun,
 	pinnedResultIds,
 	classifiableMeasurementSample,
