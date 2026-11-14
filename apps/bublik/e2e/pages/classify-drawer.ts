@@ -269,12 +269,12 @@ class ClassifyDrawer {
 		await expect(chip).toHaveCount(0, { timeout: 15_000 });
 	}
 
-	/** The cards of the match scope, one per rule the picked results get. */
+	/** The cards of the match scope, one per test path, its rules inside. */
 	testCards(): Locator {
-		return this.root.getByTestId('match-scope-test');
+		return this.root.getByTestId('match-scope-path');
 	}
 
-	/** The card of the rule for the test named `testName`, by the path on its border. */
+	/** The card of the test named `testName`, by the path on its border. */
 	testCard(testName: string): Locator {
 		return this.testCards().filter({
 			has: this.page
