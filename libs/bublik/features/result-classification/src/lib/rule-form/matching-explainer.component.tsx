@@ -10,7 +10,7 @@ import {
 	PopoverTrigger
 } from '@/shared/tailwind-ui';
 
-import { MATCH_SCOPE_COPY } from './match-scope.copy';
+import { MATCH_SCOPE_COPY, RUN_MATCH_SCOPE_COPY } from './match-scope.copy';
 
 /**
  * "How matching works", beside the Scope section's name: a popover rather
@@ -18,11 +18,15 @@ import { MATCH_SCOPE_COPY } from './match-scope.copy';
  * once, and the field tooltips can stay one line.
  */
 export function MatchingExplainer({
-	container
+	container,
+	oneRun = false
 }: {
 	container?: RefObject<HTMLElement>;
+	/** The results are of one run: their form's own words. */
+	oneRun?: boolean;
 }) {
 	const [open, setOpen] = useState(false);
+	const { explainer } = oneRun ? RUN_MATCH_SCOPE_COPY : MATCH_SCOPE_COPY;
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -47,7 +51,7 @@ export function MatchingExplainer({
 						<p>A part left empty is skipped.</p>
 					</div>
 					<dl className="flex flex-col gap-3">
-						{MATCH_SCOPE_COPY.explainer.map(({ term, text }) => (
+						{explainer.map(({ term, text }) => (
 							<div key={term} className="flex flex-col gap-0.5">
 								<dt className="text-[0.6875rem] font-bold uppercase tracking-wider text-text-menu">
 									{term}

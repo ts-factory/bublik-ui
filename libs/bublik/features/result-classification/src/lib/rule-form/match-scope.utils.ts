@@ -180,6 +180,28 @@ export function setRulePick(
 	};
 }
 
+/**
+ * Whether the options' rules are those of one run: a rule per test, all with
+ * the run's tags. Their form shows the tags once, for every rule.
+ */
+export function ofOneRun(options: ClassifyOptions): boolean {
+	const runs = new Set(options.flatMap((rule) => rule.run_ids));
+
+	return runs.size <= 1 && testCount(options) === options.length;
+}
+
+/** The same tags kept by every rule, as the one Tags field of a run's form does. */
+export function setTagsOfAll(
+	picks: ScopePicks,
+	options: ClassifyOptions,
+	tags: string[]
+): ScopePicks {
+	return options.reduce(
+		(next, rule) => setRulePick(next, rule, { tags }),
+		picks
+	);
+}
+
 /** One rule back to its defaults, whatever the section's bin did to all. */
 export function resetRulePicks(
 	picks: ScopePicks,

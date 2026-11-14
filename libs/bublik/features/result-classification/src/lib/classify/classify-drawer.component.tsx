@@ -72,10 +72,12 @@ export function ClassifyDrawer({
 						name={several ? `Classify ${count} Results` : 'Classify Failure'}
 						description={
 							several
-								? `Record why these ${resultsInRuns(
-										count,
-										runs.length
-								  )} failed, under one issue.`
+								? runs.length === 1
+									? 'Record why these results failed under one issue, with a rule per test for future ones.'
+									: `Record why these ${resultsInRuns(
+											count,
+											runs.length
+									  )} failed, under one issue.`
 								: classified
 								? 'This result is already classified. Add another issue, or a verdict for this result only.'
 								: 'Record why this result failed, and decide which future results inherit the verdict.'
