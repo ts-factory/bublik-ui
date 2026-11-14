@@ -4,6 +4,7 @@ import { expect, Locator, Page, Request } from '@playwright/test';
 
 import { exactText } from '../support/e2e-data';
 import { UrlParams, urlParams } from '../support/url-params';
+import { ClassifyDrawer } from './classify-drawer';
 import { HistoryGlobalSearchForm } from './history-global-search-form';
 
 const HISTORY_MODES = [
@@ -803,8 +804,174 @@ class HistoryPage {
 		).toBeVisible({ timeout: 15_000 });
 	}
 
+	/**
+	 * A linear row by the result it shows. The row is `display: contents`, so
+	 * it is never visible itself; what it holds is.
+	 */
+	resultRow(resultId: number): Locator {
+		return this.root.locator(`[role="row"][data-result-id="${resultId}"]`);
+	}
+
+	/** History offers no Classify button on a row: picked rows are classified. */
 	async expectNoClassifyButton(): Promise<void> {
 		await expect(this.root.getByTestId('classify-trigger')).toHaveCount(0);
+	}
+
+	/**
+	 * Picks a linear row into the result selection with a click on its start
+	 * time, clear of the badges and links that filter or navigate instead. A
+	 * click on a picked row drops it, so a picked one is left alone.
+	 */
+	async pickRow(resultId: number): Promise<void> {
+		const row = this.resultRow(resultId);
+		const cell = row.locator('[data-column-id="start-duration"]');
+
+		await expect(cell).toBeVisible({ timeout: 30_000 });
+		await expect(row).toHaveAttribute('data-selectable', '');
+		if ((await row.getAttribute('data-selected')) === null) {
+			await cell.click({ position: { x: 2, y: 2 } });
+		}
+		await expect(row).toHaveAttribute('data-selected', '');
+	}
+
+	/** The rows a click can pick: the failed or classified ones. */
+	pickableRows(): Locator {
+		return this.root.locator('[role="row"][data-selectable]');
+	}
+
+	pickedRows(): Locator {
+		return this.root.locator('[role="row"][data-selected]');
+	}
+
+	async pickFirstPickableRow(): Promise<void> {
+		const row = this.pickableRows().first();
+
+		await expect(row).toBeAttached({ timeout: 30_000 });
+		await this.pickRow(Number(await row.getAttribute('data-result-id')));
+	}
+
+	/** How many rows can be picked, once the first of them is listed. */
+	async countPickableRows(): Promise<number> {
+		await expect(this.pickableRows().first()).toBeAttached({
+			timeout: 30_000
+		});
+
+		return this.pickableRows().count();
+	}
+
+	/** `count` rows are picked, and the pill says so; none, and it is gone. */
+	async expectPicked(count: number): Promise<void> {
+		await expect(this.pickedRows()).toHaveCount(count, { timeout: 15_000 });
+		if (count === 0) {
+			await expect(this.selectionPill).toBeHidden();
+		} else {
+			await this.expectSelectionCount(count);
+		}
+	}
+
+	/** The selection's pill counts `count` picked results. */
+	async expectSelectionCount(count: number): Promise<void> {
+		await expect(this.selectionPill).toHaveAttribute(
+			'data-count',
+			String(count),
+			{ timeout: 15_000 }
+		);
+	}
+
+	/** Select All in the selection panel, which picks the listed results. */
+	async pressPanelSelectAll(): Promise<void> {
+		await this.openSelectionPanel();
+		await this.page.getByTestId('results-selection-select-all').click();
+	}
+
+	/** The first verdict group of Group of Results mode a click can pick. */
+	firstPickableVerdictGroup(): Locator {
+		return this.root
+			.locator('[data-testid="history-verdict-group"][data-selectable]')
+			.first();
+	}
+
+	/**
+	 * Picks the first failing verdict group with a click clear of its badges
+	 * and links, and returns the ids of the results it holds.
+	 */
+	async pickFirstVerdictGroup(): Promise<number[]> {
+		const group = this.firstPickableVerdictGroup();
+
+		await expect(group).toBeVisible({ timeout: 30_000 });
+		const ids = (await group.getAttribute('data-result-ids')) ?? '';
+		await group.click({ position: { x: 2, y: 2 } });
+		await expect(group).toHaveAttribute('data-selected', '');
+
+		return ids.split(',').filter(Boolean).map(Number);
+	}
+
+	/** The selection's pill, at the bottom of the window. */
+	get selectionPill(): Locator {
+		return this.page.getByTestId('results-selection-toggle');
+	}
+
+	/** The pill counts `results` picked results across `runs` runs. */
+	async expectSelectionSpans(results: number, runs: number): Promise<void> {
+		await expect(this.selectionPill).toHaveAttribute(
+			'data-count',
+			String(results),
+			{ timeout: 15_000 }
+		);
+		await expect(this.selectionPill).toHaveAttribute(
+			'data-run-count',
+			String(runs)
+		);
+	}
+
+	/**
+	 * Opens the selection's panel. It opens with the first pick, unless it was
+	 * shut before: then only its pill shows, and the pill opens it.
+	 */
+	async openSelectionPanel(): Promise<void> {
+		await expect(this.selectionPill).toBeVisible({ timeout: 15_000 });
+		if ((await this.selectionPill.getAttribute('aria-expanded')) !== 'true') {
+			await this.selectionPill.click();
+		}
+		await expect(this.selectionPill).toHaveAttribute('aria-expanded', 'true');
+	}
+
+	/** Opens the Classify drawer for the picked rows, from the selection panel. */
+	async classifySelection(): Promise<ClassifyDrawer> {
+		const trigger = this.page.getByTestId('bulk-classify-trigger');
+
+		await this.openSelectionPanel();
+		await expect(trigger).toBeEnabled({ timeout: 15_000 });
+		await trigger.click();
+		const drawer = new ClassifyDrawer(this.page);
+		await drawer.expectOpen();
+
+		return drawer;
+	}
+
+	async expectRowStamp(resultId: number, issueId: number): Promise<void> {
+		const stamp = this.resultRow(resultId).locator(
+			`[data-testid="result-issue-stamp"][data-issue-id="${issueId}"]`
+		);
+
+		await expect(stamp).toHaveCount(1, { timeout: 30_000 });
+		await expect(stamp.getByTestId('issue-key-link')).toBeVisible({
+			timeout: 15_000
+		});
+	}
+
+	/** Signed out, the panel's Classify sits inert inside a "log in" button. */
+	classifyLoginPrompt(): Locator {
+		return this.page.getByRole('button', {
+			name: 'Log in to classify results',
+			exact: true
+		});
+	}
+
+	async expectClassifyNeedsLogin(): Promise<void> {
+		await expect(this.classifyLoginPrompt()).toHaveText(/Classify/, {
+			timeout: 15_000
+		});
 	}
 
 	charts(): Locator {

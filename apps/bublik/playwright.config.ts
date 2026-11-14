@@ -49,6 +49,10 @@ export default defineConfig({
 	timeout: 60_000,
 	expect: { timeout: 15_000 },
 	fullyParallel: false,
+	// The preset retries twice on CI, so a broken build costs up to three
+	// test timeouts per test: a fully red suite ran for six hours before
+	// GitHub cancelled it. Stop early instead; the report still gets written.
+	maxFailures: process.env['CI'] ? 20 : 0,
 	use: {
 		baseURL,
 		actionTimeout: 15_000,

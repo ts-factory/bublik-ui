@@ -433,6 +433,19 @@ test.describe('Rules stamp runs imported after them', () => {
 				() => {
 					seeded = seededClassification(requireManifest());
 					runs = stampedRuns(seeded);
+
+					// One tooltip per stamp, and on webkit a tooltip takes up to ten
+					// seconds to open: a fixed budget runs out as the seed grows.
+					const tooltips = runs.flat().reduce(
+						(count, pair) =>
+							count +
+							issuesOf(
+								seeded,
+								pair.rules.filter((rule) => stampsTwin(seeded, rule))
+							).length,
+						0
+					);
+					test.setTimeout(test.info().timeout + tooltips * 15_000);
 				}
 			);
 			for (const pairs of runs) {

@@ -14,16 +14,25 @@ export interface ClassifyButtonProps {
 	projectId?: number;
 	/** The result already carries a stamp: the icon says so, and the drawer adds to it. */
 	classified?: boolean;
+	/** When the drawer opens or closes, for a popup the button sits in to stay open. */
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function ClassifyButton({
 	resultId,
 	projectId,
-	classified = false
+	classified = false,
+	onOpenChange
 }: ClassifyButtonProps) {
-	const [open, setOpen] = useState(false);
-	const resultIds = useMemo(() => [resultId], [resultId]);
-	const { submit, canClassify } = useClassify(resultIds, projectId);
+	const [open, setOpenState] = useState(false);
+
+	function setOpen(next: boolean) {
+		setOpenState(next);
+		onOpenChange?.(next);
+	}
+
+	const runs = useMemo(() => [{ resultIds: [resultId] }], [resultId]);
+	const { submit, canClassify } = useClassify(runs, projectId);
 	const form = useClassifyForm();
 
 	return (
@@ -62,7 +71,7 @@ export function ClassifyButton({
 					if (!next) form.reset();
 				}}
 				form={form}
-				resultIds={resultIds}
+				runs={runs}
 				projectId={projectId}
 				submit={submit}
 				classified={classified}

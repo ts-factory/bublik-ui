@@ -250,51 +250,57 @@ export interface TestPickerOption {
 export type ClassifyScope = 'future' | 'oneoff';
 
 /**
- * The matcher of the rules classifying one test's results, in the server's
- * own spelling. `/results/classify/options/` says what each may contain; the
- * form sends the parameters and tags the reader kept of it, so they are the
- * options' own, or empty, which is not matched on. The verdicts are either
- * null, for one rule ignoring them, or every verdict list the options give,
- * for a rule per list matching exactly the results with it.
+ * The matcher of one rule `/results/classify/options/` gives, in the server's
+ * own spelling, told by its test and its results. The form sends the
+ * parameters and tags the reader kept of what the options say the rule may
+ * contain, so they are the options' own, or empty, which is not matched on.
+ * The verdicts are either null, for one rule ignoring them, or every verdict
+ * list the options give, for a rule per list matching exactly the results
+ * with it.
  */
 export interface ClassifyMatcher {
 	test_id: number;
+	/** The runs of the rule, as the options give them. */
+	run_ids: number[];
 	parameters: Record<string, string>;
 	verdicts: string[][] | null;
 	tags: string[];
 }
 
-/** One test among the results to classify, from `/results/classify/options/`. */
-export interface ClassifyOptionsTest {
+/**
+ * One rule that will classify some of the results, from
+ * `/results/classify/options/`: the results of one test in runs whose
+ * important tags go together.
+ */
+export interface ClassifyRuleOptions {
 	test_id: number;
 	test_name: string;
 	/** `/`-joined package path, including the test itself. */
 	test_path: string;
+	/** The runs of the results; with the test, they tell the rule. */
+	run_ids: number[];
 	result_ids: number[];
-	/** The parameters all the test's results have. */
+	/** The parameters all the results have. */
 	parameters: Record<string, string>;
 	/**
-	 * The different verdict lists of the test's results, in the order they
-	 * first appear, each in order; `[]` for the results without verdicts. A
-	 * matcher keeping the verdicts gives all of them, for a rule each.
+	 * The different verdict lists of the results, in the order they first
+	 * appear, each in order; `[]` for the results without verdicts. A matcher
+	 * keeping the verdicts gives all of them, for a rule each.
 	 */
 	verdicts: string[][];
-}
-
-/**
- * What a rule classifying the results may contain. The results have to be
- * from one run, which is where the tags come from.
- */
-export interface ClassifyOptions {
-	run_id: number;
 	tags: {
-		/** The run's important tags, which a rule usually contains. */
+		/** The important tags of the runs, which a rule usually contains. */
 		default: string[];
 		/** The important and relevant tags; a rule may contain any of them. */
 		allowed: string[];
 	};
-	tests: ClassifyOptionsTest[];
 }
+
+/**
+ * The rules that will classify the results, test by test. The results may be
+ * of several runs of one project.
+ */
+export type ClassifyOptions = ClassifyRuleOptions[];
 
 /** What the classify form knows about an issue it is about to create. */
 export interface ClassifyNewIssue {
@@ -305,8 +311,8 @@ export interface ClassifyNewIssue {
 }
 
 /**
- * `POST /results/classify/`: stamps every result in `resultIds` — all from one
- * run — with a rule per test and category under one issue.
+ * `POST /results/classify/`: stamps every result in `resultIds`, of one run
+ * or several of one project, with the rules of the options under one issue.
  */
 export type ClassifyRequest = {
 	resultIds: number[];
@@ -321,16 +327,15 @@ export type ClassifyRequest = {
 	categories: IssueCategory[];
 	expected?: boolean | null;
 	scope: ClassifyScope;
-	/** One per test among the results. */
+	/** One per rule of the options. */
 	matchers: ClassifyMatcher[];
 };
 
 export interface ClassifyResponse {
 	issue_id: number;
 	/**
-	 * The rules the results were stamped with: test by test, in the order the
-	 * tests first appear in `resultIds`, and within a test in the order of
-	 * `categories`.
+	 * The rules the results were stamped with, each once: in the order of the
+	 * options' rules, then by verdict list, then in the order of `categories`.
 	 */
 	rule_ids: number[];
 }

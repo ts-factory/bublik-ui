@@ -182,11 +182,13 @@ export const columns: ColumnDef<HistoryDataLinear>[] = [
 							isNotExpected={isNotExpected}
 							isResultSelected={isResultSelected}
 							resultSlot={
-								/* No `resultId`, which is what withholds the Classify
-								   trigger: classifying is done from the run. */
+								/* The chip alone: history classifies the rows picked
+								   into the result selection, as the run page does, so a
+								   row offers no Classify button of its own. */
 								<ClassificationVerdict
 									issues={cell.row.original.issues}
 									hasError={cell.row.original.has_error}
+									withClassify={false}
 								/>
 							}
 						/>

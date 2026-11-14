@@ -53,6 +53,9 @@ function SelectionPopover(props: SelectionPopoverComponentProps) {
 			open={open}
 			onOpenChange={onOpenChange}
 			layout="size"
+			// The runs selection follows from page to page: it keeps the right
+			// end of the dock, and a page's own selection docks beside it.
+			dockOrder={1}
 		>
 			<SelectionPopoverFloatingButton
 				label={label}

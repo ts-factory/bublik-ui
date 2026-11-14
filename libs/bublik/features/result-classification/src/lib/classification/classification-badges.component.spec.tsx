@@ -226,6 +226,49 @@ describe('ClassificationVerdict — the Classify slot', () => {
 	});
 });
 
+describe('ClassificationVerdict — without its own Classify button', () => {
+	it('keeps the chip of a classification that changed the count', () => {
+		const { container } = render(
+			<ClassificationVerdict
+				hasError
+				issues={[stamp({ issue_state: 'closed' })]}
+				withClassify={false}
+			/>
+		);
+
+		expect(
+			container.querySelector('[data-classification="stale"]')
+		).not.toBeNull();
+		expect(screen.queryByTestId('classify-trigger')).not.toBeInTheDocument();
+	});
+
+	it('offers no trigger even when it is given the result', () => {
+		render(
+			<ClassificationVerdict
+				hasError
+				issues={[stamp()]}
+				resultId={42}
+				withClassify={false}
+			/>
+		);
+
+		expect(screen.queryByTestId('classify-trigger')).not.toBeInTheDocument();
+	});
+
+	it('draws nothing when there is no chip to show', () => {
+		const { container } = render(
+			<ClassificationVerdict
+				hasError
+				issues={[]}
+				resultId={42}
+				withClassify={false}
+			/>
+		);
+
+		expect(container).toBeEmptyDOMElement();
+	});
+});
+
 describe('ResultIssueBadges — one line per issue', () => {
 	it("puts each issue's chips in the columns rather than in a row of its own", () => {
 		render(

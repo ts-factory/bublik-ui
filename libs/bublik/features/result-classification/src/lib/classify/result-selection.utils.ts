@@ -49,15 +49,28 @@ export function toSelected(row: SelectableResult): SelectedResult {
 	};
 }
 
+/**
+ * The picked results of one run; a selection spanning runs is a list of
+ * these, sent in one request. Where the
+ * caller does not know the run, as a row's own Classify button does not,
+ * `runId` is left out.
+ */
+export interface RunResults {
+	runId?: number;
+	resultIds: number[];
+}
+
 /** What of a selection Classify would send, or why it cannot. */
 export type ClassifyTargets =
 	| {
 			ok: true;
+			/** Every result to classify, in the order picked. */
 			resultIds: number[];
-			runId: number;
+			/** The same results by run, runs in the order first picked. */
+			runs: RunResults[];
 			projectId: number | undefined;
 	  }
-	| { ok: false; reason: 'nothing-classifiable' | 'several-runs' };
+	| { ok: false; reason: 'nothing-classifiable' | 'several-projects' };
 
 /**
  * The baseline toggle's words, the same on a result row and in the selection
@@ -77,13 +90,15 @@ export const BASELINE_TOGGLE = {
 export const CLASSIFY_TARGETS_HINT = {
 	'nothing-classifiable':
 		'None of the selected results can be classified: only failed or classified results can.',
-	'several-runs': 'Only results of one run can be classified at a time.'
+	'several-projects':
+		'Only results of one project can be classified at a time: an issue belongs to one project.'
 } as const;
 
 /**
- * The classifiable results among the picked ones, which have to be of one
- * run: the server classifies one run per request. A plain pass left in a
- * stored selection is left out.
+ * The classifiable results among the picked ones, grouped by run, as the
+ * server classifies one run per request. They have to be of one project:
+ * every request files them under one issue, which belongs to one project. A
+ * plain pass left in a stored selection is left out.
  */
 export function classifyTargets(
 	selected: ReadonlyMap<number, SelectedResult>
@@ -94,15 +109,24 @@ export function classifyTargets(
 
 	if (!targets.length) return { ok: false, reason: 'nothing-classifiable' };
 
-	const runs = new Set(targets.map((result) => result.runId));
+	const projects = new Set(
+		targets.flatMap((result) =>
+			result.projectId === undefined ? [] : [result.projectId]
+		)
+	);
 
-	if (runs.size > 1) return { ok: false, reason: 'several-runs' };
+	if (projects.size > 1) return { ok: false, reason: 'several-projects' };
+
+	const runs = new Map<number, number[]>();
+
+	for (const { runId, resultId } of targets) {
+		runs.set(runId, [...(runs.get(runId) ?? []), resultId]);
+	}
 
 	return {
 		ok: true,
 		resultIds: targets.map((result) => result.resultId),
-		runId: targets[0].runId,
-		projectId: targets.find((result) => result.projectId !== undefined)
-			?.projectId
+		runs: Array.from(runs, ([runId, resultIds]) => ({ runId, resultIds })),
+		projectId: projects.values().next().value
 	};
 }
