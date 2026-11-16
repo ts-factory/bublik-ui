@@ -40,6 +40,31 @@ async function recordedTaskId(request: APIRequestContext): Promise<string> {
 	);
 }
 
+interface ImportLogLine {
+	asctime: string;
+	levelname: string;
+	module: string;
+	message: string;
+}
+
+async function importTaskLog(
+	request: APIRequestContext,
+	taskId: string
+): Promise<ImportLogLine[]> {
+	const response = await request.get(
+		`/api/v2/importruns/log/?${new URLSearchParams({ task_id: taskId })}`
+	);
+	expect(response.ok()).toBeTruthy();
+
+	const lines = (await response.json()) as ImportLogLine[];
+	requireCapability(
+		lines.length > 0 ? lines : undefined,
+		`Import task ${taskId} has an empty log.`
+	);
+
+	return lines;
+}
+
 test.describe('Import Page', () => {
 	test(
 		'The import page lists the events of the fixture imports',
@@ -166,6 +191,67 @@ test.describe('Import Page', () => {
 			await then(
 				'the task and the polling flag are both dropped from the URL',
 				() => url.expect({ taskId: null, poll: null })
+			);
+		}
+	);
+
+	test(
+		'Copying an import task log copies every column of each line',
+		{ tag: ['@admin'] },
+		async ({ page, request }) => {
+			let lines: ImportLogLine[] = [];
+
+			await given('the log of a recorded import task is open', async () => {
+				const taskId = await recordedTaskId(request);
+				lines = await importTaskLog(request, taskId);
+
+				await page.addInitScript(() => {
+					const copied: string[] = [];
+					Object.defineProperty(window, '__copiedText', { value: copied });
+					Object.defineProperty(navigator, 'clipboard', {
+						configurable: true,
+						value: {
+							writeText: async (text: string) => {
+								copied.push(text);
+							}
+						}
+					});
+				});
+				await page.goto(`admin/import?${new URLSearchParams({ taskId })}`);
+				await expect(page.getByRole('dialog')).toBeVisible({
+					timeout: 30_000
+				});
+			});
+			await when('I copy the log', () =>
+				page
+					.getByRole('dialog')
+					.getByRole('button', { name: 'Copy Log' })
+					.click()
+			);
+			await then(
+				'the clipboard holds each line as time, level, module and message',
+				async () => {
+					const expected = lines
+						.map(
+							(line) =>
+								`[${line.asctime}][${line.levelname}](${
+									line.module
+								}) ${line.message.trim()}`
+						)
+						.join('\n');
+
+					await expect
+						.poll(
+							() =>
+								page.evaluate(
+									() =>
+										(window as unknown as { __copiedText: string[] })
+											.__copiedText
+								),
+							{ timeout: 15_000 }
+						)
+						.toEqual([expected]);
+				}
 			);
 		}
 	);

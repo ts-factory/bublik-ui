@@ -52,3 +52,12 @@ Feature: Run import
     When I close the log
     Then the task and the polling flag are both dropped from the URL
 
+
+  # The clipboard is stubbed to record what the page writes, so the check does
+  # not hang on a browser granting clipboard access. The expected lines come
+  # from the task's log in the API, one `[time][level](module) message` each.
+  @admin
+  Scenario: Copying an import task log copies every column of each line
+    Given the log of a recorded import task is open
+    When I copy the log
+    Then the clipboard holds each line as time, level, module and message
