@@ -49,6 +49,8 @@ import {
 	useReactTable
 } from '@tanstack/react-table';
 
+import { formatImportLog } from './import-log.utils';
+
 interface ImportLogContext {
 	toggle: (taskId: string, enablePolling?: boolean) => () => void;
 }
@@ -269,7 +271,7 @@ export const ImportLogTableContainer = (
 						size="xss"
 						onClick={async () => {
 							if (!data) return;
-							await copy(data.map((d) => d.message.trim()).join('\n'));
+							await copy(formatImportLog(data));
 						}}
 					>
 						<Icon name="PaperStack" size={20} className="mr-1.5" />
