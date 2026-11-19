@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import { analyticsEventNames, trackEvent } from '@/bublik/features/analytics';
 import { DefineCompromiseContainer } from '@/bublik/features/compromised-form';
+import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
 	GlobalRequirementsProvider,
 	RunTableContainer
@@ -55,6 +56,7 @@ const RunHeader = ({ runId }: RunHeaderProps) => {
 					/>
 					<Separator orientation="vertical" className="h-5 self-center" />
 					<DiffFormContainer defaultValues={{ leftRunId: runId }} />
+					<LinkToSourceContainer runId={runId} />
 					<DefineCompromiseContainer runId={runId} />
 					<NewBugContainer runId={Number(runId)} resultId={Number(runId)} />
 					<ApplyRulesButton runId={runId} />
