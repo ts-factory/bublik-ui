@@ -28,6 +28,25 @@ Feature: Runs
     When I follow the row's Log link
     Then the log page for that run is open
 
+  # The runs table opens a whole run, so its Log link has a layout of its own:
+  # the tree without the run info, unless Settings › Preferences › Log layout
+  # from Runs says otherwise. The default log layout does not reach it.
+
+  @runs @url-params
+  Scenario: The Log link opens the run's log with the tree and without the info panel
+    Given the runs table lists a run
+    When I follow the row's Log link
+    Then the tree is shown and the info panel is not
+    And the URL carries the tree-and-log layout as its only mode
+
+  @runs @url-params
+  Scenario: The Log link opens the run's log in the layout I chose for Runs
+    Given the runs table lists a run
+    And I choose Log only as my log layout from Runs
+    When I follow the row's Log link
+    Then neither the tree nor the info panel is shown
+    And the URL carries the log-only layout as its only mode
+
   Scenario: Sorting by statistic summary keeps the run listed
     Given the runs table lists a run
     When I sort the table by statistic summary

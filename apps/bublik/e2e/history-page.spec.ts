@@ -9,6 +9,7 @@ import type {
 	HistoryMode
 } from './pages/history-page';
 import { IssuePage } from './pages/issue-page';
+import { LogPage } from './pages/log-page';
 import { ProjectPicker } from './pages/project-picker';
 import { RunPage } from './pages/run-page';
 import { requireCapability } from './support/capabilities';
@@ -392,6 +393,61 @@ test.describe('History Page', () => {
 					firstRow.getByRole('link', { name: 'Run' }).first()
 				).toBeVisible();
 			});
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"A result's Log link opens its log with the info panel and without the tree",
+		HISTORY_URL,
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const logPage = new LogPage(page);
+
+			await given('I open the history page for a tested path', async () => {
+				await historyPage.gotoWithTestPath(firstHistoryTestPath(), dateRange());
+				await historyPage.expectModeReady('linear');
+				await historyPage.expectHasResults();
+			});
+			await when("I follow the first result's Log link", () =>
+				historyPage.openFirstResultLog()
+			);
+			await then('the info panel is shown and the tree is not', () =>
+				logPage.expectModeLayout('infoAndlog')
+			);
+			await and(
+				'the URL carries the info-and-log layout as its only mode',
+				() => logPage.expectSingleMode('infoAndlog')
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"A result's Log link opens its log in the layout I chose for History",
+		HISTORY_URL,
+		async ({ page }) => {
+			const historyPage = new HistoryPage(page);
+			const logPage = new LogPage(page);
+
+			await given('my log layout from History is tree and log', () =>
+				logPage.useLayoutFrom('history', 'treeAndlog')
+			);
+			await and('I open the history page for a tested path', async () => {
+				await historyPage.gotoWithTestPath(firstHistoryTestPath(), dateRange());
+				await historyPage.expectModeReady('linear');
+				await historyPage.expectHasResults();
+			});
+			await when("I follow the first result's Log link", () =>
+				historyPage.openFirstResultLog()
+			);
+			await then('the tree is shown and the info panel is not', () =>
+				logPage.expectModeLayout('treeAndlog')
+			);
+			await and(
+				'the URL carries the tree-and-log layout as its only mode',
+				() => logPage.expectSingleMode('treeAndlog')
+			);
 		}
 	);
 

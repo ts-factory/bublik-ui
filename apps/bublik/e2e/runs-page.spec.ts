@@ -5,6 +5,8 @@ import type { Page } from '@playwright/test';
 
 import { RunsPage } from './pages/runs-page';
 import { RunPage } from './pages/run-page';
+import { LogPage } from './pages/log-page';
+import { Sidebar } from './pages/sidebar';
 import { importedRunId } from './support/e2e-data';
 import { and, given, then, when } from './support/gherkin';
 import { requireCapability } from './support/capabilities';
@@ -116,6 +118,61 @@ test.describe('Runs Page', () => {
 			expect(page).toHaveURL(new RegExp(`/log/${importedRunId(bundle)}`))
 		);
 	});
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"The Log link opens the run's log with the tree and without the info panel",
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const logPage = new LogPage(page);
+			const { bundle } = representativeRun(requireManifest());
+
+			await given('the runs table lists a run', async () => {
+				await runsPage.gotoWithTagExpr(fixtureTagExpr(bundle));
+				await runsPage.expectTableLoaded();
+			});
+			await when("I follow the row's Log link", () =>
+				runsPage.openLog(importedRunId(bundle))
+			);
+			await then('the tree is shown and the info panel is not', () =>
+				logPage.expectModeLayout('treeAndlog')
+			);
+			await and(
+				'the URL carries the tree-and-log layout as its only mode',
+				() => logPage.expectSingleMode('treeAndlog')
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"The Log link opens the run's log in the layout I chose for Runs",
+		{ tag: ['@runs', '@url-params'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const sidebar = new Sidebar(page);
+			const logPage = new LogPage(page);
+			const { bundle } = representativeRun(requireManifest());
+
+			await given('the runs table lists a run', async () => {
+				await runsPage.gotoWithTagExpr(fixtureTagExpr(bundle));
+				await runsPage.expectTableLoaded();
+			});
+			await and('I choose Log only as my log layout from Runs', () =>
+				sidebar.pickLogLayout('Log layout from Runs', 'Log only')
+			);
+			await when("I follow the row's Log link", () =>
+				runsPage.openLog(importedRunId(bundle))
+			);
+			await then('neither the tree nor the info panel is shown', () =>
+				logPage.expectModeLayout('log')
+			);
+			await and('the URL carries the log-only layout as its only mode', () =>
+				logPage.expectSingleMode('log')
+			);
+		}
+	);
 
 	// eslint-disable-next-line playwright/expect-expect
 	test('Sorting by statistic summary keeps the run listed', async ({

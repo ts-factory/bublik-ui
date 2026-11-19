@@ -9,6 +9,12 @@ type DefaultLogLayoutName =
 	| 'Tree + log'
 	| 'Info + log'
 	| 'Log only';
+
+/** The log layout choices of Settings › Preferences, by their headings. */
+type LogLayoutChoice =
+	| 'Default log layout'
+	| 'Log layout from Runs'
+	| 'Log layout from History';
 const RELEASE_TAG = /^v\d+\.\d+\.\d+/;
 /** `--page-max-width` in the app's stylesheet: the sidebar and page together */
 const PAGE_MAX_WIDTH = 1920;
@@ -162,19 +168,33 @@ class Sidebar {
 		await expect(this.themeCard('Light')).toBeVisible({ timeout: 15_000 });
 	}
 
-	/** A layout card of the Default log layout choice in Settings › Preferences; its name is the card title */
-	private logLayoutOption(name: DefaultLogLayoutName): Locator {
+	/** A layout of one of the log layout choices in Settings › Preferences */
+	private logLayoutOption(
+		choice: LogLayoutChoice,
+		name: DefaultLogLayoutName
+	): Locator {
 		return this.settingsDialog()
-			.getByRole('radiogroup', { name: 'Default log layout' })
+			.getByRole('radiogroup', { name: choice, exact: true })
 			.getByRole('radio', { name, exact: true });
 	}
 
 	/** Chooses the layout in-app log links open in, then closes the settings */
 	async pickDefaultLogLayout(name: DefaultLogLayoutName): Promise<void> {
+		await this.pickLogLayout('Default log layout', name);
+	}
+
+	/**
+	 * Chooses a layout in one of the log layout choices, the default one or a
+	 * page's own, then closes the settings
+	 */
+	async pickLogLayout(
+		choice: LogLayoutChoice,
+		name: DefaultLogLayoutName
+	): Promise<void> {
 		await this.openAccountMenu();
 		await this.accountMenuItem('Preferences').click();
-		await this.logLayoutOption(name).click();
-		await expect(this.logLayoutOption(name)).toHaveAttribute(
+		await this.logLayoutOption(choice, name).click();
+		await expect(this.logLayoutOption(choice, name)).toHaveAttribute(
 			'aria-checked',
 			'true'
 		);

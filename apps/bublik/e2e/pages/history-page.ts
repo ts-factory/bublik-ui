@@ -473,6 +473,16 @@ class HistoryPage {
 		return this.table.locator('.tw-table-body [role="row"]');
 	}
 
+	/** Follows the Log link of the first listed result to its log page. */
+	async openFirstResultLog(): Promise<void> {
+		await this.rows()
+			.first()
+			.getByRole('link', { name: 'Log', exact: true })
+			.first()
+			.click();
+		await expect(this.page).toHaveURL(/\/log\/\d+/, { timeout: 30_000 });
+	}
+
 	async expectHasResults(): Promise<void> {
 		await expect(this.rows().first()).toBeVisible({ timeout: 60_000 });
 	}

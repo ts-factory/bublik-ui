@@ -233,15 +233,17 @@ Feature: Log
   ####################################################################
 
   # Settings › Preferences › Default log layout picks the layout of the log
-  # links the app builds. It is applied when a link is built, never when a URL
+  # links the app builds, except the ones on Runs and History, which have a
+  # layout of their own there (runs.feature, history.feature). It is applied
+  # when a link is built, never when a URL
   # is read: a link that carries `mode` opens in exactly that layout, and a bare
   # log URL (backend short links, the sidebar's log-only link) stays log-only.
 
   @log @url-params
   Scenario: A log link opens in my default layout
-    Given the runs table lists an imported run
+    Given an imported run's issues page is open
     And I choose Info + log as my default log layout
-    When I follow the run's Log link in the runs table
+    When I follow the page's Log link
     Then the info panel is shown and the tree is not
     And the URL carries the info-and-log layout as its only mode
 

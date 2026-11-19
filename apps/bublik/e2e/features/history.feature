@@ -97,6 +97,25 @@ Feature: History
     Then the results table lists results
     And each result links to its log and its run
 
+  # History opens one result, so its log links have a layout of their own: the
+  # result's info without the tree, unless Settings › Preferences › Log layout
+  # from History says otherwise. The default log layout does not reach them.
+
+  @history @url-params
+  Scenario: A result's Log link opens its log with the info panel and without the tree
+    Given I open the history page for a tested path
+    When I follow the first result's Log link
+    Then the info panel is shown and the tree is not
+    And the URL carries the info-and-log layout as its only mode
+
+  @history @url-params
+  Scenario: A result's Log link opens its log in the layout I chose for History
+    Given my log layout from History is tree and log
+    And I open the history page for a tested path
+    When I follow the first result's Log link
+    Then the tree is shown and the info panel is not
+    And the URL carries the tree-and-log layout as its only mode
+
   # The match runs on the server, before counts and paging, so it reaches
   # results beyond the page on screen.
   @history

@@ -7,7 +7,6 @@ import type { APIRequestContext } from '@playwright/test';
 
 import { LogPage } from './pages/log-page';
 import { RunIssuesPage } from './pages/run-issues-page';
-import { RunsPage } from './pages/runs-page';
 import { Sidebar } from './pages/sidebar';
 import { requireManifest } from './support/manifest';
 import { requireCapability } from './support/capabilities';
@@ -455,20 +454,23 @@ test.describe('Log Page', () => {
 		{ tag: ['@log', '@url-params'] },
 		async ({ page }) => {
 			const runCase = representativeImportedRun(requireManifest());
-			const runsPage = new RunsPage(page);
+			const runIssuesPage = new RunIssuesPage(page);
 			const sidebar = new Sidebar(page);
 			const logPage = new LogPage(page);
 
-			await given('the runs table lists an imported run', async () => {
-				await runsPage.gotoWithTagExpr(`fixture_id=${runCase.bundle.e2eRunId}`);
-				await runsPage.expectTableLoaded();
+			await given("an imported run's issues page is open", async () => {
+				await runIssuesPage.goto(runCase.runId);
+				await runIssuesPage.expectLoaded();
 			});
 			await and('I choose Info + log as my default log layout', () =>
 				sidebar.pickDefaultLogLayout('Info + log')
 			);
-			await when("I follow the run's Log link in the runs table", () =>
-				runsPage.openLog(runCase.runId)
-			);
+			await when("I follow the page's Log link", async () => {
+				await runIssuesPage.logLink.click();
+				await expect(page).toHaveURL(new RegExp(`/log/${runCase.runId}`), {
+					timeout: 15_000
+				});
+			});
 			await then('the info panel is shown and the tree is not', () =>
 				logPage.expectModeLayout('infoAndlog')
 			);
