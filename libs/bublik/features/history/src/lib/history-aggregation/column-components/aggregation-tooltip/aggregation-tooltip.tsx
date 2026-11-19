@@ -36,7 +36,13 @@ function BadgesCardList(props: BadgesCardListProps) {
 						{formattedStartDate}
 					</span>
 				</p>
-				{action ? <div className="ml-auto">{action}</div> : null}
+				{action ? (
+					// As tall as the control from the start: it shows up once its
+					// result has loaded, and must not push the tags down then.
+					<div className="ml-auto flex h-[26px] shrink-0 items-center">
+						{action}
+					</div>
+				) : null}
 			</div>
 			<div className="min-h-0 overflow-auto styled-scrollbar px-4 pb-4">
 				<BadgeList
@@ -50,6 +56,9 @@ function BadgesCardList(props: BadgesCardListProps) {
 }
 
 const MAX_TAG_COUNT_FOR_SMALL_CARD = 20;
+/** A card of few tags; one with an action is wider, to seat it by the start time. */
+const SMALL_CARD_WIDTH = 'w-96';
+const SMALL_CARD_WITH_ACTION_WIDTH = 'w-[28rem]';
 
 interface AggregationTooltipProps {
 	relevantTags: string[];
@@ -88,7 +97,8 @@ function AggregationTooltip(props: AggregationTooltipProps) {
 					className={cn(
 						hoverCardContentStyles(),
 						'flex min-h-0 overflow-auto max-h-[var(--radix-hover-card-content-available-height)] border border-gray-100 max-w-[min(60vw,var(--radix-hover-card-content-available-width))] flex-col gap-3 rounded-xl bg-bg-primary shadow-lg',
-						allCount < MAX_TAG_COUNT_FOR_SMALL_CARD && 'w-max min-w-96'
+						allCount < MAX_TAG_COUNT_FOR_SMALL_CARD &&
+							(renderAction ? SMALL_CARD_WITH_ACTION_WIDTH : SMALL_CARD_WIDTH)
 					)}
 					collisionPadding={8}
 					sideOffset={8}
