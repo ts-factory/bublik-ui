@@ -21,6 +21,7 @@ import {
 } from '@/services/bublik-api';
 import { LogAttachmentsContainer } from '@/bublik/features/log-artifacts';
 import { NewBugContainer } from '@/bublik/features/log-preview-drawer';
+import { LinkToSourceContainer } from '@/bublik/features/link-to-source';
 import {
 	ApplyRulesButton,
 	ClassifyResultContainer
@@ -151,6 +152,7 @@ function LogFeature(props: LogFeatureProps) {
 								path={node?.path ?? undefined}
 							/>
 							<LinkToMeasurementsContainer focusId={focusId} />
+							<LinkToSourceContainer runId={runId} />
 							<Separator orientation="vertical" className="h-5 self-center" />
 							<NewBugContainer
 								key={`${runId}_${focusId}`}

@@ -29,8 +29,7 @@ import {
 import {
 	useGetRunDetailsQuery,
 	useGetRunIssuesQuery,
-	useGetRunReportConfigsQuery,
-	useGetRunSourceQuery
+	useGetRunReportConfigsQuery
 } from '@/services/bublik-api';
 
 const RUN_MODES: readonly RunMode[] = ['details', 'report', 'issues', 'log'];
@@ -92,8 +91,6 @@ export interface UseRunSidebarStateReturn {
 	/** The log in the given layout, on the remembered page of it when there is one. */
 	getLogModeUrl: (mode: LogSidebarMode) => string;
 	mainLinkUrl: string;
-	/** Where the run's sources live, outside Bublik; null when it has none. */
-	sourceUrl: string | null;
 
 	isDetailsAvailable: boolean;
 	isReportAvailable: boolean;
@@ -103,7 +100,6 @@ export interface UseRunSidebarStateReturn {
 
 	isReportLoading: boolean;
 	isIssuesLoading: boolean;
-	isSourceLoading: boolean;
 	/** Issues classified in the active run; 0 means there is nothing to show. */
 	issueCount: number;
 	/** The open ones among them, which the sidebar badge counts. */
@@ -223,10 +219,6 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 			: skipToken
 	);
 	const issueCount = runIssues?.length ?? 0;
-	const { data: runSource, isLoading: isSourceLoading } = useGetRunSourceQuery(
-		activeRunId ? activeRunId : skipToken
-	);
-	const sourceUrl = runSource?.url || null;
 	const openIssueCount =
 		runIssues?.filter((issue) => issue.state === 'open').length ?? 0;
 
@@ -405,7 +397,6 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		logUrl,
 		getLogModeUrl,
 		mainLinkUrl,
-		sourceUrl,
 		isDetailsAvailable,
 		isReportAvailable,
 		isIssuesAvailable,
@@ -413,7 +404,6 @@ export function useRunSidebarState(): UseRunSidebarStateReturn {
 		isMainLinkAvailable,
 		isReportLoading,
 		isIssuesLoading,
-		isSourceLoading,
 		issueCount,
 		openIssueCount,
 		setLastVisited

@@ -47,8 +47,7 @@ const reportConfigsResult: {
 vi.mock('@/services/bublik-api', () => ({
 	useGetRunReportConfigsQuery: () => reportConfigsResult,
 	useGetRunDetailsQuery: () => ({ data: { project_id: 1 } }),
-	useGetRunIssuesQuery: () => runIssuesResult,
-	useGetRunSourceQuery: () => ({ data: undefined, isLoading: false })
+	useGetRunIssuesQuery: () => runIssuesResult
 }));
 
 vi.mock('@/bublik/features/sidebar', () => ({
