@@ -48,9 +48,14 @@ class ProjectPicker {
 		await this.page.locator('body').press('p');
 	}
 
+	/**
+	 * Picking closes the popover with an exit animation. `open()` takes a list
+	 * that is still closing for an open one, so wait it out before returning.
+	 */
 	async select(projectId: number): Promise<void> {
 		await this.open();
 		await this.option(projectId).click();
+		await this.expectClosed();
 		await expect(this.page).toHaveURL(new RegExp(`project=${projectId}`), {
 			timeout: 15_000
 		});
@@ -59,6 +64,7 @@ class ProjectPicker {
 	async selectAll(): Promise<void> {
 		await this.open();
 		await this.option('all').click();
+		await this.expectClosed();
 		await expect
 			.poll(() => new URL(this.page.url()).searchParams.get('project'), {
 				timeout: 15_000
