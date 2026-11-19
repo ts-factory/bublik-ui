@@ -49,21 +49,61 @@ describe('LogPreferencesForm', () => {
 	it('stores the layout of the card I pick', async () => {
 		render(<LogPreferencesForm />);
 
-		await userEvent.click(screen.getByRole('radio', { name: 'Info + log' }));
+		const card = within(
+			screen.getByRole('radiogroup', { name: 'Default log layout' })
+		).getByRole('radio', { name: 'Info + log' });
+		await userEvent.click(card);
 
 		expect(storedPreferences().log.defaultMode).toBe('infoAndlog');
+		expect(card.getAttribute('aria-checked')).toBe('true');
+	});
+
+	it('opens Runs with the tree and History with the info until I choose otherwise', () => {
+		render(<LogPreferencesForm />);
+
 		expect(
-			screen
+			within(screen.getByRole('radiogroup', { name: 'Log layout from Runs' }))
+				.getByRole('radio', { name: 'Tree + log' })
+				.getAttribute('aria-checked')
+		).toBe('true');
+		expect(
+			within(
+				screen.getByRole('radiogroup', { name: 'Log layout from History' })
+			)
 				.getByRole('radio', { name: 'Info + log' })
 				.getAttribute('aria-checked')
 		).toBe('true');
 	});
 
+	it('stores the layouts for Runs and History without touching the default one', async () => {
+		render(<LogPreferencesForm />);
+
+		await userEvent.click(
+			within(
+				screen.getByRole('radiogroup', { name: 'Log layout from Runs' })
+			).getByRole('radio', { name: 'Log only' })
+		);
+		await userEvent.click(
+			within(
+				screen.getByRole('radiogroup', { name: 'Log layout from History' })
+			).getByRole('radio', { name: 'Tree + info + log' })
+		);
+
+		expect(storedPreferences().log).toMatchObject({
+			defaultMode: 'treeAndinfoAndlog',
+			runsMode: 'log',
+			historyMode: 'treeAndinfoAndlog'
+		});
+	});
+
 	it('moves the selection with the arrow keys', async () => {
 		render(<LogPreferencesForm />);
 
-		const next = screen.getByRole('radio', { name: 'Tree + log' });
-		screen.getByRole('radio', { name: 'Tree + info + log' }).focus();
+		const group = within(
+			screen.getByRole('radiogroup', { name: 'Default log layout' })
+		);
+		const next = group.getByRole('radio', { name: 'Tree + log' });
+		group.getByRole('radio', { name: 'Tree + info + log' }).focus();
 		// Radix moves the focus a tick after keydown and selects on that focus
 		// only while the key is held, so release it once the focus has moved.
 		await userEvent.keyboard('{ArrowDown>}');

@@ -14,7 +14,39 @@ import {
 	PreferenceSwitch
 } from './preference-controls.component';
 
-const DEFAULT_LOG_LAYOUT_LABEL_ID = 'default-log-layout-label';
+type LogLayoutField = 'defaultMode' | 'runsMode' | 'historyMode';
+
+/**
+ * The layouts log links open in: the default one, then the pages whose links
+ * have a layout of their own.
+ */
+const LOG_LAYOUT_CHOICES: ReadonlyArray<{
+	field: LogLayoutField;
+	labelId: string;
+	title: string;
+	description: string;
+}> = [
+	{
+		field: 'defaultMode',
+		labelId: 'default-log-layout-label',
+		title: 'Default log layout',
+		description:
+			'Log links in the app open in this layout, except the ones on Runs and History below. A shared link opens as it was sent.'
+	},
+	{
+		field: 'runsMode',
+		labelId: 'runs-log-layout-label',
+		title: 'Log layout from Runs',
+		description: 'The Log link of a run in the runs table opens in this layout.'
+	},
+	{
+		field: 'historyMode',
+		labelId: 'history-log-layout-label',
+		title: 'Log layout from History',
+		description:
+			'Log links of the results on the History page open in this layout.'
+	}
+];
 
 const LOG_LAYOUT_OPTIONS: ReadonlyArray<{
 	value: LogPageMode;
@@ -52,43 +84,46 @@ function LogPreferencesForm() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<Controller
-				name="log.defaultMode"
-				control={control}
-				render={({ field }) => (
-					<div className="flex flex-col gap-3">
-						<PreferenceGroupHeading
-							id={DEFAULT_LOG_LAYOUT_LABEL_ID}
-							title="Default log layout"
-							description="Log links in the app open in this layout. A shared link opens as it was sent."
-						/>
-						<RadioGroup
-							aria-labelledby={DEFAULT_LOG_LAYOUT_LABEL_ID}
-							value={field.value}
-							onValueChange={(value) => {
-								if (!isLogPageMode(value)) return;
+			{LOG_LAYOUT_CHOICES.map((choice) => (
+				<Controller
+					key={choice.field}
+					name={`log.${choice.field}`}
+					control={control}
+					render={({ field }) => (
+						<div className="flex flex-col gap-3">
+							<PreferenceGroupHeading
+								id={choice.labelId}
+								title={choice.title}
+								description={choice.description}
+							/>
+							<RadioGroup
+								aria-labelledby={choice.labelId}
+								value={field.value}
+								onValueChange={(value) => {
+									if (!isLogPageMode(value)) return;
 
-								field.onChange(value);
-								setUserPreferences({
-									...userPreferences,
-									log: { ...userPreferences.log, defaultMode: value }
-								});
-							}}
-							className="grid-cols-2 md:grid-cols-4"
-						>
-							{LOG_LAYOUT_OPTIONS.map((option) => (
-								<RadioCard
-									key={option.value}
-									value={option.value}
-									title={option.label}
-									description={option.description}
-									preview={<LogLayoutPreview mode={option.value} />}
-								/>
-							))}
-						</RadioGroup>
-					</div>
-				)}
-			></Controller>
+									field.onChange(value);
+									setUserPreferences({
+										...userPreferences,
+										log: { ...userPreferences.log, [choice.field]: value }
+									});
+								}}
+								className="grid-cols-2 md:grid-cols-4"
+							>
+								{LOG_LAYOUT_OPTIONS.map((option) => (
+									<RadioCard
+										key={option.value}
+										value={option.value}
+										title={option.label}
+										description={option.description}
+										preview={<LogLayoutPreview mode={option.value} />}
+									/>
+								))}
+							</RadioGroup>
+						</div>
+					)}
+				></Controller>
+			))}
 			<div className="flex flex-col gap-3">
 				<Controller
 					name="log.preferLegacyLog"

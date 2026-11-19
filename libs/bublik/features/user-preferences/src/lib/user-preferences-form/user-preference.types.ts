@@ -7,7 +7,9 @@ import { LOG_PAGE_MODES, LogPageMode } from '@/shared/types';
 const LOG_DEFAULTS = {
 	preferLegacyLog: false,
 	rememberAllPages: true,
-	defaultMode: LogPageMode.TreeAndInfoAndLog
+	defaultMode: LogPageMode.TreeAndInfoAndLog,
+	runsMode: LogPageMode.TreeAndLog,
+	historyMode: LogPageMode.InfoAndLog
 };
 
 export const UserPreferencesSchema = z
@@ -30,7 +32,23 @@ export const UserPreferencesSchema = z
 				defaultMode: z
 					.enum(LOG_PAGE_MODES)
 					.default(LOG_DEFAULTS.defaultMode)
-					.catch(LOG_DEFAULTS.defaultMode)
+					.catch(LOG_DEFAULTS.defaultMode),
+				/**
+				 * The layout of the runs table's Log link: a whole run is opened, so
+				 * the tree leads and the run info stays out of the way.
+				 */
+				runsMode: z
+					.enum(LOG_PAGE_MODES)
+					.default(LOG_DEFAULTS.runsMode)
+					.catch(LOG_DEFAULTS.runsMode),
+				/**
+				 * The layout of the History page's log links: they open one result,
+				 * so its info is shown and the tree is not.
+				 */
+				historyMode: z
+					.enum(LOG_PAGE_MODES)
+					.default(LOG_DEFAULTS.historyMode)
+					.catch(LOG_DEFAULTS.historyMode)
 			})
 			.default(LOG_DEFAULTS),
 		runs: z

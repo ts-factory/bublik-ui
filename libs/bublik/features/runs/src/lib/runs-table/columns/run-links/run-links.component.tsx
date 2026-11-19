@@ -10,7 +10,7 @@ export interface RunLinksProps {
 }
 
 export const RunLinks = ({ runId }: RunLinksProps) => {
-	const logMode = useDefaultLogMode();
+	const logMode = useDefaultLogMode('runs');
 
 	return (
 		<div className="flex flex-col items-start justify-center gap-1">

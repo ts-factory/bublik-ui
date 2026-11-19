@@ -21,7 +21,7 @@ export interface LinksProps {
 export const Links = ({ row }: LinksProps) => {
 	const [search] = useSearchState<HistorySearchParams>();
 	const shortcuts = getHistorySearch(row, search);
-	const logMode = useDefaultLogMode();
+	const logMode = useDefaultLogMode('history');
 
 	const handleLinkClick = (action: string) => {
 		trackEvent(analyticsEventNames.historyLinkClick, {

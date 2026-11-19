@@ -23,7 +23,7 @@ export interface LinkListProps {
 }
 
 export const LinkList = ({ results }: LinkListProps) => {
-	const logMode = useDefaultLogMode();
+	const logMode = useDefaultLogMode('history');
 	return (
 		<div className="flex flex-wrap gap-1">
 			{results.map((resultData, idx) => {
