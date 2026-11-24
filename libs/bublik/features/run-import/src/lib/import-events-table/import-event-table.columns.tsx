@@ -8,6 +8,7 @@ import { RocketIcon } from '@radix-ui/react-icons';
 import { ImportTaskRow } from '@/shared/types';
 import { config } from '@/bublik/config';
 import { LinkWithProject } from '@/bublik/features/projects';
+import { DESTRUCTIVE_FILL_CLASS } from '@/bublik/features/result-classification';
 import {
 	getErrorMessage,
 	useImportRunsMutation,
@@ -111,7 +112,7 @@ function RevokeImportTaskButton(props: RevokeImportTaskButtonProps) {
 			<ButtonTw
 				variant="destruction-secondary"
 				size="xss"
-				className="justify-start"
+				className={cn('justify-start', DESTRUCTIVE_FILL_CLASS)}
 				onClick={handleClick}
 				disabled={isLoading}
 			>
@@ -180,9 +181,6 @@ function ActionsCell(props: ActionCellProps) {
 					<span>Task</span>
 				</a>
 			</ButtonTw>
-			{status && REVOCABLE_STATUSES.has(status) ? (
-				<RevokeImportTaskButton taskId={taskId} status={status} />
-			) : null}
 		</div>
 	);
 }
@@ -363,8 +361,8 @@ export const columns = [
 	columnHelper.display({
 		id: 'expand',
 		cell: ({ row }) => {
-			const canRetry =
-				row.original.status === 'FAILURE' || row.original.status === 'REVOKED';
+			const { status, celery_task: taskId } = row.original;
+			const canRetry = status === 'FAILURE' || status === 'REVOKED';
 
 			// eslint-disable-next-line react-hooks/rules-of-hooks
 			const [importRuns] = useImportRunsMutation();
@@ -395,6 +393,9 @@ export const columns = [
 							<Icon name="Refresh" size={20} className="mr-1.5" />
 							<span>Try Again</span>
 						</ButtonTw>
+					) : null}
+					{taskId && REVOCABLE_STATUSES.has(status) ? (
+						<RevokeImportTaskButton taskId={taskId} status={status} />
 					) : null}
 					<Tooltip content="Expand/Collapse">
 						<button
