@@ -132,6 +132,7 @@ export const createColumns = (
 				return (
 					<CellText
 						value={value}
+						heading={name}
 						className={cn(hasBadges && align === 'left' && 'px-2')}
 					/>
 				);
