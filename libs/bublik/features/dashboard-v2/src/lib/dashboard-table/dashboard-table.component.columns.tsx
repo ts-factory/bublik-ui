@@ -104,7 +104,12 @@ export const createColumns = (
 				}
 
 				if (key === 'progress' && value) {
-					return <CellProgress progress={Number(value.replace('%', ''))} />;
+					return (
+						<CellProgress
+							progress={Number(value.replace('%', ''))}
+							align={align}
+						/>
+					);
 				}
 
 				if (key === 'notes') {
