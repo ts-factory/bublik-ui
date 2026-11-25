@@ -23,11 +23,12 @@ import { DESCRIPTION_MARKDOWN_CLASS } from './classification.constants';
 
 interface DescriptionCellProps {
 	value: string | null | undefined;
-	/** The issue the description belongs to; heads the popover. */
+	/** What the text belongs to, an issue or a run; heads the popover. */
 	title: string;
-	bugKey: string | null;
-	bugUrl: string | null;
-	issueId: number;
+	/** The issue's key, shown beside the title; left out for other text. */
+	bugKey?: string | null;
+	bugUrl?: string | null;
+	issueId?: number;
 	/** A closed issue's key is struck through in the popover. */
 	closed?: boolean;
 	/**
@@ -35,9 +36,23 @@ interface DescriptionCellProps {
 	 * where it was read, as the run table's Objective column does.
 	 */
 	overlay?: boolean;
+	/** Names what the trigger opens, for screen readers. */
+	expandLabel?: string;
 }
 
-type DescriptionPopoverProps = Omit<DescriptionCellProps, 'value'> & {
+interface DescriptionBlockProps extends DescriptionCellProps {
+	/**
+	 * Caps the text's height where the parent does not set one, e.g.
+	 * `max-h-24`. By default the block fills its parent's height.
+	 */
+	className?: string;
+	'data-testid'?: string;
+}
+
+type DescriptionPopoverProps = Omit<
+	DescriptionCellProps,
+	'value' | 'expandLabel'
+> & {
 	text: string;
 	/** The text the popover opens from; with `overlay` it is laid over it. */
 	anchor: HTMLElement | null;
@@ -154,13 +169,15 @@ function DescriptionPopover({
 				<h2 className="text-sm font-semibold leading-5 break-words text-text-primary">
 					{title}
 				</h2>
-				<BugKeyChip
-					bugKey={bugKey}
-					bugUrl={bugUrl}
-					issueId={issueId}
-					fallback={`#${issueId}`}
-					closed={closed}
-				/>
+				{issueId !== undefined ? (
+					<BugKeyChip
+						bugKey={bugKey ?? null}
+						bugUrl={bugUrl ?? null}
+						issueId={issueId}
+						fallback={`#${issueId}`}
+						closed={closed}
+					/>
+				) : null}
 			</div>
 			<Separator className="h-px my-1 shrink-0" />
 			<div
@@ -277,7 +294,12 @@ function firstLine(text: string): string {
  * stretch the row. Stopping where the author broke the line keeps it the same
  * line the popover laid over it starts with.
  */
-function DescriptionCell({ value, overlay, ...issue }: DescriptionCellProps) {
+function DescriptionCell({
+	value,
+	overlay,
+	expandLabel = 'Show full description',
+	...issue
+}: DescriptionCellProps) {
 	const [anchor, setAnchor] = useState<HTMLDivElement | null>(null);
 	const text = value?.trim();
 
@@ -288,7 +310,7 @@ function DescriptionCell({ value, overlay, ...issue }: DescriptionCellProps) {
 			<PopoverTrigger asChild>
 				<button
 					type="button"
-					aria-label="Show full description"
+					aria-label={expandLabel}
 					className="relative flex items-center w-full min-w-0 px-1.5 py-1 text-left group hover:bg-primary-wash"
 					data-testid="description-cell"
 				>
@@ -347,10 +369,17 @@ function useIsClipped(node: HTMLElement | null): boolean {
 /**
  * The description on the issue's own page: as much as fits the height of its
  * parent, with the rest a click away in the same popover the tables open.
- * Shown whole, and not clickable, when it fits. The parent sets the height;
- * the block only fills it.
+ * Shown whole, and not clickable, when it fits. The parent sets the height
+ * and the block fills it, unless `className` caps the height itself.
  */
-function DescriptionBlock({ value, overlay, ...issue }: DescriptionCellProps) {
+function DescriptionBlock({
+	value,
+	overlay,
+	expandLabel = 'Show full description',
+	className,
+	'data-testid': testId = 'description-block',
+	...issue
+}: DescriptionBlockProps) {
 	const [node, setNode] = useState<HTMLDivElement | null>(null);
 	const clipped = useIsClipped(node);
 	const text = value?.trim();
@@ -362,7 +391,7 @@ function DescriptionBlock({ value, overlay, ...issue }: DescriptionCellProps) {
 			ref={setNode}
 			// Only an open-able block anchors a popover; one that fits has none.
 			overlay={overlay && clipped}
-			className="relative max-h-full overflow-hidden"
+			className={cn('relative max-h-full overflow-hidden', className)}
 		>
 			<Markdown
 				breaks
@@ -383,7 +412,7 @@ function DescriptionBlock({ value, overlay, ...issue }: DescriptionCellProps) {
 
 	if (!clipped)
 		return (
-			<div className="h-full" data-testid="description-block">
+			<div className="h-full" data-testid={testId}>
 				{content}
 			</div>
 		);
@@ -396,9 +425,9 @@ function DescriptionBlock({ value, overlay, ...issue }: DescriptionCellProps) {
 				    back, so the text still gets the parent's full height. */}
 				<button
 					type="button"
-					aria-label="Show full description"
+					aria-label={expandLabel}
 					className="relative block w-full h-[calc(100%+0.5rem)] px-1.5 py-1 -mx-1.5 -my-1 text-left rounded group hover:bg-primary-wash"
-					data-testid="description-block"
+					data-testid={testId}
 				>
 					{content}
 					<span className="absolute grid transition-opacity rounded opacity-0 bottom-1 right-1.5 place-items-center bg-primary-wash group-hover:opacity-100">
@@ -439,4 +468,4 @@ export {
 	DESCRIPTION_COLUMN_META,
 	overlayOffsets
 };
-export type { DescriptionCellProps };
+export type { DescriptionBlockProps, DescriptionCellProps };

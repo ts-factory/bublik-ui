@@ -5,3 +5,5 @@ export * from './classification.constants';
 export * from './classification.utils';
 export * from './classification-badges.component';
 export * from './facet-badges.component';
+export { DescriptionBlock } from './description-cell.component';
+export type { DescriptionBlockProps } from './description-cell.component';
