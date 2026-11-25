@@ -57,7 +57,12 @@ export const runsEndpoints = {
 					cache: 'no-cache'
 				};
 			},
-			providesTags: configDependent(BUBLIK_TAG.Run, BUBLIK_TAG.SessionList)
+			// Each listed run carries its comment.
+			providesTags: configDependent(
+				BUBLIK_TAG.Run,
+				BUBLIK_TAG.SessionList,
+				BUBLIK_TAG.RunComment
+			)
 		}),
 		getRunsProgress: build.infiniteQuery<RunsAPIResponse, RunsAPIQuery, number>(
 			{

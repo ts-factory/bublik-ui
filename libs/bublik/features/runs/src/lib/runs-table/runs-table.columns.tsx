@@ -16,6 +16,9 @@ import { RunsData, RunsStatisticData, RUN_STATUS } from '@/shared/types';
 
 import { DatesHeader, ColumnDates, RunLinks, ColumnSummary } from './columns';
 
+/** The column the run comment is drawn above. */
+export const METADATA_COLUMN_ID = 'Metadata';
+
 declare module '@tanstack/react-table' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface ColumnMeta<TData extends RowData, TValue> {
@@ -153,6 +156,7 @@ export const columns: ColumnDef<RunsData>[] = [
 		enableSorting: false
 	},
 	{
+		id: METADATA_COLUMN_ID,
 		header: 'Metadata',
 		accessorFn: (data) => data.metadata.map((badge) => ({ payload: badge })),
 		cell: (cell) => {

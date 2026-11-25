@@ -2,3 +2,5 @@
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
 export * from './lib/run-details.container';
 export * from './lib/run-details.component';
+export { RunCommentDrawer } from './lib/run-comment.container';
+export type { RunCommentDrawerProps } from './lib/run-comment.container';

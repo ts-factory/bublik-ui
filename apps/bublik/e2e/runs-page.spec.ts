@@ -1067,6 +1067,59 @@ test.describe('Runs Page', () => {
 		}
 	);
 
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		"The runs table shows a run comment above the run's metadata and opens it in full",
+		{ tag: ['@runs'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+			const runId = importedRunId(bundle);
+			const comment =
+				'## Link flap on the port\n\nRerun after the **firmware** update';
+
+			await given("the runs list carries a run's comment", async () => {
+				await runsPage.listComment(runId, comment);
+				await runsPage.gotoWithTagExpr(fixtureTagExpr(bundle));
+				await runsPage.expectRowVisible(runId);
+			});
+			await then(
+				"the comment's first line is shown above the run's metadata",
+				() => runsPage.expectCommentChip(runId, 'Link flap on the port')
+			);
+			await when('I click the comment', () => runsPage.openComment(runId));
+			await then('the whole comment is shown with a link to the run', () =>
+				runsPage.expectCommentPopover(runId, [
+					'Link flap on the port',
+					'Rerun after the firmware update'
+				])
+			);
+		}
+	);
+
+	// eslint-disable-next-line playwright/expect-expect
+	test(
+		'A run without a comment offers to add one from the runs table',
+		{ tag: ['@runs'] },
+		async ({ page }) => {
+			const runsPage = new RunsPage(page);
+			const { bundle } = representativeRun(requireManifest());
+			const runId = importedRunId(bundle);
+
+			await given('the runs table lists a run without a comment', async () => {
+				await runsPage.listComment(runId, null);
+				await runsPage.gotoWithTagExpr(fixtureTagExpr(bundle));
+				await runsPage.expectRowVisible(runId);
+			});
+			await when('I ask to add a comment to the run', () =>
+				runsPage.addComment(runId)
+			);
+			await then('the run comment editor opens', () =>
+				runsPage.expectCommentEditor()
+			);
+		}
+	);
+
 	test.describe('The runs page renders every view mode', () => {
 		test.slow();
 

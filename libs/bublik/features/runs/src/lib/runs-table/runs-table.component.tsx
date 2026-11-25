@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2021-2023 OKTET Labs Ltd. */
-import { useMemo, MouseEvent, useState } from 'react';
+import {
+	useMemo,
+	MouseEvent,
+	useState,
+	useRef,
+	useEffect,
+	RefObject
+} from 'react';
 import {
 	PaginationState,
 	OnChangeFn,
@@ -19,7 +26,9 @@ import { RunsData } from '@/shared/types';
 import { Skeleton, cn, Pagination } from '@/shared/tailwind-ui';
 import { BublikEmptyState, BublikErrorState } from '@/bublik/features/ui-state';
 
-import { columns } from './runs-table.columns';
+import { columns, METADATA_COLUMN_ID } from './runs-table.columns';
+import { RunCommentChip } from './run-comment-chip.component';
+import { runCommentOf } from './run-comment.utils';
 import { globalFilterFn } from './runs-table.utils';
 
 const getRowId = (runsData: RunsData) => runsData.id.toString();
@@ -37,6 +46,9 @@ export interface RunsTableProps {
 	addSelection: (runId: string) => void;
 	removeSelection: (runId: string) => void;
 	replaceSelection: (oldRunId: string, newRunId: string) => void;
+	/** The run whose comment editor is open. */
+	editingCommentRunId: number | null;
+	onEditComment: (runId: number, comment: string) => void;
 }
 
 function RunsTable(props: RunsTableProps) {
@@ -51,7 +63,9 @@ function RunsTable(props: RunsTableProps) {
 		addSelection,
 		removeSelection,
 		replaceSelection,
-		selection
+		selection,
+		editingCommentRunId,
+		onEditComment
 	} = props;
 
 	const state = useMemo<Partial<TableState>>(
@@ -159,9 +173,16 @@ function RunsTable(props: RunsTableProps) {
 						))}
 					</thead>
 					<tbody>
-						{table.getRowModel().rows.map((row) => {
+						{table.getRowModel().rows.map((row, rowIdx) => {
 							return (
-								<RunsRow key={row.id} row={row} onRowClick={handleRowClick} />
+								<RunsRow
+									key={row.id}
+									row={row}
+									isFirst={rowIdx === 0}
+									isEditingComment={editingCommentRunId === row.original.id}
+									onEditComment={onEditComment}
+									onRowClick={handleRowClick}
+								/>
 							);
 						})}
 					</tbody>
@@ -182,16 +203,64 @@ function RunsTable(props: RunsTableProps) {
 	);
 }
 
+/** The height of the header row, `h-8`. */
+const HEADER_ROW_HEIGHT = 32;
+
+/**
+ * Whether the element's top is below the sticky header, or yet to pass
+ * beneath it: the same watch the result table keeps for its row marks.
+ * A 1px edge is watched, as a taller element would be judged by its
+ * visible part.
+ */
+function useIsBelowHeader(
+	ref: RefObject<HTMLElement>,
+	enabled: boolean
+): boolean {
+	const [isBelow, setIsBelow] = useState(true);
+
+	useEffect(() => {
+		const el = ref.current;
+
+		if (!enabled || !el) return;
+
+		const observer = new IntersectionObserver(
+			([entry]) =>
+				setIsBelow(
+					entry.isIntersecting ||
+						// Out of sight below the viewport is below the header too.
+						entry.boundingClientRect.top >
+							(entry.rootBounds?.bottom ?? Number.POSITIVE_INFINITY)
+				),
+			{ rootMargin: `${-HEADER_ROW_HEIGHT}px 0px 0px 0px`, threshold: [0] }
+		);
+
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [ref, enabled]);
+
+	return isBelow;
+}
+
 interface RunsRowProps {
 	row: Row<RunsData>;
+	isFirst: boolean;
+	isEditingComment: boolean;
+	onEditComment: (runId: number, comment: string) => void;
 	onRowClick: (
 		row: Row<RunsData>
 	) => (e: MouseEvent<HTMLTableRowElement>) => void;
 }
 
-function RunsRow({ row, onRowClick }: RunsRowProps) {
+function RunsRow(props: RunsRowProps) {
+	const { row, isFirst, isEditingComment, onEditComment, onRowClick } = props;
 	const isSelected = row.getIsSelected();
 	const [isHovered, setIsHovered] = useState(false);
+	const runId = row.original.id;
+	const comment = runCommentOf(row.original);
+	// Only the first row's comment reaches into the header, and has to give
+	// way once the row scrolls beneath it.
+	const topEdgeRef = useRef<HTMLSpanElement>(null);
+	const isBelowHeader = useIsBelowHeader(topEdgeRef, isFirst);
 
 	return (
 		<tr
@@ -201,23 +270,46 @@ function RunsRow({ row, onRowClick }: RunsRowProps) {
 		>
 			{row.getVisibleCells().map((cell, cellIdx, cells) => {
 				const className = cell.column.columnDef.meta?.className || '';
+				// The comment sits over the run's metadata.
+				const holdsComment = cell.column.id === METADATA_COLUMN_ID;
 
 				return (
 					<td
 						key={cell.id}
 						data-column-id={cell.column.id}
 						className={cn(
-							`bg-bg-primary py-2 px-1 border-transparent transition-colors`,
+							// The top padding makes room for the comment's lower half.
+							`bg-bg-primary pt-3 pb-2 px-1 border-transparent transition-colors`,
 							cellIdx !== 0 && 'border-y',
 							cellIdx === cells.length - 1 && 'border-r rounded-r',
 							isHovered && 'border-primary',
 							isSelected && 'bg-primary-wash border-primary',
+							holdsComment && 'relative',
 							className
 						)}
 						onMouseEnter={() => setIsHovered(true)}
 						onMouseLeave={() => setIsHovered(false)}
 					>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+						{holdsComment ? (
+							<>
+								{isFirst ? (
+									<span
+										ref={topEdgeRef}
+										aria-hidden
+										className="pointer-events-none absolute left-0 top-0 h-px w-px"
+									/>
+								) : null}
+								<RunCommentChip
+									runId={runId}
+									comment={comment}
+									isRowHovered={isHovered}
+									isEditing={isEditingComment}
+									overHeader={isFirst && isBelowHeader}
+									onEdit={() => onEditComment(runId, comment)}
+								/>
+							</>
+						) : null}
 					</td>
 				);
 			})}

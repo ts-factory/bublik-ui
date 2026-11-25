@@ -62,6 +62,8 @@ export type RunsData = {
 	relevant_tags: string[];
 	important_tags: string[];
 	metadata: string[];
+	/** `null` for a run without a comment; absent from a backend that does not list comments. */
+	comment?: string | null;
 	stats: RunsStatisticData;
 	status: string;
 	status_by_nok: string;

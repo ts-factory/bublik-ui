@@ -221,6 +221,83 @@ class RunsPage {
 			.getAttribute('data-run-id');
 	}
 
+	/**
+	 * Lists the run with `comment`, or with `null` lists it without a
+	 * comment. Call before opening the page.
+	 */
+	async listComment(runId: number, comment: string | null): Promise<void> {
+		await this.page.route(
+			(url) => /\/api\/v2\/runs\/?$/.test(url.pathname),
+			async (route) => {
+				const response = await route.fetch();
+				const body: {
+					results?: { id: number; comment?: string | null }[];
+				} = await response.json();
+
+				for (const run of body.results ?? []) {
+					if (run.id === runId) run.comment = comment;
+				}
+
+				await route.fulfill({ response, json: body });
+			}
+		);
+	}
+
+	/** The comment sits over the Metadata column. */
+	commentChip(runId: number): Locator {
+		return this.row(runId)
+			.locator('td[data-column-id="Metadata"]')
+			.getByTestId('run-comment-chip');
+	}
+
+	get commentPopover(): Locator {
+		return this.page.getByTestId('run-comment-popover');
+	}
+
+	async expectCommentChip(runId: number, firstLine: string): Promise<void> {
+		await expect(this.commentChip(runId)).toHaveText(firstLine, {
+			timeout: 30_000
+		});
+	}
+
+	async openComment(runId: number): Promise<void> {
+		await this.commentChip(runId).click();
+		await expect(this.commentPopover).toBeVisible();
+	}
+
+	async expectCommentPopover(runId: number, lines: string[]): Promise<void> {
+		await expect(
+			this.commentPopover.getByRole('heading', { name: `Run ${runId}` })
+		).toBeVisible();
+
+		for (const line of lines) {
+			await expect(this.commentPopover).toContainText(line);
+		}
+
+		await expect(
+			this.commentPopover.getByRole('link', { name: 'Run' })
+		).toHaveAttribute('href', new RegExp(`/runs/${runId}(?:$|\\?)`));
+	}
+
+	/**
+	 * By the keyboard: the button shows on a hovered row, and a hover does not
+	 * hold on every browser of the suite.
+	 */
+	async addComment(runId: number): Promise<void> {
+		const add = this.row(runId).getByTestId('run-comment-add');
+
+		await add.focus();
+		await expect(add).toBeFocused();
+		await add.press('Enter');
+	}
+
+	async expectCommentEditor(): Promise<void> {
+		const drawer = this.page.getByTestId('run-comment-drawer');
+
+		await expect(drawer).toBeVisible({ timeout: 15_000 });
+		await expect(drawer.getByPlaceholder('Run comment...')).toBeVisible();
+	}
+
 	async openRun(runId: number): Promise<void> {
 		await this.row(runId).getByTestId('run-details-link').click();
 		await expect(this.page).toHaveURL(new RegExp(`/runs/${runId}`), {

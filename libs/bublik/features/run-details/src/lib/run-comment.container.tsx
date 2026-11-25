@@ -281,4 +281,5 @@ function RunCommentDrawer({
 	);
 }
 
-export { RunCommentFormContainer };
+export { RunCommentFormContainer, RunCommentDrawer };
+export type { RunCommentDrawerProps };

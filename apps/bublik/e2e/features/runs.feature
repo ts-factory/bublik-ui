@@ -290,6 +290,23 @@ Feature: Runs
     When I click the run's week in the test results
     Then a drawer lists the fixture run under that week's dates
 
+  # Each run of the runs list carries its comment. These scenarios put the
+  # comment into the list's answer, so they hold for a backend older than the
+  # field too.
+
+  @runs
+  Scenario: The runs table shows a run comment above the run's metadata and opens it in full
+    Given the runs list carries a run's comment
+    Then the comment's first line is shown above the run's metadata
+    When I click the comment
+    Then the whole comment is shown with a link to the run
+
+  @runs
+  Scenario: A run without a comment offers to add one from the runs table
+    Given the runs table lists a run without a comment
+    When I ask to add a comment to the run
+    Then the run comment editor opens
+
   Scenario Outline: The runs page renders every view mode
     When I open the runs page in the given mode
     Then the mode's own section is rendered
