@@ -970,11 +970,11 @@ class RunPage {
 	async openCommentEditor(): Promise<void> {
 		await this.page
 			.getByRole('banner')
-			.getByRole('button', { name: 'Edit', exact: true })
+			.getByRole('button', { name: /^(Edit|Add a comment)$/ })
 			.click();
-		await expect(
-			this.page.getByRole('heading', { name: 'Edit Comment' })
-		).toBeVisible({ timeout: 15_000 });
+		await expect(this.page.getByTestId('run-comment-drawer')).toBeVisible({
+			timeout: 15_000
+		});
 	}
 
 	async submitComment(comment: string): Promise<void> {
@@ -985,6 +985,9 @@ class RunPage {
 				name: comment === '' ? 'Delete' : /^(Create|Update)$/
 			})
 			.click();
+		await expect(this.page.getByTestId('run-comment-drawer')).toBeHidden({
+			timeout: 15_000
+		});
 	}
 
 	async expectComment(comment: string): Promise<void> {
@@ -992,7 +995,9 @@ class RunPage {
 	}
 
 	async expectNoComment(): Promise<void> {
-		await expect(this.commentValue()).toHaveText('—', { timeout: 15_000 });
+		await expect(this.page.getByTestId('run-comment-add')).toBeVisible({
+			timeout: 15_000
+		});
 	}
 
 	async showColumn(label: string): Promise<void> {
