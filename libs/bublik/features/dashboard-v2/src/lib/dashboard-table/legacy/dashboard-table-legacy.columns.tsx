@@ -30,7 +30,7 @@ export const createLegacyColumns = (
 	date: Date,
 	payload: DashboardAPIResponse['payload']
 ): ColumnDef<DashboardData>[] => {
-	const map = createColorMap(rows, headers);
+	const map = createColorMap(rows, headers, payload);
 
 	const mainColumns = headers.map(({ name, key }, idx) => {
 		const style = {

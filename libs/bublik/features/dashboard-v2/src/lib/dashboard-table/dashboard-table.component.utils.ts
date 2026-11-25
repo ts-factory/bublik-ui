@@ -3,6 +3,7 @@
 import { ColumnDef, Row } from '@tanstack/react-table';
 
 import {
+	CELL_CONTEXT,
 	DashboardAPIResponse,
 	DashboardCellArray,
 	DashboardCellData,
@@ -148,6 +149,13 @@ export const getCellStrFromArray = (arr: DashboardCellArray[]) => {
 };
 
 /**
+ * The description the API sends in `payload` for a column whose config sets
+ * `payload: go_run_failed`. The cells carry the same link as `go_run`, so
+ * this is the only thing that tells the NOK column apart.
+ */
+const GO_RUN_FAILED_DESCRIPTION = 'Go to Run (Preview NOK)';
+
+/**
  * Badge colour per column, keyed by column key.
  *
  * Columns are coloured in header order, counting only those that carry a
@@ -155,11 +163,14 @@ export const getCellStrFromArray = (arr: DashboardCellArray[]) => {
  * with the same columns) agree. Picking a single row for this went wrong
  * when a column, like Test Suite, has a badge only in some rows: the other
  * columns' indices shifted by one depending on the row. A column whose
- * cells carry a context takes the context colour instead.
+ * cells carry a context takes the context colour instead, and the
+ * `go_run_failed` (NOK) column is always red. Both still take their index,
+ * so the columns after them keep their colours.
  */
 export const createColorMap = (
 	rows: DashboardAPIResponse['rows'],
-	headers: DashboardAPIResponse['header']
+	headers: DashboardAPIResponse['header'],
+	payload: DashboardAPIResponse['payload'] = {}
 ) => {
 	const colorMap = new Map<string, string>();
 
@@ -178,10 +189,15 @@ export const createColorMap = (
 		if (!badges.length) return;
 
 		const context = badges.find((cell) => cell.context)?.context;
+		const isNokColumn = payload[key]?.trim() === GO_RUN_FAILED_DESCRIPTION;
 
 		colorMap.set(
 			key,
-			context ? getColorFromContext(context) : `bg-badge-${badgeIndex}`
+			context
+				? getColorFromContext(context)
+				: isNokColumn
+				? getColorFromContext(CELL_CONTEXT.Error)
+				: `bg-badge-${badgeIndex}`
 		);
 
 		badgeIndex += 1;

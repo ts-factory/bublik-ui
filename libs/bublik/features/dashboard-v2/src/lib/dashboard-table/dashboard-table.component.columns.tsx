@@ -68,7 +68,7 @@ export const createColumns = (
 	payload: DashboardAPIResponse['payload'],
 	{ showExpand = true }: CreateColumnsOptions = {}
 ): ColumnDef<DashboardData>[] => {
-	const map = createColorMap(rows, headers);
+	const map = createColorMap(rows, headers, payload);
 	const tracks = getColumnTracks(rows, headers);
 
 	const aligns = headers.map(
