@@ -84,7 +84,7 @@ export const createLegacyColumns = (
 
 				if (!value) return null;
 
-				return <CellText value={value} />;
+				return <CellText value={value} heading={name} />;
 			},
 			meta: { style }
 		};

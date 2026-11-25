@@ -38,6 +38,8 @@ interface DescriptionCellProps {
 	overlay?: boolean;
 	/** Names what the trigger opens, for screen readers. */
 	expandLabel?: string;
+	/** Extra classes for the cell's one line, e.g. a weight for a heading. */
+	lineClassName?: string;
 }
 
 interface DescriptionBlockProps extends DescriptionCellProps {
@@ -51,7 +53,7 @@ interface DescriptionBlockProps extends DescriptionCellProps {
 
 type DescriptionPopoverProps = Omit<
 	DescriptionCellProps,
-	'value' | 'expandLabel'
+	'value' | 'expandLabel' | 'lineClassName'
 > & {
 	text: string;
 	/** The text the popover opens from; with `overlay` it is laid over it. */
@@ -298,6 +300,7 @@ function DescriptionCell({
 	value,
 	overlay,
 	expandLabel = 'Show full description',
+	lineClassName,
 	...issue
 }: DescriptionCellProps) {
 	const [anchor, setAnchor] = useState<HTMLDivElement | null>(null);
@@ -324,7 +327,10 @@ function DescriptionCell({
 						    only. */}
 						<Markdown
 							inline
-							className="block truncate text-text-primary [&_*]:inline [&_a]:pointer-events-none"
+							className={cn(
+								'block truncate text-text-primary [&_*]:inline [&_a]:pointer-events-none',
+								lineClassName
+							)}
 						>
 							{firstLine(text)}
 						</Markdown>
