@@ -42,19 +42,34 @@ describe('createColorMap', () => {
 		]);
 	});
 
+	const payload = {
+		session: 'Go to Run',
+		total: 'Go to Log',
+		unexpected: 'Go to Run (Preview NOK)',
+		log: 'Go to Log'
+	};
+	const outlined = 'bg-transparent ring-1 ring-inset ring-border-input';
+
 	it('paints the go_run_failed column red and keeps the others in place', () => {
-		const map = createColorMap(rows, headers, {
-			session: 'Go to Run',
-			total: 'Go to Log',
-			unexpected: 'Go to Run (Preview NOK)',
-			log: 'Go to Log'
-		});
+		const map = createColorMap(rows, headers, payload);
 
 		expect(headers.map(({ key }) => map.getColorByKey(key))).toEqual([
 			'bg-badge-0',
 			'bg-badge-1',
-			'bg-badge-5',
+			'bg-bg-fillError',
 			'bg-badge-3'
 		]);
+	});
+
+	it('outlines a NOK of 0 and fills other counts like unexpected run columns', () => {
+		const map = createColorMap(rows, headers, payload);
+
+		expect(map.getCellColor('unexpected', 0)).toBe(outlined);
+		expect(map.getCellColor('unexpected', '0')).toBe(outlined);
+		expect(map.getCellColor('unexpected', 3)).toBe('bg-bg-fillError');
+		expect(map.getCellColor('unexpected', 3, true)).toBe(
+			'text-white bg-bg-error'
+		);
+		expect(map.getCellColor('total', 0)).toBe('bg-badge-1');
 	});
 });

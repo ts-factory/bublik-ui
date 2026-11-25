@@ -17,7 +17,8 @@ import {
 	columnHasBadges,
 	createColorMap,
 	getColumnTracks,
-	isNumericColumn
+	isNumericColumn,
+	isRowError
 } from './dashboard-table.component.utils';
 
 import { ExpandButtonContainer } from '../expand-button';
@@ -115,7 +116,7 @@ export const createColumns = (
 						<CellLink
 							data={cell}
 							cellKey={key}
-							bgColor={map.getColorByKey(key)}
+							bgColor={map.getCellColor(key, cell.value, isRowError(api.row))}
 							hint={payload[key]}
 						/>
 					);

@@ -3,13 +3,17 @@
 import { ColumnDef, Row } from '@tanstack/react-table';
 
 import {
-	CELL_CONTEXT,
 	DashboardAPIResponse,
 	DashboardCellArray,
 	DashboardCellData,
 	DashboardData,
 	RUN_STATUS
 } from '@/shared/types';
+import {
+	BadgeVariants,
+	badgeSelectedStyles,
+	badgeVariantStyles
+} from '@/shared/tailwind-ui';
 
 import { getColorFromContext } from '../utils';
 
@@ -156,6 +160,23 @@ export const getCellStrFromArray = (arr: DashboardCellArray[]) => {
 const GO_RUN_FAILED_DESCRIPTION = 'Go to Run (Preview NOK)';
 
 /**
+ * NOK badges take the fill of the run page's unexpected columns. A run with
+ * no unexpected results has nothing to flag, so its 0 is outlined like a
+ * verdict badge in the result table. The outline is an inset ring rather than
+ * a border, so the badge keeps the other badges' size.
+ *
+ * An error row has the same fill as the badge, so there the badge is solid
+ * red under white ink, as the run page's unexpected badges are when selected.
+ */
+const NOK_BADGE_CLASS = {
+	ok: 'bg-transparent ring-1 ring-inset ring-border-input',
+	nok: badgeVariantStyles({ variant: BadgeVariants.UnexpectedActive }),
+	nokOnErrorRow: badgeSelectedStyles({
+		variant: BadgeVariants.UnexpectedActive
+	})
+} as const;
+
+/**
  * Badge colour per column, keyed by column key.
  *
  * Columns are coloured in header order, counting only those that carry a
@@ -164,8 +185,8 @@ const GO_RUN_FAILED_DESCRIPTION = 'Go to Run (Preview NOK)';
  * when a column, like Test Suite, has a badge only in some rows: the other
  * columns' indices shifted by one depending on the row. A column whose
  * cells carry a context takes the context colour instead, and the
- * `go_run_failed` (NOK) column is always red. Both still take their index,
- * so the columns after them keep their colours.
+ * `go_run_failed` (NOK) column is red, but outlined where its count is 0. Both
+ * still take their index, so the columns after them keep their colours.
  */
 export const createColorMap = (
 	rows: DashboardAPIResponse['rows'],
@@ -173,8 +194,17 @@ export const createColorMap = (
 	payload: DashboardAPIResponse['payload'] = {}
 ) => {
 	const colorMap = new Map<string, string>();
+	const nokKeys = new Set<string>();
 
 	const getColorByKey = (key: string) => colorMap.get(key);
+
+	/** The colour of one cell: its column's, or for a NOK of 0 the outline. */
+	const getCellColor = (key: string, value: unknown, onErrorRow = false) => {
+		if (!nokKeys.has(key)) return getColorByKey(key);
+		if (Number(value) === 0) return NOK_BADGE_CLASS.ok;
+
+		return onErrorRow ? NOK_BADGE_CLASS.nokOnErrorRow : NOK_BADGE_CLASS.nok;
+	};
 
 	let badgeIndex = 0;
 
@@ -189,19 +219,22 @@ export const createColorMap = (
 		if (!badges.length) return;
 
 		const context = badges.find((cell) => cell.context)?.context;
-		const isNokColumn = payload[key]?.trim() === GO_RUN_FAILED_DESCRIPTION;
+		const isNokColumn =
+			!context && payload[key]?.trim() === GO_RUN_FAILED_DESCRIPTION;
+
+		if (isNokColumn) nokKeys.add(key);
 
 		colorMap.set(
 			key,
 			context
 				? getColorFromContext(context)
 				: isNokColumn
-				? getColorFromContext(CELL_CONTEXT.Error)
+				? NOK_BADGE_CLASS.nok
 				: `bg-badge-${badgeIndex}`
 		);
 
 		badgeIndex += 1;
 	});
 
-	return { getColorByKey };
+	return { getColorByKey, getCellColor };
 };
