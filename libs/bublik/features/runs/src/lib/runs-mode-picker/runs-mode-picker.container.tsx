@@ -6,6 +6,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Spinner } from '@/shared/tailwind-ui';
 
 import { RunsTableContainer } from '../runs-table';
+// PROTOTYPE: run comment variants, see ../runs-comments-prototype.
+import { RunsCommentsPrototypeSwitcher } from '../runs-comments-prototype';
 
 const RunsStatsContainer = lazy(() =>
 	import('../runs-stats').then((module) => ({
@@ -22,7 +24,14 @@ const RunsProgressContainer = lazy(() =>
 export const RunsModePickerContainer = () => {
 	const [searchParams] = useSearchParams();
 
-	if (searchParams.get('mode') === 'table') return <RunsTableContainer />;
+	const table = (
+		<>
+			<RunsTableContainer />
+			<RunsCommentsPrototypeSwitcher />
+		</>
+	);
+
+	if (searchParams.get('mode') === 'table') return table;
 
 	if (searchParams.get('mode') === 'charts') {
 		return (
@@ -40,5 +49,5 @@ export const RunsModePickerContainer = () => {
 		);
 	}
 
-	return <RunsTableContainer />;
+	return table;
 };
