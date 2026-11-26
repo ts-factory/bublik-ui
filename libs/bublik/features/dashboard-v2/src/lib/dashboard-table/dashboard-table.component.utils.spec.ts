@@ -72,4 +72,44 @@ describe('createColorMap', () => {
 		);
 		expect(map.getCellColor('total', 0)).toBe('bg-badge-1');
 	});
+
+	const wide = Array.from({ length: 20 }, (_, index) => `column${index}`);
+	const wideHeaders = wide.map((key) => ({ key, name: key }));
+	const wideRows = [
+		{
+			row_cells: Object.fromEntries(wide.map((key) => [key, link('1')])),
+			context: { run_id: 1 }
+		}
+	] as unknown as DashboardAPIResponse['rows'];
+	const red = ['bg-badge-5', 'bg-badge-12', 'bg-badge-13', 'bg-badge-15'];
+
+	it('leaves the red washes out for the other columns of a table with a NOK column', () => {
+		const map = createColorMap(wideRows, wideHeaders, {
+			column2: 'Go to Run (Preview NOK)'
+		});
+		const colours = wide.map((key) => map.getColorByKey(key));
+
+		expect(colours.filter((colour) => red.includes(colour ?? ''))).toEqual([]);
+		expect(colours.slice(0, 7)).toEqual([
+			'bg-badge-0',
+			'bg-badge-1',
+			'bg-bg-fillError',
+			'bg-badge-3',
+			'bg-badge-4',
+			'bg-badge-6',
+			'bg-badge-7'
+		]);
+		// Fifteen washes are left, so the sixteenth column starts over.
+		expect(colours[15]).toBe('bg-badge-0');
+	});
+
+	it('keeps the whole palette for a table without a NOK column', () => {
+		const map = createColorMap(wideRows, wideHeaders);
+		const colours = wide.map((key) => map.getColorByKey(key));
+
+		expect(colours.slice(0, 19)).toEqual(
+			Array.from({ length: 19 }, (_, index) => `bg-badge-${index}`)
+		);
+		expect(colours[19]).toBe('bg-badge-0');
+	});
 });

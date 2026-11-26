@@ -176,6 +176,16 @@ const NOK_BADGE_CLASS = {
 	})
 } as const;
 
+/** The washes of the automatic palette: `bg-badge-0` to `bg-badge-18`. */
+const BADGE_WASHES = Array.from({ length: 19 }, (_, index) => index);
+
+/** The red ones among them; 12 and 13 are the very fills of a NOK badge. */
+const RED_BADGE_WASHES = new Set([5, 12, 13, 15]);
+
+const NOT_RED_BADGE_WASHES = BADGE_WASHES.filter(
+	(wash) => !RED_BADGE_WASHES.has(wash)
+);
+
 /**
  * Badge colour per column, keyed by column key.
  *
@@ -187,6 +197,9 @@ const NOK_BADGE_CLASS = {
  * cells carry a context takes the context colour instead, and the
  * `go_run_failed` (NOK) column is red, but outlined where its count is 0. Both
  * still take their index, so the columns after them keep their colours.
+ *
+ * Red is what the NOK column says, so a table with that column leaves the
+ * red washes out for its other columns.
  */
 export const createColorMap = (
 	rows: DashboardAPIResponse['rows'],
@@ -206,9 +219,7 @@ export const createColorMap = (
 		return onErrorRow ? NOK_BADGE_CLASS.nokOnErrorRow : NOK_BADGE_CLASS.nok;
 	};
 
-	let badgeIndex = 0;
-
-	headers.forEach(({ key }) => {
+	const badgeColumns = headers.flatMap(({ key }) => {
 		const badges = rows
 			.map((row) => row.row_cells[key])
 			.filter(
@@ -216,12 +227,20 @@ export const createColorMap = (
 					!!cell && !Array.isArray(cell) && !!cell.payload
 			);
 
-		if (!badges.length) return;
+		if (!badges.length) return [];
 
 		const context = badges.find((cell) => cell.context)?.context;
 		const isNokColumn =
 			!context && payload[key]?.trim() === GO_RUN_FAILED_DESCRIPTION;
 
+		return [{ key, context, isNokColumn }];
+	});
+
+	const washes = badgeColumns.some((column) => column.isNokColumn)
+		? NOT_RED_BADGE_WASHES
+		: BADGE_WASHES;
+
+	badgeColumns.forEach(({ key, context, isNokColumn }, badgeIndex) => {
 		if (isNokColumn) nokKeys.add(key);
 
 		colorMap.set(
@@ -230,10 +249,8 @@ export const createColorMap = (
 				? getColorFromContext(context)
 				: isNokColumn
 				? NOK_BADGE_CLASS.nok
-				: `bg-badge-${badgeIndex}`
+				: `bg-badge-${washes[badgeIndex % washes.length]}`
 		);
-
-		badgeIndex += 1;
 	});
 
 	return { getColorByKey, getCellColor };
