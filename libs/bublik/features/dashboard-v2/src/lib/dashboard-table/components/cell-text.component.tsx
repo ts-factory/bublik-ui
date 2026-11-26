@@ -5,10 +5,14 @@ import { useLayoutEffect, useState } from 'react';
 import { cn, Markdown } from '@/shared/tailwind-ui';
 import { DescriptionCell } from '@/bublik/features/result-classification';
 
+import { CellCardRunLink } from './cell-card-link.component';
+
 export interface CellTextProps {
 	value: string | number;
 	/** The column's name; heads the popover a cut value opens. */
 	heading?: string;
+	/** The row's run; the popover's header links to it. */
+	runId?: number;
 	className?: string;
 }
 
@@ -46,14 +50,16 @@ function useWasClipped(node: HTMLElement | null): boolean {
  * through a `comment` meta category, is rendered inline, with a heading in
  * bold. A value the cell cannot show whole, because the column cuts it or it
  * runs over several lines, opens in full over the cell on click, as an
- * issue's description does in the issues table.
+ * issue's description does in the issues table. The popover is headed by the
+ * column's name, with a link to the row's run at the header's right end; a cut
+ * badge shows the same card on hover (see `CellLink`).
  */
 export const CellText = (props: CellTextProps) => (
 	// A new value starts unmeasured.
 	<CellTextLine key={String(props.value)} {...props} />
 );
 
-function CellTextLine({ value, heading, className }: CellTextProps) {
+function CellTextLine({ value, heading, runId, className }: CellTextProps) {
 	const text = String(value);
 	const [line, setLine] = useState<HTMLElement | null>(null);
 	const wasClipped = useWasClipped(line);
@@ -64,11 +70,21 @@ function CellTextLine({ value, heading, className }: CellTextProps) {
 	if (wasClipped || text.trim().includes('\n')) {
 		return (
 			// The trigger pads itself for its hover wash; the negative margin
-			// keeps the text where the other cells start theirs.
-			<div className={cn('min-w-0 w-[calc(100%+0.75rem)] -mx-1.5', className)}>
+			// keeps the text where the other cells start theirs. Stretched over
+			// the row's height, so the wash fills the row instead of a band
+			// around the text.
+			<div
+				className={cn(
+					'flex self-stretch min-w-0 w-[calc(100%+0.75rem)] -mx-1.5',
+					className
+				)}
+			>
 				<DescriptionCell
 					value={text}
 					title={heading ?? ''}
+					action={
+						runId !== undefined ? <CellCardRunLink runId={runId} /> : null
+					}
 					overlay
 					expandLabel="Show full text"
 					lineClassName={lineClassName}

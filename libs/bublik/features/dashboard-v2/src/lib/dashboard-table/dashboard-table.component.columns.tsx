@@ -100,7 +100,9 @@ export const createColumns = (
 				const value = api.getValue<string | undefined>();
 
 				if (Array.isArray(cell)) {
-					return <CellList data={cell} />;
+					return (
+						<CellList data={cell} heading={name} runId={rowContext.run_id} />
+					);
 				}
 
 				if (key === 'progress' && value) {
@@ -123,6 +125,7 @@ export const createColumns = (
 							cellKey={key}
 							bgColor={map.getCellColor(key, cell.value, isRowError(api.row))}
 							hint={payload[key]}
+							heading={name}
 						/>
 					);
 				}
@@ -133,6 +136,7 @@ export const createColumns = (
 					<CellText
 						value={value}
 						heading={name}
+						runId={rowContext.run_id}
 						className={cn(hasBadges && align === 'left' && 'px-2')}
 					/>
 				);

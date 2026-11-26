@@ -26,7 +26,7 @@ vi.mock('@/icons', () => {
 		<svg data-icon={name} {...props} />;
 
 	return {
-		ChevronDown: icon('ChevronDown'),
+		ArrowShortTop: icon('ArrowShortTop'),
 		ExternalLink: icon('ExternalLink'),
 		SortArrow: icon('SortArrow')
 	};

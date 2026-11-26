@@ -61,7 +61,9 @@ export const createLegacyColumns = (
 				const value = api.getValue<string | undefined>();
 
 				if (Array.isArray(cell)) {
-					return <CellList data={cell} />;
+					return (
+						<CellList data={cell} heading={name} runId={rowContext.run_id} />
+					);
 				}
 
 				if (key === 'progress' && value) {
@@ -79,13 +81,16 @@ export const createLegacyColumns = (
 							cellKey={key}
 							bgColor={map.getCellColor(key, cell.value, isRowError(api.row))}
 							hint={payload[key]}
+							heading={name}
 						/>
 					);
 				}
 
 				if (!value) return null;
 
-				return <CellText value={value} heading={name} />;
+				return (
+					<CellText value={value} heading={name} runId={rowContext.run_id} />
+				);
 			},
 			meta: { style }
 		};

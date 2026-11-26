@@ -7,6 +7,10 @@ export * from './classification-badges.component';
 export * from './facet-badges.component';
 export {
 	DescriptionBlock,
-	DescriptionCell
+	DescriptionCell,
+	DescriptionPanel,
+	DESCRIPTION_SURFACE_CLASS,
+	overlayOffsets,
+	useElementHeight
 } from './description-cell.component';
 export type { DescriptionBlockProps } from './description-cell.component';

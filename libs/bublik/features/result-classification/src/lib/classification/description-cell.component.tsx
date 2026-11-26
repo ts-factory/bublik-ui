@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2026 OKTET LTD */
-import { ReactNode, forwardRef, useLayoutEffect, useState } from 'react';
+import { ReactNode, Ref, forwardRef, useLayoutEffect, useState } from 'react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import {
@@ -31,6 +31,11 @@ interface DescriptionCellProps {
 	issueId?: number;
 	/** A closed issue's key is struck through in the popover. */
 	closed?: boolean;
+	/**
+	 * Sits at the right end of the popover's header, e.g. a link to what the
+	 * text belongs to.
+	 */
+	action?: ReactNode;
 	/**
 	 * Open the popover over the text instead of beside it, so the text stays
 	 * where it was read, as the run table's Objective column does.
@@ -126,6 +131,78 @@ function useScrollbarGutter(node: HTMLElement | null): number {
 	return gutter;
 }
 
+interface DescriptionPanelProps
+	extends Pick<
+		DescriptionCellProps,
+		'title' | 'bugKey' | 'bugUrl' | 'issueId' | 'closed' | 'action'
+	> {
+	headerRef?: Ref<HTMLDivElement>;
+	scrollerRef?: Ref<HTMLDivElement>;
+	/** The text, already rendered. */
+	children: ReactNode;
+}
+
+/**
+ * The surface a description is shown on, wherever it opens: capped at
+ * Tailwind's `max-w-4xl` (56rem), and inside the viewport, wide enough for a
+ * log excerpt, narrow enough to read.
+ */
+const DESCRIPTION_SURFACE_CLASS =
+	'flex flex-col bg-bg-elevated shadow-popover rounded-lg p-1 max-w-[min(56rem,90vw)] outline-none';
+
+/**
+ * What that surface holds: a header naming what the text belongs to, with
+ * `action` at its right end, and the text below it. Only the text scrolls.
+ * Other cards that show a whole value are built from it, so there is one way
+ * a cut value looks; the dashboard's card for a cut badge is one.
+ */
+function DescriptionPanel({
+	title,
+	bugKey,
+	bugUrl,
+	issueId,
+	closed,
+	action,
+	headerRef,
+	scrollerRef,
+	children
+}: DescriptionPanelProps) {
+	return (
+		<>
+			{/* Headed like a GitHub issue: the title, then its key as the Key
+			    column shows it. */}
+			<div
+				ref={headerRef}
+				className="flex flex-wrap items-center px-2 py-1.5 gap-x-2 gap-y-1 shrink-0"
+			>
+				<h2 className="text-sm font-semibold leading-5 break-words text-text-primary">
+					{title}
+				</h2>
+				{issueId !== undefined ? (
+					<BugKeyChip
+						bugKey={bugKey ?? null}
+						bugUrl={bugUrl ?? null}
+						issueId={issueId}
+						fallback={`#${issueId}`}
+						closed={closed}
+					/>
+				) : null}
+				{action ? (
+					<div className="flex items-center gap-1 pl-2 ml-auto">{action}</div>
+				) : null}
+			</div>
+			<Separator className="h-px my-1 shrink-0" />
+			<div
+				ref={scrollerRef}
+				className="min-h-0 overflow-auto [scrollbar-gutter:stable]"
+				data-testid="description-popover-body"
+			>
+				{children}
+			</div>
+		</>
+	);
+}
+
 /**
  * The full description, headed by the issue it belongs to. Only the text
  * scrolls; the heading stays in view above it.
@@ -148,6 +225,7 @@ function DescriptionPopover({
 	bugUrl,
 	issueId,
 	closed,
+	action,
 	overlay,
 	anchor,
 	wrapsWithAnchor
@@ -161,45 +239,26 @@ function DescriptionPopover({
 	const gutter = useScrollbarGutter(overlay ? scroller : null);
 
 	const body = (
-		<>
-			{/* Headed like a GitHub issue: the title, then its key as the Key
-			    column shows it. */}
-			<div
-				ref={setHeader}
-				className="flex flex-wrap items-center px-2 py-1.5 gap-x-2 gap-y-1 shrink-0"
-			>
-				<h2 className="text-sm font-semibold leading-5 break-words text-text-primary">
-					{title}
-				</h2>
-				{issueId !== undefined ? (
-					<BugKeyChip
-						bugKey={bugKey ?? null}
-						bugUrl={bugUrl ?? null}
-						issueId={issueId}
-						fallback={`#${issueId}`}
-						closed={closed}
-					/>
-				) : null}
-			</div>
-			<Separator className="h-px my-1 shrink-0" />
-			<div
-				ref={setScroller}
-				className="min-h-0 overflow-auto [scrollbar-gutter:stable]"
-				data-testid="description-popover-body"
-			>
-				<Markdown breaks className={`p-2 ${DESCRIPTION_MARKDOWN_CLASS}`}>
-					{text}
-				</Markdown>
-			</div>
-		</>
+		<DescriptionPanel
+			title={title}
+			bugKey={bugKey}
+			bugUrl={bugUrl}
+			issueId={issueId}
+			closed={closed}
+			action={action}
+			headerRef={setHeader}
+			scrollerRef={setScroller}
+		>
+			<Markdown breaks className={`p-2 ${DESCRIPTION_MARKDOWN_CLASS}`}>
+				{text}
+			</Markdown>
+		</DescriptionPanel>
 	);
 
-	// Capped at Tailwind's `max-w-4xl` (56rem), and inside the viewport: wide
-	// enough for a log excerpt, narrow enough to read. An overlay sizes itself
-	// instead (see its `style`). No taller than the room Radix finds on its side,
-	// so the text scrolls rather than running off screen.
-	const className =
-		'flex flex-col bg-bg-elevated shadow-popover rounded-lg p-1 max-h-[min(60vh,var(--radix-popover-content-available-height))] max-w-[min(56rem,90vw)] outline-none';
+	// An overlay sizes itself instead (see its `style`). No taller than the
+	// room Radix finds on its side, so the text scrolls rather than running off
+	// screen.
+	const className = `${DESCRIPTION_SURFACE_CLASS} max-h-[min(60vh,var(--radix-popover-content-available-height))]`;
 
 	if (!overlay) {
 		return (
@@ -274,6 +333,11 @@ const DescriptionTextAnchor = forwardRef<
 );
 DescriptionTextAnchor.displayName = 'DescriptionTextAnchor';
 
+/** Shown on hover over text that opens: the arrow the sidebar's menus open by. */
+const ExpandArrow = () => (
+	<Icon name="ArrowShortTop" size={18} className="rotate-180 text-primary" />
+);
+
 /** Opens or closes a fenced code block; a marker, not a line of text. */
 const CODE_FENCE = /^(```|~~~)/;
 
@@ -338,7 +402,7 @@ function DescriptionCell({
 					<span className="absolute top-0 right-0 flex items-center h-full transition-opacity opacity-0 group-hover:opacity-100">
 						<span className="w-6 h-full bg-gradient-to-r from-transparent to-primary-wash" />
 						<span className="grid h-full pr-1.5 place-items-center bg-primary-wash">
-							<Icon name="ChevronDown" size={16} className="text-primary" />
+							<ExpandArrow />
 						</span>
 					</span>
 				</button>
@@ -437,7 +501,7 @@ function DescriptionBlock({
 				>
 					{content}
 					<span className="absolute grid transition-opacity rounded opacity-0 bottom-1 right-1.5 place-items-center bg-primary-wash group-hover:opacity-100">
-						<Icon name="ChevronDown" size={16} className="text-primary" />
+						<ExpandArrow />
 					</span>
 				</button>
 			</PopoverTrigger>
@@ -471,7 +535,14 @@ const DESCRIPTION_COLUMN_META = {
 export {
 	DescriptionBlock,
 	DescriptionCell,
+	DescriptionPanel,
 	DESCRIPTION_COLUMN_META,
-	overlayOffsets
+	DESCRIPTION_SURFACE_CLASS,
+	overlayOffsets,
+	useElementHeight
 };
-export type { DescriptionBlockProps, DescriptionCellProps };
+export type {
+	DescriptionBlockProps,
+	DescriptionCellProps,
+	DescriptionPanelProps
+};
