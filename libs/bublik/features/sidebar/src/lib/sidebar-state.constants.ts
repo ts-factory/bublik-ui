@@ -133,3 +133,8 @@ export const SHARED_SIDEBAR_KEYS = {
 export const DASHBOARD_SIDEBAR_KEYS = {
 	LAST_URL: `${SIDEBAR_PREFIX}.dashboard.lastUrl`
 } as const;
+
+/** The chat thread last open, so the Chat link reopens it. */
+export const CHAT_SIDEBAR_KEYS = {
+	LAST_URL: `${SIDEBAR_PREFIX}.chat.lastUrl`
+} as const;
