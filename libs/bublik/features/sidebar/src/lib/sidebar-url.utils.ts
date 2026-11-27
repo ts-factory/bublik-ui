@@ -11,6 +11,7 @@ import { SIDEBAR_PREFIX } from '@/shared/types';
 import { transformUrlSearch } from '@/shared/utils';
 
 import {
+	CHAT_SIDEBAR_KEYS,
 	DASHBOARD_SIDEBAR_KEYS,
 	HISTORY_MODE_DEFAULT,
 	ISSUES_MODE_DEFAULT,
@@ -138,6 +139,9 @@ export const SIDEBAR_KEY_REGISTRY: readonly SidebarKeyConfig[] = [
 		defaultValue: RUNS_CHARTS_DEFAULT_URL
 	},
 	{ key: RUNS_SIDEBAR_KEYS.LAST_LIST, alias: 'rll', pathname: '/runs' },
+	// `/chat/:threadId` is dynamic, so the URL is stored whole. It is short
+	// and fixed-length, so it is pruned after the longer page URLs.
+	{ key: CHAT_SIDEBAR_KEYS.LAST_URL, alias: 'chu', isUrl: true },
 	{
 		key: HISTORY_SIDEBAR_KEYS.LAST_MODE,
 		alias: 'hm',
