@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* SPDX-FileCopyrightText: 2024-2026 OKTET LTD */
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -31,11 +31,19 @@ globalThis.ResizeObserver ??= class {
 
 const PROJECTS = [
 	{ id: 1, name: 'tsf/dpdk-ethdev' },
-	{ id: 2, name: 'tsf/net-drv' }
+	{ id: 2, name: 'tsf/net-drv' },
+	{ id: 3, name: 'arctic' }
 ];
+
+const listedIds = () =>
+	screen
+		.getAllByTestId('project-picker-option')
+		.map((option) => option.dataset['projectId']);
 
 function renderSwitcher(props: Partial<ProjectSwitcherProps> = {}) {
 	const onSelect = vi.fn();
+	const onSortChange = vi.fn();
+	const onReorder = vi.fn();
 
 	render(
 		<MemoryRouter>
@@ -47,6 +55,9 @@ function renderSwitcher(props: Partial<ProjectSwitcherProps> = {}) {
 					search=""
 					onSearchChange={vi.fn()}
 					onSelect={onSelect}
+					sort="custom"
+					onSortChange={onSortChange}
+					onReorder={onReorder}
 					isSidebarOpen
 					renderMeta={() => null}
 					{...props}
@@ -55,18 +66,20 @@ function renderSwitcher(props: Partial<ProjectSwitcherProps> = {}) {
 		</MemoryRouter>
 	);
 
-	return { onSelect };
+	return { onSelect, onSortChange, onReorder };
 }
 
 describe('ProjectSwitcher', () => {
 	it('lists every project after the all-projects option', () => {
 		renderSwitcher();
 
-		expect(
-			screen
-				.getAllByTestId('project-picker-option')
-				.map((option) => option.dataset['projectId'])
-		).toEqual(['all', '1', '2']);
+		expect(listedIds()).toEqual(['all', '1', '2', '3']);
+	});
+
+	it('lists the projects in the order it is given', () => {
+		renderSwitcher({ projects: [PROJECTS[2], PROJECTS[0], PROJECTS[1]] });
+
+		expect(listedIds()).toEqual(['all', '3', '1', '2']);
 	});
 
 	it('marks the current project and names it on the trigger', () => {
@@ -95,6 +108,112 @@ describe('ProjectSwitcher', () => {
 	it('titles the list Results during a search', () => {
 		renderSwitcher({ search: 'net' });
 		expect(screen.getByText('Results')).toBeTruthy();
+	});
+
+	it('narrows the list to the names a search is part of', () => {
+		renderSwitcher({ search: 'TSF' });
+
+		expect(listedIds()).toEqual(['1', '2']);
+	});
+
+	it('says so when a search matches no project', () => {
+		renderSwitcher({ search: 'nope' });
+
+		expect(screen.queryAllByTestId('project-picker-option')).toEqual([]);
+		expect(screen.getByText('No project matches “nope”')).toBeTruthy();
+	});
+
+	it('names the order on its button and offers the others', async () => {
+		const { onSortChange } = renderSwitcher({ sort: 'last-run' });
+		const order = screen.getByTestId('project-picker-order');
+
+		expect(order.textContent).toBe('Last Run');
+
+		await userEvent.click(order);
+
+		const menu = within(screen.getByTestId('project-picker-order-menu'));
+
+		expect(
+			menu.getAllByRole('menuitemradio').map((item) => item.textContent)
+		).toEqual(['Custom Order', 'Name', 'Last Run', 'Newest First']);
+		expect(
+			menu
+				.getByRole('menuitemradio', { name: 'Last Run' })
+				.getAttribute('aria-checked')
+		).toBe('true');
+
+		await userEvent.click(menu.getByRole('menuitemradio', { name: 'Name' }));
+
+		expect(onSortChange).toHaveBeenCalledWith('name');
+	});
+
+	it('gives every project a drag handle, whatever the order', () => {
+		renderSwitcher({ sort: 'name' });
+
+		expect(screen.getAllByTestId('project-picker-drag-handle')).toHaveLength(
+			PROJECTS.length
+		);
+	});
+
+	it('has no drag handles during a search', () => {
+		renderSwitcher({ search: 'tsf' });
+		expect(screen.queryByTestId('project-picker-drag-handle')).toBeNull();
+	});
+
+	it('moves the highlighted project with Alt and an arrow', async () => {
+		const { onReorder } = renderSwitcher();
+		const search = screen.getByPlaceholderText('Find project…');
+
+		// From the all-projects row, which is highlighted first, to project 1
+		await userEvent.type(search, '{ArrowDown}');
+		await userEvent.type(search, '{Alt>}{ArrowDown}{/Alt}');
+
+		expect(onReorder).toHaveBeenLastCalledWith([2, 1, 3]);
+
+		await userEvent.type(search, '{Alt>}{ArrowUp}{/Alt}');
+
+		// Already first: the order it reports is the one it has
+		expect(onReorder).toHaveBeenLastCalledWith([1, 2, 3]);
+	});
+
+	it('leaves the all-projects row where it is', async () => {
+		const { onReorder } = renderSwitcher();
+
+		await userEvent.type(
+			screen.getByPlaceholderText('Find project…'),
+			'{Alt>}{ArrowDown}{/Alt}'
+		);
+
+		expect(onReorder).not.toHaveBeenCalled();
+	});
+
+	it('does not move a project during a search', async () => {
+		const { onReorder } = renderSwitcher({ search: 'tsf' });
+		const search = screen.getByPlaceholderText('Find project…');
+
+		await userEvent.type(search, '{Alt>}{ArrowDown}{/Alt}');
+
+		expect(onReorder).not.toHaveBeenCalled();
+	});
+
+	it('does not move a project from the order button or its menu', async () => {
+		const { onReorder } = renderSwitcher();
+
+		// Project 1 is highlighted, so there is a row the keys could move
+		await userEvent.type(
+			screen.getByPlaceholderText('Find project…'),
+			'{ArrowDown}'
+		);
+		screen.getByTestId('project-picker-order').focus();
+		// Opens the menu, as the arrow alone does on its button
+		await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}');
+
+		expect(screen.getByTestId('project-picker-order-menu')).toBeTruthy();
+		expect(onReorder).not.toHaveBeenCalled();
+
+		await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}');
+
+		expect(onReorder).not.toHaveBeenCalled();
 	});
 
 	it('leaves the project actions out without permission', () => {

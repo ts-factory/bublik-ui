@@ -32,6 +32,15 @@ class ProjectPicker {
 		return this.list().getByTestId('project-picker-actions');
 	}
 
+	private orderButton(): Locator {
+		return this.list().getByTestId('project-picker-order');
+	}
+
+	/** Shown while the pointer is over its row, in the check mark's place. */
+	private dragHandle(projectId: number): Locator {
+		return this.option(projectId).getByTestId('project-picker-drag-handle');
+	}
+
 	/** The switcher renders, and takes P, once the projects have loaded. */
 	async expectReady(): Promise<void> {
 		await expect(this.trigger()).toBeVisible({ timeout: 15_000 });
@@ -77,6 +86,46 @@ class ProjectPicker {
 		await this.searchInput().fill(text);
 	}
 
+	/** `label` is an entry of the order menu, e.g. "Newest First". */
+	async orderBy(label: string): Promise<void> {
+		await this.open();
+		await this.orderButton().click();
+		// The menu is portalled out of the popover, like the popover itself
+		await this.page
+			.getByTestId('project-picker-order-menu')
+			.getByRole('menuitemradio', { name: label, exact: true })
+			.click();
+	}
+
+	/**
+	 * Drops a project on another one's row: it lands before a row above it and
+	 * after a row below it. Moved in steps, as a drag only starts once the
+	 * pointer has travelled and only follows the moves it is sent.
+	 */
+	async dragOnto(projectId: number, targetProjectId: number): Promise<void> {
+		await this.open();
+		await this.option(projectId).hover();
+
+		const handle = await this.dragHandle(projectId).boundingBox();
+		const target = await this.option(targetProjectId).boundingBox();
+
+		if (!handle || !target) {
+			throw new Error('The project rows to drag between are not laid out.');
+		}
+
+		const x = handle.x + handle.width / 2;
+		const fromY = handle.y + handle.height / 2;
+		const toY = target.y + target.height / 2;
+
+		await this.page.mouse.move(x, fromY);
+		await this.page.mouse.down();
+		await this.page.mouse.move(x, fromY + Math.sign(toY - fromY) * 10, {
+			steps: 4
+		});
+		await this.page.mouse.move(x, toY, { steps: 12 });
+		await this.page.mouse.up();
+	}
+
 	async manage(): Promise<void> {
 		await this.open();
 		await this.actions().getByRole('link', { name: 'Manage' }).click();
@@ -108,6 +157,25 @@ class ProjectPicker {
 		await expect(
 			this.list().locator('[data-testid="project-picker-option"]')
 		).toHaveCount(0);
+	}
+
+	/** The projects from the top down; the all-projects row is not one. */
+	async expectProjectOrder(projectIds: number[]): Promise<void> {
+		await expect
+			.poll(() =>
+				this.list()
+					.locator(
+						'[data-testid="project-picker-option"]:not([data-project-id="all"])'
+					)
+					.evaluateAll((rows) =>
+						rows.map((row) => Number((row as HTMLElement).dataset['projectId']))
+					)
+			)
+			.toEqual(projectIds);
+	}
+
+	async expectOrderLabel(label: string): Promise<void> {
+		await expect(this.orderButton()).toHaveText(label);
 	}
 
 	async expectActions(): Promise<void> {

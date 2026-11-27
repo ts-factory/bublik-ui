@@ -5,7 +5,7 @@ import { test } from './support/test';
 import { ConfigPage } from './pages/config-page';
 import { ProjectPicker } from './pages/project-picker';
 import { RunsPage } from './pages/runs-page';
-import { projectIdByName } from './support/e2e-data';
+import { listProjects, projectIdByName } from './support/e2e-data';
 import { and, but, given, then, when } from './support/gherkin';
 import { requireCapability } from './support/capabilities';
 import { requireManifest } from './support/manifest';
@@ -55,6 +55,82 @@ test.describe('Project switcher', () => {
 		);
 		await then('the switcher says no project matches', () =>
 			picker.expectNoMatch(UNMATCHED_NAME)
+		);
+	});
+
+	// eslint-disable-next-line playwright/expect-expect
+	test('Dragging a project in the switcher keeps its place after a reload', async ({
+		page,
+		request
+	}) => {
+		const runsPage = new RunsPage(page);
+		const picker = new ProjectPicker(page);
+		let dragged: number[] = [];
+
+		await given('the server lists at least two projects', async () => {
+			const ids = requireCapability(
+				await listProjects(request).then((projects) =>
+					projects.length >= 2 ? projects.map((project) => project.id) : null
+				),
+				'Fewer than two projects are registered.'
+			);
+
+			dragged = [ids[ids.length - 1], ...ids.slice(0, -1)];
+			await runsPage.goto();
+		});
+		await when(
+			'I open the project switcher and drag the last project onto the first',
+			() => picker.dragOnto(dragged[0], dragged[1])
+		);
+		await then('the dragged project is listed first', () =>
+			picker.expectProjectOrder(dragged)
+		);
+		await and("the switcher's order reads Custom Order", () =>
+			picker.expectOrderLabel('Custom Order')
+		);
+		await when('I reload the page and open the project switcher', async () => {
+			await page.reload();
+			await picker.open();
+		});
+		await then('the dragged project is still listed first', () =>
+			picker.expectProjectOrder(dragged)
+		);
+	});
+
+	// eslint-disable-next-line playwright/expect-expect
+	test('Ordering the project switcher by Newest First lists the newest project first', async ({
+		page,
+		request
+	}) => {
+		const runsPage = new RunsPage(page);
+		const picker = new ProjectPicker(page);
+		let newestFirst: number[] = [];
+
+		await given('the server lists at least two projects', async () => {
+			const ids = (await listProjects(request)).map((project) => project.id);
+
+			newestFirst = requireCapability(
+				ids.length >= 2 ? [...ids].sort((a, b) => b - a) : null,
+				'Fewer than two projects are registered.'
+			);
+			await runsPage.goto();
+		});
+		await when('I open the project switcher and order it by Newest First', () =>
+			picker.orderBy('Newest First')
+		);
+		await then('the projects are listed from the newest to the oldest', () =>
+			picker.expectProjectOrder(newestFirst)
+		);
+		await when('I drag the first project onto the second', () =>
+			picker.dragOnto(newestFirst[0], newestFirst[1])
+		);
+		await then('the two projects have swapped places', () => {
+			const [first, second, ...rest] = newestFirst;
+
+			return picker.expectProjectOrder([second, first, ...rest]);
+		});
+		await and("the switcher's order reads Custom Order", () =>
+			picker.expectOrderLabel('Custom Order')
 		);
 	});
 

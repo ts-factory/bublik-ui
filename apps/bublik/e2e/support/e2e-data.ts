@@ -405,16 +405,23 @@ async function reportFixture(
 	};
 }
 
+/** Every project, in the order the server lists them. */
+async function listProjects(
+	request: APIRequestContext
+): Promise<{ id: number; name: string }[]> {
+	const response = await request.get('/api/v2/projects/');
+	expect(response.ok()).toBeTruthy();
+
+	return (await response.json()) as { id: number; name: string }[];
+}
+
 async function projectIdByName(
 	request: APIRequestContext,
 	name: string
 ): Promise<number | null> {
-	const response = await request.get('/api/v2/projects/');
-	expect(response.ok()).toBeTruthy();
+	const projects = await listProjects(request);
 
-	const payload = (await response.json()) as { id: number; name: string }[];
-
-	return payload.find((project) => project.name === name)?.id ?? null;
+	return projects.find((project) => project.name === name)?.id ?? null;
 }
 
 async function dashboardResolvedDate(
@@ -459,6 +466,7 @@ export {
 	firstResultNode,
 	getTree,
 	importedRunId,
+	listProjects,
 	longLogNode,
 	paginatedLogNode,
 	projectIdByName,

@@ -10,6 +10,7 @@ import { useSidebar } from '@/shared/tailwind-ui';
 import { CreateProjectModal } from '../create-project-modal';
 import { useProjectSearch } from '../hooks';
 import { mergeStringUrlWithSidebarState } from '../lib/sidebar-params.utils';
+import { useProjectOrder } from './project-order.hooks';
 import { ProjectSwitcher } from './project-switcher.component';
 import { ProjectLastRunContainer } from './project-last-run.container';
 
@@ -32,6 +33,7 @@ function ProjectPickerContainer({
 	// Outside the popover: closing it would unmount a dialog opened inside.
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const { projectIds, setProjectsIds } = useProjectSearch();
+	const order = useProjectOrder(projects);
 	const navigate = useNavigate();
 	const location = useLocation();
 	// The run report already takes P to toggle its pair-gain columns.
@@ -71,13 +73,16 @@ function ProjectPickerContainer({
 	return (
 		<>
 			<ProjectSwitcher
-				projects={projects}
+				projects={order.projects}
 				currentProject={currentProject}
 				isOpen={isOpen}
 				onOpenChange={handleOpenChange}
 				search={search}
 				onSearchChange={setSearch}
 				onSelect={handleSelect}
+				sort={order.sort}
+				onSortChange={order.setSort}
+				onReorder={order.setOrder}
 				isSidebarOpen={isSidebarOpen}
 				renderMeta={(projectId) => (
 					<ProjectLastRunContainer projectId={projectId} />
