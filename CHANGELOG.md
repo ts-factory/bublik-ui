@@ -1,5 +1,25 @@
 
 
+### [2.20.1](https://github.com/ts-factory/bublik-ui/compare/v2.20.0...v2.20.1) (2026-11-27)
+
+
+### 🚀 New Feature
+
+* **dashboard:** open cut text cells like an issue description ([a566221](https://github.com/ts-factory/bublik-ui/commit/a56622166a71eb0d42c55079bd8a697f733a9247))
+* **import:** move Revoke next to Try Again with a destructive fill ([0bad9f9](https://github.com/ts-factory/bublik-ui/commit/0bad9f93c8107f23667a2bd80a16037c2c7487b5))
+* **projects:** reorder and sort the projects in the switcher ([3a5d30f](https://github.com/ts-factory/bublik-ui/commit/3a5d30f9aea4be8c1f0e974f136a999de5430985))
+* **runs:** show the run comment on the runs table ([1f79a27](https://github.com/ts-factory/bublik-ui/commit/1f79a2759fe0f64bba366d652b10c993679c54e7))
+* **run:** write the run comment in markdown, shown like an issue description ([1a19631](https://github.com/ts-factory/bublik-ui/commit/1a196312446aed6e5f9f0394f7d8e6fc70cc9c2e))
+
+
+### 🐛 Bug Fix
+
+* **dashboard:** colour failed run badges red ([462a90f](https://github.com/ts-factory/bublik-ui/commit/462a90fc9bc88e55795958f5daffb18acf9dacaa))
+* **dashboard:** fill NOK badges like the run page, outline a 0 ([0380bb5](https://github.com/ts-factory/bublik-ui/commit/0380bb55c855abd0da302f3b35c9ab52a33417be))
+* **dashboard:** keep red for the NOK column ([b0014c0](https://github.com/ts-factory/bublik-ui/commit/b0014c05d1b80edf5d4c0f8fd68c0865d51a0897))
+* **dashboard:** line up Executed percentages beside the progress icon ([d7eaf1e](https://github.com/ts-factory/bublik-ui/commit/d7eaf1ea20d4f14594740979473d79affafe8f63))
+* **dashboard:** show a cut cell whole in one card ([86166ea](https://github.com/ts-factory/bublik-ui/commit/86166ea409f26cc2bf4457618342a41a08a60010))
+
 ## [2.20.0](https://github.com/ts-factory/bublik-ui/compare/v2.19.1...v2.20.0) (2026-11-19)
 
 

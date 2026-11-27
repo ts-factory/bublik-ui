@@ -1,7 +1,7 @@
 {
-	"date": "2026.11.19",
-	"summary": "fix(history): keep the result card's width and height steady",
-	"revision": "626596cc1",
-	"branch": "release-2.20.0",
-	"latestTag": "v2.20.0"
+	"date": "2026.11.27",
+	"summary": "fix(dashboard): show a cut cell whole in one card",
+	"revision": "86166ea40",
+	"branch": "release-2.20.1",
+	"latestTag": "v2.20.1"
 }
